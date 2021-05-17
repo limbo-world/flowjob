@@ -24,21 +24,17 @@ package org.limbo.flowjob.tracker.core.constants;
  */
 public enum JobDispatchType {
 
-    ROUND_ROBIN(1, "轮训"),
+    ROUND_ROBIN(1, "轮询"),
 
     RANDOM(2, "随机"),
 
-    N_TH(3, "第N个"),
+    APPOINT(3, "指定节点"),
 
-    CONSISTENT_HASH(4, "一致性hash"),
+    LEAST_FREQUENTLY_USED(4, "最不经常使用"),
 
-    FAIL_OVER(5, "故障转移"),
+    LEAST_RECENTLY_USED(5, "最近最少使用"),
 
-    BUSY_OVER(6, "忙碌转移"),
-
-    SHARD_BROADCAST(7, "分片广播"),
-
-    MAP_REDUCE(8, "MapReduce"),
+    CONSISTENT_HASH(6, "一致性hash"),
 
     ;
 
