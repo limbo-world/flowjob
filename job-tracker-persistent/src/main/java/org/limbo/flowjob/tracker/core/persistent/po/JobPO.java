@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.messaging;
+package org.limbo.flowjob.tracker.core.persistent.po;
 
 /**
- * 交互响应
- *
  * @author Brozen
- * @since 2021-05-16
+ * @since 2021-05-17
  */
-public class Response<T> {
+public class JobPO {
 
-    private T data;
 
-    private int code;
-
-    private String message;
 
 }

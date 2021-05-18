@@ -14,30 +14,31 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core;
+package org.limbo.flowjob.tracker.core.messaging;
 
-import reactor.core.publisher.Mono;
+import lombok.Data;
 
+import java.io.Serializable;
 
 /**
- * 作业分发节点抽象。
+ * 向worker发送作业后，worker的返回数据
  *
  * @author Brozen
- * @since 2021-05-16
+ * @since 2021-05-17
  */
-public interface JobTracker extends WorkerManager, JobTrackerLifecycle {
+@Data
+public class SendJobResult implements Serializable {
+
+    private static final long serialVersionUID = 5938197072123607724L;
 
     /**
-     * 启动JobTracker
-     * @return 返回可用于关闭JobTracker的Disposable
+     * 作业ID
      */
-    Mono<DisposableJobTracker> start();
+    private String jobId;
 
     /**
-     * 停止JobTracker
-     * @return  返回关闭完成后触发的Mono
+     * worker是否成功接收任务，返回true表明worker接下来会开始执行此作业
      */
-    Mono<JobTracker> stop();
-
+    private Boolean accepted;
 
 }

@@ -17,6 +17,7 @@
 package org.limbo.flowjob.tracker.core;
 
 import org.limbo.flowjob.tracker.core.constants.JobDispatchType;
+import org.limbo.flowjob.tracker.core.dispatcher.JobDispatcher;
 
 import java.util.Collection;
 

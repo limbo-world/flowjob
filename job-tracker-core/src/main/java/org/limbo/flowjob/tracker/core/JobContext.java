@@ -16,8 +16,6 @@
 
 package org.limbo.flowjob.tracker.core;
 
-import java.util.List;
-
 /**
  * 作业执行上下文
  *
@@ -26,20 +24,17 @@ import java.util.List;
  */
 public interface JobContext {
 
-
     /**
      * 获取作业。
      * @return 当前执行中的作业。
      */
     Job getJob();
 
-
     /**
-     * 获取作业属性。
+     * 获取作业属性。作业属性可用于分片作业、MapReduce作业、DAG工作流进行传参
      * @return {@link JobAttributes}
      */
     JobAttributes getJobAttributes();
-
 
     /**
      * 获取执行此作业的worker

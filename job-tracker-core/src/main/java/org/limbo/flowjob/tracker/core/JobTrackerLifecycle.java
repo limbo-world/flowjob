@@ -16,29 +16,38 @@
 
 package org.limbo.flowjob.tracker.core;
 
-import org.limbo.flowjob.tracker.core.exceptions.JobExecuteException;
-
-import java.util.Optional;
+import reactor.core.publisher.Mono;
 
 /**
- * 作业执行器抽象。封装了任务的触发方式：
- * 1. delay
- * 2. fixed interval
- * 3. fixed rate
- * 4. CORN expression
- * 5. DAG schedule
+ * JobTracker声明周期函数
  *
  * @author Brozen
- * @since 2021-05-14
+ * @since 2021-05-17
  */
-public interface JobExecutor {
+public interface JobTrackerLifecycle {
 
     /**
-     * 执行作业。
-     * @param job 待执行的作业
-     * @return 作业执行上下文，当任务不应当被触发时，{@link Optional}中的值为null。
-     * @throws JobExecuteException 当作业执行过程中发生异常时，将抛出异常。
+     * 启动前。
+     * @return start之前触发的Mono，可通过{@link DisposableJobTracker}阻止启动
      */
-    Optional<JobContext> execute(Job job) throws JobExecuteException;
+    Mono<DisposableJobTracker> beforeStart();
+
+    /**
+     * 启动成功后。
+     * @return start之后触发的Mono，可通过{@link DisposableJobTracker}关闭JobTracker
+     */
+    Mono<DisposableJobTracker> afterStart();
+
+    /**
+     * 停止前。
+     * @return 停止前触发的Mono，可以阻塞停止流程
+     */
+    Mono<JobTracker> beforeStop();
+
+    /**
+     * 停止后。
+     * @return 停止后触发的Mono
+     */
+    Mono<JobTracker> afterStop();
 
 }

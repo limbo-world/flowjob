@@ -12,6 +12,7 @@
         <module>job-api</module>
         <module>job-tracker-admin</module>
         <module>job-worker</module>
+        <module>job-tracker-persistent</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -66,6 +67,7 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.reactor>Dysprosium-SR18</project.reactor>
+        <netty>4.1.59.Final</netty>
         <lombok>1.18.16</lombok>
         <slf4j>1.7.30</slf4j>
         <commons.collections4>4.4</commons.collections4>
@@ -73,11 +75,32 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- ProjectReactor -->
+            <!-- BOM -->
+            <dependency>
+                <groupId>org.limbo.flowjob</groupId>
+                <artifactId>job-tracker-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.limbo.flowjob</groupId>
+                <artifactId>job-tracker-persistent</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- ProjectReactor BOM -->
             <dependency>
                 <groupId>io.projectreactor</groupId>
                 <artifactId>reactor-bom</artifactId>
                 <version>${project.reactor}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Netty BOM -->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-bom</artifactId>
+                <version>${netty}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

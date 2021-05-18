@@ -14,30 +14,27 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core;
+package org.limbo.flowjob.tracker.core.messaging;
 
-import reactor.core.publisher.Mono;
-
+import lombok.Data;
 
 /**
- * 作业分发节点抽象。
+ * worker节点上可用的资源，资源有以下三种定义：内存、CPU
  *
  * @author Brozen
- * @since 2021-05-16
+ * @since 2021-05-17
  */
-public interface JobTracker extends WorkerManager, JobTrackerLifecycle {
+@Data
+public class WorkerAvailableResource {
 
     /**
-     * 启动JobTracker
-     * @return 返回可用于关闭JobTracker的Disposable
+     * 可用的CPU核心数。
      */
-    Mono<DisposableJobTracker> start();
+    private float availableCpu;
 
     /**
-     * 停止JobTracker
-     * @return  返回关闭完成后触发的Mono
+     * 可用的内存空间，单位GB。
      */
-    Mono<JobTracker> stop();
-
+    private float availableRam;
 
 }

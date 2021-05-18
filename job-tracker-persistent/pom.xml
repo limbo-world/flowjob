@@ -25,43 +25,12 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>job-tracker-core</artifactId>
+    <artifactId>job-tracker-persistent</artifactId>
     <version>1.0-SNAPSHOT</version>
-
-    <description>tracker核心模块，实现tracker的主要功能</description>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
     </properties>
-
-
-    <dependencies>
-
-        <!-- 内部依赖 -->
-        <dependency>
-            <groupId>org.limbo.flowjob</groupId>
-            <artifactId>job-tracker-persistent</artifactId>
-        </dependency>
-
-        <!-- Reactor -->
-        <dependency>
-            <groupId>io.projectreactor</groupId>
-            <artifactId>reactor-core</artifactId>
-        </dependency>
-
-        <!-- Netty Common 工具包 -->
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-common</artifactId>
-        </dependency>
-
-        <!-- Utils -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
-
-    </dependencies>
 
 </project>

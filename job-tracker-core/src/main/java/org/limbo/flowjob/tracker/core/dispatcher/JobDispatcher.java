@@ -14,37 +14,33 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core;
+package org.limbo.flowjob.tracker.core.dispatcher;
 
-import org.limbo.flowjob.tracker.core.messaging.SendJobResult;
-import org.limbo.flowjob.tracker.core.messaging.WorkerMetric;
+import org.limbo.flowjob.tracker.core.Job;
+import org.limbo.flowjob.tracker.core.JobContext;
 import reactor.core.publisher.Mono;
 
 /**
- * 在Tracker端，作业执行节点的抽象。
+ * 作业分发器。封装了作业分发时，worker的选择规则：
+ * 1. round robin
+ * 2. random
+ * 3. N-th
+ * 4. consistent hash
+ * 5. fail over
+ * 6. busy over
+ * 7. shard broadcast
+ * 8. map reduce
  *
  * @author Brozen
  * @since 2021-05-14
  */
-public interface Worker {
+public interface JobDispatcher {
 
     /**
-     * 返回worker节点ID。
-     * @return worker节点ID
+     * 分发一个作业给worker执行，并返回此作业执行的上下文。
+     * @param job 待分发的作业
+     * @return 作业执行上下文
      */
-    String getId();
-
-    /**
-     * worker节点心跳检测。
-     * @return 返回worker节点的指标信息。
-     */
-    Mono<WorkerMetric> ping();
-
-    /**
-     * 发送一个作业到worker执行。当worker接受此job后，将触发返回的{@link Mono}
-     * @param context 作业执行上下文
-     * @return worker接受job后触发
-     */
-    Mono<SendJobResult> sendJob(JobContext context);
+    Mono<JobContext> dispatch(Job job);
 
 }

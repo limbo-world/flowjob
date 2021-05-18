@@ -16,27 +16,19 @@
 
 package org.limbo.flowjob.tracker.core;
 
+import reactor.core.Disposable;
+
 /**
- * 作业分发器。封装了作业分发时，worker的选择规则：
- * 1. round robin
- * 2. random
- * 3. N-th
- * 4. consistent hash
- * 5. fail over
- * 6. busy over
- * 7. shard broadcast
- * 8. map reduce
+ * 持有JobTracker的上下文信息，并提供用于关闭JobTracker的非阻塞API。
  *
  * @author Brozen
- * @since 2021-05-14
+ * @since 2021-05-17
  */
-public interface JobDispatcher {
+public interface DisposableJobTracker extends Disposable {
 
     /**
-     * 分发一个作业给worker执行，并返回此作业执行的上下文。
-     * @param job 待分发的作业
-     * @return 作业执行上下文
+     * 底层JobTracker
      */
-    JobContext dispatch(Job job);
+    JobTracker jobTracker();
 
 }

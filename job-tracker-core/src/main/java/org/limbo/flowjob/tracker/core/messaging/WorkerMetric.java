@@ -14,30 +14,34 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core;
+package org.limbo.flowjob.tracker.core.messaging;
 
-import reactor.core.publisher.Mono;
+import lombok.Data;
 
+import java.util.List;
 
 /**
- * 作业分发节点抽象。
+ * worker的指标信息
  *
  * @author Brozen
- * @since 2021-05-16
+ * @since 2021-05-17
  */
-public interface JobTracker extends WorkerManager, JobTrackerLifecycle {
+@Data
+public class WorkerMetric {
 
     /**
-     * 启动JobTracker
-     * @return 返回可用于关闭JobTracker的Disposable
+     * worker节点ID
      */
-    Mono<DisposableJobTracker> start();
+    private String id;
 
     /**
-     * 停止JobTracker
-     * @return  返回关闭完成后触发的Mono
+     * worker节点上正在执行中的任务，瞬时态数据，可能并发不安全
      */
-    Mono<JobTracker> stop();
+    private List<JobDescription> executingJobs;
 
+    /**
+     * worker可用的资源
+     */
+    private WorkerAvailableResource availableResource;
 
 }
