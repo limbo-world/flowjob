@@ -14,31 +14,13 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.messaging;
-
-import lombok.Data;
-
-import java.io.Serializable;
+package org.limbo.flowjob.tracker.core.job;
 
 /**
- * 向worker发送作业后，worker的返回数据
+ * TODO
  *
  * @author Brozen
- * @since 2021-05-17
+ * @since 2021-05-19
  */
-@Data
-public class SendJobResult implements Serializable {
-
-    private static final long serialVersionUID = 5938197072123607724L;
-
-    /**
-     * 作业ID
-     */
-    private String jobId;
-
-    /**
-     * worker是否成功接收作业，返回true表明worker接下来会开始执行此作业
-     */
-    private Boolean accepted;
-
+public interface DAGJob extends Job {
 }

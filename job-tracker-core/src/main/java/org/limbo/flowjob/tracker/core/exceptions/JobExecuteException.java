@@ -17,7 +17,7 @@
 package org.limbo.flowjob.tracker.core.exceptions;
 
 import lombok.Getter;
-import org.limbo.flowjob.tracker.core.Job;
+import org.limbo.flowjob.tracker.core.job.Job;
 
 /**
  * 作业执行异常基类

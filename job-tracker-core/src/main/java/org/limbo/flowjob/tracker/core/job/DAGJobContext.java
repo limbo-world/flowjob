@@ -14,33 +14,27 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.constants;
+package org.limbo.flowjob.tracker.core.job;
+
+import reactor.core.publisher.Flux;
 
 /**
+ * TODO
+ *
  * @author Brozen
- * @since 2021-05-16
+ * @since 2021-05-19
  */
-public enum JobTriggerType {
+public interface DAGJobContext extends JobContext {
 
-    DELAY(1, "固定延迟"),
+    /**
+     * 关闭子上下文，此上下文对应的DAG作业中的子作业执行完成后，会调用此方法。
+     * @return 返回子上下文
+     */
+    JobContext closeChildContext(String childContextId);
 
-    FIXED_RATE(2, "固定速度"),
+    /**
+     * 此上下文作业的子作业上下文被关闭时的回调监听。
+     */
+    Flux<JobContext> onChildContextClosed();
 
-    FIXED_INTERVAL(3, "固定间隔时间"),
-
-    CORN(4, "CORN表达式"),
-
-    DAG(5, "DAG工作流"),
-
-    ;
-
-
-    public final int type;
-
-    public final String desc;
-
-    JobTriggerType(int type, String desc) {
-        this.type = type;
-        this.desc = desc;
-    }
 }

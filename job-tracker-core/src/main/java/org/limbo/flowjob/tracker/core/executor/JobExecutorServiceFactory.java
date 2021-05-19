@@ -14,34 +14,23 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.messaging;
+package org.limbo.flowjob.tracker.core.executor;
 
-import lombok.Data;
-
-import java.util.List;
+import org.limbo.flowjob.tracker.core.job.JobContext;
 
 /**
- * worker的指标信息
+ * 作业执行器工厂类
  *
  * @author Brozen
- * @since 2021-05-17
+ * @since 2021-05-19
  */
-@Data
-public class WorkerMetric {
+public interface JobExecutorServiceFactory {
 
     /**
-     * worker节点ID
+     * 作业执行器工厂方法，根据上下文生成一个新的作业执行器。
+     * @param context 作业上下文
+     * @return 作业执行器
      */
-    private String id;
-
-    /**
-     * worker节点上正在执行中的任务，瞬时态数据，可能并发不安全
-     */
-    private List<JobDescription> executingJobs;
-
-    /**
-     * worker可用的资源
-     */
-    private WorkerAvailableResource availableResource;
+    JobExecutorService newExecutorService(JobContext context);
 
 }

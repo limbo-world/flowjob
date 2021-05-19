@@ -14,27 +14,24 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.messaging;
+package org.limbo.flowjob.tracker.core.executor;
 
-import lombok.Data;
+import org.limbo.flowjob.tracker.core.job.JobContext;
+import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 
 /**
- * worker节点上可用的资源，资源有以下三种定义：内存、CPU
+ * 作业执行器抽象，封装了作业的下发流程。
  *
  * @author Brozen
- * @since 2021-05-17
+ * @since 2021-05-14
  */
-@Data
-public class WorkerAvailableResource {
+public interface JobExecutorService {
 
     /**
-     * 可用的CPU核心数。
+     * 执行作业。
+     * @param tracker tracker节点
+     * @param context 待执行的作业上下文
      */
-    private float availableCpu;
-
-    /**
-     * 可用的内存空间，单位GB。
-     */
-    private float availableRam;
+    void execute(JobTracker tracker, JobContext context);
 
 }

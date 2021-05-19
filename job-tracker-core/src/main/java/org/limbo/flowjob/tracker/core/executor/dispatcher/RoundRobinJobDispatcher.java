@@ -14,31 +14,30 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.messaging;
+package org.limbo.flowjob.tracker.core.executor.dispatcher;
 
-import lombok.Data;
+import org.limbo.flowjob.tracker.core.job.JobContext;
+import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
-import java.io.Serializable;
+import java.util.Collection;
 
 /**
- * 向worker发送作业后，worker的返回数据
+ * 轮训作业分发器
  *
  * @author Brozen
- * @since 2021-05-17
+ * @since 2021-05-19
  */
-@Data
-public class SendJobResult implements Serializable {
-
-    private static final long serialVersionUID = 5938197072123607724L;
+public class RoundRobinJobDispatcher implements JobDispatcher {
 
     /**
-     * 作业ID
+     * {@inheritDoc}
+     * @param context 待下发的作业上下文
+     * @param workers 待下发上下文可用的worker
+     * @return
      */
-    private String jobId;
-
-    /**
-     * worker是否成功接收作业，返回true表明worker接下来会开始执行此作业
-     */
-    private Boolean accepted;
+    @Override
+    public Worker dispatch(JobContext context, Collection<Worker> workers) {
+        return null;
+    }
 
 }

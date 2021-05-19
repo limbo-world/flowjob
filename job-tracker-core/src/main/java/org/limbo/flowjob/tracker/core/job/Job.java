@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core;
+package org.limbo.flowjob.tracker.core.job;
 
-import org.limbo.flowjob.tracker.core.constants.JobDispatchType;
+import org.limbo.flowjob.tracker.core.executor.dispatcher.JobDispatchType;
 
 /**
  * 作业的抽象
@@ -45,9 +45,28 @@ public interface Job {
     float ramRequirement();
 
     /**
+     * 获取作业调度方式。
+     * @return 作业调度方式
+     */
+    JobScheduleType scheduleType();
+
+    /**
      * 获取作业分发类型。
      * @return 作业分发类型
      */
     JobDispatchType dispatchType();
+
+    /**
+     * 生成新的作业执行上下文
+     * @return 未开始执行的作业上下文
+     */
+    JobContext newContext();
+
+    /**
+     * 获取作业的执行上下文
+     * @param contextId 上下文ID
+     * @return 作业执行上下文
+     */
+    JobContext getContext(String contextId);
 
 }

@@ -17,8 +17,8 @@
 package org.limbo.flowjob.tracker.core.exceptions;
 
 import lombok.Getter;
-import org.limbo.flowjob.tracker.core.Job;
-import org.limbo.flowjob.tracker.core.Worker;
+import org.limbo.flowjob.tracker.core.job.Job;
+import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
 /**
  * @author Brozen

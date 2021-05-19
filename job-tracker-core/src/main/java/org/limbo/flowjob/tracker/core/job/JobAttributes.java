@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core;
+package org.limbo.flowjob.tracker.core.job;
 
 import java.util.List;
 import java.util.Map;

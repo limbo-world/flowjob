@@ -14,32 +14,21 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core;
+package org.limbo.flowjob.tracker.core.tracker;
+
+import reactor.core.Disposable;
 
 /**
- * 作业执行上下文
+ * 持有JobTracker的上下文信息，并提供用于关闭JobTracker的非阻塞API。
  *
  * @author Brozen
- * @since 2021-05-14
+ * @since 2021-05-17
  */
-public interface JobContext {
+public interface DisposableJobTracker extends Disposable {
 
     /**
-     * 获取作业。
-     * @return 当前执行中的作业。
+     * 底层JobTracker
      */
-    Job getJob();
-
-    /**
-     * 获取作业属性。作业属性可用于分片作业、MapReduce作业、DAG工作流进行传参
-     * @return {@link JobAttributes}
-     */
-    JobAttributes getJobAttributes();
-
-    /**
-     * 获取执行此作业的worker
-     * @return 执行此作业的worker
-     */
-    Worker getWorker();
+    JobTracker jobTracker();
 
 }

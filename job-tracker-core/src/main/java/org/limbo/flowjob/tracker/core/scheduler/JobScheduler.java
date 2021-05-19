@@ -14,30 +14,29 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core;
+package org.limbo.flowjob.tracker.core.scheduler;
 
-import reactor.core.publisher.Mono;
-
+import org.limbo.flowjob.tracker.core.job.Job;
+import org.limbo.flowjob.tracker.core.job.JobScheduleType;
 
 /**
- * 作业分发节点抽象。
+ * 作业调度器，封装了作业的调度流程，根据{@link JobScheduleType}有不同实现。
  *
  * @author Brozen
- * @since 2021-05-16
+ * @since 2021-05-18
  */
-public interface JobTracker extends WorkerManager, JobTrackerLifecycle {
+public interface JobScheduler {
 
     /**
-     * 启动JobTracker
-     * @return 返回可用于关闭JobTracker的Disposable
+     * 开始调度一个作业
+     * @param job 待调度的作业
      */
-    Mono<DisposableJobTracker> start();
+    void schedule(Job job);
 
     /**
-     * 停止JobTracker
-     * @return  返回关闭完成后触发的Mono
+     * 停止调度一个作业
+     * @param job 停止调度的作业
      */
-    Mono<JobTracker> stop();
-
+    void unschedule(Job job);
 
 }

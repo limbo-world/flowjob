@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.executor;
+package org.limbo.flowjob.tracker.core.scheduler;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;

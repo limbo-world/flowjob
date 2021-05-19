@@ -14,31 +14,37 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.messaging;
+package org.limbo.flowjob.tracker.core.job;
 
-import lombok.Data;
-
-import java.io.Serializable;
+import lombok.Getter;
 
 /**
- * 向worker发送作业后，worker的返回数据
+ * 作业上下文状态
  *
  * @author Brozen
- * @since 2021-05-17
+ * @since 2021-05-19
  */
-@Data
-public class SendJobResult implements Serializable {
+public enum JobContextStatus implements JobContext.Status {
 
-    private static final long serialVersionUID = 5938197072123607724L;
+    INIT(1, "初始化"),
 
-    /**
-     * 作业ID
-     */
-    private String jobId;
+    EXECUTING(2, "执行中"),
+    PART_EXECUTING(3, "部分执行中，DAG作业上下文独有状态"),
 
-    /**
-     * worker是否成功接收作业，返回true表明worker接下来会开始执行此作业
-     */
-    private Boolean accepted;
+    SUCCEED(4, "执行成功"),
+    FAILED(5, "执行异常"),
+    TERMINATED(6, "作业被手动终止"),
+    ;
+
+    @Getter
+    public final int status;
+
+    @Getter
+    public final String desc;
+
+    JobContextStatus(int status, String desc) {
+        this.status = status;
+        this.desc = desc;
+    }
 
 }

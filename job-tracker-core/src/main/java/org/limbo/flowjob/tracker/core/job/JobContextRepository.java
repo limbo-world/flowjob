@@ -14,33 +14,26 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.dispatcher;
-
-import org.limbo.flowjob.tracker.core.Job;
-import org.limbo.flowjob.tracker.core.JobContext;
-import reactor.core.publisher.Mono;
+package org.limbo.flowjob.tracker.core.job;
 
 /**
- * 作业分发器。封装了作业分发时，worker的选择规则：
- * 1. round robin
- * 2. random
- * 3. N-th
- * 4. consistent hash
- * 5. fail over
- * 6. busy over
- * 7. shard broadcast
- * 8. map reduce
- *
  * @author Brozen
- * @since 2021-05-14
+ * @since 2021-05-19
  */
-public interface JobDispatcher {
+public interface JobContextRepository {
 
     /**
-     * 分发一个作业给worker执行，并返回此作业执行的上下文。
-     * @param job 待分发的作业
-     * @return 作业执行上下文
+     * 获取作业执行的上下文
+     * @param jobId 作业ID
+     * @param contextId 上下文ID
+     * @return 作业上下文
      */
-    Mono<JobContext> dispatch(Job job);
+    JobContext getContext(String jobId, String contextId);
+
+    /**
+     * 持久化作业上下文
+     * @param context 作业执行上下文
+     */
+    void addContext(JobContext context);
 
 }

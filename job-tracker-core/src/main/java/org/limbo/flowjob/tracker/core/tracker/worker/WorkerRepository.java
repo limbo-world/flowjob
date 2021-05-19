@@ -14,31 +14,32 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.messaging;
+package org.limbo.flowjob.tracker.core.tracker.worker;
 
-import lombok.Data;
-
-import java.io.Serializable;
+import java.util.List;
 
 /**
- * 向worker发送作业后，worker的返回数据
- *
  * @author Brozen
- * @since 2021-05-17
+ * @since 2021-05-19
  */
-@Data
-public class SendJobResult implements Serializable {
-
-    private static final long serialVersionUID = 5938197072123607724L;
+public interface WorkerRepository {
 
     /**
-     * 作业ID
+     * 注册一个worker
+     * @param worker worker节点
      */
-    private String jobId;
+    void registerWorker(Worker worker);
 
     /**
-     * worker是否成功接收作业，返回true表明worker接下来会开始执行此作业
+     * 取消worker的注册
+     * @param workerId worker id
      */
-    private Boolean accepted;
+    void unregisterWorker(String workerId);
+
+    /**
+     * 获取所有可用的worker。可用指在调用此方法之时，心跳检测没有失败的worker。
+     * @return 可用的worker。
+     */
+    List<Worker> availableWorkers();
 
 }

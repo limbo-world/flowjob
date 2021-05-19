@@ -14,37 +14,40 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core;
+package org.limbo.flowjob.tracker.core.tracker;
 
-import org.limbo.flowjob.tracker.core.messaging.SendJobResult;
-import org.limbo.flowjob.tracker.core.messaging.WorkerMetric;
 import reactor.core.publisher.Mono;
 
 /**
- * 在Tracker端，作业执行节点的抽象。
+ * JobTracker声明周期函数
  *
  * @author Brozen
- * @since 2021-05-14
+ * @since 2021-05-17
  */
-public interface Worker {
+public interface JobTrackerLifecycle {
 
     /**
-     * 返回worker节点ID。
-     * @return worker节点ID
+     * 启动前。
+     * @return start之前触发的Mono，可通过{@link DisposableJobTracker}阻止启动
      */
-    String getId();
+    Mono<DisposableJobTracker> beforeStart();
 
     /**
-     * worker节点心跳检测。
-     * @return 返回worker节点的指标信息。
+     * 启动成功后。
+     * @return start之后触发的Mono，可通过{@link DisposableJobTracker}关闭JobTracker
      */
-    Mono<WorkerMetric> ping();
+    Mono<DisposableJobTracker> afterStart();
 
     /**
-     * 发送一个作业到worker执行。当worker接受此job后，将触发返回的{@link Mono}
-     * @param context 作业执行上下文
-     * @return worker接受job后触发
+     * 停止前。
+     * @return 停止前触发的Mono，可以阻塞停止流程
      */
-    Mono<SendJobResult> sendJob(JobContext context);
+    Mono<JobTracker> beforeStop();
+
+    /**
+     * 停止后。
+     * @return 停止后触发的Mono
+     */
+    Mono<JobTracker> afterStop();
 
 }

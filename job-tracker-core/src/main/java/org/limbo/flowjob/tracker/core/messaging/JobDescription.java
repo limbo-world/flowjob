@@ -17,7 +17,7 @@
 package org.limbo.flowjob.tracker.core.messaging;
 
 import lombok.Data;
-import org.limbo.flowjob.tracker.core.Job;
+import org.limbo.flowjob.tracker.core.job.Job;
 
 import java.util.List;
 import java.util.Map;
@@ -37,7 +37,7 @@ public class JobDescription {
     private String id;
 
     /**
-     * 作业已重新下发次数，默认0。任务执行失败后，再次下发任务且worker接收后，worker返回的此任务重下发次数会加1。
+     * 作业已重新下发次数，默认0。作业执行失败后，再次下发作业且worker接收后，worker返回的此作业重下发次数会加1。
      */
     private int redispatchTime;
 

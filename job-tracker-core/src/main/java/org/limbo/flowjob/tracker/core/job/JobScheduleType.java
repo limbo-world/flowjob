@@ -14,21 +14,35 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core;
-
-import reactor.core.Disposable;
+package org.limbo.flowjob.tracker.core.job;
 
 /**
- * 持有JobTracker的上下文信息，并提供用于关闭JobTracker的非阻塞API。
+ * 作业调度方式
  *
  * @author Brozen
- * @since 2021-05-17
+ * @since 2021-05-16
  */
-public interface DisposableJobTracker extends Disposable {
+public enum JobScheduleType {
 
-    /**
-     * 底层JobTracker
-     */
-    JobTracker jobTracker();
+    DELAY(1, "固定延迟"),
 
+    FIXED_RATE(2, "固定速度"),
+
+    FIXED_INTERVAL(3, "固定间隔时间"),
+
+    CORN(4, "CORN表达式"),
+
+    DAG(5, "DAG工作流"),
+
+    ;
+
+
+    public final int type;
+
+    public final String desc;
+
+    JobScheduleType(int type, String desc) {
+        this.type = type;
+        this.desc = desc;
+    }
 }

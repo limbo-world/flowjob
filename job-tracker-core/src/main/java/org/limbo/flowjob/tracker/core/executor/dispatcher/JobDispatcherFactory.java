@@ -14,31 +14,25 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.messaging;
+package org.limbo.flowjob.tracker.core.executor.dispatcher;
 
-import lombok.Data;
-
-import java.io.Serializable;
+import org.limbo.flowjob.tracker.core.job.JobContext;
+import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 
 /**
- * 向worker发送作业后，worker的返回数据
+ * {@link org.limbo.flowjob.tracker.core.executor.dispatcher.JobDispatcher} 工厂
  *
  * @author Brozen
- * @since 2021-05-17
+ * @since 2021-05-18
  */
-@Data
-public class SendJobResult implements Serializable {
-
-    private static final long serialVersionUID = 5938197072123607724L;
+public interface JobDispatcherFactory {
 
     /**
-     * 作业ID
+     * 创建新的JobDispatcher
+     * @param tracker tracker节点
+     * @param context 待分发作业上下文
+     * @return 作业分发器
      */
-    private String jobId;
-
-    /**
-     * worker是否成功接收作业，返回true表明worker接下来会开始执行此作业
-     */
-    private Boolean accepted;
+    JobDispatcher newDispatcher(JobTracker tracker, JobContext context);
 
 }

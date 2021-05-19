@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core;
+package org.limbo.flowjob.tracker.core.tracker.worker;
 
-import org.limbo.flowjob.tracker.core.constants.JobDispatchType;
-import org.limbo.flowjob.tracker.core.dispatcher.JobDispatcher;
-
-import java.util.Collection;
+import lombok.Data;
 
 /**
- * 作业执行节点选择器。对应{@link JobDispatcher}
+ * worker节点上可用的资源，资源有以下三种定义：内存、CPU
  *
  * @author Brozen
- * @since 2021-05-16
+ * @since 2021-05-17
  */
-public interface WorkerChooser {
+@Data
+public class WorkerAvailableResource {
 
     /**
-     * 选择一个worker作为执行
-     * @param workers 全部待选择的执行节点
-     * @param dispatchType 作业的分发方式
-     * @return 选择的执行作业的worker
+     * 可用的CPU核心数。
      */
-    Worker chooseWorker(Collection<Worker> workers, JobDispatchType dispatchType);
+    private float availableCpu;
+
+    /**
+     * 可用的内存空间，单位GB。
+     */
+    private float availableRam;
 
 }

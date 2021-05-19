@@ -14,31 +14,33 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.messaging;
+package org.limbo.flowjob.tracker.core.job;
 
-import lombok.Data;
-
-import java.io.Serializable;
+import reactor.core.publisher.Flux;
 
 /**
- * 向worker发送作业后，worker的返回数据
- *
  * @author Brozen
- * @since 2021-05-17
+ * @since 2021-05-19
  */
-@Data
-public class SendJobResult implements Serializable {
-
-    private static final long serialVersionUID = 5938197072123607724L;
+public interface JobRepository {
 
     /**
-     * 作业ID
+     * 根据id查询作业
+     * @param jobId jobId
+     * @return 作业
      */
-    private String jobId;
+    Job getJob(String jobId);
 
     /**
-     * worker是否成功接收作业，返回true表明worker接下来会开始执行此作业
+     * 添加一个作业
+     * @param job 作业数据
      */
-    private Boolean accepted;
+    void addJob(Job job);
+
+    /**
+     * 查询所有有效作业，只有有效作业才可被调度。
+     * @return 所有有效作业
+     */
+    Flux<Job> schedulableJobs();
 
 }

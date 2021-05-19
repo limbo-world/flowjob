@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core;
+package org.limbo.flowjob.tracker.core.tracker;
 
+import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
+import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 
 /**
- * worker管理器
+ * worker管理器抽象。
+ *
+ * TIP：和{@link WorkerRepository}的方法定义有些重复，但此接口定义属于tracker domain的方法，应当代理repository；
+ * 除此之外，此管理器添加了一些worker domain的监听方法。
  *
  * @author Brozen
  * @since 2021-05-17
@@ -32,9 +37,9 @@ public interface WorkerManager {
     /**
      * 注册一个worker，并为worker生成唯一ID
      * @param worker worker节点
-     * @return 返回workerID
+     * @return 返回worker
      */
-    Mono<String> registerWorker(Worker worker);
+    Mono<Worker> registerWorker(Worker worker);
 
     /**
      * 获取所有可用的worker。可用指在调用此方法之时，心跳检测没有失败的worker。
@@ -47,18 +52,18 @@ public interface WorkerManager {
      * @param id worker id。
      * @return 返回被移除的worker，如果参数id对应的worker不存在，则返回null。
      */
-    Mono<Worker> removeWorker(String id);
+    Mono<Worker> unregisterWorker(String id);
 
     /**
      * 新的worker被注册时。
      * @return 新worker注册时触发时的Mono
      */
-    Flux<Worker> onNewWorkerRegistered();
+    Flux<Worker> onWorkerRegistered();
 
     /**
-     * 当worker被移除时。
+     * 当worker被移除时。触发worker移除有两种方式：1. worker心跳超时；2. worker主动申请下线
      * @return worker被移除时触发的Mono
      */
-    Flux<Worker> onWorkerRemoved();
+    Flux<Worker> onWorkerUnregistered();
 
 }
