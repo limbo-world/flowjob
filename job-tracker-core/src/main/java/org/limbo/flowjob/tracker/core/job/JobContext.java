@@ -16,6 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.job;
 
+import org.limbo.flowjob.tracker.core.exceptions.JobContextException;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import reactor.core.publisher.Mono;
 
@@ -31,19 +32,19 @@ public interface JobContext {
      * 获取作业ID。
      * @return 当前执行中的作业ID。
      */
-    String jobId();
+    String getJobId();
 
     /**
      * 获取当前作业上下文ID。一个作业可能在调度中，有两次同时在执行，因此可能会产生两个context，需要用contextId做区分。
      * @return 当前作业上下文ID
      */
-    String contextId();
+    String getContextId();
 
     /**
      * 获取当前作业上下文状态。
      * @return 当前上下文状态
      */
-    Status status();
+    Status getStatus();
 
     /**
      * 获取作业属性。作业属性可用于分片作业、MapReduce作业、DAG工作流进行传参
@@ -55,27 +56,31 @@ public interface JobContext {
      * 获取执行此作业的worker id
      * @return 执行此作业的worker id
      */
-    String workerId();
+    String getWorkerId();
 
     /**
-     * 在指定worker上启动此作业上下文，将作业上下文发送给worker
+     * 在指定worker上启动此作业上下文，将作业上下文发送给worker。
+     * 只有{@link JobContextStatus#INIT}和{@link JobContextStatus#FAILED}状态的上下文可被开启。
+     * @param worker 会将此上下文分发去执行的worker
      */
-    void startupContext(Worker worker);
+    void startupContext(Worker worker) throws JobContextException;
 
     /**
      * worker确认接收此作业上下文，表示开始执行作业
+     * @param worker 确认接收此上下文的worker
      */
-    void acceptContext();
+    void acceptContext(Worker worker) throws JobContextException;
 
     /**
      * worker拒绝接收此作业上下文，作业不会开始执行
+     * @param worker 拒绝接收此上下文的worker
      */
-    void refuseContext();
+    void refuseContext(Worker worker) throws JobContextException;
 
     /**
      * 关闭上下文，只有绑定该上下文的作业执行完成后，才会调用此方法。
      */
-    void closeContext();
+    void closeContext() throws JobContextException;
 
     /**
      * 上下文被worker拒绝时的回调监听。

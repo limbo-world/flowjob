@@ -16,6 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.tracker.worker;
 
+import org.limbo.flowjob.tracker.core.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.core.job.JobContext;
 import org.limbo.flowjob.tracker.core.messaging.SendJobResult;
 import reactor.core.publisher.Mono;
@@ -51,7 +52,7 @@ public interface Worker {
      * @param context 作业执行上下文
      * @return worker接受job后触发
      */
-    Mono<SendJobResult> sendJob(JobContext context);
+    Mono<SendJobResult> sendJobContext(JobContext context) throws JobWorkerException;
 
     /**
      * 当worker被移除时触发。触发worker移除有两种方式：1. worker心跳超时；2. worker主动申请下线

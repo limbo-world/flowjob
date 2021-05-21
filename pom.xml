@@ -66,11 +66,13 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
+        <limbo.utils>1.0.0</limbo.utils>
         <project.reactor>Dysprosium-SR18</project.reactor>
         <netty>4.1.59.Final</netty>
         <lombok>1.18.16</lombok>
         <slf4j>1.7.30</slf4j>
         <commons.collections4>4.4</commons.collections4>
+        <commons.lang3>3.11</commons.lang3>
     </properties>
 
     <dependencyManagement>
@@ -114,9 +116,19 @@
 
             <!-- Utils -->
             <dependency>
+                <groupId>org.limbo</groupId>
+                <artifactId>limbo-utils</artifactId>
+                <version>${limbo.utils}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
                 <version>${lombok}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons.lang3}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>

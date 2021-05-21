@@ -47,7 +47,7 @@ public class DefaultJobDispatcherFactory implements JobDispatcherFactory {
      */
     public JobDispatcher newDispatcher(JobTracker tracker, JobContext context) {
         Job job = jobRepository.getJob(context.jobId());
-        return job.dispatchType().newDispatcher(tracker, context);
+        return job.getDispatchType().newDispatcher(tracker, context);
     }
 
 }

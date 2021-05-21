@@ -16,6 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.job;
 
+import lombok.Getter;
 import lombok.Setter;
 import org.limbo.flowjob.tracker.core.executor.dispatcher.JobDispatchType;
 import org.limbo.flowjob.tracker.core.job.schedule.JobTriggerCalculator;
@@ -29,26 +30,31 @@ public class SimpleJob implements Job {
     /**
      * 作业ID
      */
-    private String jobId;
+    @Getter
+    private String id;
 
     /**
      * CPU内核需求数量
      */
+    @Getter
     private float cpuRequirement;
 
     /**
      * 内存需求数量
      */
+    @Getter
     private float ramRequirement;
 
     /**
      * 作业调度方式
      */
+    @Getter
     private JobScheduleType scheduleType;
 
     /**
      * 作业分发方式
      */
+    @Getter
     private JobDispatchType dispatchType;
 
     /**
@@ -56,51 +62,6 @@ public class SimpleJob implements Job {
      */
     @Setter
     private JobTriggerCalculator triggerCalculator;
-
-    /**
-     * {@inheritDoc}
-     * @return
-     */
-    @Override
-    public String id() {
-        return jobId;
-    }
-
-    /**
-     * {@inheritDoc}
-     * @return
-     */
-    @Override
-    public float cpuRequirement() {
-        return cpuRequirement;
-    }
-
-    /**
-     * {@inheritDoc}
-     * @return
-     */
-    @Override
-    public float ramRequirement() {
-        return ramRequirement;
-    }
-
-    /**
-     * {@inheritDoc}
-     * @return
-     */
-    @Override
-    public JobScheduleType scheduleType() {
-        return scheduleType;
-    }
-
-    /**
-     * {@inheritDoc}
-     * @return
-     */
-    @Override
-    public JobDispatchType dispatchType() {
-        return dispatchType;
-    }
 
     /**
      * {@inheritDoc}

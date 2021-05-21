@@ -30,31 +30,31 @@ public interface Job {
      * 获取作业ID
      * @return 作业ID
      */
-    String id();
+    String getId();
 
     /**
      * 所需的CPU核心数，小于等于0表示此作业未定义CPU需求。在分发作业时，会根据此方法返回的CPU核心需求数量来检测一个worker是否有能力执行此作业。
      * @return 作业所需的CPU核心数
      */
-    float cpuRequirement();
+    float getCpuRequirement();
 
     /**
      * 所需的内存GB数，小于等于0表示此作业未定义内存需求。在分发作业时，会根据此方法返回的内存需求数量来检测一个worker是否有能力执行此作业。
      * @return 作业执行所需的内存大小，单位GB。
      */
-    float ramRequirement();
+    float getRamRequirement();
 
     /**
      * 获取作业调度方式。
      * @return 作业调度方式
      */
-    JobScheduleType scheduleType();
+    JobScheduleType getScheduleType();
 
     /**
      * 获取作业分发类型。
      * @return 作业分发类型
      */
-    JobDispatchType dispatchType();
+    JobDispatchType getDispatchType();
 
     /**
      * 计算作业下一次被触发时的时间戳。如果作业不会被触发，返回0或负数；

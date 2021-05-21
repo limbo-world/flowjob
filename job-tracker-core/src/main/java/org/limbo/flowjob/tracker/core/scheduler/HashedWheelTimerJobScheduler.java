@@ -80,7 +80,7 @@ public abstract class HashedWheelTimerJobScheduler implements JobScheduler {
         }
 
         // 防止重复调度
-        scheduledJobIds.computeIfAbsent(job.id(), jobId -> {
+        scheduledJobIds.computeIfAbsent(job.getId(), jobId -> {
             doScheduleJob(job, triggerAt);
             return PLACEHOLDER;
         });
@@ -98,7 +98,7 @@ public abstract class HashedWheelTimerJobScheduler implements JobScheduler {
         }
 
         // 已经取消调度了，则不再重新调度作业
-        if (!scheduledJobIds.containsKey(job.id())) {
+        if (!scheduledJobIds.containsKey(job.getId())) {
             return;
         }
 

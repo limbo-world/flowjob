@@ -17,29 +17,27 @@
 package org.limbo.flowjob.tracker.core.exceptions;
 
 import lombok.Getter;
-import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
 /**
  * @author Brozen
  * @since 2021-05-14
  */
-public class WorkerUnavailableException extends JobExecuteException {
+public class JobWorkerException extends JobExecuteException {
 
     /**
      * 不可用的worker
      */
     @Getter
-    private Worker worker;
+    private String workerId;
 
-    public WorkerUnavailableException(Job job, Worker worker, String message) {
-        super(job, message);
-        this.worker = worker;
+    public JobWorkerException(String jobId, String workerId, String message) {
+        super(jobId, message);
+        this.workerId = workerId;
     }
 
-    public WorkerUnavailableException(Job job, Worker worker, String message, Throwable cause) {
-        super(job, message, cause);
-        this.worker = worker;
+    public JobWorkerException(String jobId, String workerId, String message, Throwable cause) {
+        super(jobId, message, cause);
+        this.workerId = workerId;
     }
 
 }

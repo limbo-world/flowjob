@@ -42,7 +42,7 @@ public interface JobAttributes {
     String getFirst(String key);
 
     /**
-     * 将属性转换为Map形式。
+     * 将属性转换为Map形式。此方法返回attribute的快照，修改快照将不会对JobAttribute本身造成任何影响。
      * @return 属性k-v Map。
      */
     Map<String, List<String>> toMap();

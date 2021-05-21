@@ -28,8 +28,9 @@ public enum JobContextStatus implements JobContext.Status {
 
     INIT(1, "初始化"),
 
-    EXECUTING(2, "执行中"),
-    PART_EXECUTING(3, "部分执行中，DAG作业上下文独有状态"),
+    DISPATCHING(2, "分发中"),
+    REFUSED(3, "拒绝执行"),
+    EXECUTING(3, "执行中"),
 
     SUCCEED(4, "执行成功"),
     FAILED(5, "执行异常"),

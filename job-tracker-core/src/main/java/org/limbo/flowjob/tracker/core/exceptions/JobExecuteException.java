@@ -17,7 +17,6 @@
 package org.limbo.flowjob.tracker.core.exceptions;
 
 import lombok.Getter;
-import org.limbo.flowjob.tracker.core.job.Job;
 
 /**
  * 作业执行异常基类
@@ -31,16 +30,16 @@ public class JobExecuteException extends Exception {
      * 执行发生异常的作业
      */
     @Getter
-    private Job job;
+    private String jobId;
 
-    public JobExecuteException(Job job, String message) {
+    public JobExecuteException(String jobId, String message) {
         super(message);
-        this.job = job;
+        this.jobId = jobId;
     }
 
-    public JobExecuteException(Job job, String message, Throwable cause) {
+    public JobExecuteException(String jobId, String message, Throwable cause) {
         super(message, cause);
-        this.job = job;
+        this.jobId = jobId;
     }
 
 }

@@ -44,7 +44,7 @@ public abstract class JobTriggerCalculator implements Strategy<Job, Long> {
      */
     @Override
     public Boolean canApply(Job job) {
-        return job.scheduleType() == this.scheduleType;
+        return job.getScheduleType() == this.scheduleType;
     }
 
     /**

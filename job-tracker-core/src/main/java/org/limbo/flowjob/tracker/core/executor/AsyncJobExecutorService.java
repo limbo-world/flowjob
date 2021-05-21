@@ -45,7 +45,7 @@ public abstract class AsyncJobExecutorService implements JobExecutorService {
      * @return 作业上下文事件源
      */
     protected UnicastProcessor<JobContext> getJobContextEventSource(Job job) {
-        return jobContextEventSources.computeIfAbsent(job.id(),
+        return jobContextEventSources.computeIfAbsent(job.getId(),
                 jobId -> UnicastProcessor.create(Queues.<JobContext>get(10).get()));
     }
 
@@ -55,7 +55,7 @@ public abstract class AsyncJobExecutorService implements JobExecutorService {
      * @return
      */
     protected UnicastProcessor<JobContext> removeJobContextEventSource(Job job) {
-        UnicastProcessor<JobContext> eventSource = jobContextEventSources.remove(job.id());
+        UnicastProcessor<JobContext> eventSource = jobContextEventSources.remove(job.getId());
         if (eventSource != null) {
             eventSource.onComplete();
         }

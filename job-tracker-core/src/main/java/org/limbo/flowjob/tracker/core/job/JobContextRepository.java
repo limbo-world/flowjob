@@ -36,4 +36,10 @@ public interface JobContextRepository {
      */
     void addContext(JobContext context);
 
+    /**
+     * 更新作业上下文
+     * @param context 作业执行上下文
+     */
+    void updateContext(JobContext context);
+
 }
