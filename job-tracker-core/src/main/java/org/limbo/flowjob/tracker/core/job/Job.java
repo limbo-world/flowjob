@@ -57,6 +57,12 @@ public interface Job {
     JobDispatchType dispatchType();
 
     /**
+     * 计算作业下一次被触发时的时间戳。如果作业不会被触发，返回0或负数；
+     * @return 作业下一次被触发时的时间戳，从1970-01-01 00:00:00到触发时刻的毫秒数。
+     */
+    long nextTriggerAt();
+
+    /**
      * 生成新的作业执行上下文
      * @return 未开始执行的作业上下文
      */

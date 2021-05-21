@@ -74,7 +74,7 @@ public abstract class HashedWheelTimerJobScheduler implements JobScheduler {
     @Override
     public void schedule(Job job) {
         // 如果job不会被触发，则无需加入调度
-        long triggerAt = calculateNextTriggerAt(job);
+        long triggerAt = job.nextTriggerAt();
         if (triggerAt <= 0) {
             return;
         }
@@ -92,7 +92,7 @@ public abstract class HashedWheelTimerJobScheduler implements JobScheduler {
      */
     protected void rescheduleJob(Job job) {
         // 如果job不会被触发，则无需加入调度
-        long triggerAt = calculateNextTriggerAt(job);
+        long triggerAt = job.nextTriggerAt();
         if (triggerAt <= 0) {
             return;
         }
@@ -125,12 +125,5 @@ public abstract class HashedWheelTimerJobScheduler implements JobScheduler {
 
         }, delay, TimeUnit.MILLISECONDS);
     }
-
-    /**
-     * 计算作业下一次被触发时的时间戳。如果作业不会被触发，返回0或负数；
-     * @param job 作业
-     * @return 作业下一次被触发时的时间戳，从1970-01-01 00:00:00到触发时刻的毫秒数。
-     */
-    protected abstract long calculateNextTriggerAt(Job job);
 
 }

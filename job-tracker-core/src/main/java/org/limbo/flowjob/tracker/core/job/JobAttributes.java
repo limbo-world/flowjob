@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 作业属性。k-v映射，一个key可以对应多个value
+ * 作业属性，值对象。k-v映射，一个key可以对应多个value
  *
  * @author Brozen
  * @since 2021-05-14
@@ -34,30 +34,12 @@ public interface JobAttributes {
      */
     List<String> get(String key);
 
-
     /**
      * 根据key获取value列表中的第一个值
      * @param key 属性key
      * @return 属性values中的第一个
      */
     String getFirst(String key);
-
-
-    /**
-     * 设置属性
-     * @param key 属性key
-     * @param value 属性value
-     */
-    void put(String key, String value);
-
-
-    /**
-     * 移除属性，并返回属性key关联的values。
-     * @param key 属性key。
-     * @return 被删除属性key关联的values。
-     */
-    List<String> remove(String key);
-
 
     /**
      * 将属性转换为Map形式。

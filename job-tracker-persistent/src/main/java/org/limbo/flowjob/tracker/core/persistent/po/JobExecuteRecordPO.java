@@ -20,11 +20,10 @@ import java.io.Serializable;
 
 /**
  * @author Brozen
- * @since 2021-05-17
+ * @since 2021-05-19
  */
-public class JobPO implements Serializable {
+public class JobExecuteRecordPO implements Serializable {
 
-    private static final long serialVersionUID = 3343186004952320736L;
-
+    private static final long serialVersionUID = -4643515996850585074L;
 
 }

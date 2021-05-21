@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.persistent.po;
-
-import java.io.Serializable;
+package org.limbo.flowjob.tracker.core.commons;
 
 /**
+ * 策略工厂
+ *
  * @author Brozen
- * @since 2021-05-17
+ * @since 2021-05-20
  */
-public class JobPO implements Serializable {
+public interface StrategyFactory<ST, S extends Strategy<T, R>, T, R> {
 
-    private static final long serialVersionUID = 3343186004952320736L;
-
+    /**
+     * 创建一个新的策略.
+     * @param strategyType 策略创建的依据
+     * @return 新的策略
+     */
+    S newStrategy(ST strategyType);
 
 }

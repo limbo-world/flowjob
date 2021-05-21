@@ -17,7 +17,14 @@
 package org.limbo.flowjob.tracker.core.job;
 
 /**
- * 作业调度方式
+ * 作业调度方式：
+ * <ul>
+ *     <li>固定延迟</li>
+ *     <li>固定速度</li>
+ *     <li>固定间隔时间</li>
+ *     <li>CORN</li>
+ *     <li>DAG工作流</li>
+ * </ul>
  *
  * @author Brozen
  * @since 2021-05-16
