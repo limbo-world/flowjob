@@ -28,18 +28,32 @@ public interface JobContextRepository {
      * @param contextId 上下文ID
      * @return 作业上下文
      */
-    JobContext getContext(String jobId, String contextId);
+    default JobContext getContext(String jobId, String contextId) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * 获取最近一次作业执行时的上下文
+     * @param jobId 作业ID
+     * @return 最近一次作业执行时的上下文
+     */
+    default JobContext getLatestContext(String jobId) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * 持久化作业上下文
      * @param context 作业执行上下文
      */
-    void addContext(JobContext context);
+    default void addContext(JobContext context) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * 更新作业上下文
      * @param context 作业执行上下文
      */
-    void updateContext(JobContext context);
-
+    default void updateContext(JobContext context) {
+        throw new UnsupportedOperationException();
+    }
 }

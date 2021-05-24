@@ -69,10 +69,13 @@
         <limbo.utils>1.0.0</limbo.utils>
         <project.reactor>Dysprosium-SR18</project.reactor>
         <netty>4.1.59.Final</netty>
+        <quartz.scheduler>2.3.2</quartz.scheduler>
         <lombok>1.18.16</lombok>
         <slf4j>1.7.30</slf4j>
         <commons.collections4>4.4</commons.collections4>
         <commons.lang3>3.11</commons.lang3>
+        <junit>4.13.1</junit>
+        <mockito>3.6.28</mockito>
     </properties>
 
     <dependencyManagement>
@@ -107,6 +110,13 @@
                 <scope>import</scope>
             </dependency>
 
+            <!-- Quartz -->
+            <dependency>
+                <groupId>org.quartz-scheduler</groupId>
+                <artifactId>quartz</artifactId>
+                <version>${quartz.scheduler}</version>
+            </dependency>
+
             <!-- Logger -->
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -134,6 +144,20 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-collections4</artifactId>
                 <version>${commons.collections4}</version>
+            </dependency>
+
+            <!-- 单元测试 -->
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito}</version>
+                <scope>test</scope>
             </dependency>
 
         </dependencies>

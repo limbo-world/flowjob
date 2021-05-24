@@ -19,11 +19,11 @@ package org.limbo.flowjob.tracker.core.job;
 /**
  * 作业调度方式：
  * <ul>
- *     <li>固定延迟</li>
- *     <li>固定速度</li>
- *     <li>固定间隔时间</li>
- *     <li>CORN</li>
- *     <li>DAG工作流</li>
+ *     <li>{@linkplain JobScheduleType#DELAYED 固定延迟}</li>
+ *     <li>{@linkplain JobScheduleType#FIXED_RATE 固定速度}</li>
+ *     <li>{@linkplain JobScheduleType#FIXED_INTERVAL 固定间隔时间}</li>
+ *     <li>{@linkplain JobScheduleType#CRON CRON}</li>
+ *     <li>{@linkplain JobScheduleType#DAG DAG工作流}</li>
  * </ul>
  *
  * @author Brozen
@@ -31,14 +31,29 @@ package org.limbo.flowjob.tracker.core.job;
  */
 public enum JobScheduleType {
 
-    DELAY(1, "固定延迟"),
+    /**
+     * 固定延迟，作业创建后，从创建时间起延迟一定时间后触发调度。只调度一次。
+     */
+    DELAYED(1, "固定延迟"),
 
+    /**
+     * 固定速度，作业创建后，从创建时间起延迟一定时间后触发作业调度。每次调度下发成功后，间隔固定时间长度后，再次触发作业调度。
+     */
     FIXED_RATE(2, "固定速度"),
 
+    /**
+     * 固定速度，作业创建后，从创建时间起延迟一定时间后触发作业调度。每次作业下发执行完成（成功或失败）后，间隔固定时间长度后，再次触发作业调度。
+     */
     FIXED_INTERVAL(3, "固定间隔时间"),
 
-    CORN(4, "CORN表达式"),
+    /**
+     * 通过CRON表达式指定作业触发调度的时间点。
+     */
+    CRON(4, "CRON表达式"),
 
+    /**
+     * TODO
+     */
     DAG(5, "DAG工作流"),
 
     ;
@@ -52,4 +67,5 @@ public enum JobScheduleType {
         this.type = type;
         this.desc = desc;
     }
+
 }

@@ -17,15 +17,17 @@
 package org.limbo.flowjob.tracker.core.job;
 
 import lombok.Getter;
-import lombok.Setter;
 import org.limbo.flowjob.tracker.core.executor.dispatcher.JobDispatchType;
-import org.limbo.flowjob.tracker.core.job.schedule.JobTriggerCalculator;
+import org.limbo.flowjob.tracker.core.job.schedule.JobScheduleCalculator;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 /**
  * @author Brozen
  * @since 2021-05-20
  */
-public class SimpleJob implements Job {
+public class SimpleJob extends AbstractJob implements Job {
 
     /**
      * 作业ID
@@ -58,29 +60,50 @@ public class SimpleJob implements Job {
     private JobDispatchType dispatchType;
 
     /**
-     * 作业触发计算器
+     * 作业延迟时间
+     * @see Job#getScheduleDelay()
      */
-    @Setter
-    private JobTriggerCalculator triggerCalculator;
+    @Getter
+    private Duration scheduleDelay;
 
     /**
-     * {@inheritDoc}
-     * @return
+     * 作业调度间隔时间
+     * @see Job#getScheduleInterval()
      */
-    @Override
-    public long nextTriggerAt() {
-        return triggerCalculator.apply(this);
+    @Getter
+    private Duration scheduleInterval;
+
+    /**
+     * 作业调度的CRON表达式
+     */
+    @Getter
+    private String scheduleCron;
+
+    /**
+     * 作业创建时间
+     */
+    @Getter
+    private LocalDateTime createdAt;
+
+
+    public SimpleJob(String id, float cpuRequirement, float ramRequirement,
+                     JobScheduleType scheduleType, JobDispatchType dispatchType,
+                     Duration scheduleDelay, Duration scheduleInterval,
+                     String scheduleCron, LocalDateTime createdAt,
+                     JobScheduleCalculator triggerCalculator,
+                     JobContextRepository jobContextRepository) {
+        super(triggerCalculator, jobContextRepository);
+
+        this.id = id;
+        this.cpuRequirement = cpuRequirement;
+        this.ramRequirement = ramRequirement;
+        this.scheduleType = scheduleType;
+        this.dispatchType = dispatchType;
+
+        this.scheduleDelay = scheduleDelay;
+        this.scheduleInterval = scheduleInterval;
+        this.scheduleCron = scheduleCron;
+        this.createdAt = createdAt;
     }
 
-    @Override
-    public JobContext newContext() {
-        // TODO
-        return null;
-    }
-
-    @Override
-    public JobContext getContext(String contextId) {
-        // TODO
-        return null;
-    }
 }

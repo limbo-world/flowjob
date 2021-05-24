@@ -16,45 +16,13 @@
 
 package org.limbo.flowjob.tracker.core.job;
 
-import org.limbo.flowjob.tracker.core.executor.dispatcher.JobDispatchType;
-
 /**
- * 作业的抽象
+ * 作业的抽象。主要定义了作业的行为方法，属性的访问操作在{@link JobDefinition}接口。
  *
  * @author Brozen
  * @since 2021-05-14
  */
-public interface Job {
-
-    /**
-     * 获取作业ID
-     * @return 作业ID
-     */
-    String getId();
-
-    /**
-     * 所需的CPU核心数，小于等于0表示此作业未定义CPU需求。在分发作业时，会根据此方法返回的CPU核心需求数量来检测一个worker是否有能力执行此作业。
-     * @return 作业所需的CPU核心数
-     */
-    float getCpuRequirement();
-
-    /**
-     * 所需的内存GB数，小于等于0表示此作业未定义内存需求。在分发作业时，会根据此方法返回的内存需求数量来检测一个worker是否有能力执行此作业。
-     * @return 作业执行所需的内存大小，单位GB。
-     */
-    float getRamRequirement();
-
-    /**
-     * 获取作业调度方式。
-     * @return 作业调度方式
-     */
-    JobScheduleType getScheduleType();
-
-    /**
-     * 获取作业分发类型。
-     * @return 作业分发类型
-     */
-    JobDispatchType getDispatchType();
+public interface Job extends JobDefinition {
 
     /**
      * 计算作业下一次被触发时的时间戳。如果作业不会被触发，返回0或负数；

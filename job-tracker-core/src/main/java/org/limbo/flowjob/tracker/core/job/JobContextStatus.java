@@ -28,13 +28,14 @@ public enum JobContextStatus implements JobContext.Status {
 
     INIT(1, "初始化"),
 
-    DISPATCHING(2, "分发中"),
-    REFUSED(3, "拒绝执行"),
-    EXECUTING(3, "执行中"),
+    SCHEDULING(2, "调度中"),
+    DISPATCHING(3, "分发中"),
+    REFUSED(4, "拒绝执行"),
+    EXECUTING(5, "执行中"),
 
-    SUCCEED(4, "执行成功"),
-    FAILED(5, "执行异常"),
-    TERMINATED(6, "作业被手动终止"),
+    SUCCEED(6, "执行成功"),
+    FAILED(7, "执行异常"),
+    TERMINATED(8, "作业被手动终止"),
     ;
 
     @Getter
@@ -46,6 +47,22 @@ public enum JobContextStatus implements JobContext.Status {
     JobContextStatus(int status, String desc) {
         this.status = status;
         this.desc = desc;
+    }
+
+    /**
+     * 校验是否是当前状态
+     * @param status 待校验状态值
+     */
+    public boolean is(JobContext.Status status) {
+        return equals(status);
+    }
+
+    /**
+     * 校验是否是当前状态
+     * @param status 待校验状态值
+     */
+    public boolean is(Integer status) {
+        return status != null && status.equals(this.status);
     }
 
 }

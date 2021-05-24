@@ -20,6 +20,8 @@ import org.limbo.flowjob.tracker.core.exceptions.JobContextException;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
+
 /**
  * 作业执行上下文
  *
@@ -59,6 +61,18 @@ public interface JobContext {
     String getWorkerId();
 
     /**
+     * 获取此上下文的创建时间
+     * @return 此上下文的创建时间
+     */
+    LocalDateTime getCreatedAt();
+
+    /**
+     * 获取此上下文的更新时间
+     * @return 此上下文的更新时间
+     */
+    LocalDateTime getUpdatedAt();
+
+    /**
      * 在指定worker上启动此作业上下文，将作业上下文发送给worker。
      * 只有{@link JobContextStatus#INIT}和{@link JobContextStatus#FAILED}状态的上下文可被开启。
      * @param worker 会将此上下文分发去执行的worker
@@ -86,19 +100,19 @@ public interface JobContext {
      * 上下文被worker拒绝时的回调监听。
      * @return 上下文被worker拒绝执行时触发
      */
-    Mono<Void> onContextRefused();
+    Mono<JobContext> onContextRefused();
 
     /**
      * 上下文被worker接收时的回调监听。
      * @return 上下文被worker接收时触发
      */
-    Mono<Void> onContextAccepted();
+    Mono<JobContext> onContextAccepted();
 
     /**
      * 上下文被关闭时的回调监听。
      * @return 上下文被关闭时触发
      */
-    Mono<Void> onContextClosed();
+    Mono<JobContext> onContextClosed();
 
 
     /**

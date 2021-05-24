@@ -18,6 +18,7 @@ package org.limbo.flowjob.tracker.core.job.schedule;
 
 import org.limbo.flowjob.tracker.core.commons.StrategyFactory;
 import org.limbo.flowjob.tracker.core.job.Job;
+import org.limbo.flowjob.tracker.core.job.JobContextRepository;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,23 +28,25 @@ import java.util.List;
  * @author Brozen
  * @since 2021-05-20
  */
-public class JobTriggerCalculatorFactory implements StrategyFactory<Job, JobTriggerCalculator, Job, Long> {
+public class JobScheduleCalculatorFactory implements StrategyFactory<Job, JobScheduleCalculator, Job, Long> {
 
     /**
      * 全部策略
      */
-    private List<JobTriggerCalculator> jobTriggerCalculators;
+    private List<JobScheduleCalculator> jobScheduleCalculators;
 
-    public JobTriggerCalculatorFactory() {
-        ArrayList<JobTriggerCalculator> calculators = new ArrayList<>();
+    public JobScheduleCalculatorFactory(JobContextRepository jobContextRepository) {
+        ArrayList<JobScheduleCalculator> calculators = new ArrayList<>();
 
         // 预设计算器
-        calculators.add(new FixDelayJobTriggerCalculator());
+        calculators.add(new DelayedJobScheduleCalculator(jobContextRepository));
+        calculators.add(new FixRateJobScheduleCalculator(jobContextRepository));
+        calculators.add(new FixIntervalJobScheduleCalculator(jobContextRepository));
 
         // 自定义计算器
 
         // 配置不可变
-        jobTriggerCalculators = Collections.unmodifiableList(calculators);
+        jobScheduleCalculators = Collections.unmodifiableList(calculators);
 
     }
 
@@ -54,8 +57,8 @@ public class JobTriggerCalculatorFactory implements StrategyFactory<Job, JobTrig
      * @return 触发时间计算器
      */
     @Override
-    public JobTriggerCalculator newStrategy(Job job) {
-        for (JobTriggerCalculator calculator : jobTriggerCalculators) {
+    public JobScheduleCalculator newStrategy(Job job) {
+        for (JobScheduleCalculator calculator : jobScheduleCalculators) {
             if (calculator.canApply(job)) {
                 return calculator;
             }

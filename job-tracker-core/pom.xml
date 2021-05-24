@@ -49,11 +49,21 @@
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.projectreactor.addons</groupId>
+            <artifactId>reactor-extra</artifactId>
+        </dependency>
 
         <!-- Netty Common 工具包 -->
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-common</artifactId>
+        </dependency>
+
+        <!-- Quartz -->
+        <dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz</artifactId>
         </dependency>
 
         <!-- Utils -->
@@ -69,6 +79,10 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.limbo</groupId>
+            <artifactId>limbo-utils</artifactId>
+        </dependency>
 
         <!-- Logger -->
         <dependency>
@@ -76,6 +90,12 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
 
+        <!-- 单元测试 -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

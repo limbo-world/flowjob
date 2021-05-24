@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -13,7 +15,7 @@ import java.util.Map;
  * @since 2021-05-21
  */
 @Slf4j
-public class SimpleJobContext extends JobContextLifecycle implements JobContext {
+public class SimpleJobContext extends AbstractJobContext implements JobContext {
 
     /**
      * 作业ID
@@ -44,10 +46,29 @@ public class SimpleJobContext extends JobContextLifecycle implements JobContext 
     private String workerId;
 
     /**
-     * 任务属性，不可变。
+     * 此上下文的创建时间
+     */
+    @Getter
+    @Setter(AccessLevel.PROTECTED)
+    private LocalDateTime createdAt;
+
+    /**
+     * 此上下文的更新时间
+     */
+    @Getter
+    @Setter(AccessLevel.PROTECTED)
+    private LocalDateTime updatedAt;
+
+    /**
+     * 作业属性，不可变。
      */
     @Getter
     private ImmutableJobAttribute jobAttributes;
+
+    public SimpleJobContext(String jobId, String contextId, Status status, String workerId,
+                            JobContextRepository jobContextRepository) {
+        this(jobId, contextId, status, workerId, Collections.emptyMap(), jobContextRepository);
+    }
 
     public SimpleJobContext(String jobId, String contextId, Status status, String workerId,
                             Map<String, List<String>> attributes,

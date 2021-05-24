@@ -4,7 +4,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.core.exceptions.JobContextException;
 import org.limbo.flowjob.tracker.core.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
+import reactor.core.publisher.DirectProcessor;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxProcessor;
 import reactor.core.publisher.Mono;
+
+import java.util.Objects;
 
 /**
  * 作业上下文生命周期
@@ -12,15 +17,21 @@ import reactor.core.publisher.Mono;
  * @author Brozen
  * @since 2021-05-21
  */
-public abstract class JobContextLifecycle implements JobContext {
+public abstract class AbstractJobContext implements JobContext {
 
     /**
      * 用于更新JobContext
      */
     private JobContextRepository jobContextRepository;
 
-    public JobContextLifecycle(JobContextRepository jobContextRepository) {
-        this.jobContextRepository = jobContextRepository;
+    /**
+     * 用于触发、发布上下文生命周期事件
+     */
+    private FluxProcessor<JobContextLifecycleEvent, JobContextLifecycleEvent> lifecycleEventTrigger;
+
+    public AbstractJobContext(JobContextRepository jobContextRepository) {
+        this.jobContextRepository = Objects.requireNonNull(jobContextRepository, "JobContextRepository");
+        this.lifecycleEventTrigger = DirectProcessor.create();
     }
 
     /**
@@ -61,6 +72,8 @@ public abstract class JobContextLifecycle implements JobContext {
 
             // 发送上下文到worker
             worker.sendJobContext(this);
+            // 发布事件
+            lifecycleEventTrigger.onNext(JobContextLifecycleEvent.STARTED);
 
         } catch (JobWorkerException e) {
             // 失败时更新上下文状态，冒泡异常
@@ -87,6 +100,9 @@ public abstract class JobContextLifecycle implements JobContext {
         // FIXME 更新上下文，需锁定contextId，防止并发问题
         setStatus(JobContextStatus.EXECUTING);
         jobContextRepository.updateContext(this);
+
+        // 发布事件
+        lifecycleEventTrigger.onNext(JobContextLifecycleEvent.ACCEPTED);
     }
 
     /**
@@ -104,6 +120,9 @@ public abstract class JobContextLifecycle implements JobContext {
         // FIXME 更新上下文，需锁定contextId，防止并发问题
         setStatus(JobContextStatus.REFUSED);
         jobContextRepository.updateContext(this);
+
+        // 发布事件
+        lifecycleEventTrigger.onNext(JobContextLifecycleEvent.REFUSED);
     }
 
     /**
@@ -118,6 +137,10 @@ public abstract class JobContextLifecycle implements JobContext {
         // FIXME 更新上下文，需锁定contextId，防止并发问题
         setStatus(JobContextStatus.SUCCEED);
         jobContextRepository.updateContext(this);
+
+        // 发布事件
+        lifecycleEventTrigger.onNext(JobContextLifecycleEvent.CLOSED);
+        lifecycleEventTrigger.onComplete();
     }
 
     /**
@@ -127,7 +150,7 @@ public abstract class JobContextLifecycle implements JobContext {
     protected void assertContextStatus(JobContext.Status assertStatus) throws JobContextException {
         if (getStatus() != assertStatus) {
             throw new JobContextException(getJobId(), getContextId(),
-                    "Except context status: " + assertStatus + " but is: " + getStatus());
+                    "Expect context status: " + assertStatus + " but is: " + getStatus());
         }
     }
 
@@ -142,23 +165,79 @@ public abstract class JobContextLifecycle implements JobContext {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * @return
+     */
     @Override
-    public Mono<Void> onContextRefused() {
-        // TODO
-        return null;
+    public Mono<JobContext> onContextRefused() {
+        return Mono.create(sink -> this.lifecycleEventTrigger
+                .filter(e -> e == JobContextLifecycleEvent.REFUSED)
+                .subscribe(e -> sink.success(this), sink::error, sink::success));
     }
 
+    /**
+     * {@inheritDoc}
+     * @return
+     */
     @Override
-    public Mono<Void> onContextAccepted() {
-        // TODO
-        return null;
+    public Mono<JobContext> onContextAccepted() {
+        return Mono.create(sink -> this.lifecycleEventTrigger
+                .filter(e -> e == JobContextLifecycleEvent.ACCEPTED)
+                .subscribe(e -> sink.success(this), sink::error, sink::success));
     }
 
+    /**
+     * {@inheritDoc}
+     * @return
+     */
     @Override
-    public Mono<Void> onContextClosed() {
-        // TODO
-        return null;
+    public Mono<JobContext> onContextClosed() {
+        return Mono.create(sink -> this.lifecycleEventTrigger
+                .filter(e -> e == JobContextLifecycleEvent.CLOSED)
+                .subscribe(e -> sink.success(this), sink::error, sink::success));
     }
 
+    /**
+     * 上下文生命周期事件触发时的回调监听。
+     * @return 声明周期事件发生时触发
+     * @see JobContextLifecycleEvent
+     */
+    public Flux<JobContextLifecycleEvent> onLifecycleEvent() {
+        return Flux.from(this.lifecycleEventTrigger);
+    }
+
+    /**
+     * 上下文声明周期事件
+     * <ul>
+     *     <li><code>STARTED</code> - 上下文启动，正在分发给worker</li>
+     *     <li><code>REFUSED</code> - worker拒绝接收上下文</li>
+     *     <li><code>ACCEPTED</code> - worker成功接收上下文</li>
+     *     <li><code>CLOSED</code> - 上下文被关闭</li>
+     * </ul>
+     */
+    enum JobContextLifecycleEvent {
+
+        /**
+         * @see AbstractJobContext#startupContext(Worker)
+         */
+        STARTED,
+
+        /**
+         * @see AbstractJobContext#refuseContext(Worker)
+         */
+        REFUSED,
+
+        /**
+         * @see AbstractJobContext#acceptContext(Worker)
+         */
+        ACCEPTED,
+
+        /**
+         * @see AbstractJobContext#closeContext()
+         */
+        CLOSED
+
+    }
 
 }
