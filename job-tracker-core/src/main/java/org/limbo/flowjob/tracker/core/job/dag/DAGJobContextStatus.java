@@ -14,13 +14,33 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.job;
+package org.limbo.flowjob.tracker.core.job.dag;
+
+import lombok.Getter;
+import org.limbo.flowjob.tracker.core.job.context.JobContext;
 
 /**
+ * DAG作业上下文状态
  * TODO
  *
  * @author Brozen
  * @since 2021-05-19
  */
-public interface DAGJob extends Job {
+public enum DAGJobContextStatus implements JobContext.Status {
+
+    PART_EXECUTING(12, "部分执行中"),
+
+    ;
+
+    @Getter
+    public final int status;
+
+    @Getter
+    public final String desc;
+
+    DAGJobContextStatus(int status, String desc) {
+        this.status = status;
+        this.desc = desc;
+    }
+
 }

@@ -1,9 +1,10 @@
-package org.limbo.flowjob.tracker.core.job;
+package org.limbo.flowjob.tracker.core.job.context;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.tracker.core.job.attribute.ImmutableJobAttribute;
 
 import java.time.LocalDateTime;
 import java.util.Collections;

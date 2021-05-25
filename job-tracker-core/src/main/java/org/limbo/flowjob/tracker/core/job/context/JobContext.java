@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.job;
+package org.limbo.flowjob.tracker.core.job.context;
 
 import org.limbo.flowjob.tracker.core.exceptions.JobContextException;
+import org.limbo.flowjob.tracker.core.job.attribute.JobAttributes;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import reactor.core.publisher.Mono;
 

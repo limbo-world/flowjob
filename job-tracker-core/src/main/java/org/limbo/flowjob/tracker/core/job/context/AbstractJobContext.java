@@ -1,8 +1,9 @@
-package org.limbo.flowjob.tracker.core.job;
+package org.limbo.flowjob.tracker.core.job.context;
 
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.core.exceptions.JobContextException;
 import org.limbo.flowjob.tracker.core.exceptions.JobWorkerException;
+import org.limbo.flowjob.tracker.core.tracker.worker.SendJobResult;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import reactor.core.publisher.DirectProcessor;
 import reactor.core.publisher.Flux;
@@ -49,6 +50,9 @@ public abstract class AbstractJobContext implements JobContext {
 
     /**
      * {@inheritDoc}
+     *
+     * FIXME 更新上下文，需锁定contextId，防止并发问题
+     *
      * @param worker 会将此上下文分发去执行的worker
      * @throws JobContextException 状态检测失败时，即此上下文的状态不是INIT或FAILED时抛出异常。
      */
@@ -63,7 +67,7 @@ public abstract class AbstractJobContext implements JobContext {
             throw new JobContextException(jobId, contextId, "Cannot startup context due to current status: " + status);
         }
 
-        // FIXME 更新上下文，需锁定contextId，防止并发问题
+        // 更新上下文
         setWorkerId(worker.getId());
         setStatus(JobContextStatus.DISPATCHING);
         jobContextRepository.updateContext(this);
@@ -71,9 +75,17 @@ public abstract class AbstractJobContext implements JobContext {
         try {
 
             // 发送上下文到worker
-            worker.sendJobContext(this);
+            Mono<SendJobResult> mono = worker.sendJobContext(this);
             // 发布事件
             lifecycleEventTrigger.onNext(JobContextLifecycleEvent.STARTED);
+
+            // 等待发送结果，根据客户端接收结果，更新状态
+            SendJobResult result = mono.block();
+            if (result != null && result.getAccepted()) {
+                this.acceptContext(worker);
+            } else {
+                this.refuseContext(worker);
+            }
 
         } catch (JobWorkerException e) {
             // 失败时更新上下文状态，冒泡异常
@@ -87,6 +99,9 @@ public abstract class AbstractJobContext implements JobContext {
 
     /**
      * {@inheritDoc}
+     *
+     * FIXME 更新上下文，需锁定contextId，防止并发问题
+     *
      * @param worker 确认接收此上下文的worker
      * @throws JobContextException 接受上下文的worker和上下文记录的worker不同时，抛出异常。
      */
@@ -97,7 +112,6 @@ public abstract class AbstractJobContext implements JobContext {
         assertWorkerId(worker.getId());
 
         // 更新状态
-        // FIXME 更新上下文，需锁定contextId，防止并发问题
         setStatus(JobContextStatus.EXECUTING);
         jobContextRepository.updateContext(this);
 
@@ -107,6 +121,9 @@ public abstract class AbstractJobContext implements JobContext {
 
     /**
      * {@inheritDoc}
+     *
+     * FIXME 更新上下文，需锁定contextId，防止并发问题
+     *
      * @param worker 拒绝接收此上下文的worker
      * @throws JobContextException 拒绝上下文的worker和上下文记录的worker不同时，抛出异常。
      */
@@ -117,7 +134,6 @@ public abstract class AbstractJobContext implements JobContext {
         assertWorkerId(worker.getId());
 
         // 更新状态
-        // FIXME 更新上下文，需锁定contextId，防止并发问题
         setStatus(JobContextStatus.REFUSED);
         jobContextRepository.updateContext(this);
 
@@ -127,6 +143,9 @@ public abstract class AbstractJobContext implements JobContext {
 
     /**
      * {@inheritDoc}
+     *
+     * FIXME 更新上下文，需锁定contextId，防止并发问题
+     *
      * @throws JobContextException 上下文状态不是{@link JobContextStatus#EXECUTING}时抛出异常。
      */
     @Override
@@ -134,7 +153,6 @@ public abstract class AbstractJobContext implements JobContext {
 
         assertContextStatus(JobContextStatus.EXECUTING);
 
-        // FIXME 更新上下文，需锁定contextId，防止并发问题
         setStatus(JobContextStatus.SUCCEED);
         jobContextRepository.updateContext(this);
 
@@ -167,6 +185,9 @@ public abstract class AbstractJobContext implements JobContext {
 
     /**
      * {@inheritDoc}
+     *
+     * TODO 此方式只支持单机监听，如果tracker集群部署，监听需用其他方式处理
+     *
      * @return
      */
     @Override
@@ -178,6 +199,9 @@ public abstract class AbstractJobContext implements JobContext {
 
     /**
      * {@inheritDoc}
+     *
+     * TODO 此方式只支持单机监听，如果tracker集群部署，监听需用其他方式处理
+     *
      * @return
      */
     @Override
@@ -189,6 +213,9 @@ public abstract class AbstractJobContext implements JobContext {
 
     /**
      * {@inheritDoc}
+     *
+     * TODO 此方式只支持单机监听，如果tracker集群部署，监听需用其他方式处理
+     *
      * @return
      */
     @Override
@@ -200,6 +227,9 @@ public abstract class AbstractJobContext implements JobContext {
 
     /**
      * 上下文生命周期事件触发时的回调监听。
+     *
+     * TODO 此方式只支持单机监听，如果tracker集群部署，监听需用其他方式处理
+     *
      * @return 声明周期事件发生时触发
      * @see JobContextLifecycleEvent
      */

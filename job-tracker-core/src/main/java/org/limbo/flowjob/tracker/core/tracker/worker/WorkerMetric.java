@@ -16,8 +16,10 @@
 
 package org.limbo.flowjob.tracker.core.tracker.worker;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import lombok.AccessLevel;
 import lombok.Data;
-import org.limbo.flowjob.tracker.core.messaging.JobDescription;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -28,6 +30,7 @@ import java.util.List;
  * @since 2021-05-17
  */
 @Data
+@Setter(AccessLevel.NONE)
 public class WorkerMetric {
 
     /**
@@ -50,4 +53,12 @@ public class WorkerMetric {
      */
     private Long timestamp;
 
+    @JsonCreator
+    public WorkerMetric(String id, List<JobDescription> executingJobs, WorkerAvailableResource availableResource,
+                        Long timestamp) {
+        this.id = id;
+        this.executingJobs = executingJobs;
+        this.availableResource = availableResource;
+        this.timestamp = timestamp;
+    }
 }

@@ -24,7 +24,7 @@ import lombok.Getter;
  * @author Brozen
  * @since 2021-05-14
  */
-public class JobExecuteException extends Exception {
+public class JobExecuteException extends RuntimeException {
 
     /**
      * 执行发生异常的作业

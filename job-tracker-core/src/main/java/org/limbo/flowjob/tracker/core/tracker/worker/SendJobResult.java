@@ -14,27 +14,31 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.job;
+package org.limbo.flowjob.tracker.core.tracker.worker;
 
-import reactor.core.publisher.Flux;
+import lombok.Data;
+
+import java.io.Serializable;
 
 /**
- * TODO
+ * 向worker发送作业后，worker的返回数据
  *
  * @author Brozen
- * @since 2021-05-19
+ * @since 2021-05-17
  */
-public interface DAGJobContext extends JobContext {
+@Data
+public class SendJobResult implements Serializable {
+
+    private static final long serialVersionUID = 5938197072123607724L;
 
     /**
-     * 关闭子上下文，此上下文对应的DAG作业中的子作业执行完成后，会调用此方法。
-     * @return 返回子上下文
+     * 作业ID
      */
-    JobContext closeChildContext(String childContextId);
+    private String jobId;
 
     /**
-     * 此上下文作业的子作业上下文被关闭时的回调监听。
+     * worker是否成功接收作业，返回true表明worker接下来会开始执行此作业
      */
-    Flux<JobContext> onChildContextClosed();
+    private Boolean accepted;
 
 }

@@ -17,7 +17,7 @@
 package org.limbo.flowjob.tracker.core.executor;
 
 import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.JobContext;
+import org.limbo.flowjob.tracker.core.job.context.JobContext;
 import reactor.core.publisher.UnicastProcessor;
 import reactor.util.concurrent.Queues;
 

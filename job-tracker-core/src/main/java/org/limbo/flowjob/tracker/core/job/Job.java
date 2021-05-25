@@ -16,6 +16,8 @@
 
 package org.limbo.flowjob.tracker.core.job;
 
+import org.limbo.flowjob.tracker.core.job.context.JobContext;
+
 /**
  * 作业的抽象。主要定义了作业的行为方法，属性的访问操作在{@link JobDefinition}接口。
  *

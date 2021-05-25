@@ -20,7 +20,7 @@ import io.netty.util.HashedWheelTimer;
 import org.limbo.flowjob.tracker.core.executor.JobExecutorService;
 import org.limbo.flowjob.tracker.core.executor.JobExecutorServiceFactory;
 import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.JobContext;
+import org.limbo.flowjob.tracker.core.job.context.JobContext;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 
 import java.util.Map;

@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.executor;
 
-import org.limbo.flowjob.tracker.core.job.JobContext;
+import org.limbo.flowjob.tracker.core.job.context.JobContext;
 
 /**
  * 作业执行器工厂类

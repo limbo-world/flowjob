@@ -69,6 +69,7 @@
         <limbo.utils>1.0.0</limbo.utils>
         <project.reactor>Dysprosium-SR18</project.reactor>
         <netty>4.1.59.Final</netty>
+        <jackson>2.12.1</jackson>
         <quartz.scheduler>2.3.2</quartz.scheduler>
         <lombok>1.18.16</lombok>
         <slf4j>1.7.30</slf4j>
@@ -106,6 +107,15 @@
                 <groupId>io.netty</groupId>
                 <artifactId>netty-bom</artifactId>
                 <version>${netty}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Jackson BOM -->
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

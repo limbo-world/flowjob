@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.messaging;
+package org.limbo.flowjob.tracker.core.tracker.worker;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Setter;
 import org.limbo.flowjob.tracker.core.job.Job;
 
 import java.util.List;
@@ -29,6 +32,7 @@ import java.util.Map;
  * @since 2021-05-17
  */
 @Data
+@Setter(AccessLevel.NONE)
 public class JobDescription {
 
     /**
@@ -42,12 +46,12 @@ public class JobDescription {
     private int redispatchTime;
 
     /**
-     * 作业所需的CPU核心数，参考{@link Job#cpuRequirement()}
+     * 作业所需的CPU核心数，参考{@link Job#getCpuRequirement()}
      */
     private float cpuRequirement;
 
     /**
-     * 作业所需的内存GB数，参考{@link Job#ramRequirement()}
+     * 作业所需的内存GB数，参考{@link Job#getRamRequirement()}
      */
     private float ramRequirement;
 
@@ -55,5 +59,15 @@ public class JobDescription {
      * 作业属性，可用于分片作业、MapReduce作业、DAG工作流进行传参。
      */
     private Map<String, List<String>> attributes;
+
+    @JsonCreator
+    public JobDescription(String id, int redispatchTime, float cpuRequirement, float ramRequirement,
+                          Map<String, List<String>> attributes) {
+        this.id = id;
+        this.redispatchTime = redispatchTime;
+        this.cpuRequirement = cpuRequirement;
+        this.ramRequirement = ramRequirement;
+        this.attributes = attributes;
+    }
 
 }

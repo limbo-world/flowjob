@@ -18,7 +18,7 @@ package org.limbo.flowjob.tracker.core.job.schedule;
 
 import org.limbo.flowjob.tracker.core.commons.StrategyFactory;
 import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.JobContextRepository;
+import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
 
 import java.util.ArrayList;
 import java.util.Collections;

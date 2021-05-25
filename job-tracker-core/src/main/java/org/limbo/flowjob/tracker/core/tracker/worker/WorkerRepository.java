@@ -16,6 +16,8 @@
 
 package org.limbo.flowjob.tracker.core.tracker.worker;
 
+import org.limbo.flowjob.tracker.core.tracker.worker.WorkerDefinition.WorkerStatus;
+
 import java.util.List;
 
 /**
@@ -28,16 +30,16 @@ public interface WorkerRepository {
      * 注册一个worker
      * @param worker worker节点
      */
-    void registerWorker(Worker worker);
+    void addWorker(Worker worker);
 
     /**
-     * 取消worker的注册
-     * @param workerId worker id
+     * 更新worker数据
+     * @param worker 更新worker
      */
-    void unregisterWorker(String workerId);
+    void updateWorker(Worker worker);
 
     /**
-     * 获取所有可用的worker。可用指在调用此方法之时，心跳检测没有失败的worker。
+     * 获取所有可用的worker。可用指{@link WorkerStatus#RUNNING}状态的worker。
      * @return 可用的worker。
      */
     List<Worker> availableWorkers();

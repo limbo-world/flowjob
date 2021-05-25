@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.job;
+package org.limbo.flowjob.tracker.core.job.attribute;
 
 import org.apache.commons.collections4.CollectionUtils;
 

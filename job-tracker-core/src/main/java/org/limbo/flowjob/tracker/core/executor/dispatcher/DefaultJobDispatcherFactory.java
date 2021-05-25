@@ -17,7 +17,7 @@
 package org.limbo.flowjob.tracker.core.executor.dispatcher;
 
 import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.JobContext;
+import org.limbo.flowjob.tracker.core.job.context.JobContext;
 import org.limbo.flowjob.tracker.core.job.JobRepository;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 

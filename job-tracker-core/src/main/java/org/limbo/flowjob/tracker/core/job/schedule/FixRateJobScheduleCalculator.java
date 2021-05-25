@@ -3,13 +3,12 @@ package org.limbo.flowjob.tracker.core.job.schedule;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.tracker.core.commons.Strategy;
 import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.JobContext;
-import org.limbo.flowjob.tracker.core.job.JobContextRepository;
+import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
 import org.limbo.flowjob.tracker.core.job.JobScheduleType;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
 /**

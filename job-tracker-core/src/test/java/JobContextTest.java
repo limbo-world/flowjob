@@ -2,22 +2,16 @@ import org.junit.Before;
 import org.junit.Test;
 import org.limbo.flowjob.tracker.core.exceptions.JobContextException;
 import org.limbo.flowjob.tracker.core.exceptions.JobWorkerException;
-import org.limbo.flowjob.tracker.core.executor.dispatcher.JobDispatcherFactory;
-import org.limbo.flowjob.tracker.core.job.JobContext;
-import org.limbo.flowjob.tracker.core.job.JobContextRepository;
-import org.limbo.flowjob.tracker.core.job.JobContextStatus;
-import org.limbo.flowjob.tracker.core.job.SimpleJobContext;
-import org.limbo.flowjob.tracker.core.messaging.SendJobResult;
+import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
+import org.limbo.flowjob.tracker.core.job.context.JobContextStatus;
+import org.limbo.flowjob.tracker.core.job.context.SimpleJobContext;
+import org.limbo.flowjob.tracker.core.tracker.worker.SendJobResult;
 import org.limbo.flowjob.tracker.core.scheduler.HashedWheelTimerJobScheduler;
-import org.limbo.flowjob.tracker.core.tracker.DisposableJobTracker;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
-import org.limbo.flowjob.tracker.core.tracker.JobTrackerLifecycle;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerMetric;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
 
 /**
  * @author Brozen
@@ -40,7 +34,27 @@ public class JobContextTest {
             }
 
             @Override
-            public WorkerMetric metric() {
+            public WorkerProtocol getProtocol() {
+                return null;
+            }
+
+            @Override
+            public String getIp() {
+                return null;
+            }
+
+            @Override
+            public Integer getPort() {
+                return 0;
+            }
+
+            @Override
+            public WorkerMetric getMetric() {
+                return null;
+            }
+
+            @Override
+            public WorkerStatus getStatus() {
                 return null;
             }
 
@@ -55,9 +69,10 @@ public class JobContextTest {
             }
 
             @Override
-            public Mono<Void> onUnregistered() {
-                return null;
+            public void unregister() {
+
             }
+
         };
     }
 

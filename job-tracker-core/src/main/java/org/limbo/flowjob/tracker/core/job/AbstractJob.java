@@ -1,6 +1,10 @@
 package org.limbo.flowjob.tracker.core.job;
 
 import lombok.Setter;
+import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
+import org.limbo.flowjob.tracker.core.job.context.JobContextStatus;
+import org.limbo.flowjob.tracker.core.job.context.SimpleJobContext;
 import org.limbo.flowjob.tracker.core.job.schedule.JobScheduleCalculator;
 import org.limbo.utils.UUIDUtils;
 

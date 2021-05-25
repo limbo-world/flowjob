@@ -18,6 +18,7 @@ package org.limbo.flowjob.tracker.core.job;
 
 import lombok.Getter;
 import org.limbo.flowjob.tracker.core.executor.dispatcher.JobDispatchType;
+import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
 import org.limbo.flowjob.tracker.core.job.schedule.JobScheduleCalculator;
 
 import java.time.Duration;
