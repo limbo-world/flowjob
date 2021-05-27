@@ -20,6 +20,7 @@ import org.limbo.flowjob.tracker.core.job.context.JobContext;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
 import java.util.Collection;
+import java.util.function.BiConsumer;
 
 /**
  * 作业分发器，封装了作业分发时的worker选择规则{@link JobDispatchType}：
@@ -41,8 +42,8 @@ public interface JobDispatcher {
      * 选择作业上下文应当下发给的worker。
      * @param context 待下发的作业上下文
      * @param workers 待下发上下文可用的worker
-     * @return 确定要下发作业的worker
+     * @param executor 作业执行回调
      */
-    Worker dispatch(JobContext context, Collection<Worker> workers);
+    void dispatch(JobContext context, Collection<Worker> workers, BiConsumer<JobContext, Worker> executor);
 
 }

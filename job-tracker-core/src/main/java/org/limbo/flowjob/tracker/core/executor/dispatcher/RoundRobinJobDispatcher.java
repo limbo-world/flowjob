@@ -22,12 +22,14 @@ import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import java.util.Collection;
 
 /**
- * 轮训作业分发器
+ * 轮训作业分发器。
+ * TODO
  *
  * @author Brozen
  * @since 2021-05-19
+ * @see JobDispatchType#ROUND_ROBIN
  */
-public class RoundRobinJobDispatcher implements JobDispatcher {
+public class RoundRobinJobDispatcher extends AbstractJobDispatcher implements JobDispatcher {
 
     /**
      * {@inheritDoc}
@@ -36,7 +38,7 @@ public class RoundRobinJobDispatcher implements JobDispatcher {
      * @return
      */
     @Override
-    public Worker dispatch(JobContext context, Collection<Worker> workers) {
+    protected Worker selectWorker(JobContext context, Collection<Worker> workers) {
         return null;
     }
 

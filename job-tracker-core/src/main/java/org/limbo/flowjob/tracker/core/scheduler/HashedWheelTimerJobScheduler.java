@@ -115,15 +115,24 @@ public abstract class HashedWheelTimerJobScheduler implements JobScheduler {
         long delay = triggerAt - System.currentTimeMillis();
         this.timer.newTimeout(timeout -> {
 
-            // 生成新的上下文，并交给执行器执行
-            JobContext context = job.newContext();
-            JobExecutorService executorService = jobExecutorServiceFactory.newExecutorService(context);
-            executorService.execute(jobTracker, context);
+            // 执行作业
+            executeJob(job);
 
             // 检测是否需要重新调度
             this.rescheduleJob(job);
 
         }, delay, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * 执行作业。通过创建新的作业执行器来执行。
+     * @param job 待执行的作业
+     */
+    private void executeJob(Job job) {
+        // 生成新的上下文，并交给执行器执行
+        JobContext context = job.newContext();
+        JobExecutorService executorService = jobExecutorServiceFactory.newExecutorService(context);
+        executorService.execute(jobTracker, context);
     }
 
 }
