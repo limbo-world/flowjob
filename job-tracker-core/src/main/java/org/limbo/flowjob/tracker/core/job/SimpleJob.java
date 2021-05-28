@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  * @author Brozen
  * @since 2021-05-24
  */
-public class SimpleJob extends BaseJobDefinition implements Job {
+public class SimpleJob extends Job {
 
     /**
      * 作业触发计算器

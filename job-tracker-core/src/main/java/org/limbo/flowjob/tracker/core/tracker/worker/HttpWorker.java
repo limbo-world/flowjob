@@ -4,17 +4,20 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import org.limbo.flowjob.tracker.core.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.core.exceptions.WorkerException;
 import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatisticsRepository;
 import org.limbo.utils.JacksonUtils;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufFlux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
 
+import java.time.LocalDateTime;
+
 /**
  * @author Brozen
  * @since 2021-05-25
  */
-public class HttpWorker extends AbstractWorker implements Worker {
+public class HttpWorker extends Worker {
 
     /**
      * 基于Netty的Http客户端
@@ -22,8 +25,9 @@ public class HttpWorker extends AbstractWorker implements Worker {
     private HttpClient client;
 
     public HttpWorker(String id, WorkerProtocol protocol, String ip, Integer port, WorkerStatus status,
-                      WorkerMetric metric, HttpClient client, WorkerRepository workerRepository) {
-        super(id, protocol, ip, port, status, metric, workerRepository);
+                      WorkerMetric metric, HttpClient client, WorkerRepository workerRepository,
+                      WorkerStatisticsRepository workerStatisticsRepository) {
+        super(id, protocol, ip, port, status, metric, workerRepository, workerStatisticsRepository);
         this.client = client;
     }
 
@@ -83,7 +87,14 @@ public class HttpWorker extends AbstractWorker implements Worker {
     public Mono<SendJobResult> sendJobContext(JobContext context) throws JobWorkerException {
         return Mono.from(client.post()
                 .uri(workerUri("/job"))
-                .response((resp, flux) -> responseReceiver(resp, flux, SendJobResult.class)));
+                // 获取请求响应并解析
+                .response((resp, flux) -> responseReceiver(resp, flux, SendJobResult.class)))
+                .doOnNext(result -> {
+                    // 如果worker接受作业，则更新下发时间
+                    if (result.getAccepted()) {
+                        getStatisticsRepository().updateWorkerDispatchTimes(getId(), LocalDateTime.now());
+                    }
+                });
     }
 
     /**

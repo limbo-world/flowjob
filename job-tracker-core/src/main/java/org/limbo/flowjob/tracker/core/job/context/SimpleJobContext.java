@@ -18,10 +18,12 @@ import java.util.Objects;
 /**
  * 作业上下文生命周期
  *
+ * FIXME 此处实现的 onXxxx 其实是作业上下文领域事件的一种监听方法，不应该通过JobContext领域对象来发出，后续需要改掉，在Application层通过服务触发领域事件
+ *
  * @author Brozen
  * @since 2021-05-21
  */
-public class SimpleJobContext extends BaseJobContextDefinition implements JobContext {
+public class SimpleJobContext extends JobContext {
 
     /**
      * 用于更新JobContext

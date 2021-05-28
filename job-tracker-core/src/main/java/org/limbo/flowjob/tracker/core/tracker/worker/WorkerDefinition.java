@@ -1,5 +1,7 @@
 package org.limbo.flowjob.tracker.core.tracker.worker;
 
+import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatistics;
+
 /**
  * worker属性的getter定义
  *
@@ -44,6 +46,12 @@ public interface WorkerDefinition {
      * @return worker节点状态
      */
     WorkerStatus getStatus();
+
+    /**
+     * 获取此worker对应的统计记录
+     * @return 此worker对应的统计记录
+     */
+    WorkerStatistics getStatistics();
 
     /**
      * Worker的状态

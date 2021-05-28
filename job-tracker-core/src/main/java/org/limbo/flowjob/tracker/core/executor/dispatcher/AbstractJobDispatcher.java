@@ -1,5 +1,7 @@
 package org.limbo.flowjob.tracker.core.executor.dispatcher;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.tracker.core.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.core.job.context.JobContext;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
@@ -20,6 +22,10 @@ public abstract class AbstractJobDispatcher implements JobDispatcher {
      */
     @Override
     public void dispatch(JobContext context, Collection<Worker> workers, BiConsumer<JobContext, Worker> executor) {
+        if (CollectionUtils.isEmpty(workers)) {
+            throw new JobWorkerException(context.getJobId(), null, "No worker available!");
+        }
+
         Worker worker = selectWorker(context, workers);
         executor.accept(context, worker);
     }
