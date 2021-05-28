@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.executor;
 
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 
 /**
@@ -32,6 +32,6 @@ public interface JobExecutorService {
      * @param tracker tracker节点
      * @param context 待执行的作业上下文
      */
-    void execute(JobTracker tracker, JobContext context);
+    void execute(JobTracker tracker, JobContextDO context);
 
 }

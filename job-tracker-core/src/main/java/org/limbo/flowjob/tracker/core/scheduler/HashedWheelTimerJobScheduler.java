@@ -19,8 +19,8 @@ package org.limbo.flowjob.tracker.core.scheduler;
 import io.netty.util.HashedWheelTimer;
 import org.limbo.flowjob.tracker.core.executor.JobExecutorService;
 import org.limbo.flowjob.tracker.core.executor.JobExecutorServiceFactory;
-import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.core.job.JobDO;
+import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 
 import java.util.Map;
@@ -72,7 +72,7 @@ public abstract class HashedWheelTimerJobScheduler implements JobScheduler {
 
 
     @Override
-    public void schedule(Job job) {
+    public void schedule(JobDO job) {
         // 如果job不会被触发，则无需加入调度
         long triggerAt = job.nextTriggerAt();
         if (triggerAt <= 0) {
@@ -90,7 +90,7 @@ public abstract class HashedWheelTimerJobScheduler implements JobScheduler {
      * 重新调度作业，在作业执行完成后调用该方法，检测作业是否还会触发，会触发则
      * @param job 作业
      */
-    protected void rescheduleJob(Job job) {
+    protected void rescheduleJob(JobDO job) {
         // 如果job不会被触发，则无需加入调度
         long triggerAt = job.nextTriggerAt();
         if (triggerAt <= 0) {
@@ -110,7 +110,7 @@ public abstract class HashedWheelTimerJobScheduler implements JobScheduler {
      * @param job 待调度的作业
      * @param triggerAt 作业下次被调度执行的时间戳
      */
-    private void doScheduleJob(Job job, long triggerAt) {
+    private void doScheduleJob(JobDO job, long triggerAt) {
         // 在timer上调度作业执行
         long delay = triggerAt - System.currentTimeMillis();
         this.timer.newTimeout(timeout -> {
@@ -128,9 +128,9 @@ public abstract class HashedWheelTimerJobScheduler implements JobScheduler {
      * 执行作业。通过创建新的作业执行器来执行。
      * @param job 待执行的作业
      */
-    private void executeJob(Job job) {
+    private void executeJob(JobDO job) {
         // 生成新的上下文，并交给执行器执行
-        JobContext context = job.newContext();
+        JobContextDO context = job.newContext();
         JobExecutorService executorService = jobExecutorServiceFactory.newExecutorService(context);
         executorService.execute(jobTracker, context);
     }

@@ -14,31 +14,21 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.tracker.worker;
-
-import lombok.Data;
-
-import java.io.Serializable;
+package org.limbo.flowjob.tracker.commons.utils.strategies;
 
 /**
- * 向worker发送作业后，worker的返回数据
+ * 策略工厂
  *
  * @author Brozen
- * @since 2021-05-17
+ * @since 2021-05-20
  */
-@Data
-public class SendJobResult implements Serializable {
-
-    private static final long serialVersionUID = 5938197072123607724L;
+public interface StrategyFactory<ST, S extends Strategy<T, R>, T, R> {
 
     /**
-     * 作业ID
+     * 创建一个新的策略.
+     * @param strategyType 策略创建的依据
+     * @return 新的策略
      */
-    private String jobId;
-
-    /**
-     * worker是否成功接收作业，返回true表明worker接下来会开始执行此作业
-     */
-    private Boolean accepted;
+    S newStrategy(ST strategyType);
 
 }

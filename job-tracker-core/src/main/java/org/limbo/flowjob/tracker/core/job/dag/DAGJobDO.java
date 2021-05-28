@@ -14,30 +14,22 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.commons;
+package org.limbo.flowjob.tracker.core.job.dag;
+
+import org.limbo.flowjob.tracker.core.job.JobDO;
+import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
+import org.limbo.flowjob.tracker.core.job.schedule.JobScheduleCalculator;
 
 /**
- * 基础策略封装
+ * TODO
  *
- * @param <T> 需要应用策略的数据类型
- * @param <R> 对T类型应用策略后，返回的数据类型
  * @author Brozen
- * @since 2021-05-20
+ * @since 2021-05-19
  */
-public interface Strategy<T, R> {
+public class DAGJobDO extends JobDO {
 
-    /**
-     * 此策略是否适用指定数据
-     * @param data 数据
-     * @return 策略是否适用
-     */
-    Boolean canApply(T data);
-
-    /**
-     * 对数据{@link T}应用策略，并返回{@link R}
-     * @param data 数据
-     * @return 策略结果
-     */
-    R apply(T data);
+    public DAGJobDO(JobScheduleCalculator triggerCalculator, JobContextRepository jobContextRepository) {
+        super(triggerCalculator, jobContextRepository);
+    }
 
 }

@@ -14,21 +14,30 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.commons;
+package org.limbo.flowjob.tracker.commons.utils.strategies;
 
 /**
- * 策略工厂
+ * 基础策略封装
  *
+ * @param <T> 需要应用策略的数据类型
+ * @param <R> 对T类型应用策略后，返回的数据类型
  * @author Brozen
  * @since 2021-05-20
  */
-public interface StrategyFactory<ST, S extends Strategy<T, R>, T, R> {
+public interface Strategy<T, R> {
 
     /**
-     * 创建一个新的策略.
-     * @param strategyType 策略创建的依据
-     * @return 新的策略
+     * 此策略是否适用指定数据
+     * @param data 数据
+     * @return 策略是否适用
      */
-    S newStrategy(ST strategyType);
+    Boolean canApply(T data);
+
+    /**
+     * 对数据{@link T}应用策略，并返回{@link R}
+     * @param data 数据
+     * @return 策略结果
+     */
+    R apply(T data);
 
 }

@@ -17,11 +17,14 @@
 package org.limbo.flowjob.tracker.core.tracker.worker;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.limbo.flowjob.tracker.commons.beans.dto.SendJobResult;
+import org.limbo.flowjob.tracker.commons.beans.domain.worker.Worker;
+import org.limbo.flowjob.tracker.commons.beans.domain.worker.WorkerMetric;
+import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
 import org.limbo.flowjob.tracker.core.exceptions.JobWorkerException;
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
 import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatistics;
 import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatisticsRepository;
 import reactor.core.publisher.Mono;
@@ -32,50 +35,7 @@ import reactor.core.publisher.Mono;
  * @author Brozen
  * @since 2021-05-14
  */
-@AllArgsConstructor
-public abstract class Worker implements WorkerDefinition {
-
-    /**
-     * worker节点ID
-     */
-    @Getter
-    @Setter(AccessLevel.PROTECTED)
-    private String id;
-
-    /**
-     * worker服务的通信协议
-     */
-    @Getter
-    @Setter(AccessLevel.PROTECTED)
-    private WorkerProtocol protocol;
-
-    /**
-     * worker服务的通信IP
-     */
-    @Getter
-    @Setter(AccessLevel.PROTECTED)
-    private String ip;
-
-    /**
-     * worker服务的通信端口
-     */
-    @Getter
-    @Setter(AccessLevel.PROTECTED)
-    private Integer port;
-
-    /**
-     * worker节点状态
-     */
-    @Getter
-    @Setter(AccessLevel.PROTECTED)
-    private WorkerStatus status;
-
-    /**
-     * 本worker节点最近一次上报的指标信息
-     */
-    @Getter
-    @Setter(AccessLevel.PROTECTED)
-    private WorkerMetric metric;
+public abstract class WorkerDO extends Worker {
 
     /**
      * 用户更新worker
@@ -99,10 +59,9 @@ public abstract class Worker implements WorkerDefinition {
     }
 
     /**
-     * {@inheritDoc}
-     * @return
+     * 获取此worker对应的统计记录
+     * @return 此worker对应的统计记录
      */
-    @Override
     public WorkerStatistics getStatistics() {
         return statisticsRepository.getWorkerStatistics(getId());
     }
@@ -118,7 +77,7 @@ public abstract class Worker implements WorkerDefinition {
      * @param context 作业执行上下文
      * @return worker接受job后触发
      */
-    public abstract Mono<SendJobResult> sendJobContext(JobContext context) throws JobWorkerException;
+    public abstract Mono<SendJobResult> sendJobContext(JobContextDO context) throws JobWorkerException;
 
     /**
      * 解注册此worker，worker的状态将被标记为{@link WorkerStatus#TERMINATED}

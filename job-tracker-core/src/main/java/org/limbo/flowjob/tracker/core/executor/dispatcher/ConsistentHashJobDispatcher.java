@@ -1,7 +1,8 @@
 package org.limbo.flowjob.tracker.core.executor.dispatcher;
 
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
-import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobDispatchType;
+import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
+import org.limbo.flowjob.tracker.core.tracker.worker.WorkerDO;
 
 import java.util.Collection;
 
@@ -19,7 +20,7 @@ public class ConsistentHashJobDispatcher extends AbstractJobDispatcher implement
      * @return
      */
     @Override
-    protected Worker selectWorker(JobContext context, Collection<Worker> workers) {
+    protected WorkerDO selectWorker(JobContextDO context, Collection<WorkerDO> workers) {
         // TODO
         return null;
     }

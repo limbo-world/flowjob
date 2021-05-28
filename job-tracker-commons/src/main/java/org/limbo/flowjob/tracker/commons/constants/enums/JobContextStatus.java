@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.job.context;
+package org.limbo.flowjob.tracker.commons.constants.enums;
 
 import lombok.Getter;
+import org.limbo.flowjob.tracker.commons.beans.domain.job.JobContext;
 
 /**
  * 作业上下文状态

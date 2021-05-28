@@ -1,29 +1,43 @@
+/*
+ * Copyright 2020-2024 Limbo Team (https://github.com/limbo-world).
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.limbo.flowjob.tracker.core.job.context;
 
 import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.tracker.commons.beans.domain.job.JobContext;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobContextStatus;
 import org.limbo.flowjob.tracker.core.exceptions.JobContextException;
 import org.limbo.flowjob.tracker.core.exceptions.JobWorkerException;
-import org.limbo.flowjob.tracker.core.tracker.worker.SendJobResult;
-import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
+import org.limbo.flowjob.tracker.commons.beans.dto.SendJobResult;
+import org.limbo.flowjob.tracker.core.tracker.worker.WorkerDO;
 import reactor.core.publisher.DirectProcessor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxProcessor;
 import reactor.core.publisher.Mono;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
- * 作业上下文生命周期
- *
- * FIXME 此处实现的 onXxxx 其实是作业上下文领域事件的一种监听方法，不应该通过JobContext领域对象来发出，后续需要改掉，在Application层通过服务触发领域事件
+ * 作业执行上下文
  *
  * @author Brozen
- * @since 2021-05-21
+ * @since 2021-05-14
  */
-public class SimpleJobContext extends JobContext {
+public class JobContextDO extends JobContext {
+
 
     /**
      * 用于更新JobContext
@@ -35,29 +49,21 @@ public class SimpleJobContext extends JobContext {
      */
     private FluxProcessor<JobContextLifecycleEvent, JobContextLifecycleEvent> lifecycleEventTrigger;
 
-    public SimpleJobContext(String jobId, String contextId, Status status, String workerId,
-                              JobContextRepository jobContextRepository) {
-        this(jobId, contextId, status, workerId, Collections.emptyMap(), jobContextRepository);
-    }
-
-    public SimpleJobContext(String jobId, String contextId, Status status, String workerId,
-                              Map<String, List<String>> attributes,
-                              JobContextRepository jobContextRepository) {
-        super(jobId, contextId, status, workerId, attributes);
+    public JobContextDO(JobContextRepository jobContextRepository) {
         this.jobContextRepository = Objects.requireNonNull(jobContextRepository, "JobContextRepository");
         this.lifecycleEventTrigger = DirectProcessor.create();
     }
 
     /**
-     * {@inheritDoc}
+     * 在指定worker上启动此作业上下文，将作业上下文发送给worker。
      *
      * FIXME 更新上下文，需锁定contextId，防止并发问题
      *
+     * 只有{@link JobContextStatus#INIT}和{@link JobContextStatus#FAILED}状态的上下文可被开启。
      * @param worker 会将此上下文分发去执行的worker
      * @throws JobContextException 状态检测失败时，即此上下文的状态不是INIT或FAILED时抛出异常。
      */
-    @Override
-    public void startupContext(Worker worker) throws JobContextException {
+    public void startupContext(WorkerDO worker) throws JobContextException {
         String jobId = getJobId();
         String contextId = getContextId();
         Status status = getStatus();
@@ -98,15 +104,14 @@ public class SimpleJobContext extends JobContext {
     }
 
     /**
-     * {@inheritDoc}
+     * worker确认接收此作业上下文，表示开始执行作业
      *
      * FIXME 更新上下文，需锁定contextId，防止并发问题
      *
      * @param worker 确认接收此上下文的worker
      * @throws JobContextException 接受上下文的worker和上下文记录的worker不同时，抛出异常。
      */
-    @Override
-    public void acceptContext(Worker worker) throws JobContextException {
+    public void acceptContext(WorkerDO worker) throws JobContextException {
 
         assertContextStatus(JobContextStatus.DISPATCHING);
         assertWorkerId(worker.getId());
@@ -120,15 +125,14 @@ public class SimpleJobContext extends JobContext {
     }
 
     /**
-     * {@inheritDoc}
+     * worker拒绝接收此作业上下文，作业不会开始执行
      *
      * FIXME 更新上下文，需锁定contextId，防止并发问题
      *
      * @param worker 拒绝接收此上下文的worker
      * @throws JobContextException 拒绝上下文的worker和上下文记录的worker不同时，抛出异常。
      */
-    @Override
-    public void refuseContext(Worker worker) throws JobContextException {
+    public void refuseContext(WorkerDO worker) throws JobContextException {
 
         assertContextStatus(JobContextStatus.DISPATCHING);
         assertWorkerId(worker.getId());
@@ -142,13 +146,12 @@ public class SimpleJobContext extends JobContext {
     }
 
     /**
-     * {@inheritDoc}
+     * 关闭上下文，只有绑定该上下文的作业执行完成后，才会调用此方法。
      *
      * FIXME 更新上下文，需锁定contextId，防止并发问题
      *
      * @throws JobContextException 上下文状态不是{@link JobContextStatus#EXECUTING}时抛出异常。
      */
-    @Override
     public void closeContext() throws JobContextException {
 
         assertContextStatus(JobContextStatus.EXECUTING);
@@ -184,13 +187,12 @@ public class SimpleJobContext extends JobContext {
     }
 
     /**
-     * {@inheritDoc}
+     * 上下文被worker拒绝时的回调监听。
      *
      * TODO 此方式只支持单机监听，如果tracker集群部署，监听需用其他方式处理
      *
      * @return
      */
-    @Override
     public Mono<JobContext> onContextRefused() {
         return Mono.create(sink -> this.lifecycleEventTrigger
                 .filter(e -> e == JobContextLifecycleEvent.REFUSED)
@@ -198,13 +200,12 @@ public class SimpleJobContext extends JobContext {
     }
 
     /**
-     * {@inheritDoc}
+     * 上下文被worker接收时的回调监听。
      *
      * TODO 此方式只支持单机监听，如果tracker集群部署，监听需用其他方式处理
      *
      * @return
      */
-    @Override
     public Mono<JobContext> onContextAccepted() {
         return Mono.create(sink -> this.lifecycleEventTrigger
                 .filter(e -> e == JobContextLifecycleEvent.ACCEPTED)
@@ -212,13 +213,12 @@ public class SimpleJobContext extends JobContext {
     }
 
     /**
-     * {@inheritDoc}
+     * 上下文被关闭时的回调监听。
      *
      * TODO 此方式只支持单机监听，如果tracker集群部署，监听需用其他方式处理
      *
      * @return
      */
-    @Override
     public Mono<JobContext> onContextClosed() {
         return Mono.create(sink -> this.lifecycleEventTrigger
                 .filter(e -> e == JobContextLifecycleEvent.CLOSED)
@@ -249,22 +249,22 @@ public class SimpleJobContext extends JobContext {
     enum JobContextLifecycleEvent {
 
         /**
-         * @see JobContext#startupContext(Worker)
+         * @see JobContextDO#startupContext(WorkerDO)
          */
         STARTED,
 
         /**
-         * @see JobContext#refuseContext(Worker)
+         * @see JobContextDO#refuseContext(WorkerDO)
          */
         REFUSED,
 
         /**
-         * @see JobContext#acceptContext(Worker)
+         * @see JobContextDO#acceptContext(WorkerDO)
          */
         ACCEPTED,
 
         /**
-         * @see JobContext#closeContext()
+         * @see JobContextDO#closeContext()
          */
         CLOSED
 

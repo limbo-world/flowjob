@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.tracker.worker;
 
-import org.limbo.flowjob.tracker.core.tracker.worker.WorkerDefinition.WorkerStatus;
+import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
 
 import java.util.List;
 
@@ -30,18 +30,18 @@ public interface WorkerRepository {
      * 注册一个worker
      * @param worker worker节点
      */
-    void addWorker(Worker worker);
+    void addWorker(WorkerDO worker);
 
     /**
      * 更新worker数据
      * @param worker 更新worker
      */
-    void updateWorker(Worker worker);
+    void updateWorker(WorkerDO worker);
 
     /**
      * 获取所有可用的worker。可用指{@link WorkerStatus#RUNNING}状态的worker。
      * @return 可用的worker。
      */
-    List<Worker> availableWorkers();
+    List<WorkerDO> availableWorkers();
 
 }

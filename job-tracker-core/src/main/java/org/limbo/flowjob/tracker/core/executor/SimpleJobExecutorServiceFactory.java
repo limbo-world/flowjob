@@ -1,7 +1,8 @@
 package org.limbo.flowjob.tracker.core.executor;
 
+import org.limbo.flowjob.tracker.core.executor.dispatcher.DefaultJobDispatcherFactory;
 import org.limbo.flowjob.tracker.core.job.JobRepository;
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
 
 /**
  * @author Brozen
@@ -21,8 +22,8 @@ public class SimpleJobExecutorServiceFactory implements JobExecutorServiceFactor
      * @return
      */
     @Override
-    public JobExecutorService newExecutorService(JobContext context) {
-        return new SimpleJobExecutorService(jobRepository);
+    public JobExecutorService newExecutorService(JobContextDO context) {
+        return new SimpleJobExecutorService(new DefaultJobDispatcherFactory(jobRepository));
     }
 
 }

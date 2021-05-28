@@ -1,6 +1,8 @@
 package org.limbo.flowjob.tracker.core.exceptions;
 
 /**
+ * Worker调用时发生的异常
+ *
  * @author Brozen
  * @since 2021-05-25
  */

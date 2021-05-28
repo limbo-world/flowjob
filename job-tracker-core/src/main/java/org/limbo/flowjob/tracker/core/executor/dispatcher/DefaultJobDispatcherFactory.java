@@ -16,9 +16,12 @@
 
 package org.limbo.flowjob.tracker.core.executor.dispatcher;
 
-import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.commons.beans.domain.job.Job;
+import org.limbo.flowjob.tracker.commons.beans.domain.job.JobContext;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobDispatchType;
+import org.limbo.flowjob.tracker.core.exceptions.JobExecuteException;
 import org.limbo.flowjob.tracker.core.job.JobRepository;
+import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 
 /**
@@ -41,13 +44,37 @@ public class DefaultJobDispatcherFactory implements JobDispatcherFactory {
     /**
      * Double Dispatch (￣▽￣)~* <br/>
      * 根据作业的分发方式，创建一个分发器实例。委托给{@link JobDispatchType}执行。
+     *
      * @param tracker tracker节点
      * @param context 作业上下文
      * @return 分发器实例
      */
-    public JobDispatcher newDispatcher(JobTracker tracker, JobContext context) {
+    public JobDispatcher newDispatcher(JobTracker tracker, JobContextDO context) {
         Job job = jobRepository.getJob(context.getJobId());
-        return job.getDispatchType().newDispatcher(tracker, context);
+
+        switch (job.getDispatchType()) {
+            case ROUND_ROBIN:
+                return new RoundRobinJobDispatcher();
+
+            case RANDOM:
+                return new RandomJobDispatcher();
+
+            case LEAST_FREQUENTLY_USED:
+                return new LFUJobDispatcher();
+
+            case LEAST_RECENTLY_USED:
+                return new LRUJobDispatcher();
+
+            case APPOINT:
+                return new AppointJobDispatcher();
+
+            case CONSISTENT_HASH:
+                return new ConsistentHashJobDispatcher();
+
+            default:
+                throw new JobExecuteException(context.getJobId(),
+                        "Cannot create JobDispatcher for dispatch type: " + job.getDispatchType());
+        }
     }
 
 }

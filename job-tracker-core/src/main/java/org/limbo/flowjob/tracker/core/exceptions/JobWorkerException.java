@@ -19,6 +19,8 @@ package org.limbo.flowjob.tracker.core.exceptions;
 import lombok.Getter;
 
 /**
+ * 作业下发给worker时，发生的异常
+ *
  * @author Brozen
  * @since 2021-05-14
  */

@@ -14,15 +14,27 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.job.dag;
+package org.limbo.flowjob.tracker.commons.beans.domain.worker;
 
-import org.limbo.flowjob.tracker.core.job.Job;
+import lombok.Data;
 
 /**
- * TODO
+ * worker节点上可用的资源，资源有以下三种定义：内存、CPU
  *
  * @author Brozen
- * @since 2021-05-19
+ * @since 2021-05-17
  */
-public interface DAGJob extends Job {
+@Data
+public class WorkerAvailableResource {
+
+    /**
+     * 可用的CPU核心数。
+     */
+    private float availableCpu;
+
+    /**
+     * 可用的内存空间，单位GB。
+     */
+    private float availableRam;
+
 }

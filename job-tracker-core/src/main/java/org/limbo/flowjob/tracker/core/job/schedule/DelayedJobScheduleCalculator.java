@@ -1,10 +1,10 @@
 package org.limbo.flowjob.tracker.core.job.schedule;
 
-import org.limbo.flowjob.tracker.core.commons.Strategy;
-import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.commons.beans.domain.job.Job;
+import org.limbo.flowjob.tracker.commons.beans.domain.job.JobContext;
+import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
 import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
-import org.limbo.flowjob.tracker.core.job.JobScheduleType;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleType;
 
 import java.time.Duration;
 import java.time.Instant;

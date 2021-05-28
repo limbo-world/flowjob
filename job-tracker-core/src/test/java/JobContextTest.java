@@ -1,16 +1,17 @@
 import org.junit.Before;
 import org.junit.Test;
+import org.limbo.flowjob.tracker.commons.constants.enums.WorkerProtocol;
+import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
 import org.limbo.flowjob.tracker.core.exceptions.JobContextException;
 import org.limbo.flowjob.tracker.core.exceptions.JobWorkerException;
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
 import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
-import org.limbo.flowjob.tracker.core.job.context.JobContextStatus;
-import org.limbo.flowjob.tracker.core.job.context.SimpleJobContext;
-import org.limbo.flowjob.tracker.core.tracker.worker.SendJobResult;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobContextStatus;
+import org.limbo.flowjob.tracker.commons.beans.dto.SendJobResult;
 import org.limbo.flowjob.tracker.core.scheduler.HashedWheelTimerJobScheduler;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
-import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
-import org.limbo.flowjob.tracker.core.tracker.worker.WorkerMetric;
+import org.limbo.flowjob.tracker.commons.beans.domain.worker.WorkerMetric;
+import org.limbo.flowjob.tracker.core.tracker.worker.WorkerDO;
 import reactor.core.publisher.Mono;
 
 /**
@@ -19,7 +20,7 @@ import reactor.core.publisher.Mono;
  */
 public class JobContextTest {
 
-    private Worker idleWorker;
+    private WorkerDO idleWorker;
 
     private JobTracker jobTracker;
 
@@ -27,7 +28,7 @@ public class JobContextTest {
 
     @Before
     public void init() {
-        this.idleWorker = new Worker() {
+        this.idleWorker = new WorkerDO() {
             @Override
             public String getId() {
                 return "w1";
@@ -64,7 +65,7 @@ public class JobContextTest {
             }
 
             @Override
-            public Mono<SendJobResult> sendJobContext(JobContext context) throws JobWorkerException {
+            public Mono<SendJobResult> sendJobContext(JobContextDO context) throws JobWorkerException {
                 return null;
             }
 
@@ -78,12 +79,16 @@ public class JobContextTest {
 
     @Test
     public void testSimpleJobContext() throws JobContextException {
-        SimpleJobContext context = new SimpleJobContext("job1", "ctx1", JobContextStatus.INIT, null, new JobContextRepository() {
+        JobContextDO context = new JobContextDO(new JobContextRepository() {
             @Override
-            public void updateContext(JobContext context) {
+            public void updateContext(JobContextDO context) {
                 System.out.println("updateContext");
             }
         });
+        context.setJobId("job1");
+        context.setContextId("ctx1");
+        context.setStatus(JobContextStatus.INIT);
+        context.setJobAttributes(null);
 
         context.onContextAccepted().subscribe(c -> System.out.println(c.getWorkerId() + " accepted"));
         context.onContextRefused().subscribe(c -> System.out.println(c.getWorkerId() + " refused"));

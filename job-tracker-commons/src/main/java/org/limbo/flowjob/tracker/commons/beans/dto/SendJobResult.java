@@ -14,27 +14,31 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.tracker.worker;
+package org.limbo.flowjob.tracker.commons.beans.dto;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
- * worker节点上可用的资源，资源有以下三种定义：内存、CPU
+ * 向worker发送作业后，worker的返回数据
  *
  * @author Brozen
  * @since 2021-05-17
  */
 @Data
-public class WorkerAvailableResource {
+public class SendJobResult implements Serializable {
+
+    private static final long serialVersionUID = 5938197072123607724L;
 
     /**
-     * 可用的CPU核心数。
+     * 作业ID
      */
-    private float availableCpu;
+    private String jobId;
 
     /**
-     * 可用的内存空间，单位GB。
+     * worker是否成功接收作业，返回true表明worker接下来会开始执行此作业
      */
-    private float availableRam;
+    private Boolean accepted;
 
 }

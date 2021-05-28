@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.tracker.worker;
+package org.limbo.flowjob.tracker.commons.beans.domain.worker;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
-import org.limbo.flowjob.tracker.core.job.Job;
+import org.limbo.flowjob.tracker.commons.beans.domain.job.Job;
 
 import java.util.List;
 import java.util.Map;

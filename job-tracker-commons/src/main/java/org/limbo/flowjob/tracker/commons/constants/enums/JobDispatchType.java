@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.executor.dispatcher;
+package org.limbo.flowjob.tracker.commons.constants.enums;
 
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
-import org.limbo.flowjob.tracker.core.tracker.JobTracker;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * 作业分发方式.
@@ -33,75 +33,46 @@ import org.limbo.flowjob.tracker.core.tracker.JobTracker;
  * @author Brozen
  * @since 2021-05-16
  */
-public enum JobDispatchType implements JobDispatcherFactory {
+public enum JobDispatchType {
 
     /**
      * 轮询。
      * TODO 如何实现轮询，当worker动态增减的时候，怎么保证轮训。
      */
-    ROUND_ROBIN(1, "轮询") {
-        @Override
-        public JobDispatcher newDispatcher(JobTracker tracker, JobContext context) {
-            return new RoundRobinJobDispatcher();
-        }
-    },
+    ROUND_ROBIN(1, "轮询"),
 
     /**
      * 随机。将作业随机下发给某一个worker执行
      */
-    RANDOM(2, "随机") {
-        @Override
-        public JobDispatcher newDispatcher(JobTracker jobTracker, JobContext context) {
-            return new RandomJobDispatcher();
-        }
-    },
+    RANDOM(2, "随机"),
 
     /**
      * 指定节点。通过某种方式，让作业指定下发到某个worker执行。
      * TODO 根据什么指定，IP？还是worker注册时提供一个tag？
      */
-    APPOINT(3, "指定节点") {
-        @Override
-        public JobDispatcher newDispatcher(JobTracker jobTracker, JobContext context) {
-            return new AppointJobDispatcher();
-        }
-    },
+    APPOINT(3, "指定节点"),
 
     /**
      * 最不经常使用。将作业下发给一个时间窗口内，接收作业最少的worker。
      */
-    LEAST_FREQUENTLY_USED(4, "最不经常使用") {
-        @Override
-        public JobDispatcher newDispatcher(JobTracker jobTracker, JobContext context) {
-            return new LFUJobDispatcher();
-        }
-    },
+    LEAST_FREQUENTLY_USED(4, "最不经常使用"),
 
     /**
      * 最近最少使用。将作业下发给一个时间窗口内，最长时间没有接受worker的worker。
      */
-    LEAST_RECENTLY_USED(5, "最近最少使用") {
-        @Override
-        public JobDispatcher newDispatcher(JobTracker jobTracker, JobContext context) {
-            return new LRUJobDispatcher();
-        }
-    },
+    LEAST_RECENTLY_USED(5, "最近最少使用"),
 
     /**
      * 一致性hash。同样参数的作业将始终下发给同一台机器。
      */
-    CONSISTENT_HASH(6, "一致性hash") {
-        @Override
-        public JobDispatcher newDispatcher(JobTracker jobTracker, JobContext context) {
-            throw new UnsupportedOperationException();
-        }
-    },
+    CONSISTENT_HASH(6, "一致性hash"),
 
     ;
 
     /**
      * 分发类型值
      */
+    @JsonValue
     public final int type;
 
     /**
@@ -118,6 +89,7 @@ public enum JobDispatchType implements JobDispatcherFactory {
     /**
      * 解析作业分发类型。
      */
+    @JsonCreator
     public static JobDispatchType parse(Integer type) {
         if (type == null) {
             return null;

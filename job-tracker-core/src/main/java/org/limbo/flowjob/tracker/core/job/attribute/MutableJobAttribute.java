@@ -17,6 +17,7 @@
 package org.limbo.flowjob.tracker.core.job.attribute;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.tracker.commons.beans.domain.job.JobAttributes;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Brozen
  * @since 2021-05-19
  */
-public class MutableJobAttribute implements JobAttributes {
+public class MutableJobAttribute extends JobAttributes {
 
     /**
      * 内部数据结构
@@ -37,6 +38,7 @@ public class MutableJobAttribute implements JobAttributes {
     }
 
     public MutableJobAttribute(Map<String, List<String>> attributes) {
+        super(null);
         this.attributes = new ConcurrentHashMap<>(attributes);
     }
 

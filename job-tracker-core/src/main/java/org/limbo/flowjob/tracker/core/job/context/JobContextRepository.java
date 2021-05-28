@@ -28,7 +28,7 @@ public interface JobContextRepository {
      * @param contextId 上下文ID
      * @return 作业上下文
      */
-    default JobContext getContext(String jobId, String contextId) {
+    default JobContextDO getContext(String jobId, String contextId) {
         throw new UnsupportedOperationException();
     }
 
@@ -37,7 +37,7 @@ public interface JobContextRepository {
      * @param jobId 作业ID
      * @return 最近一次作业执行时的上下文
      */
-    default JobContext getLatestContext(String jobId) {
+    default JobContextDO getLatestContext(String jobId) {
         throw new UnsupportedOperationException();
     }
 
@@ -45,7 +45,7 @@ public interface JobContextRepository {
      * 持久化作业上下文
      * @param context 作业执行上下文
      */
-    default void addContext(JobContext context) {
+    default void addContext(JobContextDO context) {
         throw new UnsupportedOperationException();
     }
 
@@ -53,7 +53,7 @@ public interface JobContextRepository {
      * 更新作业上下文
      * @param context 作业执行上下文
      */
-    default void updateContext(JobContext context) {
+    default void updateContext(JobContextDO context) {
         throw new UnsupportedOperationException();
     }
 }

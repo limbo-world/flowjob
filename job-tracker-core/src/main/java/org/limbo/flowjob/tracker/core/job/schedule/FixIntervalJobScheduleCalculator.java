@@ -1,11 +1,12 @@
 package org.limbo.flowjob.tracker.core.job.schedule;
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.tracker.core.commons.Strategy;
-import org.limbo.flowjob.tracker.core.job.*;
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.commons.beans.domain.job.Job;
+import org.limbo.flowjob.tracker.commons.beans.domain.job.JobContext;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleType;
+import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
 import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
-import org.limbo.flowjob.tracker.core.job.context.JobContextStatus;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobContextStatus;
 
 import java.time.Duration;
 import java.time.Instant;

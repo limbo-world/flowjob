@@ -1,9 +1,8 @@
 package org.limbo.flowjob.tracker.core.executor;
 
 import org.limbo.flowjob.tracker.core.executor.dispatcher.JobDispatcher;
-import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.JobRepository;
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.core.executor.dispatcher.JobDispatcherFactory;
+import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 
 /**
@@ -13,12 +12,12 @@ import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 public class SimpleJobExecutorService implements JobExecutorService {
 
     /**
-     * 作业repository
+     * 用于生成JobDispatcher
      */
-    private JobRepository jobRepository;
+    private JobDispatcherFactory jobDispatcherFactory;
 
-    public SimpleJobExecutorService(JobRepository jobRepository) {
-        this.jobRepository = jobRepository;
+    public SimpleJobExecutorService(JobDispatcherFactory jobDispatcherFactory) {
+        this.jobDispatcherFactory = jobDispatcherFactory;
     }
 
     /**
@@ -27,12 +26,10 @@ public class SimpleJobExecutorService implements JobExecutorService {
      * @param context 待执行的作业上下文
      */
     @Override
-    public void execute(JobTracker tracker, JobContext context) {
+    public void execute(JobTracker tracker, JobContextDO context) {
 
-        Job job = jobRepository.getJob(context.getJobId());
-        JobDispatcher dispatcher = job.getDispatchType().newDispatcher(tracker, context);
-
-        dispatcher.dispatch(context, tracker.availableWorkers(), JobContext::startupContext);
+        JobDispatcher jobDispatcher = jobDispatcherFactory.newDispatcher(tracker, context);
+        jobDispatcher.dispatch(context, tracker.availableWorkers(), JobContextDO::startupContext);
 
     }
 

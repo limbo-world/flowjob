@@ -1,8 +1,9 @@
 package org.limbo.flowjob.tracker.core.executor.dispatcher;
 
+import org.limbo.flowjob.tracker.commons.constants.enums.JobDispatchType;
 import org.limbo.flowjob.tracker.core.exceptions.JobWorkerException;
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
-import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
+import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
+import org.limbo.flowjob.tracker.core.tracker.worker.WorkerDO;
 
 import java.util.Collection;
 import java.util.Random;
@@ -27,11 +28,11 @@ public class RandomJobDispatcher extends AbstractJobDispatcher implements JobDis
      * @return
      */
     @Override
-    protected Worker selectWorker(JobContext context, Collection<Worker> workers) {
+    protected WorkerDO selectWorker(JobContextDO context, Collection<WorkerDO> workers) {
         int index = this.random.nextInt(workers.size() + 1) - 1;
 
         int i = 0;
-        for (Worker worker : workers) {
+        for (WorkerDO worker : workers) {
             if (i == index) {
                 return worker;
             }

@@ -16,8 +16,8 @@
 
 package org.limbo.flowjob.tracker.core.scheduler;
 
-import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.JobScheduleType;
+import org.limbo.flowjob.tracker.core.job.JobDO;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleType;
 
 /**
  * 作业调度器，封装了作业的调度流程，根据{@link JobScheduleType}有不同实现。
@@ -31,12 +31,12 @@ public interface JobScheduler {
      * 开始调度一个作业
      * @param job 待调度的作业
      */
-    void schedule(Job job);
+    void schedule(JobDO job);
 
     /**
      * 停止调度一个作业
      * @param job 停止调度的作业
      */
-    void unschedule(Job job);
+    void unschedule(JobDO job);
 
 }

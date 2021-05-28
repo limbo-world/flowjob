@@ -29,18 +29,18 @@ public interface JobRepository {
      * @param jobId jobId
      * @return 作业
      */
-    Job getJob(String jobId);
+    JobDO getJob(String jobId);
 
     /**
      * 添加一个作业
      * @param job 作业数据
      */
-    void addJob(Job job);
+    void addJob(JobDO job);
 
     /**
      * 查询所有有效作业，只有有效作业才可被调度。
      * @return 所有有效作业
      */
-    Flux<Job> schedulableJobs();
+    Flux<JobDO> schedulableJobs();
 
 }

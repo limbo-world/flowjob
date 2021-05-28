@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.job;
+package org.limbo.flowjob.tracker.commons.constants.enums;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * 作业调度方式：
@@ -58,14 +61,35 @@ public enum JobScheduleType {
 
     ;
 
-
+    @JsonValue
     public final int type;
 
     public final String desc;
 
+
     JobScheduleType(int type, String desc) {
         this.type = type;
         this.desc = desc;
+    }
+
+    /**
+     * 解析作业调度类型，用于Jackson反序列化
+     * @param type 数值类型的作业调度类型
+     * @return 作业调度类型枚举
+     */
+    @JsonCreator
+    public static JobScheduleType parse(Integer type) {
+        if (type == null) {
+            return null;
+        }
+
+        for (JobScheduleType jobScheduleType : values()) {
+            if (type.equals(jobScheduleType.type)) {
+                return jobScheduleType;
+            }
+        }
+
+        return null;
     }
 
 }

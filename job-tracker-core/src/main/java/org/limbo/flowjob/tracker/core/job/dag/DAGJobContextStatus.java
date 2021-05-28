@@ -17,7 +17,7 @@
 package org.limbo.flowjob.tracker.core.job.dag;
 
 import lombok.Getter;
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.commons.beans.domain.job.JobContext;
 
 /**
  * DAG作业上下文状态

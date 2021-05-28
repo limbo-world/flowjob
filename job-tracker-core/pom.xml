@@ -41,7 +41,7 @@
         <!-- 内部依赖 -->
         <dependency>
             <groupId>org.limbo.flowjob</groupId>
-            <artifactId>job-tracker-persistent</artifactId>
+            <artifactId>job-tracker-commons</artifactId>
         </dependency>
 
         <!-- Reactor -->
