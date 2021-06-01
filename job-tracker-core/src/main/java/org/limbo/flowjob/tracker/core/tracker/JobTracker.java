@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.tracker;
 
-import org.limbo.flowjob.tracker.core.executor.dispatcher.JobDispatcherFactory;
+import org.limbo.flowjob.tracker.core.dispatcher.strategies.JobDispatcherFactory;
 import reactor.core.publisher.Mono;
 
 

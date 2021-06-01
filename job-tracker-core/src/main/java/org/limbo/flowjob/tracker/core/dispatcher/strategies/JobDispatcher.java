@@ -14,34 +14,37 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.executor.dispatcher;
+package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.JobDispatchType;
 import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerDO;
 
 import java.util.Collection;
+import java.util.function.BiConsumer;
 
 /**
- * 轮训作业分发器。
- * TODO
+ * 作业分发器，封装了作业分发时的worker选择规则{@link JobDispatchType}：
+ * <ul>
+ *     <li>{@link JobDispatchType#ROUND_ROBIN}</li>
+ *     <li>{@link JobDispatchType#RANDOM}</li>
+ *     <li>{@link JobDispatchType#APPOINT}</li>
+ *     <li>{@link JobDispatchType#LEAST_FREQUENTLY_USED}</li>
+ *     <li>{@link JobDispatchType#LEAST_RECENTLY_USED}</li>
+ *     <li>{@link JobDispatchType#CONSISTENT_HASH}</li>
+ * </ul>
  *
  * @author Brozen
- * @since 2021-05-19
- * @see JobDispatchType#ROUND_ROBIN
+ * @since 2021-05-14
  */
-public class RoundRobinJobDispatcher extends AbstractJobDispatcher implements JobDispatcher {
+public interface JobDispatcher {
 
     /**
-     * {@inheritDoc}
+     * 选择作业上下文应当下发给的worker。
      * @param context 待下发的作业上下文
      * @param workers 待下发上下文可用的worker
-     * @return
+     * @param callback 选择worker后执行的回调
      */
-    @Override
-    protected WorkerDO selectWorker(JobContextDO context, Collection<WorkerDO> workers) {
-        // TODO
-        return null;
-    }
+    void dispatch(JobContextDO context, Collection<WorkerDO> workers, BiConsumer<JobContextDO, WorkerDO> callback);
 
 }

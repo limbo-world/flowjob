@@ -1,4 +1,4 @@
-package org.limbo.flowjob.tracker.core.exceptions;
+package org.limbo.flowjob.tracker.commons.exceptions;
 
 import lombok.Getter;
 

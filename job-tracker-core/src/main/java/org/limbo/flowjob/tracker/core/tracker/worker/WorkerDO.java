@@ -23,7 +23,7 @@ import org.limbo.flowjob.tracker.commons.beans.dto.SendJobResult;
 import org.limbo.flowjob.tracker.commons.beans.domain.worker.Worker;
 import org.limbo.flowjob.tracker.commons.beans.domain.worker.WorkerMetric;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
-import org.limbo.flowjob.tracker.core.exceptions.JobWorkerException;
+import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
 import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatistics;
 import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatisticsRepository;

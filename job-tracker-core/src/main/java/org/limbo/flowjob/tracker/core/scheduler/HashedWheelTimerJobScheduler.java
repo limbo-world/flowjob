@@ -17,8 +17,8 @@
 package org.limbo.flowjob.tracker.core.scheduler;
 
 import io.netty.util.HashedWheelTimer;
-import org.limbo.flowjob.tracker.core.executor.JobExecutorService;
-import org.limbo.flowjob.tracker.core.executor.JobExecutorServiceFactory;
+import org.limbo.flowjob.tracker.core.dispatcher.JobDispatchService;
+import org.limbo.flowjob.tracker.core.dispatcher.JobDispatchServiceFactory;
 import org.limbo.flowjob.tracker.core.job.JobDO;
 import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
@@ -46,7 +46,7 @@ public abstract class HashedWheelTimerJobScheduler implements JobScheduler {
     /**
      * 作业执行器服务
      */
-    private JobExecutorServiceFactory jobExecutorServiceFactory;
+    private JobDispatchServiceFactory jobDispatchServiceFactory;
 
     /**
      * 依赖netty的时间轮算法进行作业调度
@@ -61,11 +61,12 @@ public abstract class HashedWheelTimerJobScheduler implements JobScheduler {
     /**
      * 通过JobTracker和JobExecutorService构造一个作业调度器，该调度器基于哈希时间轮算法。
      * @param jobTracker JobTracker，进程内唯一
-     * @param jobExecutorServiceFactory 作业执行器工厂
+     * @param jobDispatchServiceFactory 作业执行器工厂
      */
-    public HashedWheelTimerJobScheduler(JobTracker jobTracker, JobExecutorServiceFactory jobExecutorServiceFactory) {
+    public HashedWheelTimerJobScheduler(JobTracker jobTracker, JobDispatchServiceFactory jobDispatchServiceFactory) {
         this.jobTracker = jobTracker;
-        this.jobExecutorServiceFactory = jobExecutorServiceFactory;
+        this.jobDispatchServiceFactory = jobDispatchServiceFactory;
+
         this.timer = new HashedWheelTimer(NamedThreadFactory.newInstance(this.getClass().getSimpleName() + "-timer-"));
         this.scheduledJobIds = new ConcurrentHashMap<>();
     }
@@ -131,8 +132,8 @@ public abstract class HashedWheelTimerJobScheduler implements JobScheduler {
     private void executeJob(JobDO job) {
         // 生成新的上下文，并交给执行器执行
         JobContextDO context = job.newContext();
-        JobExecutorService executorService = jobExecutorServiceFactory.newExecutorService(context);
-        executorService.execute(jobTracker, context);
+        JobDispatchService executorService = jobDispatchServiceFactory.newDispatchService(context);
+        executorService.dispatch(jobTracker, context);
     }
 
 }

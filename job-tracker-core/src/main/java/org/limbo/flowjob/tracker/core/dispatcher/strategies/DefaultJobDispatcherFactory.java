@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.executor.dispatcher;
+package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
-import org.limbo.flowjob.tracker.commons.beans.domain.job.Job;
+import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.commons.beans.domain.job.JobContext;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobDispatchType;
-import org.limbo.flowjob.tracker.core.exceptions.JobExecuteException;
+import org.limbo.flowjob.tracker.commons.exceptions.JobExecuteException;
 import org.limbo.flowjob.tracker.core.job.JobRepository;
 import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;

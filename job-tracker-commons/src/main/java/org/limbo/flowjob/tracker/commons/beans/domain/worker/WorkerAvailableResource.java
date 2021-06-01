@@ -16,10 +16,11 @@
 
 package org.limbo.flowjob.tracker.commons.beans.domain.worker;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 /**
- * worker节点上可用的资源，资源有以下三种定义：内存、CPU
+ * worker节点上可用的资源，资源有以下三种定义：内存、CPU。值对象。
  *
  * @author Brozen
  * @since 2021-05-17
@@ -37,4 +38,10 @@ public class WorkerAvailableResource {
      */
     private float availableRam;
 
+    public WorkerAvailableResource(
+            @JsonProperty("availableCpu") float availableCpu,
+            @JsonProperty("availableRam") float availableRam) {
+        this.availableCpu = availableCpu;
+        this.availableRam = availableRam;
+    }
 }

@@ -5,6 +5,8 @@ import org.limbo.flowjob.tracker.commons.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
 
 /**
+ * worker的轻量级领域对象。
+ *
  * @author Brozen
  * @since 2021-05-28
  */

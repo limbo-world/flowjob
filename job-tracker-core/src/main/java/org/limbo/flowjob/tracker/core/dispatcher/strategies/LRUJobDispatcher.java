@@ -1,4 +1,4 @@
-package org.limbo.flowjob.tracker.core.executor.dispatcher;
+package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.JobDispatchType;
 import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
@@ -9,9 +9,9 @@ import java.util.Collection;
 /**
  * @author Brozen
  * @since 2021-05-27
- * @see JobDispatchType#CONSISTENT_HASH
+ * @see JobDispatchType#LEAST_RECENTLY_USED
  */
-public class ConsistentHashJobDispatcher extends AbstractJobDispatcher implements JobDispatcher {
+public class LRUJobDispatcher extends AbstractJobDispatcher implements JobDispatcher {
 
     /**
      * {@inheritDoc}
@@ -24,4 +24,5 @@ public class ConsistentHashJobDispatcher extends AbstractJobDispatcher implement
         // TODO
         return null;
     }
+
 }

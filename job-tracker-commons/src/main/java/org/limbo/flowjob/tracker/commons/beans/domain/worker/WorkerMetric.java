@@ -17,6 +17,7 @@
 package org.limbo.flowjob.tracker.commons.beans.domain.worker;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
@@ -24,7 +25,7 @@ import lombok.Setter;
 import java.util.List;
 
 /**
- * worker的指标信息
+ * worker的指标信息，值对象。
  *
  * @author Brozen
  * @since 2021-05-17
@@ -54,8 +55,10 @@ public class WorkerMetric {
     private Long timestamp;
 
     @JsonCreator
-    public WorkerMetric(String id, List<JobDescription> executingJobs, WorkerAvailableResource availableResource,
-                        Long timestamp) {
+    public WorkerMetric(@JsonProperty("id") String id,
+                        @JsonProperty("executingJobs") List<JobDescription> executingJobs,
+                        @JsonProperty("availableResource") WorkerAvailableResource availableResource,
+                        @JsonProperty("timestamp") Long timestamp) {
         this.id = id;
         this.executingJobs = executingJobs;
         this.availableResource = availableResource;

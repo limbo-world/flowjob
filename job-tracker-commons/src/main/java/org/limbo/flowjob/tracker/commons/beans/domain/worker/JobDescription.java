@@ -17,6 +17,7 @@
 package org.limbo.flowjob.tracker.commons.beans.domain.worker;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
@@ -26,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 作业的描述信息，用于tracker和worker之间的通信
+ * 作业的描述信息，用于tracker和worker之间的通信。
  *
  * @author Brozen
  * @since 2021-05-17
@@ -39,11 +40,6 @@ public class JobDescription {
      * 作业ID
      */
     private String id;
-
-    /**
-     * 作业已重新下发次数，默认0。作业执行失败后，再次下发作业且worker接收后，worker返回的此作业重下发次数会加1。
-     */
-    private int redispatchTime;
 
     /**
      * 作业所需的CPU核心数，参考{@link Job#getCpuRequirement()}
@@ -61,10 +57,11 @@ public class JobDescription {
     private Map<String, List<String>> attributes;
 
     @JsonCreator
-    public JobDescription(String id, int redispatchTime, float cpuRequirement, float ramRequirement,
-                          Map<String, List<String>> attributes) {
+    public JobDescription(@JsonProperty("id") String id,
+                          @JsonProperty("cpuRequirement") float cpuRequirement,
+                          @JsonProperty("ramRequirement") float ramRequirement,
+                          @JsonProperty("attributes") Map<String, List<String>> attributes) {
         this.id = id;
-        this.redispatchTime = redispatchTime;
         this.cpuRequirement = cpuRequirement;
         this.ramRequirement = ramRequirement;
         this.attributes = attributes;

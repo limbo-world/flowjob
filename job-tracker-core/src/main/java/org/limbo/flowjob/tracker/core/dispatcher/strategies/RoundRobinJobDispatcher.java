@@ -14,23 +14,34 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.executor;
+package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
+import org.limbo.flowjob.tracker.commons.constants.enums.JobDispatchType;
 import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
+import org.limbo.flowjob.tracker.core.tracker.worker.WorkerDO;
+
+import java.util.Collection;
 
 /**
- * 作业执行器工厂类
+ * 轮训作业分发器。
+ * TODO
  *
  * @author Brozen
  * @since 2021-05-19
+ * @see JobDispatchType#ROUND_ROBIN
  */
-public interface JobExecutorServiceFactory {
+public class RoundRobinJobDispatcher extends AbstractJobDispatcher implements JobDispatcher {
 
     /**
-     * 作业执行器工厂方法，根据上下文生成一个新的作业执行器。
-     * @param context 作业上下文
-     * @return 作业执行器
+     * {@inheritDoc}
+     * @param context 待下发的作业上下文
+     * @param workers 待下发上下文可用的worker
+     * @return
      */
-    JobExecutorService newExecutorService(JobContextDO context);
+    @Override
+    protected WorkerDO selectWorker(JobContextDO context, Collection<WorkerDO> workers) {
+        // TODO
+        return null;
+    }
 
 }

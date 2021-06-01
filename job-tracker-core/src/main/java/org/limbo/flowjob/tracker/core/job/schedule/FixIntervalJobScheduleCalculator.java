@@ -1,7 +1,7 @@
 package org.limbo.flowjob.tracker.core.job.schedule;
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.tracker.commons.beans.domain.job.Job;
+import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.commons.beans.domain.job.JobContext;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleType;
 import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
@@ -56,7 +56,7 @@ public class FixIntervalJobScheduleCalculator extends JobScheduleCalculator impl
         } else {
 
             // FIX_INTERVAL模式下，前一次调度的上下文未关闭的情况下，不允许下次调度开始
-            JobContext.Status status = latestContext.getStatus();
+            JobContextStatus status = latestContext.getStatus();
             if (!JobContextStatus.SUCCEED.is(status)
                     && !JobContextStatus.FAILED.is(status)
                     && !JobContextStatus.TERMINATED.is(status)) {

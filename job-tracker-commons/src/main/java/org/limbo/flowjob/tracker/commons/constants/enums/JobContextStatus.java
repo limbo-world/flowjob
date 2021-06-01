@@ -16,8 +16,8 @@
 
 package org.limbo.flowjob.tracker.commons.constants.enums;
 
-import lombok.Getter;
-import org.limbo.flowjob.tracker.commons.beans.domain.job.JobContext;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * 作业上下文状态
@@ -25,26 +25,28 @@ import org.limbo.flowjob.tracker.commons.beans.domain.job.JobContext;
  * @author Brozen
  * @since 2021-05-19
  */
-public enum JobContextStatus implements JobContext.Status {
+public enum JobContextStatus {
 
     INIT(1, "初始化"),
 
-    SCHEDULING(2, "调度中"),
     DISPATCHING(3, "分发中"),
     REFUSED(4, "拒绝执行"),
     EXECUTING(5, "执行中"),
+
+    // DAG作业状态
+    PART_EXECUTING(12, "部分执行中"),
 
     SUCCEED(6, "执行成功"),
     FAILED(7, "执行异常"),
     TERMINATED(8, "作业被手动终止"),
     ;
 
-    @Getter
+    @JsonValue
     public final int status;
 
-    @Getter
     public final String desc;
 
+    @JsonCreator
     JobContextStatus(int status, String desc) {
         this.status = status;
         this.desc = desc;
@@ -54,7 +56,7 @@ public enum JobContextStatus implements JobContext.Status {
      * 校验是否是当前状态
      * @param status 待校验状态值
      */
-    public boolean is(JobContext.Status status) {
+    public boolean is(JobContextStatus status) {
         return equals(status);
     }
 

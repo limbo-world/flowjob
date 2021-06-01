@@ -14,25 +14,23 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.executor.dispatcher;
+package org.limbo.flowjob.tracker.core.dispatcher;
 
 import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
-import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 
 /**
- * {@link org.limbo.flowjob.tracker.core.executor.dispatcher.JobDispatcher} 工厂
+ * 作业执行器工厂类
  *
  * @author Brozen
- * @since 2021-05-18
+ * @since 2021-05-19
  */
-public interface JobDispatcherFactory {
+public interface JobDispatchServiceFactory {
 
     /**
-     * 创建新的JobDispatcher
-     * @param tracker tracker节点
-     * @param context 待分发作业上下文
-     * @return 作业分发器
+     * 作业执行器工厂方法，根据上下文生成一个新的作业执行器。
+     * @param context 作业上下文
+     * @return 作业执行器
      */
-    JobDispatcher newDispatcher(JobTracker tracker, JobContextDO context);
+    JobDispatchService newDispatchService(JobContextDO context);
 
 }

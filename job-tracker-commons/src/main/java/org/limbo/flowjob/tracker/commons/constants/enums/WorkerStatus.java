@@ -14,7 +14,7 @@ public enum WorkerStatus {
     RUNNING(1),
 
     /**
-     * Worker熔断中，此状态的Worker无法接受任务，并将等待心跳重连并复活。
+     * Worker熔断中，此状态的Worker无法接受作业，并将等待心跳重连并复活。
      */
     FUSING(2),
 

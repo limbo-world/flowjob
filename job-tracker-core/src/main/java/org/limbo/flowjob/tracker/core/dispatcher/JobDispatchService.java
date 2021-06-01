@@ -14,32 +14,24 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.exceptions;
+package org.limbo.flowjob.tracker.core.dispatcher;
 
-import lombok.Getter;
+import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
+import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 
 /**
- * 作业下发给worker时，发生的异常
+ * 作业分发器抽象，封装了作业的下发流程。
  *
  * @author Brozen
  * @since 2021-05-14
  */
-public class JobWorkerException extends JobExecuteException {
+public interface JobDispatchService {
 
     /**
-     * 不可用的worker
+     * 分发作业。
+     * @param tracker tracker节点
+     * @param context 待执行的作业上下文
      */
-    @Getter
-    private String workerId;
-
-    public JobWorkerException(String jobId, String workerId, String message) {
-        super(jobId, message);
-        this.workerId = workerId;
-    }
-
-    public JobWorkerException(String jobId, String workerId, String message, Throwable cause) {
-        super(jobId, message, cause);
-        this.workerId = workerId;
-    }
+    void dispatch(JobTracker tracker, JobContextDO context);
 
 }

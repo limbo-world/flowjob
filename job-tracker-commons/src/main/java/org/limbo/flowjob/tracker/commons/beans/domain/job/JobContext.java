@@ -1,6 +1,8 @@
 package org.limbo.flowjob.tracker.commons.beans.domain.job;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobContextStatus;
 
 import java.time.LocalDateTime;
 
@@ -24,7 +26,7 @@ public class JobContext {
     /**
      * 此上下文状态
      */
-    private JobContext.Status status;
+    private JobContextStatus status;
 
     /**
      * 此分发执行此作业上下文的worker
@@ -34,33 +36,18 @@ public class JobContext {
     /**
      * 此上下文的创建时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
     /**
      * 此上下文的更新时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
 
     /**
      * 作业属性，不可变。作业属性可用于分片作业、MapReduce作业、DAG工作流进行传参
      */
     private JobAttributes jobAttributes;
-
-
-    /**
-     * 上下文状态
-     */
-    public interface Status {
-
-        /**
-         * 状态码
-         */
-        int getStatus();
-
-        /**
-         * 状态描述
-         */
-        String getDesc();
-    }
 
 }

@@ -19,8 +19,8 @@ package org.limbo.flowjob.tracker.core.job.context;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.commons.beans.domain.job.JobContext;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobContextStatus;
-import org.limbo.flowjob.tracker.core.exceptions.JobContextException;
-import org.limbo.flowjob.tracker.core.exceptions.JobWorkerException;
+import org.limbo.flowjob.tracker.commons.exceptions.JobContextException;
+import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.commons.beans.dto.SendJobResult;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerDO;
 import reactor.core.publisher.DirectProcessor;
@@ -66,7 +66,7 @@ public class JobContextDO extends JobContext {
     public void startupContext(WorkerDO worker) throws JobContextException {
         String jobId = getJobId();
         String contextId = getContextId();
-        Status status = getStatus();
+        JobContextStatus status = getStatus();
 
         // 检测状态
         if (status != JobContextStatus.INIT && status != JobContextStatus.FAILED) {
@@ -168,7 +168,7 @@ public class JobContextDO extends JobContext {
      * 断言当前上下文处于某个状态，否则将抛出{@link JobContextException}
      * @param assertStatus 断言当前上下文的状态
      */
-    protected void assertContextStatus(JobContext.Status assertStatus) throws JobContextException {
+    protected void assertContextStatus(JobContextStatus assertStatus) throws JobContextException {
         if (getStatus() != assertStatus) {
             throw new JobContextException(getJobId(), getContextId(),
                     "Expect context status: " + assertStatus + " but is: " + getStatus());

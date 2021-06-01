@@ -17,7 +17,6 @@
 package org.limbo.flowjob.tracker.core.job;
 
 import lombok.Setter;
-import org.limbo.flowjob.tracker.commons.beans.domain.job.Job;
 import org.limbo.flowjob.tracker.commons.beans.domain.job.JobContext;
 import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
 import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
@@ -47,7 +46,7 @@ public abstract class JobDO extends Job {
     private JobContextRepository jobContextRepository;
 
     public JobDO(JobScheduleCalculator triggerCalculator,
-                     JobContextRepository jobContextRepository) {
+                 JobContextRepository jobContextRepository) {
 
         this.triggerCalculator = triggerCalculator;
         this.jobContextRepository = jobContextRepository;

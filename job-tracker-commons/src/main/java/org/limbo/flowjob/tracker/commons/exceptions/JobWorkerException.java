@@ -14,32 +14,32 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.exceptions;
+package org.limbo.flowjob.tracker.commons.exceptions;
 
 import lombok.Getter;
 
 /**
- * 作业执行异常基类
+ * 作业下发给worker时，发生的异常
  *
  * @author Brozen
  * @since 2021-05-14
  */
-public class JobExecuteException extends RuntimeException {
+public class JobWorkerException extends JobExecuteException {
 
     /**
-     * 执行发生异常的作业
+     * 不可用的worker
      */
     @Getter
-    private String jobId;
+    private String workerId;
 
-    public JobExecuteException(String jobId, String message) {
-        super(message);
-        this.jobId = jobId;
+    public JobWorkerException(String jobId, String workerId, String message) {
+        super(jobId, message);
+        this.workerId = workerId;
     }
 
-    public JobExecuteException(String jobId, String message, Throwable cause) {
-        super(message, cause);
-        this.jobId = jobId;
+    public JobWorkerException(String jobId, String workerId, String message, Throwable cause) {
+        super(jobId, message, cause);
+        this.workerId = workerId;
     }
 
 }

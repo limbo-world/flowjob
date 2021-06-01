@@ -1,7 +1,7 @@
-package org.limbo.flowjob.tracker.core.executor;
+package org.limbo.flowjob.tracker.core.dispatcher;
 
-import org.limbo.flowjob.tracker.core.executor.dispatcher.JobDispatcher;
-import org.limbo.flowjob.tracker.core.executor.dispatcher.JobDispatcherFactory;
+import org.limbo.flowjob.tracker.core.dispatcher.strategies.JobDispatcher;
+import org.limbo.flowjob.tracker.core.dispatcher.strategies.JobDispatcherFactory;
 import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 
@@ -9,14 +9,14 @@ import org.limbo.flowjob.tracker.core.tracker.JobTracker;
  * @author Brozen
  * @since 2021-05-27
  */
-public class SimpleJobExecutorService implements JobExecutorService {
+public class SimpleJobDispatchService implements JobDispatchService {
 
     /**
      * 用于生成JobDispatcher
      */
     private JobDispatcherFactory jobDispatcherFactory;
 
-    public SimpleJobExecutorService(JobDispatcherFactory jobDispatcherFactory) {
+    public SimpleJobDispatchService(JobDispatcherFactory jobDispatcherFactory) {
         this.jobDispatcherFactory = jobDispatcherFactory;
     }
 
@@ -26,7 +26,7 @@ public class SimpleJobExecutorService implements JobExecutorService {
      * @param context 待执行的作业上下文
      */
     @Override
-    public void execute(JobTracker tracker, JobContextDO context) {
+    public void dispatch(JobTracker tracker, JobContextDO context) {
 
         JobDispatcher jobDispatcher = jobDispatcherFactory.newDispatcher(tracker, context);
         jobDispatcher.dispatch(context, tracker.availableWorkers(), JobContextDO::startupContext);

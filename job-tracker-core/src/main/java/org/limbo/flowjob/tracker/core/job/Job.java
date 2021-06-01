@@ -1,4 +1,4 @@
-package org.limbo.flowjob.tracker.commons.beans.domain.job;
+package org.limbo.flowjob.tracker.core.job;
 
 import lombok.Data;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobDispatchType;
@@ -8,6 +8,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 /**
+ * 作业轻量级领域对象，包括job的属性。
+ *
  * @author Brozen
  * @since 2021-05-28
  */

@@ -14,33 +14,25 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.job.dag;
+package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
-import lombok.Getter;
-import org.limbo.flowjob.tracker.commons.beans.domain.job.JobContext;
+import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
+import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 
 /**
- * DAG作业上下文状态
- * TODO
+ * {@link org.limbo.flowjob.tracker.core.dispatcher.strategies.JobDispatcher} 工厂
  *
  * @author Brozen
- * @since 2021-05-19
+ * @since 2021-05-18
  */
-public enum DAGJobContextStatus implements JobContext.Status {
+public interface JobDispatcherFactory {
 
-    PART_EXECUTING(12, "部分执行中"),
-
-    ;
-
-    @Getter
-    public final int status;
-
-    @Getter
-    public final String desc;
-
-    DAGJobContextStatus(int status, String desc) {
-        this.status = status;
-        this.desc = desc;
-    }
+    /**
+     * 创建新的JobDispatcher
+     * @param tracker tracker节点
+     * @param context 待分发作业上下文
+     * @return 作业分发器
+     */
+    JobDispatcher newDispatcher(JobTracker tracker, JobContextDO context);
 
 }
