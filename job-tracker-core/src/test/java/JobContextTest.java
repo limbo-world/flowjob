@@ -7,10 +7,10 @@ import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
 import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobContextStatus;
-import org.limbo.flowjob.tracker.commons.beans.dto.SendJobResult;
+import org.limbo.flowjob.tracker.commons.beans.worker.dto.SendJobResult;
 import org.limbo.flowjob.tracker.core.scheduler.HashedWheelTimerJobScheduler;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
-import org.limbo.flowjob.tracker.commons.beans.domain.worker.WorkerMetric;
+import org.limbo.flowjob.tracker.commons.beans.worker.valueobject.WorkerMetric;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerDO;
 import reactor.core.publisher.Mono;
 

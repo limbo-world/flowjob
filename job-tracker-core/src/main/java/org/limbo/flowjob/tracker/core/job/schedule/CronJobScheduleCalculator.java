@@ -45,7 +45,7 @@ public class CronJobScheduleCalculator extends JobScheduleCalculator implements 
             return NO_TRIGGER;
         }
 
-        String cron = job.getScheduleCron();
+        String cron = job.getScheduleOption().getScheduleCron();
         try {
             // 校验CRON表达式
             CronExpression.validateExpression(cron);

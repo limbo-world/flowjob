@@ -23,6 +23,22 @@ package org.limbo.flowjob.tracker.core.job.context;
 public interface JobContextRepository {
 
     /**
+     * 持久化作业上下文
+     * @param context 作业执行上下文
+     */
+    default void addContext(JobContextDO context) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * 更新作业上下文
+     * @param context 作业执行上下文
+     */
+    default void updateContext(JobContextDO context) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * 获取作业执行的上下文
      * @param jobId 作业ID
      * @param contextId 上下文ID
@@ -38,22 +54,6 @@ public interface JobContextRepository {
      * @return 最近一次作业执行时的上下文
      */
     default JobContextDO getLatestContext(String jobId) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * 持久化作业上下文
-     * @param context 作业执行上下文
-     */
-    default void addContext(JobContextDO context) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * 更新作业上下文
-     * @param context 作业执行上下文
-     */
-    default void updateContext(JobContextDO context) {
         throw new UnsupportedOperationException();
     }
 }

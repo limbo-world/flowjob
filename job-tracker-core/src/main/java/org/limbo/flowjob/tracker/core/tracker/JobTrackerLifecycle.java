@@ -40,7 +40,7 @@ public interface JobTrackerLifecycle {
 
     /**
      * 停止前。
-     * @return 停止前触发的Mono，可以阻塞停止流程
+     * @return 停止前触发的Mono，Mono触发时，将阻塞停止流程
      */
     Mono<JobTracker> beforeStop();
 
@@ -50,4 +50,16 @@ public interface JobTrackerLifecycle {
      */
     Mono<JobTracker> afterStop();
 
+
+    /**
+     * JobTracker声明周期事件类型
+     */
+    enum JobTrackerLifecycleEventType {
+
+        BEFORE_START,
+        AFTER_START,
+        BEFORE_STOP,
+        AFTER_STOP
+
+    }
 }

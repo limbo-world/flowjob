@@ -35,4 +35,20 @@
         <maven.compiler.target>8</maven.compiler.target>
     </properties>
 
+    <dependencies>
+        <!-- Starter: WebFlux -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+
+        <!-- 依赖基础设施层 -->
+        <dependency>
+            <groupId>org.limbo.flowjob</groupId>
+            <artifactId>job-tracker-infrastructure</artifactId>
+        </dependency>
+
+    </dependencies>
+
+
 </project>

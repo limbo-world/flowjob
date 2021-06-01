@@ -2,7 +2,7 @@ package org.limbo.flowjob.tracker.core.job.schedule;
 
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.commons.beans.domain.job.JobContext;
+import org.limbo.flowjob.tracker.commons.beans.job.domain.JobContext;
 import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
 import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleType;
@@ -47,16 +47,16 @@ public class FixRateJobScheduleCalculator extends JobScheduleCalculator implemen
             return NO_TRIGGER;
         }
 
-        JobContext latestContext = jobContextRepository.getLatestContext(job.getId());
+        JobContext latestContext = jobContextRepository.getLatestContext(job.getJobId());
         if (latestContext == null) {
 
             scheduleAt = now;
 
         } else {
 
-            Duration interval = job.getScheduleInterval();
+            Duration interval = job.getScheduleOption().getScheduleInterval();
             if (interval == null) {
-                log.error("cannot calculate next trigger timestamp of job({}) because interval is not assigned!", job.getId());
+                log.error("cannot calculate next trigger timestamp of job({}) because interval is not assigned!", job.getJobId());
                 return NO_TRIGGER;
             }
 

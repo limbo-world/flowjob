@@ -1,6 +1,7 @@
 import org.junit.Test;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.ReplayProcessor;
+import reactor.core.publisher.Sinks;
 
 /**
  * @author Brozen
@@ -25,6 +26,22 @@ public class ReactorTest {
         for (int i = 0; i < 10; i++) {
             processor.onNext(i);
         }
+    }
+
+
+    @Test
+    public void testSinks() {
+        Sinks.One<Integer> one = Sinks.one();
+
+        one.emitValue(10, (signalType, emitResult) -> {
+            System.out.println(signalType);
+            System.out.println(emitResult);
+            return false;
+        });
+
+        one.asMono().subscribe(System.out::println);
+        one.asMono().subscribe(System.out::println);
+
     }
 
 }

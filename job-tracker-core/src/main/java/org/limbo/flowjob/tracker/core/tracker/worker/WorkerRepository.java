@@ -27,7 +27,7 @@ import java.util.List;
 public interface WorkerRepository {
 
     /**
-     * 注册一个worker
+     * 新增一个worker
      * @param worker worker节点
      */
     void addWorker(WorkerDO worker);
@@ -39,9 +39,22 @@ public interface WorkerRepository {
     void updateWorker(WorkerDO worker);
 
     /**
+     * 根据id查询worker
+     * @param workerId workerId
+     * @return worker节点
+     */
+    WorkerDO getWorker(String workerId);
+
+    /**
      * 获取所有可用的worker。可用指{@link WorkerStatus#RUNNING}状态的worker。
      * @return 可用的worker。
      */
     List<WorkerDO> availableWorkers();
+
+    /**
+     * 移除一个worker
+     * @param workerId 需要被移除的workerId
+     */
+    void removeWorker(String workerId);
 
 }

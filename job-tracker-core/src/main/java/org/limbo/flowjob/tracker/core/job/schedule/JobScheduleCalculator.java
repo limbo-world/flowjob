@@ -53,7 +53,7 @@ public abstract class JobScheduleCalculator implements Strategy<Job, Long> {
      */
     @Override
     public Boolean canApply(Job job) {
-        return job.getScheduleType() == this.scheduleType;
+        return job.getScheduleOption().getScheduleType() == this.scheduleType;
     }
 
     /**
@@ -72,7 +72,7 @@ public abstract class JobScheduleCalculator implements Strategy<Job, Long> {
      */
     protected long calculateStartScheduleTimestamp(Job job) {
         LocalDateTime createdAt = job.getCreatedAt();
-        Duration delay = job.getScheduleDelay();
+        Duration delay = job.getScheduleOption().getScheduleDelay();
         long startScheduleAt = createdAt.toEpochSecond(ZoneOffset.UTC);
         return delay != null ? startScheduleAt + delay.toMillis() : startScheduleAt;
     }

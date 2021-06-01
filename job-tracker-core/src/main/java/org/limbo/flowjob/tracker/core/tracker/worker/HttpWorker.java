@@ -1,8 +1,8 @@
 package org.limbo.flowjob.tracker.core.tracker.worker;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
-import org.limbo.flowjob.tracker.commons.beans.dto.SendJobResult;
-import org.limbo.flowjob.tracker.commons.beans.domain.worker.WorkerMetric;
+import org.limbo.flowjob.tracker.commons.beans.worker.dto.SendJobResult;
+import org.limbo.flowjob.tracker.commons.beans.worker.valueobject.WorkerMetric;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.commons.exceptions.WorkerException;
@@ -94,6 +94,7 @@ public class HttpWorker extends WorkerDO {
                 .doOnNext(result -> {
                     // 如果worker接受作业，则更新下发时间
                     if (result.getAccepted()) {
+                        // FIXME 此处是transaction script写法了，要不要改成update全部数据？
                         getStatisticsRepository().updateWorkerDispatchTimes(getId(), LocalDateTime.now());
                     }
                 });

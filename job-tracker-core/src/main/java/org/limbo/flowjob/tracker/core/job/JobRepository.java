@@ -16,13 +16,19 @@
 
 package org.limbo.flowjob.tracker.core.job;
 
-import reactor.core.publisher.Flux;
+import java.util.List;
 
 /**
  * @author Brozen
  * @since 2021-05-19
  */
 public interface JobRepository {
+
+    /**
+     * 添加一个作业
+     * @param job 作业数据
+     */
+    void addJob(JobDO job);
 
     /**
      * 根据id查询作业
@@ -32,15 +38,9 @@ public interface JobRepository {
     JobDO getJob(String jobId);
 
     /**
-     * 添加一个作业
-     * @param job 作业数据
-     */
-    void addJob(JobDO job);
-
-    /**
      * 查询所有有效作业，只有有效作业才可被调度。
      * @return 所有有效作业
      */
-    Flux<JobDO> schedulableJobs();
+    List<JobDO> listSchedulableJobs();
 
 }

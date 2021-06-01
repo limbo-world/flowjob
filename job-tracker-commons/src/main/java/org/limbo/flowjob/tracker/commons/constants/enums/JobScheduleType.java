@@ -62,12 +62,16 @@ public enum JobScheduleType {
     ;
 
     @JsonValue
-    public final int type;
+    public final byte type;
 
     public final String desc;
 
 
     JobScheduleType(int type, String desc) {
+        this(((byte) type), desc);
+    }
+
+    JobScheduleType(byte type, String desc) {
         this.type = type;
         this.desc = desc;
     }
@@ -78,7 +82,7 @@ public enum JobScheduleType {
      * @return 作业调度类型枚举
      */
     @JsonCreator
-    public static JobScheduleType parse(Integer type) {
+    public static JobScheduleType parse(Byte type) {
         if (type == null) {
             return null;
         }

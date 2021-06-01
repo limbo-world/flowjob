@@ -49,10 +49,10 @@ public interface WorkerManager {
 
     /**
      * 移除一个worker节点。
-     * @param id worker id。
+     * @param workerId worker id。
      * @return 返回被移除的worker，如果参数id对应的worker不存在，则返回null。
      */
-    Mono<WorkerDO> unregisterWorker(String id);
+    Mono<WorkerDO> unregisterWorker(String workerId);
 
     /**
      * 新的worker被注册时。
@@ -65,5 +65,13 @@ public interface WorkerManager {
      * @return worker被移除时触发的Mono
      */
     Flux<WorkerDO> onWorkerUnregistered();
+
+    /**
+     * worker节点的生命周期事件
+     */
+    enum WorkerEventType {
+        REGISTERED,
+        UNREGISTERED,
+    }
 
 }

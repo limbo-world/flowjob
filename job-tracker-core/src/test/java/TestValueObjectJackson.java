@@ -1,7 +1,7 @@
 import org.junit.Before;
 import org.junit.Test;
-import org.limbo.flowjob.tracker.commons.beans.domain.job.JobAttributes;
-import org.limbo.flowjob.tracker.commons.beans.domain.job.JobContext;
+import org.limbo.flowjob.tracker.commons.beans.job.valueobject.JobAttributes;
+import org.limbo.flowjob.tracker.commons.beans.job.domain.JobContext;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobContextStatus;
 import org.limbo.utils.JacksonUtils;
 

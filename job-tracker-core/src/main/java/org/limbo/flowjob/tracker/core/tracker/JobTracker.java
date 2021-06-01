@@ -16,9 +16,8 @@
 
 package org.limbo.flowjob.tracker.core.tracker;
 
-import org.limbo.flowjob.tracker.core.dispatcher.strategies.JobDispatcherFactory;
-import reactor.core.publisher.Mono;
 
+import static org.limbo.flowjob.tracker.core.tracker.SimpleJobTracker.*;
 
 /**
  * 作业分发节点抽象。
@@ -26,30 +25,35 @@ import reactor.core.publisher.Mono;
  * @author Brozen
  * @since 2021-05-16
  */
-public interface JobTracker extends WorkerManager, JobTrackerLifecycle {
+public interface JobTracker extends WorkerManager {
 
     /**
      * 启动JobTracker
      * @return 返回可用于关闭JobTracker的Disposable
      */
-    Mono<DisposableJobTracker> start();
+    DisposableJobTracker start();
 
     /**
      * 停止JobTracker
-     * @return  返回关闭完成后触发的Mono
      */
-    Mono<JobTracker> stop();
+    void stop();
+
+    /**
+     * 处于 {@link JobTrackerState#STARTED} 时会返回<code>true</code>。
+     * @return JobTracker是否正在运行
+     */
+    boolean isRunning();
+
+    /**
+     * 处于 {@link JobTrackerState#STOPPING} 或 {@linkplain JobTrackerState#TERMINATED} 时会返回<code>true</code>。
+     * @return JobTracker是否已停止
+     */
+    boolean isStopped();
 
     /**
      * 获取此JobTracker的生命周期监听注册器。
      * @return 生命周期监听注册器
      */
     JobTrackerLifecycle lifecycle();
-
-    /**
-     * 获取作业分发器工厂
-     * @return 作业分发器工厂
-     */
-    JobDispatcherFactory dispatcherFactory();
 
 }

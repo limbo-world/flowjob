@@ -16,10 +16,10 @@
 
 package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
-import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.commons.beans.domain.job.JobContext;
+import org.limbo.flowjob.tracker.commons.beans.job.domain.JobContext;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobDispatchType;
 import org.limbo.flowjob.tracker.commons.exceptions.JobExecuteException;
+import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.job.JobRepository;
 import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
@@ -51,8 +51,8 @@ public class DefaultJobDispatcherFactory implements JobDispatcherFactory {
      */
     public JobDispatcher newDispatcher(JobTracker tracker, JobContextDO context) {
         Job job = jobRepository.getJob(context.getJobId());
-
-        switch (job.getDispatchType()) {
+        JobDispatchType dispatchType = job.getDispatchOption().getDispatchType();
+        switch (dispatchType) {
             case ROUND_ROBIN:
                 return new RoundRobinJobDispatcher();
 
@@ -73,7 +73,7 @@ public class DefaultJobDispatcherFactory implements JobDispatcherFactory {
 
             default:
                 throw new JobExecuteException(context.getJobId(),
-                        "Cannot create JobDispatcher for dispatch type: " + job.getDispatchType());
+                        "Cannot create JobDispatcher for dispatch type: " + dispatchType);
         }
     }
 

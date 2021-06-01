@@ -73,7 +73,7 @@ public enum JobDispatchType {
      * 分发类型值
      */
     @JsonValue
-    public final int type;
+    public final byte type;
 
     /**
      * 分发类型描述
@@ -81,6 +81,10 @@ public enum JobDispatchType {
     public final String desc;
 
     JobDispatchType(int type, String desc) {
+        this((byte) type, desc);
+    }
+
+    JobDispatchType(byte type, String desc) {
         this.type = type;
         this.desc = desc;
     }
@@ -90,7 +94,7 @@ public enum JobDispatchType {
      * 解析作业分发类型。
      */
     @JsonCreator
-    public static JobDispatchType parse(Integer type) {
+    public static JobDispatchType parse(Byte type) {
         if (type == null) {
             return null;
         }

@@ -8,12 +8,12 @@
     <artifactId>job-parent</artifactId>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>job-tracker-core</module>
-        <module>job-api</module>
         <module>job-tracker-admin</module>
-        <module>job-worker</module>
-        <module>job-tracker-persistent</module>
+        <module>job-tracker-infrastructure</module>
+        <module>job-tracker-core</module>
         <module>job-tracker-commons</module>
+        <module>job-worker</module>
+        <module>job-tracker-dao</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -68,8 +68,10 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <limbo.utils>1.0.1-SNAPSHOT</limbo.utils>
-        <project.reactor>Dysprosium-SR18</project.reactor>
+        <spring.boot>2.4.6</spring.boot>
+        <project.reactor>2020.0.7</project.reactor>
         <netty>4.1.59.Final</netty>
+        <mybatis.plus>3.3.1</mybatis.plus>
         <jackson>2.12.1</jackson>
         <quartz.scheduler>2.3.2</quartz.scheduler>
         <lombok>1.18.16</lombok>
@@ -95,8 +97,22 @@
             </dependency>
             <dependency>
                 <groupId>org.limbo.flowjob</groupId>
-                <artifactId>job-tracker-persistent</artifactId>
+                <artifactId>job-tracker-infrastructure</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.limbo.flowjob</groupId>
+                <artifactId>job-tracker-dao</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- SpringBoot BOM -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring.boot}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <!-- ProjectReactor BOM -->
@@ -115,6 +131,23 @@
                 <version>${netty}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- MyBatis & MyBatisPlus -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus</artifactId>
+                <version>${mybatis.plus}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-core</artifactId>
+                <version>${mybatis.plus}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-annotation</artifactId>
+                <version>${mybatis.plus}</version>
             </dependency>
 
             <!-- Jackson BOM -->

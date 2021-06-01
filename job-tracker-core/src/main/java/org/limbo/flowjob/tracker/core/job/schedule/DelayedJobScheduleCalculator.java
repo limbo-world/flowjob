@@ -1,7 +1,7 @@
 package org.limbo.flowjob.tracker.core.job.schedule;
 
 import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.commons.beans.domain.job.JobContext;
+import org.limbo.flowjob.tracker.commons.beans.job.domain.JobContext;
 import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
 import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleType;
@@ -37,14 +37,14 @@ public class DelayedJobScheduleCalculator extends JobScheduleCalculator implemen
     @Override
     public Long apply(Job job) {
         // 只调度一次
-        JobContext latestContext = jobContextRepository.getLatestContext(job.getId());
+        JobContext latestContext = jobContextRepository.getLatestContext(job.getJobId());
         if (latestContext != null) {
             return NO_TRIGGER;
         }
 
         // 从创建时间开始，间隔固定delay进行调度
         LocalDateTime createdAt = job.getCreatedAt();
-        Duration delay = job.getScheduleDelay();
+        Duration delay = job.getScheduleOption().getScheduleDelay();
         long triggerAt = createdAt.toEpochSecond(ZoneOffset.UTC);
         triggerAt = delay != null ? triggerAt + delay.toMillis() : triggerAt;
 

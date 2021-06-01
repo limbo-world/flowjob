@@ -17,11 +17,11 @@
 package org.limbo.flowjob.tracker.core.job.context;
 
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.tracker.commons.beans.domain.job.JobContext;
+import org.limbo.flowjob.tracker.commons.beans.job.domain.JobContext;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobContextStatus;
 import org.limbo.flowjob.tracker.commons.exceptions.JobContextException;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
-import org.limbo.flowjob.tracker.commons.beans.dto.SendJobResult;
+import org.limbo.flowjob.tracker.commons.beans.worker.dto.SendJobResult;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerDO;
 import reactor.core.publisher.DirectProcessor;
 import reactor.core.publisher.Flux;

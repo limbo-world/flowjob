@@ -17,7 +17,7 @@
 package org.limbo.flowjob.tracker.core.job;
 
 import lombok.Setter;
-import org.limbo.flowjob.tracker.commons.beans.domain.job.JobContext;
+import org.limbo.flowjob.tracker.commons.beans.job.domain.JobContext;
 import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
 import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobContextStatus;
@@ -30,7 +30,7 @@ import org.limbo.utils.UUIDUtils;
  * @author Brozen
  * @since 2021-05-14
  */
-public abstract class JobDO extends Job {
+public class JobDO extends Job {
 
 
     /**
@@ -67,7 +67,7 @@ public abstract class JobDO extends Job {
      */
     public JobContextDO newContext() {
         JobContextDO context = new JobContextDO(jobContextRepository);
-        context.setJobId(getId());
+        context.setJobId(getJobId());
         context.setContextId(UUIDUtils.randomID());
         context.setStatus(JobContextStatus.INIT);
         context.setJobAttributes(null);
@@ -81,7 +81,7 @@ public abstract class JobDO extends Job {
      * @return 作业执行上下文
      */
     public JobContext getContext(String contextId) {
-        return jobContextRepository.getContext(getId(), contextId);
+        return jobContextRepository.getContext(getJobId(), contextId);
     }
 
 }
