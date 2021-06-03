@@ -55,6 +55,12 @@
             <artifactId>javax.annotation-api</artifactId>
         </dependency>
 
+        <!-- SpringDoc 文档，基于Swagger2、OpenAPI3 -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-webflux-ui</artifactId>
+        </dependency>
+
         <!-- MyBatis集成Spring支持 -->
         <dependency>
             <groupId>org.mybatis</groupId>

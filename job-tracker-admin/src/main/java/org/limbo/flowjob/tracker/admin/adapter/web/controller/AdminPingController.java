@@ -1,4 +1,4 @@
-package org.limbo.flowjob.tracker.admin.web.controller;
+package org.limbo.flowjob.tracker.admin.adapter.web.controller;
 
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 import org.springframework.beans.factory.annotation.Autowired;
