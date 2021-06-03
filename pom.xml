@@ -180,8 +180,8 @@
 
             <!-- Utils -->
             <dependency>
-                <groupId>org.limbo</groupId>
-                <artifactId>limbo-utils</artifactId>
+                <groupId>io.github.limbo-world</groupId>
+                <artifactId>utils</artifactId>
                 <version>${limbo.utils}</version>
             </dependency>
             <dependency>
