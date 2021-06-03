@@ -92,7 +92,7 @@
             </dependency>
             <dependency>
                 <groupId>org.limbo.flowjob</groupId>
-                <artifactId>job-tracker-commons</artifactId>
+                <artifactId>job-commons</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

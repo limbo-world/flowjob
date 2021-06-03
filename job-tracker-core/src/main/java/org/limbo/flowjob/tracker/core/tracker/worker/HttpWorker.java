@@ -1,7 +1,7 @@
 package org.limbo.flowjob.tracker.core.tracker.worker;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
-import org.limbo.flowjob.tracker.commons.dto.worker.dto.SendJobResult;
+import org.limbo.flowjob.tracker.commons.dto.worker.SendJobResult;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
