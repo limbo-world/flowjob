@@ -4,7 +4,6 @@ import com.google.common.base.Converter;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobDispatchType;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleType;
 import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.JobDO;
 import org.limbo.flowjob.tracker.core.job.JobDispatchOption;
 import org.limbo.flowjob.tracker.core.job.JobScheduleOption;
 import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
@@ -21,7 +20,7 @@ import java.time.Duration;
  * @since 2021-06-01
  */
 @Component
-public class JobPoConverter extends Converter<JobDO, JobPO> {
+public class JobPoConverter extends Converter<Job, JobPO> {
 
     /**
      * 作业触发计算器工厂
@@ -36,12 +35,12 @@ public class JobPoConverter extends Converter<JobDO, JobPO> {
     private JobContextRepository jobContextRepository;
 
     /**
-     * 将{@link JobDO}转换为{@link JobPO}
+     * 将{@link Job}转换为{@link JobPO}
      * @param _do JobDO领域对象
      * @return JobPO持久化对象
      */
     @Override
-    protected JobPO doForward(JobDO _do) {
+    protected JobPO doForward(Job _do) {
         JobPO po = new JobPO();
         po.setJobId(_do.getJobId());
         po.setJobDesc(_do.getJobDesc());
@@ -61,18 +60,18 @@ public class JobPoConverter extends Converter<JobDO, JobPO> {
     }
 
     /**
-     * 将{@link JobPO}转换为{@link JobDO}
+     * 将{@link JobPO}转换为{@link Job}
      * @param po JobPO持久化对象
      * @return JobDO领域对象
      */
     @Override
-    protected JobDO doBackward(JobPO po) {
+    protected Job doBackward(JobPO po) {
 
         // 先生成一个代理calculator，用于初始化JobDO
         JobScheduleType scheduleType = JobScheduleType.parse(po.getScheduleType());
         DelegatedJobScheduleCalculator delegatedCalculator = new DelegatedJobScheduleCalculator(scheduleType);
 
-        JobDO _do = new JobDO(delegatedCalculator, jobContextRepository);
+        Job _do = new Job(delegatedCalculator, jobContextRepository);
         _do.setJobId(po.getJobId());
         _do.setJobDesc(po.getJobDesc());
 

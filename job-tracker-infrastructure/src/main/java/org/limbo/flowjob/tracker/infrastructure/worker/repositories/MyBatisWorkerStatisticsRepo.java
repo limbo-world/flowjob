@@ -1,5 +1,6 @@
 package org.limbo.flowjob.tracker.infrastructure.worker.repositories;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatistics;
 import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatisticsRepository;
 import org.limbo.flowjob.tracker.dao.mybatis.WorkerStatisticsMapper;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 /**
  * @author Brozen
@@ -30,7 +32,17 @@ public class MyBatisWorkerStatisticsRepo implements WorkerStatisticsRepository {
     @Override
     public void addOrUpdateWorkerStatistics(WorkerStatistics statistics) {
         WorkerStatisticsPO po = converter.convert(statistics);
-        // TODO
+        Objects.requireNonNull(po);
+
+        int effected = mapper.update(po, Wrappers.<WorkerStatisticsPO>lambdaUpdate()
+                .eq(WorkerStatisticsPO::getWorkerId, po.getWorkerId()));
+        if (effected <= 0) {
+
+            effected = mapper.insertIgnore(po);
+            if (effected != 1) {
+                throw new IllegalStateException(String.format("Update worker error, effected %s rows", effected));
+            }
+        }
     }
 
     /**
@@ -51,6 +63,7 @@ public class MyBatisWorkerStatisticsRepo implements WorkerStatisticsRepository {
      */
     @Override
     public boolean updateWorkerDispatchTimes(String workerId, LocalDateTime dispatchAt) {
+        // TODO
         return false;
     }
 }

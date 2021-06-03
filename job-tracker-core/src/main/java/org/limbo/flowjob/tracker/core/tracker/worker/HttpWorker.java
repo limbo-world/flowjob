@@ -1,12 +1,12 @@
 package org.limbo.flowjob.tracker.core.tracker.worker;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
-import org.limbo.flowjob.tracker.commons.beans.worker.dto.SendJobResult;
-import org.limbo.flowjob.tracker.commons.beans.worker.domain.WorkerMetric;
+import org.limbo.flowjob.tracker.commons.dto.worker.dto.SendJobResult;
+import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.commons.exceptions.WorkerException;
-import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
+import org.limbo.flowjob.tracker.core.job.context.JobContext;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatisticsRepository;
 import org.limbo.utils.JacksonUtils;
@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
  * @author Brozen
  * @since 2021-05-25
  */
-public class HttpWorker extends WorkerDO {
+public class HttpWorker extends Worker {
 
     /**
      * 基于Netty的Http客户端
@@ -86,7 +86,7 @@ public class HttpWorker extends WorkerDO {
      * @return
      * @throws JobWorkerException
      */
-    public Mono<SendJobResult> sendJobContext(JobContextDO context) throws JobWorkerException {
+    public Mono<SendJobResult> sendJobContext(JobContext context) throws JobWorkerException {
         return Mono.from(client.post()
                 .uri(workerUri("/job"))
                 // 获取请求响应并解析

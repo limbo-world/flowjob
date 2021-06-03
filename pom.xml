@@ -11,7 +11,7 @@
         <module>job-tracker-admin</module>
         <module>job-tracker-infrastructure</module>
         <module>job-tracker-core</module>
-        <module>job-tracker-commons</module>
+        <module>job-commons</module>
         <module>job-worker</module>
         <module>job-tracker-dao</module>
     </modules>

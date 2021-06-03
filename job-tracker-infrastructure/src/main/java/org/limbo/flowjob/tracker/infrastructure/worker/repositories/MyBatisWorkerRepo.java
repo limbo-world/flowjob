@@ -1,7 +1,8 @@
 package org.limbo.flowjob.tracker.infrastructure.worker.repositories;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import org.limbo.flowjob.tracker.core.tracker.worker.WorkerDO;
+import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
+import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
 import org.limbo.flowjob.tracker.dao.mybatis.WorkerMapper;
 import org.limbo.flowjob.tracker.dao.po.WorkerPO;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author Brozen
@@ -30,9 +32,19 @@ public class MyBatisWorkerRepo implements WorkerRepository {
      * @param worker worker节点
      */
     @Override
-    public void addWorker(WorkerDO worker) {
+    public void addWorker(Worker worker) {
         WorkerPO po = converter.convert(worker);
-        // TODO
+        Objects.requireNonNull(po);
+
+        int effected = mapper.insertIgnore(po);
+        if (effected <= 0) {
+            effected = mapper.update(po, Wrappers.<WorkerPO>lambdaUpdate()
+                    .eq(WorkerPO::getWorkerId, po.getWorkerId()));
+
+            if (effected != 1) {
+                throw new IllegalStateException(String.format("Update worker error, effected %s rows", effected));
+            }
+        }
     }
 
     /**
@@ -40,7 +52,7 @@ public class MyBatisWorkerRepo implements WorkerRepository {
      * @param worker 更新worker
      */
     @Override
-    public void updateWorker(WorkerDO worker) {
+    public void updateWorker(Worker worker) {
         WorkerPO po = converter.convert(worker);
         Objects.requireNonNull(po);
 
@@ -54,7 +66,7 @@ public class MyBatisWorkerRepo implements WorkerRepository {
      * @return
      */
     @Override
-    public WorkerDO getWorker(String workerId) {
+    public Worker getWorker(String workerId) {
         return converter.reverse().convert(mapper.selectById(workerId));
     }
 
@@ -63,9 +75,13 @@ public class MyBatisWorkerRepo implements WorkerRepository {
      * @return
      */
     @Override
-    public List<WorkerDO> availableWorkers() {
-        // TODO
-        return null;
+    public List<Worker> availableWorkers() {
+        return mapper.selectList(Wrappers.<WorkerPO>lambdaQuery()
+                .eq(WorkerPO::getStatus, WorkerStatus.RUNNING.status)
+                .eq(WorkerPO::getDeleted, Boolean.FALSE)
+        ).stream()
+                .map(po -> converter.reverse().convert(po))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -74,6 +90,10 @@ public class MyBatisWorkerRepo implements WorkerRepository {
      */
     @Override
     public void removeWorker(String workerId) {
-        // TODO
+        WorkerPO po = mapper.selectById(workerId);
+        if (po != null) {
+            po.setDeleted(true);
+            mapper.updateById(po);
+        }
     }
 }

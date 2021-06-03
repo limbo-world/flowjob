@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.job.dag;
 
-import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
+import org.limbo.flowjob.tracker.core.job.context.JobContext;
 import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
 import reactor.core.publisher.Flux;
 
@@ -26,7 +26,7 @@ import reactor.core.publisher.Flux;
  * @author Brozen
  * @since 2021-05-19
  */
-public class DAGJobContext extends JobContextDO {
+public class DAGJobContext extends JobContext {
 
     public DAGJobContext(JobContextRepository jobContextRepository) {
         super(jobContextRepository);
@@ -36,7 +36,7 @@ public class DAGJobContext extends JobContextDO {
      * 关闭子上下文，此上下文对应的DAG作业中的子作业执行完成后，会调用此方法。
      * @return 返回子上下文
      */
-    public JobContextDO closeChildContext(String childContextId) {
+    public JobContext closeChildContext(String childContextId) {
         // TODO
         throw new UnsupportedOperationException();
     }
@@ -44,7 +44,7 @@ public class DAGJobContext extends JobContextDO {
     /**
      * 此上下文作业的子作业上下文被关闭时的回调监听。
      */
-    public Flux<JobContextDO> onChildContextClosed() {
+    public Flux<JobContext> onChildContextClosed() {
         // TODO
         throw new UnsupportedOperationException();
     }

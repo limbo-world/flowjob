@@ -1,12 +1,15 @@
 package org.limbo.flowjob.tracker.infrastructure.worker.repositories;
 
-import org.limbo.flowjob.tracker.commons.beans.worker.domain.WorkerMetric;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.tracker.dao.mybatis.WorkerMetricMapper;
 import org.limbo.flowjob.tracker.dao.po.WorkerMetricPO;
 import org.limbo.flowjob.tracker.infrastructure.worker.converters.WorkerMetricPoConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import java.util.Objects;
 
 /**
  * @author Brozen
@@ -28,7 +31,17 @@ public class MyBatisWorkerMetricRepo implements WorkerMetricRepository {
     @Override
     public void updateMetric(WorkerMetric metric) {
         WorkerMetricPO po = converter.convert(metric);
-        // TODO
+        Objects.requireNonNull(po);
+
+        int effected = mapper.update(po, Wrappers.<WorkerMetricPO>lambdaUpdate()
+                .eq(WorkerMetricPO::getWorkerId, po.getWorkerId()));
+        if (effected <= 0) {
+
+            effected = mapper.insertIgnore(po);
+            if (effected != 1) {
+                throw new IllegalStateException(String.format("Update worker error, effected %s rows", effected));
+            }
+        }
     }
 
     /**

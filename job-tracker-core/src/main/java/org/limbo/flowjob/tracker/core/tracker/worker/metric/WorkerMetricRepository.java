@@ -1,7 +1,5 @@
 package org.limbo.flowjob.tracker.core.tracker.worker.metric;
 
-import org.limbo.flowjob.tracker.commons.beans.worker.domain.WorkerMetric;
-
 /**
  * @author Brozen
  * @since 2021-06-02

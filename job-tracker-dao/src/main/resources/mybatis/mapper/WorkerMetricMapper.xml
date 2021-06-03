@@ -3,7 +3,7 @@
 <mapper namespace="org.limbo.flowjob.tracker.dao.mybatis.WorkerMetricMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="org.limbo.flowjob.tracker.dao.po.WorkerMetricPO">
+    <resultMap id="WorkerMetricPO" type="org.limbo.flowjob.tracker.dao.po.WorkerMetricPO">
         <id column="worker_id" property="workerId" />
         <result column="executing_jobs" property="executingJobs" />
         <result column="available_cpu" property="availableCpu" />
@@ -11,9 +11,12 @@
         <result column="updated_at" property="updatedAt" />
     </resultMap>
 
-    <!-- 通用查询结果列 -->
-    <sql id="Base_Column_List">
-        worker_id, executing_jobs, available_cpu, available_ram, updated_at
-    </sql>
+    <insert id="insertIgnore">
+        insert ignore into worker_metric (
+            worker_id, executing_jobs, available_cpu, available_ram, updated_at
+        ) values (
+            #{workerId}, #{executingJobs}, #{availableCpu}, #{availableRam}, #{updatedAt}
+        )
+    </insert>
 
 </mapper>

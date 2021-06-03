@@ -17,7 +17,7 @@
 package org.limbo.flowjob.tracker.core.job.attribute;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.tracker.commons.beans.job.valueobject.JobAttributes;
+import org.limbo.flowjob.tracker.core.job.context.JobAttributes;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

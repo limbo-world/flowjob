@@ -1,7 +1,7 @@
 import org.junit.Before;
 import org.junit.Test;
-import org.limbo.flowjob.tracker.commons.beans.job.valueobject.JobAttributes;
-import org.limbo.flowjob.tracker.commons.beans.job.domain.JobContext;
+import org.limbo.flowjob.tracker.core.job.context.JobAttributes;
+import org.limbo.flowjob.tracker.core.job.context.JobContext;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobContextStatus;
 import org.limbo.utils.JacksonUtils;
 
@@ -39,15 +39,15 @@ public class TestValueObjectJackson {
 
     @Test
     public void testJobContext() {
-        JobContext jobContext = new JobContext();
-        jobContext.setContextId("ctx1");
-        jobContext.setJobId("job1");
-        jobContext.setStatus(JobContextStatus.INIT);
-        jobContext.setWorkerId("");
-        jobContext.setCreatedAt(LocalDateTime.now());
-        jobContext.setJobAttributes(new JobAttributes(attr));
+        JobContext JobContext = new JobContext(null);
+        JobContext.setContextId("ctx1");
+        JobContext.setJobId("job1");
+        JobContext.setStatus(JobContextStatus.INIT);
+        JobContext.setWorkerId("");
+        JobContext.setCreatedAt(LocalDateTime.now());
+        JobContext.setJobAttributes(new JobAttributes(attr));
 
-        String json = JacksonUtils.toJSONString(jobContext);
+        String json = JacksonUtils.toJSONString(JobContext);
         System.out.println("Serialized ==>" + json);
 
         JobContext jobContext1 = JacksonUtils.parseObject(json, JobContext.class);

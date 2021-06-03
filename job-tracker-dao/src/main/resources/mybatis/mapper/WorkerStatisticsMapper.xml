@@ -3,7 +3,7 @@
 <mapper namespace="org.limbo.flowjob.tracker.dao.mybatis.WorkerStatisticsMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="org.limbo.flowjob.tracker.dao.po.WorkerStatisticsPO">
+    <resultMap id="WorkerStatisticsPO" type="org.limbo.flowjob.tracker.dao.po.WorkerStatisticsPO">
         <id column="worker_id" property="workerId" />
         <result column="job_dispatch_count" property="jobDispatchCount" />
         <result column="latest_dispatch_time" property="latestDispatchTime" />
@@ -11,9 +11,12 @@
         <result column="updated_at" property="updatedAt" />
     </resultMap>
 
-    <!-- 通用查询结果列 -->
-    <sql id="Base_Column_List">
-        worker_id, job_dispatch_count, latest_dispatch_time, created_at, updated_at
-    </sql>
+    <insert id="insertIgnore">
+        insert ignore into worker_statistics (
+            worker_id, job_dispatch_count, latest_dispatch_time
+        ) values (
+            #{workerId}, #{jobDispatchCount}, #{latestDispatchTime}
+        )
+    </insert>
 
 </mapper>

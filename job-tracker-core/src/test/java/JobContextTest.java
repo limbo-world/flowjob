@@ -4,14 +4,14 @@ import org.limbo.flowjob.tracker.commons.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
 import org.limbo.flowjob.tracker.commons.exceptions.JobContextException;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
-import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
+import org.limbo.flowjob.tracker.core.job.context.JobContext;
 import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobContextStatus;
-import org.limbo.flowjob.tracker.commons.beans.worker.dto.SendJobResult;
+import org.limbo.flowjob.tracker.commons.dto.worker.dto.SendJobResult;
 import org.limbo.flowjob.tracker.core.scheduler.HashedWheelTimerJobScheduler;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
-import org.limbo.flowjob.tracker.commons.beans.worker.domain.WorkerMetric;
-import org.limbo.flowjob.tracker.core.tracker.worker.WorkerDO;
+import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
+import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import reactor.core.publisher.Mono;
 
 /**
@@ -20,7 +20,7 @@ import reactor.core.publisher.Mono;
  */
 public class JobContextTest {
 
-    private WorkerDO idleWorker;
+    private Worker idleWorker;
 
     private JobTracker jobTracker;
 
@@ -28,7 +28,7 @@ public class JobContextTest {
 
     @Before
     public void init() {
-        this.idleWorker = new WorkerDO(null, null, null) {
+        this.idleWorker = new Worker(null, null, null) {
             @Override
             public String getWorkerId() {
                 return "w1";
@@ -65,7 +65,7 @@ public class JobContextTest {
             }
 
             @Override
-            public Mono<SendJobResult> sendJobContext(JobContextDO context) throws JobWorkerException {
+            public Mono<SendJobResult> sendJobContext(JobContext context) throws JobWorkerException {
                 return null;
             }
 
@@ -79,9 +79,9 @@ public class JobContextTest {
 
     @Test
     public void testSimpleJobContext() throws JobContextException {
-        JobContextDO context = new JobContextDO(new JobContextRepository() {
+        JobContext context = new JobContext(new JobContextRepository() {
             @Override
-            public void updateContext(JobContextDO context) {
+            public void updateContext(JobContext context) {
                 System.out.println("updateContext");
             }
         });

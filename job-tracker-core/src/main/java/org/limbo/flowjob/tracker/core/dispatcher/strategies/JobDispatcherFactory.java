@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
-import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
+import org.limbo.flowjob.tracker.core.job.context.JobContext;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 
 /**
@@ -33,6 +33,6 @@ public interface JobDispatcherFactory {
      * @param context 待分发作业上下文
      * @return 作业分发器
      */
-    JobDispatcher newDispatcher(JobTracker tracker, JobContextDO context);
+    JobDispatcher newDispatcher(JobTracker tracker, JobContext context);
 
 }

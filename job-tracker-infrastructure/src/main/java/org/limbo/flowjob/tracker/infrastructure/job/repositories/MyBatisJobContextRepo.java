@@ -1,7 +1,7 @@
 package org.limbo.flowjob.tracker.infrastructure.job.repositories;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
+import org.limbo.flowjob.tracker.core.job.context.JobContext;
 import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
 import org.limbo.flowjob.tracker.dao.mybatis.JobExecuteRecordMapper;
 import org.limbo.flowjob.tracker.dao.po.JobExecuteRecordPO;
@@ -25,7 +25,7 @@ public class MyBatisJobContextRepo implements JobContextRepository {
     private JobExecuteRecordMapper mapper;
 
     /**
-     * {@link JobContextDO}和{@link JobExecuteRecordPO}的转换器
+     * {@link JobContext}和{@link JobExecuteRecordPO}的转换器
      */
     @Autowired
     private JobExecuteRecordPoConverter converter;
@@ -35,9 +35,9 @@ public class MyBatisJobContextRepo implements JobContextRepository {
      * @param context 作业执行上下文
      */
     @Override
-    public void addContext(JobContextDO context) {
+    public void addContext(JobContext context) {
         JobExecuteRecordPO po = converter.convert(context);
-        // TODO
+        mapper.insert(po);
     }
 
     /**
@@ -45,7 +45,7 @@ public class MyBatisJobContextRepo implements JobContextRepository {
      * @param context 作业执行上下文
      */
     @Override
-    public void updateContext(JobContextDO context) {
+    public void updateContext(JobContext context) {
 
         JobExecuteRecordPO po = converter.convert(context);
         Objects.requireNonNull(po);
@@ -62,7 +62,7 @@ public class MyBatisJobContextRepo implements JobContextRepository {
      * @return
      */
     @Override
-    public JobContextDO getContext(String jobId, String contextId) {
+    public JobContext getContext(String jobId, String contextId) {
         JobExecuteRecordPO po = mapper.selectOne(Wrappers.<JobExecuteRecordPO>lambdaQuery()
                 .eq(JobExecuteRecordPO::getJobId, jobId)
                 .eq(JobExecuteRecordPO::getRecordId, contextId));
@@ -75,7 +75,7 @@ public class MyBatisJobContextRepo implements JobContextRepository {
      * @return
      */
     @Override
-    public JobContextDO getLatestContext(String jobId) {
+    public JobContext getLatestContext(String jobId) {
         JobExecuteRecordPO po = mapper.selectOne(Wrappers.<JobExecuteRecordPO>lambdaQuery()
                 .eq(JobExecuteRecordPO::getJobId, jobId)
                 .orderByDesc(JobExecuteRecordPO::getCreatedAt)

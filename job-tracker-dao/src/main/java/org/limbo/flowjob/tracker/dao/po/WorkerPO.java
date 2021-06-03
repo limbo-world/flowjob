@@ -44,6 +44,11 @@ public class WorkerPO implements Serializable {
      */
     private Byte status;
 
+    /**
+     * 节点是否被删除
+     */
+    private Boolean deleted;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

@@ -2,9 +2,9 @@ package org.limbo.flowjob.tracker.infrastructure.worker.converters;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Converter;
-import org.limbo.flowjob.tracker.commons.beans.worker.domain.WorkerMetric;
-import org.limbo.flowjob.tracker.commons.beans.worker.valueobject.JobDescription;
-import org.limbo.flowjob.tracker.commons.beans.worker.valueobject.WorkerAvailableResource;
+import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
+import org.limbo.flowjob.tracker.core.tracker.worker.metric.JobDescription;
+import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerAvailableResource;
 import org.limbo.flowjob.tracker.dao.po.WorkerMetricPO;
 import org.limbo.utils.JacksonUtils;
 import org.springframework.stereotype.Component;

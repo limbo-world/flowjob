@@ -3,7 +3,7 @@
 <mapper namespace="org.limbo.flowjob.tracker.dao.mybatis.WorkerMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="org.limbo.flowjob.tracker.dao.po.WorkerPO">
+    <resultMap id="WorkerPO" type="org.limbo.flowjob.tracker.dao.po.WorkerPO">
         <id column="serial_id" property="serialId" />
         <result column="worker_id" property="workerId" />
         <result column="protocol" property="protocol" />
@@ -14,9 +14,12 @@
         <result column="updated_at" property="updatedAt" />
     </resultMap>
 
-    <!-- 通用查询结果列 -->
-    <sql id="Base_Column_List">
-        serial_id, worker_id, protocol, ip, port, status, created_at, updated_at
-    </sql>
+    <insert id="insertIgnore">
+        insert ignore into worker (
+            worker_id, protocol, ip, port, status
+        ) values (
+            #{workerId}, #{protocol}, #{ip}, #{port}, #{status}
+        )
+    </insert>
 
 </mapper>

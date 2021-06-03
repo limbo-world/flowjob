@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.tracker;
 
-import org.limbo.flowjob.tracker.core.tracker.worker.WorkerDO;
+import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -39,32 +39,32 @@ public interface WorkerManager {
      * @param worker worker节点
      * @return 返回worker
      */
-    Mono<WorkerDO> registerWorker(WorkerDO worker);
+    Mono<Worker> registerWorker(Worker worker);
 
     /**
      * 获取所有可用的worker。可用指在调用此方法之时，心跳检测没有失败的worker。
      * @return 可用的worker。
      */
-    List<WorkerDO> availableWorkers();
+    List<Worker> availableWorkers();
 
     /**
      * 移除一个worker节点。
      * @param workerId worker id。
      * @return 返回被移除的worker，如果参数id对应的worker不存在，则返回null。
      */
-    Mono<WorkerDO> unregisterWorker(String workerId);
+    Mono<Worker> unregisterWorker(String workerId);
 
     /**
      * 新的worker被注册时。
      * @return 新worker注册时触发时的Mono
      */
-    Flux<WorkerDO> onWorkerRegistered();
+    Flux<Worker> onWorkerRegistered();
 
     /**
      * 当worker被移除时。触发worker移除有两种方式：1. worker心跳超时；2. worker主动申请下线
      * @return worker被移除时触发的Mono
      */
-    Flux<WorkerDO> onWorkerUnregistered();
+    Flux<Worker> onWorkerUnregistered();
 
     /**
      * worker节点的生命周期事件

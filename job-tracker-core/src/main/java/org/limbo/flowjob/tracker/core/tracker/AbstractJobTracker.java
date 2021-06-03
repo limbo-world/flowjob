@@ -1,6 +1,6 @@
 package org.limbo.flowjob.tracker.core.tracker;
 
-import org.limbo.flowjob.tracker.core.tracker.worker.WorkerDO;
+import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -45,7 +45,7 @@ public abstract class AbstractJobTracker extends ReactorJobTrackerLifecycle impl
      * @return
      */
     @Override
-    public Mono<WorkerDO> registerWorker(WorkerDO worker) {
+    public Mono<Worker> registerWorker(Worker worker) {
         workerRepository.addWorker(worker);
         return Mono.just(worker);
     }
@@ -55,7 +55,7 @@ public abstract class AbstractJobTracker extends ReactorJobTrackerLifecycle impl
      * @return
      */
     @Override
-    public List<WorkerDO> availableWorkers() {
+    public List<Worker> availableWorkers() {
         return workerRepository.availableWorkers();
     }
 
@@ -65,8 +65,8 @@ public abstract class AbstractJobTracker extends ReactorJobTrackerLifecycle impl
      * @return
      */
     @Override
-    public Mono<WorkerDO> unregisterWorker(String workerId) {
-        WorkerDO worker = workerRepository.getWorker(workerId);
+    public Mono<Worker> unregisterWorker(String workerId) {
+        Worker worker = workerRepository.getWorker(workerId);
         workerRepository.removeWorker(workerId);
         return Mono.just(worker);
     }
@@ -76,7 +76,7 @@ public abstract class AbstractJobTracker extends ReactorJobTrackerLifecycle impl
      * @return
      */
     @Override
-    public Flux<WorkerDO> onWorkerRegistered() {
+    public Flux<Worker> onWorkerRegistered() {
         return workerEventSink.asFlux()
                 .filter(e -> e.type == WorkerEventType.REGISTERED)
                 .map(e -> e.worker);
@@ -87,7 +87,7 @@ public abstract class AbstractJobTracker extends ReactorJobTrackerLifecycle impl
      * @return
      */
     @Override
-    public Flux<WorkerDO> onWorkerUnregistered() {
+    public Flux<Worker> onWorkerUnregistered() {
         return workerEventSink.asFlux()
                 .filter(e -> e.type == WorkerEventType.UNREGISTERED)
                 .map(e -> e.worker);
@@ -102,14 +102,14 @@ public abstract class AbstractJobTracker extends ReactorJobTrackerLifecycle impl
         /**
          * 触发事件的worker
          */
-        private WorkerDO worker;
+        private Worker worker;
 
         /**
          * 时间类型
          */
         private WorkerEventType type;
 
-        public WorkerEvent(WorkerDO worker, WorkerEventType type) {
+        public WorkerEvent(Worker worker, WorkerEventType type) {
             this.worker = worker;
             this.type = type;
         }

@@ -17,8 +17,8 @@
 package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.JobDispatchType;
-import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
-import org.limbo.flowjob.tracker.core.tracker.worker.WorkerDO;
+import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
 import java.util.Collection;
 import java.util.function.BiConsumer;
@@ -45,6 +45,6 @@ public interface JobDispatcher {
      * @param workers 待下发上下文可用的worker
      * @param callback 选择worker后执行的回调
      */
-    void dispatch(JobContextDO context, Collection<WorkerDO> workers, BiConsumer<JobContextDO, WorkerDO> callback);
+    void dispatch(JobContext context, Collection<Worker> workers, BiConsumer<JobContext, Worker> callback);
 
 }

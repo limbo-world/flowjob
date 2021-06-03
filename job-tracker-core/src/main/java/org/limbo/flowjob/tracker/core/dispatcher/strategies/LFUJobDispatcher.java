@@ -1,8 +1,8 @@
 package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.JobDispatchType;
-import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
-import org.limbo.flowjob.tracker.core.tracker.worker.WorkerDO;
+import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
 import java.util.Collection;
 
@@ -20,7 +20,7 @@ public class LFUJobDispatcher extends AbstractJobDispatcher implements JobDispat
      * @return
      */
     @Override
-    protected WorkerDO selectWorker(JobContextDO context, Collection<WorkerDO> workers) {
+    protected Worker selectWorker(JobContext context, Collection<Worker> workers) {
         // TODO
         return null;
     }

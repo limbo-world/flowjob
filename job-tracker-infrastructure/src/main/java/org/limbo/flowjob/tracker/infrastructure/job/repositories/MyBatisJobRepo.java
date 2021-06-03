@@ -1,7 +1,7 @@
 package org.limbo.flowjob.tracker.infrastructure.job.repositories;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import org.limbo.flowjob.tracker.core.job.JobDO;
+import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.job.JobRepository;
 import org.limbo.flowjob.tracker.dao.mybatis.JobMapper;
 import org.limbo.flowjob.tracker.dao.po.JobPO;
@@ -38,7 +38,7 @@ public class MyBatisJobRepo implements JobRepository {
      * @param job 作业数据
      */
     @Override
-    public void addJob(JobDO job) {
+    public void addJob(Job job) {
         JobPO po = converter.convert(job);
         Objects.requireNonNull(po);
 
@@ -59,7 +59,7 @@ public class MyBatisJobRepo implements JobRepository {
      * @return
      */
     @Override
-    public JobDO getJob(String jobId) {
+    public Job getJob(String jobId) {
         JobPO po = mapper.selectById(jobId);
         return converter.reverse().convert(po);
     }
@@ -69,7 +69,7 @@ public class MyBatisJobRepo implements JobRepository {
      * @return
      */
     @Override
-    public List<JobDO> listSchedulableJobs() {
+    public List<Job> listSchedulableJobs() {
         // TODO
         throw new UnsupportedOperationException("TODO 暂未实现");
     }
