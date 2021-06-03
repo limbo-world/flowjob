@@ -67,7 +67,7 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <limbo.utils>1.0.1-SNAPSHOT</limbo.utils>
+        <limbo.utils>1.0.1</limbo.utils>
         <spring.boot>2.4.6</spring.boot>
         <project.reactor>2020.0.7</project.reactor>
         <netty>4.1.59.Final</netty>
@@ -147,6 +147,11 @@
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-annotation</artifactId>
+                <version>${mybatis.plus}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-generator</artifactId>
                 <version>${mybatis.plus}</version>
             </dependency>
 

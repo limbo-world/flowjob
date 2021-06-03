@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.limbo.flowjob.tracker.dao.mybatis.WorkerStatisticsMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="org.limbo.flowjob.tracker.dao.po.WorkerStatisticsPO">
+        <id column="worker_id" property="workerId" />
+        <result column="job_dispatch_count" property="jobDispatchCount" />
+        <result column="latest_dispatch_time" property="latestDispatchTime" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        worker_id, job_dispatch_count, latest_dispatch_time, created_at, updated_at
+    </sql>
+
+</mapper>

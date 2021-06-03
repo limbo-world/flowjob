@@ -82,13 +82,13 @@ public enum JobScheduleType {
      * @return 作业调度类型枚举
      */
     @JsonCreator
-    public static JobScheduleType parse(Byte type) {
+    public static JobScheduleType parse(Number type) {
         if (type == null) {
             return null;
         }
 
         for (JobScheduleType jobScheduleType : values()) {
-            if (type.equals(jobScheduleType.type)) {
+            if (type.byteValue() == jobScheduleType.type) {
                 return jobScheduleType;
             }
         }

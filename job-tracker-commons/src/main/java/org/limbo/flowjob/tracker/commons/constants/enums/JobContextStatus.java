@@ -42,12 +42,16 @@ public enum JobContextStatus {
     ;
 
     @JsonValue
-    public final int status;
+    public final byte status;
 
     public final String desc;
 
     @JsonCreator
     JobContextStatus(int status, String desc) {
+        this(((byte) status), desc);
+    }
+
+    JobContextStatus(byte status, String desc) {
         this.status = status;
         this.desc = desc;
     }
@@ -64,8 +68,26 @@ public enum JobContextStatus {
      * 校验是否是当前状态
      * @param status 待校验状态值
      */
-    public boolean is(Integer status) {
-        return status != null && status.equals(this.status);
+    public boolean is(Number status) {
+        return status != null && status.byteValue() == this.status;
+    }
+
+    /**
+     * 解析上下文状态值
+     */
+    @JsonCreator
+    public static JobContextStatus parse(Number status) {
+        if (status == null) {
+            return null;
+        }
+
+        for (JobContextStatus jobContextStatus : values()) {
+            if (jobContextStatus.is(status)) {
+                return jobContextStatus;
+            }
+        }
+
+        return null;
     }
 
 }

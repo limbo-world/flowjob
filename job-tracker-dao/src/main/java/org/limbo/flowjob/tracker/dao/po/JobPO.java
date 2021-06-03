@@ -37,12 +37,12 @@ public class JobPO implements Serializable {
     /**
      * DB自增序列ID，并不是Job的唯一标识
      */
-    @TableId(type = IdType.AUTO)
     private Long serialId;
 
     /**
      * 作业唯一标识ID
      */
+    @TableId(type = IdType.INPUT)
     private String jobId;
 
     /**
@@ -71,7 +71,12 @@ public class JobPO implements Serializable {
     private Byte scheduleType;
 
     /**
-     * 作业延迟时间，单位毫秒
+     * 从何时开始调度作业
+     */
+    private LocalDateTime scheduleStartAt;
+
+    /**
+     * 作业调度延迟时间，单位毫秒
      */
     private Long scheduleDelay;
 

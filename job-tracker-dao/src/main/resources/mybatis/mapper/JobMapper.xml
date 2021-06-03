@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.limbo.flowjob.tracker.dao.mybatis.JobMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="JobPO" type="org.limbo.flowjob.tracker.dao.po.JobPO">
+        <id column="serial_id" property="serialId" />
+        <result column="job_id" property="jobId" />
+        <result column="job_desc" property="jobDesc" />
+        <result column="dispatch_type" property="dispatchType" />
+        <result column="cpu_requirement" property="cpuRequirement" />
+        <result column="ram_requirement" property="ramRequirement" />
+        <result column="schedule_type" property="scheduleType" />
+        <result column="schedule_delay" property="scheduleDelay" />
+        <result column="schedule_interval" property="scheduleInterval" />
+        <result column="schedule_cron" property="scheduleCron" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <insert id="insertIgnore">
+        insert ignore into job (
+            job_id, job_desc,
+            dispatch_type, cpu_requirement, ram_requirement,
+            schedule_type, schedule_delay, schedule_interval, schedule_cron
+        ) values (
+            #{job.jobId}, #{job.jobDesc},
+            #{job.dispatchType}, #{job.cpuRequirement}, #{job.ramRequirement},
+            #{job.scheduleType}, #{job.scheduleDelay}, #{job.scheduleInterval}, #{job.scheduleCron}
+        )
+    </insert>
+
+</mapper>

@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleType;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 
 /**
  * 作业调度配置，值对象。
@@ -25,9 +26,14 @@ public class JobScheduleOption {
     private JobScheduleType scheduleType;
 
     /**
+     * 作业调度开始时间，从此时间开始执行调度。
+     */
+    private LocalDateTime scheduleStartAt;
+
+    /**
      * 获取作业延迟时间。
      * 当调度方式为{@link JobScheduleType#DELAYED}或{@link JobScheduleType#FIXED_INTERVAL}时，
-     * 表示从<code>createdAt</code>时间点开始，延迟多久触发作业调度。
+     * 表示从<code>scheduleStartAt</code>时间点开始，延迟多久触发作业调度。
      */
     private Duration scheduleDelay;
 
@@ -47,10 +53,12 @@ public class JobScheduleOption {
     @JsonCreator
     public JobScheduleOption(
             @JsonProperty("scheduleType") JobScheduleType scheduleType,
+            @JsonProperty("scheduleStartAt") LocalDateTime scheduleStartAt,
             @JsonProperty("scheduleDelay") Duration scheduleDelay,
             @JsonProperty("scheduleInterval") Duration scheduleInterval,
             @JsonProperty("scheduleCron") String scheduleCron) {
         this.scheduleType = scheduleType;
+        this.scheduleStartAt = scheduleStartAt;
         this.scheduleDelay = scheduleDelay;
         this.scheduleInterval = scheduleInterval;
         this.scheduleCron = scheduleCron;

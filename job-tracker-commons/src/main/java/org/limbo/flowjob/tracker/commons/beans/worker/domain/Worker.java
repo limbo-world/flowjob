@@ -1,7 +1,6 @@
 package org.limbo.flowjob.tracker.commons.beans.worker.domain;
 
 import lombok.Data;
-import org.limbo.flowjob.tracker.commons.beans.worker.valueobject.WorkerMetric;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
 
@@ -17,7 +16,7 @@ public class Worker {
     /**
      * worker节点ID
      */
-    private String id;
+    private String workerId;
 
     /**
      * worker服务使用的通信协议，默认为Http协议。
@@ -38,10 +37,5 @@ public class Worker {
      * worker节点状态
      */
     private WorkerStatus status;
-
-    /**
-     * 本worker节点最近一次上报的指标信息
-     */
-    private WorkerMetric metric;
 
 }

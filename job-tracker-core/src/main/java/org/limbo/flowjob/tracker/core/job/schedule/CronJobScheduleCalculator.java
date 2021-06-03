@@ -3,6 +3,7 @@ package org.limbo.flowjob.tracker.core.job.schedule;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
+import org.limbo.flowjob.tracker.core.job.JobScheduleOption;
 import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleType;
 import org.quartz.CronExpression;
@@ -40,12 +41,13 @@ public class CronJobScheduleCalculator extends JobScheduleCalculator implements 
 
         // 未到调度开始时间，不触发下次调度
         Instant nowInstant = Instant.now();
-        long startScheduleAt = calculateStartScheduleTimestamp(job);
+        JobScheduleOption scheduleOption = job.getScheduleOption();
+        long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
         if (nowInstant.getEpochSecond() < startScheduleAt) {
             return NO_TRIGGER;
         }
 
-        String cron = job.getScheduleOption().getScheduleCron();
+        String cron = scheduleOption.getScheduleCron();
         try {
             // 校验CRON表达式
             CronExpression.validateExpression(cron);

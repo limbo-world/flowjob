@@ -18,13 +18,13 @@ package org.limbo.flowjob.tracker.core.tracker.worker;
 
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
 import org.limbo.flowjob.tracker.commons.beans.worker.dto.SendJobResult;
 import org.limbo.flowjob.tracker.commons.beans.worker.domain.Worker;
-import org.limbo.flowjob.tracker.commons.beans.worker.valueobject.WorkerMetric;
+import org.limbo.flowjob.tracker.commons.beans.worker.domain.WorkerMetric;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
+import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatistics;
 import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatisticsRepository;
 import reactor.core.publisher.Mono;
@@ -41,21 +41,41 @@ public abstract class WorkerDO extends Worker {
      * 用户更新worker
      */
     @Getter(AccessLevel.PROTECTED)
-    @Setter
-    private WorkerRepository repository;
+    private WorkerRepository workerRepository;
+
+    /**
+     * worker节点指标信息repo
+     */
+    @Getter(AccessLevel.PROTECTED)
+    private WorkerMetricRepository metricRepository;
 
     /**
      * worker统计信息repo
      */
     @Getter(AccessLevel.PROTECTED)
-    @Setter
     private WorkerStatisticsRepository statisticsRepository;
+
+    public WorkerDO(WorkerRepository workerRepository,
+                    WorkerMetricRepository metricRepository,
+                    WorkerStatisticsRepository statisticsRepository) {
+        this.workerRepository = workerRepository;
+        this.metricRepository = metricRepository;
+        this.statisticsRepository = statisticsRepository;
+    }
 
     /**
      * 更新worker
      */
     protected void updateWorker() {
-        repository.updateWorker(this);
+        workerRepository.updateWorker(this);
+    }
+
+    /**
+     * 获取本worker节点最近一次上报的指标信息
+     * @return worker节点指标信息
+     */
+    public WorkerMetric getMetric() {
+        return metricRepository.getMetric(getWorkerId());
     }
 
     /**
@@ -63,7 +83,7 @@ public abstract class WorkerDO extends Worker {
      * @return 此worker对应的统计记录
      */
     public WorkerStatistics getStatistics() {
-        return statisticsRepository.getWorkerStatistics(getId());
+        return statisticsRepository.getWorkerStatistics(getWorkerId());
     }
 
     /**

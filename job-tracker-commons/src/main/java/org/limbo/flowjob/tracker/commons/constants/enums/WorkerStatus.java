@@ -26,9 +26,13 @@ public enum WorkerStatus {
     ;
 
     @JsonValue
-    public final int status;
+    public final byte status;
 
     WorkerStatus(int status) {
+        this(((byte) status));
+    }
+
+    WorkerStatus(byte status) {
         this.status = status;
     }
 
@@ -36,13 +40,13 @@ public enum WorkerStatus {
      * 解析worker状态
      */
     @JsonCreator
-    public static WorkerStatus parse(Integer status) {
+    public static WorkerStatus parse(Number status) {
         if (status == null) {
             return null;
         }
 
         for (WorkerStatus workerStatus : values()) {
-            if (status.equals(workerStatus.status)) {
+            if (status.byteValue() == workerStatus.status) {
                 return workerStatus;
             }
         }

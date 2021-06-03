@@ -14,9 +14,13 @@ public enum WorkerProtocol {
     HTTP(1);
 
     @JsonValue
-    public final int protocol;
+    public final byte protocol;
 
     WorkerProtocol(int protocol) {
+        this(((byte) protocol));
+    }
+
+    WorkerProtocol(byte protocol) {
         this.protocol = protocol;
     }
 
@@ -24,13 +28,13 @@ public enum WorkerProtocol {
      * 解析worker支持的协议
      */
     @JsonCreator
-    public static WorkerProtocol parse(Integer protocol) {
+    public static WorkerProtocol parse(Number protocol) {
         if (protocol == null) {
             return null;
         }
 
         for (WorkerProtocol workerProtocol : values()) {
-            if (protocol.equals(workerProtocol.protocol)) {
+            if (protocol.byteValue() == workerProtocol.protocol) {
                 return workerProtocol;
             }
         }

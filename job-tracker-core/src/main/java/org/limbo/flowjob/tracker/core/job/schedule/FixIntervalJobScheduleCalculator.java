@@ -5,6 +5,7 @@ import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.commons.beans.job.domain.JobContext;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleType;
 import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
+import org.limbo.flowjob.tracker.core.job.JobScheduleOption;
 import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobContextStatus;
 
@@ -43,7 +44,8 @@ public class FixIntervalJobScheduleCalculator extends JobScheduleCalculator impl
         long scheduleAt;
 
         // 未到调度开始时间，不触发下次调度
-        long startScheduleAt = calculateStartScheduleTimestamp(job);
+        JobScheduleOption scheduleOption = job.getScheduleOption();
+        long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
         if (now < startScheduleAt) {
             return NO_TRIGGER;
         }
@@ -63,7 +65,7 @@ public class FixIntervalJobScheduleCalculator extends JobScheduleCalculator impl
                 return NO_TRIGGER;
             }
 
-            Duration interval = job.getScheduleOption().getScheduleInterval();
+            Duration interval = scheduleOption.getScheduleInterval();
             if (interval == null) {
                 log.error("cannot calculate next trigger timestamp of job({}) because interval is not assigned!", job.getJobId());
                 return NO_TRIGGER;

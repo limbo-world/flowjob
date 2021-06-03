@@ -94,13 +94,13 @@ public enum JobDispatchType {
      * 解析作业分发类型。
      */
     @JsonCreator
-    public static JobDispatchType parse(Byte type) {
+    public static JobDispatchType parse(Number type) {
         if (type == null) {
             return null;
         }
 
         for (JobDispatchType dispatchType : values()) {
-            if (type.equals(dispatchType.type)) {
+            if (type.byteValue() == dispatchType.type) {
                 return dispatchType;
             }
         }

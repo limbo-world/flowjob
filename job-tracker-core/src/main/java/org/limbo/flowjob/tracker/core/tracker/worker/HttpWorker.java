@@ -2,11 +2,12 @@ package org.limbo.flowjob.tracker.core.tracker.worker;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.limbo.flowjob.tracker.commons.beans.worker.dto.SendJobResult;
-import org.limbo.flowjob.tracker.commons.beans.worker.valueobject.WorkerMetric;
+import org.limbo.flowjob.tracker.commons.beans.worker.domain.WorkerMetric;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.commons.exceptions.WorkerException;
 import org.limbo.flowjob.tracker.core.job.context.JobContextDO;
+import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatisticsRepository;
 import org.limbo.utils.JacksonUtils;
 import reactor.core.publisher.Mono;
@@ -28,9 +29,9 @@ public class HttpWorker extends WorkerDO {
     private HttpClient client;
 
     public HttpWorker(HttpClient client, WorkerRepository workerRepository,
+                      WorkerMetricRepository metricRepository,
                       WorkerStatisticsRepository workerStatisticsRepository) {
-        setRepository(workerRepository);
-        setStatisticsRepository(workerStatisticsRepository);
+        super(workerRepository, metricRepository, workerStatisticsRepository);
         this.client = client;
     }
 
@@ -55,7 +56,7 @@ public class HttpWorker extends WorkerDO {
      */
     protected <T> Mono<T> responseReceiver(HttpClientResponse response, ByteBufFlux byteBufFlux, Class<T> type) {
         if (!HttpResponseStatus.OK.equals(response.status())) {
-            throw new WorkerException(getId(), "Worker服务访问失败！");
+            throw new WorkerException(getWorkerId(), "Worker服务访问失败！");
         }
 
         return byteBufFlux.aggregate()
@@ -75,8 +76,7 @@ public class HttpWorker extends WorkerDO {
                 .response((resp, flux) -> responseReceiver(resp, flux, WorkerMetric.class)))
                 .doOnNext(metric -> {
                     // 请求成功时，更新worker
-                    setMetric(metric);
-                    updateWorker();
+                    getMetricRepository().updateMetric(metric);
                 });
     }
 
@@ -95,7 +95,7 @@ public class HttpWorker extends WorkerDO {
                     // 如果worker接受作业，则更新下发时间
                     if (result.getAccepted()) {
                         // FIXME 此处是transaction script写法了，要不要改成update全部数据？
-                        getStatisticsRepository().updateWorkerDispatchTimes(getId(), LocalDateTime.now());
+                        getStatisticsRepository().updateWorkerDispatchTimes(getWorkerId(), LocalDateTime.now());
                     }
                 });
     }

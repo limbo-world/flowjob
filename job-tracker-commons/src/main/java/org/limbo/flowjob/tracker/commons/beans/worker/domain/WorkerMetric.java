@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.commons.beans.worker.valueobject;
+package org.limbo.flowjob.tracker.commons.beans.worker.domain;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.Setter;
+import org.limbo.flowjob.tracker.commons.beans.worker.valueobject.JobDescription;
+import org.limbo.flowjob.tracker.commons.beans.worker.valueobject.WorkerAvailableResource;
 
 import java.util.List;
 
 /**
- * worker的指标信息，值对象。
+ * worker的指标信息。
  *
  * @author Brozen
  * @since 2021-05-17
  */
 @Data
-@Setter(AccessLevel.NONE)
 public class WorkerMetric {
 
     /**
@@ -54,14 +51,4 @@ public class WorkerMetric {
      */
     private Long timestamp;
 
-    @JsonCreator
-    public WorkerMetric(@JsonProperty("id") String workerId,
-                        @JsonProperty("executingJobs") List<JobDescription> executingJobs,
-                        @JsonProperty("availableResource") WorkerAvailableResource availableResource,
-                        @JsonProperty("timestamp") Long timestamp) {
-        this.workerId = workerId;
-        this.executingJobs = executingJobs;
-        this.availableResource = availableResource;
-        this.timestamp = timestamp;
-    }
 }

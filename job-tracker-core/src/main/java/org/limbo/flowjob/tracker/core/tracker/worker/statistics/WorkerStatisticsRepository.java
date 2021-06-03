@@ -12,7 +12,7 @@ public interface WorkerStatisticsRepository {
      * 新增一个worker统计记录，应该在worker新增的时候才新增
      * @param statistics worker统计记录
      */
-    void addWorkerStatistics(WorkerStatistics statistics);
+    void addOrUpdateWorkerStatistics(WorkerStatistics statistics);
 
     /**
      * 根据workerId查询统计记录

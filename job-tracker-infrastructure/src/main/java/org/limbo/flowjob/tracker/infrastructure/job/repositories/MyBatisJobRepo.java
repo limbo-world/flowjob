@@ -1,35 +1,37 @@
 package org.limbo.flowjob.tracker.infrastructure.job.repositories;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.limbo.flowjob.tracker.core.job.JobDO;
 import org.limbo.flowjob.tracker.core.job.JobRepository;
-import org.limbo.flowjob.tracker.dao.dao.JobDao;
+import org.limbo.flowjob.tracker.dao.mybatis.JobMapper;
 import org.limbo.flowjob.tracker.dao.po.JobPO;
-import org.limbo.flowjob.tracker.infrastructure.job.converters.JobPoDoConverter;
+import org.limbo.flowjob.tracker.infrastructure.job.converters.JobPoConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
- * Job的repo，领域层使用。
+ * Job的repo，领域层使用。MyBatisPlus实现
  *
  * @author Brozen
  * @since 2021-06-01
  */
 @Repository
-public class BaseJobRepository implements JobRepository {
+public class MyBatisJobRepo implements JobRepository {
 
     /**
-     * DAO层抽象接口
+     * MyBatis Mapper
      */
     @Autowired
-    private JobDao jobDao;
+    private JobMapper mapper;
 
     /**
      * DO 与 PO 的转换器
      */
     @Autowired
-    private JobPoDoConverter converter;
+    private JobPoConverter converter;
 
     /**
      * {@inheritDoc}
@@ -38,7 +40,17 @@ public class BaseJobRepository implements JobRepository {
     @Override
     public void addJob(JobDO job) {
         JobPO po = converter.convert(job);
-        jobDao.saveOrUpdateJob(po);
+        Objects.requireNonNull(po);
+
+        int effected = mapper.insertIgnore(po);
+        if (effected <= 0) {
+            effected = mapper.update(po, Wrappers.<JobPO>lambdaUpdate()
+                    .eq(JobPO::getJobId, po.getJobId()));
+
+            if (effected != 1) {
+                throw new IllegalStateException(String.format("Update job error, effected %s rows", effected));
+            }
+        }
     }
 
     /**
@@ -48,7 +60,8 @@ public class BaseJobRepository implements JobRepository {
      */
     @Override
     public JobDO getJob(String jobId) {
-        return converter.reverse().convert(jobDao.getById(jobId));
+        JobPO po = mapper.selectById(jobId);
+        return converter.reverse().convert(po);
     }
 
     /**

@@ -10,7 +10,7 @@ import org.limbo.flowjob.tracker.commons.constants.enums.JobContextStatus;
 import org.limbo.flowjob.tracker.commons.beans.worker.dto.SendJobResult;
 import org.limbo.flowjob.tracker.core.scheduler.HashedWheelTimerJobScheduler;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
-import org.limbo.flowjob.tracker.commons.beans.worker.valueobject.WorkerMetric;
+import org.limbo.flowjob.tracker.commons.beans.worker.domain.WorkerMetric;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerDO;
 import reactor.core.publisher.Mono;
 
@@ -28,9 +28,9 @@ public class JobContextTest {
 
     @Before
     public void init() {
-        this.idleWorker = new WorkerDO() {
+        this.idleWorker = new WorkerDO(null, null, null) {
             @Override
-            public String getId() {
+            public String getWorkerId() {
                 return "w1";
             }
 

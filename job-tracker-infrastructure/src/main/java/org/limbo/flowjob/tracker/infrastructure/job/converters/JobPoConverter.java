@@ -3,11 +3,13 @@ package org.limbo.flowjob.tracker.infrastructure.job.converters;
 import com.google.common.base.Converter;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobDispatchType;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleType;
+import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.job.JobDO;
 import org.limbo.flowjob.tracker.core.job.JobDispatchOption;
 import org.limbo.flowjob.tracker.core.job.JobScheduleOption;
 import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
 import org.limbo.flowjob.tracker.core.job.schedule.JobScheduleCalculator;
+import org.limbo.flowjob.tracker.core.job.schedule.JobScheduleCalculatorFactory;
 import org.limbo.flowjob.tracker.dao.po.JobPO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,13 +21,13 @@ import java.time.Duration;
  * @since 2021-06-01
  */
 @Component
-public class JobPoDoConverter extends Converter<JobDO, JobPO> {
+public class JobPoConverter extends Converter<JobDO, JobPO> {
 
     /**
-     * 作业触发计算器
+     * 作业触发计算器工厂
      */
     @Autowired
-    private JobScheduleCalculator triggerCalculator;
+    private JobScheduleCalculatorFactory jobScheduleCalculatorFactory;
 
     /**
      * 上下文repository
@@ -65,7 +67,12 @@ public class JobPoDoConverter extends Converter<JobDO, JobPO> {
      */
     @Override
     protected JobDO doBackward(JobPO po) {
-        JobDO _do = new JobDO(triggerCalculator, jobContextRepository);
+
+        // 先生成一个代理calculator，用于初始化JobDO
+        JobScheduleType scheduleType = JobScheduleType.parse(po.getScheduleType());
+        DelegatedJobScheduleCalculator delegatedCalculator = new DelegatedJobScheduleCalculator(scheduleType);
+
+        JobDO _do = new JobDO(delegatedCalculator, jobContextRepository);
         _do.setJobId(po.getJobId());
         _do.setJobDesc(po.getJobDesc());
 
@@ -76,13 +83,41 @@ public class JobPoDoConverter extends Converter<JobDO, JobPO> {
         ));
 
         _do.setScheduleOption(new JobScheduleOption(
-                JobScheduleType.parse(po.getScheduleType()),
+                scheduleType,
+                po.getScheduleStartAt(),
                 Duration.ofMillis(po.getScheduleDelay()),
                 Duration.ofMillis(po.getScheduleInterval()),
                 po.getScheduleCron()
         ));
 
+        // 为代理calculator设置真实的计算策略
+        delegatedCalculator.delegated = jobScheduleCalculatorFactory.newStrategy(_do);
+
         return _do;
+    }
+
+
+    /**
+     * JobScheduleCalculator代理
+     */
+    public static class DelegatedJobScheduleCalculator extends JobScheduleCalculator {
+
+        private JobScheduleCalculator delegated;
+
+        protected DelegatedJobScheduleCalculator(JobScheduleType scheduleType) {
+            super(scheduleType);
+        }
+
+        @Override
+        public Boolean canApply(Job job) {
+            return delegated.canApply(job);
+        }
+
+        @Override
+        public Long apply(Job job) {
+            return delegated.apply(job);
+        }
+
     }
 
 }

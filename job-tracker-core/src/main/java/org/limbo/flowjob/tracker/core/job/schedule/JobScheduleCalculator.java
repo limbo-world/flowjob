@@ -19,6 +19,7 @@ package org.limbo.flowjob.tracker.core.job.schedule;
 import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleType;
 import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
+import org.limbo.flowjob.tracker.core.job.JobScheduleOption;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -67,13 +68,13 @@ public abstract class JobScheduleCalculator implements Strategy<Job, Long> {
 
     /**
      * 计算作业的开始调度时间，从作业创建时间开始，加上delay。
-     * @param job 作业
+     * @param scheduleOption 作业调度配置
      * @return 作业开始进行调度计算的时间
      */
-    protected long calculateStartScheduleTimestamp(Job job) {
-        LocalDateTime createdAt = job.getCreatedAt();
-        Duration delay = job.getScheduleOption().getScheduleDelay();
-        long startScheduleAt = createdAt.toEpochSecond(ZoneOffset.UTC);
+    protected long calculateStartScheduleTimestamp(JobScheduleOption scheduleOption) {
+        LocalDateTime startAt = scheduleOption.getScheduleStartAt();
+        Duration delay = scheduleOption.getScheduleDelay();
+        long startScheduleAt = startAt.toEpochSecond(ZoneOffset.UTC);
         return delay != null ? startScheduleAt + delay.toMillis() : startScheduleAt;
     }
 

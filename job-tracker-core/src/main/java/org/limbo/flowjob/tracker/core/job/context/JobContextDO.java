@@ -23,10 +23,7 @@ import org.limbo.flowjob.tracker.commons.exceptions.JobContextException;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.commons.beans.worker.dto.SendJobResult;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerDO;
-import reactor.core.publisher.DirectProcessor;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.FluxProcessor;
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.*;
 
 import java.util.Objects;
 
@@ -47,11 +44,11 @@ public class JobContextDO extends JobContext {
     /**
      * 用于触发、发布上下文生命周期事件
      */
-    private FluxProcessor<JobContextLifecycleEvent, JobContextLifecycleEvent> lifecycleEventTrigger;
+    private Sinks.Many<JobContextLifecycleEvent> lifecycleEventTrigger;
 
     public JobContextDO(JobContextRepository jobContextRepository) {
         this.jobContextRepository = Objects.requireNonNull(jobContextRepository, "JobContextRepository");
-        this.lifecycleEventTrigger = DirectProcessor.create();
+        this.lifecycleEventTrigger = Sinks.many().multicast().directAllOrNothing();
     }
 
     /**
@@ -74,7 +71,7 @@ public class JobContextDO extends JobContext {
         }
 
         // 更新上下文
-        setWorkerId(worker.getId());
+        setWorkerId(worker.getWorkerId());
         setStatus(JobContextStatus.DISPATCHING);
         jobContextRepository.updateContext(this);
 
@@ -83,7 +80,7 @@ public class JobContextDO extends JobContext {
             // 发送上下文到worker
             Mono<SendJobResult> mono = worker.sendJobContext(this);
             // 发布事件
-            lifecycleEventTrigger.onNext(JobContextLifecycleEvent.STARTED);
+            lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.STARTED, Sinks.EmitFailureHandler.FAIL_FAST);
 
             // 等待发送结果，根据客户端接收结果，更新状态
             SendJobResult result = mono.block();
@@ -98,7 +95,7 @@ public class JobContextDO extends JobContext {
             setStatus(JobContextStatus.FAILED);
             jobContextRepository.updateContext(this);
 
-            throw new JobContextException(jobId, worker.getId(),
+            throw new JobContextException(jobId, worker.getWorkerId(),
                     "Context startup failed due to send job to worker error!", e);
         }
     }
@@ -114,14 +111,14 @@ public class JobContextDO extends JobContext {
     public void acceptContext(WorkerDO worker) throws JobContextException {
 
         assertContextStatus(JobContextStatus.DISPATCHING);
-        assertWorkerId(worker.getId());
+        assertWorkerId(worker.getWorkerId());
 
         // 更新状态
         setStatus(JobContextStatus.EXECUTING);
         jobContextRepository.updateContext(this);
 
         // 发布事件
-        lifecycleEventTrigger.onNext(JobContextLifecycleEvent.ACCEPTED);
+        lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.ACCEPTED, Sinks.EmitFailureHandler.FAIL_FAST);
     }
 
     /**
@@ -135,14 +132,14 @@ public class JobContextDO extends JobContext {
     public void refuseContext(WorkerDO worker) throws JobContextException {
 
         assertContextStatus(JobContextStatus.DISPATCHING);
-        assertWorkerId(worker.getId());
+        assertWorkerId(worker.getWorkerId());
 
         // 更新状态
         setStatus(JobContextStatus.REFUSED);
         jobContextRepository.updateContext(this);
 
         // 发布事件
-        lifecycleEventTrigger.onNext(JobContextLifecycleEvent.REFUSED);
+        lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.REFUSED, Sinks.EmitFailureHandler.FAIL_FAST);
     }
 
     /**
@@ -160,8 +157,8 @@ public class JobContextDO extends JobContext {
         jobContextRepository.updateContext(this);
 
         // 发布事件
-        lifecycleEventTrigger.onNext(JobContextLifecycleEvent.CLOSED);
-        lifecycleEventTrigger.onComplete();
+        lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.CLOSED, Sinks.EmitFailureHandler.FAIL_FAST);
+        lifecycleEventTrigger.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
     }
 
     /**
@@ -195,6 +192,7 @@ public class JobContextDO extends JobContext {
      */
     public Mono<JobContext> onContextRefused() {
         return Mono.create(sink -> this.lifecycleEventTrigger
+                .asFlux()
                 .filter(e -> e == JobContextLifecycleEvent.REFUSED)
                 .subscribe(e -> sink.success(this), sink::error, sink::success));
     }
@@ -208,6 +206,7 @@ public class JobContextDO extends JobContext {
      */
     public Mono<JobContext> onContextAccepted() {
         return Mono.create(sink -> this.lifecycleEventTrigger
+                .asFlux()
                 .filter(e -> e == JobContextLifecycleEvent.ACCEPTED)
                 .subscribe(e -> sink.success(this), sink::error, sink::success));
     }
@@ -221,6 +220,7 @@ public class JobContextDO extends JobContext {
      */
     public Mono<JobContext> onContextClosed() {
         return Mono.create(sink -> this.lifecycleEventTrigger
+                .asFlux()
                 .filter(e -> e == JobContextLifecycleEvent.CLOSED)
                 .subscribe(e -> sink.success(this), sink::error, sink::success));
     }
@@ -234,7 +234,7 @@ public class JobContextDO extends JobContext {
      * @see JobContextLifecycleEvent
      */
     public Flux<JobContextLifecycleEvent> onLifecycleEvent() {
-        return Flux.from(this.lifecycleEventTrigger);
+        return this.lifecycleEventTrigger.asFlux();
     }
 
     /**
