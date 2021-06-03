@@ -12,8 +12,8 @@ import reactor.core.publisher.Mono;
  * @since 2021-06-01
  */
 @RestController
-@RequestMapping("/api/web/ping")
-public class PingController {
+@RequestMapping("/api/admin/ping")
+public class AdminPingController {
 
     @Autowired
     private JobTracker tracker;

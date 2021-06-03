@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
  * @author Brozen
  * @since 2021-05-18
  */
-public abstract class HashedWheelTimerJobScheduler implements JobScheduler {
+public class HashedWheelTimerJobScheduler implements JobScheduler {
 
     private static final Object PLACEHOLDER = new Object();
 
@@ -92,14 +92,10 @@ public abstract class HashedWheelTimerJobScheduler implements JobScheduler {
      * @param job 作业
      */
     protected void rescheduleJob(Job job) {
-        // 如果job不会被触发，则无需加入调度
+        // 如果job不会被触发，则无需继续调度
         long triggerAt = job.nextTriggerAt();
         if (triggerAt <= 0) {
-            return;
-        }
-
-        // 已经取消调度了，则不再重新调度作业
-        if (!scheduledJobIds.containsKey(job.getJobId())) {
+            scheduledJobIds.remove(job.getJobId());
             return;
         }
 
@@ -115,6 +111,11 @@ public abstract class HashedWheelTimerJobScheduler implements JobScheduler {
         // 在timer上调度作业执行
         long delay = triggerAt - System.currentTimeMillis();
         this.timer.newTimeout(timeout -> {
+
+            // 已经取消调度了，则不再重新调度作业
+            if (!scheduledJobIds.containsKey(job.getJobId())) {
+                return;
+            }
 
             // 执行作业
             executeJob(job);
@@ -132,8 +133,17 @@ public abstract class HashedWheelTimerJobScheduler implements JobScheduler {
     private void executeJob(Job job) {
         // 生成新的上下文，并交给执行器执行
         JobContext context = job.newContext();
-        JobDispatchService executorService = jobDispatchServiceFactory.newDispatchService(context);
-        executorService.dispatch(jobTracker, context);
+        JobDispatchService dispatchService = jobDispatchServiceFactory.newDispatchService(context);
+        dispatchService.dispatch(jobTracker, context);
+    }
+
+    /**
+     * {@inheritDoc}
+     * @param job 停止调度的作业
+     */
+    @Override
+    public void unschedule(Job job) {
+        scheduledJobIds.remove(job.getJobId());
     }
 
 }

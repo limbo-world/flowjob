@@ -1,0 +1,13 @@
+spring:
+  profiles:
+    active: @spring.profiles.active@
+
+  application:
+    name: job-tracker-admin
+
+
+
+
+# DAO层基于MyBatisPlus
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*.xml

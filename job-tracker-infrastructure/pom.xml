@@ -45,7 +45,7 @@
             <artifactId>job-tracker-dao</artifactId>
         </dependency>
 
-        <!-- Starter: SpringBoot -->
+        <!-- 注解支持: SpringBoot  -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
@@ -53,6 +53,12 @@
         <dependency>
             <groupId>javax.annotation</groupId>
             <artifactId>javax.annotation-api</artifactId>
+        </dependency>
+
+        <!-- MyBatis集成Spring支持 -->
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis-spring</artifactId>
         </dependency>
     </dependencies>
 

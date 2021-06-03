@@ -71,7 +71,8 @@
         <spring.boot>2.4.6</spring.boot>
         <project.reactor>2020.0.7</project.reactor>
         <netty>4.1.59.Final</netty>
-        <mybatis.plus>3.3.1</mybatis.plus>
+        <mybatis.plus>3.3.2</mybatis.plus>
+        <mybatis.spring>2.0.4</mybatis.spring>
         <jackson>2.12.1</jackson>
         <quartz.scheduler>2.3.2</quartz.scheduler>
         <lombok>1.18.16</lombok>
@@ -136,6 +137,11 @@
             <!-- MyBatis & MyBatisPlus -->
             <dependency>
                 <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <version>${mybatis.plus}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus</artifactId>
                 <version>${mybatis.plus}</version>
             </dependency>
@@ -153,6 +159,11 @@
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-generator</artifactId>
                 <version>${mybatis.plus}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis-spring</artifactId>
+                <version>${mybatis.spring}</version>
             </dependency>
 
             <!-- Jackson BOM -->

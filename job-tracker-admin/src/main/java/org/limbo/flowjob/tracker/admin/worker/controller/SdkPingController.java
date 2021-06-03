@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono;
  */
 @RestController
 @RequestMapping("/api/sdk/ping")
-public class PingController {
+public class SdkPingController {
 
     @Autowired
     private JobTracker tracker;

@@ -4,11 +4,13 @@ import com.google.common.base.Converter;
 import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatistics;
 import org.limbo.flowjob.tracker.dao.po.WorkerStatisticsPO;
 import org.limbo.utils.EnhancedBeanUtils;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Brozen
  * @since 2021-06-03
  */
+@Component
 public class WorkerStatisticsPoConverter extends Converter<WorkerStatistics, WorkerStatisticsPO> {
 
     /**
