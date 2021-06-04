@@ -1,6 +1,8 @@
 package org.limbo.flowjob.tracker.admin;
 
-import org.limbo.flowjob.tracker.infrastructure.config.JobTrackerAutoConfiguration;
+import org.limbo.flowjob.tracker.infrastructure.config.HttpMessagingConfiguration;
+import org.limbo.flowjob.tracker.infrastructure.config.JobTrackerConfiguration;
+import org.limbo.flowjob.tracker.infrastructure.config.MyBatisConfiguration;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -11,7 +13,11 @@ import org.springframework.context.annotation.Import;
  * @since 2021-06-01
  */
 @SpringBootApplication
-@Import(JobTrackerAutoConfiguration.class)
+@Import({
+        JobTrackerConfiguration.class,
+        MyBatisConfiguration.class,
+        HttpMessagingConfiguration.class,
+})
 public class AdminApplication {
 
     public static void main(String[] args) {

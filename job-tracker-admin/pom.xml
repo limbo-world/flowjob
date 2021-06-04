@@ -36,19 +36,59 @@
     </properties>
 
     <dependencies>
-        <!-- Starter: WebFlux -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webflux</artifactId>
-        </dependency>
-
         <!-- 依赖基础设施层 -->
         <dependency>
             <groupId>org.limbo.flowjob</groupId>
             <artifactId>job-tracker-infrastructure</artifactId>
         </dependency>
 
+        <!-- Starter: WebFlux -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+
+        <!-- MySQL驱动 -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+
+        <!-- Starter: MyBatisPlus -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+        </dependency>
+
     </dependencies>
 
 
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <profile.name>dev</profile.name>
+                <spring.profiles.active>dev</spring.profiles.active>
+            </properties>
+        </profile>
+    </profiles>
+
+
+    <build>
+        <finalName>job-tracker-admin</finalName>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+            <resource>
+                <directory>src/main/resources-${profile.name}</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
 </project>

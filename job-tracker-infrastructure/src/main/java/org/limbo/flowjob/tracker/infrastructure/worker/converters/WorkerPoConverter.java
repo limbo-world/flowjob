@@ -10,6 +10,7 @@ import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetricReposito
 import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatisticsRepository;
 import org.limbo.flowjob.tracker.dao.po.WorkerPO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import reactor.netty.http.client.HttpClient;
 
@@ -23,6 +24,7 @@ public class WorkerPoConverter extends Converter<Worker, WorkerPO> {
     @Autowired
     private HttpClient httpClient;
 
+    @Lazy
     @Autowired
     private WorkerRepository workerRepository;
 
