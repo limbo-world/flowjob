@@ -94,6 +94,13 @@
             <artifactId>javax.annotation-api</artifactId>
         </dependency>
 
+        <!-- Raft -->
+        <dependency>
+            <groupId>com.alipay.sofa</groupId>
+            <artifactId>jraft-core</artifactId>
+            <version>1.3.7</version>
+        </dependency>
+
         <!-- Utils -->
         <dependency>
             <groupId>org.projectlombok</groupId>
