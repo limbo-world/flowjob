@@ -50,7 +50,7 @@ public class SimpleJobTracker extends AbstractJobTracker {
         }
 
         // 设置状态，成功则触发AFTER_START事件
-        if (state.compareAndSet(JobTrackerState.STARTING, JobTrackerState.STARTED)) {
+        if (!state.compareAndSet(JobTrackerState.STARTING, JobTrackerState.STARTED)) {
             log.warn("Set JobTracker state to STARTED failed, maybe stop() is called in a async thread?");
         } else {
             triggerAfterStart(disposable);

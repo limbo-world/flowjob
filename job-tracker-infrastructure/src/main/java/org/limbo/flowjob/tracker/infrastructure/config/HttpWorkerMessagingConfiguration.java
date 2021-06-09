@@ -12,7 +12,7 @@ import reactor.netty.http.client.HttpClient;
  * @since 2021-06-03
  */
 @Configuration
-public class HttpMessagingConfiguration {
+public class HttpWorkerMessagingConfiguration {
 
 
 

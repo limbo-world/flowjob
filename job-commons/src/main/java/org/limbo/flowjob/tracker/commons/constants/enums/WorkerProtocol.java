@@ -11,7 +11,13 @@ public enum WorkerProtocol {
     /**
      * HTTP协议通信
      */
-    HTTP(1);
+    HTTP(1),
+
+    /**
+     * RSocket通信协议
+     */
+    R_SOCKET(2),
+    ;
 
     @JsonValue
     public final byte protocol;

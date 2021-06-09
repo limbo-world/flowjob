@@ -61,6 +61,16 @@
             <artifactId>springdoc-openapi-webflux-ui</artifactId>
         </dependency>
 
+        <!-- RSocket 协议支持 -->
+        <dependency>
+            <groupId>io.rsocket</groupId>
+            <artifactId>rsocket-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.rsocket</groupId>
+            <artifactId>rsocket-transport-netty</artifactId>
+        </dependency>
+
         <!-- MyBatis集成Spring支持 -->
         <dependency>
             <groupId>org.mybatis</groupId>

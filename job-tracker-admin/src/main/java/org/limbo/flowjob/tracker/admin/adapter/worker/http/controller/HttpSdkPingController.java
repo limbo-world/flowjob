@@ -1,4 +1,4 @@
-package org.limbo.flowjob.tracker.admin.adapter.worker.controller;
+package org.limbo.flowjob.tracker.admin.adapter.worker.http.controller;
 
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono;
  */
 @RestController
 @RequestMapping("/api/sdk/ping")
-public class SdkPingController {
+public class HttpSdkPingController {
 
     @Autowired
     private JobTracker tracker;

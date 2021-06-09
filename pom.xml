@@ -74,6 +74,7 @@
         <spring.doc>1.5.6</spring.doc>
         <project.reactor>2020.0.7</project.reactor>
         <netty>4.1.59.Final</netty>
+        <rsocket>1.1.0</rsocket>
         <mybatis.plus>3.3.2</mybatis.plus>
         <mybatis.spring>2.0.4</mybatis.spring>
         <jackson>2.12.1</jackson>
@@ -136,6 +137,13 @@
                 <version>${netty}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- RSocket BOM -->
+            <dependency>
+                <groupId>io.rsocket</groupId>
+                <artifactId>rsocket-bom</artifactId>
+                <version>${rsocket}</version>
             </dependency>
 
             <!-- MyBatis & MyBatisPlus -->

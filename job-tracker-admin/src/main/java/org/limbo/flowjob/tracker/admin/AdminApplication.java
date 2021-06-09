@@ -1,6 +1,6 @@
 package org.limbo.flowjob.tracker.admin;
 
-import org.limbo.flowjob.tracker.infrastructure.config.HttpMessagingConfiguration;
+import org.limbo.flowjob.tracker.infrastructure.config.HttpWorkerMessagingConfiguration;
 import org.limbo.flowjob.tracker.infrastructure.config.JobTrackerConfiguration;
 import org.limbo.flowjob.tracker.infrastructure.config.MyBatisConfiguration;
 import org.springframework.boot.WebApplicationType;
@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Import;
 @Import({
         JobTrackerConfiguration.class,
         MyBatisConfiguration.class,
-        HttpMessagingConfiguration.class,
+        HttpWorkerMessagingConfiguration.class,
 })
 public class AdminApplication {
 
