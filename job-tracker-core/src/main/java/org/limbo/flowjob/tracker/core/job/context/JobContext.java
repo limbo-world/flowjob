@@ -123,7 +123,7 @@ public class JobContext {
         }
 
         // 更新上下文
-        setWorkerId(worker.getWorkerId());
+        setWorkerId(worker.getWorkerId().toString());
         setStatus(JobContextStatus.DISPATCHING);
         jobContextRepository.updateContext(this);
 
@@ -147,7 +147,7 @@ public class JobContext {
             setStatus(JobContextStatus.FAILED);
             jobContextRepository.updateContext(this);
 
-            throw new JobContextException(jobId, worker.getWorkerId(),
+            throw new JobContextException(jobId, worker.getWorkerId().toString(),
                     "Context startup failed due to send job to worker error!", e);
         }
     }
@@ -163,7 +163,7 @@ public class JobContext {
     public void acceptContext(Worker worker) throws JobContextException {
 
         assertContextStatus(JobContextStatus.DISPATCHING);
-        assertWorkerId(worker.getWorkerId());
+        assertWorkerId(worker.getWorkerId().toString());
 
         // 更新状态
         setStatus(JobContextStatus.EXECUTING);
@@ -184,7 +184,7 @@ public class JobContext {
     public void refuseContext(Worker worker) throws JobContextException {
 
         assertContextStatus(JobContextStatus.DISPATCHING);
-        assertWorkerId(worker.getWorkerId());
+        assertWorkerId(worker.getWorkerId().toString());
 
         // 更新状态
         setStatus(JobContextStatus.REFUSED);

@@ -44,22 +44,7 @@ public abstract class Worker {
     /**
      * worker节点ID
      */
-    private String workerId;
-
-    /**
-     * worker服务使用的通信协议，默认为Http协议。
-     */
-    private WorkerProtocol protocol;
-
-    /**
-     * worker服务的通信IP
-     */
-    private String ip;
-
-    /**
-     * worker服务的通信端口
-     */
-    private Integer port;
+    private WorkerId workerId;
 
     /**
      * worker节点状态
@@ -111,7 +96,7 @@ public abstract class Worker {
      * @return worker节点指标信息
      */
     public WorkerMetric getMetric() {
-        return metricRepository.getMetric(getWorkerId());
+        return metricRepository.getMetric(getWorkerId().toString());
     }
 
     /**
@@ -119,7 +104,7 @@ public abstract class Worker {
      * @return 此worker对应的统计记录
      */
     public WorkerStatistics getStatistics() {
-        return statisticsRepository.getWorkerStatistics(getWorkerId());
+        return statisticsRepository.getWorkerStatistics(getWorkerId().toString());
     }
 
     /**

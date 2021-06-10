@@ -5,6 +5,7 @@ import org.limbo.flowjob.tracker.commons.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
 import org.limbo.flowjob.tracker.core.tracker.worker.HttpWorker;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
+import org.limbo.flowjob.tracker.core.tracker.worker.WorkerId;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatisticsRepository;
@@ -42,10 +43,11 @@ public class WorkerPoConverter extends Converter<Worker, WorkerPO> {
     @Override
     protected WorkerPO doForward(Worker _do) {
         WorkerPO po = new WorkerPO();
-        po.setWorkerId(_do.getWorkerId());
-        po.setProtocol(_do.getProtocol().protocol);
-        po.setIp(_do.getIp());
-        po.setPort(_do.getPort());
+        WorkerId workerId = _do.getWorkerId();
+        po.setWorkerId(workerId.toString());
+        po.setProtocol(workerId.getProtocol().protocol);
+        po.setIp(workerId.getIp());
+        po.setPort(workerId.getPort());
         po.setStatus(_do.getStatus().status);
         po.setDeleted(false);
         return po;
@@ -80,10 +82,8 @@ public class WorkerPoConverter extends Converter<Worker, WorkerPO> {
     private Worker convertToHttpWorker(WorkerPO po) {
 
         HttpWorker worker = new HttpWorker(httpClient, workerRepository, metricRepository, workerStatisticsRepository);
-        worker.setWorkerId(po.getWorkerId());
-        worker.setProtocol(WorkerProtocol.parse(po.getProtocol()));
-        worker.setIp(po.getIp());
-        worker.setPort(po.getPort());
+        WorkerId workerId = new WorkerId(WorkerProtocol.parse(po.getProtocol()), po.getIp(), po.getPort());
+        worker.setWorkerId(workerId);
         worker.setStatus(WorkerStatus.parse(po.getStatus()));
         return worker;
 

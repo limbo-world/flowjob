@@ -43,7 +43,9 @@ public class HttpWorker extends Worker {
         if (!path.startsWith("/")) {
             path = "/" + path;
         }
-        return String.format("http://%s:%s%s", getIp(), getPort(), path);
+
+        WorkerId workerId = getWorkerId();
+        return String.format("http://%s:%s%s", workerId.getIp(), workerId.getPort(), path);
     }
 
     /**
@@ -56,7 +58,7 @@ public class HttpWorker extends Worker {
      */
     protected <T> Mono<T> responseReceiver(HttpClientResponse response, ByteBufFlux byteBufFlux, Class<T> type) {
         if (!HttpResponseStatus.OK.equals(response.status())) {
-            throw new WorkerException(getWorkerId(), "Worker服务访问失败！");
+            throw new WorkerException(getWorkerId().toString(), "Worker服务访问失败！");
         }
 
         return byteBufFlux.aggregate()
@@ -95,7 +97,7 @@ public class HttpWorker extends Worker {
                     // 如果worker接受作业，则更新下发时间
                     if (result.getAccepted()) {
                         // FIXME 此处是transaction script写法了，要不要改成update全部数据？
-                        getStatisticsRepository().updateWorkerDispatchTimes(getWorkerId(), LocalDateTime.now());
+                        getStatisticsRepository().updateWorkerDispatchTimes(getWorkerId().toString(), LocalDateTime.now());
                     }
                 });
     }
