@@ -17,7 +17,7 @@
 package org.limbo.flowjob.tracker.core.tracker;
 
 
-import static org.limbo.flowjob.tracker.core.tracker.SimpleJobTracker.*;
+import static org.limbo.flowjob.tracker.core.tracker.LeaderJobTracker.*;
 
 /**
  * 作业分发节点抽象。

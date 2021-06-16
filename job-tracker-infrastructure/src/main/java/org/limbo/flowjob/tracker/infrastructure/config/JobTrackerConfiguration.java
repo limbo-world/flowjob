@@ -8,7 +8,7 @@ import org.limbo.flowjob.tracker.core.job.schedule.JobScheduleCalculatorFactory;
 import org.limbo.flowjob.tracker.core.scheduler.HashedWheelTimerJobScheduler;
 import org.limbo.flowjob.tracker.core.scheduler.JobScheduler;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
-import org.limbo.flowjob.tracker.core.tracker.SimpleJobTracker;
+import org.limbo.flowjob.tracker.core.tracker.LeaderJobTracker;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -31,9 +31,9 @@ public class JobTrackerConfiguration {
      * JobTracker
      */
     @Bean
-    @ConditionalOnMissingBean(SimpleJobTracker.class)
-    public SimpleJobTracker jobTracker(WorkerRepository workerRepository) {
-        return new SimpleJobTracker(workerRepository);
+    @ConditionalOnMissingBean(LeaderJobTracker.class)
+    public LeaderJobTracker jobTracker(WorkerRepository workerRepository) {
+        return new LeaderJobTracker(workerRepository);
     }
 
     /**

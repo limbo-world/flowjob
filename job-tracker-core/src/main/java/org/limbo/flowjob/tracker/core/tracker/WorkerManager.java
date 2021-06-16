@@ -18,7 +18,6 @@ package org.limbo.flowjob.tracker.core.tracker;
 
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -53,25 +52,5 @@ public interface WorkerManager {
      * @return 返回被移除的worker，如果参数id对应的worker不存在，则返回null。
      */
     Mono<Worker> unregisterWorker(String workerId);
-
-    /**
-     * 新的worker被注册时。
-     * @return 新worker注册时触发时的Mono
-     */
-    Flux<Worker> onWorkerRegistered();
-
-    /**
-     * 当worker被移除时。触发worker移除有两种方式：1. worker心跳超时；2. worker主动申请下线
-     * @return worker被移除时触发的Mono
-     */
-    Flux<Worker> onWorkerUnregistered();
-
-    /**
-     * worker节点的生命周期事件
-     */
-    enum WorkerEventType {
-        REGISTERED,
-        UNREGISTERED,
-    }
 
 }
