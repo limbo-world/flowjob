@@ -1,0 +1,13 @@
+spring:
+  # RSocket服务器
+  rsocket:
+    server:
+      port: 8083
+
+job:
+  name: abc
+  queueSize: 8
+  trackerAddress: localhost:8082
+  tags:
+    - a=b
+    - c=d

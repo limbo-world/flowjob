@@ -85,6 +85,7 @@
         <slf4j>1.7.30</slf4j>
         <commons.collections4>4.4</commons.collections4>
         <commons.lang3>3.11</commons.lang3>
+        <commons.io>2.6</commons.io>
         <junit>4.13.1</junit>
         <mockito>3.6.28</mockito>
     </properties>
@@ -241,6 +242,11 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons.lang3}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons.io}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>

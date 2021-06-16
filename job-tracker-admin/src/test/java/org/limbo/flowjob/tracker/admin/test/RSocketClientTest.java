@@ -19,6 +19,11 @@ public class RSocketClientTest {
                 .retrieveMono(String.class)
                 .subscribe(System.out::println, System.err::println, () -> {});
 
+        requester.route("api.sdk.ping")
+                .data("hello")
+                .retrieveMono(String.class)
+                .subscribe(System.out::println, System.err::println, () -> {});
+
         Thread.sleep(10000L);
     }
 
