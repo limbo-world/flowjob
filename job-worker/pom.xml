@@ -37,10 +37,11 @@
 
     <dependencies>
 
+        <!-- 内部依赖 -->
         <dependency>
             <groupId>org.limbo.flowjob</groupId>
             <artifactId>job-commons</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${parent.version}</version>
         </dependency>
 
         <!-- Starter: RSocket -->
@@ -69,9 +70,9 @@
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>1.27</version>
         </dependency>
 
+        <!-- ApacheCommons工具 -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
