@@ -2,6 +2,7 @@ package org.limbo.flowjob.tracker.commons.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.limbo.utils.web.HttpStatus;
 
 /**
@@ -9,6 +10,7 @@ import org.limbo.utils.web.HttpStatus;
  * @since 2021-06-16
  */
 @Getter
+@NoArgsConstructor
 @Schema(title = "请求响应封装")
 public class Response<T> {
 
@@ -16,19 +18,19 @@ public class Response<T> {
      * 响应状态码，参考{@link HttpStatus}中状态码的定义
      */
     @Schema(description = "响应状态码")
-    private final int code;
+    private int code;
 
     /**
      * 错误提示信息，可选项
      */
     @Schema(description = "错误提示信息，可选项")
-    private final String message;
+    private String message;
 
     /**
      * 响应数据
      */
     @Schema(description = "响应数据")
-    private final T data;
+    private T data;
 
     Response(int code, String message, T data) {
         this.code = code;

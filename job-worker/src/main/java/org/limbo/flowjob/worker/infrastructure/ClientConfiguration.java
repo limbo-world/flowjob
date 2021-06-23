@@ -35,9 +35,12 @@ public class ClientConfiguration {
     @Autowired
     private JobProperties jobProperties;
 
+    @Autowired
+    private RSocketStrategies strategies;
+
     @Bean
     public Worker worker() {
-        return Worker.create(jobProperties);
+        return Worker.create(jobProperties, strategies);
     }
 
 }

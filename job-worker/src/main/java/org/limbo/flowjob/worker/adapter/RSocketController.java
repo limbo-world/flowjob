@@ -29,28 +29,44 @@ import reactor.core.publisher.Mono;
 @Controller
 public class RSocketController {
 
-    // 任务下发
+    /**
+     * 任务下发
+     * @param greet
+     * @return
+     */
     @MessageMapping("api.sdk.job.submit")
     public Mono<String> jobSubmit(@Payload String greet) {
         System.out.println(greet);
         return Mono.just("pong~~");
     }
 
-    // 任务状态查询
+    /**
+     * 任务状态查询
+     * @param greet
+     * @return
+     */
     @MessageMapping("api.sdk.job.state")
     public Mono<String> jobState(@Payload String greet) {
         System.out.println(greet);
         return Mono.just("pong~~");
     }
 
-    // 队列动态扩缩容
+    /**
+     * 队列动态扩缩容
+     * @param greet
+     * @return
+     */
     @MessageMapping("api.sdk.queue.resize")
     public Mono<String> queueResize(@Payload String greet) {
         System.out.println(greet);
         return Mono.just("pong~~");
     }
 
-    // tracker主从切换通知
+    /**
+     * tracker主从切换通知
+     * @param greet
+     * @return
+     */
     @MessageMapping("api.sdk.tracker.switch")
     public Mono<String> trackerSwitch(@Payload String greet) {
         System.out.println(greet);

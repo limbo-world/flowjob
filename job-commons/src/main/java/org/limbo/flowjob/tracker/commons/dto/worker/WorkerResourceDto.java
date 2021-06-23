@@ -20,7 +20,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
- * worker节点上可用的资源，资源有以下三种定义：内存、CPU。
+ * worker节点上可用的资源
  *
  * @author Brozen
  * @since 2021-05-17
@@ -40,5 +40,11 @@ public class WorkerResourceDto {
      */
     @Schema(description = "可用的内存空间，单位GB。")
     private float availableRam;
+
+    /**
+     * 任务队列剩余可排队数
+     */
+    @Schema(description = "任务队列可排队数")
+    private int availableQueueLimit;
 
 }
