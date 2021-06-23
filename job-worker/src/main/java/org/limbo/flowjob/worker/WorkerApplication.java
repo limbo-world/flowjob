@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.worker;
 
-import org.limbo.flowjob.worker.infrastructure.ClientConfiguration;
+import org.limbo.flowjob.worker.infrastructure.WorkerConfiguration;
 import org.limbo.flowjob.worker.infrastructure.JobProperties;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Import;
 @SpringBootApplication
 @EnableConfigurationProperties({JobProperties.class})
 @Import({
-        ClientConfiguration.class,
+        WorkerConfiguration.class,
 })
 public class WorkerApplication {
 

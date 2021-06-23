@@ -16,6 +16,7 @@
 
 package org.limbo.flowjob.worker.domain;
 
+import io.rsocket.core.RSocketClient;
 import org.limbo.flowjob.tracker.commons.dto.Response;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
@@ -37,9 +38,9 @@ public class Worker {
 
     private String id;
 
-    private int queueSize;
-
     private RSocketRequester requester;
+
+    private WorkerResource resource;
 
     private Worker() {
     }
@@ -47,7 +48,8 @@ public class Worker {
     public static Worker create(JobProperties config, RSocketStrategies strategies) {
         Worker worker = new Worker();
         worker.id = UUIDUtils.randomID();
-        worker.queueSize = config.getQueueSize();
+        worker.resource = WorkerResource.create(config.getQueueSize());
+
         String[] ipHost = config.getTrackerAddress().split(":");
 
         worker.requester = RSocketRequester.builder()
@@ -72,7 +74,7 @@ public class Worker {
             public void run() {
                 heartBeat();
             }
-        }, 200, 1000000);
+        }, 200, 3000);
     }
 
     /**
@@ -80,11 +82,12 @@ public class Worker {
      */
     private void register() {
         WorkerResourceDto resourceDto = new WorkerResourceDto();
-        resourceDto.setAvailableCpu(10.0f);
-        resourceDto.setAvailableRam(10.0f);
-        resourceDto.setAvailableQueueLimit(10);
+        resourceDto.setAvailableCpu(resource.getAvailableCpu());
+        resourceDto.setAvailableRAM(resource.getAvailableRAM());
+        resourceDto.setAvailableQueueLimit(resource.getAvailableQueueLimit());
 
         WorkerRegisterOptionDto registerOptionDto = new WorkerRegisterOptionDto();
+        registerOptionDto.setId(id);
         registerOptionDto.setAvailableResource(resourceDto);
 
         requester.route("api.worker.register")
@@ -98,11 +101,11 @@ public class Worker {
     /**
      * 发送心跳
      */
-    public void heartBeat() {
+    private void heartBeat() {
         WorkerResourceDto resourceDto = new WorkerResourceDto();
-        resourceDto.setAvailableCpu(10.0f);
-        resourceDto.setAvailableRam(10.0f);
-        resourceDto.setAvailableQueueLimit(10);
+        resourceDto.setAvailableCpu(resource.getAvailableCpu());
+        resourceDto.setAvailableRAM(resource.getAvailableRAM());
+        resourceDto.setAvailableQueueLimit(resource.getAvailableQueueLimit());
 
         WorkerHeartbeatOptionDto heartbeatOptionDto = new WorkerHeartbeatOptionDto();
         heartbeatOptionDto.setAvailableResource(resourceDto);
@@ -113,6 +116,11 @@ public class Worker {
                 .subscribe(response -> System.out.println(JacksonUtils.toJSONString(response)),
                         System.err::println, () -> {
                         });
+    }
+
+
+    public void submit() {
+
     }
 
 }

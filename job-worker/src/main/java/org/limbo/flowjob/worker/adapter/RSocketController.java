@@ -17,6 +17,8 @@
 package org.limbo.flowjob.worker.adapter;
 
 
+import org.limbo.flowjob.worker.domain.Worker;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
@@ -29,12 +31,15 @@ import reactor.core.publisher.Mono;
 @Controller
 public class RSocketController {
 
+    @Autowired
+    private Worker worker;
+
     /**
      * 任务下发
      * @param greet
      * @return
      */
-    @MessageMapping("api.sdk.job.submit")
+    @MessageMapping("api.tracker.job.submit")
     public Mono<String> jobSubmit(@Payload String greet) {
         System.out.println(greet);
         return Mono.just("pong~~");
@@ -45,7 +50,7 @@ public class RSocketController {
      * @param greet
      * @return
      */
-    @MessageMapping("api.sdk.job.state")
+    @MessageMapping("api.tracker.job.state")
     public Mono<String> jobState(@Payload String greet) {
         System.out.println(greet);
         return Mono.just("pong~~");
@@ -56,7 +61,7 @@ public class RSocketController {
      * @param greet
      * @return
      */
-    @MessageMapping("api.sdk.queue.resize")
+    @MessageMapping("api.tracker.queue.resize")
     public Mono<String> queueResize(@Payload String greet) {
         System.out.println(greet);
         return Mono.just("pong~~");
@@ -67,7 +72,7 @@ public class RSocketController {
      * @param greet
      * @return
      */
-    @MessageMapping("api.sdk.tracker.switch")
+    @MessageMapping("api.tracker.tracker.switch")
     public Mono<String> trackerSwitch(@Payload String greet) {
         System.out.println(greet);
         return Mono.just("pong~~");

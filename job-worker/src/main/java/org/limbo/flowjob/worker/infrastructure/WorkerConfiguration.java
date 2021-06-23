@@ -30,7 +30,7 @@ import org.springframework.messaging.rsocket.RSocketStrategies;
  * @date 2021/6/16 11:11 上午
  */
 @Configuration
-public class ClientConfiguration {
+public class WorkerConfiguration {
 
     @Autowired
     private JobProperties jobProperties;
