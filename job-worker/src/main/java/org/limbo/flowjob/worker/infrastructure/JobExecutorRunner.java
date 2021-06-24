@@ -46,7 +46,7 @@ public class JobExecutorRunner {
             public void run() {
                 try {
                     executor.run(job);
-                    // todo 发送任务成功信息
+                    // todo 发送任务成功信息 x
                 } catch (Exception e) {
                     log.error("job run error", e);
                     // todo 发送任务失败信息
