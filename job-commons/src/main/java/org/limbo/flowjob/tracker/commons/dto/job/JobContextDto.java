@@ -25,7 +25,11 @@ import lombok.Data;
 @Data
 public class JobContextDto {
 
-    private String taskId;
+    private String jobContextId;
+    /**
+     * 执行器的名称
+     */
+    private String executor;
 
 
 }

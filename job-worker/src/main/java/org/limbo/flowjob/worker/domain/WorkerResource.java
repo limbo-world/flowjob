@@ -37,7 +37,7 @@ public class WorkerResource {
 
     private Double availableCpu;
 
-    private int availableQueueLimit;
+    private int availableQueueSize;
 
     private OperatingSystemMXBean osmxb;
 
@@ -116,7 +116,11 @@ public class WorkerResource {
         }
     }
 
-    public int getAvailableQueueLimit() {
-        return availableQueueLimit;
+    public int getAvailableQueueSize() {
+        return availableQueueSize;
+    }
+
+    public void resize(int queueSize) {
+        this.queueSize = queueSize;
     }
 }

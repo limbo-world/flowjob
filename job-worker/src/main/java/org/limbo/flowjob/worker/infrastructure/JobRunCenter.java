@@ -16,17 +16,32 @@
 
 package org.limbo.flowjob.worker.infrastructure;
 
-import org.limbo.flowjob.worker.domain.Job;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * job执行器
- *
+ * job 中心
  * @author Devil
- * @date 2021/6/23 5:22 下午
+ * @date 2021/6/24 5:14 下午
  */
-public interface JobExecutor {
+public class JobRunCenter {
 
-    void run(Job job);
+    private final Map<String, JobExecutorRunner> jobs = new ConcurrentHashMap<>();
 
-    String getName();
+    public JobExecutorRunner put(String id, JobExecutorRunner runner) {
+        return jobs.putIfAbsent(id, runner);
+    }
+
+    public void remove(String id) {
+        jobs.remove(id);
+    }
+
+    public int size() {
+        return jobs.size();
+    }
+
+    public boolean hasJob(String id) {
+        return jobs.containsKey(id);
+    }
+
 }
