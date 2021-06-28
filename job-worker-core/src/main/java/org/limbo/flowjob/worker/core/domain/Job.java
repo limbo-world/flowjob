@@ -14,19 +14,21 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker.infrastructure;
-
-import org.limbo.flowjob.worker.domain.Job;
+package org.limbo.flowjob.worker.core.domain;
 
 /**
- * job执行器
- *
  * @author Devil
- * @date 2021/6/23 5:22 下午
+ * @date 2021/6/24 4:10 下午
  */
-public interface JobExecutor {
+public class Job {
 
-    void run(Job job);
+    private String id;
 
-    String getName();
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 }

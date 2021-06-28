@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker.domain;
+package org.limbo.flowjob.worker.core.domain;
 
 import com.sun.management.OperatingSystemMXBean;
 import lombok.extern.slf4j.Slf4j;

@@ -14,11 +14,10 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker.infrastructure;
+package org.limbo.flowjob.worker.core.infrastructure;
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.worker.domain.Job;
-import org.limbo.flowjob.worker.domain.Worker;
+import org.limbo.flowjob.worker.core.domain.Job;
 
 /**
  * @author Devil

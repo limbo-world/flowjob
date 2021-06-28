@@ -14,10 +14,10 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker.adapter;
+package org.limbo.flowjob.worker.start.adapter;
 
 
-import org.limbo.flowjob.worker.domain.Worker;
+import org.limbo.flowjob.worker.core.domain.Worker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;

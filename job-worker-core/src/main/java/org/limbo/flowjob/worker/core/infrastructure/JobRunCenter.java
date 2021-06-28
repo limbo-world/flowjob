@@ -14,21 +14,34 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker.domain;
+package org.limbo.flowjob.worker.core.infrastructure;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * job 中心
  * @author Devil
- * @date 2021/6/24 4:10 下午
+ * @date 2021/6/24 5:14 下午
  */
-public class Job {
+public class JobRunCenter {
 
-    private String id;
+    private final Map<String, JobExecutorRunner> jobs = new ConcurrentHashMap<>();
 
-    public String getId() {
-        return id;
+    public JobExecutorRunner put(String id, JobExecutorRunner runner) {
+        return jobs.putIfAbsent(id, runner);
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void remove(String id) {
+        jobs.remove(id);
     }
+
+    public int size() {
+        return jobs.size();
+    }
+
+    public boolean hasJob(String id) {
+        return jobs.containsKey(id);
+    }
+
 }

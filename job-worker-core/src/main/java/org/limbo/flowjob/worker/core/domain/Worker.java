@@ -14,23 +14,23 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker.domain;
+package org.limbo.flowjob.worker.core.domain;
 
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.tracker.commons.dto.Response;
 import org.limbo.flowjob.tracker.commons.dto.job.JobContextDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerResourceDto;
-import org.limbo.flowjob.worker.infrastructure.JobExecutor;
-import org.limbo.flowjob.worker.infrastructure.JobExecutorRunner;
-import org.limbo.flowjob.worker.infrastructure.JobProperties;
-import org.limbo.flowjob.worker.infrastructure.JobRunCenter;
-import org.limbo.utils.JacksonUtils;
+import org.limbo.flowjob.worker.core.infrastructure.JobExecutor;
+import org.limbo.flowjob.worker.core.infrastructure.JobExecutorRunner;
+import org.limbo.flowjob.worker.core.infrastructure.JobRunCenter;
 import org.limbo.utils.UUIDUtils;
-import org.springframework.messaging.rsocket.RSocketRequester;
-import org.springframework.messaging.rsocket.RSocketStrategies;
 
 import java.util.List;
 import java.util.Map;
@@ -46,8 +46,6 @@ public class Worker {
 
     private String id;
 
-    private RSocketRequester requester;
-
     private WorkerResource resource;
 
     private Map<String, JobExecutor> executors;
@@ -57,10 +55,10 @@ public class Worker {
     private Worker() {
     }
 
-    public static Worker create(JobProperties config, List<JobExecutor> executors, RSocketStrategies strategies) {
+    public static Worker create(String connectString, int queueSize, List<JobExecutor> executors) {
         Worker worker = new Worker();
         worker.id = UUIDUtils.randomID();
-        worker.resource = WorkerResource.create(config.getQueueSize());
+        worker.resource = WorkerResource.create(queueSize);
         worker.executors = new ConcurrentHashMap<>();
         worker.jobRunCenter = new JobRunCenter();
 
@@ -75,15 +73,54 @@ public class Worker {
             worker.executors.put(executor.getName(), executor);
         }
 
-        String[] ipHost = config.getTrackerAddress().split(":");
-
-        worker.requester = RSocketRequester.builder()
-                .setupRoute("api.worker.connect")
-                .rsocketStrategies(strategies)
-                .tcp(ipHost[0], Integer.parseInt(ipHost[1]));
+//        String[] ipHost = config.getTrackerAddress().split(":");
+//
+//        worker.requester = RSocketRequester.builder()
+//                .setupRoute("api.worker.connect")
+//                .rsocketStrategies(strategies)
+//                .tcp(ipHost[0], Integer.parseInt(ipHost[1]));
 
         worker.start();
 
+        EventLoopGroup bossGroup = new NioEventLoopGroup();
+
+        Bootstrap bs = new Bootstrap();
+
+        bs.group(bossGroup)
+                .channel(NioSocketChannel.class)
+                .option(ChannelOption.SO_KEEPALIVE, true)
+                .handler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(SocketChannel socketChannel) throws Exception {
+                        // marshalling 序列化对象的解码
+//                  socketChannel.pipeline().addLast(MarshallingCodefactory.buildDecoder());
+                        // marshalling 序列化对象的编码
+//                  socketChannel.pipeline().addLast(MarshallingCodefactory.buildEncoder());
+
+                        // 处理来自服务端的响应信息
+                        socketChannel.pipeline().addLast(new ChannelHandler() {
+                            @Override
+                            public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+
+                            }
+
+                            @Override
+                            public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+
+                            }
+
+                            @Override
+                            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+
+                            }
+                        });
+                    }
+                });
+
+        // 客户端开启
+//        ChannelFuture cf = bs.connect(ipHost[0], Integer.parseInt(ipHost[1])).sync();
+//        // 等待直到连接中断
+//        cf.channel().closeFuture().sync();
         return worker;
     }
 
@@ -115,12 +152,12 @@ public class Worker {
         registerOptionDto.setId(id);
         registerOptionDto.setAvailableResource(resourceDto);
 
-        requester.route("api.worker.register")
-                .data(registerOptionDto)
-                .retrieveMono(Response.class)
-                .subscribe(response -> System.out.println(JacksonUtils.toJSONString(response)),
-                        System.err::println, () -> {
-                        });
+//        requester.route("api.worker.register")
+//                .data(registerOptionDto)
+//                .retrieveMono(Response.class)
+//                .subscribe(response -> System.out.println(JacksonUtils.toJSONString(response)),
+//                        System.err::println, () -> {
+//                        });
     }
 
     /**
@@ -135,12 +172,12 @@ public class Worker {
         WorkerHeartbeatOptionDto heartbeatOptionDto = new WorkerHeartbeatOptionDto();
         heartbeatOptionDto.setAvailableResource(resourceDto);
 
-        requester.route("api.worker.heartbeat")
-                .data(heartbeatOptionDto)
-                .retrieveMono(Response.class)
-                .subscribe(response -> System.out.println(JacksonUtils.toJSONString(response)),
-                        System.err::println, () -> {
-                        });
+//        requester.route("api.worker.heartbeat")
+//                .data(heartbeatOptionDto)
+//                .retrieveMono(Response.class)
+//                .subscribe(response -> System.out.println(JacksonUtils.toJSONString(response)),
+//                        System.err::println, () -> {
+//                        });
     }
 
     /**

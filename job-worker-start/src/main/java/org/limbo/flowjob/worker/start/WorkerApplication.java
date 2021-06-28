@@ -14,10 +14,10 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker;
+package org.limbo.flowjob.worker.start;
 
-import org.limbo.flowjob.worker.infrastructure.WorkerConfiguration;
-import org.limbo.flowjob.worker.infrastructure.JobProperties;
+import org.limbo.flowjob.worker.start.config.JobProperties;
+import org.limbo.flowjob.worker.start.config.WorkerConfiguration;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;

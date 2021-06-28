@@ -14,26 +14,20 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker.infrastructure;
+package org.limbo.flowjob.worker.core.infrastructure;
 
-import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.List;
+import org.limbo.flowjob.worker.core.domain.Job;
 
 /**
+ * job执行器
+ *
  * @author Devil
- * @date 2021/6/16 1:45 下午
+ * @date 2021/6/23 5:22 下午
  */
-@Data
-@ConfigurationProperties(prefix = "job")
-public class JobProperties {
+public interface JobExecutor {
 
-    private String name;
+    void run(Job job);
 
-    private int queueSize;
-
-    private String trackerAddress;
-
-    private List<String> tags;
+    String getName();
 }

@@ -12,8 +12,9 @@
         <module>job-tracker-infrastructure</module>
         <module>job-tracker-core</module>
         <module>job-commons</module>
-        <module>job-worker</module>
         <module>job-tracker-dao</module>
+        <module>job-worker-core</module>
+        <module>job-worker-start</module>
     </modules>
     <packaging>pom</packaging>
 
