@@ -32,12 +32,16 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class WorkerResource {
-
+    /**
+     * 任务总数
+     */
     private int queueSize;
+    /**
+     * 剩余可用任务数
+     */
+    private int availableQueueSize;
 
     private Double availableCpu;
-
-    private int availableQueueSize;
 
     private OperatingSystemMXBean osmxb;
 
@@ -78,10 +82,8 @@ public class WorkerResource {
                 } catch (InterruptedException e) {
                     log.error("calculate available cpu error", e);
                 }
-                return availableCpu; // 可能会有并发问题
-            } else {
-                return availableCpu;
             }
+            return availableCpu; // 可能会有并发问题
         }
     }
 

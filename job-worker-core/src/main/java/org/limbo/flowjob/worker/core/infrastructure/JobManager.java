@@ -14,28 +14,34 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker.start.config;
+package org.limbo.flowjob.worker.core.infrastructure;
 
-import org.limbo.flowjob.worker.core.domain.Worker;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * job 中心
  * @author Devil
- * @date 2021/6/16 11:11 上午
+ * @date 2021/6/24 5:14 下午
  */
-@Configuration
-public class WorkerConfiguration {
+public class JobManager {
 
-    @Autowired
-    private JobProperties jobProperties;
+    private final Map<String, JobExecutorRunner> jobs = new ConcurrentHashMap<>();
 
-    @Bean
-    public Worker worker() {
-        Worker worker = new Worker(jobProperties.getTrackerAddress(), jobProperties.getQueueSize(), null);
-        worker.start();
-        return worker;
+    public JobExecutorRunner put(String id, JobExecutorRunner runner) {
+        return jobs.putIfAbsent(id, runner);
+    }
+
+    public void remove(String id) {
+        jobs.remove(id);
+    }
+
+    public int size() {
+        return jobs.size();
+    }
+
+    public boolean hasJob(String id) {
+        return jobs.containsKey(id);
     }
 
 }
