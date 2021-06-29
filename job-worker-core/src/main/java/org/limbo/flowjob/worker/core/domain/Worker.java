@@ -16,11 +16,6 @@
 
 package org.limbo.flowjob.worker.core.domain;
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.commons.dto.job.JobContextDto;
@@ -29,7 +24,7 @@ import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerResourceDto;
 import org.limbo.flowjob.worker.core.infrastructure.JobExecutor;
 import org.limbo.flowjob.worker.core.infrastructure.JobExecutorRunner;
-import org.limbo.flowjob.worker.core.infrastructure.JobRunCenter;
+import org.limbo.flowjob.worker.core.infrastructure.JobManager;
 import org.limbo.utils.UUIDUtils;
 
 import java.util.List;
@@ -43,24 +38,30 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2021/6/10 5:32 下午
  */
 public class Worker {
-
+    /**
+     * id
+     */
     private String id;
-
+    /**
+     * 工作节点资源
+     */
     private WorkerResource resource;
-
+    /**
+     * 执行器名称 - 执行器 映射关系
+     */
     private Map<String, JobExecutor> executors;
+    /**
+     * job 管理中心
+     */
+    private JobManager jobManager;
 
-    private JobRunCenter jobRunCenter;
+    private RemoteClient client;
 
-    private Worker() {
-    }
-
-    public static Worker create(String connectString, int queueSize, List<JobExecutor> executors) {
-        Worker worker = new Worker();
-        worker.id = UUIDUtils.randomID();
-        worker.resource = WorkerResource.create(queueSize);
-        worker.executors = new ConcurrentHashMap<>();
-        worker.jobRunCenter = new JobRunCenter();
+    public Worker(int queueSize, List<JobExecutor> executors) {
+        this.id = UUIDUtils.randomID();
+        this.resource = WorkerResource.create(queueSize);
+        this.executors = new ConcurrentHashMap<>();
+        this.jobManager = new JobManager();
 
         if (CollectionUtils.isEmpty(executors)) {
             throw new IllegalArgumentException("empty executors");
@@ -70,64 +71,22 @@ public class Worker {
             if (StringUtils.isBlank(executor.getName())) {
                 throw new IllegalArgumentException("has blank executor name");
             }
-            worker.executors.put(executor.getName(), executor);
+            this.executors.put(executor.getName(), executor);
         }
-
-//        String[] ipHost = config.getTrackerAddress().split(":");
-//
-//        worker.requester = RSocketRequester.builder()
-//                .setupRoute("api.worker.connect")
-//                .rsocketStrategies(strategies)
-//                .tcp(ipHost[0], Integer.parseInt(ipHost[1]));
-
-        worker.start();
-
-        EventLoopGroup bossGroup = new NioEventLoopGroup();
-
-        Bootstrap bs = new Bootstrap();
-
-        bs.group(bossGroup)
-                .channel(NioSocketChannel.class)
-                .option(ChannelOption.SO_KEEPALIVE, true)
-                .handler(new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    protected void initChannel(SocketChannel socketChannel) throws Exception {
-                        // marshalling 序列化对象的解码
-//                  socketChannel.pipeline().addLast(MarshallingCodefactory.buildDecoder());
-                        // marshalling 序列化对象的编码
-//                  socketChannel.pipeline().addLast(MarshallingCodefactory.buildEncoder());
-
-                        // 处理来自服务端的响应信息
-                        socketChannel.pipeline().addLast(new ChannelHandler() {
-                            @Override
-                            public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-
-                            }
-
-                            @Override
-                            public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-
-                            }
-
-                            @Override
-                            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-
-                            }
-                        });
-                    }
-                });
-
-        // 客户端开启
-//        ChannelFuture cf = bs.connect(ipHost[0], Integer.parseInt(ipHost[1])).sync();
-//        // 等待直到连接中断
-//        cf.channel().closeFuture().sync();
-        return worker;
     }
 
     /**
      * 启动
      */
-    public void start() {
+    public void start(String host, int port) throws Exception {
+        synchronized (client) {
+            if (client != null) {
+                return;
+            }
+        }
+        // 连接服务端
+        this.client = new RemoteClient(host, port, this);
+        this.client.start();
         // 注册
         register();
         // 心跳
@@ -152,12 +111,7 @@ public class Worker {
         registerOptionDto.setId(id);
         registerOptionDto.setAvailableResource(resourceDto);
 
-//        requester.route("api.worker.register")
-//                .data(registerOptionDto)
-//                .retrieveMono(Response.class)
-//                .subscribe(response -> System.out.println(JacksonUtils.toJSONString(response)),
-//                        System.err::println, () -> {
-//                        });
+        this.client.getChannel().writeAndFlush(registerOptionDto);
     }
 
     /**
@@ -172,12 +126,7 @@ public class Worker {
         WorkerHeartbeatOptionDto heartbeatOptionDto = new WorkerHeartbeatOptionDto();
         heartbeatOptionDto.setAvailableResource(resourceDto);
 
-//        requester.route("api.worker.heartbeat")
-//                .data(heartbeatOptionDto)
-//                .retrieveMono(Response.class)
-//                .subscribe(response -> System.out.println(JacksonUtils.toJSONString(response)),
-//                        System.err::println, () -> {
-//                        });
+        this.client.getChannel().writeAndFlush(heartbeatOptionDto);
     }
 
     /**
@@ -188,7 +137,7 @@ public class Worker {
             // todo 给tracker返回失败
         }
 
-        if (jobRunCenter.size() >= resource.getAvailableQueueSize()) {
+        if (jobManager.size() >= resource.getAvailableQueueSize()) {
             // todo 是否超过cpu/ram/queue 失败
         }
 
@@ -198,7 +147,7 @@ public class Worker {
 
         JobExecutor jobExecutor = executors.get(jobContext.getExecutor());
 
-        JobExecutorRunner runner = new JobExecutorRunner(jobRunCenter, jobExecutor);
+        JobExecutorRunner runner = new JobExecutorRunner(jobManager, jobExecutor);
 
         runner.run(job);
     }
@@ -207,7 +156,7 @@ public class Worker {
      * 查询任务状态
      */
     public void jobState(String jobId) {
-        if (jobRunCenter.hasJob(jobId)) {
+        if (jobManager.hasJob(jobId)) {
 
         }
     }
@@ -216,8 +165,5 @@ public class Worker {
         resource.resize(queueSize);
     }
 
-    public void switchLeader() {
-
-    }
 
 }

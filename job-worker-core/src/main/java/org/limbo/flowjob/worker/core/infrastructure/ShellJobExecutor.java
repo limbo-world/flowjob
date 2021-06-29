@@ -14,28 +14,25 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker.start.config;
+package org.limbo.flowjob.worker.core.infrastructure;
 
-import org.limbo.flowjob.worker.core.domain.Worker;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.limbo.flowjob.worker.core.domain.Job;
 
 /**
+ * shell 脚本执行器
+ *
  * @author Devil
- * @date 2021/6/16 11:11 上午
+ * @date 2021/6/29 4:51 下午
  */
-@Configuration
-public class WorkerConfiguration {
+public class ShellJobExecutor implements JobExecutor {
 
-    @Autowired
-    private JobProperties jobProperties;
-
-    @Bean
-    public Worker worker() {
-        Worker worker = new Worker(jobProperties.getTrackerAddress(), jobProperties.getQueueSize(), null);
-        worker.start();
-        return worker;
+    @Override
+    public void run(Job job) {
+        // todo
     }
 
+    @Override
+    public String getName() {
+        return "shell";
+    }
 }

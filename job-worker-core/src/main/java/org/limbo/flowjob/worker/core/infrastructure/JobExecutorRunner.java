@@ -26,17 +26,17 @@ import org.limbo.flowjob.worker.core.domain.Job;
 @Slf4j
 public class JobExecutorRunner {
 
-    private final JobRunCenter jobRunCenter;
+    private final JobManager jobManager;
 
     private final JobExecutor executor;
 
-    public JobExecutorRunner(JobRunCenter jobRunCenter, JobExecutor executor) {
-        this.jobRunCenter = jobRunCenter;
+    public JobExecutorRunner(JobManager jobManager, JobExecutor executor) {
+        this.jobManager = jobManager;
         this.executor = executor;
     }
 
     public void run(Job job) {
-        if (jobRunCenter.put(job.getId(), this) != null) {
+        if (jobManager.put(job.getId(), this) != null) {
             // todo 有个相同id的任务在执行
         }
         // 新建线程 执行当前任务
@@ -51,7 +51,7 @@ public class JobExecutorRunner {
                     // todo 发送任务失败信息
                 } finally {
                     // 最终都要移除任务
-                    jobRunCenter.remove(job.getId());
+                    jobManager.remove(job.getId());
                 }
             }
         }).start();

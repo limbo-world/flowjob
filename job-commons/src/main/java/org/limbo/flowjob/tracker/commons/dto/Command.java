@@ -14,34 +14,36 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker.core.infrastructure;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+package org.limbo.flowjob.tracker.commons.dto;
 
 /**
- * job 中心
  * @author Devil
- * @date 2021/6/24 5:14 下午
+ * @date 2021/6/29 4:02 下午
  */
-public class JobRunCenter {
+public class Command {
+    /**
+     * 命令名，用于定位哪个处理器处理请求，类似url
+     */
+    private String command;
 
-    private final Map<String, JobExecutorRunner> jobs = new ConcurrentHashMap<>();
+    /**
+     * 命令体，以字符串形式
+     */
+    private String body;
 
-    public JobExecutorRunner put(String id, JobExecutorRunner runner) {
-        return jobs.putIfAbsent(id, runner);
+    public String getCommand() {
+        return command;
     }
 
-    public void remove(String id) {
-        jobs.remove(id);
+    public void setCommand(String command) {
+        this.command = command;
     }
 
-    public int size() {
-        return jobs.size();
+    public String getBody() {
+        return body;
     }
 
-    public boolean hasJob(String id) {
-        return jobs.containsKey(id);
+    public void setBody(String body) {
+        this.body = body;
     }
-
 }
