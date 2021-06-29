@@ -19,13 +19,6 @@ public class RsSdkPingController {
     @Autowired
     private JobTracker tracker;
 
-    @ConnectMapping("api.sdk.register")
-    public Mono<Void> connect() {
-        System.out.println("Connected");
-        return Mono.empty();
-    }
-
-
     @MessageMapping("api.sdk.ping")
     public Mono<String> ping(@Payload String greet) {
         System.out.println(greet);

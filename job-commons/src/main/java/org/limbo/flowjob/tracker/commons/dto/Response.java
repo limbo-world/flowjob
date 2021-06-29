@@ -76,6 +76,15 @@ public class Response<T> {
         }
 
         /**
+         * 设置响应状态码{@link HttpStatus#SC_INTERNAL_SERVER_ERROR}
+         * @return 链式调用
+         */
+        public Builder<T> error() {
+            this.code = HttpStatus.SC_INTERNAL_SERVER_ERROR;
+            return this;
+        }
+
+        /**
          * 设置响应中的提示信息
          * @param message 提示信息
          * @return 链式调用

@@ -24,12 +24,6 @@
 
     <dependencies>
 
-        <!-- Spring框架注解依赖 -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-        </dependency>
-
         <!-- MyBatisPlus 依赖 -->
         <dependency>
             <groupId>com.baomidou</groupId>
