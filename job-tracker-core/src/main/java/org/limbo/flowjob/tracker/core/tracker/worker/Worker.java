@@ -44,7 +44,22 @@ public abstract class Worker {
     /**
      * worker节点ID
      */
-    private WorkerId workerId;
+    private String workerId;
+
+    /**
+     * worker服务使用的通信协议，默认为Http协议。
+     */
+    private WorkerProtocol protocol;
+
+    /**
+     * worker服务的通信IP
+     */
+    private String ip;
+
+    /**
+     * worker服务的通信端口
+     */
+    private Integer port;
 
     /**
      * worker节点状态

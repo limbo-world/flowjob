@@ -13,13 +13,11 @@ import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Brozen
  * @since 2021-06-01
  */
-@Configuration
 @ComponentScan({
         "org.limbo.flowjob.tracker.infrastructure.job",
         "org.limbo.flowjob.tracker.infrastructure.worker",

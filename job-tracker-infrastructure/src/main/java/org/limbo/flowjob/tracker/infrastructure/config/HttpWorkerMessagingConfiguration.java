@@ -2,7 +2,6 @@ package org.limbo.flowjob.tracker.infrastructure.config;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import reactor.netty.http.client.HttpClient;
 
 /**
@@ -11,11 +10,12 @@ import reactor.netty.http.client.HttpClient;
  * @author Brozen
  * @since 2021-06-03
  */
-@Configuration
 public class HttpWorkerMessagingConfiguration {
 
 
-
+    /**
+     * Http通信使用的响应式HttpClient，基于reactor-netty
+     */
     @Bean
     @ConditionalOnMissingBean(HttpClient.class)
     public HttpClient httpClient() {
