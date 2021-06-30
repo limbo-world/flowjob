@@ -19,16 +19,15 @@ package org.limbo.flowjob.worker.core.domain;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.tracker.commons.dto.Command;
-import org.limbo.flowjob.tracker.commons.dto.job.JobContextDto;
-import org.limbo.utils.JacksonUtils;
+import org.limbo.flowjob.tracker.commons.dto.tcp.JobSubmitRequest;
+import org.limbo.flowjob.tracker.commons.dto.tcp.MetricResponse;
 
 /**
  * @author Devil
  * @date 2021/6/29 4:48 下午
  */
 @Slf4j
-public class ClientReceiveHandler extends SimpleChannelInboundHandler<Command> {
+public class ClientReceiveHandler extends SimpleChannelInboundHandler<Object> {
 
     private Worker worker;
 
@@ -37,21 +36,16 @@ public class ClientReceiveHandler extends SimpleChannelInboundHandler<Command> {
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Command cmd) throws Exception {
-        log.info(JacksonUtils.toJSONString(cmd));
-        switch (cmd.getCommand()) {
-            case "submit":
-                worker.submit(JacksonUtils.parseObject(cmd.getBody(), JobContextDto.class));
-                break;
-            case "state":
-                worker.jobState(cmd.getBody());
-                break;
-            case "resize":
-                worker.resize(Integer.parseInt(cmd.getBody()));
-                break;
-            default:
-                break;
+    protected void channelRead0(ChannelHandlerContext ctx, Object obj) throws Exception {
+        log.info(obj.toString());
+
+        if (obj instanceof MetricResponse) {
+            worker.setTrackers(((MetricResponse) obj).getTrackers());
+        } else if (obj instanceof JobSubmitRequest) {
+            JobSubmitRequest request = (JobSubmitRequest) obj;
+            worker.submit(request.getId(), request.getExecutor());
         }
+
     }
 
 }

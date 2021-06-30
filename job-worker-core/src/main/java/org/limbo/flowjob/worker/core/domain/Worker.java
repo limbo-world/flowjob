@@ -16,9 +16,12 @@
 
 package org.limbo.flowjob.worker.core.domain;
 
+import io.netty.channel.Channel;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.commons.dto.job.JobContextDto;
+import org.limbo.flowjob.tracker.commons.dto.tcp.JobSubmitResponse;
+import org.limbo.flowjob.tracker.commons.dto.tracker.TrackerNode;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerResourceDto;
@@ -54,7 +57,13 @@ public class Worker {
      * job 管理中心
      */
     private JobManager jobManager;
-
+    /**
+     * 所有的tracker
+     */
+    private List<TrackerNode> trackers;
+    /**
+     * 当前连接的tracker
+     */
     private RemoteClient client;
 
     public Worker(int queueSize, List<JobExecutor> executors) {
@@ -132,24 +141,32 @@ public class Worker {
     /**
      * 提交任务
      */
-    public void submit(JobContextDto jobContext) {
-        if (!executors.containsKey(jobContext.getExecutor())) {
-            // todo 给tracker返回失败
+    public void submit(String id, String executorName) {
+        if (!executors.containsKey(executorName)) {
+            JobSubmitResponse<Void> response = new JobSubmitResponse<>(400,
+                    "worker don't have this executor name's " + executorName, null);
+            client.getChannel().writeAndFlush(response);
+            return;
         }
 
         if (jobManager.size() >= resource.getAvailableQueueSize()) {
             // todo 是否超过cpu/ram/queue 失败
+            JobSubmitResponse<Void> response = new JobSubmitResponse<>(400, "", null);
+            client.getChannel().writeAndFlush(response);
+            return;
         }
 
 
         Job job = new Job();
-        job.setId(jobContext.getJobContextId());
+        job.setId(id);
 
-        JobExecutor jobExecutor = executors.get(jobContext.getExecutor());
+        JobExecutor jobExecutor = executors.get(executorName);
 
         JobExecutorRunner runner = new JobExecutorRunner(jobManager, jobExecutor);
 
         runner.run(job);
+        JobSubmitResponse<Void> response = new JobSubmitResponse<>(200, "success", null);
+        client.getChannel().writeAndFlush(response);
     }
 
     /**
@@ -165,5 +182,8 @@ public class Worker {
         resource.resize(queueSize);
     }
 
+    public void setTrackers(List<TrackerNode> trackers) {
+        this.trackers = trackers;
+    }
 
 }
