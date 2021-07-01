@@ -16,12 +16,8 @@
 
 package org.limbo.flowjob.worker.core.domain;
 
-import io.netty.channel.Channel;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.tracker.commons.dto.job.JobContextDto;
-import org.limbo.flowjob.tracker.commons.dto.tcp.JobSubmitResponse;
-import org.limbo.flowjob.tracker.commons.dto.tracker.TrackerNode;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerResourceDto;
@@ -29,11 +25,10 @@ import org.limbo.flowjob.worker.core.infrastructure.JobExecutor;
 import org.limbo.flowjob.worker.core.infrastructure.JobExecutorRunner;
 import org.limbo.flowjob.worker.core.infrastructure.JobManager;
 import org.limbo.utils.UUIDUtils;
+import org.limbo.utils.verifies.Verifies;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -57,14 +52,6 @@ public class Worker {
      * job 管理中心
      */
     private JobManager jobManager;
-    /**
-     * 所有的tracker
-     */
-    private List<TrackerNode> trackers;
-    /**
-     * 当前连接的tracker
-     */
-    private RemoteClient client;
 
     public Worker(int queueSize, List<JobExecutor> executors) {
         this.id = UUIDUtils.randomID();
@@ -85,32 +72,9 @@ public class Worker {
     }
 
     /**
-     * 启动
-     */
-    public void start(String host, int port) throws Exception {
-        synchronized (client) {
-            if (client != null) {
-                return;
-            }
-        }
-        // 连接服务端
-        this.client = new RemoteClient(host, port, this);
-        this.client.start();
-        // 注册
-        register();
-        // 心跳
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                heartBeat();
-            }
-        }, 200, 3000);
-    }
-
-    /**
      * 向tracker注册
      */
-    private void register() {
+    public WorkerRegisterOptionDto register() {
         WorkerResourceDto resourceDto = new WorkerResourceDto();
         resourceDto.setAvailableCpu(resource.getAvailableCpu());
         resourceDto.setAvailableRAM(resource.getAvailableRAM());
@@ -119,14 +83,13 @@ public class Worker {
         WorkerRegisterOptionDto registerOptionDto = new WorkerRegisterOptionDto();
         registerOptionDto.setId(id);
         registerOptionDto.setAvailableResource(resourceDto);
-
-        this.client.getChannel().writeAndFlush(registerOptionDto);
+        return registerOptionDto;
     }
 
     /**
      * 发送心跳
      */
-    private void heartBeat() {
+    public WorkerHeartbeatOptionDto heartbeat() {
         WorkerResourceDto resourceDto = new WorkerResourceDto();
         resourceDto.setAvailableCpu(resource.getAvailableCpu());
         resourceDto.setAvailableRAM(resource.getAvailableRAM());
@@ -134,28 +97,16 @@ public class Worker {
 
         WorkerHeartbeatOptionDto heartbeatOptionDto = new WorkerHeartbeatOptionDto();
         heartbeatOptionDto.setAvailableResource(resourceDto);
-
-        this.client.getChannel().writeAndFlush(heartbeatOptionDto);
+        return heartbeatOptionDto;
     }
 
     /**
      * 提交任务
      */
-    public void submit(String id, String executorName) {
-        if (!executors.containsKey(executorName)) {
-            JobSubmitResponse<Void> response = new JobSubmitResponse<>(400,
-                    "worker don't have this executor name's " + executorName, null);
-            client.getChannel().writeAndFlush(response);
-            return;
-        }
-
-        if (jobManager.size() >= resource.getAvailableQueueSize()) {
-            // todo 是否超过cpu/ram/queue 失败
-            JobSubmitResponse<Void> response = new JobSubmitResponse<>(400, "", null);
-            client.getChannel().writeAndFlush(response);
-            return;
-        }
-
+    public void receive(String id, String executorName) {
+        Verifies.verify(executors.containsKey(executorName), "worker don't have this executor name's " + executorName);
+        Verifies.verify(jobManager.size() < resource.getAvailableQueueSize(), "worker queue is full");
+        // todo 是否超过cpu/ram/queue 失败
 
         Job job = new Job();
         job.setId(id);
@@ -165,8 +116,6 @@ public class Worker {
         JobExecutorRunner runner = new JobExecutorRunner(jobManager, jobExecutor);
 
         runner.run(job);
-        JobSubmitResponse<Void> response = new JobSubmitResponse<>(200, "success", null);
-        client.getChannel().writeAndFlush(response);
     }
 
     /**
@@ -178,12 +127,11 @@ public class Worker {
         }
     }
 
+    /**
+     * 扩缩容队列
+     */
     public void resize(int queueSize) {
         resource.resize(queueSize);
-    }
-
-    public void setTrackers(List<TrackerNode> trackers) {
-        this.trackers = trackers;
     }
 
 }

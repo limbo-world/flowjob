@@ -14,30 +14,27 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker.start.config;
+package org.limbo.flowjob.worker.start.application;
 
-import org.limbo.flowjob.worker.core.domain.AbstractRemoteClient;
+import org.limbo.flowjob.tracker.commons.dto.job.JobContextDto;
 import org.limbo.flowjob.worker.core.domain.Worker;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Devil
- * @date 2021/6/16 11:11 上午
+ * @date 2021/7/1 11:31 上午
  */
-@Configuration
-public class WorkerConfiguration {
+@Service
+public class WorkerService {
 
-    @Autowired
-    private JobProperties jobProperties;
+    private final Worker worker;
 
-    @Bean
-    public Worker worker() {
-        Worker worker = new Worker(jobProperties.getQueueSize(), null);
+    public WorkerService(Worker worker) {
+        this.worker = worker;
+    }
 
-        AbstractRemoteClient client = new HttpRemoteClient(worker);
-        return worker;
+    public void receive(JobContextDto dto) {
+        worker.receive(dto.getJobContextId(), dto.getExecutor());
     }
 
 }

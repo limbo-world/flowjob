@@ -36,10 +36,10 @@
             <version>${parent.version}</version>
         </dependency>
 
-        <!-- Starter: RSocket -->
+        <!-- Starter: WebFlux -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-rsocket</artifactId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework.boot</groupId>
@@ -48,15 +48,13 @@
             </exclusions>
         </dependency>
 
-        <!-- RSocket 协议支持 -->
+        <!-- http client -->
         <dependency>
-            <groupId>io.rsocket</groupId>
-            <artifactId>rsocket-core</artifactId>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>3.14.9</version>
         </dependency>
-        <dependency>
-            <groupId>io.rsocket</groupId>
-            <artifactId>rsocket-transport-netty</artifactId>
-        </dependency>
+
     </dependencies>
 
 </project>

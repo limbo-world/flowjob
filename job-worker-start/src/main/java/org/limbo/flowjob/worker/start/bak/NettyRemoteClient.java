@@ -14,13 +14,14 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker.core.domain;
+package org.limbo.flowjob.worker.start.bak;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import org.limbo.flowjob.worker.core.domain.Worker;
 
 /**
  * 与服务端的连接
@@ -28,7 +29,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
  * @author Devil
  * @date 2021/6/29 3:33 下午
  */
-public class RemoteClient {
+public class NettyRemoteClient {
 
     private final String host;
     private final int port;
@@ -41,7 +42,7 @@ public class RemoteClient {
 
     private Worker worker;
 
-    public RemoteClient(String host, int port, Worker worker) {
+    public NettyRemoteClient(String host, int port, Worker worker) {
         this.host = host;
         this.port = port;
         this.worker = worker;

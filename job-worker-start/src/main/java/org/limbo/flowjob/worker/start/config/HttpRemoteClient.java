@@ -16,28 +16,36 @@
 
 package org.limbo.flowjob.worker.start.config;
 
+import okhttp3.OkHttpClient;
+import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
+import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
 import org.limbo.flowjob.worker.core.domain.AbstractRemoteClient;
 import org.limbo.flowjob.worker.core.domain.Worker;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Devil
- * @date 2021/6/16 11:11 上午
+ * @date 2021/7/1 11:01 上午
  */
-@Configuration
-public class WorkerConfiguration {
+public class HttpRemoteClient extends AbstractRemoteClient {
 
-    @Autowired
-    private JobProperties jobProperties;
+    private static OkHttpClient client;
 
-    @Bean
-    public Worker worker() {
-        Worker worker = new Worker(jobProperties.getQueueSize(), null);
-
-        AbstractRemoteClient client = new HttpRemoteClient(worker);
-        return worker;
+    public HttpRemoteClient(Worker worker) {
+        super(worker);
     }
 
+    @Override
+    public void clientStart(String port, int host) {
+        client = (new OkHttpClient.Builder()).build();
+    }
+
+    @Override
+    public void heartbeat(WorkerHeartbeatOptionDto dto) {
+
+    }
+
+    @Override
+    public void register(WorkerRegisterOptionDto dto) {
+
+    }
 }

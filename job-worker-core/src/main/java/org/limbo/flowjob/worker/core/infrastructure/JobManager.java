@@ -36,6 +36,9 @@ public class JobManager {
         jobs.remove(id);
     }
 
+    /**
+     * 运行中的任务数
+     */
     public int size() {
         return jobs.size();
     }

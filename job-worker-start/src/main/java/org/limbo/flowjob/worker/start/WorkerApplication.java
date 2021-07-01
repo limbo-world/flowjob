@@ -37,7 +37,7 @@ public class WorkerApplication {
 
     public static void main(String[] args) {
         new SpringApplicationBuilder()
-                .web(WebApplicationType.NONE)
+                .web(WebApplicationType.REACTIVE)
                 .sources(WorkerApplication.class)
                 .build()
                 .run(args);

@@ -1,8 +1,8 @@
+server:
+  port: 8082
 spring:
-  # RSocket服务器
-  rsocket:
-    server:
-      port: 8083
+  application:
+    name: job-worker
 
 job:
   name: abc

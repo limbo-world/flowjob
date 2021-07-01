@@ -14,13 +14,14 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker.core.domain;
+package org.limbo.flowjob.worker.start.bak;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.tracker.commons.dto.tcp.JobSubmitRequest;
 import org.limbo.flowjob.tracker.commons.dto.tcp.MetricResponse;
+import org.limbo.flowjob.worker.core.domain.Worker;
 
 /**
  * @author Devil
@@ -40,10 +41,10 @@ public class ClientReceiveHandler extends SimpleChannelInboundHandler<Object> {
         log.info(obj.toString());
 
         if (obj instanceof MetricResponse) {
-            worker.setTrackers(((MetricResponse) obj).getTrackers());
+//            worker.setTrackers(((MetricResponse) obj).getTrackers());
         } else if (obj instanceof JobSubmitRequest) {
             JobSubmitRequest request = (JobSubmitRequest) obj;
-            worker.submit(request.getId(), request.getExecutor());
+            worker.receive(request.getId(), request.getExecutor());
         }
 
     }
