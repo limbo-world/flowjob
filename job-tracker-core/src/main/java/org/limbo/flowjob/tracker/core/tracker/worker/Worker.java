@@ -99,6 +99,7 @@ public abstract class Worker {
         this.statisticsRepository = statisticsRepository;
     }
 
+
     /**
      * 更新worker
      */
@@ -106,12 +107,23 @@ public abstract class Worker {
         workerRepository.updateWorker(this);
     }
 
+
     /**
      * 获取本worker节点最近一次上报的指标信息
      * @return worker节点指标信息
      */
     public WorkerMetric getMetric() {
-        return metricRepository.getMetric(getWorkerId().toString());
+        return metricRepository.getMetric(getWorkerId());
+    }
+
+
+    /**
+     * 更新worker节点指标信息
+     * @param metric worker节点指标
+     */
+    public void updateMetric(WorkerMetric metric) {
+        metric.setWorkerId(getWorkerId());
+        metricRepository.updateMetric(metric);
     }
 
     /**
@@ -119,7 +131,7 @@ public abstract class Worker {
      * @return 此worker对应的统计记录
      */
     public WorkerStatistics getStatistics() {
-        return statisticsRepository.getWorkerStatistics(getWorkerId().toString());
+        return statisticsRepository.getWorkerStatistics(getWorkerId());
     }
 
     /**

@@ -1,4 +1,4 @@
-package org.limbo.flowjob.tracker.admin.adapter.worker.http.controller;
+package org.limbo.flowjob.tracker.admin.adapter.worker.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono;
  */
 @Tag(name = "Ping测试控制器")
 @RestController
-@RequestMapping("/api/sdk/ping")
+@RequestMapping("/api/worker/ping")
 public class HttpSdkPingController {
 
     @Autowired

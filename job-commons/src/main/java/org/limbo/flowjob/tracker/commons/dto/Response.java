@@ -76,6 +76,16 @@ public class Response<T> {
         }
 
         /**
+         * 设置响应状态码{@link HttpStatus#SC_OK}，并设置响应data
+         * @param data 响应的数据
+         * @return 链式调用
+         */
+        public Builder<T> ok(T data) {
+            this.code = HttpStatus.SC_OK;
+            return this;
+        }
+
+        /**
          * 设置响应状态码{@link HttpStatus#SC_INTERNAL_SERVER_ERROR}
          * @return 链式调用
          */

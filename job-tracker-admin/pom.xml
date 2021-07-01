@@ -54,18 +54,6 @@
             </exclusions>
         </dependency>
 
-        <!-- Starter: RSocket -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-rsocket</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
         <!-- MySQL驱动 -->
         <dependency>
             <groupId>mysql</groupId>
