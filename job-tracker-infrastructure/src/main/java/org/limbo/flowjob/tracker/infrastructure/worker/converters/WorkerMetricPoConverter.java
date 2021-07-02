@@ -35,6 +35,7 @@ public class WorkerMetricPoConverter extends Converter<WorkerMetric, WorkerMetri
         WorkerAvailableResource availableResource = vo.getAvailableResource();
         po.setAvailableCpu(availableResource.getAvailableCpu());
         po.setAvailableRam(availableResource.getAvailableRam());
+        po.setAvailableQueueLimit(availableResource.getAvailableQueueLimit());
 
         // 执行中的任务
         po.setExecutingJobs(JacksonUtils.toJSONString(vo.getExecutingJobs()));
@@ -56,7 +57,7 @@ public class WorkerMetricPoConverter extends Converter<WorkerMetric, WorkerMetri
         WorkerMetric metric = new WorkerMetric();
         metric.setWorkerId(po.getWorkerId());
         metric.setAvailableResource(new WorkerAvailableResource(
-                po.getAvailableCpu(), po.getAvailableRam()
+                po.getAvailableCpu(), po.getAvailableRam(), po.getAvailableQueueLimit()
         ));
         metric.setExecutingJobs(JacksonUtils.parseObject(po.getExecutingJobs(), new TypeReference<List<JobDescription>>() {
         }));

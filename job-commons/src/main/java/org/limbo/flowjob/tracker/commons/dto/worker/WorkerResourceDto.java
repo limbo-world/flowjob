@@ -33,7 +33,7 @@ public class WorkerResourceDto {
      * 可用的CPU核心数。
      */
     @Schema(description = "可用的CPU核心数。")
-    private double availableCpu;
+    private float availableCpu;
 
     /**
      * 可用的内存空间，单位GB。

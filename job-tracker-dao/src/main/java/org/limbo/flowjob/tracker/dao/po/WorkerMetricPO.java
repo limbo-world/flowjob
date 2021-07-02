@@ -37,6 +37,11 @@ public class WorkerMetricPO implements Serializable {
      */
     private Float availableRam;
 
+    /**
+     * 任务队列剩余可排队数
+     */
+    private Integer availableQueueLimit;
+
     private LocalDateTime updatedAt;
 
 }

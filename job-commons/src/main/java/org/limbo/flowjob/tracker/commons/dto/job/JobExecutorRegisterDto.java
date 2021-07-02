@@ -26,6 +26,7 @@ import lombok.Data;
  */
 @Data
 public class JobExecutorRegisterDto {
+
     /**
      * 名称唯一
      */

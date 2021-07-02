@@ -7,11 +7,6 @@ jasypt:
     password: 7777777
 
 spring:
-  # RSocket服务器
-  rsocket:
-    server:
-      port: 8082
-
   # DB
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
