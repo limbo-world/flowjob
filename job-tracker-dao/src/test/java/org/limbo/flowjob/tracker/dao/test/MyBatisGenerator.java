@@ -76,6 +76,6 @@ public class MyBatisGenerator {
 
 
     public static void main(String[] args) {
-        new MyBatisGenerator("worker_statistics").generate();
+        new MyBatisGenerator("worker_executor").generate();
     }
 }

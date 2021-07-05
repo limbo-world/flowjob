@@ -18,17 +18,18 @@ package org.limbo.flowjob.tracker.dao.po;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
-
-import java.io.Serializable;
-import java.time.LocalDateTime;
+import lombok.EqualsAndHashCode;
 
 /**
  * @author Brozen
  * @since 2021-05-19
  */
 @Data
-public class JobExecuteRecordPO implements Serializable {
+@EqualsAndHashCode(callSuper = true)
+@TableName("job_execute_record")
+public class JobExecuteRecordPO extends PO {
 
     private static final long serialVersionUID = -4643515996850585074L;
 
@@ -62,9 +63,5 @@ public class JobExecuteRecordPO implements Serializable {
      * 此次执行的参数
      */
     private String attributes;
-
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
 
 }

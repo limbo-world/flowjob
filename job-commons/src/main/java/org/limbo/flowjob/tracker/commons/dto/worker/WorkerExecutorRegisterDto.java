@@ -14,18 +14,19 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.commons.dto.job;
+package org.limbo.flowjob.tracker.commons.dto.worker;
 
 import lombok.Data;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobExecuteType;
 
 /**
- * job执行器数据注册
+ * worker支持的执行器
  *
  * @author Devil
  * @date 2021/6/23 5:14 下午
  */
 @Data
-public class JobExecutorRegisterDto {
+public class WorkerExecutorRegisterDto {
 
     /**
      * 名称唯一
@@ -33,5 +34,7 @@ public class JobExecutorRegisterDto {
     private String name;
 
     private String description;
+
+    private JobExecuteType executeType;
 
 }

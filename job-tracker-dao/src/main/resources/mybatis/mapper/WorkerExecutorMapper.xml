@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.limbo.flowjob.tracker.dao.mybatis.WorkerExecutorMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="WorkerExecutorPO" type="org.limbo.flowjob.tracker.dao.po.WorkerExecutorPO">
+        <id column="worker_id" property="workerId" />
+        <result column="executor_name" property="executorName" />
+        <result column="executor_desc" property="executorDesc" />
+        <result column="execute_type" property="executeType" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <insert id="batchInsert">
+        INSERT INTO worker_executor(
+            worker_id, executor_name, executor_desc, execute_type
+        ) VALUES
+        <foreach collection="executors" item="exe" separator=",">
+            ( #{exe.workerId}, #{exe.executorName}, #{exe.executorDesc}, #{exe.executeType} )
+        </foreach>
+    </insert>
+
+</mapper>

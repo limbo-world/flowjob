@@ -12,9 +12,9 @@
     </resultMap>
 
     <insert id="insertIgnore">
-        insert ignore into worker_statistics (
+        INSERT IGNORE INTO worker_statistics (
             worker_id, job_dispatch_count, latest_dispatch_time
-        ) values (
+        ) VALUES (
             #{workerId}, #{jobDispatchCount}, #{latestDispatchTime}
         )
     </insert>

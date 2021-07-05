@@ -2,9 +2,10 @@ package org.limbo.flowjob.tracker.dao.po;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -12,7 +13,9 @@ import java.time.LocalDateTime;
  * @since 2021-06-02
  */
 @Data
-public class WorkerStatisticsPO implements Serializable {
+@EqualsAndHashCode(callSuper = true)
+@TableName("worker_statistics")
+public class WorkerStatisticsPO extends PO {
 
     private static final long serialVersionUID = 4463926711851672545L;
 
@@ -31,9 +34,5 @@ public class WorkerStatisticsPO implements Serializable {
      * 最后一次向此worker下发作业成功的时间
      */
     private LocalDateTime latestDispatchTime;
-
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
 
 }

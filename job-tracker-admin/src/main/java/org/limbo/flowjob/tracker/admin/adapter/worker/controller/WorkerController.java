@@ -7,6 +7,7 @@ import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +19,7 @@ import reactor.core.publisher.Mono;
  * @since 2021-06-10
  */
 @Tag(name = "worker相关接口")
+@Validated
 @RestController
 @RequestMapping("/api/sdk/worker")
 public class WorkerController {

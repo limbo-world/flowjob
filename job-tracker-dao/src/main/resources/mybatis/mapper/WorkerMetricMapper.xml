@@ -12,9 +12,9 @@
     </resultMap>
 
     <insert id="insertIgnore">
-        insert ignore into worker_metric (
+        INSERT IGNORE INTO worker_metric (
             worker_id, executing_jobs, available_cpu, available_ram, updated_at
-        ) values (
+        ) VALUES (
             #{workerId}, #{executingJobs}, #{availableCpu}, #{availableRam}, #{updatedAt}
         )
     </insert>

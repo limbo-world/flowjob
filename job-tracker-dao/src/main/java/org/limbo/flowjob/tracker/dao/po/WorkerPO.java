@@ -2,17 +2,18 @@ package org.limbo.flowjob.tracker.dao.po;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
-
-import java.io.Serializable;
-import java.time.LocalDateTime;
+import lombok.EqualsAndHashCode;
 
 /**
  * @author Brozen
  * @since 2021-06-02
  */
 @Data
-public class WorkerPO implements Serializable {
+@EqualsAndHashCode(callSuper = true)
+@TableName("worker")
+public class WorkerPO extends PO {
 
     private static final long serialVersionUID = -3237766932023820195L;
 
@@ -48,9 +49,5 @@ public class WorkerPO implements Serializable {
      * 节点是否被删除
      */
     private Boolean deleted;
-
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
 
 }

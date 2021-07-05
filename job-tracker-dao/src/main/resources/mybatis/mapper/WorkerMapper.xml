@@ -15,9 +15,9 @@
     </resultMap>
 
     <insert id="insertIgnore">
-        insert ignore into worker (
+        INSERT IGNORE INTO worker (
             worker_id, protocol, ip, port, status
-        ) values (
+        ) VALUES (
             #{workerId}, #{protocol}, #{ip}, #{port}, #{status}
         )
     </insert>

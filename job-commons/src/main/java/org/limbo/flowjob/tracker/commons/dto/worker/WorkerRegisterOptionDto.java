@@ -3,7 +3,6 @@ package org.limbo.flowjob.tracker.commons.dto.worker;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerProtocol;
-import org.limbo.flowjob.tracker.commons.dto.job.JobExecutorRegisterDto;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -59,7 +58,7 @@ public class WorkerRegisterOptionDto implements Serializable {
      * 执行器
      */
     @Schema(description = "job 执行器")
-    private List<JobExecutorRegisterDto> jobExecutors;
+    private List<WorkerExecutorRegisterDto> jobExecutors;
 
     /**
      * worker所属租户信息

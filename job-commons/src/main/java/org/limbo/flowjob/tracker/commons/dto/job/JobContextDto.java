@@ -26,16 +26,20 @@ import lombok.Data;
 public class JobContextDto {
 
     private String jobContextId;
+
     /**
      * 任务名称
      */
     private String jobName;
+
     /**
      * 执行器的名称
      */
     private String executorName;
+
     /**
      * 执行时候的参数
      */
     private String executorParam;
+
 }

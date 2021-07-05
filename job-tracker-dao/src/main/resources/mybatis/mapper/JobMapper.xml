@@ -19,11 +19,11 @@
     </resultMap>
 
     <insert id="insertIgnore">
-        insert ignore into job (
+        INSERT IGNORE INTO job (
             job_id, job_desc,
             dispatch_type, cpu_requirement, ram_requirement,
             schedule_type, schedule_delay, schedule_interval, schedule_cron
-        ) values (
+        ) VALUES (
             #{job.jobId}, #{job.jobDesc},
             #{job.dispatchType}, #{job.cpuRequirement}, #{job.ramRequirement},
             #{job.scheduleType}, #{job.scheduleDelay}, #{job.scheduleInterval}, #{job.scheduleCron}

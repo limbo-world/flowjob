@@ -20,8 +20,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -29,8 +29,9 @@ import java.time.LocalDateTime;
  * @since 2021-05-17
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @TableName("job")
-public class JobPO implements Serializable {
+public class JobPO extends PO {
 
     private static final long serialVersionUID = 3343186004952320736L;
 
@@ -89,10 +90,5 @@ public class JobPO implements Serializable {
      * 作业调度的CRON表达式
      */
     private String scheduleCron;
-
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
-
 
 }
