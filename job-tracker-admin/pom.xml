@@ -54,6 +54,12 @@
             </exclusions>
         </dependency>
 
+        <!-- Starter: JSR303校验 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
         <!-- MySQL驱动 -->
         <dependency>
             <groupId>mysql</groupId>
@@ -65,7 +71,6 @@
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-boot-starter</artifactId>
         </dependency>
-
 
 
         <!-- 使用Log4j2代替SpringBoot默认的logback -->

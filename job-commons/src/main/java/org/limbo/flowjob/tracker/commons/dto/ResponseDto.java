@@ -86,11 +86,24 @@ public class ResponseDto<T> {
         }
 
         /**
-         * 设置响应状态码{@link HttpStatus#SC_INTERNAL_SERVER_ERROR}
+         * 设置响应状态码{@link HttpStatus#SC_BAD_REQUEST}，并设置提示信息
+         * @param message 错误提示信息
          * @return 链式调用
          */
-        public Builder<T> error() {
+        public Builder<T> badRequest(String message) {
+            this.code = HttpStatus.SC_BAD_REQUEST;
+            this.message = message;
+            return this;
+        }
+
+        /**
+         * 设置响应状态码{@link HttpStatus#SC_INTERNAL_SERVER_ERROR}
+         * @param message 错误提示信息
+         * @return 链式调用
+         */
+        public Builder<T> error(String message) {
             this.code = HttpStatus.SC_INTERNAL_SERVER_ERROR;
+            this.message = message;
             return this;
         }
 

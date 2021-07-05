@@ -5,6 +5,7 @@ import lombok.Data;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerProtocol;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
@@ -57,6 +58,7 @@ public class WorkerRegisterOptionDto implements Serializable {
     /**
      * 执行器
      */
+    @NotEmpty
     @Schema(description = "job 执行器")
     private List<WorkerExecutorRegisterDto> jobExecutors;
 

@@ -4,6 +4,7 @@ import com.google.common.base.Converter;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerExecutor;
 import org.limbo.flowjob.tracker.dao.po.WorkerExecutorPO;
 import org.limbo.utils.EnhancedBeanUtils;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
 
@@ -11,6 +12,7 @@ import javax.annotation.Nonnull;
  * @author Brozen
  * @since 2021-07-05
  */
+@Component
 public class WorkerExecutorPoConverter extends Converter<WorkerExecutor, WorkerExecutorPO> {
 
     /**
