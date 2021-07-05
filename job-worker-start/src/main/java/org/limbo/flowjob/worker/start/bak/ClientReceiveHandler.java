@@ -44,7 +44,7 @@ public class ClientReceiveHandler extends SimpleChannelInboundHandler<Object> {
 //            worker.setTrackers(((MetricResponse) obj).getTrackers());
         } else if (obj instanceof JobSubmitRequest) {
             JobSubmitRequest request = (JobSubmitRequest) obj;
-            worker.receive(request.getId(), request.getExecutor());
+//            worker.receive(request.getId(), request.getExecutor());
         }
 
     }

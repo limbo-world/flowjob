@@ -16,11 +16,14 @@
 
 package org.limbo.flowjob.worker.start.config;
 
-import okhttp3.OkHttpClient;
+import okhttp3.*;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
 import org.limbo.flowjob.worker.core.domain.AbstractRemoteClient;
 import org.limbo.flowjob.worker.core.domain.Worker;
+import org.limbo.utils.JacksonUtils;
+
+import java.io.IOException;
 
 /**
  * @author Devil
@@ -30,22 +33,61 @@ public class HttpRemoteClient extends AbstractRemoteClient {
 
     private static OkHttpClient client;
 
+    private String baseUrl;
+
     public HttpRemoteClient(Worker worker) {
         super(worker);
     }
 
     @Override
-    public void clientStart(String port, int host) {
+    public void clientStart(String host, int port) {
+        baseUrl = "http://" + host;
+        if (port > 0) {
+            baseUrl = baseUrl + ":" + port;
+        }
         client = (new OkHttpClient.Builder()).build();
     }
 
     @Override
     public void heartbeat(WorkerHeartbeatOptionDto dto) {
+        RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(dto));
 
+        Request request = new Request.Builder()
+                .url(baseUrl + "/heartbeat")
+                .header("Content-Type", "application/json")
+                .post(body)
+                .build();
+
+        Call call = client.newCall(request);
+        try {
+            Response response = call.execute();
+            if (response.isSuccessful()) {
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void register(WorkerRegisterOptionDto dto) {
+        RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(dto));
 
+        Request request = new Request.Builder()
+                .url(baseUrl + "/register")
+                .header("Content-Type", "application/json")
+                .post(body)
+                .build();
+
+        Call call = client.newCall(request);
+        try {
+            Response response = call.execute();
+            if (response.isSuccessful()) {
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+
 }

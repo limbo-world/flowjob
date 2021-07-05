@@ -18,9 +18,14 @@ package org.limbo.flowjob.worker.start.config;
 
 import org.limbo.flowjob.worker.core.domain.AbstractRemoteClient;
 import org.limbo.flowjob.worker.core.domain.Worker;
+import org.limbo.flowjob.worker.core.infrastructure.JobExecutor;
+import org.limbo.flowjob.worker.core.infrastructure.ShellJobExecutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Devil
@@ -33,11 +38,17 @@ public class WorkerConfiguration {
     private JobProperties jobProperties;
 
     @Bean
-    public Worker worker() {
-        Worker worker = new Worker(jobProperties.getQueueSize(), null);
+    public Worker worker() throws Exception {
+        List<JobExecutor> executors = new ArrayList<>();
+        executors.add(new ShellJobExecutor());
+        return new Worker(jobProperties.getQueueSize(), executors);
+    }
 
+    @Bean
+    public AbstractRemoteClient remoteClient(Worker worker) {
         AbstractRemoteClient client = new HttpRemoteClient(worker);
-        return worker;
+        client.start(jobProperties.getHost(), jobProperties.getPort(), jobProperties.getHeartbeatPeriod());
+        return client;
     }
 
 }

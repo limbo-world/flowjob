@@ -16,8 +16,6 @@
 
 package org.limbo.flowjob.worker.core.domain;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerResourceDto;
@@ -32,6 +30,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * 工作节点实例
+ *
  * @author Devil
  * @date 2021/6/10 5:32 下午
  */
@@ -53,20 +53,16 @@ public class Worker {
      */
     private JobManager jobManager;
 
-    public Worker(int queueSize, List<JobExecutor> executors) {
+    public Worker(int queueSize, List<JobExecutor> executors) throws Exception {
         this.id = UUIDUtils.randomID();
         this.resource = WorkerResource.create(queueSize);
         this.executors = new ConcurrentHashMap<>();
         this.jobManager = new JobManager();
 
-        if (CollectionUtils.isEmpty(executors)) {
-            throw new IllegalArgumentException("empty executors");
-        }
+        Verifies.notEmpty(executors, "empty executors");
 
         for (JobExecutor executor : executors) {
-            if (StringUtils.isBlank(executor.getName())) {
-                throw new IllegalArgumentException("has blank executor name");
-            }
+            Verifies.notBlank(executor.getName(), "has blank executor name");
             this.executors.put(executor.getName(), executor);
         }
     }
@@ -103,15 +99,12 @@ public class Worker {
     /**
      * 提交任务
      */
-    public void receive(String id, String executorName) {
-        Verifies.verify(executors.containsKey(executorName), "worker don't have this executor name's " + executorName);
+    public synchronized void receive(Job job) {
+        Verifies.verify(executors.containsKey(job.getExecutorName()), "worker don't have this executor name's " + job.getExecutorName());
         Verifies.verify(jobManager.size() < resource.getAvailableQueueSize(), "worker queue is full");
         // todo 是否超过cpu/ram/queue 失败
 
-        Job job = new Job();
-        job.setId(id);
-
-        JobExecutor jobExecutor = executors.get(executorName);
+        JobExecutor jobExecutor = executors.get(job.getExecutorName());
 
         JobExecutorRunner runner = new JobExecutorRunner(jobManager, jobExecutor);
 

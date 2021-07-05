@@ -46,7 +46,7 @@ public abstract class AbstractRemoteClient {
         this.worker = worker;
     }
 
-    public void start(String port, int host, int heartbeatPeriod) {
+    public void start(String host, int port, int heartbeatPeriod) {
         // 已经启动则返回
         synchronized (this) {
             if (started) {
@@ -54,7 +54,7 @@ public abstract class AbstractRemoteClient {
             }
         }
         // 建立连接
-        clientStart(port, host);
+        clientStart(host, port);
         // 注册
         register(worker.register());
         // 心跳
@@ -68,7 +68,7 @@ public abstract class AbstractRemoteClient {
         started = true;
     }
 
-    public abstract void clientStart(String port, int host);
+    public abstract void clientStart(String host, int port);
 
     public abstract void heartbeat(WorkerHeartbeatOptionDto dto);
 

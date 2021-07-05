@@ -23,6 +23,18 @@ package org.limbo.flowjob.worker.core.domain;
 public class Job {
 
     private String id;
+    /**
+     * 任务名称
+     */
+    private String name;
+    /**
+     * 执行器的名称
+     */
+    private String executorName;
+    /**
+     * 执行时候的参数
+     */
+    private String executorParam;
 
     public String getId() {
         return id;
@@ -30,5 +42,29 @@ public class Job {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getExecutorName() {
+        return executorName;
+    }
+
+    public void setExecutorName(String executorName) {
+        this.executorName = executorName;
+    }
+
+    public String getExecutorParam() {
+        return executorParam;
+    }
+
+    public void setExecutorParam(String executorParam) {
+        this.executorParam = executorParam;
     }
 }

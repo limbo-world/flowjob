@@ -33,7 +33,11 @@ public class JobProperties {
 
     private int queueSize;
 
-    private String trackerAddress;
+    private String host;
+
+    private int port;
+
+    private int heartbeatPeriod;
 
     private List<String> tags;
 }

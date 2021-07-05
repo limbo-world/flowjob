@@ -27,6 +27,8 @@ import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * worker自身资源情况
+ *
  * @author Devil
  * @date 2021/6/23 3:46 下午
  */
@@ -41,21 +43,25 @@ public class WorkerResource {
      */
     private int availableQueueSize;
 
-    private Double availableCpu;
+    private Float availableCpu;
 
     private OperatingSystemMXBean osmxb;
 
-    private SystemInfo systemInfo;
+    private CentralProcessor processor;
 
     private WorkerResource() {
     }
 
-    public static WorkerResource create(int queueSize) {
+    public static WorkerResource create(int queueSize) throws Exception {
         WorkerResource resource = new WorkerResource();
         resource.queueSize = queueSize;
         resource.osmxb = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-        resource.systemInfo = new SystemInfo();
+        SystemInfo systemInfo = new SystemInfo();
+        resource.processor = systemInfo.getHardware().getProcessor();
+        // 计算一次cpu
+        resource.calAvailableCpu();
 
+        // 定时刷新 cpu 信息
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
@@ -74,21 +80,11 @@ public class WorkerResource {
         return osmxb.getFreePhysicalMemorySize();
     }
 
-    public double getAvailableCpu() {
-        synchronized (this) {
-            if (availableCpu == null) {
-                try {
-                    calAvailableCpu();
-                } catch (InterruptedException e) {
-                    log.error("calculate available cpu error", e);
-                }
-            }
-            return availableCpu; // 可能会有并发问题
-        }
+    public float getAvailableCpu() {
+        return availableCpu; // 可能会有并发问题
     }
 
     private void calAvailableCpu() throws InterruptedException {
-        CentralProcessor processor = systemInfo.getHardware().getProcessor();
         long[] prevTicks = processor.getSystemCpuLoadTicks();
         // 睡眠1s
         TimeUnit.SECONDS.sleep(1);
@@ -114,7 +110,7 @@ public class WorkerResource {
 //        System.out.println("total cpu:" + totalCpu);
 
         synchronized (this) {
-            availableCpu = cSys * 1.0 / totalCpu;
+            availableCpu = (float) (cSys * 1.0 / totalCpu);
         }
     }
 
