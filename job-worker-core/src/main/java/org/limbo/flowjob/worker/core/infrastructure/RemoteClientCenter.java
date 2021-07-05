@@ -16,24 +16,28 @@
 
 package org.limbo.flowjob.worker.core.infrastructure;
 
-import org.limbo.flowjob.worker.core.domain.Job;
+import org.limbo.flowjob.tracker.commons.dto.tracker.TrackerNode;
+
+import java.util.List;
 
 /**
- * shell 脚本执行器
- *
  * @author Devil
- * @date 2021/6/29 4:51 下午
+ * @date 2021/7/5 11:05 上午
  */
-public class ShellJobExecutor implements JobExecutor {
+public class RemoteClientCenter {
 
-    @Override
-    public String run(Job job) {
-        // todo
-        return null;
+    private static AbstractRemoteClient client;
+    /**
+     * 所有的tracker
+     */
+    private List<TrackerNode> trackers;
+
+    public void register(String host, int port, int heartbeatPeriod) {
+
     }
 
-    @Override
-    public String getName() {
-        return "shell";
+    public static AbstractRemoteClient getClient() {
+        return client;
     }
+
 }

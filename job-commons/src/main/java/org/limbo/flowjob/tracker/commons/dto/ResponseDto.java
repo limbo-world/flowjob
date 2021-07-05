@@ -12,7 +12,7 @@ import org.limbo.utils.web.HttpStatus;
 @Getter
 @NoArgsConstructor
 @Schema(title = "请求响应封装")
-public class Response<T> {
+public class ResponseDto<T> {
 
     /**
      * 响应状态码，参考{@link HttpStatus}中状态码的定义
@@ -32,7 +32,7 @@ public class Response<T> {
     @Schema(description = "响应数据")
     private T data;
 
-    Response(int code, String message, T data) {
+    ResponseDto(int code, String message, T data) {
         this.code = code;
         this.message = message;
         this.data = data;
@@ -62,8 +62,8 @@ public class Response<T> {
          * 根据Builder的配置生成响应结果
          * @return 响应
          */
-        public Response<T> build() {
-            return new Response<>(code, message, data);
+        public ResponseDto<T> build() {
+            return new ResponseDto<>(code, message, data);
         }
 
         /**

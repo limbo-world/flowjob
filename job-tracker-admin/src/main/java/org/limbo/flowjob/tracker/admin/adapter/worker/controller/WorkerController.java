@@ -3,7 +3,7 @@ package org.limbo.flowjob.tracker.admin.adapter.worker.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.limbo.flowjob.tracker.admin.service.WorkerRegisterService;
-import org.limbo.flowjob.tracker.commons.dto.Response;
+import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +30,9 @@ public class WorkerController {
      */
     @Operation(summary = "worker注册")
     @PutMapping
-    public Mono<Response<WorkerRegisterResult>> register(@RequestBody WorkerRegisterOptionDto options) {
+    public Mono<ResponseDto<WorkerRegisterResult>> register(@RequestBody WorkerRegisterOptionDto options) {
         return registerService.register(options)
-                .map(result -> Response.<WorkerRegisterResult>builder().ok(result).build());
+                .map(result -> ResponseDto.<WorkerRegisterResult>builder().ok(result).build());
     }
 
 }

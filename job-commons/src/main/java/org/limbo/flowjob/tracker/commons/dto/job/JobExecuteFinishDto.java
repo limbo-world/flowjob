@@ -14,26 +14,24 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker.core.infrastructure;
+package org.limbo.flowjob.tracker.commons.dto.job;
 
-import org.limbo.flowjob.worker.core.domain.Job;
+import lombok.Data;
 
 /**
- * shell 脚本执行器
- *
  * @author Devil
- * @date 2021/6/29 4:51 下午
+ * @date 2021/7/5 11:32 上午
  */
-public class ShellJobExecutor implements JobExecutor {
+@Data
+public class JobExecuteFinishDto {
 
-    @Override
-    public String run(Job job) {
-        // todo
-        return null;
-    }
+    /**
+     * 返回的用于下个计算的参数
+     */
+    private String params;
+    /**
+     * 执行失败时候返回的信息
+     */
+    private String errorMsg;
 
-    @Override
-    public String getName() {
-        return "shell";
-    }
 }

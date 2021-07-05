@@ -17,6 +17,8 @@
 package org.limbo.flowjob.worker.core.infrastructure;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFinishDto;
 import org.limbo.flowjob.worker.core.domain.Job;
 
 /**
@@ -43,13 +45,15 @@ public class JobExecutorRunner {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                JobExecuteFinishDto dto = new JobExecuteFinishDto();
                 try {
-                    executor.run(job);
-                    // todo 发送任务成功信息
+                    dto.setParams(executor.run(job));
                 } catch (Exception e) {
                     log.error("job run error", e);
-                    // todo 发送任务失败信息
+                    dto.setErrorMsg(ExceptionUtils.getStackTrace(e));
                 } finally {
+                    AbstractRemoteClient client = RemoteClientCenter.getClient();
+                    client.jobExecuted(dto);
                     // 最终都要移除任务
                     jobManager.remove(job.getId());
                 }

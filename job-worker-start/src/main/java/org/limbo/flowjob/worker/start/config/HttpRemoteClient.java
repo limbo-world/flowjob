@@ -17,10 +17,12 @@
 package org.limbo.flowjob.worker.start.config;
 
 import okhttp3.*;
+import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
+import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFinishDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
-import org.limbo.flowjob.worker.core.domain.AbstractRemoteClient;
 import org.limbo.flowjob.worker.core.domain.Worker;
+import org.limbo.flowjob.worker.core.infrastructure.AbstractRemoteClient;
 import org.limbo.utils.JacksonUtils;
 
 import java.io.IOException;
@@ -50,7 +52,8 @@ public class HttpRemoteClient extends AbstractRemoteClient {
 
     @Override
     public void heartbeat(WorkerHeartbeatOptionDto dto) {
-        RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(dto));
+        ResponseDto<WorkerHeartbeatOptionDto> responseDto = ResponseDto.<WorkerHeartbeatOptionDto>builder().data(dto).build();
+        RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(responseDto));
 
         Request request = new Request.Builder()
                 .url(baseUrl + "/heartbeat")
@@ -71,10 +74,33 @@ public class HttpRemoteClient extends AbstractRemoteClient {
 
     @Override
     public void register(WorkerRegisterOptionDto dto) {
-        RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(dto));
+        ResponseDto<WorkerRegisterOptionDto> responseDto = ResponseDto.<WorkerRegisterOptionDto>builder().data(dto).build();
+        RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(responseDto));
 
         Request request = new Request.Builder()
                 .url(baseUrl + "/register")
+                .header("Content-Type", "application/json")
+                .post(body)
+                .build();
+
+        Call call = client.newCall(request);
+        try {
+            Response response = call.execute();
+            if (response.isSuccessful()) {
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void jobExecuted(JobExecuteFinishDto dto) {
+        ResponseDto<JobExecuteFinishDto> responseDto = ResponseDto.<JobExecuteFinishDto>builder().data(dto).build();
+        RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(responseDto));
+
+        Request request = new Request.Builder()
+                .url(baseUrl + "/heartbeat")
                 .header("Content-Type", "application/json")
                 .post(body)
                 .build();

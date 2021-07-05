@@ -17,7 +17,7 @@
 package org.limbo.flowjob.worker.start.adapter;
 
 
-import org.limbo.flowjob.tracker.commons.dto.Response;
+import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
 import org.limbo.flowjob.tracker.commons.dto.job.JobContextDto;
 import org.limbo.flowjob.worker.start.application.WorkerService;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,9 +42,9 @@ public class WorkerController {
      * 接收任务 并处理
      */
     @PostMapping("/job")
-    public Mono<Response<Void>> receiveJob(@RequestBody JobContextDto dto) {
+    public Mono<ResponseDto<Void>> receiveJob(@RequestBody JobContextDto dto) {
         workerService.receive(dto);
-        return Mono.just(Response.<Void>builder().build());
+        return Mono.just(ResponseDto.<Void>builder().build());
     }
 
 }

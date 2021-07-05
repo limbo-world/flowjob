@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.worker.start.config;
 
-import org.limbo.flowjob.worker.core.domain.AbstractRemoteClient;
+import org.limbo.flowjob.worker.core.infrastructure.AbstractRemoteClient;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.infrastructure.JobExecutor;
 import org.limbo.flowjob.worker.core.infrastructure.ShellJobExecutor;

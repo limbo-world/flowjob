@@ -14,11 +14,13 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker.core.domain;
+package org.limbo.flowjob.worker.core.infrastructure;
 
+import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFinishDto;
 import org.limbo.flowjob.tracker.commons.dto.tracker.TrackerNode;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
+import org.limbo.flowjob.worker.core.domain.Worker;
 
 import java.util.List;
 import java.util.Timer;
@@ -33,10 +35,6 @@ import java.util.TimerTask;
 public abstract class AbstractRemoteClient {
 
     private final Worker worker;
-    /**
-     * 所有的tracker
-     */
-    private List<TrackerNode> trackers;
     /**
      * 是否已经启动
      */
@@ -68,10 +66,24 @@ public abstract class AbstractRemoteClient {
         started = true;
     }
 
+    /**
+     * 与tracker建立连接
+     */
     public abstract void clientStart(String host, int port);
 
+    /**
+     * 发送心跳给tracker
+     */
     public abstract void heartbeat(WorkerHeartbeatOptionDto dto);
 
+    /**
+     * 注册当前的worker
+     */
     public abstract void register(WorkerRegisterOptionDto dto);
+
+    /**
+     * 任务执行完成 将结果反馈给tracker
+     */
+    public abstract void jobExecuted(JobExecuteFinishDto dto);
 
 }

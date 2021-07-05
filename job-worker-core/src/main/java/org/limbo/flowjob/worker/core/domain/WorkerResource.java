@@ -35,11 +35,11 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class WorkerResource {
     /**
-     * 任务总数
+     * 可分配任务总数
      */
     private int queueSize;
     /**
-     * 剩余可用任务数
+     * 剩余可分配任务数
      */
     private int availableQueueSize;
 

@@ -27,7 +27,7 @@ import org.limbo.flowjob.worker.core.domain.Job;
  */
 public interface JobExecutor {
 
-    void run(Job job);
+    String run(Job job);
 
     String getName();
 }

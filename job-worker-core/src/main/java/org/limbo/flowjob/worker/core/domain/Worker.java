@@ -19,6 +19,7 @@ package org.limbo.flowjob.worker.core.domain;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerResourceDto;
+import org.limbo.flowjob.worker.core.infrastructure.AbstractRemoteClient;
 import org.limbo.flowjob.worker.core.infrastructure.JobExecutor;
 import org.limbo.flowjob.worker.core.infrastructure.JobExecutorRunner;
 import org.limbo.flowjob.worker.core.infrastructure.JobManager;
@@ -47,11 +48,11 @@ public class Worker {
     /**
      * 执行器名称 - 执行器 映射关系
      */
-    private Map<String, JobExecutor> executors;
+    private final Map<String, JobExecutor> executors;
     /**
      * job 管理中心
      */
-    private JobManager jobManager;
+    private final JobManager jobManager;
 
     public Worker(int queueSize, List<JobExecutor> executors) throws Exception {
         this.id = UUIDUtils.randomID();
@@ -100,8 +101,8 @@ public class Worker {
      * 提交任务
      */
     public synchronized void receive(Job job) {
-        Verifies.verify(executors.containsKey(job.getExecutorName()), "worker don't have this executor name's " + job.getExecutorName());
-        Verifies.verify(jobManager.size() < resource.getAvailableQueueSize(), "worker queue is full");
+        Verifies.verify(executors.containsKey(job.getExecutorName()), "worker doesn't " + job.getExecutorName() + " executor");
+        Verifies.verify(jobManager.size() < resource.getAvailableQueueSize(), "worker's queue is full");
         // todo 是否超过cpu/ram/queue 失败
 
         JobExecutor jobExecutor = executors.get(job.getExecutorName());
