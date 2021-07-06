@@ -23,7 +23,7 @@ import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import java.util.Collection;
 
 /**
- * 轮训作业分发器。
+ * 轮询作业分发器。
  * TODO
  *
  * @author Brozen
