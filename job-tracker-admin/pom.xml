@@ -84,6 +84,12 @@
             <version>${slf4j}</version>
         </dependency>
 
+        <!-- DB脚本版本管理 -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+
     </dependencies>
 
 
