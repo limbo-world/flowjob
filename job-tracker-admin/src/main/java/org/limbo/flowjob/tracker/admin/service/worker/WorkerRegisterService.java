@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.admin.service;
+package org.limbo.flowjob.tracker.admin.service.worker;
 
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -139,7 +139,7 @@ public class WorkerRegisterService {
     private WorkerMetric createMetric(WorkerRegisterOptionDto options) {
         WorkerMetric metric = new WorkerMetric();
         metric.setExecutors(convertWorkerExecutor(options));
-        metric.setExecutingJobs(Lists.newArrayList()); // TODO
+        metric.setExecutingJobs(Lists.newArrayList()); // TODO 是否需要记录？
         metric.setTimestamp(LocalDateTime.now().toEpochSecond(ZoneOffset.of("+8")));
         metric.setAvailableResource(WorkerAvailableResource.from(options.getAvailableResource()));
         return metric;

@@ -70,7 +70,7 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <limbo.utils>1.0.1</limbo.utils>
+        <limbo.utils>1.0.2</limbo.utils>
         <spring.boot>2.4.6</spring.boot>
         <spring.doc>1.5.6</spring.doc>
         <swagger>2.1.7</swagger>

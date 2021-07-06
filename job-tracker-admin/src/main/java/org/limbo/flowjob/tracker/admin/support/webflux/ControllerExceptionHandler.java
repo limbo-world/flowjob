@@ -18,6 +18,7 @@ package org.limbo.flowjob.tracker.admin.support.webflux;
 
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
+import org.limbo.utils.verifies.VerifyException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
@@ -57,6 +58,15 @@ public class ControllerExceptionHandler {
         });
 
         return ResponseDto.builder().badRequest(errMsg.toString()).build();
+    }
+
+
+    /**
+     * 处理业务校验失败异常
+     */
+    @ExceptionHandler(VerifyException.class)
+    public ResponseDto<?> handleVerifyFailedException(VerifyException e) {
+        return ResponseDto.builder().badRequest(e.getMessage()).build();
     }
 
 }

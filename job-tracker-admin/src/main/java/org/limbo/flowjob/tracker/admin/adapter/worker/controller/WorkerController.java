@@ -18,10 +18,13 @@ package org.limbo.flowjob.tracker.admin.adapter.worker.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.limbo.flowjob.tracker.admin.service.WorkerRegisterService;
+import org.limbo.flowjob.tracker.admin.service.worker.WorkerRegisterService;
+import org.limbo.flowjob.tracker.admin.service.worker.WorkerService;
 import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
+import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterResult;
+import org.limbo.flowjob.tracker.commons.utils.Symbol;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -37,7 +40,11 @@ import reactor.core.publisher.Mono;
 public class WorkerController {
 
     @Autowired
+    private WorkerService workerService;
+
+    @Autowired
     private WorkerRegisterService registerService;
+
 
     /**
      * worker注册
@@ -48,5 +55,17 @@ public class WorkerController {
         return options.map(opt -> registerService.register(opt))
                 .flatMap(result -> result.map(r -> ResponseDto.<WorkerRegisterResult>builder().ok(r).build()));
     }
+
+
+    /**
+     * worker心跳
+     */
+    @Operation(summary = "worker心跳")
+    @PostMapping("/heartbeat")
+    public Mono<ResponseDto<Symbol>> heartbeat(WorkerHeartbeatOptionDto heartbeatOption) {
+        return workerService.heartbeat(heartbeatOption)
+                .map(result -> ResponseDto.<Symbol>builder().ok(result).build());
+    }
+
 
 }

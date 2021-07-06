@@ -35,6 +35,13 @@ import java.io.Serializable;
 public class WorkerHeartbeatOptionDto implements Serializable {
 
     private static final long serialVersionUID = 6512801979734188678L;
+
+    /**
+     * worker id
+     */
+    @Schema(description = "worker id")
+    private String workerId;
+
     /**
      * worker可用的资源
      */
