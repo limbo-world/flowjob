@@ -17,6 +17,7 @@
 package org.limbo.flowjob.worker.core.infrastructure;
 
 
+import org.limbo.flowjob.tracker.commons.constants.enums.JobExecuteType;
 import org.limbo.flowjob.worker.core.domain.Job;
 
 /**
@@ -30,4 +31,8 @@ public interface JobExecutor {
     String run(Job job);
 
     String getName();
+
+    String getDescription();
+
+    JobExecuteType getType();
 }

@@ -30,14 +30,9 @@ public class WorkerController {
      */
     @Operation(summary = "worker注册")
     @PostMapping
-    public Mono<ResponseDto<WorkerRegisterResult>> register(@Validated @RequestBody WorkerRegisterOptionDto dto) {
-        return registerService.register(dto).map(r -> ResponseDto.<WorkerRegisterResult>builder().ok(r).build());
+    public Mono<ResponseDto<WorkerRegisterResult>> register(@Validated @RequestBody Mono<WorkerRegisterOptionDto> options) {
+        return options.map(opt -> registerService.register(opt))
+                .flatMap(result -> result.map(r -> ResponseDto.<WorkerRegisterResult>builder().ok(r).build()));
     }
-
-//    @PostMapping
-//    public Mono<ResponseDto<WorkerRegisterResult>> register(@Validated @RequestBody Mono<WorkerRegisterOptionDto> options) {
-//        return options.map(opt -> registerService.register(opt))
-//                .flatMap(result -> result.map(r -> ResponseDto.<WorkerRegisterResult>builder().ok(r).build()));
-//    }
 
 }

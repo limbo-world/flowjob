@@ -16,6 +16,7 @@
 
 package org.limbo.flowjob.worker.core.domain;
 
+import org.limbo.flowjob.tracker.commons.dto.worker.WorkerExecutorRegisterDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerResourceDto;
@@ -26,6 +27,7 @@ import org.limbo.flowjob.worker.core.infrastructure.JobManager;
 import org.limbo.utils.UUIDUtils;
 import org.limbo.utils.verifies.Verifies;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -87,6 +89,16 @@ public class Worker {
         registerOptionDto.setId(id);
         registerOptionDto.setIp(ip);
         registerOptionDto.setPort(port);
+        // 执行器
+        List<WorkerExecutorRegisterDto> workerExecutors = new ArrayList<>();
+        for (JobExecutor executor : executors.values()) {
+            WorkerExecutorRegisterDto workerExecutorRegisterDto = new WorkerExecutorRegisterDto();
+            workerExecutorRegisterDto.setName(executor.getName());
+            workerExecutorRegisterDto.setDescription(executor.getDescription());
+            workerExecutorRegisterDto.setExecuteType(executor.getType());
+            workerExecutors.add(workerExecutorRegisterDto);
+        }
+        registerOptionDto.setJobExecutors(workerExecutors);
         registerOptionDto.setAvailableResource(resourceDto);
         return registerOptionDto;
     }

@@ -25,7 +25,7 @@ public class WorkerRegisterOptionDto implements Serializable {
     /**
      * worker id
      */
-    @NotBlank(message = "worker can't be blank")
+    @NotBlank(message = "worker id can't be blank")
     @Schema(description = "worker id")
     private String id;
 
@@ -38,14 +38,14 @@ public class WorkerRegisterOptionDto implements Serializable {
     /**
      * worker服务的通信IP
      */
-    @NotBlank
+    @NotBlank(message = "worker ip can't be blank")
     @Schema(description = "worker服务的通信IP")
     private String ip;
 
     /**
      * worker服务的通信端口
      */
-    @NotNull
+    @NotNull(message = "worker port can't be blank")
     @Schema(description = "worker服务的通信端口")
     private Integer port;
 
@@ -58,7 +58,7 @@ public class WorkerRegisterOptionDto implements Serializable {
     /**
      * 执行器
      */
-    @NotEmpty
+    @NotEmpty(message = "worker job executor can't be empty")
     @Schema(description = "job 执行器")
     private List<WorkerExecutorRegisterDto> jobExecutors;
 

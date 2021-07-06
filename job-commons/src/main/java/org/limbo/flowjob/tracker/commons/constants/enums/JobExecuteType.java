@@ -17,9 +17,9 @@ public enum JobExecuteType {
     UNKNOWN(0, "未知执行方式"),
 
     /**
-     * 通过bean执行任务，worker中有能够执行任务的bean，接收到任务后，执行指定bean的逻辑
+     * 通过 function 执行任务，worker中有能够执行任务的 function，接收到任务后，执行指定逻辑
      */
-    BEAN(1, "通过bean执行任务"),
+    FUNCTION(1, "通过 worker 指定的 function 执行执行任务"),
 
     /**
      * 通过shell执行任务，shell脚本下发到worker后，worker在本地执行脚本
