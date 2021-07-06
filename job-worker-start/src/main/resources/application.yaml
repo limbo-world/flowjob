@@ -6,8 +6,9 @@ spring:
 
 job:
   name: abc
+  host: localhost
+  port: 8081
   queueSize: 8
-  trackerAddress: localhost:8082
   tags:
     - a=b
     - c=d

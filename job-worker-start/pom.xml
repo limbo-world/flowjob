@@ -55,6 +55,17 @@
             <version>3.14.9</version>
         </dependency>
 
+        <!-- 使用Log4j2代替SpringBoot默认的logback -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j}</version>
+        </dependency>
+
     </dependencies>
 
 </project>

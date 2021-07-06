@@ -14,13 +14,8 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.commons.dto.tcp;
-
 /**
- * 获取 tracker 信息
- *
  * @author Devil
- * @date 2021/6/30 2:58 下午
+ * @date 2021/7/6 2:32 下午
  */
-public class MetricRequest {
-}
+package org.limbo.flowjob.worker.start.adapter;

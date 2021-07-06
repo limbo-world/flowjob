@@ -14,8 +14,10 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker.start.config;
+package org.limbo.flowjob.worker.start.adapter.http.config;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
 import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFinishDto;
@@ -24,6 +26,7 @@ import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.infrastructure.AbstractRemoteClient;
 import org.limbo.utils.JacksonUtils;
+import org.limbo.utils.web.HttpStatus;
 
 import java.io.IOException;
 
@@ -31,6 +34,7 @@ import java.io.IOException;
  * @author Devil
  * @date 2021/7/1 11:01 上午
  */
+@Slf4j
 public class HttpRemoteClient extends AbstractRemoteClient {
 
     private static OkHttpClient client;
@@ -62,14 +66,7 @@ public class HttpRemoteClient extends AbstractRemoteClient {
                 .build();
 
         Call call = client.newCall(request);
-        try {
-            Response response = call.execute();
-            if (response.isSuccessful()) {
-
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        callAndHandlerResult(call);
     }
 
     @Override
@@ -78,20 +75,13 @@ public class HttpRemoteClient extends AbstractRemoteClient {
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(responseDto));
 
         Request request = new Request.Builder()
-                .url(baseUrl + "/register")
+                .url(baseUrl + "/api/v1/worker")
                 .header("Content-Type", "application/json")
                 .post(body)
                 .build();
 
         Call call = client.newCall(request);
-        try {
-            Response response = call.execute();
-            if (response.isSuccessful()) {
-
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        callAndHandlerResult(call);
     }
 
     @Override
@@ -106,13 +96,28 @@ public class HttpRemoteClient extends AbstractRemoteClient {
                 .build();
 
         Call call = client.newCall(request);
+        callAndHandlerResult(call);
+    }
+
+    // todo
+    private <T> ResponseDto<T> callAndHandlerResult(Call call) {
         try {
             Response response = call.execute();
-            if (response.isSuccessful()) {
+            if (!response.isSuccessful()) {
+                return null;
+            }
+            if (response.body() == null) {
+                return null;
+            }
+            ResponseDto<T> responseDto = JacksonUtils.parseObject(response.body().string(), new TypeReference<ResponseDto<T>>() {
+            });
+            if (HttpStatus.SC_OK != responseDto.getCode()) {
 
             }
+            return responseDto;
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
         }
     }
 

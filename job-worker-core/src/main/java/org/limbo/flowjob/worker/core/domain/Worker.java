@@ -41,6 +41,10 @@ public class Worker {
      * id
      */
     private String id;
+
+    private String ip;
+
+    private int port;
     /**
      * 工作节点资源
      */
@@ -54,8 +58,10 @@ public class Worker {
      */
     private final JobManager jobManager;
 
-    public Worker(int queueSize, List<JobExecutor> executors) throws Exception {
+    public Worker(String ip, int port, int queueSize, List<JobExecutor> executors) throws Exception {
         this.id = UUIDUtils.randomID();
+        this.ip = ip;
+        this.port = port;
         this.resource = WorkerResource.create(queueSize);
         this.executors = new ConcurrentHashMap<>();
         this.jobManager = new JobManager();
@@ -79,6 +85,8 @@ public class Worker {
 
         WorkerRegisterOptionDto registerOptionDto = new WorkerRegisterOptionDto();
         registerOptionDto.setId(id);
+        registerOptionDto.setIp(ip);
+        registerOptionDto.setPort(port);
         registerOptionDto.setAvailableResource(resourceDto);
         return registerOptionDto;
     }

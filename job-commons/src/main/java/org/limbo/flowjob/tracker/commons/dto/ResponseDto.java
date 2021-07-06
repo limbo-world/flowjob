@@ -108,6 +108,18 @@ public class ResponseDto<T> {
         }
 
         /**
+         * 设置错误码和错误信息
+         * @param code 错误码
+         * @param message 错误信息
+         * @return 链式调用
+         */
+        public Builder<T> error(int code, String message) {
+            this.code = code;
+            this.message = message;
+            return this;
+        }
+
+        /**
          * 设置响应中的提示信息
          * @param message 提示信息
          * @return 链式调用

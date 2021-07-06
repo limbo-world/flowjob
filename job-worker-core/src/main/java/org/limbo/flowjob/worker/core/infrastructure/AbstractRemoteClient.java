@@ -44,6 +44,12 @@ public abstract class AbstractRemoteClient {
         this.worker = worker;
     }
 
+    /**
+     * 启动与tracker的连接
+     * @param host host
+     * @param port port
+     * @param heartbeatPeriod 心跳间隔 ms
+     */
     public void start(String host, int port, int heartbeatPeriod) {
         // 已经启动则返回
         synchronized (this) {
