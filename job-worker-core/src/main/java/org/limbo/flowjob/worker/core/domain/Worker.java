@@ -16,6 +16,7 @@
 
 package org.limbo.flowjob.worker.core.domain;
 
+import org.limbo.flowjob.tracker.commons.dto.worker.WorkerExecutorRegisterDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerResourceDto;
@@ -26,6 +27,7 @@ import org.limbo.flowjob.worker.core.infrastructure.JobManager;
 import org.limbo.utils.UUIDUtils;
 import org.limbo.utils.verifies.Verifies;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,6 +43,10 @@ public class Worker {
      * id
      */
     private String id;
+
+    private String ip;
+
+    private int port;
     /**
      * 工作节点资源
      */
@@ -54,8 +60,10 @@ public class Worker {
      */
     private final JobManager jobManager;
 
-    public Worker(int queueSize, List<JobExecutor> executors) throws Exception {
+    public Worker(String ip, int port, int queueSize, List<JobExecutor> executors) throws Exception {
         this.id = UUIDUtils.randomID();
+        this.ip = ip;
+        this.port = port;
         this.resource = WorkerResource.create(queueSize);
         this.executors = new ConcurrentHashMap<>();
         this.jobManager = new JobManager();
@@ -79,6 +87,18 @@ public class Worker {
 
         WorkerRegisterOptionDto registerOptionDto = new WorkerRegisterOptionDto();
         registerOptionDto.setId(id);
+        registerOptionDto.setIp(ip);
+        registerOptionDto.setPort(port);
+        // 执行器
+        List<WorkerExecutorRegisterDto> workerExecutors = new ArrayList<>();
+        for (JobExecutor executor : executors.values()) {
+            WorkerExecutorRegisterDto workerExecutorRegisterDto = new WorkerExecutorRegisterDto();
+            workerExecutorRegisterDto.setName(executor.getName());
+            workerExecutorRegisterDto.setDescription(executor.getDescription());
+            workerExecutorRegisterDto.setExecuteType(executor.getType());
+            workerExecutors.add(workerExecutorRegisterDto);
+        }
+        registerOptionDto.setJobExecutors(workerExecutors);
         registerOptionDto.setAvailableResource(resourceDto);
         return registerOptionDto;
     }

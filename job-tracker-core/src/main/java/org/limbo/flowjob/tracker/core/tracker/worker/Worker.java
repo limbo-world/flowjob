@@ -66,6 +66,11 @@ public abstract class Worker {
      */
     private WorkerStatus status;
 
+    /**
+     * 是否启用 不启用则无法下发任务
+     */
+    private Boolean isEnabled;
+
     // ------------------------ 分隔
     /**
      * 用户更新worker

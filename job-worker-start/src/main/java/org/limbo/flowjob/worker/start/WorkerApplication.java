@@ -16,8 +16,8 @@
 
 package org.limbo.flowjob.worker.start;
 
-import org.limbo.flowjob.worker.start.config.JobProperties;
-import org.limbo.flowjob.worker.start.config.WorkerConfiguration;
+import org.limbo.flowjob.worker.start.shared.JobProperties;
+import org.limbo.flowjob.worker.start.adapter.http.config.WorkerConfiguration;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;

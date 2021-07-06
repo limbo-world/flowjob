@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker.start.config;
+package org.limbo.flowjob.worker.start.shared;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -36,8 +36,6 @@ public class JobProperties {
     private String host;
 
     private int port;
-
-    private int heartbeatPeriod;
 
     private List<String> tags;
 }

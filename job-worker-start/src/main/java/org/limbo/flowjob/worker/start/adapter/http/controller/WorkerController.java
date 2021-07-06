@@ -14,15 +14,14 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker.start.adapter;
+package org.limbo.flowjob.worker.start.adapter.http.controller;
 
 
 import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
 import org.limbo.flowjob.tracker.commons.dto.job.JobContextDto;
 import org.limbo.flowjob.worker.start.application.WorkerService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.limbo.utils.verifies.VerifyException;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 /**
@@ -30,6 +29,7 @@ import reactor.core.publisher.Mono;
  * @date 2021/6/10 4:23 下午
  */
 @RestController
+@RequestMapping("/api/v1/worker")
 public class WorkerController {
 
     private final WorkerService workerService;
@@ -45,6 +45,11 @@ public class WorkerController {
     public Mono<ResponseDto<Void>> receiveJob(@RequestBody JobContextDto dto) {
         workerService.receive(dto);
         return Mono.just(ResponseDto.<Void>builder().build());
+    }
+
+    @GetMapping("/ping")
+    public Mono<ResponseDto<Void>> ping() {
+        throw new VerifyException("xxx");
     }
 
 }

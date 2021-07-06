@@ -8,10 +8,7 @@ import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
@@ -22,7 +19,7 @@ import javax.validation.Valid;
  */
 @Tag(name = "worker相关接口")
 @RestController
-@RequestMapping("/api/worker/worker")
+@RequestMapping("/api/v1/worker")
 public class WorkerController {
 
     @Autowired
@@ -32,7 +29,7 @@ public class WorkerController {
      * worker注册
      */
     @Operation(summary = "worker注册")
-    @PutMapping
+    @PostMapping
     public Mono<ResponseDto<WorkerRegisterResult>> register(@Validated @RequestBody Mono<WorkerRegisterOptionDto> options) {
         return options.map(opt -> registerService.register(opt))
                 .flatMap(result -> result.map(r -> ResponseDto.<WorkerRegisterResult>builder().ok(r).build()));

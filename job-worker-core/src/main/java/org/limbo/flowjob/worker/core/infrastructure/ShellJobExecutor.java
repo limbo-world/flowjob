@@ -16,6 +16,7 @@
 
 package org.limbo.flowjob.worker.core.infrastructure;
 
+import org.limbo.flowjob.tracker.commons.constants.enums.JobExecuteType;
 import org.limbo.flowjob.worker.core.domain.Job;
 
 /**
@@ -35,5 +36,15 @@ public class ShellJobExecutor implements JobExecutor {
     @Override
     public String getName() {
         return "shell";
+    }
+
+    @Override
+    public String getDescription() {
+        return "";
+    }
+
+    @Override
+    public JobExecuteType getType() {
+        return JobExecuteType.SHELL;
     }
 }
