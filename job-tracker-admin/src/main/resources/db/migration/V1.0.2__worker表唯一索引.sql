@@ -1,0 +1,1 @@
+alter table worker add unique index uk_worker (worker_id);
