@@ -27,10 +27,10 @@ public interface WorkerMapper extends BaseMapper<WorkerPO> {
 
 
     /**
-     * 插入Worker记录，采用insert ignore语句
+     * 插入Worker记录 已经存在则更新
      * @param worker 工作节点
      * @return 影响的行数
      */
-    int insertIgnore(WorkerPO worker);
+    int insertOrUpdate(WorkerPO worker);
 
 }

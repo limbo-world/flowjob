@@ -4,10 +4,11 @@ spring:
   application:
     name: job-worker
 
-job:
+worker:
   name: abc
-  host: localhost
-  port: 8081
+  serverHost: localhost
+  serverPort: 8081
+  localPort: 8082
   queueSize: 8
   tags:
     - a=b

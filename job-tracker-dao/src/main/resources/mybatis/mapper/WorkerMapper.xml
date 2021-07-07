@@ -29,12 +29,14 @@
         <result column="updated_at" property="updatedAt" />
     </resultMap>
 
-    <insert id="insertIgnore">
+    <insert id="insertOrUpdate">
         INSERT IGNORE INTO worker (
             worker_id, protocol, ip, port, status
         ) VALUES (
             #{workerId}, #{protocol}, #{ip}, #{port}, #{status}
         )
+        ON DUPLICATE KEY UPDATE
+        protocol = VALUES(protocol), ip = VALUES(ip), port = VALUES(port), status = VALUES(status)
     </insert>
 
 </mapper>

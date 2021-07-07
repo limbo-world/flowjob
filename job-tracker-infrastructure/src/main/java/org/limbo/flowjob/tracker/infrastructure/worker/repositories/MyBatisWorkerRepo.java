@@ -52,15 +52,7 @@ public class MyBatisWorkerRepo implements WorkerRepository {
         WorkerPO po = converter.convert(worker);
         Objects.requireNonNull(po);
 
-        int effected = mapper.insertIgnore(po);
-        if (effected <= 0) {
-            effected = mapper.update(po, Wrappers.<WorkerPO>lambdaUpdate()
-                    .eq(WorkerPO::getWorkerId, po.getWorkerId()));
-
-            if (effected != 1) {
-                throw new IllegalStateException(String.format("Update worker error, effected %s rows", effected));
-            }
-        }
+        mapper.insertOrUpdate(po);
     }
 
     /**

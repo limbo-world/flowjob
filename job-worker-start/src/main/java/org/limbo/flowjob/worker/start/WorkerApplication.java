@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.worker.start;
 
-import org.limbo.flowjob.worker.start.shared.JobProperties;
+import org.limbo.flowjob.worker.start.shared.WorkerProperties;
 import org.limbo.flowjob.worker.start.adapter.http.config.WorkerConfiguration;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Import;
  * @date 2021/6/9 5:51 下午
  */
 @SpringBootApplication
-@EnableConfigurationProperties({JobProperties.class})
+@EnableConfigurationProperties({WorkerProperties.class})
 @Import({
         WorkerConfiguration.class,
 })

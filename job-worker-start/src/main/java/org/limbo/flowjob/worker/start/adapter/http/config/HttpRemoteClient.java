@@ -19,6 +19,7 @@ package org.limbo.flowjob.worker.start.adapter.http.config;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import org.limbo.flowjob.tracker.commons.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
 import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFinishDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
@@ -56,23 +57,22 @@ public class HttpRemoteClient extends AbstractRemoteClient {
 
     @Override
     public void heartbeat(WorkerHeartbeatOptionDto dto) {
-        ResponseDto<WorkerHeartbeatOptionDto> responseDto = ResponseDto.<WorkerHeartbeatOptionDto>builder().data(dto).build();
-        RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(responseDto));
+        RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(dto));
 
         Request request = new Request.Builder()
-                .url(baseUrl + "/heartbeat")
+                .url(baseUrl + "/api/v1/worker/heartbeat")
                 .header("Content-Type", "application/json")
                 .post(body)
                 .build();
 
+        OkHttpClient client = (new OkHttpClient.Builder()).build();
         Call call = client.newCall(request);
         callAndHandlerResult(call);
     }
 
     @Override
     public void register(WorkerRegisterOptionDto dto) {
-        ResponseDto<WorkerRegisterOptionDto> responseDto = ResponseDto.<WorkerRegisterOptionDto>builder().data(dto).build();
-        RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(responseDto));
+        RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(dto));
 
         Request request = new Request.Builder()
                 .url(baseUrl + "/api/v1/worker")
@@ -80,23 +80,28 @@ public class HttpRemoteClient extends AbstractRemoteClient {
                 .post(body)
                 .build();
 
+        OkHttpClient client = (new OkHttpClient.Builder()).build();
         Call call = client.newCall(request);
         callAndHandlerResult(call);
     }
 
     @Override
     public void jobExecuted(JobExecuteFinishDto dto) {
-        ResponseDto<JobExecuteFinishDto> responseDto = ResponseDto.<JobExecuteFinishDto>builder().data(dto).build();
-        RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(responseDto));
+        RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(dto));
 
         Request request = new Request.Builder()
-                .url(baseUrl + "/heartbeat")
+                .url(baseUrl + "/api/v1/worker/heartbeat")
                 .header("Content-Type", "application/json")
                 .post(body)
                 .build();
 
         Call call = client.newCall(request);
         callAndHandlerResult(call);
+    }
+
+    @Override
+    public WorkerProtocol getProtocol() {
+        return WorkerProtocol.HTTP;
     }
 
     // todo

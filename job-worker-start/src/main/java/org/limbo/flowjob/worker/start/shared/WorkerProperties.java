@@ -26,16 +26,34 @@ import java.util.List;
  * @date 2021/6/16 1:45 下午
  */
 @Data
-@ConfigurationProperties(prefix = "job")
-public class JobProperties {
-
+@ConfigurationProperties(prefix = "worker")
+public class WorkerProperties {
+    /**
+     * 节点名称
+     */
     private String name;
-
+    /**
+     * 队列容量
+     */
     private int queueSize;
-
-    private String host;
-
-    private int port;
-
+    /**
+     * tracker host
+     */
+    private String serverHost;
+    /**
+     * tracker port
+     */
+    private int serverPort;
+    /**
+     * 当前 worker host 可为空
+     */
+    private String localHost;
+    /**
+     * 当前 worker port
+     */
+    private int localPort;
+    /**
+     * 节点标签
+     */
     private List<String> tags;
 }

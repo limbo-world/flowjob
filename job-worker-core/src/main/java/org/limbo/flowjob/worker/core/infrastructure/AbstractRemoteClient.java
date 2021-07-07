@@ -16,6 +16,7 @@
 
 package org.limbo.flowjob.worker.core.infrastructure;
 
+import org.limbo.flowjob.tracker.commons.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFinishDto;
 import org.limbo.flowjob.tracker.commons.dto.tracker.TrackerNode;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
@@ -59,8 +60,10 @@ public abstract class AbstractRemoteClient {
         }
         // 建立连接
         clientStart(host, port);
-        // 注册
-        register(worker.register());
+        // 注册 todo 注册失败
+        WorkerRegisterOptionDto registerDto = worker.register();
+        registerDto.setProtocol(getProtocol());
+        register(registerDto);
         // 心跳
         new Timer().schedule(new TimerTask() {
             @Override
@@ -91,5 +94,10 @@ public abstract class AbstractRemoteClient {
      * 任务执行完成 将结果反馈给tracker
      */
     public abstract void jobExecuted(JobExecuteFinishDto dto);
+
+    /**
+     * 协议类型
+     */
+    public abstract WorkerProtocol getProtocol();
 
 }

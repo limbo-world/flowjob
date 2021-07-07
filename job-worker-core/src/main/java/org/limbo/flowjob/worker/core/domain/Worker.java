@@ -113,6 +113,7 @@ public class Worker {
         resourceDto.setAvailableQueueLimit(resource.getAvailableQueueSize());
 
         WorkerHeartbeatOptionDto heartbeatOptionDto = new WorkerHeartbeatOptionDto();
+        heartbeatOptionDto.setWorkerId(id);
         heartbeatOptionDto.setAvailableResource(resourceDto);
         return heartbeatOptionDto;
     }

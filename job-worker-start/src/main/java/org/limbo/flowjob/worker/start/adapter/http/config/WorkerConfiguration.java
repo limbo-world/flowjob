@@ -16,14 +16,14 @@
 
 package org.limbo.flowjob.worker.start.adapter.http.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.commons.utils.NetUtils;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.infrastructure.AbstractRemoteClient;
 import org.limbo.flowjob.worker.core.infrastructure.JobExecutor;
 import org.limbo.flowjob.worker.core.infrastructure.ShellJobExecutor;
-import org.limbo.flowjob.worker.start.shared.JobProperties;
+import org.limbo.flowjob.worker.start.shared.WorkerProperties;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -37,26 +37,21 @@ import java.util.List;
 @Configuration
 public class WorkerConfiguration {
 
-    /**
-     * 本机服务端口号
-     */
-    @Value("${server.port}")
-    private Integer serverPort;
-
     @Autowired
-    private JobProperties jobProperties;
+    private WorkerProperties workerProperties;
 
     @Bean
     public Worker worker() throws Exception {
         List<JobExecutor> executors = new ArrayList<>();
         executors.add(new ShellJobExecutor());
-        return new Worker(NetUtils.getLocalIp(), serverPort, jobProperties.getQueueSize(), executors);
+        return new Worker(StringUtils.isBlank(workerProperties.getLocalHost()) ? NetUtils.getLocalIp() : workerProperties.getLocalHost(),
+                workerProperties.getLocalPort(), workerProperties.getQueueSize(), executors);
     }
 
     @Bean
     public AbstractRemoteClient remoteClient(Worker worker) {
         AbstractRemoteClient client = new HttpRemoteClient(worker);
-        client.start(jobProperties.getHost(), jobProperties.getPort(), 5000);
+        client.start(workerProperties.getServerHost(), workerProperties.getServerPort(), 5000);
         return client;
     }
 
