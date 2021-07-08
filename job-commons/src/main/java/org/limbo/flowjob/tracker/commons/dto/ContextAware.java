@@ -14,39 +14,16 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.tracker.worker.metric;
+package org.limbo.flowjob.tracker.commons.dto;
 
-import lombok.Data;
-
-import java.util.List;
+import java.util.Map;
 
 /**
- * worker的指标信息。
- *
  * @author Brozen
- * @since 2021-05-17
+ * @since 2021-07-08
  */
-@Data
-public class WorkerMetric {
+public class ContextAware {
 
-    /**
-     * worker节点ID
-     */
-    private String workerId;
-
-    /**
-     * worker节点上正在执行中的作业，瞬时态数据，可能并发不安全
-     */
-    private List<JobDescription> executingJobs;
-
-    /**
-     * worker可用的资源
-     */
-    private WorkerAvailableResource availableResource;
-
-    /**
-     * worker支持的所有执行器
-     */
-    private List<WorkerExecutor> executors;
+    private Map<String, Object> context;
 
 }

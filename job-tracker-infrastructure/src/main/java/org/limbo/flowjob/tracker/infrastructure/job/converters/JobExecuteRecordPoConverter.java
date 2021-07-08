@@ -24,6 +24,7 @@ import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
 import org.limbo.flowjob.tracker.dao.po.JobExecuteRecordPO;
 import org.limbo.utils.JacksonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
@@ -38,6 +39,7 @@ public class JobExecuteRecordPoConverter extends Converter<JobContext, JobExecut
     /**
      * 上下文repo
      */
+    @Lazy
     @Autowired
     private JobContextRepository jobContextRepository;
 

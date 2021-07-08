@@ -19,6 +19,7 @@ package org.limbo.flowjob.tracker.commons.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.limbo.utils.JacksonUtils;
 import org.limbo.utils.web.HttpStatus;
 
 /**
@@ -53,6 +54,16 @@ public class ResponseDto<T> {
         this.message = message;
         this.data = data;
     }
+
+
+    /**
+     * 通过{@link JacksonUtils#toJSONString(Object)}将此Response转换为json字符串
+     * @return json字符串
+     */
+    public String toJson() {
+        return JacksonUtils.toJSONString(this);
+    }
+
 
     /**
      * 获取一个响应类Builder
@@ -111,6 +122,29 @@ public class ResponseDto<T> {
             this.message = message;
             return this;
         }
+
+
+        /**
+         * 设置响应状态码{@link HttpStatus#SC_FORBIDDEN}
+         * @return 链式调用
+         */
+        public Builder<T> forbidden() {
+            this.code = HttpStatus.SC_FORBIDDEN;
+            return this;
+        }
+
+
+        /**
+         * 设置响应状态码{@link HttpStatus#SC_FORBIDDEN}，并设置提示信息
+         * @param message 错误提示信息
+         * @return 链式调用
+         */
+        public Builder<T> forbidden(String message) {
+            this.code = HttpStatus.SC_FORBIDDEN;
+            this.message = message;
+            return this;
+        }
+
 
         /**
          * 设置响应状态码{@link HttpStatus#SC_INTERNAL_SERVER_ERROR}

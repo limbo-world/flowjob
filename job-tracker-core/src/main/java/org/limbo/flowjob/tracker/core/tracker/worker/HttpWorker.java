@@ -17,7 +17,7 @@
 package org.limbo.flowjob.tracker.core.tracker.worker;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
-import org.limbo.flowjob.tracker.commons.dto.worker.SendJobResult;
+import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
@@ -103,11 +103,11 @@ public class HttpWorker extends Worker {
      * @return
      * @throws JobWorkerException
      */
-    public Mono<SendJobResult> sendJobContext(JobContext context) throws JobWorkerException {
+    public Mono<JobReceiveResult> sendJobContext(JobContext context) throws JobWorkerException {
         return Mono.from(client.post()
-                .uri(workerUri("/job"))
+                .uri(workerUri("/api/v1/worker/job"))
                 // 获取请求响应并解析
-                .response((resp, flux) -> responseReceiver(resp, flux, SendJobResult.class)))
+                .response((resp, flux) -> responseReceiver(resp, flux, JobReceiveResult.class)))
                 .doOnNext(result -> {
                     // 如果worker接受作业，则更新下发时间
                     if (result.getAccepted()) {

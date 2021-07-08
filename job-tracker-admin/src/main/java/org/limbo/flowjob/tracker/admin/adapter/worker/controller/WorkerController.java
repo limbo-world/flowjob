@@ -62,9 +62,9 @@ public class WorkerController {
      */
     @Operation(summary = "worker心跳")
     @PostMapping("/heartbeat")
-    public Mono<ResponseDto<Symbol>> heartbeat(@RequestBody WorkerHeartbeatOptionDto heartbeatOption) {
+    public Mono<ResponseDto<Void>> heartbeat(@RequestBody WorkerHeartbeatOptionDto heartbeatOption) {
         return workerService.heartbeat(heartbeatOption)
-                .map(result -> ResponseDto.<Symbol>builder().ok(result).build());
+                .map(result -> ResponseDto.<Void>builder().ok().build());
     }
 
 

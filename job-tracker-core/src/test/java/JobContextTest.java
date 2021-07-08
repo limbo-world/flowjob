@@ -16,9 +16,8 @@
 
 import org.junit.Before;
 import org.junit.Test;
-import org.limbo.flowjob.tracker.commons.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
-import org.limbo.flowjob.tracker.commons.dto.worker.SendJobResult;
+import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.tracker.commons.exceptions.JobContextException;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.core.job.context.JobContext;
@@ -66,7 +65,7 @@ public class JobContextTest {
             }
 
             @Override
-            public Mono<SendJobResult> sendJobContext(JobContext context) throws JobWorkerException {
+            public Mono<JobReceiveResult> sendJobContext(JobContext context) throws JobWorkerException {
                 return null;
             }
 

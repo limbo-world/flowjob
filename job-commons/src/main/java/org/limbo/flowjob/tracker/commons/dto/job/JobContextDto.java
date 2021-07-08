@@ -18,6 +18,9 @@ package org.limbo.flowjob.tracker.commons.dto.job;
 
 import lombok.Data;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author Devil
  * @date 2021/6/23 4:27 下午
@@ -41,5 +44,10 @@ public class JobContextDto {
      * 执行时候的参数
      */
     private String executorParam;
+
+    /**
+     * 作业上下文元数据
+     */
+    private Map<String, List<String>> attributes;
 
 }

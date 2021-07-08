@@ -27,7 +27,7 @@ import java.io.Serializable;
  * @since 2021-05-17
  */
 @Data
-public class SendJobResult implements Serializable {
+public class JobReceiveResult implements Serializable {
 
     private static final long serialVersionUID = 5938197072123607724L;
 

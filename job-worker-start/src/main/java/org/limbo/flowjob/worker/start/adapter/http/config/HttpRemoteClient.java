@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
-import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFinishDto;
+import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFeedbackDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
 import org.limbo.flowjob.worker.core.domain.Worker;
@@ -86,7 +86,7 @@ public class HttpRemoteClient extends AbstractRemoteClient {
     }
 
     @Override
-    public void jobExecuted(JobExecuteFinishDto dto) {
+    public void jobExecuted(JobExecuteFeedbackDto dto) {
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(dto));
 
         Request request = new Request.Builder()
