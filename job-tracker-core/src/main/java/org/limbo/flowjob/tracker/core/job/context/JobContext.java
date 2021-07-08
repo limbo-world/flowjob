@@ -23,7 +23,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobContextStatus;
-import org.limbo.flowjob.tracker.commons.dto.worker.SendJobResult;
+import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.tracker.commons.exceptions.JobContextException;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
@@ -130,12 +130,12 @@ public class JobContext {
         try {
 
             // 发送上下文到worker
-            Mono<SendJobResult> mono = worker.sendJobContext(this);
+            Mono<JobReceiveResult> mono = worker.sendJobContext(this);
             // 发布事件
             lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.STARTED, Sinks.EmitFailureHandler.FAIL_FAST);
 
             // 等待发送结果，根据客户端接收结果，更新状态
-            SendJobResult result = mono.block();
+            JobReceiveResult result = mono.block();
             if (result != null && result.getAccepted()) {
                 this.acceptContext(worker);
             } else {

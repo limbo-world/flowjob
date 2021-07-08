@@ -39,8 +39,6 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
 import javax.annotation.Nonnull;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -140,7 +138,6 @@ public class WorkerRegisterService {
         WorkerMetric metric = new WorkerMetric();
         metric.setExecutors(convertWorkerExecutor(options));
         metric.setExecutingJobs(Lists.newArrayList()); // TODO 是否需要记录？
-        metric.setTimestamp(LocalDateTime.now().toEpochSecond(ZoneOffset.of("+8")));
         metric.setAvailableResource(WorkerAvailableResource.from(options.getAvailableResource()));
         return metric;
     }

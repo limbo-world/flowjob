@@ -17,13 +17,11 @@
 package org.limbo.flowjob.worker.core.infrastructure;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerProtocol;
-import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFinishDto;
-import org.limbo.flowjob.tracker.commons.dto.tracker.TrackerNode;
+import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFeedbackDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
 import org.limbo.flowjob.worker.core.domain.Worker;
 
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -93,7 +91,7 @@ public abstract class AbstractRemoteClient {
     /**
      * 任务执行完成 将结果反馈给tracker
      */
-    public abstract void jobExecuted(JobExecuteFinishDto dto);
+    public abstract void jobExecuted(JobExecuteFeedbackDto dto);
 
     /**
      * 协议类型

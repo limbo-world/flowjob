@@ -56,10 +56,6 @@ public class WorkerMetricPoConverter extends Converter<WorkerMetric, WorkerMetri
         // 执行中的任务
         po.setExecutingJobs(JacksonUtils.toJSONString(vo.getExecutingJobs()));
 
-        // 设置上报时间
-        Instant ts = Instant.ofEpochMilli(vo.getTimestamp());
-        po.setUpdatedAt(LocalDateTime.ofInstant(ts, ZoneId.systemDefault()));
-
         return po;
     }
 
@@ -77,9 +73,6 @@ public class WorkerMetricPoConverter extends Converter<WorkerMetric, WorkerMetri
         ));
         metric.setExecutingJobs(JacksonUtils.parseObject(po.getExecutingJobs(), new TypeReference<List<JobDescription>>() {
         }));
-        metric.setTimestamp(po.getUpdatedAt()
-                .toInstant(ZoneOffset.of(ZoneId.systemDefault().getId()))
-                .toEpochMilli());
 
         return metric;
     }
