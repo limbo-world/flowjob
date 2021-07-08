@@ -36,7 +36,7 @@ import reactor.core.publisher.Mono;
  */
 @Tag(name = "worker相关接口")
 @RestController
-@RequestMapping("/api/v1/worker")
+@RequestMapping("/api/worker/v1")
 public class WorkerController {
 
     @Autowired

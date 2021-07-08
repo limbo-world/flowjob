@@ -29,7 +29,7 @@ import reactor.core.publisher.Mono;
  * @date 2021/6/10 4:23 下午
  */
 @RestController
-@RequestMapping("/api/v1/worker")
+@RequestMapping("/api/worker/v1")
 public class WorkerController {
 
     private final WorkerService workerService;

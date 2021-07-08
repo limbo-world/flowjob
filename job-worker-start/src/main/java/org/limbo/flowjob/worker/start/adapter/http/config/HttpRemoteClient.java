@@ -60,7 +60,7 @@ public class HttpRemoteClient extends AbstractRemoteClient {
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(dto));
 
         Request request = new Request.Builder()
-                .url(baseUrl + "/api/v1/worker/heartbeat")
+                .url(baseUrl + "/api/worker/v1/heartbeat")
                 .header("Content-Type", "application/json")
                 .post(body)
                 .build();
@@ -75,7 +75,7 @@ public class HttpRemoteClient extends AbstractRemoteClient {
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(dto));
 
         Request request = new Request.Builder()
-                .url(baseUrl + "/api/v1/worker")
+                .url(baseUrl + "/api/worker/v1")
                 .header("Content-Type", "application/json")
                 .post(body)
                 .build();
@@ -90,7 +90,7 @@ public class HttpRemoteClient extends AbstractRemoteClient {
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(dto));
 
         Request request = new Request.Builder()
-                .url(baseUrl + "/api/v1/worker/heartbeat")
+                .url(baseUrl + "/api/worker/v1/heartbeat")
                 .header("Content-Type", "application/json")
                 .post(body)
                 .build();
