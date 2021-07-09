@@ -80,6 +80,16 @@ public class JobContext {
      */
     private JobAttributes jobAttributes;
 
+    /**
+     * 执行失败时的异常信息
+     */
+    private String errorMsg;
+
+    /**
+     * 执行失败时的异常堆栈
+     */
+    private String errorStackTrace;
+
 
     // ----------------------- 分隔
     /**
@@ -194,8 +204,9 @@ public class JobContext {
         lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.REFUSED, Sinks.EmitFailureHandler.FAIL_FAST);
     }
 
+
     /**
-     * 关闭上下文，只有绑定该上下文的作业执行完成后，才会调用此方法。
+     * 关闭上下文，绑定该上下文的作业成功执行完成后，才会调用此方法。
      *
      * FIXME 更新上下文，需锁定contextId，防止并发问题
      *
@@ -212,6 +223,27 @@ public class JobContext {
         lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.CLOSED, Sinks.EmitFailureHandler.FAIL_FAST);
         lifecycleEventTrigger.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
     }
+
+
+    /**
+     * 关闭上下文，绑定该上下文的作业执行失败后，调用此方法
+     * @param errorMsg 执行失败的异常信息
+     * @param errorStackTrace 执行失败的异常堆栈
+     */
+    public void closeContext(String errorMsg, String errorStackTrace) {
+
+        assertContextStatus(JobContextStatus.EXECUTING);
+
+        setStatus(JobContextStatus.FAILED);
+        setErrorMsg(errorMsg);
+        setErrorStackTrace(errorStackTrace);
+        jobContextRepository.updateContext(this);
+
+        // 发布事件
+        lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.CLOSED, Sinks.EmitFailureHandler.FAIL_FAST);
+        lifecycleEventTrigger.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
+    }
+
 
     /**
      * 断言当前上下文处于某个状态，否则将抛出{@link JobContextException}
