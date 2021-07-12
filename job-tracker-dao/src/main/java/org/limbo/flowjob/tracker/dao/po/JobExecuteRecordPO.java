@@ -64,4 +64,14 @@ public class JobExecuteRecordPO extends PO {
      */
     private String attributes;
 
+    /**
+     * 执行失败时的异常信息
+     */
+    private String errorMsg;
+
+    /**
+     * 执行失败时的异常堆栈
+     */
+    private String errorStackTrace;
+
 }
