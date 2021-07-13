@@ -14,29 +14,30 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.scheduler;
+package org.limbo.flowjob.tracker.core.schedule.scheduler;
 
-import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleType;
+import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
+import org.limbo.flowjob.tracker.core.schedule.Schedulable;
+import org.limbo.flowjob.tracker.core.schedule.SchedulableContext;
 
 /**
- * 作业调度器，封装了作业的调度流程，根据{@link JobScheduleType}有不同实现。
+ * 调度器，封装了调度流程，根据{@link ScheduleType}有不同实现。
  *
  * @author Brozen
  * @since 2021-05-18
  */
-public interface JobScheduler {
+public interface Scheduler<T extends SchedulableContext> {
 
     /**
-     * 开始调度一个作业
-     * @param job 待调度的作业
+     * 开始调度
+     * @param schedulable 待调度的对象
      */
-    void schedule(Job job);
+    void schedule(Schedulable<T> schedulable);
 
     /**
-     * 停止调度一个作业
-     * @param job 停止调度的作业
+     * 停止调度
+     * @param schedulable 待调度的对象
      */
-    void unschedule(Job job);
+    void unschedule(Schedulable<T> schedulable);
 
 }

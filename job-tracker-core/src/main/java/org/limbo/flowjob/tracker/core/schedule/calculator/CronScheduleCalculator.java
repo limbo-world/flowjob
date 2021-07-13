@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.job.schedule;
+package org.limbo.flowjob.tracker.core.schedule.calculator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.tracker.core.job.Job;
+import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
-import org.limbo.flowjob.tracker.core.job.JobScheduleOption;
-import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleType;
+import org.limbo.flowjob.tracker.core.job.ScheduleOption;
+import org.limbo.flowjob.tracker.core.schedule.Schedulable;
+import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
 import org.quartz.CronExpression;
 
 import java.text.ParseException;
@@ -29,35 +29,30 @@ import java.time.Instant;
 import java.util.Date;
 
 /**
- * CRON作业调度时间计算器
+ * CRON调度时间计算器
  *
  * @author Brozen
  * @since 2021-05-21
  */
 @Slf4j
-public class CronJobScheduleCalculator extends JobScheduleCalculator implements Strategy<Job, Long> {
+public class CronScheduleCalculator extends ScheduleCalculator implements Strategy<Schedulable<?>, Long> {
 
-    /**
-     * 作业上下文repository
-     */
-    private JobContextRepository jobContextRepository;
-
-    protected CronJobScheduleCalculator(JobContextRepository jobContextRepository) {
-        super(JobScheduleType.CRON);
-        this.jobContextRepository = jobContextRepository;
+    protected CronScheduleCalculator() {
+        super(ScheduleType.CRON);
     }
 
+
     /**
-     * 通过此策略计算作业的下一次触发时间戳
-     * @param job 作业
-     * @return 作业下次触发时间戳
+     * 通过此策略计算下一次触发调度的时间戳。如果不应该被触发，返回0或负数。
+     * @param schedulable 待调度对象
+     * @return 下次触发调度的时间戳，当返回非正数时，表示作业不会有触发时间。
      */
     @Override
-    public Long apply(Job job) {
+    public Long apply(Schedulable<?> schedulable) {
 
         // 未到调度开始时间，不触发下次调度
         Instant nowInstant = Instant.now();
-        JobScheduleOption scheduleOption = job.getScheduleOption();
+        ScheduleOption scheduleOption = schedulable.getScheduleOption();
         long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
         if (nowInstant.getEpochSecond() < startScheduleAt) {
             return NO_TRIGGER;

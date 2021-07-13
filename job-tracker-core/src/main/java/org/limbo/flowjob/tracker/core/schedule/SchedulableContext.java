@@ -14,25 +14,13 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.job;
+package org.limbo.flowjob.tracker.core.schedule;
 
 /**
+ * 标记接口
+ *
  * @author Brozen
- * @since 2021-05-19
+ * @since 2021-07-13
  */
-public interface JobRepository {
-
-    /**
-     * 添加或更新一个作业
-     * @param job 作业数据
-     */
-    void addOrUpdateJob(Job job);
-
-    /**
-     * 根据id查询作业
-     * @param jobId jobId
-     * @return 作业
-     */
-    Job getJob(String jobId);
-
+public interface SchedulableContext {
 }

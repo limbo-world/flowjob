@@ -14,56 +14,57 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.job.schedule;
+package org.limbo.flowjob.tracker.core.schedule;
 
-import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleType;
+import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
-import org.limbo.flowjob.tracker.core.job.JobScheduleOption;
+import org.limbo.flowjob.tracker.core.job.ScheduleOption;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
 /**
- * 作业调度时间计算策略，用于计算下次触发调度时间戳
+ * 调度时间计算策略，用于计算下次触发调度时间戳
  *
  * @author Brozen
  * @since 2021-05-20
  */
-public abstract class JobScheduleCalculator implements Strategy<Job, Long> {
+public abstract class ScheduleCalculator implements Strategy<Schedulable<?>, Long> {
 
     /**
-     * 作业没有下次触发时间时，返回0或负数
+     * 没有下次触发时间时，返回0或负数
      */
     public static final long NO_TRIGGER = 0;
 
     /**
-     * 此策略适用的作业调度类型
+     * 此策略适用的调度类型
      */
-    private final JobScheduleType scheduleType;
+    private final ScheduleType scheduleType;
 
-    protected JobScheduleCalculator(JobScheduleType scheduleType) {
+    protected ScheduleCalculator(ScheduleType scheduleType) {
         this.scheduleType = scheduleType;
     }
 
+
     /**
-     * 此策略是否适用作业
-     * @param job 作业
+     * 此策略是否适用于待调度对象
+     * @param schedulable 可调度的对象
      * @return 是否可用此策略计算作业的触发时间
      */
     @Override
-    public Boolean canApply(Job job) {
-        return job.getScheduleOption().getScheduleType() == this.scheduleType;
+    public Boolean canApply(Schedulable<?> schedulable) {
+        return schedulable.getScheduleOption().getScheduleType() == this.scheduleType;
     }
 
+
     /**
-     * 通过此策略计算作业的下一次触发时间戳。如果不应该被触发，返回0或负数。
-     * @param job 作业
-     * @return 作业下次触发时间戳，当返回非正数时，表示作业不会有触发时间。
+     * 通过此策略计算下一次触发调度的时间戳。如果不应该被触发，返回0或负数。
+     * @param schedulable 待调度对象
+     * @return 下次触发调度的时间戳，当返回非正数时，表示作业不会有触发时间。
      */
     @Override
-    public abstract Long apply(Job job);
+    public abstract Long apply(Schedulable<?> schedulable);
 
 
     /**
@@ -71,7 +72,7 @@ public abstract class JobScheduleCalculator implements Strategy<Job, Long> {
      * @param scheduleOption 作业调度配置
      * @return 作业开始进行调度计算的时间
      */
-    protected long calculateStartScheduleTimestamp(JobScheduleOption scheduleOption) {
+    protected long calculateStartScheduleTimestamp(ScheduleOption scheduleOption) {
         LocalDateTime startAt = scheduleOption.getScheduleStartAt();
         Duration delay = scheduleOption.getScheduleDelay();
         long startScheduleAt = startAt.toEpochSecond(ZoneOffset.UTC);

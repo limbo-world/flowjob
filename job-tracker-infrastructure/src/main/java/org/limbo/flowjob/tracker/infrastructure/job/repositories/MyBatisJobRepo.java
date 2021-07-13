@@ -25,8 +25,10 @@ import org.limbo.flowjob.tracker.infrastructure.job.converters.JobPoConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Job的repo，领域层使用。MyBatisPlus实现
@@ -54,20 +56,16 @@ public class MyBatisJobRepo implements JobRepository {
      * @param job 作业数据
      */
     @Override
-    public void addJob(Job job) {
+    public void addOrUpdateJob(Job job) {
         JobPO po = converter.convert(job);
         Objects.requireNonNull(po);
 
-        int effected = mapper.insertIgnore(po);
+        int effected = mapper.insertOrUpdate(po);
         if (effected <= 0) {
-            effected = mapper.update(po, Wrappers.<JobPO>lambdaUpdate()
-                    .eq(JobPO::getJobId, po.getJobId()));
-
-            if (effected != 1) {
-                throw new IllegalStateException(String.format("Update job error, effected %s rows", effected));
-            }
+            throw new IllegalStateException(String.format("Update job error, effected %s rows", effected));
         }
     }
+
 
     /**
      * {@inheritDoc}
@@ -80,13 +78,4 @@ public class MyBatisJobRepo implements JobRepository {
         return converter.reverse().convert(po);
     }
 
-    /**
-     * {@inheritDoc}
-     * @return
-     */
-    @Override
-    public List<Job> listSchedulableJobs() {
-        // TODO
-        throw new UnsupportedOperationException("TODO 暂未实现");
-    }
 }

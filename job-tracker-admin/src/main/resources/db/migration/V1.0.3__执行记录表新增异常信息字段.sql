@@ -1,2 +1,2 @@
 ALTER TABLE job_execute_record ADD COLUMN `error_msg` varchar(128) NOT NULL DEFAULT '' COMMENT '执行失败时的异常信息' AFTER `attributes`;
-ALTER TABLE job_execute_record ADD COLUMN `error_stack_trace` text NOT NULL DEFAULT '' COMMENT '执行失败时的异常堆栈' AFTER `error_msg`;
+ALTER TABLE job_execute_record ADD COLUMN `error_stack_trace` text NOT NULL COMMENT '执行失败时的异常堆栈' AFTER `error_msg`;

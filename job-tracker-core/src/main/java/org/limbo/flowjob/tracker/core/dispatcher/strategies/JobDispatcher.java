@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
-import org.limbo.flowjob.tracker.commons.constants.enums.JobDispatchType;
+import org.limbo.flowjob.tracker.commons.constants.enums.DispatchType;
 import org.limbo.flowjob.tracker.core.job.context.JobContext;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
@@ -24,14 +24,14 @@ import java.util.Collection;
 import java.util.function.BiConsumer;
 
 /**
- * 作业分发器，封装了作业分发时的worker选择规则{@link JobDispatchType}：
+ * 作业分发器，封装了作业分发时的worker选择规则{@link DispatchType}：
  * <ul>
- *     <li>{@link JobDispatchType#ROUND_ROBIN}</li>
- *     <li>{@link JobDispatchType#RANDOM}</li>
- *     <li>{@link JobDispatchType#APPOINT}</li>
- *     <li>{@link JobDispatchType#LEAST_FREQUENTLY_USED}</li>
- *     <li>{@link JobDispatchType#LEAST_RECENTLY_USED}</li>
- *     <li>{@link JobDispatchType#CONSISTENT_HASH}</li>
+ *     <li>{@link DispatchType#ROUND_ROBIN}</li>
+ *     <li>{@link DispatchType#RANDOM}</li>
+ *     <li>{@link DispatchType#APPOINT}</li>
+ *     <li>{@link DispatchType#LEAST_FREQUENTLY_USED}</li>
+ *     <li>{@link DispatchType#LEAST_RECENTLY_USED}</li>
+ *     <li>{@link DispatchType#CONSISTENT_HASH}</li>
  * </ul>
  *
  * @author Brozen

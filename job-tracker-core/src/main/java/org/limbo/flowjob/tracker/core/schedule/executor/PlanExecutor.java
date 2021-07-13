@@ -14,25 +14,20 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.job;
+package org.limbo.flowjob.tracker.core.schedule.executor;
+
+import org.limbo.flowjob.tracker.core.plan.Plan;
 
 /**
+ * TODO
  * @author Brozen
- * @since 2021-05-19
+ * @since 2021-07-13
  */
-public interface JobRepository {
+public class PlanExecutor implements Executor<Plan> {
 
-    /**
-     * 添加或更新一个作业
-     * @param job 作业数据
-     */
-    void addOrUpdateJob(Job job);
+    @Override
+    public void execute(Plan executable) {
 
-    /**
-     * 根据id查询作业
-     * @param jobId jobId
-     * @return 作业
-     */
-    Job getJob(String jobId);
+    }
 
 }

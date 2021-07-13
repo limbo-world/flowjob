@@ -26,6 +26,7 @@ import org.limbo.flowjob.tracker.commons.constants.enums.JobContextStatus;
 import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.tracker.commons.exceptions.JobContextException;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
+import org.limbo.flowjob.tracker.core.schedule.SchedulableContext;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import reactor.core.publisher.*;
 
@@ -41,7 +42,12 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
-public class JobContext {
+public class JobContext implements SchedulableContext {
+
+    /**
+     * 作业执行计划ID
+     */
+    private String planId;
 
     /**
      * 作业ID

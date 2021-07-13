@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.job.schedule;
+package org.limbo.flowjob.tracker.core.schedule.calculator;
 
-import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
 import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
-import org.limbo.flowjob.tracker.core.job.JobScheduleOption;
-import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleType;
+import org.limbo.flowjob.tracker.core.job.ScheduleOption;
+import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
+import org.limbo.flowjob.tracker.core.schedule.Schedulable;
+import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -34,33 +33,29 @@ import java.time.ZoneOffset;
  * @author Brozen
  * @since 2021-05-21
  */
-public class DelayedJobScheduleCalculator extends JobScheduleCalculator implements Strategy<Job, Long> {
+public class DelayedScheduleCalculator extends ScheduleCalculator implements Strategy<Schedulable<?>, Long> {
 
-    /**
-     * 作业上下文repository
-     */
-    private JobContextRepository jobContextRepository;
 
-    protected DelayedJobScheduleCalculator(JobContextRepository jobContextRepository) {
-        super(JobScheduleType.DELAYED);
-        this.jobContextRepository = jobContextRepository;
+    protected DelayedScheduleCalculator() {
+        super(ScheduleType.DELAYED);
     }
 
+
     /**
-     * 通过此策略计算作业的下一次触发时间戳
-     * @param job 作业
-     * @return 作业下次触发时间戳
+     * 通过此策略计算下一次触发调度的时间戳。如果不应该被触发，返回0或负数。
+     * @param schedulable 待调度对象
+     * @return 下次触发调度的时间戳，当返回非正数时，表示作业不会有触发时间。
      */
     @Override
-    public Long apply(Job job) {
+    public Long apply(Schedulable<?> schedulable) {
         // 只调度一次
-        JobContext latestContext = jobContextRepository.getLatestContext(job.getJobId());
-        if (latestContext != null) {
+        Instant lastScheduleAt = schedulable.getLastScheduleAt();
+        if (lastScheduleAt != null) {
             return NO_TRIGGER;
         }
 
         // 从创建时间开始，间隔固定delay进行调度
-        JobScheduleOption scheduleOption = job.getScheduleOption();
+        ScheduleOption scheduleOption = schedulable.getScheduleOption();
         LocalDateTime startAt = scheduleOption.getScheduleStartAt();
         Duration delay = scheduleOption.getScheduleDelay();
         long triggerAt = startAt.toEpochSecond(ZoneOffset.UTC);

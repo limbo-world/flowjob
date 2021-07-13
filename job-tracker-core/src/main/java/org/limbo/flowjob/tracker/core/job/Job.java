@@ -23,8 +23,9 @@ import lombok.ToString;
 import org.limbo.flowjob.tracker.core.job.context.JobContext;
 import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobContextStatus;
-import org.limbo.flowjob.tracker.core.job.schedule.JobScheduleCalculator;
 import org.limbo.utils.UUIDUtils;
+
+import java.util.List;
 
 /**
  * 作业的抽象。主要定义了作业领域的的行为方法，属性的访问操作在{@link Job}轻量级领域对象中。
@@ -38,6 +39,11 @@ import org.limbo.utils.UUIDUtils;
 public class Job {
 
     /**
+     * 作业所属计划ID
+     */
+    private String planId;
+
+    /**
      * 作业ID
      */
     private String jobId;
@@ -48,23 +54,21 @@ public class Job {
     private String jobDesc;
 
     /**
+     * 此作业依赖的父作业ID
+     */
+    private List<String> parentJobIds;
+
+    /**
      * 作业分发配置参数
      */
-    private JobDispatchOption dispatchOption;
+    private DispatchOption dispatchOption;
 
     /**
      * 作业调度配置参数
      */
-    private JobScheduleOption scheduleOption;
+    private ScheduleOption scheduleOption;
 
-    // ----------------- 分隔
-    /**
-     * 作业触发计算器
-     */
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    @ToString.Exclude
-    private JobScheduleCalculator triggerCalculator;
+    // ----------------- 需要注入
 
     /**
      * 上下文repository
@@ -74,19 +78,8 @@ public class Job {
     @ToString.Exclude
     private JobContextRepository jobContextRepository;
 
-    public Job(JobScheduleCalculator triggerCalculator,
-               JobContextRepository jobContextRepository) {
-        this.triggerCalculator = triggerCalculator;
+    public Job(JobContextRepository jobContextRepository) {
         this.jobContextRepository = jobContextRepository;
-    }
-
-
-    /**
-     * 计算作业下一次被触发时的时间戳。如果作业不会被触发，返回0或负数；
-     * @return 作业下一次被触发时的时间戳，从1970-01-01 00:00:00到触发时刻的毫秒数。
-     */
-    public long nextTriggerAt() {
-        return triggerCalculator.apply(this);
     }
 
     /**

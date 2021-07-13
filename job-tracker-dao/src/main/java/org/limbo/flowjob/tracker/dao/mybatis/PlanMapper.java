@@ -14,25 +14,24 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.job;
+package org.limbo.flowjob.tracker.dao.mybatis;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
+import org.limbo.flowjob.tracker.dao.po.PlanPO;
 
 /**
  * @author Brozen
- * @since 2021-05-19
+ * @since 2021-07-13
  */
-public interface JobRepository {
+public interface PlanMapper extends BaseMapper<PlanPO> {
+
 
     /**
-     * 添加或更新一个作业
-     * @param job 作业数据
+     * 插入Plan记录，通过 insert on duplicate key update 语句实现。
+     * @param plan 需要新增的Plan
+     * @return 影响的记录条数
      */
-    void addOrUpdateJob(Job job);
-
-    /**
-     * 根据id查询作业
-     * @param jobId jobId
-     * @return 作业
-     */
-    Job getJob(String jobId);
+    int insertOrUpdate(@Param("plan") PlanPO plan);
 
 }

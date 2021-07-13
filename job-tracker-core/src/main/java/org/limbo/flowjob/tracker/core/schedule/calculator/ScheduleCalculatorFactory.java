@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.job.schedule;
+package org.limbo.flowjob.tracker.core.schedule.calculator;
 
-import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.commons.utils.strategies.StrategyFactory;
-import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
+import org.limbo.flowjob.tracker.core.schedule.Schedulable;
+import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,43 +28,44 @@ import java.util.List;
  * @author Brozen
  * @since 2021-05-20
  */
-public class JobScheduleCalculatorFactory implements StrategyFactory<Job, JobScheduleCalculator, Job, Long> {
+public class ScheduleCalculatorFactory implements StrategyFactory<Schedulable<?>, ScheduleCalculator, Schedulable<?>, Long> {
 
     /**
      * 全部策略
      */
-    private List<JobScheduleCalculator> jobScheduleCalculators;
+    private List<ScheduleCalculator> scheduleCalculators;
 
-    public JobScheduleCalculatorFactory(JobContextRepository jobContextRepository) {
-        ArrayList<JobScheduleCalculator> calculators = new ArrayList<>();
+    public ScheduleCalculatorFactory() {
+        ArrayList<ScheduleCalculator> calculators = new ArrayList<>();
 
         // 预设计算器
-        calculators.add(new DelayedJobScheduleCalculator(jobContextRepository));
-        calculators.add(new FixRateJobScheduleCalculator(jobContextRepository));
-        calculators.add(new FixIntervalJobScheduleCalculator(jobContextRepository));
+        calculators.add(new DelayedScheduleCalculator());
+        calculators.add(new FixRateScheduleCalculator());
+        calculators.add(new FixIntervalScheduleCalculator());
+        calculators.add(new CronScheduleCalculator());
 
         // 自定义计算器
 
         // 配置不可变
-        jobScheduleCalculators = Collections.unmodifiableList(calculators);
+        scheduleCalculators = Collections.unmodifiableList(calculators);
 
     }
 
 
     /**
      * 根据作业调度类型，创建作业触发时间计算器
-     * @param job 根据此作业创建触发时间计算器
+     * @param schedulable 待调度对象
      * @return 触发时间计算器
      */
     @Override
-    public JobScheduleCalculator newStrategy(Job job) {
-        for (JobScheduleCalculator calculator : jobScheduleCalculators) {
-            if (calculator.canApply(job)) {
+    public ScheduleCalculator newStrategy(Schedulable<?> schedulable) {
+        for (ScheduleCalculator calculator : scheduleCalculators) {
+            if (calculator.canApply(schedulable)) {
                 return calculator;
             }
         }
 
-        throw new IllegalStateException("cannot apply JobTriggerCalculator for job " + job);
+        throw new IllegalStateException("cannot apply " + (getClass().getName()) + " for " + schedulable);
     }
 
 }

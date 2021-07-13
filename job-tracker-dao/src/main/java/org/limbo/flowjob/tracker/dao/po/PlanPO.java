@@ -22,56 +22,66 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.time.LocalDateTime;
+
 /**
+ * 作业执行计划
+ *
  * @author Brozen
- * @since 2021-05-17
+ * @since 2021-07-13
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("job")
-public class JobPO extends PO {
+@TableName("plan")
+public class PlanPO extends PO {
 
-    private static final long serialVersionUID = 3343186004952320736L;
+    private static final long serialVersionUID = -1639602897831847418L;
 
     /**
-     * DB自增序列ID，并不是Job的唯一标识
+     * DB自增序列ID，并不是唯一标识
      */
     private Long serialId;
 
     /**
-     * 作业计划ID
+     * 作业执行计划ID
      */
+    @TableId(type = IdType.INPUT)
     private String planId;
 
     /**
-     * 作业唯一标识ID
+     * 执行计划描述
      */
-    @TableId(type = IdType.INPUT)
-    private String jobId;
+    private String planDesc;
 
     /**
-     * 作业描述
-     */
-    private String jobDesc;
-
-    /**
-     * 此作业依赖的父作业ID
-     */
-    private String parentJobIds;
-
-    /**
-     * 作业分发方式
+     * 计划作业分发方式
      */
     private Byte dispatchType;
 
     /**
-     * 所需的CPU核心数，小于等于0表示此作业未定义CPU需求。
+     * 计划作业调度方式
      */
-    private Float cpuRequirement;
+    private Byte scheduleType;
 
     /**
-     * 所需的内存GB数，小于等于0表示此作业未定义内存需求。
+     * 从何时开始调度作业
      */
-    private float ramRequirement;
+    private LocalDateTime scheduleStartAt;
+
+    /**
+     * 作业调度延迟时间，单位毫秒
+     */
+    private Long scheduleDelay;
+
+    /**
+     * 作业调度间隔时间，单位毫秒。
+     */
+    private Long scheduleInterval;
+
+    /**
+     * 作业调度的CRON表达式
+     */
+    private String scheduleCron;
+
 
 }
