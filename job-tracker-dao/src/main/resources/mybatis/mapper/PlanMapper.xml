@@ -15,47 +15,40 @@
  limitations under the License.
 -->
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="org.limbo.flowjob.tracker.dao.mybatis.JobMapper">
+<mapper namespace="org.limbo.flowjob.tracker.dao.mybatis.PlanMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="JobPO" type="org.limbo.flowjob.tracker.dao.po.JobPO">
+    <resultMap id="JobPO" type="org.limbo.flowjob.tracker.dao.po.PlanPO">
         <id column="serial_id" property="serialId" />
         <result column="plan_id" property="planId" />
-        <result column="job_id" property="jobId" />
-        <result column="job_desc" property="jobDesc" />
+        <result column="plan_desc" property="planDesc" />
         <result column="dispatch_type" property="dispatchType" />
-        <result column="cpu_requirement" property="cpuRequirement" />
-        <result column="ram_requirement" property="ramRequirement" />
+        <result column="schedule_type" property="scheduleType" />
+        <result column="schedule_start_at" property="scheduleStartAt" />
+        <result column="schedule_delay" property="scheduleDelay" />
+        <result column="schedule_interval" property="scheduleInterval" />
+        <result column="schedule_cron" property="scheduleCron" />
         <result column="created_at" property="createdAt" />
         <result column="updated_at" property="updatedAt" />
     </resultMap>
 
     <insert id="insertOrUpdate">
-        INSERT INTO job (
-            plan_id, job_id, job_desc,
-            dispatch_type, cpu_requirement, ram_requirement
+        INSERT INTO plan (
+            plan_id, plan_desc, dispatch_type,
+            schedule_type, schedule_start_at, schedule_delay,
+            schedule_interval, schedule_cron
         ) VALUES (
-            #{job.plan_id}, #{job.jobId}, #{job.jobDesc},
-            #{job.dispatchType}, #{job.cpuRequirement}, #{job.ramRequirement}
+            #{plan.planId}, #{plan.planDesc}, #{plan.dispatchType},
+            #{plan.scheduleType}, #{plan.scheduleStartAt}, #{plan.scheduleDelay},
+            #{plan.scheduleInterval}, #{plan.scheduleCron}
         ) ON DUPLICATE KEY UPDATE
-            job_desc = VALUES(job_desc),
+            plan_desc = VALUES(plan_desc),
             dispatch_type = VALUES(dispatch_type),
-            cpu_requirement = VALUES(cpu_requirement),
-            ram_requirement = VALUES(ram_requirement)
-    </insert>
-
-
-    <insert id="batchInsert">
-        INSERT INTO job (
-            plan_id, job_id, job_desc,
-            dispatch_type, cpu_requirement, ram_requirement
-        ) VALUES
-        <foreach collection="jobs" item="job" separator=",">
-        (
-            #{job.plan_id}, #{job.jobId}, #{job.jobDesc},
-            #{job.dispatchType}, #{job.cpuRequirement}, #{job.ramRequirement}
-        )
-        </foreach>
+            schedule_type = VALUES(schedule_type),
+            schedule_start_at = VALUES(schedule_start_at),
+            schedule_delay = VALUES(schedule_delay),
+            schedule_interval = VALUES(schedule_interval),
+            schedule_cron = VALUES(schedule_cron)
     </insert>
 
 </mapper>

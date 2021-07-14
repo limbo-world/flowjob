@@ -14,22 +14,37 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.job.dag;
+package org.limbo.flowjob.tracker.core.plan;
 
-import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
-import org.limbo.flowjob.tracker.core.job.schedule.JobScheduleCalculator;
+import java.util.List;
 
 /**
- * TODO
- *
  * @author Brozen
- * @since 2021-05-19
+ * @since 2021-07-12
  */
-public class DAGJob extends Job {
+public interface PlanRepository {
 
-    public DAGJob(JobScheduleCalculator triggerCalculator, JobContextRepository jobContextRepository) {
-        super(triggerCalculator, jobContextRepository);
-    }
+    /**
+     * 新增或更新一个plan
+     * @param plan 计划plan
+     * @return 返回plan的id。如果入参Plan中没有指定ID，方法内应当自动生成一个并返回。
+     */
+    String addOrUpdatePlan(Plan plan);
+
+
+    /**
+     * 根据计划ID查询计划
+     * @param planId 计划ID
+     * @return 计划plan
+     */
+    Plan getPlan(String planId);
+
+
+    /**
+     * 查询所有需要被调度的计划。
+     * @return 所有需要被调度的作业计划
+     */
+    List<Plan> listSchedulablePlans();
+
 
 }

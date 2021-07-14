@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
-import org.limbo.flowjob.tracker.commons.constants.enums.JobDispatchType;
+import org.limbo.flowjob.tracker.commons.constants.enums.DispatchType;
 import org.limbo.flowjob.tracker.core.job.context.JobContext;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
@@ -28,7 +28,7 @@ import java.util.Collection;
  *
  * @author Brozen
  * @since 2021-05-19
- * @see JobDispatchType#ROUND_ROBIN
+ * @see DispatchType#ROUND_ROBIN
  */
 public class RoundRobinJobDispatcher extends AbstractJobDispatcher implements JobDispatcher {
 

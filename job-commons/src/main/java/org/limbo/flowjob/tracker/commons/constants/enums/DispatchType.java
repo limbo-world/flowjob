@@ -22,18 +22,18 @@ import com.fasterxml.jackson.annotation.JsonValue;
 /**
  * 作业分发方式.
  * <ul>
- *     <li>{@linkplain JobDispatchType#ROUND_ROBIN 轮询}</li>
- *     <li>{@linkplain JobDispatchType#RANDOM 随机}</li>
- *     <li>{@linkplain JobDispatchType#APPOINT 指定节点}</li>
- *     <li>{@linkplain JobDispatchType#LEAST_FREQUENTLY_USED 最不经常使用}</li>
- *     <li>{@linkplain JobDispatchType#LEAST_RECENTLY_USED 最近最少使用}</li>
- *     <li>{@linkplain JobDispatchType#CONSISTENT_HASH 一致性hash}</li>
+ *     <li>{@linkplain DispatchType#ROUND_ROBIN 轮询}</li>
+ *     <li>{@linkplain DispatchType#RANDOM 随机}</li>
+ *     <li>{@linkplain DispatchType#APPOINT 指定节点}</li>
+ *     <li>{@linkplain DispatchType#LEAST_FREQUENTLY_USED 最不经常使用}</li>
+ *     <li>{@linkplain DispatchType#LEAST_RECENTLY_USED 最近最少使用}</li>
+ *     <li>{@linkplain DispatchType#CONSISTENT_HASH 一致性hash}</li>
  * </ul>
  *
  * @author Brozen
  * @since 2021-05-16
  */
-public enum JobDispatchType {
+public enum DispatchType {
 
     /**
      * 轮询。
@@ -80,11 +80,11 @@ public enum JobDispatchType {
      */
     public final String desc;
 
-    JobDispatchType(int type, String desc) {
+    DispatchType(int type, String desc) {
         this((byte) type, desc);
     }
 
-    JobDispatchType(byte type, String desc) {
+    DispatchType(byte type, String desc) {
         this.type = type;
         this.desc = desc;
     }
@@ -94,12 +94,12 @@ public enum JobDispatchType {
      * 解析作业分发类型。
      */
     @JsonCreator
-    public static JobDispatchType parse(Number type) {
+    public static DispatchType parse(Number type) {
         if (type == null) {
             return null;
         }
 
-        for (JobDispatchType dispatchType : values()) {
+        for (DispatchType dispatchType : values()) {
             if (type.byteValue() == dispatchType.type) {
                 return dispatchType;
             }

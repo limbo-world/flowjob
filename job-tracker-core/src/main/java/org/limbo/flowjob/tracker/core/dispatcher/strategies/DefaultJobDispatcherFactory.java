@@ -16,15 +16,17 @@
 
 package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
+import org.limbo.flowjob.tracker.core.job.DispatchOption;
 import org.limbo.flowjob.tracker.core.job.context.JobContext;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobDispatchType;
+import org.limbo.flowjob.tracker.commons.constants.enums.DispatchType;
 import org.limbo.flowjob.tracker.commons.exceptions.JobExecuteException;
 import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.JobRepository;
+import org.limbo.flowjob.tracker.core.plan.Plan;
+import org.limbo.flowjob.tracker.core.plan.PlanRepository;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 
 /**
- * 默认{@link JobDispatcher} 工厂类，从{@link JobContext}中读取{@link Job}，并根据job的{@link JobDispatchType}创建作业分发器。
+ * 默认{@link JobDispatcher} 工厂类，从{@link JobContext}中读取{@link Job}，并根据job的{@link DispatchType}创建作业分发器。
  *
  * @author Brozen
  * @since 2021-05-18
@@ -32,25 +34,33 @@ import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 public class DefaultJobDispatcherFactory implements JobDispatcherFactory {
 
     /**
-     * 作业repo
+     * 作业计划repo
      */
-    private JobRepository jobRepository;
+    private PlanRepository planRepository;
 
-    public DefaultJobDispatcherFactory(JobRepository jobRepository) {
-        this.jobRepository = jobRepository;
+    public DefaultJobDispatcherFactory(PlanRepository planRepository) {
+        this.planRepository = planRepository;
     }
 
     /**
      * Double Dispatch (￣▽￣)~* <br/>
-     * 根据作业的分发方式，创建一个分发器实例。委托给{@link JobDispatchType}执行。
+     * 根据作业的分发方式，创建一个分发器实例。委托给{@link DispatchType}执行。
      *
      * @param tracker tracker节点
      * @param context 作业上下文
      * @return 分发器实例
      */
     public JobDispatcher newDispatcher(JobTracker tracker, JobContext context) {
-        Job job = jobRepository.getJob(context.getJobId());
-        JobDispatchType dispatchType = job.getDispatchOption().getDispatchType();
+        Plan plan = planRepository.getPlan(context.getPlanId());
+        Job job = plan.getJob(context.getJobId());
+
+        DispatchOption dispatchOption = job.getDispatchOption();
+        // job未指定分发策略时，使用plan的分发策略
+        if (dispatchOption == null) {
+            dispatchOption = plan.getDispatchOption();
+        }
+
+        DispatchType dispatchType = dispatchOption.getDispatchType();
         switch (dispatchType) {
             case ROUND_ROBIN:
                 return new RoundRobinJobDispatcher();

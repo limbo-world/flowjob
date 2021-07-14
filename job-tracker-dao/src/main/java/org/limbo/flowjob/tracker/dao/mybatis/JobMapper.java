@@ -17,7 +17,10 @@
 package org.limbo.flowjob.tracker.dao.mybatis;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
 import org.limbo.flowjob.tracker.dao.po.JobPO;
+
+import java.util.Collection;
 
 /**
  * @author Brozen
@@ -26,10 +29,18 @@ import org.limbo.flowjob.tracker.dao.po.JobPO;
 public interface JobMapper extends BaseMapper<JobPO> {
 
     /**
-     * 插入Job记录，通过 insert ignore into 语句实现。
+     * 插入Job记录，通过 insert on duplicate key update 语句实现。
      * @param job 需要新增的Job
      * @return 影响的记录条数
      */
-    int insertIgnore(JobPO job);
+    int insertOrUpdate(JobPO job);
+
+
+    /**
+     * 批量查询Job记录，通过insert into values(...), (...)
+     * @param jobs job记录列表
+     * @return 影响的记录条数
+     */
+    int batchInsert(@Param("jobs") Collection<JobPO> jobs);
 
 }

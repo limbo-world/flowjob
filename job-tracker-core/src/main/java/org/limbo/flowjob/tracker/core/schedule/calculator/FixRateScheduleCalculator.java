@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.job.schedule;
+package org.limbo.flowjob.tracker.core.schedule.calculator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
 import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
-import org.limbo.flowjob.tracker.core.job.JobScheduleOption;
+import org.limbo.flowjob.tracker.core.job.ScheduleOption;
 import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleType;
+import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
+import org.limbo.flowjob.tracker.core.schedule.Schedulable;
+import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneOffset;
 
 /**
  * 固定速度作业调度时间计算器
@@ -35,38 +34,33 @@ import java.time.ZoneOffset;
  * @since 2021-05-21
  */
 @Slf4j
-public class FixRateJobScheduleCalculator extends JobScheduleCalculator implements Strategy<Job, Long> {
+public class FixRateScheduleCalculator extends ScheduleCalculator implements Strategy<Schedulable<?>, Long> {
 
-    /**
-     * 作业上下文repository
-     */
-    private JobContextRepository jobContextRepository;
-
-    protected FixRateJobScheduleCalculator(JobContextRepository jobContextRepository) {
-        super(JobScheduleType.FIXED_RATE);
-        this.jobContextRepository = jobContextRepository;
+    protected FixRateScheduleCalculator() {
+        super(ScheduleType.FIXED_RATE);
     }
 
+
     /**
-     * 通过此策略计算作业的下一次触发时间戳
-     * @param job 作业
-     * @return 作业下次触发时间戳
+     * 通过此策略计算下一次触发调度的时间戳。如果不应该被触发，返回0或负数。
+     * @param schedulable 待调度对象
+     * @return 下次触发调度的时间戳，当返回非正数时，表示作业不会有触发时间。
      */
     @Override
-    public Long apply(Job job) {
+    public Long apply(Schedulable<?> schedulable) {
 
         long now = Instant.now().getEpochSecond();
         long scheduleAt;
 
         // 未到调度开始时间，不触发下次调度
-        JobScheduleOption scheduleOption = job.getScheduleOption();
+        ScheduleOption scheduleOption = schedulable.getScheduleOption();
         long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
         if (now < startScheduleAt) {
             return NO_TRIGGER;
         }
 
-        JobContext latestContext = jobContextRepository.getLatestContext(job.getJobId());
-        if (latestContext == null) {
+        Instant lastScheduleAt = schedulable.getLastScheduleAt();
+        if (lastScheduleAt == null) {
 
             scheduleAt = now;
 
@@ -74,13 +68,12 @@ public class FixRateJobScheduleCalculator extends JobScheduleCalculator implemen
 
             Duration interval = scheduleOption.getScheduleInterval();
             if (interval == null) {
-                log.error("cannot calculate next trigger timestamp of job({}) because interval is not assigned!", job.getJobId());
+                log.error("cannot calculate next trigger timestamp of {} because interval is not assigned!", schedulable);
                 return NO_TRIGGER;
             }
 
             // 已经调度过，则根据调度记录，计算下一次
-            long latestContextCreatedAt = latestContext.getCreatedAt().toEpochSecond(ZoneOffset.UTC);
-            scheduleAt = latestContextCreatedAt + interval.toMillis();
+            scheduleAt = lastScheduleAt.toEpochMilli() + interval.toMillis();
 
         }
 

@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleType;
+import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -34,12 +34,12 @@ import java.time.LocalDateTime;
  */
 @Data
 @Setter(AccessLevel.NONE)
-public class JobScheduleOption {
+public class ScheduleOption {
 
     /**
      * 作业调度方式
      */
-    private JobScheduleType scheduleType;
+    private ScheduleType scheduleType;
 
     /**
      * 作业调度开始时间，从此时间开始执行调度。
@@ -48,27 +48,27 @@ public class JobScheduleOption {
 
     /**
      * 获取作业延迟时间。
-     * 当调度方式为{@link JobScheduleType#DELAYED}或{@link JobScheduleType#FIXED_INTERVAL}时，
+     * 当调度方式为{@link ScheduleType#DELAYED}或{@link ScheduleType#FIXED_INTERVAL}时，
      * 表示从<code>scheduleStartAt</code>时间点开始，延迟多久触发作业调度。
      */
     private Duration scheduleDelay;
 
     /**
      * 获取作业调度间隔时间。
-     * 当调度方式为{@link JobScheduleType#FIXED_INTERVAL}时，表示前一次作业调度执行完成后，隔多久触发第二次调度。
-     * 当调度方式为{@link JobScheduleType#FIXED_RATE}时，表示前一次作业调度下发后，隔多久触发第二次调度。
+     * 当调度方式为{@link ScheduleType#FIXED_INTERVAL}时，表示前一次作业调度执行完成后，隔多久触发第二次调度。
+     * 当调度方式为{@link ScheduleType#FIXED_RATE}时，表示前一次作业调度下发后，隔多久触发第二次调度。
      */
     private Duration scheduleInterval;
 
     /**
      * 作业调度的CRON表达式
-     * 当调度方式为{@link JobScheduleType#CRON}时，根据此CRON表达式计算得到的时间点触发作业调度。
+     * 当调度方式为{@link ScheduleType#CRON}时，根据此CRON表达式计算得到的时间点触发作业调度。
      */
     private String scheduleCron;
 
     @JsonCreator
-    public JobScheduleOption(
-            @JsonProperty("scheduleType") JobScheduleType scheduleType,
+    public ScheduleOption(
+            @JsonProperty("scheduleType") ScheduleType scheduleType,
             @JsonProperty("scheduleStartAt") LocalDateTime scheduleStartAt,
             @JsonProperty("scheduleDelay") Duration scheduleDelay,
             @JsonProperty("scheduleInterval") Duration scheduleInterval,

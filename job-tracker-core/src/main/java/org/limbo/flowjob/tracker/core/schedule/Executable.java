@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.job;
+package org.limbo.flowjob.tracker.core.schedule;
 
 /**
+ * 可执行对象
+ *
+ * @param <T> 可执行对象执行时所需的上下文
  * @author Brozen
- * @since 2021-05-19
+ * @since 2021-07-13
  */
-public interface JobRepository {
+public interface Executable<T> {
 
     /**
-     * 添加或更新一个作业
-     * @param job 作业数据
+     * 获取执行上下文
      */
-    void addOrUpdateJob(Job job);
-
-    /**
-     * 根据id查询作业
-     * @param jobId jobId
-     * @return 作业
-     */
-    Job getJob(String jobId);
+    default T getContext() {
+        throw new UnsupportedOperationException();
+    }
 
 }

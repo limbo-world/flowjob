@@ -23,7 +23,7 @@ import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.core.job.context.JobContext;
 import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobContextStatus;
-import org.limbo.flowjob.tracker.core.scheduler.HashedWheelTimerJobScheduler;
+import org.limbo.flowjob.tracker.core.schedule.scheduler.HashedWheelTimerScheduler;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
@@ -39,7 +39,7 @@ public class JobContextTest {
 
     private JobTracker jobTracker;
 
-    private HashedWheelTimerJobScheduler scheduler;
+    private HashedWheelTimerScheduler scheduler;
 
     @Before
     public void init() {

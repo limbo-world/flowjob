@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobDispatchType;
+import org.limbo.flowjob.tracker.commons.constants.enums.DispatchType;
 
 /**
  * 作业分发配置，值对象
@@ -31,12 +31,12 @@ import org.limbo.flowjob.tracker.commons.constants.enums.JobDispatchType;
  */
 @Data
 @Setter(AccessLevel.NONE)
-public class JobDispatchOption {
+public class DispatchOption {
 
     /**
      * 作业分发方式
      */
-    private JobDispatchType dispatchType;
+    private DispatchType dispatchType;
 
     /**
      * 所需的CPU核心数，小于等于0表示此作业未定义CPU需求。在分发作业时，会根据此方法返回的CPU核心需求数量来检测一个worker是否有能力执行此作业。
@@ -49,11 +49,28 @@ public class JobDispatchOption {
     private float ramRequirement;
 
     @JsonCreator
-    public JobDispatchOption(@JsonProperty("dispatchType") JobDispatchType dispatchType,
-                             @JsonProperty("cpuRequirement") float cpuRequirement,
-                             @JsonProperty("ramRequirement") float ramRequirement) {
+    public DispatchOption(@JsonProperty("dispatchType") DispatchType dispatchType,
+                          @JsonProperty("cpuRequirement") float cpuRequirement,
+                          @JsonProperty("ramRequirement") float ramRequirement) {
         this.dispatchType = dispatchType;
         this.cpuRequirement = cpuRequirement;
         this.ramRequirement = ramRequirement;
     }
+
+
+    /**
+     * 设置所需cpu核心数
+     */
+    public DispatchOption setCpuRequirement(float cpuRequirement) {
+        return new DispatchOption(dispatchType, cpuRequirement, ramRequirement);
+    }
+
+
+    /**
+     * 设置所需的内存GB数
+     */
+    public DispatchOption setRamRequirement(float ramRequirement) {
+        return new DispatchOption(dispatchType, cpuRequirement, ramRequirement);
+    }
+
 }

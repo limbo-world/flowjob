@@ -22,17 +22,17 @@ import com.fasterxml.jackson.annotation.JsonValue;
 /**
  * 作业调度方式：
  * <ul>
- *     <li>{@linkplain JobScheduleType#DELAYED 固定延迟}</li>
- *     <li>{@linkplain JobScheduleType#FIXED_RATE 固定速度}</li>
- *     <li>{@linkplain JobScheduleType#FIXED_INTERVAL 固定间隔时间}</li>
- *     <li>{@linkplain JobScheduleType#CRON CRON}</li>
- *     <li>{@linkplain JobScheduleType#DAG DAG工作流}</li>
+ *     <li>{@linkplain ScheduleType#DELAYED 固定延迟}</li>
+ *     <li>{@linkplain ScheduleType#FIXED_RATE 固定速度}</li>
+ *     <li>{@linkplain ScheduleType#FIXED_INTERVAL 固定间隔时间}</li>
+ *     <li>{@linkplain ScheduleType#CRON CRON}</li>
+ *     <li>{@linkplain ScheduleType#DAG DAG工作流}</li>
  * </ul>
  *
  * @author Brozen
  * @since 2021-05-16
  */
-public enum JobScheduleType {
+public enum ScheduleType {
 
     /**
      * 固定延迟，作业创建后，从创建时间起延迟一定时间后触发调度。只调度一次。
@@ -67,11 +67,11 @@ public enum JobScheduleType {
     public final String desc;
 
 
-    JobScheduleType(int type, String desc) {
+    ScheduleType(int type, String desc) {
         this(((byte) type), desc);
     }
 
-    JobScheduleType(byte type, String desc) {
+    ScheduleType(byte type, String desc) {
         this.type = type;
         this.desc = desc;
     }
@@ -82,14 +82,14 @@ public enum JobScheduleType {
      * @return 作业调度类型枚举
      */
     @JsonCreator
-    public static JobScheduleType parse(Number type) {
+    public static ScheduleType parse(Number type) {
         if (type == null) {
             return null;
         }
 
-        for (JobScheduleType jobScheduleType : values()) {
-            if (type.byteValue() == jobScheduleType.type) {
-                return jobScheduleType;
+        for (ScheduleType scheduleType : values()) {
+            if (type.byteValue() == scheduleType.type) {
+                return scheduleType;
             }
         }
 

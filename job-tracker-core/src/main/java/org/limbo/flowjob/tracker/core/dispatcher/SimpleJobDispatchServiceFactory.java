@@ -19,6 +19,7 @@ package org.limbo.flowjob.tracker.core.dispatcher;
 import org.limbo.flowjob.tracker.core.dispatcher.strategies.DefaultJobDispatcherFactory;
 import org.limbo.flowjob.tracker.core.job.JobRepository;
 import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.core.plan.PlanRepository;
 
 /**
  * @author Brozen
@@ -26,10 +27,10 @@ import org.limbo.flowjob.tracker.core.job.context.JobContext;
  */
 public class SimpleJobDispatchServiceFactory implements JobDispatchServiceFactory {
 
-    private JobRepository jobRepository;
+    private PlanRepository planRepository;
 
-    public SimpleJobDispatchServiceFactory(JobRepository jobRepository) {
-        this.jobRepository = jobRepository;
+    public SimpleJobDispatchServiceFactory(PlanRepository planRepository) {
+        this.planRepository = planRepository;
     }
 
     /**
@@ -39,7 +40,7 @@ public class SimpleJobDispatchServiceFactory implements JobDispatchServiceFactor
      */
     @Override
     public JobDispatchService newDispatchService(JobContext context) {
-        return new SimpleJobDispatchService(new DefaultJobDispatcherFactory(jobRepository));
+        return new SimpleJobDispatchService(new DefaultJobDispatcherFactory(planRepository));
     }
 
 }

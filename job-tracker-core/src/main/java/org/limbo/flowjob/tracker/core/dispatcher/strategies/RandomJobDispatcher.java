@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
-import org.limbo.flowjob.tracker.commons.constants.enums.JobDispatchType;
+import org.limbo.flowjob.tracker.commons.constants.enums.DispatchType;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.core.job.context.JobContext;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
@@ -27,7 +27,7 @@ import java.util.Random;
 /**
  * @author Brozen
  * @since 2021-05-27
- * @see JobDispatchType#RANDOM
+ * @see DispatchType#RANDOM
  */
 public class RandomJobDispatcher extends AbstractJobDispatcher implements JobDispatcher {
 
