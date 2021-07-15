@@ -21,7 +21,7 @@ import org.limbo.flowjob.tracker.commons.constants.enums.JobExecuteType;
 import org.limbo.flowjob.worker.core.domain.Job;
 
 /**
- * job执行器
+ * job执行器 不支持并发
  *
  * @author Devil
  * @date 2021/6/23 5:22 下午

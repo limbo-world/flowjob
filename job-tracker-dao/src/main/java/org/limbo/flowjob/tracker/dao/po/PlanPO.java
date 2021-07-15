@@ -63,6 +63,8 @@ public class PlanPO extends PO {
      */
     private Byte scheduleType;
 
+    // todo state
+
     /**
      * 从何时开始调度作业
      */

@@ -23,6 +23,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
+ * 作业
  * @author Brozen
  * @since 2021-05-17
  */
@@ -73,5 +74,10 @@ public class JobPO extends PO {
      * 所需的内存GB数，小于等于0表示此作业未定义内存需求。
      */
     private float ramRequirement;
+
+    /**
+     * 是否删除
+     */
+    private Boolean isDeleted;
 
 }

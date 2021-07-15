@@ -36,7 +36,7 @@ import javax.validation.Valid;
  */
 @Tag(name = "作业执行相关接口")
 @RestController
-@RequestMapping("/api/v1/job/execute")
+@RequestMapping("/api/worker/v1/job/execute")
 public class JobExecuteController {
 
     @Autowired

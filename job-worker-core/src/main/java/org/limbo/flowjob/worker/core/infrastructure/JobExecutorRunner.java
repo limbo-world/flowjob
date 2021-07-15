@@ -18,6 +18,7 @@ package org.limbo.flowjob.worker.core.infrastructure;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobExecuteResult;
 import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFeedbackDto;
 import org.limbo.flowjob.worker.core.domain.Job;
 
@@ -46,11 +47,14 @@ public class JobExecutorRunner {
             @Override
             public void run() {
                 JobExecuteFeedbackDto dto = new JobExecuteFeedbackDto();
+                dto.setJobId(job.getId());
                 try {
                     dto.setParams(executor.run(job));
+                    dto.setResult(JobExecuteResult.SUCCEED);
                 } catch (Exception e) {
                     log.error("job run error", e);
-                    dto.setErrorMsg(ExceptionUtils.getStackTrace(e));
+                    dto.setErrorStackTrace(ExceptionUtils.getStackTrace(e));
+                    dto.setResult(JobExecuteResult.FAILED);
                 } finally {
                     AbstractRemoteClient client = RemoteClientCenter.getClient();
                     client.jobExecuted(dto);

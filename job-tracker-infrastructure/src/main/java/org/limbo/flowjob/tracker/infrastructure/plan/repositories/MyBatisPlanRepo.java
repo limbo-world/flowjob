@@ -17,6 +17,7 @@
 package org.limbo.flowjob.tracker.infrastructure.plan.repositories;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.plan.Plan;
 import org.limbo.flowjob.tracker.core.plan.PlanRepository;
@@ -31,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -53,14 +55,16 @@ public class MyBatisPlanRepo implements PlanRepository {
     private JobPoConverter jobPoConverter;
 
     /**
+     * todo 事务
      * {@inheritDoc}
+     *
      * @param plan 计划plan
      * @return
      */
     @Override
     public String addOrUpdatePlan(Plan plan) {
         // ID未设置则生成一个
-        if (plan.getPlanId() == null) {
+        if (StringUtils.isBlank(plan.getPlanId())) {
             plan.setPlanId(UUIDUtils.randomID());
         }
 
@@ -72,11 +76,22 @@ public class MyBatisPlanRepo implements PlanRepository {
 
         // 更新Job，先删后增
         List<JobPO> jobs = plan.getJobs().stream()
-                .peek(job -> job.setPlanId(plan.getPlanId()))
+                .peek(job -> {
+                    job.setPlanId(plan.getPlanId());
+                    if (StringUtils.isBlank(job.getJobId())) {
+                        job.setJobId(UUIDUtils.randomID());
+                    }
+                })
                 .map(jobPoConverter::convert)
+                .filter(Objects::nonNull)
+                .peek(job -> job.setIsDeleted(false))
                 .collect(Collectors.toList());
-        jobMapper.delete(Wrappers.<JobPO>lambdaQuery()
-                .eq(JobPO::getPlanId, plan.getPlanId()));
+
+        jobMapper.update(null, Wrappers.<JobPO>lambdaUpdate()
+                .set(JobPO::getIsDeleted, true)
+                .eq(JobPO::getPlanId, plan.getPlanId())
+        );
+
         jobMapper.batchInsert(jobs);
 
         return plan.getPlanId();
@@ -85,6 +100,7 @@ public class MyBatisPlanRepo implements PlanRepository {
 
     /**
      * {@inheritDoc}
+     *
      * @param planId 计划ID
      * @return
      */
@@ -94,9 +110,10 @@ public class MyBatisPlanRepo implements PlanRepository {
 
         if (plan != null) {
             List<Job> jobs = jobMapper.selectList(Wrappers.<JobPO>lambdaQuery()
-                    .eq(JobPO::getPlanId, plan.getPlanId()))
-                    .stream()
-                    .map(jpo -> jobPoConverter.reverse().convert(jpo))
+                    .eq(JobPO::getPlanId, plan.getPlanId())
+                    .eq(JobPO::getIsDeleted, false) //todo 可能会获取已经删除的job
+            ).stream().map(jpo -> jobPoConverter.reverse()
+                    .convert(jpo))
                     .collect(Collectors.toList());
             plan.setJobs(jobs);
         }
@@ -106,8 +123,9 @@ public class MyBatisPlanRepo implements PlanRepository {
 
 
     /**
-     * TODO
+     * TODO 主节点切换 自动查询可调度任务
      * {@inheritDoc}
+     *
      * @return
      */
     @Override
