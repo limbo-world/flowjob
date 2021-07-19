@@ -22,7 +22,7 @@ import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.commons.exceptions.WorkerException;
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatisticsRepository;
 import org.limbo.utils.JacksonUtils;
@@ -103,7 +103,7 @@ public class HttpWorker extends Worker {
      * @return
      * @throws JobWorkerException
      */
-    public Mono<JobReceiveResult> sendJobContext(JobContext context) throws JobWorkerException {
+    public Mono<JobReceiveResult> sendJobContext(JobInstance context) throws JobWorkerException {
         return Mono.from(client.post()
                 .uri(workerUri("/api/v1/worker/job"))
                 // 获取请求响应并解析

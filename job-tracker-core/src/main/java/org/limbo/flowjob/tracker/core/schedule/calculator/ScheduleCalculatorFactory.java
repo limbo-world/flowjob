@@ -16,13 +16,14 @@
 
 package org.limbo.flowjob.tracker.core.schedule.calculator;
 
+import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.commons.utils.strategies.StrategyFactory;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
 import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Brozen
@@ -33,22 +34,26 @@ public class ScheduleCalculatorFactory implements StrategyFactory<Schedulable<?>
     /**
      * 全部策略
      */
-    private List<ScheduleCalculator> scheduleCalculators;
+    private final Map<ScheduleType, ScheduleCalculator> scheduleCalculators;
 
     public ScheduleCalculatorFactory() {
-        ArrayList<ScheduleCalculator> calculators = new ArrayList<>();
+        Map<ScheduleType, ScheduleCalculator> calculators = new HashMap<>();
 
         // 预设计算器
-        calculators.add(new DelayedScheduleCalculator());
-        calculators.add(new FixRateScheduleCalculator());
-        calculators.add(new FixIntervalScheduleCalculator());
-        calculators.add(new CronScheduleCalculator());
+        putCalculator(calculators, new DelayedScheduleCalculator());
+        putCalculator(calculators, new FixRateScheduleCalculator());
+        putCalculator(calculators, new FixIntervalScheduleCalculator());
+        putCalculator(calculators, new CronScheduleCalculator());
 
         // 自定义计算器
 
         // 配置不可变
-        scheduleCalculators = Collections.unmodifiableList(calculators);
+        scheduleCalculators = Collections.unmodifiableMap(calculators);
 
+    }
+
+    public void putCalculator(Map<ScheduleType, ScheduleCalculator> calculators, ScheduleCalculator calculator) {
+        calculators.put(calculator.getScheduleType(), calculator);
     }
 
 
@@ -59,10 +64,9 @@ public class ScheduleCalculatorFactory implements StrategyFactory<Schedulable<?>
      */
     @Override
     public ScheduleCalculator newStrategy(Schedulable<?> schedulable) {
-        for (ScheduleCalculator calculator : scheduleCalculators) {
-            if (calculator.canApply(schedulable)) {
-                return calculator;
-            }
+        ScheduleCalculator calculator = scheduleCalculators.get(schedulable.getScheduleOption().getScheduleType());
+        if (calculator != null) {
+            return calculator;
         }
 
         throw new IllegalStateException("cannot apply " + (getClass().getName()) + " for " + schedulable);

@@ -20,12 +20,14 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.tracker.core.job.DispatchOption;
 import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.job.JobRepository;
 import org.limbo.flowjob.tracker.core.job.ScheduleOption;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
 import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
+import org.limbo.utils.UUIDUtils;
 
 import java.time.Instant;
 import java.util.List;
@@ -39,7 +41,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class Plan implements Schedulable<Plan> {
+public class Plan implements Schedulable<PlanInstance> {
 
     /**
      * 作业计划ID
@@ -85,6 +87,15 @@ public class Plan implements Schedulable<Plan> {
         this.triggerCalculator = triggerCalculator;
     }
 
+
+    @Override
+    public PlanInstance newInstance() {
+        PlanInstance instance = new PlanInstance();
+        instance.setPlanInstanceId(UUIDUtils.randomID());
+        instance.setPlanId(planId);
+        instance.setState(PlanScheduleStatus.Scheduling);
+        return instance;
+    }
 
     /**
      * 计算作业下一次被触发时的时间戳。如果作业不会被触发，返回0或负数；
@@ -132,4 +143,5 @@ public class Plan implements Schedulable<Plan> {
     public Job getJob(String jobId) {
         return jobRepository.getJob(jobId);
     }
+
 }

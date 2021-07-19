@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.dispatcher;
 
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 
 /**
  * 作业执行器工厂类
@@ -28,9 +28,9 @@ public interface JobDispatchServiceFactory {
 
     /**
      * 作业执行器工厂方法，根据上下文生成一个新的作业执行器。
-     * @param context 作业上下文
+     * @param instance 作业实例
      * @return 作业执行器
      */
-    JobDispatchService newDispatchService(JobContext context);
+    JobDispatchService newDispatchService(JobInstance instance);
 
 }

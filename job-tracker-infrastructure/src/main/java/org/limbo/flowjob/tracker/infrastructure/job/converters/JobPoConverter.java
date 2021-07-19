@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.DispatchType;
 import org.limbo.flowjob.tracker.core.job.DispatchOption;
 import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
+import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
 import org.limbo.flowjob.tracker.dao.po.JobPO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -40,7 +40,7 @@ public class JobPoConverter extends Converter<Job, JobPO> {
      * 上下文repository
      */
     @Autowired
-    private JobContextRepository jobContextRepository;
+    private JobInstanceRepository jobInstanceRepository;
 
     /**
      * 将{@link Job}转换为{@link JobPO}
@@ -69,7 +69,7 @@ public class JobPoConverter extends Converter<Job, JobPO> {
      */
     @Override
     protected Job doBackward(JobPO po) {
-        Job _do = new Job(jobContextRepository);
+        Job _do = new Job(jobInstanceRepository);
         _do.setPlanId(po.getPlanId());
         _do.setJobId(po.getJobId());
         _do.setJobDesc(po.getJobDesc());

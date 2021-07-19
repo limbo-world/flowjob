@@ -1,5 +1,7 @@
 package org.limbo.flowjob.tracker.dao.po;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,6 +26,17 @@ public class PlanInstancePO extends PO {
     /**
      * 计划ID
      */
+    @TableId(type = IdType.INPUT)
+    private String planInstanceId;
+
+    /**
+     * 计划ID
+     */
     private String planId;
+
+    /**
+     * 状态
+     */
+    private Byte state;
 
 }

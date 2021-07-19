@@ -20,25 +20,17 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * 作业上下文状态
- *
+ * 作业调度状态
  * @author Brozen
  * @since 2021-05-19
  */
-public enum JobContextStatus {
+public enum JobScheduleStatus {
 
-    INIT(1, "初始化"),
-
-    DISPATCHING(3, "分发中"),
-    REFUSED(4, "拒绝执行"),
-    EXECUTING(5, "执行中"),
-
-    // DAG作业状态
-    PART_EXECUTING(12, "部分执行中"),
-
-    SUCCEED(6, "执行成功"),
-    FAILED(7, "执行异常"),
-    TERMINATED(8, "作业被手动终止"),
+    Scheduling(1, "调度中"),
+    REFUSED(2, "拒绝执行"), // worker拒绝，进入容错策略
+    EXECUTING(3, "执行中"),
+    SUCCEED(4, "执行成功"),
+    FAILED(5, "执行异常"), // TERMINATED 作业被手动终止 不再增加一个状态 而是写入 errMsg
     ;
 
     @JsonValue
@@ -47,11 +39,11 @@ public enum JobContextStatus {
     public final String desc;
 
     @JsonCreator
-    JobContextStatus(int status, String desc) {
+    JobScheduleStatus(int status, String desc) {
         this(((byte) status), desc);
     }
 
-    JobContextStatus(byte status, String desc) {
+    JobScheduleStatus(byte status, String desc) {
         this.status = status;
         this.desc = desc;
     }
@@ -60,7 +52,7 @@ public enum JobContextStatus {
      * 校验是否是当前状态
      * @param status 待校验状态值
      */
-    public boolean is(JobContextStatus status) {
+    public boolean is(JobScheduleStatus status) {
         return equals(status);
     }
 
@@ -76,14 +68,14 @@ public enum JobContextStatus {
      * 解析上下文状态值
      */
     @JsonCreator
-    public static JobContextStatus parse(Number status) {
+    public static JobScheduleStatus parse(Number status) {
         if (status == null) {
             return null;
         }
 
-        for (JobContextStatus jobContextStatus : values()) {
-            if (jobContextStatus.is(status)) {
-                return jobContextStatus;
+        for (JobScheduleStatus jobScheduleStatus : values()) {
+            if (jobScheduleStatus.is(status)) {
+                return jobScheduleStatus;
             }
         }
 

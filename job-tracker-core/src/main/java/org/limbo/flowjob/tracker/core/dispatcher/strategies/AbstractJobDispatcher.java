@@ -18,7 +18,7 @@ package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
 import java.util.Collection;
@@ -37,7 +37,7 @@ public abstract class AbstractJobDispatcher implements JobDispatcher {
      * @param callback 作业执行回调
      */
     @Override
-    public void dispatch(JobContext context, Collection<Worker> workers, BiConsumer<JobContext, Worker> callback) {
+    public void dispatch(JobInstance context, Collection<Worker> workers, BiConsumer<JobInstance, Worker> callback) {
         if (CollectionUtils.isEmpty(workers)) {
             throw new JobWorkerException(context.getJobId(), null, "No worker available!");
         }
@@ -52,6 +52,6 @@ public abstract class AbstractJobDispatcher implements JobDispatcher {
      * @param workers 待下发上下文可用的worker
      * @return 需要下发作业上下文的worker
      */
-    protected abstract Worker selectWorker(JobContext context, Collection<Worker> workers);
+    protected abstract Worker selectWorker(JobInstance context, Collection<Worker> workers);
 
 }

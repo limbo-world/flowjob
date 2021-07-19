@@ -20,41 +20,41 @@ package org.limbo.flowjob.tracker.core.job.context;
  * @author Brozen
  * @since 2021-05-19
  */
-public interface JobContextRepository {
+public interface JobInstanceRepository {
 
     /**
-     * 持久化作业上下文
-     * @param context 作业执行上下文
+     * 持久化作业实例
+     * @param instance 作业执行实例
      */
-    default void addContext(JobContext context) {
+    default void addInstance(JobInstance instance) {
         throw new UnsupportedOperationException();
     }
 
     /**
      * TODO
-     * 更新作业上下文
-     * @param context 作业执行上下文
+     * 更新作业实例
+     * @param instance 作业执行实例
      */
-    default void updateContext(JobContext context) {
+    default void updateInstance(JobInstance instance) {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * 获取作业执行的上下文
+     * 获取作业执行实例
      * @param jobId 作业ID
-     * @param contextId 上下文ID
-     * @return 作业上下文
+     * @param jobInstanceId 实例ID
+     * @return 作业实例
      */
-    default JobContext getContext(String jobId, String contextId) {
+    default JobInstance getInstance(String jobId, String jobInstanceId) {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * 获取最近一次作业执行时的上下文
+     * 获取最近一次作业执行时的实例
      * @param jobId 作业ID
-     * @return 最近一次作业执行时的上下文
+     * @return 最近一次作业执行时的实例
      */
-    default JobContext getLatestContext(String jobId) {
+    default JobInstance getLatestInstance(String jobId) {
         throw new UnsupportedOperationException();
     }
 }

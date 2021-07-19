@@ -17,7 +17,7 @@
 package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.DispatchType;
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
 import java.util.Collection;
@@ -39,7 +39,7 @@ public class RoundRobinJobDispatcher extends AbstractJobDispatcher implements Jo
      * @return
      */
     @Override
-    protected Worker selectWorker(JobContext context, Collection<Worker> workers) {
+    protected Worker selectWorker(JobInstance context, Collection<Worker> workers) {
         // TODO
         return null;
     }

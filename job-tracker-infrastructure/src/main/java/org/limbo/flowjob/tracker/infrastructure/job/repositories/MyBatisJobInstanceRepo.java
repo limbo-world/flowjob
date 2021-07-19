@@ -17,11 +17,14 @@
 package org.limbo.flowjob.tracker.infrastructure.job.repositories;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
-import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
+import org.limbo.flowjob.tracker.core.job.context.JobInstance;
+import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
 import org.limbo.flowjob.tracker.dao.mybatis.JobExecuteRecordMapper;
+import org.limbo.flowjob.tracker.dao.mybatis.JobInstanceMapper;
 import org.limbo.flowjob.tracker.dao.po.JobExecuteRecordPO;
+import org.limbo.flowjob.tracker.dao.po.JobInstancePO;
 import org.limbo.flowjob.tracker.infrastructure.job.converters.JobExecuteRecordPoConverter;
+import org.limbo.flowjob.tracker.infrastructure.job.converters.JobInstancePoConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -32,7 +35,7 @@ import java.util.Objects;
  * @since 2021-06-02
  */
 @Repository
-public class MyBatisJobContextRepo implements JobContextRepository {
+public class MyBatisJobInstanceRepo implements JobInstanceRepository {
 
     /**
      * MyBatisMapper
@@ -41,29 +44,35 @@ public class MyBatisJobContextRepo implements JobContextRepository {
     private JobExecuteRecordMapper mapper;
 
     /**
-     * {@link JobContext}和{@link JobExecuteRecordPO}的转换器
+     * {@link JobInstance}和{@link JobExecuteRecordPO}的转换器
      */
     @Autowired
     private JobExecuteRecordPoConverter converter;
 
+    @Autowired
+    private JobInstancePoConverter jobInstancePoConverter;
+
+    @Autowired
+    private JobInstanceMapper jobInstanceMapper;
+
     /**
      * {@inheritDoc}
-     * @param context 作业执行上下文
+     * @param instance 作业执行上下文
      */
     @Override
-    public void addContext(JobContext context) {
-        JobExecuteRecordPO po = converter.convert(context);
-        mapper.insert(po);
+    public void addInstance(JobInstance instance) {
+        JobInstancePO po = jobInstancePoConverter.convert(instance);
+        jobInstanceMapper.insert(po);
     }
 
     /**
      * {@inheritDoc}
-     * @param context 作业执行上下文
+     * @param instance 作业执行上下文
      */
     @Override
-    public void updateContext(JobContext context) {
+    public void updateInstance(JobInstance instance) {
 
-        JobExecuteRecordPO po = converter.convert(context);
+        JobExecuteRecordPO po = converter.convert(instance);
         Objects.requireNonNull(po);
 
         mapper.update(po, Wrappers.<JobExecuteRecordPO>lambdaUpdate()
@@ -74,14 +83,14 @@ public class MyBatisJobContextRepo implements JobContextRepository {
     /**
      * {@inheritDoc}
      * @param jobId 作业ID
-     * @param contextId 上下文ID
+     * @param instanceId 上下文ID
      * @return
      */
     @Override
-    public JobContext getContext(String jobId, String contextId) {
+    public JobInstance getInstance(String jobId, String instanceId) {
         JobExecuteRecordPO po = mapper.selectOne(Wrappers.<JobExecuteRecordPO>lambdaQuery()
                 .eq(JobExecuteRecordPO::getJobId, jobId)
-                .eq(JobExecuteRecordPO::getRecordId, contextId));
+                .eq(JobExecuteRecordPO::getRecordId, instanceId));
         return converter.reverse().convert(po);
     }
 
@@ -91,7 +100,7 @@ public class MyBatisJobContextRepo implements JobContextRepository {
      * @return
      */
     @Override
-    public JobContext getLatestContext(String jobId) {
+    public JobInstance getLatestInstance(String jobId) {
         JobExecuteRecordPO po = mapper.selectOne(Wrappers.<JobExecuteRecordPO>lambdaQuery()
                 .eq(JobExecuteRecordPO::getJobId, jobId)
                 .orderByDesc(JobExecuteRecordPO::getCreatedAt)

@@ -17,10 +17,8 @@
 package org.limbo.flowjob.tracker.core.schedule;
 
 /**
- * 标记接口
- *
  * @author Brozen
  * @since 2021-07-13
  */
-public interface SchedulableContext {
+public interface SchedulableInstance {
 }

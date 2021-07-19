@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.infrastructure.config;
+package org.limbo.flowjob.tracker.admin.adapter.config;
 
 import org.limbo.utils.JacksonUtils;
 import org.springframework.context.annotation.Bean;

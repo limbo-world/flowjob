@@ -16,17 +16,17 @@
 
 import org.junit.Before;
 import org.junit.Test;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
 import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
-import org.limbo.flowjob.tracker.commons.exceptions.JobContextException;
+import org.limbo.flowjob.tracker.commons.exceptions.JobInstanceException;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
-import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobContextStatus;
+import org.limbo.flowjob.tracker.core.job.context.JobInstance;
+import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.HashedWheelTimerScheduler;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
-import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
+import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
 import reactor.core.publisher.Mono;
 
 /**
@@ -65,7 +65,7 @@ public class JobContextTest {
             }
 
             @Override
-            public Mono<JobReceiveResult> sendJobContext(JobContext context) throws JobWorkerException {
+            public Mono<JobReceiveResult> sendJobContext(JobInstance context) throws JobWorkerException {
                 return null;
             }
 
@@ -78,21 +78,21 @@ public class JobContextTest {
     }
 
     @Test
-    public void testSimpleJobContext() throws JobContextException {
-        JobContext context = new JobContext(new JobContextRepository() {
+    public void testSimpleJobContext() throws JobInstanceException {
+        JobInstance context = new JobInstance(new JobInstanceRepository() {
             @Override
-            public void updateContext(JobContext context) {
+            public void updateInstance(JobInstance context) {
                 System.out.println("updateContext");
             }
         });
+        context.setJobInstanceId("ctx1");
         context.setJobId("job1");
-        context.setContextId("ctx1");
-        context.setStatus(JobContextStatus.INIT);
+        context.setState(JobScheduleStatus.Scheduling);
         context.setJobAttributes(null);
 
         context.onContextAccepted().subscribe(c -> System.out.println(c.getWorkerId() + " accepted"));
         context.onContextRefused().subscribe(c -> System.out.println(c.getWorkerId() + " refused"));
-        context.onContextClosed().subscribe(c -> System.out.println(c.getContextId() + " closed"));
+        context.onContextClosed().subscribe(c -> System.out.println(c.getJobInstanceId() + " closed"));
 
         context.startupContext(idleWorker);
         context.acceptContext(idleWorker);

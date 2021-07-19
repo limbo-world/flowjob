@@ -18,7 +18,7 @@ package org.limbo.flowjob.tracker.core.schedule.scheduler;
 
 import io.netty.util.HashedWheelTimer;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
-import org.limbo.flowjob.tracker.core.schedule.SchedulableContext;
+import org.limbo.flowjob.tracker.core.schedule.SchedulableInstance;
 import org.limbo.flowjob.tracker.core.schedule.executor.Executor;
 
 import java.util.Map;
@@ -27,29 +27,29 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 基于Netty时间轮算法的作业执行器。一个作业申请执行后，会计算下次执行的间隔，并注册到时间轮上。
- * 当时间轮触发作业执行时，将进入作业下发流程，并将生成的JobContext分发给下游。
+ * 当时间轮触发作业执行时，将进入作业下发流程，并将生成的实例分发给下游。
  *
  * @author Brozen
  * @since 2021-05-18
  */
-public class HashedWheelTimerScheduler<T extends SchedulableContext> implements Scheduler<T> {
+public class HashedWheelTimerScheduler<T extends SchedulableInstance> implements Scheduler<T> {
 
     private static final Object PLACEHOLDER = new Object();
 
     /**
      * 依赖netty的时间轮算法进行作业调度
      */
-    private HashedWheelTimer timer;
+    private final HashedWheelTimer timer;
 
     /**
      * 所有正在被调度中的对象
      */
-    private Map<String, Object> scheduling;
+    private final Map<String, Object> scheduling;
 
     /**
      * 调度对象执行器
      */
-    private Executor<T> executor;
+    private final Executor<T> executor;
 
     /**
      * 使用指定执行器构造一个调度器，该调度器基于哈希时间轮算法。
@@ -68,15 +68,15 @@ public class HashedWheelTimerScheduler<T extends SchedulableContext> implements 
      */
     @Override
     public void schedule(Schedulable<T> schedulable) {
-        // 如果job不会被触发，则无需加入调度
+        // 如果不会被触发，则无需加入调度
         long triggerAt = schedulable.nextTriggerAt();
         if (triggerAt <= 0) {
             return;
         }
 
         // 防止重复调度
-        scheduling.computeIfAbsent(schedulable.getId(), jobId -> {
-            doScheduleJob(schedulable, triggerAt);
+        scheduling.computeIfAbsent(schedulable.getId(), id -> {
+            doSchedule(schedulable, triggerAt);
             return PLACEHOLDER;
         });
     }
@@ -85,15 +85,15 @@ public class HashedWheelTimerScheduler<T extends SchedulableContext> implements 
      * 检测是否需要重新调度
      * @param schedulable 待调度的对象
      */
-    protected void rescheduleJob(Schedulable<T> schedulable) {
-        // 如果job不会被触发，则无需继续调度
+    protected void reschedule(Schedulable<T> schedulable) {
+        // 如果不会被触发，则无需继续调度
         long triggerAt = schedulable.nextTriggerAt();
         if (triggerAt <= 0) {
             scheduling.remove(schedulable.getId());
             return;
         }
 
-        doScheduleJob(schedulable, triggerAt);
+        doSchedule(schedulable, triggerAt);
     }
 
     /**
@@ -101,7 +101,7 @@ public class HashedWheelTimerScheduler<T extends SchedulableContext> implements 
      * @param schedulable 待调度对象
      * @param triggerAt 下次被调度执行的时间戳
      */
-    private void doScheduleJob(Schedulable<T> schedulable, long triggerAt) {
+    private void doSchedule(Schedulable<T> schedulable, long triggerAt) {
         // 在timer上调度作业执行
         long delay = triggerAt - System.currentTimeMillis();
         this.timer.newTimeout(timeout -> {
@@ -111,12 +111,12 @@ public class HashedWheelTimerScheduler<T extends SchedulableContext> implements 
                 return;
             }
 
-            // 生成新的上下文，并交给执行器执行
-            T context = schedulable.getContext();
-            executor.execute(context);
+            // 生成新的实例，并交给执行器执行 todo execute 可以交由线程池？增加下发速度
+            T instance = schedulable.newInstance();
+            executor.execute(instance);
 
             // 检测是否需要重新调度
-            this.rescheduleJob(schedulable);
+            this.reschedule(schedulable);
 
         }, delay, TimeUnit.MILLISECONDS);
     }
@@ -124,11 +124,11 @@ public class HashedWheelTimerScheduler<T extends SchedulableContext> implements 
 
     /**
      * {@inheritDoc}
-     * @param schedulable 待调度的对象
+     * @param id 待调度的对象的id
      */
     @Override
-    public void unschedule(Schedulable<T> schedulable) {
-        scheduling.remove(schedulable.getId());
+    public void unschedule(String id) {
+        scheduling.remove(id);
     }
 
 }

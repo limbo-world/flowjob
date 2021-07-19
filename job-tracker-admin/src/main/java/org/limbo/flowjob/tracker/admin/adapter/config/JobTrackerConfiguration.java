@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.infrastructure.config;
+package org.limbo.flowjob.tracker.admin.adapter.config;
 
-import org.limbo.flowjob.tracker.core.dispatcher.JobDispatchServiceFactory;
-import org.limbo.flowjob.tracker.core.dispatcher.SimpleJobDispatchServiceFactory;
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
-import org.limbo.flowjob.tracker.core.plan.PlanRepository;
+import org.limbo.flowjob.tracker.core.dispatcher.JobDispatchLauncher;
+import org.limbo.flowjob.tracker.core.dispatcher.storage.JobStorage;
+import org.limbo.flowjob.tracker.core.dispatcher.storage.MemoryJobStorage;
+import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
+import org.limbo.flowjob.tracker.core.plan.PlanInstance;
+import org.limbo.flowjob.tracker.core.plan.PlanInstanceExecutor;
+import org.limbo.flowjob.tracker.core.plan.PlanInstanceRepository;
 import org.limbo.flowjob.tracker.core.schedule.calculator.ScheduleCalculatorFactory;
 import org.limbo.flowjob.tracker.core.schedule.executor.Executor;
-import org.limbo.flowjob.tracker.core.schedule.executor.JobExecutor;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.HashedWheelTimerScheduler;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.Scheduler;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
@@ -53,27 +55,34 @@ public class JobTrackerConfiguration {
         return new LeaderJobTracker(workerRepository);
     }
 
+    /**
+     * job 存储
+     */
+    @Bean
+    @ConditionalOnMissingBean(JobStorage.class)
+    public JobStorage jobStorage() {
+        return new MemoryJobStorage();
+    }
 
     /**
-     * 作业调度器
+     * JobTracker
+     */
+    @Bean
+    @ConditionalOnMissingBean(JobDispatchLauncher.class)
+    public JobDispatchLauncher jobTracker(JobTracker jobTracker, JobStorage jobStorage) {
+        JobDispatchLauncher jobDispatchLauncher = new JobDispatchLauncher(jobTracker, jobStorage);
+        jobDispatchLauncher.start();
+        return jobDispatchLauncher;
+    }
+
+    /**
+     * 计划调度器
      */
     @Bean
     @ConditionalOnMissingBean(Scheduler.class)
-    public Scheduler<JobContext> jobScheduler(Executor<JobContext> executor) {
+    public Scheduler<PlanInstance> planScheduler(PlanInstanceExecutor executor) {
         return new HashedWheelTimerScheduler<>(executor);
     }
-
-
-    /**
-     * 作业执行器
-     */
-    @Bean
-    @ConditionalOnMissingBean(Executor.class)
-    public Executor<JobContext> jobExecutor(JobTracker jobTracker,
-                                            JobDispatchServiceFactory dispatchServiceFactory) {
-        return new JobExecutor(jobTracker, dispatchServiceFactory);
-    }
-
 
     /**
      * 作业调度时间计算器工厂，根据作业调度类型来生产调度时间计算器。
@@ -84,14 +93,14 @@ public class JobTrackerConfiguration {
         return new ScheduleCalculatorFactory();
     }
 
-
     /**
-     * 作业分发服务工厂，根据作业分发类型，生产对应的分发服务。
+     * 计划执行器
      */
     @Bean
-    @ConditionalOnMissingBean(JobDispatchServiceFactory.class)
-    public JobDispatchServiceFactory jobDispatchServiceFactory(PlanRepository planRepository) {
-        return new SimpleJobDispatchServiceFactory(planRepository);
+    @ConditionalOnMissingBean(Executor.class)
+    public Executor<PlanInstance> planExecutor(PlanInstanceRepository planInstanceRepository,
+                                              JobInstanceRepository jobInstanceRepository, JobStorage jobStorage) {
+        return new PlanInstanceExecutor(planInstanceRepository, jobInstanceRepository, jobStorage);
     }
 
 }

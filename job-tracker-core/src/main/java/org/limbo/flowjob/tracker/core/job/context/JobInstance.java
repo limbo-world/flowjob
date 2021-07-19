@@ -22,13 +22,15 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobContextStatus;
+import org.limbo.flowjob.tracker.commons.constants.enums.DispatchType;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
-import org.limbo.flowjob.tracker.commons.exceptions.JobContextException;
+import org.limbo.flowjob.tracker.commons.exceptions.JobInstanceException;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
-import org.limbo.flowjob.tracker.core.schedule.SchedulableContext;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
-import reactor.core.publisher.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -42,7 +44,12 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
-public class JobContext implements SchedulableContext {
+public class JobInstance {
+
+    /**
+     * 作业实例 id 一个作业可能在调度中，有两次同时在执行，因此可能会产生两个实例，需要用此做区分。
+     */
+    private String jobInstanceId;
 
     /**
      * 作业执行计划ID
@@ -55,14 +62,19 @@ public class JobContext implements SchedulableContext {
     private String jobId;
 
     /**
-     * 执行上下文ID。一个作业可能在调度中，有两次同时在执行，因此可能会产生两个context，需要用contextId做区分。
-     */
-    private String contextId;
-
-    /**
      * 此上下文状态
      */
-    private JobContextStatus status;
+    private JobScheduleStatus state;
+
+    /**
+     * 优先级
+     */
+    private Integer priority;
+
+    /**
+     * 下发方式
+     */
+    private DispatchType dispatchType;
 
     /**
      * 此分发执行此作业上下文的worker
@@ -104,7 +116,7 @@ public class JobContext implements SchedulableContext {
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ToString.Exclude
-    private JobContextRepository jobContextRepository;
+    private JobInstanceRepository jobInstanceRepository;
 
     /**
      * 用于触发、发布上下文生命周期事件
@@ -114,8 +126,8 @@ public class JobContext implements SchedulableContext {
     @ToString.Exclude
     private Sinks.Many<JobContextLifecycleEvent> lifecycleEventTrigger;
 
-    public JobContext(JobContextRepository jobContextRepository) {
-        this.jobContextRepository = Objects.requireNonNull(jobContextRepository, "JobContextRepository");
+    public JobInstance(JobInstanceRepository jobInstanceRepository) {
+        this.jobInstanceRepository = Objects.requireNonNull(jobInstanceRepository, "JobContextRepository");
         this.lifecycleEventTrigger = Sinks.many().multicast().directAllOrNothing();
     }
 
@@ -124,24 +136,17 @@ public class JobContext implements SchedulableContext {
      *
      * FIXME 更新上下文，需锁定contextId，防止并发问题
      *
-     * 只有{@link JobContextStatus#INIT}和{@link JobContextStatus#FAILED}状态的上下文可被开启。
+     * 只有{@link JobScheduleStatus#Scheduling}和{@link JobScheduleStatus#FAILED}状态的上下文可被开启。
      * @param worker 会将此上下文分发去执行的worker
-     * @throws JobContextException 状态检测失败时，即此上下文的状态不是INIT或FAILED时抛出异常。
+     * @throws JobInstanceException 状态检测失败时，即此上下文的状态不是INIT或FAILED时抛出异常。
      */
-    public void startupContext(Worker worker) throws JobContextException {
-        String jobId = getJobId();
-        String contextId = getContextId();
-        JobContextStatus status = getStatus();
+    public void startupContext(Worker worker) throws JobInstanceException {
+        JobScheduleStatus status = getState();
 
         // 检测状态
-        if (status != JobContextStatus.INIT && status != JobContextStatus.FAILED) {
-            throw new JobContextException(jobId, contextId, "Cannot startup context due to current status: " + status);
+        if (status != JobScheduleStatus.Scheduling && status != JobScheduleStatus.FAILED) {
+            throw new JobInstanceException(getJobId(), getJobInstanceId(), "Cannot startup context due to current status: " + status);
         }
-
-        // 更新上下文
-        setWorkerId(worker.getWorkerId().toString());
-        setStatus(JobContextStatus.DISPATCHING);
-        jobContextRepository.updateContext(this);
 
         try {
 
@@ -160,10 +165,10 @@ public class JobContext implements SchedulableContext {
 
         } catch (JobWorkerException e) {
             // 失败时更新上下文状态，冒泡异常
-            setStatus(JobContextStatus.FAILED);
-            jobContextRepository.updateContext(this);
+            setState(JobScheduleStatus.FAILED);
+            jobInstanceRepository.updateInstance(this);
 
-            throw new JobContextException(jobId, worker.getWorkerId().toString(),
+            throw new JobInstanceException(getJobId(), worker.getWorkerId(),
                     "Context startup failed due to send job to worker error!", e);
         }
     }
@@ -174,16 +179,16 @@ public class JobContext implements SchedulableContext {
      * FIXME 更新上下文，需锁定contextId，防止并发问题
      *
      * @param worker 确认接收此上下文的worker
-     * @throws JobContextException 接受上下文的worker和上下文记录的worker不同时，抛出异常。
+     * @throws JobInstanceException 接受上下文的worker和上下文记录的worker不同时，抛出异常。
      */
-    public void acceptContext(Worker worker) throws JobContextException {
+    public void acceptContext(Worker worker) throws JobInstanceException {
 
-        assertContextStatus(JobContextStatus.DISPATCHING);
-        assertWorkerId(worker.getWorkerId().toString());
+        assertContextStatus(JobScheduleStatus.Scheduling);
+        assertWorkerId(worker.getWorkerId());
 
         // 更新状态
-        setStatus(JobContextStatus.EXECUTING);
-        jobContextRepository.updateContext(this);
+        setState(JobScheduleStatus.EXECUTING);
+        jobInstanceRepository.updateInstance(this);
 
         // 发布事件
         lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.ACCEPTED, Sinks.EmitFailureHandler.FAIL_FAST);
@@ -195,16 +200,16 @@ public class JobContext implements SchedulableContext {
      * FIXME 更新上下文，需锁定contextId，防止并发问题
      *
      * @param worker 拒绝接收此上下文的worker
-     * @throws JobContextException 拒绝上下文的worker和上下文记录的worker不同时，抛出异常。
+     * @throws JobInstanceException 拒绝上下文的worker和上下文记录的worker不同时，抛出异常。
      */
-    public void refuseContext(Worker worker) throws JobContextException {
+    public void refuseContext(Worker worker) throws JobInstanceException {
 
-        assertContextStatus(JobContextStatus.DISPATCHING);
-        assertWorkerId(worker.getWorkerId().toString());
+        assertContextStatus(JobScheduleStatus.Scheduling);
+        assertWorkerId(worker.getWorkerId());
 
         // 更新状态
-        setStatus(JobContextStatus.REFUSED);
-        jobContextRepository.updateContext(this);
+        setState(JobScheduleStatus.REFUSED);
+        jobInstanceRepository.updateInstance(this);
 
         // 发布事件
         lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.REFUSED, Sinks.EmitFailureHandler.FAIL_FAST);
@@ -216,14 +221,14 @@ public class JobContext implements SchedulableContext {
      *
      * FIXME 更新上下文，需锁定contextId，防止并发问题
      *
-     * @throws JobContextException 上下文状态不是{@link JobContextStatus#EXECUTING}时抛出异常。
+     * @throws JobInstanceException 上下文状态不是{@link JobScheduleStatus#EXECUTING}时抛出异常。
      */
-    public void closeContext() throws JobContextException {
+    public void closeContext() throws JobInstanceException {
 
-        assertContextStatus(JobContextStatus.EXECUTING);
+        assertContextStatus(JobScheduleStatus.EXECUTING);
 
-        setStatus(JobContextStatus.SUCCEED);
-        jobContextRepository.updateContext(this);
+        setState(JobScheduleStatus.SUCCEED);
+        jobInstanceRepository.updateInstance(this);
 
         // 发布事件
         lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.CLOSED, Sinks.EmitFailureHandler.FAIL_FAST);
@@ -238,12 +243,12 @@ public class JobContext implements SchedulableContext {
      */
     public void closeContext(String errorMsg, String errorStackTrace) {
 
-        assertContextStatus(JobContextStatus.EXECUTING);
+        assertContextStatus(JobScheduleStatus.EXECUTING);
 
-        setStatus(JobContextStatus.FAILED);
+        setState(JobScheduleStatus.FAILED);
         setErrorMsg(errorMsg);
         setErrorStackTrace(errorStackTrace);
-        jobContextRepository.updateContext(this);
+        jobInstanceRepository.updateInstance(this);
 
         // 发布事件
         lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.CLOSED, Sinks.EmitFailureHandler.FAIL_FAST);
@@ -252,23 +257,23 @@ public class JobContext implements SchedulableContext {
 
 
     /**
-     * 断言当前上下文处于某个状态，否则将抛出{@link JobContextException}
+     * 断言当前上下文处于某个状态，否则将抛出{@link JobInstanceException}
      * @param assertStatus 断言当前上下文的状态
      */
-    protected void assertContextStatus(JobContextStatus assertStatus) throws JobContextException {
-        if (getStatus() != assertStatus) {
-            throw new JobContextException(getJobId(), getContextId(),
-                    "Expect context status: " + assertStatus + " but is: " + getStatus());
+    protected void assertContextStatus(JobScheduleStatus assertStatus) throws JobInstanceException {
+        if (getState() != assertStatus) {
+            throw new JobInstanceException(getJobId(), getJobInstanceId(),
+                    "Expect context status: " + assertStatus + " but is: " + getState());
         }
     }
 
     /**
-     * 断言当前上下文的workerId是指定值，否则将抛出{@link JobContextException}
+     * 断言当前上下文的workerId是指定值，否则将抛出{@link JobInstanceException}
      * @param assertWorkerId 断言当前上下文的workerId
      */
-    protected void assertWorkerId(String assertWorkerId) throws JobContextException {
+    protected void assertWorkerId(String assertWorkerId) throws JobInstanceException {
         if (!StringUtils.equalsIgnoreCase(getWorkerId(), assertWorkerId)) {
-            throw new JobContextException(getJobId(), getContextId(),
+            throw new JobInstanceException(getJobId(), getJobInstanceId(),
                     "Except worker: " + assertWorkerId + " but worker is: " + getWorkerId());
         }
     }
@@ -280,7 +285,7 @@ public class JobContext implements SchedulableContext {
      *
      * @return
      */
-    public Mono<JobContext> onContextRefused() {
+    public Mono<JobInstance> onContextRefused() {
         return Mono.create(sink -> this.lifecycleEventTrigger
                 .asFlux()
                 .filter(e -> e == JobContextLifecycleEvent.REFUSED)
@@ -294,7 +299,7 @@ public class JobContext implements SchedulableContext {
      *
      * @return
      */
-    public Mono<JobContext> onContextAccepted() {
+    public Mono<JobInstance> onContextAccepted() {
         return Mono.create(sink -> this.lifecycleEventTrigger
                 .asFlux()
                 .filter(e -> e == JobContextLifecycleEvent.ACCEPTED)
@@ -308,7 +313,7 @@ public class JobContext implements SchedulableContext {
      *
      * @return
      */
-    public Mono<JobContext> onContextClosed() {
+    public Mono<JobInstance> onContextClosed() {
         return Mono.create(sink -> this.lifecycleEventTrigger
                 .asFlux()
                 .filter(e -> e == JobContextLifecycleEvent.CLOSED)
@@ -339,22 +344,22 @@ public class JobContext implements SchedulableContext {
     enum JobContextLifecycleEvent {
 
         /**
-         * @see JobContext#startupContext(Worker)
+         * @see JobInstance#startupContext(Worker)
          */
         STARTED,
 
         /**
-         * @see JobContext#refuseContext(Worker)
+         * @see JobInstance#refuseContext(Worker)
          */
         REFUSED,
 
         /**
-         * @see JobContext#acceptContext(Worker)
+         * @see JobInstance#acceptContext(Worker)
          */
         ACCEPTED,
 
         /**
-         * @see JobContext#closeContext()
+         * @see JobInstance#closeContext()
          */
         CLOSED
 

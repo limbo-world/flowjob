@@ -28,6 +28,6 @@ public interface Executor<T> {
     /**
      * 执行
      */
-    void execute(T context);
+    void execute(T instance);
 
 }

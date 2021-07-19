@@ -14,14 +14,30 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.infrastructure.config;
+package org.limbo.flowjob.tracker.commons.exceptions;
 
-import org.mybatis.spring.annotation.MapperScan;
+import lombok.Getter;
 
 /**
  * @author Brozen
- * @since 2021-06-03
+ * @since 2021-05-21
  */
-@MapperScan("org.limbo.flowjob.tracker.dao.mybatis")
-public class MyBatisConfiguration {
+public class JobInstanceException extends JobExecuteException {
+
+    /**
+     * 作业实例ID
+     */
+    @Getter
+    private String jobInstanceId;
+
+    public JobInstanceException(String jobId, String jobInstanceId, String message) {
+        super(jobId, message);
+        this.jobInstanceId = jobInstanceId;
+    }
+
+    public JobInstanceException(String jobId, String jobInstanceId, String message, Throwable cause) {
+        super(jobId, message, cause);
+        this.jobInstanceId = jobInstanceId;
+    }
+
 }

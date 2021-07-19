@@ -20,8 +20,8 @@ import org.limbo.flowjob.tracker.commons.constants.WorkerHeaders;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobExecuteResult;
 import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFeedbackDto;
 import org.limbo.flowjob.tracker.commons.utils.Symbol;
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
-import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
+import org.limbo.flowjob.tracker.core.job.context.JobInstance;
+import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -34,7 +34,7 @@ import reactor.core.publisher.Mono;
 public class JobExecuteService {
 
     @Autowired
-    private JobContextRepository jobContextRepository;
+    private JobInstanceRepository jobInstanceRepository;
 
 
 
@@ -51,7 +51,7 @@ public class JobExecuteService {
             return feedbackMono.map(fb -> {
 
                 // 更新context状态
-                JobContext context = jobContextRepository.getContext(fb.getJobId(), fb.getContextId());
+                JobInstance context = jobInstanceRepository.getInstance(fb.getJobId(), fb.getContextId());
                 JobExecuteResult result = fb.getResult();
                 switch (result) {
                     case SUCCEED:

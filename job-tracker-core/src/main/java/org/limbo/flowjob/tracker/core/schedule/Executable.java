@@ -19,16 +19,16 @@ package org.limbo.flowjob.tracker.core.schedule;
 /**
  * 可执行对象
  *
- * @param <T> 可执行对象执行时所需的上下文
+ * @param <T> 可执行对象执行时所需的实例
  * @author Brozen
  * @since 2021-07-13
  */
 public interface Executable<T> {
 
     /**
-     * 获取执行上下文
+     * 获取执行实例
      */
-    default T getContext() {
+    default T newInstance() {
         throw new UnsupportedOperationException();
     }
 

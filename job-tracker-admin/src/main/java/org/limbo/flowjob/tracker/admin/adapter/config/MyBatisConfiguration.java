@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.schedule.executor;
+package org.limbo.flowjob.tracker.admin.adapter.config;
 
-import org.limbo.flowjob.tracker.core.plan.Plan;
+import org.mybatis.spring.annotation.MapperScan;
 
 /**
- * TODO
  * @author Brozen
- * @since 2021-07-13
+ * @since 2021-06-03
  */
-public class PlanExecutor implements Executor<Plan> {
-
-    @Override
-    public void execute(Plan executable) {
-
-    }
-
+@MapperScan("org.limbo.flowjob.tracker.dao.mybatis")
+public class MyBatisConfiguration {
 }

@@ -16,6 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.schedule;
 
+import lombok.Getter;
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
 import org.limbo.flowjob.tracker.core.job.ScheduleOption;
@@ -40,6 +41,7 @@ public abstract class ScheduleCalculator implements Strategy<Schedulable<?>, Lon
     /**
      * 此策略适用的调度类型
      */
+    @Getter
     private final ScheduleType scheduleType;
 
     protected ScheduleCalculator(ScheduleType scheduleType) {

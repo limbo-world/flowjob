@@ -85,5 +85,9 @@ public class PlanPO extends PO {
      */
     private String scheduleCron;
 
-
+    /**
+     * 是否启动 新建plan的时候 默认为不启动
+     * 接口调用的时候会修改 leader 内存数据以及 db数据 需要保障一致性
+     */
+    private Boolean isEnabled;
 }

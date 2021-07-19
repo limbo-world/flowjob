@@ -14,30 +14,29 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.commons.exceptions;
+package org.limbo.flowjob.tracker.admin.adapter.config;
 
-import lombok.Getter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Bean;
+import reactor.netty.http.client.HttpClient;
 
 /**
+ * 当与Http协议的Worker进行通信时，使用此配置
+ *
  * @author Brozen
- * @since 2021-05-21
+ * @since 2021-06-03
  */
-public class JobContextException extends JobExecuteException {
+public class HttpWorkerMessagingConfiguration {
+
 
     /**
-     * 作业上下文ID
+     * Http通信使用的响应式HttpClient，基于reactor-netty
      */
-    @Getter
-    private String jobContextId;
-
-    public JobContextException(String jobId, String jobContextId, String message) {
-        super(jobId, message);
-        this.jobContextId = jobContextId;
+    @Bean
+    @ConditionalOnMissingBean(HttpClient.class)
+    public HttpClient httpClient() {
+        return HttpClient.create();
     }
 
-    public JobContextException(String jobId, String jobContextId, String message, Throwable cause) {
-        super(jobId, message, cause);
-        this.jobContextId = jobContextId;
-    }
 
 }

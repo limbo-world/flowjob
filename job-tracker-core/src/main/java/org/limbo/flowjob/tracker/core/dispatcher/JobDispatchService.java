@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.dispatcher;
 
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 
 /**
@@ -32,6 +32,6 @@ public interface JobDispatchService {
      * @param tracker tracker节点
      * @param context 待执行的作业上下文
      */
-    void dispatch(JobTracker tracker, JobContext context);
+    void dispatch(JobTracker tracker, JobInstance context);
 
 }

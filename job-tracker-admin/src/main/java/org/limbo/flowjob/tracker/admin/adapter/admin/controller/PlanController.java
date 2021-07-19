@@ -7,10 +7,7 @@ import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
 import org.limbo.flowjob.tracker.commons.dto.plan.PlanAddDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 /**
@@ -32,6 +29,26 @@ public class PlanController {
     @PostMapping
     public Mono<ResponseDto<String>> add(@Validated @RequestBody Mono<PlanAddDto> options) {
         return options.map(opt -> ResponseDto.<String>builder().ok(planService.add(opt)).build());
+    }
+
+    /**
+     * 启动计划
+     */
+    @Operation(summary = "启动计划")
+    @PutMapping("/{planId}/enable")
+    public Mono<ResponseDto<Void>> enable(@PathVariable("planId") String planId) {
+        planService.enable(planId);
+        return Mono.just(ResponseDto.<Void>builder().ok().build());
+    }
+
+    /**
+     * 停止计划
+     */
+    @Operation(summary = "停止计划")
+    @PutMapping("/{planId}/disable")
+    public Mono<ResponseDto<Void>> disable(@PathVariable("planId") String planId) {
+        planService.disable(planId);
+        return Mono.just(ResponseDto.<Void>builder().ok().build());
     }
 
 }

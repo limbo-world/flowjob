@@ -16,7 +16,9 @@
 
 package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
+import org.limbo.flowjob.tracker.commons.constants.enums.DispatchType;
+import org.limbo.flowjob.tracker.commons.exceptions.JobExecuteException;
+import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 
 /**
@@ -25,14 +27,37 @@ import org.limbo.flowjob.tracker.core.tracker.JobTracker;
  * @author Brozen
  * @since 2021-05-18
  */
-public interface JobDispatcherFactory {
+public class JobDispatcherFactory {
 
     /**
-     * 创建新的JobDispatcher
-     * @param tracker tracker节点
-     * @param context 待分发作业上下文
+     * Double Dispatch (￣▽￣)~* <br/>
+     * 根据作业的分发方式，创建一个分发器实例。委托给{@link DispatchType}执行。
+     * @param dispatchType 分发类型
      * @return 作业分发器
      */
-    JobDispatcher newDispatcher(JobTracker tracker, JobContext context);
+    public JobDispatcher  newDispatcher(DispatchType dispatchType) {
+        switch (dispatchType) {
+            case ROUND_ROBIN:
+                return new RoundRobinJobDispatcher();
+
+            case RANDOM:
+                return new RandomJobDispatcher();
+
+            case LEAST_FREQUENTLY_USED:
+                return new LFUJobDispatcher();
+
+            case LEAST_RECENTLY_USED:
+                return new LRUJobDispatcher();
+
+            case APPOINT:
+                return new AppointJobDispatcher();
+
+            case CONSISTENT_HASH:
+                return new ConsistentHashJobDispatcher();
+
+            default:
+                return null;
+        }
+    }
 
 }

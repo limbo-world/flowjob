@@ -20,9 +20,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.limbo.flowjob.tracker.core.job.context.JobContext;
-import org.limbo.flowjob.tracker.core.job.context.JobContextRepository;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobContextStatus;
+import org.limbo.flowjob.tracker.core.job.context.JobInstance;
+import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.utils.UUIDUtils;
 
 import java.util.List;
@@ -76,24 +76,23 @@ public class Job {
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ToString.Exclude
-    private JobContextRepository jobContextRepository;
+    private JobInstanceRepository jobInstanceRepository;
 
-    public Job(JobContextRepository jobContextRepository) {
-        this.jobContextRepository = jobContextRepository;
+    public Job(JobInstanceRepository jobInstanceRepository) {
+        this.jobInstanceRepository = jobInstanceRepository;
     }
 
     /**
-     * 生成新的作业执行上下文
-     * @return 未开始执行的作业上下文
+     * 生成新的作业实例
+     * @return 未开始执行的实例
      */
-    public JobContext newContext() {
-        JobContext context = new JobContext(jobContextRepository);
-        context.setJobId(getJobId());
-        context.setContextId(UUIDUtils.randomID());
-        context.setStatus(JobContextStatus.INIT);
-        context.setJobAttributes(null);
-        jobContextRepository.addContext(context);
-        return context;
+    public JobInstance newInstance() {
+        JobInstance jobInstance = new JobInstance(jobInstanceRepository);
+        jobInstance.setJobInstanceId(UUIDUtils.randomID());
+        jobInstance.setJobId(getJobId());
+        jobInstance.setState(JobScheduleStatus.Scheduling);
+        jobInstance.setJobAttributes(null);
+        return jobInstance;
     }
 
     /**
@@ -101,8 +100,8 @@ public class Job {
      * @param contextId 上下文ID
      * @return 作业执行上下文
      */
-    public JobContext getContext(String contextId) {
-        return jobContextRepository.getContext(getJobId(), contextId);
+    public JobInstance getContext(String contextId) {
+        return jobInstanceRepository.getInstance(getJobId(), contextId);
     }
 
 }
