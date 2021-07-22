@@ -57,6 +57,13 @@ public class DispatchOption {
         this.ramRequirement = ramRequirement;
     }
 
+    /**
+     * 设置分发方式
+     */
+    public DispatchOption setDispatchType(DispatchType dispatchType) {
+        return new DispatchOption(dispatchType, cpuRequirement, ramRequirement);
+    }
+
 
     /**
      * 设置所需cpu核心数

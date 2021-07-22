@@ -32,23 +32,23 @@
         <result column="updated_at" property="updatedAt" />
     </resultMap>
 
-    <insert id="insertOrUpdate">
-        INSERT INTO plan (
-            plan_id, plan_desc, dispatch_type,
-            schedule_type, schedule_start_at, schedule_delay,
-            schedule_interval, schedule_cron
-        ) VALUES (
-            #{plan.planId}, #{plan.planDesc}, #{plan.dispatchType},
-            #{plan.scheduleType}, #{plan.scheduleStartAt}, #{plan.scheduleDelay},
-            #{plan.scheduleInterval}, #{plan.scheduleCron}
-        ) ON DUPLICATE KEY UPDATE
-            plan_desc = VALUES(plan_desc),
-            dispatch_type = VALUES(dispatch_type),
-            schedule_type = VALUES(schedule_type),
-            schedule_start_at = VALUES(schedule_start_at),
-            schedule_delay = VALUES(schedule_delay),
-            schedule_interval = VALUES(schedule_interval),
-            schedule_cron = VALUES(schedule_cron)
-    </insert>
+<!--    <insert id="insertOrUpdate">-->
+<!--        INSERT INTO plan (-->
+<!--            plan_id, plan_desc, dispatch_type,-->
+<!--            schedule_type, schedule_start_at, schedule_delay,-->
+<!--            schedule_interval, schedule_cron-->
+<!--        ) VALUES (-->
+<!--            #{plan.planId}, #{plan.planDesc}, #{plan.dispatchType},-->
+<!--            #{plan.scheduleType}, #{plan.scheduleStartAt}, #{plan.scheduleDelay},-->
+<!--            #{plan.scheduleInterval}, #{plan.scheduleCron}-->
+<!--        ) ON DUPLICATE KEY UPDATE-->
+<!--            plan_desc = VALUES(plan_desc),-->
+<!--            dispatch_type = VALUES(dispatch_type),-->
+<!--            schedule_type = VALUES(schedule_type),-->
+<!--            schedule_start_at = VALUES(schedule_start_at),-->
+<!--            schedule_delay = VALUES(schedule_delay),-->
+<!--            schedule_interval = VALUES(schedule_interval),-->
+<!--            schedule_cron = VALUES(schedule_cron)-->
+<!--    </insert>-->
 
 </mapper>

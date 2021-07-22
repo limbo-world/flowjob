@@ -26,14 +26,12 @@ import java.util.Map;
  * @date 2021/6/23 4:27 下午
  */
 @Data
-public class JobContextDto {
-
-    private String jobContextId;
+public class JobInstanceDto {
 
     /**
-     * 任务名称
+     * 实例id
      */
-    private String jobName;
+    private String jobInstanceId;
 
     /**
      * 执行器的名称

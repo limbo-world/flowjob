@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum PlanScheduleStatus {
 
+    INIT(0, "初始化"),
     Scheduling(1, "调度中"),
     EXECUTING(3, "执行中"), // 第一个任务切换为执行中的时候
     SUCCEED(4, "执行成功"), // 所有节点都执行成功

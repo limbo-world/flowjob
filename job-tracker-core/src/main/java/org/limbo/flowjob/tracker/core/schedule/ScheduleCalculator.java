@@ -16,7 +16,6 @@
 
 package org.limbo.flowjob.tracker.core.schedule;
 
-import lombok.Getter;
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
 import org.limbo.flowjob.tracker.core.job.ScheduleOption;
@@ -41,7 +40,6 @@ public abstract class ScheduleCalculator implements Strategy<Schedulable<?>, Lon
     /**
      * 此策略适用的调度类型
      */
-    @Getter
     private final ScheduleType scheduleType;
 
     protected ScheduleCalculator(ScheduleType scheduleType) {
@@ -68,6 +66,10 @@ public abstract class ScheduleCalculator implements Strategy<Schedulable<?>, Lon
     @Override
     public abstract Long apply(Schedulable<?> schedulable);
 
+
+    public ScheduleType getScheduleType() {
+        return scheduleType;
+    }
 
     /**
      * 计算作业的开始调度时间，从作业创建时间开始，加上delay。

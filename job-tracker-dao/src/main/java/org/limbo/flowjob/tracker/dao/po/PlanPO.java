@@ -54,9 +54,9 @@ public class PlanPO extends PO {
     private String planDesc;
 
     /**
-     * 计划作业分发方式
+     * todo 删除此项 计划作业分发方式
      */
-    private Byte dispatchType;
+//    private Byte dispatchType;
 
     /**
      * 计划作业调度方式
@@ -90,4 +90,9 @@ public class PlanPO extends PO {
      * 接口调用的时候会修改 leader 内存数据以及 db数据 需要保障一致性
      */
     private Boolean isEnabled;
+
+    /**
+     * 是否删除
+     */
+    private Boolean isDeleted;
 }

@@ -16,6 +16,8 @@
 
 package org.limbo.flowjob.tracker.core.job;
 
+import java.util.List;
+
 /**
  * @author Brozen
  * @since 2021-05-19
@@ -23,10 +25,23 @@ package org.limbo.flowjob.tracker.core.job;
 public interface JobRepository {
 
     /**
-     * 添加或更新一个作业
-     * @param job 作业数据
+     * 批量保存
+     * @param jobs 作业数据
      */
-    void addOrUpdateJob(Job job);
+    void batchInsert(List<Job> jobs);
+
+    /**
+     * 根据 planId 获取未删除的job
+     * @param planId
+     * @return
+     */
+    List<Job> getUsedJobsByPlan(String planId);
+
+    /**
+     * 根据 planId 删除未删除的job
+     * @param planId
+     */
+    void deleteUsedJobsByPlan(String planId);
 
     /**
      * 根据id查询作业

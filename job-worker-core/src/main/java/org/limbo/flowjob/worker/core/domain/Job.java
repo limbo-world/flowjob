@@ -24,10 +24,6 @@ public class Job {
 
     private String id;
     /**
-     * 任务名称
-     */
-    private String name;
-    /**
      * 执行器的名称
      */
     private String executorName;
@@ -42,14 +38,6 @@ public class Job {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getExecutorName() {

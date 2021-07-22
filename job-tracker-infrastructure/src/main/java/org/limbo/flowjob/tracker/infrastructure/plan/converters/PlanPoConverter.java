@@ -22,7 +22,7 @@ import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.core.job.DispatchOption;
 import org.limbo.flowjob.tracker.core.job.ScheduleOption;
 import org.limbo.flowjob.tracker.core.plan.Plan;
-import org.limbo.flowjob.tracker.core.schedule.DelegatedScheduleCalculator;
+import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.tracker.core.schedule.calculator.ScheduleCalculatorFactory;
 import org.limbo.flowjob.tracker.dao.po.PlanPO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,9 +54,6 @@ public class PlanPoConverter extends Converter<Plan, PlanPO> {
         po.setPlanId(plan.getPlanId());
         po.setPlanDesc(plan.getPlanDesc());
 
-        DispatchOption dispatchOption = plan.getDispatchOption();
-        po.setDispatchType(dispatchOption.getDispatchType().type);
-
         ScheduleOption scheduleOption = plan.getScheduleOption();
         po.setScheduleType(scheduleOption.getScheduleType().type);
         po.setScheduleStartAt(scheduleOption.getScheduleStartAt());
@@ -76,15 +73,11 @@ public class PlanPoConverter extends Converter<Plan, PlanPO> {
 
         // 先生成一个代理calculator，用于初始化JobDO
         ScheduleType scheduleType = ScheduleType.parse(po.getScheduleType());
-        DelegatedScheduleCalculator delegatedCalculator = new DelegatedScheduleCalculator(scheduleType);
+        ScheduleCalculator scheduleCalculator = scheduleCalculatorFactory.newStrategy(scheduleType);
 
-        Plan plan = new Plan(delegatedCalculator);
+        Plan plan = new Plan(scheduleCalculator);
         plan.setPlanId(po.getPlanId());
         plan.setPlanDesc(po.getPlanDesc());
-
-        plan.setDispatchOption(new DispatchOption(
-                DispatchType.parse(po.getDispatchType()), 0f, 0f
-        ));
 
         plan.setScheduleOption(new ScheduleOption(
                 scheduleType,
@@ -93,9 +86,6 @@ public class PlanPoConverter extends Converter<Plan, PlanPO> {
                 Duration.ofMillis(po.getScheduleInterval()),
                 po.getScheduleCron()
         ));
-
-        // 更新代理calculator的实际使用值
-        delegatedCalculator.setDelegated(scheduleCalculatorFactory.newStrategy(plan));
 
         return plan;
     }

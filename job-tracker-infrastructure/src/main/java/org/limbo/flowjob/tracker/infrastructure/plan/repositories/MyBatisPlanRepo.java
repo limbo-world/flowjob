@@ -16,11 +16,15 @@
 
 package org.limbo.flowjob.tracker.infrastructure.plan.repositories;
 
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.core.job.Job;
+import org.limbo.flowjob.tracker.core.job.ScheduleOption;
 import org.limbo.flowjob.tracker.core.plan.Plan;
 import org.limbo.flowjob.tracker.core.plan.PlanRepository;
+import org.limbo.flowjob.tracker.core.schedule.scheduler.Scheduler;
 import org.limbo.flowjob.tracker.dao.mybatis.JobMapper;
 import org.limbo.flowjob.tracker.dao.mybatis.PlanMapper;
 import org.limbo.flowjob.tracker.dao.po.JobPO;
@@ -54,27 +58,23 @@ public class MyBatisPlanRepo implements PlanRepository {
     @Autowired
     private JobPoConverter jobPoConverter;
 
+    @Autowired
+    private Scheduler scheduler;
+
     /**
      * todo 事务
-      * {@inheritDoc}
+     * {@inheritDoc}
      *
      * @param plan 计划plan
      * @return
      */
     @Override
-    public String addOrUpdatePlan(Plan plan) {
-        // ID未设置则生成一个
-        if (StringUtils.isBlank(plan.getPlanId())) {
-            plan.setPlanId(UUIDUtils.randomID());
-        }
-
-        // 更新plan
+    public String addPlan(Plan plan) {
+        // 新增 plan
         PlanPO po = converter.convert(plan);
-        if (mapper.insertOrUpdate(po) < 1) {
-            throw new IllegalStateException("Update plan error, effected 0 rows");
-        }
+        mapper.insert(po); // 可能由于planId重复导致异常
 
-        // 更新Job，先删后增
+        // 新增 job
         List<JobPO> jobs = plan.getJobs().stream()
                 .peek(job -> {
                     job.setPlanId(plan.getPlanId());
@@ -87,16 +87,27 @@ public class MyBatisPlanRepo implements PlanRepository {
                 .peek(job -> job.setIsDeleted(false))
                 .collect(Collectors.toList());
 
-        jobMapper.update(null, Wrappers.<JobPO>lambdaUpdate()
-                .set(JobPO::getIsDeleted, true)
-                .eq(JobPO::getPlanId, plan.getPlanId())
-        );
-
         jobMapper.batchInsert(jobs);
 
         return plan.getPlanId();
     }
 
+    @Override
+    public void updatePlan(String planId, String planDesc, ScheduleOption scheduleOption) {
+        // 变更数据库
+        LambdaUpdateWrapper<PlanPO> wrapper = Wrappers.<PlanPO>lambdaUpdate()
+                .set(PlanPO::getPlanId, planId)
+                .set(StringUtils.isNotBlank(planDesc), PlanPO::getPlanDesc, planDesc)
+                .eq(PlanPO::getPlanId, planId);
+        if (scheduleOption != null) {
+            wrapper.set(scheduleOption.getScheduleType() != null, PlanPO::getScheduleType, scheduleOption.getScheduleType().type)
+                    .set(scheduleOption.getScheduleStartAt() != null, PlanPO::getScheduleStartAt, scheduleOption.getScheduleStartAt())
+                    .set(scheduleOption.getScheduleDelay() != null, PlanPO::getScheduleDelay, scheduleOption.getScheduleDelay())
+                    .set(scheduleOption.getScheduleInterval() != null, PlanPO::getScheduleInterval, scheduleOption.getScheduleInterval())
+                    .set(scheduleOption.getScheduleCron() != null, PlanPO::getScheduleCron, scheduleOption.getScheduleCron());
+        }
+        mapper.update(null, wrapper);
+    }
 
     /**
      * {@inheritDoc}

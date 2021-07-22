@@ -54,11 +54,6 @@ public class Plan implements Schedulable<PlanInstance> {
     private String planDesc;
 
     /**
-     * 作业计划分发配置参数
-     */
-    private DispatchOption dispatchOption;
-
-    /**
      * 作业计划调度配置参数
      */
     private ScheduleOption scheduleOption;

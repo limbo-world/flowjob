@@ -17,11 +17,12 @@
 package org.limbo.flowjob.tracker.core.schedule;
 
 import lombok.Setter;
-import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 
 import java.util.Objects;
 
 /**
+ * 代理功能 可以基于此类进行扩展
+ *
  * @author Brozen
  * @since 2021-07-13
  */
@@ -34,8 +35,9 @@ public class DelegatedScheduleCalculator extends ScheduleCalculator {
     private ScheduleCalculator delegated;
 
 
-    public DelegatedScheduleCalculator(ScheduleType scheduleType) {
-        super(scheduleType);
+    public DelegatedScheduleCalculator(ScheduleCalculator delegated) {
+        super(delegated.getScheduleType());
+        this.delegated = delegated;
     }
 
     /**

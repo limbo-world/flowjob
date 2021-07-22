@@ -33,6 +33,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -80,6 +81,16 @@ public class JobInstance {
      * 此分发执行此作业上下文的worker
      */
     private String workerId;
+
+    /**
+     * 此作业依赖的父节点ID
+     */
+    private List<String> parentJobIds;
+
+    /**
+     * 此作业完成后需要通知的子节点ID
+     */
+    private List<String> childrenJobIds;
 
     /**
      * 此上下文的创建时间

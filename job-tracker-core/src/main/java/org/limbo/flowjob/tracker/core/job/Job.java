@@ -63,11 +63,6 @@ public class Job {
      */
     private DispatchOption dispatchOption;
 
-    /**
-     * 作业调度配置参数
-     */
-    private ScheduleOption scheduleOption;
-
     // ----------------- 需要注入
 
     /**

@@ -5,10 +5,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.limbo.flowjob.tracker.admin.service.plan.PlanService;
 import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
 import org.limbo.flowjob.tracker.commons.dto.plan.PlanAddDto;
+import org.limbo.flowjob.tracker.commons.dto.plan.PlanUpdateDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+
+import javax.validation.constraints.NotBlank;
 
 /**
  * @author Devil
@@ -29,6 +32,18 @@ public class PlanController {
     @PostMapping
     public Mono<ResponseDto<String>> add(@Validated @RequestBody Mono<PlanAddDto> options) {
         return options.map(opt -> ResponseDto.<String>builder().ok(planService.add(opt)).build());
+    }
+
+    /**
+     * 修改计划
+     */
+    @Operation(summary = "修改计划")
+    @PutMapping("/{planId}")
+    public Mono<ResponseDto<Void>> update(@NotBlank(message = "ID不能为空") @PathVariable("planId") String planId,
+                                          @Validated @RequestBody PlanUpdateDto dto) {
+        planService.update(planId, dto.getPlanDesc(), dto.getScheduleOption(),
+                dto.getAddJobs(), dto.getUpdateJobs(), dto.getDeleteJobIds());
+        return Mono.just(ResponseDto.<Void>builder().ok().build());
     }
 
     /**

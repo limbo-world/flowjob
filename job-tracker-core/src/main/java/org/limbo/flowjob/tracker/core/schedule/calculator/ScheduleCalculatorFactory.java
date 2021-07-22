@@ -18,6 +18,7 @@ package org.limbo.flowjob.tracker.core.schedule.calculator;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.commons.utils.strategies.StrategyFactory;
+import org.limbo.flowjob.tracker.core.schedule.DelegatedScheduleCalculator;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
 import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
 
@@ -29,7 +30,7 @@ import java.util.Map;
  * @author Brozen
  * @since 2021-05-20
  */
-public class ScheduleCalculatorFactory implements StrategyFactory<Schedulable<?>, ScheduleCalculator, Schedulable<?>, Long> {
+public class ScheduleCalculatorFactory implements StrategyFactory<ScheduleType, ScheduleCalculator, Schedulable<?>, Long> {
 
     /**
      * 全部策略
@@ -52,24 +53,24 @@ public class ScheduleCalculatorFactory implements StrategyFactory<Schedulable<?>
 
     }
 
-    public void putCalculator(Map<ScheduleType, ScheduleCalculator> calculators, ScheduleCalculator calculator) {
+    private void putCalculator(Map<ScheduleType, ScheduleCalculator> calculators, ScheduleCalculator calculator) {
         calculators.put(calculator.getScheduleType(), calculator);
     }
 
 
     /**
      * 根据作业调度类型，创建作业触发时间计算器
-     * @param schedulable 待调度对象
+     * @param scheduleType 调度方式
      * @return 触发时间计算器
      */
     @Override
-    public ScheduleCalculator newStrategy(Schedulable<?> schedulable) {
-        ScheduleCalculator calculator = scheduleCalculators.get(schedulable.getScheduleOption().getScheduleType());
+    public ScheduleCalculator newStrategy(ScheduleType scheduleType) {
+        ScheduleCalculator calculator = scheduleCalculators.get(scheduleType);
         if (calculator != null) {
-            return calculator;
+            return new DelegatedScheduleCalculator(calculator);
         }
 
-        throw new IllegalStateException("cannot apply " + (getClass().getName()) + " for " + schedulable);
+        throw new IllegalStateException("cannot apply " + (getClass().getName()) + " for " + scheduleType);
     }
 
 }

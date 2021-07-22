@@ -16,6 +16,8 @@
 
 package org.limbo.flowjob.tracker.core.plan;
 
+import org.limbo.flowjob.tracker.core.job.ScheduleOption;
+
 import java.util.List;
 
 /**
@@ -25,15 +27,24 @@ import java.util.List;
 public interface PlanRepository {
 
     /**
-     * 新增或更新一个plan
+     * 新增plan
+     *
      * @param plan 计划plan
      * @return 返回plan的id。如果入参Plan中没有指定ID，方法内应当自动生成一个并返回。
      */
-    String addOrUpdatePlan(Plan plan);
+    String addPlan(Plan plan);
 
+    /**
+     * 更新一个plan基础数据
+     *
+     * @param planDesc       描述
+     * @param scheduleOption 调度
+     */
+    void updatePlan(String planId, String planDesc, ScheduleOption scheduleOption);
 
     /**
      * 根据计划ID查询计划
+     *
      * @param planId 计划ID
      * @return 计划plan
      */
@@ -42,6 +53,7 @@ public interface PlanRepository {
 
     /**
      * 查询所有需要被调度的计划。
+     *
      * @return 所有需要被调度的作业计划
      */
     List<Plan> listSchedulablePlans();

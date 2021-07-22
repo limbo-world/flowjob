@@ -26,6 +26,7 @@ public class MyBatisPlanPoRepo implements PlanPoRepository {
         planMapper.update(null, Wrappers.<PlanPO>lambdaUpdate()
                 .set(PlanPO::getIsEnabled, isEnabled)
                 .eq(PlanPO::getPlanId, planId)
+                .eq(PlanPO::getIsDeleted, false)
         );
     }
 

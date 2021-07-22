@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.worker.start.application;
 
-import org.limbo.flowjob.tracker.commons.dto.job.JobContextDto;
+import org.limbo.flowjob.tracker.commons.dto.job.JobInstanceDto;
 import org.limbo.flowjob.worker.core.domain.Job;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.springframework.stereotype.Service;
@@ -34,10 +34,9 @@ public class WorkerService {
         this.worker = worker;
     }
 
-    public void receive(JobContextDto dto) {
+    public void receive(JobInstanceDto dto) {
         Job job = new Job();
-        job.setId(dto.getJobContextId());
-        job.setName(dto.getJobName());
+        job.setId(dto.getJobInstanceId());
         job.setExecutorName(dto.getExecutorName());
         job.setExecutorParam(dto.getExecutorParam());
         worker.receive(job);

@@ -40,4 +40,10 @@ public interface Scheduler<T extends SchedulableInstance> {
      */
     void unschedule(String id);
 
+    /**
+     * 判断是否在调度中
+     * @param id 调度的对象 id
+     */
+    boolean isScheduling(String id);
+
 }

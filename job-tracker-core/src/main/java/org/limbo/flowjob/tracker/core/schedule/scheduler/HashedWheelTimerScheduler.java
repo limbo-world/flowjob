@@ -131,4 +131,14 @@ public class HashedWheelTimerScheduler<T extends SchedulableInstance> implements
         scheduling.remove(id);
     }
 
+    /**
+     * {@inheritDoc}
+     * @param id 调度的对象 id
+     * @return 是否调度中
+     */
+    @Override
+    public boolean isScheduling(String id) {
+        return scheduling.containsKey(id);
+    }
+
 }

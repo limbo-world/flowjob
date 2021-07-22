@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum JobScheduleStatus {
 
+    INIT(0, "初始化"),
     Scheduling(1, "调度中"),
     REFUSED(2, "拒绝执行"), // worker拒绝，进入容错策略
     EXECUTING(3, "执行中"),
