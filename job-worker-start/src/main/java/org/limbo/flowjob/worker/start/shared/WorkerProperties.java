@@ -23,7 +23,7 @@ import java.util.List;
 
 /**
  * @author Devil
- * @date 2021/6/16 1:45 下午
+ * @since 2021/7/24
  */
 @Data
 @ConfigurationProperties(prefix = "worker")

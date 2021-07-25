@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Import;
 
 /**
  * @author Devil
- * @date 2021/6/9 5:51 下午
+ * @since 2021/7/24
  */
 @SpringBootApplication
 @EnableConfigurationProperties({WorkerProperties.class})

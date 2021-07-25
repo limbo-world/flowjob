@@ -1,20 +1,18 @@
 package org.limbo.flowjob.tracker.dao.po;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- *
+ * job 的一次执行记录
  *
  * @author Devil
- * @date 2021/7/15 10:14 上午
+ * @since 2021/7/24
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("job_instance")
+@TableName("flowjob_job_instance")
 public class JobInstancePO extends PO {
     private static final long serialVersionUID = 6964053679870383875L;
 
@@ -24,10 +22,19 @@ public class JobInstancePO extends PO {
     private Long serialId;
 
     /**
-     * 作业ID
+     * 计划ID
      */
-    @TableId(type = IdType.INPUT)
-    private String jobInstanceId;
+    private String planId;
+
+    /**
+     * 计划的版本
+     */
+    private Integer version;
+
+    /**
+     * 计划实例的ID
+     */
+    private Integer planInstanceId;
 
     /**
      * 作业ID
@@ -35,9 +42,9 @@ public class JobInstancePO extends PO {
     private String jobId;
 
     /**
-     * 计划ID
+     * 从 1 开始增加 planId + version + planInstanceId + jobId + jobInstanceId 全局唯一
      */
-    private String planId;
+    private Integer jobInstanceId;
 
     /**
      * 状态
@@ -45,7 +52,22 @@ public class JobInstancePO extends PO {
     private Byte state;
 
     /**
-     * 优先级
+     * 执行作业的worker ID
      */
-    private Integer priority;
+    private String workerId;
+
+    /**
+     * 此次执行的参数
+     */
+    private String attributes;
+
+    /**
+     * 执行失败时的异常信息
+     */
+    private String errorMsg;
+
+    /**
+     * 执行失败时的异常堆栈
+     */
+    private String errorStackTrace;
 }

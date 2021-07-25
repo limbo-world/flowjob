@@ -16,13 +16,12 @@
 
 package org.limbo.flowjob.tracker.core.plan;
 
-import org.limbo.flowjob.tracker.core.dispatcher.storage.JobStorage;
+import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
+import org.limbo.flowjob.tracker.core.storage.JobInstanceStorage;
 import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
-import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
 import org.limbo.flowjob.tracker.core.schedule.executor.Executor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,17 +33,13 @@ import java.util.List;
  */
 public class PlanInstanceExecutor implements Executor<PlanInstance> {
 
-    private PlanInstanceRepository planInstanceRepository;
+    private final PlanInstanceRepository planInstanceRepository;
 
-    private JobInstanceRepository jobInstanceRepository;
+    private final JobInstanceStorage jobInstanceStorage;
 
-    private JobStorage jobStorage;
-
-    public PlanInstanceExecutor(PlanInstanceRepository planInstanceRepository, JobInstanceRepository
-            jobInstanceRepository, JobStorage jobStorage) {
+    public PlanInstanceExecutor(PlanInstanceRepository planInstanceRepository, JobInstanceStorage jobInstanceStorage) {
         this.planInstanceRepository = planInstanceRepository;
-        this.jobInstanceRepository = jobInstanceRepository;
-        this.jobStorage = jobStorage;
+        this.jobInstanceStorage = jobInstanceStorage;
     }
 
     /**
@@ -57,24 +52,14 @@ public class PlanInstanceExecutor implements Executor<PlanInstance> {
     @Override
     public void execute(PlanInstance instance) {
 
+        instance.setState(PlanScheduleStatus.Scheduling);
         planInstanceRepository.addInstance(instance);
 
-        // 获取计划的第一批 job 生成实例
+        // 下发需要最先执行的job
         List<Job> jobs = instance.getEarliestJobs();
-
-        List<JobInstance> jobInstances = new ArrayList<>();
-
         for (Job job : jobs) {
-
-            JobInstance jobInstance = job.newInstance();
-
-            jobInstanceRepository.addInstance(jobInstance);
-
-            jobInstances.add(jobInstance);
-        }
-
-        for (JobInstance jobInstance : jobInstances) {
-            jobStorage.store(jobInstance);
+            JobInstance jobInstance = job.newInstance(instance.getPlanId(), instance.getVersion(), instance.getPlanInstanceId());
+            jobInstanceStorage.store(jobInstance);
         }
 
     }

@@ -1,4 +1,4 @@
-package org.limbo.flowjob.tracker.core.dispatcher.storage;
+package org.limbo.flowjob.tracker.core.storage;
 
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 
@@ -9,11 +9,11 @@ import java.util.concurrent.LinkedBlockingQueue;
  * 存在内存
  *
  * @author Devil
- * @date 2021/7/17 10:50 下午
+ * @since 2021/7/24
  */
-public class MemoryJobStorage implements JobStorage {
+public class MemoryJobInstanceStorage implements JobStorage {
 
-    private BlockingQueue<JobInstance> queue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<JobInstance> queue = new LinkedBlockingQueue<>();
 
     @Override
     public void store(JobInstance instance) {
@@ -30,8 +30,4 @@ public class MemoryJobStorage implements JobStorage {
         }
     }
 
-    @Override
-    public void adjustPriority(String id, int priority) {
-
-    }
 }

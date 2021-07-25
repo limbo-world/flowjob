@@ -17,7 +17,6 @@
 package org.limbo.flowjob.tracker.dao.mybatis;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.apache.ibatis.annotations.Param;
 import org.limbo.flowjob.tracker.dao.po.PlanPO;
 
 /**

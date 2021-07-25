@@ -21,15 +21,13 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
-import org.limbo.flowjob.tracker.core.job.DispatchOption;
 import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.JobRepository;
 import org.limbo.flowjob.tracker.core.job.ScheduleOption;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
 import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
-import org.limbo.utils.UUIDUtils;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -54,6 +52,11 @@ public class Plan implements Schedulable<PlanInstance> {
     private String planDesc;
 
     /**
+     * 当前版本
+     */
+    private Integer version;
+
+    /**
      * 作业计划调度配置参数
      */
     private ScheduleOption scheduleOption;
@@ -64,11 +67,6 @@ public class Plan implements Schedulable<PlanInstance> {
     private List<Job> jobs;
 
     // -------- 需要注入
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    @ToString.Exclude
-    private JobRepository jobRepository;
-
     /**
      * 作业触发计算器
      */
@@ -76,7 +74,6 @@ public class Plan implements Schedulable<PlanInstance> {
     @Setter(AccessLevel.NONE)
     @ToString.Exclude
     private ScheduleCalculator triggerCalculator;
-
 
     public Plan(ScheduleCalculator triggerCalculator) {
         this.triggerCalculator = triggerCalculator;
@@ -86,9 +83,11 @@ public class Plan implements Schedulable<PlanInstance> {
     @Override
     public PlanInstance newInstance() {
         PlanInstance instance = new PlanInstance();
-        instance.setPlanInstanceId(UUIDUtils.randomID());
         instance.setPlanId(planId);
+        instance.setVersion(version);
+        instance.setPlanInstanceId(1);
         instance.setState(PlanScheduleStatus.Scheduling);
+        instance.setJobs(jobs);
         return instance;
     }
 
@@ -130,13 +129,18 @@ public class Plan implements Schedulable<PlanInstance> {
     }
 
 
+    public List<Job> getJobs() {
+        return jobs == null ? new ArrayList<>() : jobs;
+    }
+
     /**
      * 查询此plan下的job
      * @param jobId 作业ID
      * @return 作业领域
      */
     public Job getJob(String jobId) {
-        return jobRepository.getJob(jobId);
+        return null;
+//        return jobRepository.getJob(jobId);
     }
 
 }

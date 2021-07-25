@@ -6,7 +6,7 @@ import lombok.Data;
  * todo 这个我认为应该是 worker 执行结束后回调 tracker 的时候保存到db
  *
  * @author Devil
- * @date 2021/7/19 5:43 下午
+ * @since 2021/7/24
  */
 @Data
 public class JobExecuteRecord {

@@ -14,41 +14,14 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.dao.po;
+package org.limbo.flowjob.tracker.dao.mybatis;
 
-import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.limbo.flowjob.tracker.dao.po.JobLinkPO;
 
 /**
  * @author Brozen
- * @since 2021-07-05
+ * @since 2021-06-02
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
-@TableName("flowjob_worker_executor")
-public class WorkerExecutorPO extends PO {
-
-    private static final long serialVersionUID = 7370406980674258946L;
-
-    /**
-     * worker节点ID
-     */
-    private String workerId;
-
-    /**
-     * 执行器名称
-     */
-    private String executorName;
-
-    /**
-     * 执行器描述信息
-     */
-    private String executorDesc;
-
-    /**
-     * 执行器类型
-     */
-    private Byte executeType;
-
+public interface JobLinkMapper extends BaseMapper<JobLinkPO> {
 }

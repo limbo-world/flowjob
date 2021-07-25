@@ -30,7 +30,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("worker_metric")
+@TableName("flowjob_worker_metric")
 public class WorkerMetricPO extends PO {
 
     private static final long serialVersionUID = -3009642474389520555L;

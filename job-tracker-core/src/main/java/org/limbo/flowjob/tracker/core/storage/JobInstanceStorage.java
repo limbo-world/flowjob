@@ -1,4 +1,4 @@
-package org.limbo.flowjob.tracker.core.dispatcher.storage;
+package org.limbo.flowjob.tracker.core.storage;
 
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 
@@ -17,9 +17,9 @@ import org.limbo.flowjob.tracker.core.job.context.JobInstance;
  * 2. worker 获取当前时间来执行任务（这种就可能会有重复执行的情况，比如任务堆积或者任务排序后导致同时下发，那两个worker获取时间相同）
  *
  * @author Devil
- * @date 2021/7/17 10:47 下午
+ * @since 2021/7/24
  */
-public interface JobStorage {
+public interface JobInstanceStorage {
 
     /**
      * 存储一个 job 实例
@@ -32,12 +32,5 @@ public interface JobStorage {
      * @return 实例
      */
     JobInstance take();
-
-    /**
-     * 修改一个 job 的优先级
-     * @param id
-     * @param priority
-     */
-    void adjustPriority(String id, int priority);
 
 }

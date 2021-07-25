@@ -39,14 +39,19 @@ import java.util.List;
 public class PlanInstance implements SchedulableInstance {
 
     /**
-     * 一个计划可能在调度中，会被多次执行，生成多个实例
-     */
-    private String planInstanceId;
-
-    /**
      * 计划ID
      */
     private String planId;
+
+    /**
+     * 计划的版本
+     */
+    private Integer version;
+
+    /**
+     * 从 1 开始增加 planId + version + planInstanceId 全局唯一
+     */
+    private Integer planInstanceId;
 
     /**
      * 状态
@@ -57,18 +62,6 @@ public class PlanInstance implements SchedulableInstance {
      * 此执行计划对应的所有作业
      */
     private List<Job> jobs;
-
-    /**
-     * 创建时间
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createdAt;
-
-    /**
-     * 更新时间
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime updatedAt;
 
     /**
      * 获取最先需要执行的job 因为 DAG 可能会有多个一起执行 todo

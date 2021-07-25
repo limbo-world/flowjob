@@ -18,19 +18,18 @@
 <mapper namespace="org.limbo.flowjob.tracker.dao.mybatis.PlanMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="JobPO" type="org.limbo.flowjob.tracker.dao.po.PlanPO">
-        <id column="serial_id" property="serialId" />
-        <result column="plan_id" property="planId" />
-        <result column="plan_desc" property="planDesc" />
-        <result column="dispatch_type" property="dispatchType" />
-        <result column="schedule_type" property="scheduleType" />
-        <result column="schedule_start_at" property="scheduleStartAt" />
-        <result column="schedule_delay" property="scheduleDelay" />
-        <result column="schedule_interval" property="scheduleInterval" />
-        <result column="schedule_cron" property="scheduleCron" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
-    </resultMap>
+<!--    <resultMap id="JobPO" type="org.limbo.flowjob.tracker.dao.po.PlanInfoPO">-->
+<!--        <id column="serial_id" property="serialId" />-->
+<!--        <result column="plan_id" property="planId" />-->
+<!--        <result column="plan_desc" property="planDesc" />-->
+<!--        <result column="schedule_type" property="scheduleType" />-->
+<!--        <result column="schedule_start_at" property="scheduleStartAt" />-->
+<!--        <result column="schedule_delay" property="scheduleDelay" />-->
+<!--        <result column="schedule_interval" property="scheduleInterval" />-->
+<!--        <result column="schedule_cron" property="scheduleCron" />-->
+<!--        <result column="created_at" property="createdAt" />-->
+<!--        <result column="updated_at" property="updatedAt" />-->
+<!--    </resultMap>-->
 
 <!--    <insert id="insertOrUpdate">-->
 <!--        INSERT INTO plan (-->

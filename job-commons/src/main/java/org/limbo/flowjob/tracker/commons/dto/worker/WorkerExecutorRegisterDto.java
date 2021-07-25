@@ -23,7 +23,7 @@ import org.limbo.flowjob.tracker.commons.constants.enums.JobExecuteType;
  * worker支持的执行器
  *
  * @author Devil
- * @date 2021/6/23 5:14 下午
+ * @since 2021/7/24
  */
 @Data
 public class WorkerExecutorRegisterDto {

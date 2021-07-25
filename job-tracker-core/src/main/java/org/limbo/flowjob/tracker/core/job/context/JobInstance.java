@@ -16,7 +16,6 @@
 
 package org.limbo.flowjob.tracker.core.job.context;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,14 +24,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.DispatchType;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
-import org.limbo.flowjob.tracker.commons.exceptions.JobInstanceException;
+import org.limbo.flowjob.tracker.commons.exceptions.JobDispatchException;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -48,14 +46,19 @@ import java.util.Objects;
 public class JobInstance {
 
     /**
-     * 作业实例 id 一个作业可能在调度中，有两次同时在执行，因此可能会产生两个实例，需要用此做区分。
-     */
-    private String jobInstanceId;
-
-    /**
-     * 作业执行计划ID
+     * 计划ID
      */
     private String planId;
+
+    /**
+     * 计划的版本
+     */
+    private Integer version;
+
+    /**
+     * 计划实例的ID
+     */
+    private Integer planInstanceId;
 
     /**
      * 作业ID
@@ -63,14 +66,14 @@ public class JobInstance {
     private String jobId;
 
     /**
+     * 从 1 开始增加 planId + version + planInstanceId + jobId + jobInstanceId 全局唯一
+     */
+    private Integer jobInstanceId;
+
+    /**
      * 此上下文状态
      */
     private JobScheduleStatus state;
-
-    /**
-     * 优先级
-     */
-    private Integer priority;
 
     /**
      * 下发方式
@@ -91,18 +94,6 @@ public class JobInstance {
      * 此作业完成后需要通知的子节点ID
      */
     private List<String> childrenJobIds;
-
-    /**
-     * 此上下文的创建时间
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createdAt;
-
-    /**
-     * 此上下文的更新时间
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime updatedAt;
 
     /**
      * 作业属性，不可变。作业属性可用于分片作业、MapReduce作业、DAG工作流进行传参
@@ -149,14 +140,14 @@ public class JobInstance {
      *
      * 只有{@link JobScheduleStatus#Scheduling}和{@link JobScheduleStatus#FAILED}状态的上下文可被开启。
      * @param worker 会将此上下文分发去执行的worker
-     * @throws JobInstanceException 状态检测失败时，即此上下文的状态不是INIT或FAILED时抛出异常。
+     * @throws JobDispatchException 状态检测失败时，即此上下文的状态不是INIT或FAILED时抛出异常。
      */
-    public void startupContext(Worker worker) throws JobInstanceException {
+    public void startupContext(Worker worker) throws JobDispatchException {
         JobScheduleStatus status = getState();
 
         // 检测状态
         if (status != JobScheduleStatus.Scheduling && status != JobScheduleStatus.FAILED) {
-            throw new JobInstanceException(getJobId(), getJobInstanceId(), "Cannot startup context due to current status: " + status);
+            throw new JobDispatchException(getJobId(), getId(), "Cannot startup context due to current status: " + status);
         }
 
         try {
@@ -179,7 +170,7 @@ public class JobInstance {
             setState(JobScheduleStatus.FAILED);
             jobInstanceRepository.updateInstance(this);
 
-            throw new JobInstanceException(getJobId(), worker.getWorkerId(),
+            throw new JobDispatchException(getJobId(), worker.getWorkerId(),
                     "Context startup failed due to send job to worker error!", e);
         }
     }
@@ -190,9 +181,9 @@ public class JobInstance {
      * FIXME 更新上下文，需锁定contextId，防止并发问题
      *
      * @param worker 确认接收此上下文的worker
-     * @throws JobInstanceException 接受上下文的worker和上下文记录的worker不同时，抛出异常。
+     * @throws JobDispatchException 接受上下文的worker和上下文记录的worker不同时，抛出异常。
      */
-    public void acceptContext(Worker worker) throws JobInstanceException {
+    public void acceptContext(Worker worker) throws JobDispatchException {
 
         assertContextStatus(JobScheduleStatus.Scheduling);
         assertWorkerId(worker.getWorkerId());
@@ -211,16 +202,16 @@ public class JobInstance {
      * FIXME 更新上下文，需锁定contextId，防止并发问题
      *
      * @param worker 拒绝接收此上下文的worker
-     * @throws JobInstanceException 拒绝上下文的worker和上下文记录的worker不同时，抛出异常。
+     * @throws JobDispatchException 拒绝上下文的worker和上下文记录的worker不同时，抛出异常。
      */
-    public void refuseContext(Worker worker) throws JobInstanceException {
+    public void refuseContext(Worker worker) throws JobDispatchException {
 
         assertContextStatus(JobScheduleStatus.Scheduling);
         assertWorkerId(worker.getWorkerId());
 
         // 更新状态
-        setState(JobScheduleStatus.REFUSED);
-        jobInstanceRepository.updateInstance(this);
+//        setState(JobScheduleStatus.REFUSED);
+//        jobInstanceRepository.updateInstance(this);
 
         // 发布事件
         lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.REFUSED, Sinks.EmitFailureHandler.FAIL_FAST);
@@ -232,9 +223,9 @@ public class JobInstance {
      *
      * FIXME 更新上下文，需锁定contextId，防止并发问题
      *
-     * @throws JobInstanceException 上下文状态不是{@link JobScheduleStatus#EXECUTING}时抛出异常。
+     * @throws JobDispatchException 上下文状态不是{@link JobScheduleStatus#EXECUTING}时抛出异常。
      */
-    public void closeContext() throws JobInstanceException {
+    public void closeContext() throws JobDispatchException {
 
         assertContextStatus(JobScheduleStatus.EXECUTING);
 
@@ -268,23 +259,23 @@ public class JobInstance {
 
 
     /**
-     * 断言当前上下文处于某个状态，否则将抛出{@link JobInstanceException}
+     * 断言当前上下文处于某个状态，否则将抛出{@link JobDispatchException}
      * @param assertStatus 断言当前上下文的状态
      */
-    protected void assertContextStatus(JobScheduleStatus assertStatus) throws JobInstanceException {
+    protected void assertContextStatus(JobScheduleStatus assertStatus) throws JobDispatchException {
         if (getState() != assertStatus) {
-            throw new JobInstanceException(getJobId(), getJobInstanceId(),
+            throw new JobDispatchException(getJobId(), getId(),
                     "Expect context status: " + assertStatus + " but is: " + getState());
         }
     }
 
     /**
-     * 断言当前上下文的workerId是指定值，否则将抛出{@link JobInstanceException}
+     * 断言当前上下文的workerId是指定值，否则将抛出{@link JobDispatchException}
      * @param assertWorkerId 断言当前上下文的workerId
      */
-    protected void assertWorkerId(String assertWorkerId) throws JobInstanceException {
+    protected void assertWorkerId(String assertWorkerId) throws JobDispatchException {
         if (!StringUtils.equalsIgnoreCase(getWorkerId(), assertWorkerId)) {
-            throw new JobInstanceException(getJobId(), getJobInstanceId(),
+            throw new JobDispatchException(getJobId(), getId(),
                     "Except worker: " + assertWorkerId + " but worker is: " + getWorkerId());
         }
     }
@@ -329,6 +320,14 @@ public class JobInstance {
                 .asFlux()
                 .filter(e -> e == JobContextLifecycleEvent.CLOSED)
                 .subscribe(e -> sink.success(this), sink::error, sink::success));
+    }
+
+    /**
+     * 获取全局唯一的实例ID
+     * @return id
+     */
+    public String getId() {
+        return planId + "-" + version + "-" + planInstanceId + "-" + jobId + "-" + jobInstanceId;
     }
 
     /**

@@ -48,7 +48,6 @@ public interface Schedulable<T> extends Executable<T> {
      */
     Instant getLastFeedbackAt();
 
-
     /**
      * 计算作业下一次被触发时的时间戳。如果作业不会被触发，返回0或负数；
      * @return 作业下一次被触发时的时间戳，从1970-01-01 00:00:00到触发时刻的毫秒数。

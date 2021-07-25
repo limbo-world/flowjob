@@ -16,8 +16,6 @@
 
 package org.limbo.flowjob.tracker.core.plan;
 
-import org.limbo.flowjob.tracker.core.job.ScheduleOption;
-
 import java.util.List;
 
 /**
@@ -35,12 +33,11 @@ public interface PlanRepository {
     String addPlan(Plan plan);
 
     /**
-     * 更新一个plan基础数据
+     * 新创建一个plan版本
      *
-     * @param planDesc       描述
-     * @param scheduleOption 调度
+     * @param plan 计划plan
      */
-    void updatePlan(String planId, String planDesc, ScheduleOption scheduleOption);
+    Integer newPlanVersion(Plan plan);
 
     /**
      * 根据计划ID查询计划
@@ -48,7 +45,14 @@ public interface PlanRepository {
      * @param planId 计划ID
      * @return 计划plan
      */
-    Plan getPlan(String planId);
+    Plan getPlan(String planId, Integer version);
+
+    /**
+     * 获取当前版本
+     * @param planId
+     * @return
+     */
+    Plan getCurrentPlan(String planId);
 
 
     /**

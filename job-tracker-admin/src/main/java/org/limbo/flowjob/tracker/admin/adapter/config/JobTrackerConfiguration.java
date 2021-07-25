@@ -17,8 +17,8 @@
 package org.limbo.flowjob.tracker.admin.adapter.config;
 
 import org.limbo.flowjob.tracker.core.dispatcher.JobDispatchLauncher;
-import org.limbo.flowjob.tracker.core.dispatcher.storage.JobStorage;
-import org.limbo.flowjob.tracker.core.dispatcher.storage.MemoryJobStorage;
+import org.limbo.flowjob.tracker.core.storage.JobInstanceStorage;
+import org.limbo.flowjob.tracker.core.storage.MemoryJobInstanceStorage;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
 import org.limbo.flowjob.tracker.core.plan.PlanInstance;
 import org.limbo.flowjob.tracker.core.plan.PlanInstanceExecutor;
@@ -59,9 +59,9 @@ public class JobTrackerConfiguration {
      * job 存储
      */
     @Bean
-    @ConditionalOnMissingBean(JobStorage.class)
-    public JobStorage jobStorage() {
-        return new MemoryJobStorage();
+    @ConditionalOnMissingBean(JobInstanceStorage.class)
+    public JobInstanceStorage jobStorage() {
+        return new MemoryJobInstanceStorage();
     }
 
     /**
@@ -69,8 +69,8 @@ public class JobTrackerConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(JobDispatchLauncher.class)
-    public JobDispatchLauncher jobTracker(JobTracker jobTracker, JobStorage jobStorage) {
-        JobDispatchLauncher jobDispatchLauncher = new JobDispatchLauncher(jobTracker, jobStorage);
+    public JobDispatchLauncher jobTracker(JobTracker jobTracker, JobInstanceStorage jobInstanceStorage, JobInstanceRepository jobInstanceRepository) {
+        JobDispatchLauncher jobDispatchLauncher = new JobDispatchLauncher(jobTracker, jobInstanceStorage, jobInstanceRepository);
         jobDispatchLauncher.start();
         return jobDispatchLauncher;
     }
@@ -98,9 +98,8 @@ public class JobTrackerConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(Executor.class)
-    public Executor<PlanInstance> planExecutor(PlanInstanceRepository planInstanceRepository,
-                                              JobInstanceRepository jobInstanceRepository, JobStorage jobStorage) {
-        return new PlanInstanceExecutor(planInstanceRepository, jobInstanceRepository, jobStorage);
+    public Executor<PlanInstance> planExecutor(PlanInstanceRepository planInstanceRepository, JobInstanceStorage jobInstanceStorage) {
+        return new PlanInstanceExecutor(planInstanceRepository, jobInstanceStorage);
     }
 
 }

@@ -16,28 +16,19 @@
 
 package org.limbo.flowjob.tracker.infrastructure.plan.repositories;
 
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.ScheduleOption;
 import org.limbo.flowjob.tracker.core.plan.Plan;
 import org.limbo.flowjob.tracker.core.plan.PlanRepository;
-import org.limbo.flowjob.tracker.core.schedule.scheduler.Scheduler;
-import org.limbo.flowjob.tracker.dao.mybatis.JobMapper;
+import org.limbo.flowjob.tracker.dao.mybatis.PlanInfoMapper;
 import org.limbo.flowjob.tracker.dao.mybatis.PlanMapper;
-import org.limbo.flowjob.tracker.dao.po.JobPO;
+import org.limbo.flowjob.tracker.dao.po.PlanInfoPO;
 import org.limbo.flowjob.tracker.dao.po.PlanPO;
-import org.limbo.flowjob.tracker.infrastructure.job.converters.JobPoConverter;
-import org.limbo.flowjob.tracker.infrastructure.plan.converters.PlanPoConverter;
-import org.limbo.utils.UUIDUtils;
+import org.limbo.flowjob.tracker.infrastructure.plan.converters.PlanInfoPOConverter;
+import org.limbo.utils.verifies.Verifies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * @author Brozen
@@ -47,22 +38,16 @@ import java.util.stream.Collectors;
 public class MyBatisPlanRepo implements PlanRepository {
 
     @Autowired
-    private PlanMapper mapper;
+    private PlanInfoMapper planInfoMapper;
 
     @Autowired
-    private JobMapper jobMapper;
+    private PlanInfoPOConverter converter;
 
     @Autowired
-    private PlanPoConverter converter;
-
-    @Autowired
-    private JobPoConverter jobPoConverter;
-
-    @Autowired
-    private Scheduler scheduler;
+    private PlanMapper planMapper;
 
     /**
-     * todo 事务
+     * todo 事务 plan 删除处理 硬/软删除
      * {@inheritDoc}
      *
      * @param plan 计划plan
@@ -70,43 +55,50 @@ public class MyBatisPlanRepo implements PlanRepository {
      */
     @Override
     public String addPlan(Plan plan) {
-        // 新增 plan
-        PlanPO po = converter.convert(plan);
-        mapper.insert(po); // 可能由于planId重复导致异常
+        // 判断 plan 是否存在
+        PlanPO planPO = planMapper.selectById(plan.getPlanId());
+        Verifies.isNull(planPO, "plan is already exist");
 
-        // 新增 job
-        List<JobPO> jobs = plan.getJobs().stream()
-                .peek(job -> {
-                    job.setPlanId(plan.getPlanId());
-                    if (StringUtils.isBlank(job.getJobId())) {
-                        job.setJobId(UUIDUtils.randomID());
-                    }
-                })
-                .map(jobPoConverter::convert)
-                .filter(Objects::nonNull)
-                .peek(job -> job.setIsDeleted(false))
-                .collect(Collectors.toList());
+        planPO = new PlanPO();
+        planPO.setPlanId(plan.getPlanId());
+        planPO.setCurrentVersion(plan.getVersion());
+        planPO.setLatelyVersion(plan.getVersion());
 
-        jobMapper.batchInsert(jobs);
+        planMapper.insert(planPO);
+
+        // 新增 plan info
+        PlanInfoPO planInfoPO = converter.convert(plan);
+        planInfoPO.setIsDeleted(false);
+        planInfoMapper.insert(planInfoPO); // 可能由于planId重复导致异常
 
         return plan.getPlanId();
     }
 
     @Override
-    public void updatePlan(String planId, String planDesc, ScheduleOption scheduleOption) {
-        // 变更数据库
-        LambdaUpdateWrapper<PlanPO> wrapper = Wrappers.<PlanPO>lambdaUpdate()
-                .set(PlanPO::getPlanId, planId)
-                .set(StringUtils.isNotBlank(planDesc), PlanPO::getPlanDesc, planDesc)
-                .eq(PlanPO::getPlanId, planId);
-        if (scheduleOption != null) {
-            wrapper.set(scheduleOption.getScheduleType() != null, PlanPO::getScheduleType, scheduleOption.getScheduleType().type)
-                    .set(scheduleOption.getScheduleStartAt() != null, PlanPO::getScheduleStartAt, scheduleOption.getScheduleStartAt())
-                    .set(scheduleOption.getScheduleDelay() != null, PlanPO::getScheduleDelay, scheduleOption.getScheduleDelay())
-                    .set(scheduleOption.getScheduleInterval() != null, PlanPO::getScheduleInterval, scheduleOption.getScheduleInterval())
-                    .set(scheduleOption.getScheduleCron() != null, PlanPO::getScheduleCron, scheduleOption.getScheduleCron());
+    public Integer newPlanVersion(Plan plan) {
+        PlanPO planPO = planMapper.selectById(plan.getPlanId());
+        Verifies.isNull(planPO, "plan isn't exist");
+
+        Integer newVersion = planPO.getLatelyVersion() + 1; // 新版本为最大版本 + 1
+        plan.setVersion(newVersion);
+
+        int update = planMapper.update(null, Wrappers.<PlanPO>lambdaUpdate()
+                .eq(PlanPO::getCurrentVersion, newVersion)
+                .eq(PlanPO::getLatelyVersion, newVersion)
+                .eq(PlanPO::getPlanId, planPO.getPlanId())
+                .eq(PlanPO::getCurrentVersion, planPO.getCurrentVersion())
+                .eq(PlanPO::getLatelyVersion, planPO.getLatelyVersion())
+        );
+        if (update <= 0) {
+            // todo 更新失败
+            throw new RuntimeException("update fail");
         }
-        mapper.update(null, wrapper);
+
+        // 保存基础数据
+        PlanInfoPO planInfoPO = converter.convert(plan);
+        planInfoPO.setIsDeleted(false);
+        planInfoMapper.insert(planInfoPO);
+        return newVersion;
     }
 
     /**
@@ -116,20 +108,22 @@ public class MyBatisPlanRepo implements PlanRepository {
      * @return
      */
     @Override
-    public Plan getPlan(String planId) {
-        Plan plan = converter.reverse().convert(mapper.selectById(planId));
+    public Plan getPlan(String planId, Integer version) {
 
-        if (plan != null) {
-            List<Job> jobs = jobMapper.selectList(Wrappers.<JobPO>lambdaQuery()
-                    .eq(JobPO::getPlanId, plan.getPlanId())
-                    .eq(JobPO::getIsDeleted, false) //todo 可能会获取已经删除的job
-            ).stream().map(jpo -> jobPoConverter.reverse()
-                    .convert(jpo))
-                    .collect(Collectors.toList());
-            plan.setJobs(jobs);
+        PlanInfoPO planInfoPO = planInfoMapper.selectOne(Wrappers.<PlanInfoPO>lambdaQuery()
+                .eq(PlanInfoPO::getPlanId, planId)
+                .eq(PlanInfoPO::getVersion, version)
+        );
+        if (planInfoPO == null) {
+            return null;
         }
+        return converter.reverse().convert(planInfoPO);
+    }
 
-        return plan;
+    @Override
+    public Plan getCurrentPlan(String planId) {
+        PlanPO planPO = planMapper.selectById(planId);
+        return getPlan(planId, planPO.getCurrentVersion());
     }
 
 

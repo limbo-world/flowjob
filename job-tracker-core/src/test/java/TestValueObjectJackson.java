@@ -56,11 +56,10 @@ public class TestValueObjectJackson {
     @Test
     public void testJobContext() {
         JobInstance JobContext = new JobInstance(null);
-        JobContext.setJobInstanceId("ctx1");
+        JobContext.setJobInstanceId(1);
         JobContext.setJobId("job1");
         JobContext.setState(JobScheduleStatus.Scheduling);
         JobContext.setWorkerId("");
-        JobContext.setCreatedAt(LocalDateTime.now());
         JobContext.setJobAttributes(new JobAttributes(attr));
 
         String json = JacksonUtils.toJSONString(JobContext);

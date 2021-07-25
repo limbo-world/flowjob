@@ -28,7 +28,7 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("worker")
+@TableName("flowjob_worker")
 public class WorkerPO extends PO {
 
     private static final long serialVersionUID = -3237766932023820195L;

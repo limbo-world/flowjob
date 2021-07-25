@@ -16,26 +16,28 @@
 
 package org.limbo.flowjob.tracker.infrastructure.plan.converters;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Converter;
-import org.limbo.flowjob.tracker.commons.constants.enums.DispatchType;
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
-import org.limbo.flowjob.tracker.core.job.DispatchOption;
+import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.job.ScheduleOption;
 import org.limbo.flowjob.tracker.core.plan.Plan;
 import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.tracker.core.schedule.calculator.ScheduleCalculatorFactory;
-import org.limbo.flowjob.tracker.dao.po.PlanPO;
+import org.limbo.flowjob.tracker.dao.po.PlanInfoPO;
+import org.limbo.utils.JacksonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * @author Brozen
  * @since 2021-07-13
  */
 @Component
-public class PlanPoConverter extends Converter<Plan, PlanPO> {
+public class PlanInfoPOConverter extends Converter<Plan, PlanInfoPO> {
 
     /**
      * 作业触发计算器工厂
@@ -45,13 +47,14 @@ public class PlanPoConverter extends Converter<Plan, PlanPO> {
 
 
     /**
-     * {@link Plan} -> {@link PlanPO}
+     * {@link Plan} -> {@link PlanInfoPO}
      */
     @Override
-    protected PlanPO doForward(Plan plan) {
-        PlanPO po = new PlanPO();
+    protected PlanInfoPO doForward(Plan plan) {
+        PlanInfoPO po = new PlanInfoPO();
 
         po.setPlanId(plan.getPlanId());
+        po.setVersion(plan.getVersion());
         po.setPlanDesc(plan.getPlanDesc());
 
         ScheduleOption scheduleOption = plan.getScheduleOption();
@@ -60,16 +63,17 @@ public class PlanPoConverter extends Converter<Plan, PlanPO> {
         po.setScheduleDelay(scheduleOption.getScheduleDelay().toMillis());
         po.setScheduleInterval(scheduleOption.getScheduleInterval().toMillis());
         po.setScheduleCron(scheduleOption.getScheduleCron());
+        po.setJobs(JacksonUtils.toJSONString(plan.getJobs()));
 
         return po;
     }
 
 
     /**
-     * {@link PlanPO} -> {@link Plan}
+     * {@link PlanInfoPO} -> {@link Plan}
      */
     @Override
-    protected Plan doBackward(PlanPO po) {
+    protected Plan doBackward(PlanInfoPO po) {
 
         // 先生成一个代理calculator，用于初始化JobDO
         ScheduleType scheduleType = ScheduleType.parse(po.getScheduleType());
@@ -78,6 +82,7 @@ public class PlanPoConverter extends Converter<Plan, PlanPO> {
         Plan plan = new Plan(scheduleCalculator);
         plan.setPlanId(po.getPlanId());
         plan.setPlanDesc(po.getPlanDesc());
+        plan.setVersion(po.getVersion());
 
         plan.setScheduleOption(new ScheduleOption(
                 scheduleType,
@@ -86,6 +91,9 @@ public class PlanPoConverter extends Converter<Plan, PlanPO> {
                 Duration.ofMillis(po.getScheduleInterval()),
                 po.getScheduleCron()
         ));
+
+        plan.setJobs(JacksonUtils.parseObject(po.getJobs(), new TypeReference<List<Job>>() {
+        }));
 
         return plan;
     }

@@ -29,7 +29,7 @@ import java.util.TimerTask;
  * worker与tracker建立连接 并实现 心跳 和 故障转移
  *
  * @author Devil
- * @date 2021/7/1 10:51 上午
+ * @since 2021/7/24
  */
 public abstract class AbstractRemoteClient {
 

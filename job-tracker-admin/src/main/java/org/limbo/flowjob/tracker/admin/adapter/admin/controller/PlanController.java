@@ -15,7 +15,7 @@ import javax.validation.constraints.NotBlank;
 
 /**
  * @author Devil
- * @date 2021/7/14 1:57 下午
+ * @since 2021/7/24
  */
 @Tag(name = "作业执行相关接口")
 @RestController
@@ -41,8 +41,7 @@ public class PlanController {
     @PutMapping("/{planId}")
     public Mono<ResponseDto<Void>> update(@NotBlank(message = "ID不能为空") @PathVariable("planId") String planId,
                                           @Validated @RequestBody PlanUpdateDto dto) {
-        planService.update(planId, dto.getPlanDesc(), dto.getScheduleOption(),
-                dto.getAddJobs(), dto.getUpdateJobs(), dto.getDeleteJobIds());
+        planService.update(planId, dto.getPlanDesc(), dto.getScheduleOption(), dto.getJobs());
         return Mono.just(ResponseDto.<Void>builder().ok().build());
     }
 

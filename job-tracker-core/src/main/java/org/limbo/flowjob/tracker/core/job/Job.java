@@ -20,10 +20,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
-import org.limbo.utils.UUIDUtils;
 
 import java.util.List;
 
@@ -39,11 +38,6 @@ import java.util.List;
 public class Job {
 
     /**
-     * 作业所属计划ID
-     */
-    private String planId;
-
-    /**
      * 作业ID
      */
     private String jobId;
@@ -57,6 +51,11 @@ public class Job {
      * 此作业依赖的父作业ID
      */
     private List<String> parentJobIds;
+
+    /**
+     * 后续节点
+     */
+    private List<String> childrenJobIds;
 
     /**
      * 作业分发配置参数
@@ -81,10 +80,13 @@ public class Job {
      * 生成新的作业实例
      * @return 未开始执行的实例
      */
-    public JobInstance newInstance() {
+    public JobInstance newInstance(String planId, Integer version, Integer planInstanceId) {
         JobInstance jobInstance = new JobInstance(jobInstanceRepository);
-        jobInstance.setJobInstanceId(UUIDUtils.randomID());
+        jobInstance.setPlanId(planId);
+        jobInstance.setVersion(version);
+        jobInstance.setPlanInstanceId(planInstanceId);
         jobInstance.setJobId(getJobId());
+        jobInstance.setJobInstanceId(1);
         jobInstance.setState(JobScheduleStatus.Scheduling);
         jobInstance.setJobAttributes(null);
         return jobInstance;

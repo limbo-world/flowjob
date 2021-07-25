@@ -22,22 +22,22 @@ import lombok.Getter;
  * @author Brozen
  * @since 2021-05-21
  */
-public class JobInstanceException extends JobExecuteException {
+public class JobDispatchException extends JobExecuteException {
 
     /**
      * 作业实例ID
      */
     @Getter
-    private String jobInstanceId;
+    private String id;
 
-    public JobInstanceException(String jobId, String jobInstanceId, String message) {
+    public JobDispatchException(String jobId, String id, String message) {
         super(jobId, message);
-        this.jobInstanceId = jobInstanceId;
+        this.id = id;
     }
 
-    public JobInstanceException(String jobId, String jobInstanceId, String message, Throwable cause) {
+    public JobDispatchException(String jobId, String id, String message, Throwable cause) {
         super(jobId, message, cause);
-        this.jobInstanceId = jobInstanceId;
+        this.id = id;
     }
 
 }

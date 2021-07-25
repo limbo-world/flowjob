@@ -34,8 +34,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class HashedWheelTimerScheduler<T extends SchedulableInstance> implements Scheduler<T> {
 
-    private static final Object PLACEHOLDER = new Object();
-
     /**
      * 依赖netty的时间轮算法进行作业调度
      */
@@ -44,7 +42,7 @@ public class HashedWheelTimerScheduler<T extends SchedulableInstance> implements
     /**
      * 所有正在被调度中的对象
      */
-    private final Map<String, Object> scheduling;
+    private final Map<String, Schedulable<T>> scheduling;
 
     /**
      * 调度对象执行器
@@ -74,11 +72,10 @@ public class HashedWheelTimerScheduler<T extends SchedulableInstance> implements
             return;
         }
 
-        // 防止重复调度
-        scheduling.computeIfAbsent(schedulable.getId(), id -> {
+        // 如果值本来不存在 启动调度
+        if (scheduling.put(schedulable.getId(), schedulable) == null) {
             doSchedule(schedulable, triggerAt);
-            return PLACEHOLDER;
-        });
+        }
     }
 
     /**
@@ -103,7 +100,7 @@ public class HashedWheelTimerScheduler<T extends SchedulableInstance> implements
      */
     private void doSchedule(Schedulable<T> schedulable, long triggerAt) {
         // 在timer上调度作业执行
-        long delay = triggerAt - System.currentTimeMillis();
+        long delay = triggerAt - System.currentTimeMillis(); // todo 这个delay计算是不是有点问题
         this.timer.newTimeout(timeout -> {
 
             // 已经取消调度了，则不再重新调度作业

@@ -24,7 +24,7 @@ import org.limbo.flowjob.worker.core.domain.Job;
  * job执行器 不支持并发
  *
  * @author Devil
- * @date 2021/6/23 5:22 下午
+ * @since 2021/7/24
  */
 public interface JobExecutor {
 

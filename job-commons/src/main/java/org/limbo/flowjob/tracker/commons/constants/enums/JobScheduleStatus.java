@@ -26,12 +26,10 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum JobScheduleStatus {
 
-    INIT(0, "初始化"),
     Scheduling(1, "调度中"),
-    REFUSED(2, "拒绝执行"), // worker拒绝，进入容错策略
-    EXECUTING(3, "执行中"),
-    SUCCEED(4, "执行成功"),
-    FAILED(5, "执行异常"), // TERMINATED 作业被手动终止 不再增加一个状态 而是写入 errMsg
+    EXECUTING(2, "执行中"),
+    SUCCEED(3, "执行成功"),
+    FAILED(4, "执行异常"), // worker拒绝，进入容错策略 失败次数不增加 TERMINATED 作业被手动终止 不再增加一个状态 而是写入 errMsg
     ;
 
     @JsonValue

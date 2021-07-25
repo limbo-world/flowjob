@@ -19,7 +19,7 @@ import org.junit.Test;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
 import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
-import org.limbo.flowjob.tracker.commons.exceptions.JobInstanceException;
+import org.limbo.flowjob.tracker.commons.exceptions.JobDispatchException;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
@@ -78,14 +78,14 @@ public class JobContextTest {
     }
 
     @Test
-    public void testSimpleJobContext() throws JobInstanceException {
+    public void testSimpleJobContext() throws JobDispatchException {
         JobInstance context = new JobInstance(new JobInstanceRepository() {
             @Override
             public void updateInstance(JobInstance context) {
                 System.out.println("updateContext");
             }
         });
-        context.setJobInstanceId("ctx1");
+        context.setJobInstanceId(1);
         context.setJobId("job1");
         context.setState(JobScheduleStatus.Scheduling);
         context.setJobAttributes(null);

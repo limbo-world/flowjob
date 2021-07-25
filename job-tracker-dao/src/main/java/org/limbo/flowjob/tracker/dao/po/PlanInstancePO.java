@@ -6,15 +6,17 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.time.LocalDateTime;
+
 /**
  * 计划实例
  *
  * @author Devil
- * @date 2021/7/15 9:54 上午
+ * @since 2021/7/24
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("plan_instance")
+@TableName("flowjob_plan_instance")
 public class PlanInstancePO extends PO {
 
     private static final long serialVersionUID = -8354897444427352804L;
@@ -26,17 +28,31 @@ public class PlanInstancePO extends PO {
     /**
      * 计划ID
      */
-    @TableId(type = IdType.INPUT)
-    private String planInstanceId;
+    private String planId;
 
     /**
-     * 计划ID
+     * 计划的版本
      */
-    private String planId;
+    private Integer version;
+
+    /**
+     * 从 1 开始增加 planId + version + planInstanceId 全局唯一
+     */
+    private Integer planInstanceId;
 
     /**
      * 状态
      */
     private Byte state;
+
+    /**
+     * 开始时间
+     */
+    private LocalDateTime startAt;
+
+    /**
+     * 结束时间
+     */
+    private LocalDateTime endAt;
 
 }
