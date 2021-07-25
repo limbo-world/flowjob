@@ -11,7 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * @author Devil
  * @since 2021/7/24
  */
-public class MemoryJobInstanceStorage implements JobStorage {
+public class MemoryJobInstanceStorage implements JobInstanceStorage {
 
     private final BlockingQueue<JobInstance> queue = new LinkedBlockingQueue<>();
 

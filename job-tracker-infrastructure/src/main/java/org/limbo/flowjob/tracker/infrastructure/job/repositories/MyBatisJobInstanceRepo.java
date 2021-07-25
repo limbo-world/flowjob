@@ -16,19 +16,13 @@
 
 package org.limbo.flowjob.tracker.infrastructure.job.repositories;
 
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
-import org.limbo.flowjob.tracker.dao.mybatis.JobExecuteRecordMapper;
 import org.limbo.flowjob.tracker.dao.mybatis.JobInstanceMapper;
-import org.limbo.flowjob.tracker.dao.po.JobExecuteRecordPO;
 import org.limbo.flowjob.tracker.dao.po.JobInstancePO;
-import org.limbo.flowjob.tracker.infrastructure.job.converters.JobExecuteRecordPoConverter;
 import org.limbo.flowjob.tracker.infrastructure.job.converters.JobInstancePoConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-
-import java.util.Objects;
 
 /**
  * @author Brozen
@@ -37,17 +31,11 @@ import java.util.Objects;
 @Repository
 public class MyBatisJobInstanceRepo implements JobInstanceRepository {
 
-    /**
-     * MyBatisMapper
-     */
-    @Autowired
-    private JobExecuteRecordMapper mapper;
-
-    /**
-     * {@link JobInstance}和{@link JobExecuteRecordPO}的转换器
-     */
-    @Autowired
-    private JobExecuteRecordPoConverter converter;
+//    /**
+//     * {@link JobInstance}和{@link JobExecuteRecordPO}的转换器
+//     */
+//    @Autowired
+//    private JobExecuteRecordPoConverter converter;
 
     @Autowired
     private JobInstancePoConverter jobInstancePoConverter;
@@ -72,12 +60,12 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
     @Override
     public void updateInstance(JobInstance instance) {
 
-        JobExecuteRecordPO po = converter.convert(instance);
-        Objects.requireNonNull(po);
+//        JobExecuteRecordPO po = converter.convert(instance);
+//        Objects.requireNonNull(po);
 
-        mapper.update(po, Wrappers.<JobExecuteRecordPO>lambdaUpdate()
-                .eq(JobExecuteRecordPO::getJobId, po.getJobId())
-                .eq(JobExecuteRecordPO::getRecordId, po.getRecordId()));
+//        mapper.update(po, Wrappers.<JobExecuteRecordPO>lambdaUpdate()
+//                .eq(JobExecuteRecordPO::getJobId, po.getJobId())
+//                .eq(JobExecuteRecordPO::getRecordId, po.getRecordId()));
     }
 
     /**
@@ -88,10 +76,11 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
      */
     @Override
     public JobInstance getInstance(String jobId, String instanceId) {
-        JobExecuteRecordPO po = mapper.selectOne(Wrappers.<JobExecuteRecordPO>lambdaQuery()
-                .eq(JobExecuteRecordPO::getJobId, jobId)
-                .eq(JobExecuteRecordPO::getRecordId, instanceId));
-        return converter.reverse().convert(po);
+//        JobExecuteRecordPO po = mapper.selectOne(Wrappers.<JobExecuteRecordPO>lambdaQuery()
+//                .eq(JobExecuteRecordPO::getJobId, jobId)
+//                .eq(JobExecuteRecordPO::getRecordId, instanceId));
+//        return converter.reverse().convert(po);
+        return null;
     }
 
     /**
@@ -101,11 +90,12 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
      */
     @Override
     public JobInstance getLatestInstance(String jobId) {
-        JobExecuteRecordPO po = mapper.selectOne(Wrappers.<JobExecuteRecordPO>lambdaQuery()
-                .eq(JobExecuteRecordPO::getJobId, jobId)
-                .orderByDesc(JobExecuteRecordPO::getCreatedAt)
-                .last("limit 1"));
-        return converter.reverse().convert(po);
+//        JobExecuteRecordPO po = mapper.selectOne(Wrappers.<JobExecuteRecordPO>lambdaQuery()
+//                .eq(JobExecuteRecordPO::getJobId, jobId)
+//                .orderByDesc(JobExecuteRecordPO::getCreatedAt)
+//                .last("limit 1"));
+//        return converter.reverse().convert(po);
+        return null;
     }
 
 }
