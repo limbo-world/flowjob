@@ -64,7 +64,6 @@ public class MyBatisPlanRepo implements PlanRepository {
         planPO.setCurrentVersion(plan.getVersion());
         planPO.setRecentlyVersion(plan.getVersion());
         planPO.setIsEnabled(false);
-        planPO.setIsDeleted(false);
         planMapper.insert(planPO);
 
         // 新增 plan info

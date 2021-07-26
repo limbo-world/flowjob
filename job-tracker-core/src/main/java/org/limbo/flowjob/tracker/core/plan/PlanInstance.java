@@ -65,7 +65,7 @@ public class PlanInstance {
      * @return 最先执行的 job
      */
     public List<Job> getEarliestJobs() {
-        return null;
+        return jobs;
     }
 
 }

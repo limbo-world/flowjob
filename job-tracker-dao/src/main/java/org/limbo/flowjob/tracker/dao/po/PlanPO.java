@@ -46,8 +46,4 @@ public class PlanPO extends PO {
      */
     private Boolean isEnabled;
 
-    /**
-     * 是否删除
-     */
-    private Boolean isDeleted;
 }

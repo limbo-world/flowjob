@@ -19,6 +19,7 @@ package org.limbo.flowjob.tracker.core.plan;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
+import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
 import org.limbo.flowjob.tracker.core.schedule.executor.Executor;
 import org.limbo.flowjob.tracker.core.storage.JobInstanceStorage;
 
@@ -72,7 +73,7 @@ public class PlanExecutor implements Executor<Plan> {
      * @return 未开始执行的实例
      */
     public JobInstance newJobInstance(String planId, Long planInstanceId, String jobId) {
-        JobInstance jobInstance = new JobInstance(null); // todo
+        JobInstance jobInstance = new JobInstance(new JobInstanceRepository() {}); // todo
         jobInstance.setPlanId(planId);
         jobInstance.setPlanInstanceId(planInstanceId);
         jobInstance.setJobId(jobId);

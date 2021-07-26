@@ -102,7 +102,7 @@ public class PlanService {
         PlanPO planPO = planPoRepository.getById(planId);
         Verifies.notNull(planPO, "plan is not exist");
 
-        if (planPO.getIsEnabled() || planPO.getIsDeleted()) {
+        if (planPO.getIsEnabled()) {
             return;
         }
 
@@ -121,7 +121,7 @@ public class PlanService {
         PlanPO planPO = planPoRepository.getById(planId);
         Verifies.notNull(planPO, "plan is not exist");
 
-        if (planPO.getIsEnabled() || planPO.getIsDeleted()) {
+        if (planPO.getIsEnabled()) {
             return;
         }
 
