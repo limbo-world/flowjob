@@ -46,9 +46,9 @@ public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
     }
 
     @Override
-    public Long getRecentlyId(String planId) {
+    public Long createId(String planId) {
         Long recentlyIdForUpdate = planInstanceMapper.getRecentlyIdForUpdate(planId);
-        return recentlyIdForUpdate == null ? 1L : recentlyIdForUpdate;
+        return recentlyIdForUpdate == null ? 1L : recentlyIdForUpdate + 1;
     }
 
 }

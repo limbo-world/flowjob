@@ -17,6 +17,7 @@
 package org.limbo.flowjob.tracker.core.plan;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
+import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
@@ -53,19 +54,33 @@ public class PlanExecutor implements Executor<Plan> {
     @Override
     public void execute(Plan plan) {
         // 判断是这个计划 第几次调度 决定 实例ID
-        Long recentlyId = planInstanceRepository.getRecentlyId(plan.getPlanId());
+        Long planInstanceId = planInstanceRepository.createId(plan.getPlanId());
 
         // 持久化存储
-        PlanInstance planInstance = plan.newInstance(recentlyId + 1);
+        PlanInstance planInstance = newPlanInstance(planInstanceId, plan);
         planInstanceRepository.addInstance(planInstance);
 
         // 下发需要最先执行的job
         List<Job> jobs = planInstance.getEarliestJobs();
         for (Job job : jobs) {
-            JobInstance jobInstance = newJobInstance(planInstance.getPlanId(), planInstance.getPlanInstanceId(), job.getJobId());
+            JobInstance jobInstance = newJobInstance(plan.getPlanId(), planInstanceId, job.getJobId());
             jobInstanceStorage.store(jobInstance);
         }
 
+    }
+
+    /**
+     * 生成新的计划实例
+     * @return 未开始执行的实例
+     */
+    public PlanInstance newPlanInstance(Long planInstanceId, Plan plan) {
+        PlanInstance instance = new PlanInstance();
+        instance.setPlanId(plan.getPlanId());
+        instance.setVersion(plan.getVersion());
+        instance.setPlanInstanceId(planInstanceId);
+        instance.setState(PlanScheduleStatus.Scheduling);
+        instance.setJobs(plan.getJobs());
+        return instance;
     }
 
     /**

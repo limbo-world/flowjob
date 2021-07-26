@@ -129,20 +129,6 @@ public class Plan implements Schedulable {
         executor.execute(this);
     }
 
-    /**
-     * 生成新的计划实例
-     * @return 未开始执行的实例
-     */
-    public PlanInstance newInstance(Long planInstanceId) {
-        PlanInstance instance = new PlanInstance();
-        instance.setPlanId(planId);
-        instance.setVersion(version);
-        instance.setPlanInstanceId(planInstanceId);
-        instance.setState(PlanScheduleStatus.Scheduling);
-        instance.setJobs(jobs);
-        return instance;
-    }
-
 
     public List<Job> getJobs() {
         return jobs == null ? new ArrayList<>() : jobs;

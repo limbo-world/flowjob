@@ -33,7 +33,7 @@ public interface PlanInstanceRepository {
     }
 
     /**
-     * 获取最后一个ID
+     * 创建ID
      */
-    Long getRecentlyId(String planId);
+    Long createId(String planId);
 }
