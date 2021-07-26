@@ -16,15 +16,12 @@
 
 package org.limbo.flowjob.tracker.core.plan;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.schedule.SchedulableInstance;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -36,7 +33,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class PlanInstance implements SchedulableInstance {
+public class PlanInstance {
 
     /**
      * 计划ID
@@ -51,7 +48,7 @@ public class PlanInstance implements SchedulableInstance {
     /**
      * 从 1 开始增加 planId + version + planInstanceId 全局唯一
      */
-    private Integer planInstanceId;
+    private Long planInstanceId;
 
     /**
      * 状态

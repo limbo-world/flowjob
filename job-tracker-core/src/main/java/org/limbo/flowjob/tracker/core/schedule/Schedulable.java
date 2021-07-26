@@ -26,7 +26,7 @@ import java.time.Instant;
  * @author Brozen
  * @since 2021-07-12
  */
-public interface Schedulable<T> extends Executable<T> {
+public interface Schedulable {
 
     /**
      * 获取调度对象ID
@@ -47,6 +47,11 @@ public interface Schedulable<T> extends Executable<T> {
      * 获取上次调度反馈的时间
      */
     Instant getLastFeedbackAt();
+
+    /**
+     * 执行业务
+     */
+    void schedule();
 
     /**
      * 计算作业下一次被触发时的时间戳。如果作业不会被触发，返回0或负数；

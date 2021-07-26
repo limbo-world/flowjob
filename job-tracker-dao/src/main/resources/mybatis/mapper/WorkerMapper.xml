@@ -30,7 +30,7 @@
     </resultMap>
 
     <insert id="insertOrUpdate">
-        INSERT IGNORE INTO worker (
+        INSERT IGNORE INTO flowjob_worker (
             worker_id, protocol, ip, port, status
         ) VALUES (
             #{workerId}, #{protocol}, #{ip}, #{port}, #{status}

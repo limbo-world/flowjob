@@ -16,6 +16,7 @@
 
 package org.limbo.flowjob.worker.core.infrastructure;
 
+import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFeedbackDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
@@ -31,6 +32,7 @@ import java.util.TimerTask;
  * @author Devil
  * @since 2021/7/24
  */
+@Slf4j
 public abstract class AbstractRemoteClient {
 
     private final Worker worker;
@@ -62,11 +64,18 @@ public abstract class AbstractRemoteClient {
         WorkerRegisterOptionDto registerDto = worker.register();
         registerDto.setProtocol(getProtocol());
         register(registerDto);
+
+        log.info("register success !");
+
         // 心跳
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 heartbeat(worker.heartbeat());
+                // todo 心跳失败
+                if (log.isDebugEnabled()) {
+                    log.debug("send heartbeat success");
+                }
             }
         }, 200, heartbeatPeriod);
         // 启动完成

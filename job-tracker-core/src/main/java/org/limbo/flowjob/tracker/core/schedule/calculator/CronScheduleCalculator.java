@@ -35,7 +35,7 @@ import java.util.Date;
  * @since 2021-05-21
  */
 @Slf4j
-public class CronScheduleCalculator extends ScheduleCalculator implements Strategy<Schedulable<?>, Long> {
+public class CronScheduleCalculator extends ScheduleCalculator implements Strategy<Schedulable, Long> {
 
     protected CronScheduleCalculator() {
         super(ScheduleType.CRON);
@@ -48,7 +48,7 @@ public class CronScheduleCalculator extends ScheduleCalculator implements Strate
      * @return 下次触发调度的时间戳，当返回非正数时，表示作业不会有触发时间。
      */
     @Override
-    public Long apply(Schedulable<?> schedulable) {
+    public Long apply(Schedulable schedulable) {
 
         // 未到调度开始时间，不触发下次调度
         Instant nowInstant = Instant.now();

@@ -52,6 +52,7 @@ public class MyBatisWorkerRepo implements WorkerRepository {
         WorkerPO po = converter.convert(worker);
         Objects.requireNonNull(po);
 
+        // todo id 冲突应该给提示更好
         mapper.insertOrUpdate(po);
     }
 

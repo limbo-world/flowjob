@@ -16,8 +16,6 @@
 
 package org.limbo.flowjob.tracker.dao.po;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -25,7 +23,7 @@ import lombok.EqualsAndHashCode;
 import java.time.LocalDateTime;
 
 /**
- * plan 的信息存档
+ * plan 的信息存档 历史版本
  *
  * @author Brozen
  * @since 2021-07-13
@@ -45,8 +43,12 @@ public class PlanInfoPO extends PO {
     /**
      * 作业执行计划ID
      */
-    @TableId(type = IdType.INPUT)
     private String planId;
+
+    /**
+     * 版本 planId + version 唯一
+     */
+    private Integer version;
 
     /**
      * 执行计划描述
@@ -83,11 +85,6 @@ public class PlanInfoPO extends PO {
      * job上的这个版本不设计了，用户本来就需要做幂等处理
      */
     private Integer retry;
-
-    /**
-     * 版本
-     */
-    private Integer version;
 
     /**
      * 任务 json string

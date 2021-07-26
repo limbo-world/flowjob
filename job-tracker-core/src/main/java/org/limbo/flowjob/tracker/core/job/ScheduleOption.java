@@ -19,7 +19,6 @@ package org.limbo.flowjob.tracker.core.job;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
-import lombok.Data;
 import lombok.Setter;
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 
@@ -32,7 +31,6 @@ import java.time.LocalDateTime;
  * @author Brozen
  * @since 2021-06-01
  */
-@Data
 @Setter(AccessLevel.NONE)
 public class ScheduleOption {
 
@@ -80,4 +78,23 @@ public class ScheduleOption {
         this.scheduleCron = scheduleCron;
     }
 
+    public ScheduleType getScheduleType() {
+        return scheduleType;
+    }
+
+    public LocalDateTime getScheduleStartAt() {
+        return scheduleStartAt;
+    }
+
+    public Duration getScheduleDelay() {
+        return scheduleDelay == null ? Duration.ZERO : scheduleDelay;
+    }
+
+    public Duration getScheduleInterval() {
+        return scheduleInterval == null ? Duration.ZERO : scheduleInterval;
+    }
+
+    public String getScheduleCron() {
+        return scheduleCron;
+    }
 }

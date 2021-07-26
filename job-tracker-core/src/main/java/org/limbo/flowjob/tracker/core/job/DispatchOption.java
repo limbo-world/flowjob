@@ -50,11 +50,11 @@ public class DispatchOption {
 
     @JsonCreator
     public DispatchOption(@JsonProperty("dispatchType") DispatchType dispatchType,
-                          @JsonProperty("cpuRequirement") float cpuRequirement,
-                          @JsonProperty("ramRequirement") float ramRequirement) {
+                          @JsonProperty("cpuRequirement") Float cpuRequirement,
+                          @JsonProperty("ramRequirement") Float ramRequirement) {
         this.dispatchType = dispatchType;
-        this.cpuRequirement = cpuRequirement;
-        this.ramRequirement = ramRequirement;
+        this.cpuRequirement = cpuRequirement == null ? 0 : cpuRequirement;
+        this.ramRequirement = ramRequirement == null ? 0 : ramRequirement;
     }
 
     /**

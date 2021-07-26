@@ -27,7 +27,7 @@
     </resultMap>
 
     <insert id="insertIgnore">
-        INSERT IGNORE INTO worker_statistics (
+        INSERT IGNORE INTO flowjob_worker_statistics (
             worker_id, job_dispatch_count, latest_dispatch_time
         ) VALUES (
             #{workerId}, #{jobDispatchCount}, #{latestDispatchTime}

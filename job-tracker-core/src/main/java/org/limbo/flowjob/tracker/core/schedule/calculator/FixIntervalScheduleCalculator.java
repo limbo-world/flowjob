@@ -33,7 +33,7 @@ import java.time.Instant;
  * @since 2021-05-21
  */
 @Slf4j
-public class FixIntervalScheduleCalculator extends ScheduleCalculator implements Strategy<Schedulable<?>, Long> {
+public class FixIntervalScheduleCalculator extends ScheduleCalculator implements Strategy<Schedulable, Long> {
 
     protected FixIntervalScheduleCalculator() {
         super(ScheduleType.FIXED_INTERVAL);
@@ -46,7 +46,7 @@ public class FixIntervalScheduleCalculator extends ScheduleCalculator implements
      * @return 下次触发调度的时间戳，当返回非正数时，表示作业不会有触发时间。
      */
     @Override
-    public Long apply(Schedulable<?> schedulable) {
+    public Long apply(Schedulable schedulable) {
 
         long now = Instant.now().getEpochSecond();
         long scheduleAt;

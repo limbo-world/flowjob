@@ -31,4 +31,9 @@ public interface PlanInstanceRepository {
     default PlanInstance getInstance(String planId, String planInstanceId) {
         throw new UnsupportedOperationException();
     }
+
+    /**
+     * 获取最后一个ID
+     */
+    Long getRecentlyId(String planId);
 }

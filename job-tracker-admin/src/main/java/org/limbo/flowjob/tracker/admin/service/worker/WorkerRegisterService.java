@@ -32,6 +32,7 @@ import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerExecutor;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatisticsRepository;
+import org.limbo.utils.JacksonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -95,6 +96,8 @@ public class WorkerRegisterService {
         // 更新metric
         WorkerMetric metric = createMetric(options);
         worker.updateMetric(metric);
+
+        log.info("worker registered " + worker);
 
         // 返回tracker
         WorkerRegisterResult registerResult = new WorkerRegisterResult();

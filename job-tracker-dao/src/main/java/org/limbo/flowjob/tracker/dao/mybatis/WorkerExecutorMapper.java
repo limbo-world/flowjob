@@ -38,7 +38,7 @@ public interface WorkerExecutorMapper extends BaseMapper<WorkerExecutorPO> {
     /**
      * 根据workerId查询所有执行器
      */
-    @Select("SELECT * FROM worker_executor WHERE worker_id = #{workerId}")
+    @Select("SELECT * FROM flowjob_worker_executor WHERE worker_id = #{workerId}")
     List<WorkerExecutorPO> findByWorker(@Param("workerId") String workerId);
 
 }

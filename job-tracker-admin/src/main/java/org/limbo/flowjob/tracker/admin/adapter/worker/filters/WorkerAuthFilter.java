@@ -36,7 +36,7 @@ import java.nio.charset.StandardCharsets;
  * @author Brozen
  * @since 2021-07-08
  */
-@Component
+//@Component
 public class WorkerAuthFilter implements WebFilter {
 
     @Override

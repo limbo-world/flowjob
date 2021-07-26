@@ -2,7 +2,6 @@ package org.limbo.flowjob.tracker.admin.service.plan;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.commons.dto.job.JobDto;
 import org.limbo.flowjob.tracker.commons.dto.plan.DispatchOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.plan.PlanAddDto;
@@ -12,11 +11,9 @@ import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.job.ScheduleOption;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
 import org.limbo.flowjob.tracker.core.plan.Plan;
-import org.limbo.flowjob.tracker.core.plan.PlanInstance;
+import org.limbo.flowjob.tracker.core.plan.PlanFactory;
 import org.limbo.flowjob.tracker.core.plan.PlanRepository;
-import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
-import org.limbo.flowjob.tracker.core.schedule.calculator.ScheduleCalculatorFactory;
-import org.limbo.flowjob.tracker.core.schedule.scheduler.HashedWheelTimerScheduler;
+import org.limbo.flowjob.tracker.core.schedule.scheduler.Scheduler;
 import org.limbo.flowjob.tracker.dao.po.PlanPO;
 import org.limbo.flowjob.tracker.infrastructure.plan.repositories.PlanPoRepository;
 import org.limbo.utils.UUIDUtils;
@@ -41,23 +38,23 @@ public class PlanService {
     private PlanPoRepository planPoRepository;
 
     @Autowired
-    private HashedWheelTimerScheduler<PlanInstance> scheduler;
-
-    @Autowired
-    private ScheduleCalculatorFactory scheduleCalculatorFactory;
+    private Scheduler scheduler;
 
     @Autowired
     private JobInstanceRepository jobInstanceRepository;
 
+    @Autowired
+    private PlanFactory planFactory;
+
     /**
      * 新增计划 只是个落库操作
+     *
      * @param dto
      * @return
      */
     public String add(PlanAddDto dto) {
         // 保存 plan
         Plan plan = convertToDo(dto);
-        plan.setVersion(0);
         return planRepository.addPlan(plan);
     }
 
@@ -97,7 +94,8 @@ public class PlanService {
     }
 
     /**
-     * 启动计划 开始调度
+     * 启动计划 开始调度 todo 并发
+     *
      * @param planId
      */
     public void enable(String planId) {
@@ -116,6 +114,7 @@ public class PlanService {
 
     /**
      * 取消计划 停止调度
+     *
      * @param planId
      */
     public void disable(String planId) {
@@ -134,22 +133,11 @@ public class PlanService {
 
 
     public Plan convertToDo(PlanAddDto dto) {
-
-        ScheduleType scheduleType = dto.getScheduleOption().getScheduleType();
-        ScheduleCalculator scheduleCalculator = scheduleCalculatorFactory.newStrategy(scheduleType);
-
-        Plan plan = new Plan(scheduleCalculator);
-        plan.setPlanId(dto.getPlanId());
-        // ID未设置则生成一个
-        if (StringUtils.isBlank(plan.getPlanId())) {
-            plan.setPlanId(UUIDUtils.randomID());
-        }
-        plan.setVersion(0);
-        plan.setPlanDesc(dto.getPlanDesc());
-        plan.setScheduleOption(convertToDo(dto.getScheduleOption()));
-        plan.setJobs(convertToDo(dto.getJobs()));
-
-        return plan;
+        return planFactory.create(StringUtils.isBlank(dto.getPlanId()) ? UUIDUtils.randomID() : dto.getPlanId(),
+                0,
+                dto.getPlanDesc(),
+                convertToDo(dto.getScheduleOption()),
+                convertToDo(dto.getJobs()));
     }
 
     public DispatchOption convertToDo(DispatchOptionDto dto) {
@@ -180,7 +168,7 @@ public class PlanService {
     }
 
     public Job convertToDo(JobDto dto) {
-        Job job = new Job(jobInstanceRepository);
+        Job job = new Job();
         job.setJobId(dto.getJobId());
         job.setJobDesc(dto.getJobDesc());
         job.setParentJobIds(dto.getParentJobIds());

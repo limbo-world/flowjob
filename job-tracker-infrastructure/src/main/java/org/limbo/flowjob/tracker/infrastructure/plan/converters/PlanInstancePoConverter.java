@@ -33,11 +33,12 @@ public class PlanInstancePoConverter extends Converter<PlanInstance, PlanInstanc
      * {@link PlanInstance} -> {@link PlanInstancePO}
      */
     @Override
-    protected PlanInstancePO doForward(PlanInstance plan) {
+    protected PlanInstancePO doForward(PlanInstance planInstance) {
         PlanInstancePO po = new PlanInstancePO();
-        po.setPlanInstanceId(plan.getPlanInstanceId());
-        po.setPlanId(plan.getPlanId());
-        po.setState(plan.getState().status);
+        po.setPlanId(planInstance.getPlanId());
+        po.setPlanInstanceId(planInstance.getPlanInstanceId());
+        po.setVersion(planInstance.getVersion());
+        po.setState(planInstance.getState().status);
         return po;
     }
 

@@ -51,24 +51,14 @@ public class JobInstance {
     private String planId;
 
     /**
-     * 计划的版本
-     */
-    private Integer version;
-
-    /**
      * 计划实例的ID
      */
-    private Integer planInstanceId;
+    private Long planInstanceId;
 
     /**
-     * 作业ID
+     * 作业ID planId + planInstanceId + jobId 全局唯一
      */
     private String jobId;
-
-    /**
-     * 从 1 开始增加 planId + version + planInstanceId + jobId + jobInstanceId 全局唯一
-     */
-    private Integer jobInstanceId;
 
     /**
      * 此上下文状态
@@ -327,7 +317,7 @@ public class JobInstance {
      * @return id
      */
     public String getId() {
-        return planId + "-" + version + "-" + planInstanceId + "-" + jobId + "-" + jobInstanceId;
+        return planId + "-" + planInstanceId + "-" + jobId;
     }
 
     /**

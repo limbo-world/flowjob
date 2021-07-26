@@ -14,3 +14,6 @@ spring:
     url: jdbc:mysql://10.219.153.31:3306/flow_job?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
     username: brozen
     password: 159000
+#    url: jdbc:mysql://127.0.0.1:3306/flow_job?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
+#    username: root
+#    password: root

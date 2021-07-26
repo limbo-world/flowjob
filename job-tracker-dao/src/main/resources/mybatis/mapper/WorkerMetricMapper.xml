@@ -27,10 +27,10 @@
     </resultMap>
 
     <insert id="insertIgnore">
-        INSERT IGNORE INTO worker_metric (
-            worker_id, executing_jobs, available_cpu, available_ram, updated_at
+        INSERT IGNORE INTO flowjob_worker_metric (
+            worker_id, executing_jobs, available_cpu, available_ram
         ) VALUES (
-            #{workerId}, #{executingJobs}, #{availableCpu}, #{availableRam}, #{updatedAt}
+            #{workerId}, #{executingJobs}, #{availableCpu}, #{availableRam}
         )
     </insert>
 

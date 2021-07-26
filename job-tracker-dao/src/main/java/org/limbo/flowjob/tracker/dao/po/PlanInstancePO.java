@@ -31,14 +31,14 @@ public class PlanInstancePO extends PO {
     private String planId;
 
     /**
+     * 从 1 开始增加 planId + planInstanceId 全局唯一
+     */
+    private Long planInstanceId;
+
+    /**
      * 计划的版本
      */
     private Integer version;
-
-    /**
-     * 从 1 开始增加 planId + version + planInstanceId 全局唯一
-     */
-    private Integer planInstanceId;
 
     /**
      * 状态

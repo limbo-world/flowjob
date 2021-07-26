@@ -16,9 +16,9 @@
 
 package org.limbo.flowjob.tracker.core.schedule.calculator;
 
+import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
 import org.limbo.flowjob.tracker.core.job.ScheduleOption;
-import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
 import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
 
@@ -33,7 +33,7 @@ import java.time.ZoneOffset;
  * @author Brozen
  * @since 2021-05-21
  */
-public class DelayedScheduleCalculator extends ScheduleCalculator implements Strategy<Schedulable<?>, Long> {
+public class DelayedScheduleCalculator extends ScheduleCalculator implements Strategy<Schedulable, Long> {
 
 
     protected DelayedScheduleCalculator() {
@@ -47,7 +47,7 @@ public class DelayedScheduleCalculator extends ScheduleCalculator implements Str
      * @return 下次触发调度的时间戳，当返回非正数时，表示作业不会有触发时间。
      */
     @Override
-    public Long apply(Schedulable<?> schedulable) {
+    public Long apply(Schedulable schedulable) {
         // 只调度一次
         Instant lastScheduleAt = schedulable.getLastScheduleAt();
         if (lastScheduleAt != null) {

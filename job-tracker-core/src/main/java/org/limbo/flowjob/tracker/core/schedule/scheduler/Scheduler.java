@@ -18,7 +18,6 @@ package org.limbo.flowjob.tracker.core.schedule.scheduler;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
-import org.limbo.flowjob.tracker.core.schedule.SchedulableInstance;
 
 /**
  * 调度器，封装了调度流程，根据{@link ScheduleType}有不同实现。
@@ -26,13 +25,13 @@ import org.limbo.flowjob.tracker.core.schedule.SchedulableInstance;
  * @author Brozen
  * @since 2021-05-18
  */
-public interface Scheduler<T extends SchedulableInstance> {
+public interface Scheduler {
 
     /**
      * 开始调度
      * @param schedulable 待调度的对象
      */
-    void schedule(Schedulable<T> schedulable);
+    void schedule(Schedulable schedulable);
 
     /**
      * 停止调度

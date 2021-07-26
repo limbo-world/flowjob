@@ -30,7 +30,7 @@ import java.time.ZoneOffset;
  * @author Brozen
  * @since 2021-05-20
  */
-public abstract class ScheduleCalculator implements Strategy<Schedulable<?>, Long> {
+public abstract class ScheduleCalculator implements Strategy<Schedulable, Long> {
 
     /**
      * 没有下次触发时间时，返回0或负数
@@ -53,7 +53,7 @@ public abstract class ScheduleCalculator implements Strategy<Schedulable<?>, Lon
      * @return 是否可用此策略计算作业的触发时间
      */
     @Override
-    public Boolean canApply(Schedulable<?> schedulable) {
+    public Boolean canApply(Schedulable schedulable) {
         return schedulable.getScheduleOption().getScheduleType() == this.scheduleType;
     }
 
@@ -64,7 +64,7 @@ public abstract class ScheduleCalculator implements Strategy<Schedulable<?>, Lon
      * @return 下次触发调度的时间戳，当返回非正数时，表示作业不会有触发时间。
      */
     @Override
-    public abstract Long apply(Schedulable<?> schedulable);
+    public abstract Long apply(Schedulable schedulable);
 
 
     public ScheduleType getScheduleType() {

@@ -17,9 +17,9 @@
 package org.limbo.flowjob.tracker.infrastructure.worker.converters;
 
 import com.google.common.base.Converter;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobExecuteType;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerExecutor;
 import org.limbo.flowjob.tracker.dao.po.WorkerExecutorPO;
-import org.limbo.utils.EnhancedBeanUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
@@ -38,7 +38,12 @@ public class WorkerExecutorPoConverter extends Converter<WorkerExecutor, WorkerE
      */
     @Override
     protected WorkerExecutorPO doForward(@Nonnull WorkerExecutor vo) {
-        return EnhancedBeanUtils.createAndCopy(vo, WorkerExecutorPO.class);
+        WorkerExecutorPO po = new WorkerExecutorPO();
+        po.setWorkerId(vo.getWorkerId());
+        po.setExecutorName(vo.getExecutorName());
+        po.setExecutorDesc(vo.getExecutorDesc());
+        po.setExecuteType(vo.getExecuteType().type);
+        return po;
     }
 
 
@@ -49,6 +54,11 @@ public class WorkerExecutorPoConverter extends Converter<WorkerExecutor, WorkerE
      */
     @Override
     protected WorkerExecutor doBackward(@Nonnull WorkerExecutorPO po) {
-        return EnhancedBeanUtils.createAndCopy(po, WorkerExecutor.class);
+        WorkerExecutor vo = new WorkerExecutor();
+        vo.setWorkerId(po.getWorkerId());
+        vo.setExecutorName(po.getExecutorName());
+        vo.setExecutorDesc(po.getExecutorDesc());
+        vo.setExecuteType(JobExecuteType.parse(po.getExecuteType()));
+        return vo;
     }
 }

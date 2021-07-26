@@ -30,7 +30,7 @@ import java.util.Map;
  * @author Brozen
  * @since 2021-05-20
  */
-public class ScheduleCalculatorFactory implements StrategyFactory<ScheduleType, ScheduleCalculator, Schedulable<?>, Long> {
+public class ScheduleCalculatorFactory implements StrategyFactory<ScheduleType, ScheduleCalculator, Schedulable, Long> {
 
     /**
      * 全部策略

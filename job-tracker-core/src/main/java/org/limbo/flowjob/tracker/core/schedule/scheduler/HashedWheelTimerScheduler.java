@@ -18,8 +18,6 @@ package org.limbo.flowjob.tracker.core.schedule.scheduler;
 
 import io.netty.util.HashedWheelTimer;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
-import org.limbo.flowjob.tracker.core.schedule.SchedulableInstance;
-import org.limbo.flowjob.tracker.core.schedule.executor.Executor;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,7 +30,7 @@ import java.util.concurrent.TimeUnit;
  * @author Brozen
  * @since 2021-05-18
  */
-public class HashedWheelTimerScheduler<T extends SchedulableInstance> implements Scheduler<T> {
+public class HashedWheelTimerScheduler implements Scheduler {
 
     /**
      * 依赖netty的时间轮算法进行作业调度
@@ -42,19 +40,12 @@ public class HashedWheelTimerScheduler<T extends SchedulableInstance> implements
     /**
      * 所有正在被调度中的对象
      */
-    private final Map<String, Schedulable<T>> scheduling;
-
-    /**
-     * 调度对象执行器
-     */
-    private final Executor<T> executor;
+    private final Map<String, Schedulable> scheduling;
 
     /**
      * 使用指定执行器构造一个调度器，该调度器基于哈希时间轮算法。
      */
-    public HashedWheelTimerScheduler(Executor<T> executor) {
-        this.executor = executor;
-
+    public HashedWheelTimerScheduler() {
         this.timer = new HashedWheelTimer(NamedThreadFactory.newInstance(this.getClass().getSimpleName() + "-timer-"));
         this.scheduling = new ConcurrentHashMap<>();
     }
@@ -65,7 +56,7 @@ public class HashedWheelTimerScheduler<T extends SchedulableInstance> implements
      * @param schedulable 待调度的对象
      */
     @Override
-    public void schedule(Schedulable<T> schedulable) {
+    public void schedule(Schedulable schedulable) {
         // 如果不会被触发，则无需加入调度
         long triggerAt = schedulable.nextTriggerAt();
         if (triggerAt <= 0) {
@@ -82,7 +73,7 @@ public class HashedWheelTimerScheduler<T extends SchedulableInstance> implements
      * 检测是否需要重新调度
      * @param schedulable 待调度的对象
      */
-    protected void reschedule(Schedulable<T> schedulable) {
+    protected void reschedule(Schedulable schedulable) {
         // 如果不会被触发，则无需继续调度
         long triggerAt = schedulable.nextTriggerAt();
         if (triggerAt <= 0) {
@@ -98,7 +89,7 @@ public class HashedWheelTimerScheduler<T extends SchedulableInstance> implements
      * @param schedulable 待调度对象
      * @param triggerAt 下次被调度执行的时间戳
      */
-    private void doSchedule(Schedulable<T> schedulable, long triggerAt) {
+    private void doSchedule(Schedulable schedulable, long triggerAt) {
         // 在timer上调度作业执行
         long delay = triggerAt - System.currentTimeMillis(); // todo 这个delay计算是不是有点问题
         this.timer.newTimeout(timeout -> {
@@ -108,16 +99,14 @@ public class HashedWheelTimerScheduler<T extends SchedulableInstance> implements
                 return;
             }
 
-            // 生成新的实例，并交给执行器执行 todo execute 可以交由线程池？增加下发速度
-            T instance = schedulable.newInstance();
-            executor.execute(instance);
+            // 执行调度逻辑 todo 可以交由线程池？增加下发速度
+            schedulable.schedule();
 
             // 检测是否需要重新调度
             this.reschedule(schedulable);
 
         }, delay, TimeUnit.MILLISECONDS);
     }
-
 
     /**
      * {@inheritDoc}

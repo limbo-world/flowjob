@@ -157,4 +157,18 @@ public abstract class Worker {
      */
     public abstract void unregister();
 
+    @Override
+    public String toString() {
+        return "Worker{" +
+                "workerId='" + workerId + '\'' +
+                ", protocol=" + protocol +
+                ", ip='" + ip + '\'' +
+                ", port=" + port +
+                ", status=" + status +
+                ", isEnabled=" + isEnabled +
+                ", workerRepository=" + workerRepository +
+                ", metricRepository=" + metricRepository +
+                ", statisticsRepository=" + statisticsRepository +
+                '}';
+    }
 }

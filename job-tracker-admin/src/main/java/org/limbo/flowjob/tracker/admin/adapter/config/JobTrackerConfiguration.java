@@ -17,16 +17,15 @@
 package org.limbo.flowjob.tracker.admin.adapter.config;
 
 import org.limbo.flowjob.tracker.core.dispatcher.JobDispatchLauncher;
-import org.limbo.flowjob.tracker.core.storage.JobInstanceStorage;
-import org.limbo.flowjob.tracker.core.storage.MemoryJobInstanceStorage;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
-import org.limbo.flowjob.tracker.core.plan.PlanInstance;
-import org.limbo.flowjob.tracker.core.plan.PlanInstanceExecutor;
+import org.limbo.flowjob.tracker.core.plan.PlanExecutor;
+import org.limbo.flowjob.tracker.core.plan.PlanFactory;
 import org.limbo.flowjob.tracker.core.plan.PlanInstanceRepository;
 import org.limbo.flowjob.tracker.core.schedule.calculator.ScheduleCalculatorFactory;
-import org.limbo.flowjob.tracker.core.schedule.executor.Executor;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.HashedWheelTimerScheduler;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.Scheduler;
+import org.limbo.flowjob.tracker.core.storage.JobInstanceStorage;
+import org.limbo.flowjob.tracker.core.storage.MemoryJobInstanceStorage;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 import org.limbo.flowjob.tracker.core.tracker.LeaderJobTracker;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
@@ -76,30 +75,21 @@ public class JobTrackerConfiguration {
     }
 
     /**
-     * 计划调度器
+     * 调度器
      */
     @Bean
     @ConditionalOnMissingBean(Scheduler.class)
-    public Scheduler<PlanInstance> planScheduler(PlanInstanceExecutor executor) {
-        return new HashedWheelTimerScheduler<>(executor);
+    public Scheduler scheduler() {
+        return new HashedWheelTimerScheduler();
     }
 
     /**
-     * 作业调度时间计算器工厂，根据作业调度类型来生产调度时间计算器。
+     * 计划工厂
      */
     @Bean
-    @ConditionalOnMissingBean(ScheduleCalculatorFactory.class)
-    public ScheduleCalculatorFactory jobScheduleCalculatorFactory() {
-        return new ScheduleCalculatorFactory();
-    }
-
-    /**
-     * 计划执行器
-     */
-    @Bean
-    @ConditionalOnMissingBean(Executor.class)
-    public Executor<PlanInstance> planExecutor(PlanInstanceRepository planInstanceRepository, JobInstanceStorage jobInstanceStorage) {
-        return new PlanInstanceExecutor(planInstanceRepository, jobInstanceStorage);
+    @ConditionalOnMissingBean(PlanFactory.class)
+    public PlanFactory planFactory(PlanInstanceRepository planInstanceRepository, JobInstanceStorage jobInstanceStorage) {
+        return new PlanFactory(new ScheduleCalculatorFactory(), new PlanExecutor(planInstanceRepository, jobInstanceStorage));
     }
 
 }

@@ -22,8 +22,7 @@ import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.job.ScheduleOption;
 import org.limbo.flowjob.tracker.core.plan.Plan;
-import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
-import org.limbo.flowjob.tracker.core.schedule.calculator.ScheduleCalculatorFactory;
+import org.limbo.flowjob.tracker.core.plan.PlanFactory;
 import org.limbo.flowjob.tracker.dao.po.PlanInfoPO;
 import org.limbo.utils.JacksonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,11 +38,8 @@ import java.util.List;
 @Component
 public class PlanInfoPOConverter extends Converter<Plan, PlanInfoPO> {
 
-    /**
-     * 作业触发计算器工厂
-     */
     @Autowired
-    private ScheduleCalculatorFactory scheduleCalculatorFactory;
+    private PlanFactory planFactory;
 
 
     /**
@@ -75,27 +71,18 @@ public class PlanInfoPOConverter extends Converter<Plan, PlanInfoPO> {
     @Override
     protected Plan doBackward(PlanInfoPO po) {
 
-        // 先生成一个代理calculator，用于初始化JobDO
-        ScheduleType scheduleType = ScheduleType.parse(po.getScheduleType());
-        ScheduleCalculator scheduleCalculator = scheduleCalculatorFactory.newStrategy(scheduleType);
-
-        Plan plan = new Plan(scheduleCalculator);
-        plan.setPlanId(po.getPlanId());
-        plan.setPlanDesc(po.getPlanDesc());
-        plan.setVersion(po.getVersion());
-
-        plan.setScheduleOption(new ScheduleOption(
-                scheduleType,
-                po.getScheduleStartAt(),
-                Duration.ofMillis(po.getScheduleDelay()),
-                Duration.ofMillis(po.getScheduleInterval()),
-                po.getScheduleCron()
-        ));
-
-        plan.setJobs(JacksonUtils.parseObject(po.getJobs(), new TypeReference<List<Job>>() {
-        }));
-
-        return plan;
+        return planFactory.create(po.getPlanId(),
+                po.getVersion(),
+                po.getPlanDesc(),
+                new ScheduleOption(
+                        ScheduleType.parse(po.getScheduleType()),
+                        po.getScheduleStartAt(),
+                        Duration.ofMillis(po.getScheduleDelay()),
+                        Duration.ofMillis(po.getScheduleInterval()),
+                        po.getScheduleCron()
+                ),
+                JacksonUtils.parseObject(po.getJobs(), new TypeReference<List<Job>>() {
+                }));
     }
 
 }

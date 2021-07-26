@@ -28,7 +28,7 @@
     </resultMap>
 
     <insert id="batchInsert">
-        INSERT INTO worker_executor(
+        INSERT INTO flowjob_worker_executor(
             worker_id, executor_name, executor_desc, execute_type
         ) VALUES
         <foreach collection="executors" item="exe" separator=",">

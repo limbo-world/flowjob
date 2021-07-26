@@ -38,7 +38,7 @@ public class PlanPO extends PO {
     /**
      * 最新版本
      */
-    private Integer latelyVersion;
+    private Integer recentlyVersion;
 
     /**
      * 是否启动 新建plan的时候 默认为不启动

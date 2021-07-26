@@ -16,6 +16,7 @@
 
 package org.limbo.flowjob.tracker.admin.service.worker;
 
+import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
 import org.limbo.flowjob.tracker.commons.utils.Symbol;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
@@ -33,6 +34,7 @@ import reactor.core.publisher.Mono;
  * @author Brozen
  * @since 2021-07-06
  */
+@Slf4j
 @Service
 public class WorkerService {
 
@@ -53,6 +55,10 @@ public class WorkerService {
         WorkerMetric metric = worker.getMetric();
         metric.setAvailableResource(WorkerAvailableResource.from(heartbeatOption.getAvailableResource()));
         worker.updateMetric(metric);
+
+        if (log.isDebugEnabled()) {
+            log.debug("receive heartbeat from " + worker.getWorkerId());
+        }
 
         return Mono.just(Symbol.newSymbol());
     }

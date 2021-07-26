@@ -62,14 +62,15 @@ public class MyBatisPlanRepo implements PlanRepository {
         planPO = new PlanPO();
         planPO.setPlanId(plan.getPlanId());
         planPO.setCurrentVersion(plan.getVersion());
-        planPO.setLatelyVersion(plan.getVersion());
-
+        planPO.setRecentlyVersion(plan.getVersion());
+        planPO.setIsEnabled(false);
+        planPO.setIsDeleted(false);
         planMapper.insert(planPO);
 
         // 新增 plan info
         PlanInfoPO planInfoPO = converter.convert(plan);
         planInfoPO.setIsDeleted(false);
-        planInfoMapper.insert(planInfoPO); // 可能由于planId重复导致异常
+        planInfoMapper.insert(planInfoPO);
 
         return plan.getPlanId();
     }
@@ -79,15 +80,15 @@ public class MyBatisPlanRepo implements PlanRepository {
         PlanPO planPO = planMapper.selectById(plan.getPlanId());
         Verifies.isNull(planPO, "plan isn't exist");
 
-        Integer newVersion = planPO.getLatelyVersion() + 1; // 新版本为最大版本 + 1
+        Integer newVersion = planPO.getRecentlyVersion() + 1; // 新版本为最大版本 + 1
         plan.setVersion(newVersion);
 
         int update = planMapper.update(null, Wrappers.<PlanPO>lambdaUpdate()
                 .eq(PlanPO::getCurrentVersion, newVersion)
-                .eq(PlanPO::getLatelyVersion, newVersion)
+                .eq(PlanPO::getRecentlyVersion, newVersion)
                 .eq(PlanPO::getPlanId, planPO.getPlanId())
                 .eq(PlanPO::getCurrentVersion, planPO.getCurrentVersion())
-                .eq(PlanPO::getLatelyVersion, planPO.getLatelyVersion())
+                .eq(PlanPO::getRecentlyVersion, planPO.getRecentlyVersion())
         );
         if (update <= 0) {
             // todo 更新失败

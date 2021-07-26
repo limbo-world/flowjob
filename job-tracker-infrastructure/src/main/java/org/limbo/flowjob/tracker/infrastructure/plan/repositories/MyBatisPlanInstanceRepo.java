@@ -45,4 +45,10 @@ public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
         return converter.reverse().convert(po);
     }
 
+    @Override
+    public Long getRecentlyId(String planId) {
+        Long recentlyIdForUpdate = planInstanceMapper.getRecentlyIdForUpdate(planId);
+        return recentlyIdForUpdate == null ? 1L : recentlyIdForUpdate;
+    }
+
 }

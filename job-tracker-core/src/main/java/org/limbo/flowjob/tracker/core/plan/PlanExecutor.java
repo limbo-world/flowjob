@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.plan;
 
-import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.schedule.executor.Executor;
@@ -31,13 +31,13 @@ import java.util.List;
  * @author Brozen
  * @since 2021-07-13
  */
-public class PlanInstanceExecutor implements Executor<PlanInstance> {
+public class PlanExecutor implements Executor<Plan> {
 
     private final PlanInstanceRepository planInstanceRepository;
 
     private final JobInstanceStorage jobInstanceStorage;
 
-    public PlanInstanceExecutor(PlanInstanceRepository planInstanceRepository, JobInstanceStorage jobInstanceStorage) {
+    public PlanExecutor(PlanInstanceRepository planInstanceRepository, JobInstanceStorage jobInstanceStorage) {
         this.planInstanceRepository = planInstanceRepository;
         this.jobInstanceStorage = jobInstanceStorage;
     }
@@ -47,21 +47,38 @@ public class PlanInstanceExecutor implements Executor<PlanInstance> {
      * 获取 plan 中需要最先执行的 job
      * 生成 jobInstance 存入 db
      * todo 事务
-     * @param instance 实例
+     * @param plan 计划
      */
     @Override
-    public void execute(PlanInstance instance) {
+    public void execute(Plan plan) {
+        // 判断是这个计划 第几次调度 决定 实例ID
+        Long recentlyId = planInstanceRepository.getRecentlyId(plan.getPlanId());
 
-        instance.setState(PlanScheduleStatus.Scheduling);
-        planInstanceRepository.addInstance(instance);
+        // 持久化存储
+        PlanInstance planInstance = plan.newInstance(recentlyId + 1);
+        planInstanceRepository.addInstance(planInstance);
 
         // 下发需要最先执行的job
-        List<Job> jobs = instance.getEarliestJobs();
+        List<Job> jobs = planInstance.getEarliestJobs();
         for (Job job : jobs) {
-            JobInstance jobInstance = job.newInstance(instance.getPlanId(), instance.getVersion(), instance.getPlanInstanceId());
+            JobInstance jobInstance = newJobInstance(planInstance.getPlanId(), planInstance.getPlanInstanceId(), job.getJobId());
             jobInstanceStorage.store(jobInstance);
         }
 
+    }
+
+    /**
+     * 生成新的作业实例
+     * @return 未开始执行的实例
+     */
+    public JobInstance newJobInstance(String planId, Long planInstanceId, String jobId) {
+        JobInstance jobInstance = new JobInstance(null); // todo
+        jobInstance.setPlanId(planId);
+        jobInstance.setPlanInstanceId(planInstanceId);
+        jobInstance.setJobId(jobId);
+        jobInstance.setState(JobScheduleStatus.Scheduling);
+        jobInstance.setJobAttributes(null);
+        return jobInstance;
     }
 
 }

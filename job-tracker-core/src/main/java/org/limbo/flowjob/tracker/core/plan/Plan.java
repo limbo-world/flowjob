@@ -20,11 +20,13 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.job.ScheduleOption;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
 import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
+import org.limbo.flowjob.tracker.core.schedule.executor.Executor;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -39,7 +41,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class Plan implements Schedulable<PlanInstance> {
+public class Plan implements Schedulable {
 
     /**
      * 作业计划ID
@@ -47,14 +49,14 @@ public class Plan implements Schedulable<PlanInstance> {
     private String planId;
 
     /**
-     * 计划描述
-     */
-    private String planDesc;
-
-    /**
      * 当前版本
      */
     private Integer version;
+
+    /**
+     * 计划描述
+     */
+    private String planDesc;
 
     /**
      * 作业计划调度配置参数
@@ -75,20 +77,14 @@ public class Plan implements Schedulable<PlanInstance> {
     @ToString.Exclude
     private ScheduleCalculator triggerCalculator;
 
-    public Plan(ScheduleCalculator triggerCalculator) {
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    @ToString.Exclude
+    private Executor<Plan> executor;
+
+    public Plan(ScheduleCalculator triggerCalculator, Executor<Plan> executor) {
         this.triggerCalculator = triggerCalculator;
-    }
-
-
-    @Override
-    public PlanInstance newInstance() {
-        PlanInstance instance = new PlanInstance();
-        instance.setPlanId(planId);
-        instance.setVersion(version);
-        instance.setPlanInstanceId(1);
-        instance.setState(PlanScheduleStatus.Scheduling);
-        instance.setJobs(jobs);
-        return instance;
+        this.executor = executor;
     }
 
     /**
@@ -128,6 +124,25 @@ public class Plan implements Schedulable<PlanInstance> {
         return null;
     }
 
+    @Override
+    public void schedule() {
+        executor.execute(this);
+    }
+
+    /**
+     * 生成新的计划实例
+     * @return 未开始执行的实例
+     */
+    public PlanInstance newInstance(Long planInstanceId) {
+        PlanInstance instance = new PlanInstance();
+        instance.setPlanId(planId);
+        instance.setVersion(version);
+        instance.setPlanInstanceId(planInstanceId);
+        instance.setState(PlanScheduleStatus.Scheduling);
+        instance.setJobs(jobs);
+        return instance;
+    }
+
 
     public List<Job> getJobs() {
         return jobs == null ? new ArrayList<>() : jobs;
@@ -139,6 +154,9 @@ public class Plan implements Schedulable<PlanInstance> {
      * @return 作业领域
      */
     public Job getJob(String jobId) {
+        if (CollectionUtils.isEmpty(jobs)) {
+            return null;
+        }
         return null;
 //        return jobRepository.getJob(jobId);
     }

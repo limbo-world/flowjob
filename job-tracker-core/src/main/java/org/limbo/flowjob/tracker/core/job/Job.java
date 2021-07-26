@@ -62,43 +62,4 @@ public class Job {
      */
     private DispatchOption dispatchOption;
 
-    // ----------------- 需要注入
-
-    /**
-     * 上下文repository
-     */
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    @ToString.Exclude
-    private JobInstanceRepository jobInstanceRepository;
-
-    public Job(JobInstanceRepository jobInstanceRepository) {
-        this.jobInstanceRepository = jobInstanceRepository;
-    }
-
-    /**
-     * 生成新的作业实例
-     * @return 未开始执行的实例
-     */
-    public JobInstance newInstance(String planId, Integer version, Integer planInstanceId) {
-        JobInstance jobInstance = new JobInstance(jobInstanceRepository);
-        jobInstance.setPlanId(planId);
-        jobInstance.setVersion(version);
-        jobInstance.setPlanInstanceId(planInstanceId);
-        jobInstance.setJobId(getJobId());
-        jobInstance.setJobInstanceId(1);
-        jobInstance.setState(JobScheduleStatus.Scheduling);
-        jobInstance.setJobAttributes(null);
-        return jobInstance;
-    }
-
-    /**
-     * 获取作业的执行上下文
-     * @param contextId 上下文ID
-     * @return 作业执行上下文
-     */
-    public JobInstance getContext(String contextId) {
-        return jobInstanceRepository.getInstance(getJobId(), contextId);
-    }
-
 }
