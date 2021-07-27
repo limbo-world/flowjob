@@ -18,6 +18,7 @@ package org.limbo.flowjob.tracker.commons.constants.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
 
 /**
  * 作业分发方式.
@@ -33,7 +34,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * @author Brozen
  * @since 2021-05-16
  */
-public enum DispatchType {
+public enum DispatchType implements DescribableEnum<Byte> {
+
 
     /**
      * 轮询。
@@ -70,14 +72,19 @@ public enum DispatchType {
     ;
 
     /**
+     * 可通过{@link #describe(Class)}方法生成，用于在swagger3为枚举添加说明
+     */
+    public static final String DESCRIPTION = "1-轮询; 2-随机; 3-指定节点; 4-最不经常使用; 5-最近最少使用; 6-一致性hash;";
+
+    /**
      * 分发类型值
      */
-    @JsonValue
     public final byte type;
 
     /**
      * 分发类型描述
      */
+    @Getter
     public final String desc;
 
     DispatchType(int type, String desc) {
@@ -89,6 +96,14 @@ public enum DispatchType {
         this.desc = desc;
     }
 
+    /**
+     * {@inheritDoc}
+     * @return
+     */
+    @Override
+    public Byte getValue() {
+        return type;
+    }
 
     /**
      * 解析作业分发类型。

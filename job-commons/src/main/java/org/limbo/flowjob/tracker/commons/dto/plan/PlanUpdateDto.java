@@ -25,7 +25,7 @@ public class PlanUpdateDto {
     private ScheduleOptionDto scheduleOption;
 
     /**
-     * job
+     * 计划的全部作业配置
      */
     private List<JobDto> jobs;
 

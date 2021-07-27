@@ -48,6 +48,7 @@ public class MyBatisPlanRepo implements PlanRepository {
 
     /**
      * todo 事务 plan 删除处理 硬/软删除
+     * TODO 是否存在校验与插入是多个操作，需保证执行前对planId加锁
      * {@inheritDoc}
      *
      * @param plan 计划plan

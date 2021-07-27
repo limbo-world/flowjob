@@ -25,6 +25,16 @@ public class PlanFactory {
         this.executor = executor;
     }
 
+    /**
+     * 想改成builder+factory
+     *
+     * @param planId
+     * @param version
+     * @param planDesc
+     * @param scheduleOption
+     * @param jobs
+     * @return
+     */
     public Plan create(String planId, Integer version, String planDesc, ScheduleOption scheduleOption, List<Job> jobs) {
         ScheduleType scheduleType = scheduleOption.getScheduleType();
         ScheduleCalculator scheduleCalculator = strategyFactory.newStrategy(scheduleType);
@@ -37,4 +47,5 @@ public class PlanFactory {
         plan.setJobs(jobs);
         return plan;
     }
+
 }

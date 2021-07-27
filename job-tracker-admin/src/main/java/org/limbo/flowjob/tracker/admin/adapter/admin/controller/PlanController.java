@@ -1,6 +1,9 @@
 package org.limbo.flowjob.tracker.admin.adapter.admin.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.limbo.flowjob.tracker.admin.service.plan.PlanService;
 import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
@@ -17,7 +20,7 @@ import javax.validation.constraints.NotBlank;
  * @author Devil
  * @since 2021/7/24
  */
-@Tag(name = "作业执行相关接口")
+@Tag(name = "作业执行执行计划")
 @RestController
 @RequestMapping("/api/admin/v1/plan")
 public class PlanController {
@@ -38,6 +41,9 @@ public class PlanController {
      * 修改计划
      */
     @Operation(summary = "修改计划")
+    @Parameters({
+            @Parameter(name = "planId", in = ParameterIn.PATH, description = "计划ID")
+    })
     @PutMapping("/{planId}")
     public Mono<ResponseDto<Void>> update(@NotBlank(message = "ID不能为空") @PathVariable("planId") String planId,
                                           @Validated @RequestBody PlanUpdateDto dto) {

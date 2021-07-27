@@ -17,7 +17,7 @@
 package org.limbo.flowjob.tracker.commons.constants.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
 
 /**
  * 作业调度方式：
@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * @author Brozen
  * @since 2021-05-16
  */
-public enum ScheduleType {
+public enum ScheduleType implements DescribableEnum<Byte> {
 
     /**
      * 固定延迟，作业创建后，从创建时间起延迟一定时间后触发调度。只调度一次。
@@ -61,9 +61,11 @@ public enum ScheduleType {
 
     ;
 
-    @JsonValue
+    public static final String DESCRIPTION = "1-固定延迟; 2-固定速度; 3-固定间隔时间; 4-CRON表达式; 5-DAG工作流;";
+
     public final byte type;
 
+    @Getter
     public final String desc;
 
 
@@ -74,6 +76,15 @@ public enum ScheduleType {
     ScheduleType(byte type, String desc) {
         this.type = type;
         this.desc = desc;
+    }
+
+    /**
+     * {@inheritDoc}
+     * @return
+     */
+    @Override
+    public Byte getValue() {
+        return type;
     }
 
     /**

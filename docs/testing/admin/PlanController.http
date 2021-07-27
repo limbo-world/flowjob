@@ -1,0 +1,26 @@
+### 新增 plan
+POST http://localhost:8081/api/admin/v1/plan
+Content-Type: application/json
+
+{
+  "planId": "abc",
+  "planDesc": "test",
+  "scheduleOption": {
+    "scheduleType": 1,
+    "scheduleStartAt": "2021-07-26 16:15:00"
+  },
+  "jobs": [
+    {
+      "jobId": "1",
+      "jobDesc": "test",
+      "dispatchOption": {
+        "dispatchType": 2
+      }
+    }
+  ]
+}
+
+### 开启 plan
+PUT http://localhost:8081/api/admin/v1/plan/abc/enable
+Content-Type: application/json
+
