@@ -21,18 +21,16 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.tracker.commons.constants.enums.DispatchType;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.tracker.commons.exceptions.JobDispatchException;
-import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
+import org.limbo.flowjob.tracker.core.job.DispatchOption;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 作业执行上下文
@@ -61,14 +59,19 @@ public class JobInstance {
     private String jobId;
 
     /**
+     * plan 版本
+     */
+    private Integer version;
+
+    /**
      * 此上下文状态
      */
     private JobScheduleStatus state;
 
     /**
-     * 下发方式
+     * 作业分发配置参数
      */
-    private DispatchType dispatchType;
+    private DispatchOption dispatchOption;
 
     /**
      * 此分发执行此作业上下文的worker
@@ -102,13 +105,14 @@ public class JobInstance {
 
 
     // ----------------------- 分隔
-    /**
-     * 用于更新JobContext
-     */
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    @ToString.Exclude
-    private JobInstanceRepository jobInstanceRepository;
+
+//    /**
+//     * 用于更新JobContext
+//     */
+//    @Getter(AccessLevel.NONE)
+//    @Setter(AccessLevel.NONE)
+//    @ToString.Exclude
+//    private JobInstanceRepository jobInstanceRepository;
 
     /**
      * 用于触发、发布上下文生命周期事件
@@ -118,8 +122,9 @@ public class JobInstance {
     @ToString.Exclude
     private Sinks.Many<JobContextLifecycleEvent> lifecycleEventTrigger;
 
-    public JobInstance(JobInstanceRepository jobInstanceRepository) {
-        this.jobInstanceRepository = Objects.requireNonNull(jobInstanceRepository, "JobContextRepository");
+    public JobInstance() {
+//    public JobInstance(JobInstanceRepository jobInstanceRepository) {
+//        this.jobInstanceRepository = Objects.requireNonNull(jobInstanceRepository, "JobContextRepository");
         this.lifecycleEventTrigger = Sinks.many().multicast().directAllOrNothing();
     }
 
@@ -143,7 +148,7 @@ public class JobInstance {
         try {
 
             // 发送上下文到worker
-            Mono<JobReceiveResult> mono = worker.sendJobContext(this);
+            Mono<JobReceiveResult> mono = worker.sendJob(this);
             // 发布事件
             lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.STARTED, Sinks.EmitFailureHandler.FAIL_FAST);
 
@@ -155,10 +160,11 @@ public class JobInstance {
                 this.refuseContext(worker);
             }
 
-        } catch (JobWorkerException e) {
+//        } catch (JobWorkerException e) {
+        } catch (Exception e) {
             // 失败时更新上下文状态，冒泡异常
             setState(JobScheduleStatus.FAILED);
-            jobInstanceRepository.updateInstance(this);
+//            jobInstanceRepository.updateInstance(this);
 
             throw new JobDispatchException(getJobId(), worker.getWorkerId(),
                     "Context startup failed due to send job to worker error!", e);
@@ -180,7 +186,7 @@ public class JobInstance {
 
         // 更新状态
         setState(JobScheduleStatus.EXECUTING);
-        jobInstanceRepository.updateInstance(this);
+//        jobInstanceRepository.updateInstance(this);
 
         // 发布事件
         lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.ACCEPTED, Sinks.EmitFailureHandler.FAIL_FAST);
@@ -220,7 +226,7 @@ public class JobInstance {
         assertContextStatus(JobScheduleStatus.EXECUTING);
 
         setState(JobScheduleStatus.SUCCEED);
-        jobInstanceRepository.updateInstance(this);
+//        jobInstanceRepository.updateInstance(this);
 
         // 发布事件
         lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.CLOSED, Sinks.EmitFailureHandler.FAIL_FAST);
@@ -240,7 +246,7 @@ public class JobInstance {
         setState(JobScheduleStatus.FAILED);
         setErrorMsg(errorMsg);
         setErrorStackTrace(errorStackTrace);
-        jobInstanceRepository.updateInstance(this);
+//        jobInstanceRepository.updateInstance(this);
 
         // 发布事件
         lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.CLOSED, Sinks.EmitFailureHandler.FAIL_FAST);

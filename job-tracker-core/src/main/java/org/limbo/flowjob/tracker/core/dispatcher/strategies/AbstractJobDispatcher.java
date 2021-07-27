@@ -42,8 +42,14 @@ public abstract class AbstractJobDispatcher implements JobDispatcher {
             throw new JobWorkerException(context.getJobId(), null, "No worker available!");
         }
 
+        // todo 比较 cpu 和 内存 worker没找到怎么处理
+
         Worker worker = selectWorker(context, workers);
+        if (worker == null) {
+             throw new JobWorkerException(context.getJobId(), null, "No worker available!");
+        }
         callback.accept(context, worker);
+
     }
 
     /**

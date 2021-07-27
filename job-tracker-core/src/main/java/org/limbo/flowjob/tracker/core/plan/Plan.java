@@ -129,6 +129,20 @@ public class Plan implements Schedulable {
         executor.execute(this);
     }
 
+    /**
+     * 生成新的计划实例
+     * @return 实例
+     */
+    public PlanInstance newInstance(Long planInstanceId, PlanScheduleStatus state) {
+        PlanInstance instance = new PlanInstance();
+        instance.setPlanId(planId);
+        instance.setVersion(version);
+        instance.setPlanInstanceId(planInstanceId);
+        instance.setState(state);
+        instance.setJobs(jobs);
+        return instance;
+    }
+
 
     public List<Job> getJobs() {
         return jobs == null ? new ArrayList<>() : jobs;

@@ -16,13 +16,11 @@
 
 package org.limbo.flowjob.tracker.core.job;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
-import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
 
 import java.util.List;
 
@@ -61,5 +59,21 @@ public class Job {
      * 作业分发配置参数
      */
     private DispatchOption dispatchOption;
+
+    /**
+     * 生成新的作业实例
+     * @return 实例
+     */
+    public JobInstance newInstance(String planId, Long planInstanceId, Integer version, JobScheduleStatus state) {
+        JobInstance instance = new JobInstance();
+        instance.setPlanId(planId);
+        instance.setPlanInstanceId(planInstanceId);
+        instance.setJobId(jobId);
+        instance.setVersion(version);
+        instance.setState(state);
+        instance.setDispatchOption(dispatchOption);
+        instance.setJobAttributes(null); // todo
+        return instance;
+    }
 
 }

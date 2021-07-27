@@ -55,7 +55,7 @@ public class TestValueObjectJackson {
 
     @Test
     public void testJobContext() {
-        JobInstance JobContext = new JobInstance(null);
+        JobInstance JobContext = new JobInstance();
         JobContext.setJobId("job1");
         JobContext.setState(JobScheduleStatus.Scheduling);
         JobContext.setWorkerId("");

@@ -102,7 +102,7 @@ public class HashedWheelTimerScheduler implements Scheduler {
             // 执行调度逻辑 todo 可以交由线程池？增加下发速度
             schedulable.schedule();
 
-            // 检测是否需要重新调度
+            // 检测是否需要重新调度 todo 不应该直接就触发
             this.reschedule(schedulable);
 
         }, delay, TimeUnit.MILLISECONDS);

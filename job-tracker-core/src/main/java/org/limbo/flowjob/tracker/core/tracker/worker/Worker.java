@@ -150,7 +150,7 @@ public abstract class Worker {
      * @param context 作业执行上下文
      * @return worker接受job后触发
      */
-    public abstract Mono<JobReceiveResult> sendJobContext(JobInstance context) throws JobWorkerException;
+    public abstract Mono<JobReceiveResult> sendJob(JobInstance context) throws JobWorkerException;
 
     /**
      * 解注册此worker，worker的状态将被标记为{@link WorkerStatus#TERMINATED}

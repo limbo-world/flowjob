@@ -68,7 +68,7 @@ public class JobTrackerConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(JobDispatchLauncher.class)
-    public JobDispatchLauncher jobTracker(JobTracker jobTracker, JobInstanceStorage jobInstanceStorage, JobInstanceRepository jobInstanceRepository) {
+    public JobDispatchLauncher jobDispatchLauncher(JobTracker jobTracker, JobInstanceStorage jobInstanceStorage, JobInstanceRepository jobInstanceRepository) {
         JobDispatchLauncher jobDispatchLauncher = new JobDispatchLauncher(jobTracker, jobInstanceStorage, jobInstanceRepository);
         jobDispatchLauncher.start();
         return jobDispatchLauncher;

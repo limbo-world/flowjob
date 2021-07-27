@@ -53,8 +53,7 @@ public class RandomJobDispatcher extends AbstractJobDispatcher implements JobDis
                 return worker;
             }
         }
-
-        throw new JobWorkerException(context.getJobId(), null, "No worker available!");
+        return null;
     }
 
 }

@@ -27,24 +27,20 @@ public class JobInstancePO extends PO {
     private String planId;
 
     /**
-     * 计划的版本
-     */
-    private Integer version;
-
-    /**
      * 计划实例的ID
      */
-    private Integer planInstanceId;
+    private Long planInstanceId;
 
     /**
-     * 作业ID
+     * 作业ID planId + planInstanceId + jobId 全局唯一
      */
     private String jobId;
 
     /**
-     * 从 1 开始增加 planId + version + planInstanceId + jobId + jobInstanceId 全局唯一
+     * 计划的版本
      */
-    private Integer jobInstanceId;
+    private Integer version;
+
 
     /**
      * 状态

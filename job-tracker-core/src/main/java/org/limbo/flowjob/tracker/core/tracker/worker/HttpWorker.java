@@ -103,7 +103,7 @@ public class HttpWorker extends Worker {
      * @return
      * @throws JobWorkerException
      */
-    public Mono<JobReceiveResult> sendJobContext(JobInstance context) throws JobWorkerException {
+    public Mono<JobReceiveResult> sendJob(JobInstance context) throws JobWorkerException {
         return Mono.from(client.post()
                 .uri(workerUri("/api/v1/worker/job"))
                 // 获取请求响应并解析

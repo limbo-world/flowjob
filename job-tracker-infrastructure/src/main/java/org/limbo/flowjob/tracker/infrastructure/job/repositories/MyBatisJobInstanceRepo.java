@@ -31,12 +31,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class MyBatisJobInstanceRepo implements JobInstanceRepository {
 
-//    /**
-//     * {@link JobInstance}和{@link JobExecuteRecordPO}的转换器
-//     */
-//    @Autowired
-//    private JobExecuteRecordPoConverter converter;
-
     @Autowired
     private JobInstancePoConverter jobInstancePoConverter;
 
