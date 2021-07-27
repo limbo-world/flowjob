@@ -71,13 +71,8 @@ public class PlanService {
 
         // 修改调度信息
         if (scheduleOption != null) {
-            currentPlan.setScheduleOption(new ScheduleOption(
-                    scheduleOption.getScheduleType() != null ? scheduleOption.getScheduleType() : currentPlan.getScheduleOption().getScheduleType(),
-                    scheduleOption.getScheduleStartAt() != null ? scheduleOption.getScheduleStartAt() : currentPlan.getScheduleOption().getScheduleStartAt(),
-                    scheduleOption.getScheduleDelay() != null ? scheduleOption.getScheduleDelay() : currentPlan.getScheduleOption().getScheduleDelay(),
-                    scheduleOption.getScheduleInterval() != null ? scheduleOption.getScheduleInterval() : currentPlan.getScheduleOption().getScheduleInterval(),
-                    scheduleOption.getScheduleCron() != null ? scheduleOption.getScheduleCron() : currentPlan.getScheduleOption().getScheduleCron()
-            ));
+            ScheduleOption newScheduleOption = currentPlan.getScheduleOption().mergeIntoCurrent(scheduleOption);
+            currentPlan.setScheduleOption(newScheduleOption);
         }
 
         // 修改job信息

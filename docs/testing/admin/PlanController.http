@@ -1,9 +1,9 @@
 ### 新增 plan
-POST http://localhost:8081/api/admin/v1/plan
+POST http://{{host}}:{{port}}/api/admin/v1/plan
 Content-Type: application/json
 
 {
-  "planId": "abc",
+  "planId": "abcde",
   "planDesc": "test",
   "scheduleOption": {
     "scheduleType": 1,
@@ -19,8 +19,9 @@ Content-Type: application/json
     }
   ]
 }
+###
 
 ### 开启 plan
-PUT http://localhost:8081/api/admin/v1/plan/abc/enable
+PUT http://{{host}}:{{port}}/api/admin/v1/plan/abcd/enable
 Content-Type: application/json
 

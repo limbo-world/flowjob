@@ -22,6 +22,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
+import org.limbo.flowjob.tracker.commons.dto.plan.ScheduleOptionDto;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -79,6 +80,22 @@ public class ScheduleOption {
         this.scheduleDelay = scheduleDelay == null ? Duration.ZERO : scheduleDelay;
         this.scheduleInterval = scheduleInterval == null ? Duration.ZERO : scheduleInterval;
         this.scheduleCron = scheduleCron;
+    }
+
+
+    /**
+     * 将DTO中的调度配置合并到此调度配置中，并生成新的调度配置对象
+     * @param other DTO入参
+     * @return 新的调度配置信息
+     */
+    public ScheduleOption mergeIntoCurrent(ScheduleOptionDto other) {
+        return new ScheduleOption(
+                other.getScheduleType() != null ? other.getScheduleType() : this.getScheduleType(),
+                other.getScheduleStartAt() != null ? other.getScheduleStartAt() : this.getScheduleStartAt(),
+                other.getScheduleDelay() != null ? other.getScheduleDelay() : this.getScheduleDelay(),
+                other.getScheduleInterval() != null ? other.getScheduleInterval() : this.getScheduleInterval(),
+                other.getScheduleCron() != null ? other.getScheduleCron() : this.getScheduleCron()
+        );
     }
 
 }
