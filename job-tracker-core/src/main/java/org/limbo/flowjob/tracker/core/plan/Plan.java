@@ -21,6 +21,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.commons.utils.strategies.StrategyFactory;
@@ -28,6 +29,8 @@ import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
 import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.tracker.core.schedule.executor.Executor;
+import org.limbo.utils.UUIDUtils;
+import org.limbo.utils.verifies.Verifies;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -162,6 +165,10 @@ public class Plan implements Schedulable {
 //        return jobRepository.getJob(jobId);
     }
 
+
+    /**
+     * Plan领域对象的Builder模式封装
+     */
     public static class Builder {
 
         private StrategyFactory<ScheduleType, ScheduleCalculator, Schedulable, Long> strategyFactory;
@@ -172,7 +179,7 @@ public class Plan implements Schedulable {
 
         private ScheduleOption scheduleOption;
 
-        private String planId;
+        private String planId = UUIDUtils.randomID();
 
         private Integer version;
 
@@ -181,12 +188,14 @@ public class Plan implements Schedulable {
         private List<Job> jobs;
 
         public Builder(StrategyFactory<ScheduleType, ScheduleCalculator, Schedulable, Long> strategyFactory, Executor<Plan> executor) {
-            this.strategyFactory = strategyFactory;
-            this.executor = executor;
+            this.strategyFactory = Verifies.requireNotNull(strategyFactory);
+            this.executor = Verifies.requireNotNull(executor);
         }
 
         public Builder planId(String planId) {
-            this.planId = planId;
+            if (StringUtils.isNotBlank(planId)) {
+                this.planId = planId;
+            }
             return this;
         }
 
@@ -214,7 +223,11 @@ public class Plan implements Schedulable {
         }
 
         public Plan build() {
-            Plan plan = new Plan(triggerCalculator, executor);
+            Plan plan = new Plan(
+                    Verifies.requireNotNull(triggerCalculator, "triggerCalculator"),
+                    Verifies.requireNotNull(executor, "executor")
+            );
+
             plan.setPlanId(planId);
             plan.setVersion(version);
             plan.setPlanDesc(planDesc);

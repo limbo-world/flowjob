@@ -21,7 +21,11 @@ public class PlanBuilderFactory {
         this.executor = executor;
     }
 
-    public Plan.Builder Builder() {
+
+    /**
+     * 生成新的Plan领域对象构建器
+     */
+    public Plan.Builder newBuilder() {
         return new Plan.Builder(strategyFactory, executor);
     }
 

@@ -70,7 +70,7 @@ public class PlanInfoPOConverter extends Converter<Plan, PlanInfoPO> {
      */
     @Override
     protected Plan doBackward(PlanInfoPO po) {
-        return planBuilderFactory.Builder()
+        return planBuilderFactory.newBuilder()
                 .planId(po.getPlanId())
                 .version(po.getVersion())
                 .planDesc(po.getPlanDesc())
