@@ -43,7 +43,7 @@ public class JobDispatchLauncher {
                         throw new JobExecuteException(jobInstance.getJobId(),
                                 "Cannot create JobDispatcher for dispatch type: " + jobInstance.getDispatchOption().getDispatchType());
                     }
-                    // todo 对 cpu 内存 队列等处理
+
                     jobDispatcher.dispatch(jobInstance, tracker.availableWorkers(), JobInstance::startupContext);
                 }
             } catch (Exception e) {

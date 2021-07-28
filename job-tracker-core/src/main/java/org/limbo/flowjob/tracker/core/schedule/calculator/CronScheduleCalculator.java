@@ -19,7 +19,7 @@ package org.limbo.flowjob.tracker.core.schedule.calculator;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
-import org.limbo.flowjob.tracker.core.job.ScheduleOption;
+import org.limbo.flowjob.tracker.core.plan.ScheduleOption;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
 import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
 import org.quartz.CronExpression;

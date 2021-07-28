@@ -2,17 +2,19 @@ package org.limbo.flowjob.tracker.admin.service.plan;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.tracker.commons.dto.job.DispatchOptionDto;
+import org.limbo.flowjob.tracker.commons.dto.job.ExecutorOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.job.JobDto;
-import org.limbo.flowjob.tracker.commons.dto.plan.DispatchOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.plan.PlanAddDto;
 import org.limbo.flowjob.tracker.commons.dto.plan.ScheduleOptionDto;
 import org.limbo.flowjob.tracker.core.job.DispatchOption;
+import org.limbo.flowjob.tracker.core.job.ExecutorOption;
 import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.ScheduleOption;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
 import org.limbo.flowjob.tracker.core.plan.Plan;
 import org.limbo.flowjob.tracker.core.plan.PlanBuilderFactory;
 import org.limbo.flowjob.tracker.core.plan.PlanRepository;
+import org.limbo.flowjob.tracker.core.plan.ScheduleOption;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.Scheduler;
 import org.limbo.flowjob.tracker.dao.po.PlanPO;
 import org.limbo.flowjob.tracker.infrastructure.plan.repositories.PlanPoRepository;
@@ -144,6 +146,13 @@ public class PlanService {
         return new DispatchOption(dto.getDispatchType(), dto.getCpuRequirement(), dto.getRamRequirement());
     }
 
+    public ExecutorOption convertToDo(ExecutorOptionDto dto) {
+        if (dto == null) {
+            return null;
+        }
+        return new ExecutorOption(dto.getName(), dto.getType());
+    }
+
     public ScheduleOption convertToDo(ScheduleOptionDto dto) {
         if (dto == null) {
             return null;
@@ -170,6 +179,7 @@ public class PlanService {
         job.setJobDesc(dto.getJobDesc());
         job.setParentJobIds(dto.getParentJobIds());
         job.setDispatchOption(convertToDo(dto.getDispatchOption()));
+        job.setExecutorOption(convertToDo(dto.getExecutorOption()));
         return job;
     }
 

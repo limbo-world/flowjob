@@ -1,4 +1,4 @@
-package org.limbo.flowjob.tracker.commons.dto.plan;
+package org.limbo.flowjob.tracker.commons.dto.job;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

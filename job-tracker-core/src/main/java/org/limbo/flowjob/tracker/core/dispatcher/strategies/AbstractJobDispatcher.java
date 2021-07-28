@@ -20,8 +20,12 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
+import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerExecutor;
+import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.BiConsumer;
 
 /**
@@ -32,28 +36,47 @@ public abstract class AbstractJobDispatcher implements JobDispatcher {
 
     /**
      * {@inheritDoc}
-     * @param context 待下发的作业上下文
-     * @param workers 待下发上下文可用的worker
+     *
+     * @param instance 待下发的作业实例
+     * @param workers  可用的worker
      * @param callback 作业执行回调
      */
     @Override
-    public void dispatch(JobInstance context, Collection<Worker> workers, BiConsumer<JobInstance, Worker> callback) {
+    public void dispatch(JobInstance instance, Collection<Worker> workers, BiConsumer<JobInstance, Worker> callback) {
         if (CollectionUtils.isEmpty(workers)) {
-            throw new JobWorkerException(context.getJobId(), null, "No worker available!");
+            throw new JobWorkerException(instance.getJobId(), null, "No worker available!");
         }
 
-        // todo 比较 cpu 和 内存 worker没找到怎么处理
+        List<Worker> availableWorkers = new ArrayList<>();
+        // todo 比较 cpu 和 内存 以及下发给对应的执行器 worker没找到怎么处理
+        for (Worker worker : workers) {
+            WorkerMetric metric = worker.getMetric();
+            if (metric == null || CollectionUtils.isNotEmpty(metric.getExecutors())) {
+                continue;
+            }
+            for (WorkerExecutor executor : metric.getExecutors()) {
+                if (executor.getExecuteType() == instance.getExecutorOption().getType()
+                        && executor.getExecutorName().equals(instance.getExecutorOption().getName())) {
+                    availableWorkers.add(worker);
+                }
+            }
+        }
 
-        Worker worker = selectWorker(context, workers);
+        if (CollectionUtils.isEmpty(availableWorkers)) {
+            throw new JobWorkerException(instance.getJobId(), null, "No worker available!");
+        }
+
+        Worker worker = selectWorker(instance, availableWorkers);
         if (worker == null) {
-             throw new JobWorkerException(context.getJobId(), null, "No worker available!");
+            throw new JobWorkerException(instance.getJobId(), null, "No worker available!");
         }
-        callback.accept(context, worker);
+        callback.accept(instance, worker);
 
     }
 
     /**
      * 选择一个worker进行作业下发
+     *
      * @param context 待下发的作业上下文
      * @param workers 待下发上下文可用的worker
      * @return 需要下发作业上下文的worker

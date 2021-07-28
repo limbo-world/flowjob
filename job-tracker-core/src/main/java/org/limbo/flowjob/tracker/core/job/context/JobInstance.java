@@ -25,6 +25,7 @@ import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.tracker.commons.exceptions.JobDispatchException;
 import org.limbo.flowjob.tracker.core.job.DispatchOption;
+import org.limbo.flowjob.tracker.core.job.ExecutorOption;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -72,6 +73,11 @@ public class JobInstance {
      * 作业分发配置参数
      */
     private DispatchOption dispatchOption;
+
+    /**
+     * 作业执行器配置参数
+     */
+    private ExecutorOption executorOption;
 
     /**
      * 此分发执行此作业上下文的worker

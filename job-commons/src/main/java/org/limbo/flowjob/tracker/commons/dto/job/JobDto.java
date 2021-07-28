@@ -2,7 +2,6 @@ package org.limbo.flowjob.tracker.commons.dto.job;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.limbo.flowjob.tracker.commons.dto.plan.DispatchOptionDto;
 
 import java.util.List;
 
@@ -37,4 +36,10 @@ public class JobDto {
      */
     @Schema(title = "作业分发配置参数")
     private DispatchOptionDto dispatchOption;
+
+    /**
+     * 执行器配置参数
+     */
+    @Schema(title = "执行器配置参数")
+    private ExecutorOptionDto executorOption;
 }

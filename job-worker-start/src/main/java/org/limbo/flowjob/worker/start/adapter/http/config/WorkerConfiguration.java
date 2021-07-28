@@ -22,6 +22,7 @@ import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.infrastructure.AbstractRemoteClient;
 import org.limbo.flowjob.worker.core.infrastructure.JobExecutor;
 import org.limbo.flowjob.worker.core.infrastructure.ShellJobExecutor;
+import org.limbo.flowjob.worker.start.application.CountExecutor;
 import org.limbo.flowjob.worker.start.shared.WorkerProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -44,6 +45,7 @@ public class WorkerConfiguration {
     public Worker worker() throws Exception {
         List<JobExecutor> executors = new ArrayList<>();
         executors.add(new ShellJobExecutor());
+        executors.add(new CountExecutor());
         return new Worker(StringUtils.isBlank(workerProperties.getLocalHost()) ? NetUtils.getLocalIp() : workerProperties.getLocalHost(),
                 workerProperties.getLocalPort(), workerProperties.getQueueSize(), executors);
     }

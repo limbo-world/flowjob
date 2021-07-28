@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.schedule;
 
-import org.limbo.flowjob.tracker.core.job.ScheduleOption;
+import org.limbo.flowjob.tracker.core.plan.ScheduleOption;
 
 import java.time.Instant;
 

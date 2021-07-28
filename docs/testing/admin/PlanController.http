@@ -3,7 +3,7 @@ POST http://{{host}}:{{port}}/api/admin/v1/plan
 Content-Type: application/json
 
 {
-  "planId": "abcde",
+  "planId": "abcdef",
   "planDesc": "test",
   "scheduleOption": {
     "scheduleType": 1,
@@ -15,13 +15,16 @@ Content-Type: application/json
       "jobDesc": "test",
       "dispatchOption": {
         "dispatchType": 2
+      },
+      "executor": {
+        "name": "count",
+        "type": 1
       }
     }
   ]
 }
-###
 
 ### 开启 plan
-PUT http://{{host}}:{{port}}/api/admin/v1/plan/abcd/enable
+PUT http://{{host}}:{{port}}/api/admin/v1/plan/abcdef/enable
 Content-Type: application/json
 

@@ -61,6 +61,11 @@ public class Job {
     private DispatchOption dispatchOption;
 
     /**
+     * 作业执行器配置参数
+     */
+    private ExecutorOption executorOption;
+
+    /**
      * 生成新的作业实例
      * @return 实例
      */
@@ -72,6 +77,7 @@ public class Job {
         instance.setVersion(version);
         instance.setState(state);
         instance.setDispatchOption(dispatchOption);
+        instance.setExecutorOption(executorOption);
         instance.setJobAttributes(null); // todo
         return instance;
     }
