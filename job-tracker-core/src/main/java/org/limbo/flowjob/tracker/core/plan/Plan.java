@@ -22,6 +22,8 @@ import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
+import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
+import org.limbo.flowjob.tracker.commons.utils.strategies.StrategyFactory;
 import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.job.ScheduleOption;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
@@ -159,6 +161,69 @@ public class Plan implements Schedulable {
         }
         return null;
 //        return jobRepository.getJob(jobId);
+    }
+
+    public static class Builder {
+
+        private StrategyFactory<ScheduleType, ScheduleCalculator, Schedulable, Long> strategyFactory;
+
+        private ScheduleCalculator triggerCalculator;
+
+        private Executor<Plan> executor;
+
+        private ScheduleOption scheduleOption;
+
+        private String planId;
+
+        private Integer version;
+
+        private String planDesc;
+
+        private List<Job> jobs;
+
+        public Builder(StrategyFactory<ScheduleType, ScheduleCalculator, Schedulable, Long> strategyFactory, Executor<Plan> executor) {
+            this.strategyFactory = strategyFactory;
+            this.executor = executor;
+        }
+
+        public Builder planId(String planId) {
+            this.planId = planId;
+            return this;
+        }
+
+        public Builder version(Integer version) {
+            this.version = version;
+            return this;
+        }
+
+        public Builder planDesc(String planDesc) {
+            this.planDesc = planDesc;
+            return this;
+        }
+
+        public Builder jobs(List<Job> jobs) {
+            this.jobs = jobs;
+            return this;
+        }
+
+        public Builder scheduleOption(ScheduleOption scheduleOption) {
+            ScheduleType scheduleType = scheduleOption.getScheduleType();
+
+            this.triggerCalculator = strategyFactory.newStrategy(scheduleType);
+            this.scheduleOption = scheduleOption;
+            return this;
+        }
+
+        public Plan build() {
+            Plan plan = new Plan(triggerCalculator, executor);
+            plan.setPlanId(planId);
+            plan.setVersion(version);
+            plan.setPlanDesc(planDesc);
+            plan.setScheduleOption(scheduleOption);
+            plan.setJobs(jobs);
+            return plan;
+        }
+
     }
 
 }

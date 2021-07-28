@@ -19,7 +19,7 @@ package org.limbo.flowjob.tracker.admin.adapter.config;
 import org.limbo.flowjob.tracker.core.dispatcher.JobDispatchLauncher;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
 import org.limbo.flowjob.tracker.core.plan.PlanExecutor;
-import org.limbo.flowjob.tracker.core.plan.PlanFactory;
+import org.limbo.flowjob.tracker.core.plan.PlanBuilderFactory;
 import org.limbo.flowjob.tracker.core.plan.PlanInstanceRepository;
 import org.limbo.flowjob.tracker.core.schedule.calculator.ScheduleCalculatorFactory;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.HashedWheelTimerScheduler;
@@ -87,9 +87,9 @@ public class JobTrackerConfiguration {
      * 计划工厂
      */
     @Bean
-    @ConditionalOnMissingBean(PlanFactory.class)
-    public PlanFactory planFactory(PlanInstanceRepository planInstanceRepository, JobInstanceStorage jobInstanceStorage) {
-        return new PlanFactory(new ScheduleCalculatorFactory(), new PlanExecutor(planInstanceRepository, jobInstanceStorage));
+    @ConditionalOnMissingBean(PlanBuilderFactory.class)
+    public PlanBuilderFactory planFactory(PlanInstanceRepository planInstanceRepository, JobInstanceStorage jobInstanceStorage) {
+        return new PlanBuilderFactory(new ScheduleCalculatorFactory(), new PlanExecutor(planInstanceRepository, jobInstanceStorage));
     }
 
 }

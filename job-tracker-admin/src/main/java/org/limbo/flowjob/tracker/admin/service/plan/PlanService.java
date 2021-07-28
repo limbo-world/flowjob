@@ -11,7 +11,7 @@ import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.job.ScheduleOption;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
 import org.limbo.flowjob.tracker.core.plan.Plan;
-import org.limbo.flowjob.tracker.core.plan.PlanFactory;
+import org.limbo.flowjob.tracker.core.plan.PlanBuilderFactory;
 import org.limbo.flowjob.tracker.core.plan.PlanRepository;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.Scheduler;
 import org.limbo.flowjob.tracker.dao.po.PlanPO;
@@ -44,7 +44,7 @@ public class PlanService {
     private JobInstanceRepository jobInstanceRepository;
 
     @Autowired
-    private PlanFactory planFactory;
+    private PlanBuilderFactory planBuilderFactory;
 
     /**
      * 新增计划 只是个落库操作
@@ -128,11 +128,13 @@ public class PlanService {
 
 
     public Plan convertToDo(PlanAddDto dto) {
-        return planFactory.create(StringUtils.isBlank(dto.getPlanId()) ? UUIDUtils.randomID() : dto.getPlanId(),
-                0,
-                dto.getPlanDesc(),
-                convertToDo(dto.getScheduleOption()),
-                convertToDo(dto.getJobs()));
+        return planBuilderFactory.Builder()
+                .planId(StringUtils.isBlank(dto.getPlanId()) ? UUIDUtils.randomID() : dto.getPlanId())
+                .version(0)
+                .planDesc(dto.getPlanDesc())
+                .scheduleOption(convertToDo(dto.getScheduleOption()))
+                .jobs(convertToDo(dto.getJobs()))
+                .build();
     }
 
     public DispatchOption convertToDo(DispatchOptionDto dto) {

@@ -22,7 +22,7 @@ import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.job.ScheduleOption;
 import org.limbo.flowjob.tracker.core.plan.Plan;
-import org.limbo.flowjob.tracker.core.plan.PlanFactory;
+import org.limbo.flowjob.tracker.core.plan.PlanBuilderFactory;
 import org.limbo.flowjob.tracker.dao.po.PlanInfoPO;
 import org.limbo.utils.JacksonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +39,7 @@ import java.util.List;
 public class PlanInfoPOConverter extends Converter<Plan, PlanInfoPO> {
 
     @Autowired
-    private PlanFactory planFactory;
+    private PlanBuilderFactory planBuilderFactory;
 
 
     /**
@@ -70,19 +70,20 @@ public class PlanInfoPOConverter extends Converter<Plan, PlanInfoPO> {
      */
     @Override
     protected Plan doBackward(PlanInfoPO po) {
-
-        return planFactory.create(po.getPlanId(),
-                po.getVersion(),
-                po.getPlanDesc(),
-                new ScheduleOption(
+        return planBuilderFactory.Builder()
+                .planId(po.getPlanId())
+                .version(po.getVersion())
+                .planDesc(po.getPlanDesc())
+                .scheduleOption(new ScheduleOption(
                         ScheduleType.parse(po.getScheduleType()),
                         po.getScheduleStartAt(),
                         Duration.ofMillis(po.getScheduleDelay()),
                         Duration.ofMillis(po.getScheduleInterval()),
                         po.getScheduleCron()
-                ),
-                JacksonUtils.parseObject(po.getJobs(), new TypeReference<List<Job>>() {
-                }));
+                ))
+                .jobs(JacksonUtils.parseObject(po.getJobs(), new TypeReference<List<Job>>() {
+                }))
+                .build();
     }
 
 }

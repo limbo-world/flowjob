@@ -25,7 +25,6 @@ public class MyBatisPlanPoRepo implements PlanPoRepository {
     public void switchEnable(String planId, boolean isEnabled) {
         planMapper.update(null, Wrappers.<PlanPO>lambdaUpdate()
                 .set(PlanPO::getIsEnabled, isEnabled)
-                .set(PlanPO::getIsEnabled, isEnabled)
                 .eq(PlanPO::getPlanId, planId)
         );
     }
