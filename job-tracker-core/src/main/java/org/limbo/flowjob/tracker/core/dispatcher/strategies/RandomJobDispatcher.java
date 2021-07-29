@@ -45,13 +45,14 @@ public class RandomJobDispatcher extends AbstractJobDispatcher implements JobDis
      */
     @Override
     protected Worker selectWorker(JobInstance context, Collection<Worker> workers) {
-        int index = this.random.nextInt(workers.size() + 1) - 1;
+        int index = this.random.nextInt(workers.size());
 
         int i = 0;
         for (Worker worker : workers) {
             if (i == index) {
                 return worker;
             }
+            i++;
         }
         return null;
     }

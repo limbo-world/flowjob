@@ -11,22 +11,25 @@ import java.util.List;
  * @since 2021/7/24
  */
 @Data
-@Schema(title = "修改计划参数")
-public class PlanUpdateDto {
+@Schema(title = "计划覆盖参数")
+public class PlanReplaceDto {
 
     /**
      * 计划描述
      */
+    @Schema(title = "计划描述")
     private String planDesc;
 
     /**
      * 作业计划调度配置参数
      */
+    @Schema(title = "作业计划调度配置参数")
     private ScheduleOptionDto scheduleOption;
 
     /**
-     * 计划的全部作业配置
+     * 此执行计划对应的所有作业
      */
+    @Schema(title = "此执行计划对应的所有作业")
     private List<JobDto> jobs;
 
 }

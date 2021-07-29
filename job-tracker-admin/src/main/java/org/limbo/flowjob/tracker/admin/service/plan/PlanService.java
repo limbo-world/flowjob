@@ -5,6 +5,7 @@ import org.limbo.flowjob.tracker.commons.dto.job.DispatchOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.job.ExecutorOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.job.JobDto;
 import org.limbo.flowjob.tracker.commons.dto.plan.PlanAddDto;
+import org.limbo.flowjob.tracker.commons.dto.plan.PlanReplaceDto;
 import org.limbo.flowjob.tracker.commons.dto.plan.ScheduleOptionDto;
 import org.limbo.flowjob.tracker.core.job.DispatchOption;
 import org.limbo.flowjob.tracker.core.job.ExecutorOption;
@@ -56,6 +57,23 @@ public class PlanService {
     }
 
     /**
+     * 覆盖计划 可能会触发 内存时间轮改动
+     */
+    public void replace(String planId, PlanReplaceDto dto) {
+        // 获取当前的plan数据
+        Plan plan = convertToDo(planId, dto);
+
+        Integer newVersion = planRepository.newPlanVersion(plan);
+        plan.setVersion(newVersion);
+
+        // 需要修改plan重新调度
+        if (scheduler.isScheduling(planId)) {
+            scheduler.unschedule(planId);
+            scheduler.schedule(plan);
+        }
+    }
+
+    /**
      * 修改计划 可能会触发 内存时间轮改动
      */
     public void update(String planId, String planDesc, ScheduleOptionDto scheduleOption, List<JobDto> jobs) {
@@ -88,7 +106,7 @@ public class PlanService {
     /**
      * 启动计划 开始调度 todo 并发
      */
-    public void enable(String planId) {
+    public void start(String planId) {
         PlanPO planPO = planPoRepository.getById(planId);
         Verifies.notNull(planPO, "plan is not exist");
 
@@ -105,11 +123,11 @@ public class PlanService {
     /**
      * 取消计划 停止调度
      */
-    public void disable(String planId) {
+    public void stop(String planId) {
         PlanPO planPO = planPoRepository.getById(planId);
         Verifies.notNull(planPO, "plan is not exist");
 
-        if (planPO.getIsEnabled()) {
+        if (!planPO.getIsEnabled()) {
             return;
         }
 
@@ -123,6 +141,16 @@ public class PlanService {
     public Plan convertToDo(PlanAddDto dto) {
         return planBuilderFactory.newBuilder()
                 .planId(dto.getPlanId())
+                .version(0)
+                .planDesc(dto.getPlanDesc())
+                .scheduleOption(convertToDo(dto.getScheduleOption()))
+                .jobs(convertToDo(dto.getJobs()))
+                .build();
+    }
+
+    public Plan convertToDo(String planId, PlanReplaceDto dto) {
+        return planBuilderFactory.newBuilder()
+                .planId(planId)
                 .version(0)
                 .planDesc(dto.getPlanDesc())
                 .scheduleOption(convertToDo(dto.getScheduleOption()))

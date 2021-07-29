@@ -29,9 +29,24 @@ import java.util.Map;
 public class JobInstanceDto {
 
     /**
-     * 实例id
+     * 计划ID
      */
-    private String jobInstanceId;
+    private String planId;
+
+    /**
+     * 计划实例的ID
+     */
+    private Long planInstanceId;
+
+    /**
+     * 作业ID planId + planInstanceId + jobId 全局唯一
+     */
+    private String jobId;
+
+    /**
+     * plan 版本
+     */
+    private Integer version;
 
     /**
      * 执行器的名称
@@ -47,5 +62,9 @@ public class JobInstanceDto {
      * 作业上下文元数据
      */
     private Map<String, List<String>> attributes;
+
+    public String getId() {
+        return planId + "-" + planInstanceId + "-" + jobId;
+    }
 
 }

@@ -51,7 +51,7 @@ public abstract class AbstractJobDispatcher implements JobDispatcher {
         // todo 比较 cpu 和 内存 以及下发给对应的执行器 worker没找到怎么处理
         for (Worker worker : workers) {
             WorkerMetric metric = worker.getMetric();
-            if (metric == null || CollectionUtils.isNotEmpty(metric.getExecutors())) {
+            if (metric == null || CollectionUtils.isEmpty(metric.getExecutors())) {
                 continue;
             }
             for (WorkerExecutor executor : metric.getExecutors()) {

@@ -22,6 +22,9 @@ package org.limbo.flowjob.worker.core.domain;
  */
 public class Job {
 
+    /**
+     * 唯一ID
+     */
     private String id;
     /**
      * 执行器的名称

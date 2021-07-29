@@ -12,6 +12,7 @@ public class CountExecutor implements JobExecutor {
 
     @Override
     public String run(Job job) {
+        System.out.println("hello");
         return null;
     }
 

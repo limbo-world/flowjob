@@ -105,7 +105,7 @@ public class HashedWheelTimerScheduler implements Scheduler {
             schedulable.schedule();
 
             // 检测是否需要重新调度 todo 不应该直接就触发
-            this.reschedule(schedulable);
+//            this.reschedule(schedulable);
 
         }, delay, TimeUnit.MILLISECONDS);
     }

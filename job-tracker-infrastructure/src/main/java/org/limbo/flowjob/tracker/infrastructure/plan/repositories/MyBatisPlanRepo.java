@@ -78,14 +78,15 @@ public class MyBatisPlanRepo implements PlanRepository {
     @Override
     public Integer newPlanVersion(Plan plan) {
         PlanPO planPO = planMapper.selectById(plan.getPlanId());
-        Verifies.isNull(planPO, "plan isn't exist");
+        Verifies.notNull(planPO, "plan isn't exist");
 
         Integer newVersion = planPO.getRecentlyVersion() + 1; // 新版本为最大版本 + 1
         plan.setVersion(newVersion);
 
+        // 更新版本
         int update = planMapper.update(null, Wrappers.<PlanPO>lambdaUpdate()
-                .eq(PlanPO::getCurrentVersion, newVersion)
-                .eq(PlanPO::getRecentlyVersion, newVersion)
+                .set(PlanPO::getCurrentVersion, newVersion)
+                .set(PlanPO::getRecentlyVersion, newVersion)
                 .eq(PlanPO::getPlanId, planPO.getPlanId())
                 .eq(PlanPO::getCurrentVersion, planPO.getCurrentVersion())
                 .eq(PlanPO::getRecentlyVersion, planPO.getRecentlyVersion())

@@ -16,13 +16,17 @@
 
 package org.limbo.flowjob.tracker.core.tracker.worker;
 
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
-import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
+import io.netty.util.CharsetUtil;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
+import org.limbo.flowjob.tracker.commons.dto.job.JobInstanceDto;
+import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.commons.exceptions.WorkerException;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
+import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatisticsRepository;
 import org.limbo.utils.JacksonUtils;
@@ -32,6 +36,7 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
 
 import java.time.LocalDateTime;
+import java.util.function.Consumer;
 
 /**
  * @author Brozen
@@ -44,6 +49,8 @@ public class HttpWorker extends Worker {
      */
     private HttpClient client;
 
+    private final static String BASE_URL = "/api/worker/v1";
+
     public HttpWorker(HttpClient client, WorkerRepository workerRepository,
                       WorkerMetricRepository metricRepository,
                       WorkerStatisticsRepository workerStatisticsRepository) {
@@ -53,6 +60,7 @@ public class HttpWorker extends Worker {
 
     /**
      * 格式化URI，返回 http://{ip}:{port}/{path} 的格式，path如果以 / 开头，开头的 / 会被忽略。
+     *
      * @return http://{ip}:{port}/{path}
      */
     protected String workerUri(String path) {
@@ -65,10 +73,11 @@ public class HttpWorker extends Worker {
 
     /**
      * 处理HttpClient的请求响应，并将响应body反序列化为指定bean类型。通过Jackson进行反序列化。
-     * @param response http响应
+     *
+     * @param response    http响应
      * @param byteBufFlux http body数据
-     * @param type 反序列化的bean的类类型
-     * @param <T> 反序列化的bean的类型
+     * @param type        反序列化的bean的类类型
+     * @param <T>         反序列化的bean的类型
      * @return 一个Mono，异步处理
      */
     protected <T> Mono<T> responseReceiver(HttpClientResponse response, ByteBufFlux byteBufFlux, Class<T> type) {
@@ -99,13 +108,19 @@ public class HttpWorker extends Worker {
 
     /**
      * {@inheritDoc}
-     * @param context 作业执行上下文
+     *
+     * @param instance 作业实例
      * @return
      * @throws JobWorkerException
      */
-    public Mono<JobReceiveResult> sendJob(JobInstance context) throws JobWorkerException {
-        return Mono.from(client.post()
-                .uri(workerUri("/api/v1/worker/job"))
+    public Mono<JobReceiveResult> sendJob(JobInstance instance) throws JobWorkerException {
+        // 生成 dto
+        JobInstanceDto dto = convertToDto(instance);
+        return Mono.from(client
+                .headers(headers -> headers.add("Content-type", "application/json"))
+                .post()
+                .uri(workerUri(BASE_URL + "/job"))
+                .send(Mono.just(Unpooled.copiedBuffer(JacksonUtils.toJSONString(dto), CharsetUtil.UTF_8)))
                 // 获取请求响应并解析
                 .response((resp, flux) -> responseReceiver(resp, flux, JobReceiveResult.class)))
                 .doOnNext(result -> {
@@ -124,6 +139,16 @@ public class HttpWorker extends Worker {
     public void unregister() {
         setStatus(WorkerStatus.TERMINATED);
         updateWorker();
+    }
+
+    private JobInstanceDto convertToDto(JobInstance instance) {
+        JobInstanceDto dto = new JobInstanceDto();
+        dto.setPlanId(instance.getPlanId());
+        dto.setPlanInstanceId(instance.getPlanInstanceId());
+        dto.setJobId(instance.getJobId());
+        dto.setVersion(instance.getVersion());
+        dto.setExecutorName(instance.getExecutorOption().getName());
+        return dto;
     }
 
 }

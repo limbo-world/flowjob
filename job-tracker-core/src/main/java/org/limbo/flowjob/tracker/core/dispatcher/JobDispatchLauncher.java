@@ -44,7 +44,23 @@ public class JobDispatchLauncher {
                                 "Cannot create JobDispatcher for dispatch type: " + jobInstance.getDispatchOption().getDispatchType());
                     }
 
+                    // 成功 失败 拒绝 不同情况的处理
+                    jobInstance.onContextAccepted().subscribe(c -> {
+                        System.out.println(c.getWorkerId() + " accepted");
+                        jobInstanceRepository.updateInstance(jobInstance);
+                    });
+                    jobInstance.onContextRefused().subscribe(c -> {
+                        System.out.println(c.getWorkerId() + " refused");
+                        jobInstanceRepository.updateInstance(jobInstance);
+                    });
+                    jobInstance.onContextClosed().subscribe(c -> {
+                        System.out.println(c.getId() + " closed");
+                        jobInstanceRepository.updateInstance(jobInstance);
+                    });
+
+                    // 下发任务
                     jobDispatcher.dispatch(jobInstance, tracker.availableWorkers(), JobInstance::startupContext);
+
                 }
             } catch (Exception e) {
                 // todo

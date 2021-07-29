@@ -19,6 +19,7 @@ package org.limbo.flowjob.tracker.infrastructure.worker.repositories;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerExecutor;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetricRepository;
@@ -56,6 +57,7 @@ public class MyBatisWorkerMetricRepo implements WorkerMetricRepository {
 
     /**
      * {@inheritDoc}
+     *
      * @param metric worker指标信息
      */
     @Override
@@ -80,13 +82,19 @@ public class MyBatisWorkerMetricRepo implements WorkerMetricRepository {
         List<WorkerExecutor> executors = metric.getExecutors();
         if (CollectionUtils.isNotEmpty(executors)) {
             workerExecutorMapper.batchInsert(executors.stream()
-                    .map(workerExecutorPoConverter::convert)
+                    .map(workerExecutor -> {
+                        if (StringUtils.isBlank(workerExecutor.getExecutorDesc())) {
+                            workerExecutor.setExecutorDesc(StringUtils.EMPTY);
+                        }
+                        return workerExecutorPoConverter.convert(workerExecutor);
+                    })
                     .collect(Collectors.toList()));
         }
     }
 
     /**
      * {@inheritDoc}
+     *
      * @param workerId workerId
      * @return
      */
