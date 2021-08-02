@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.admin.support.webflux;
+package org.limbo.flowjob.tracker.admin.adapter.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.tracker.commons.dto.ResponseDto;

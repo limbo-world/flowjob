@@ -16,7 +16,11 @@
 
 package org.limbo.flowjob.tracker.commons.dto.worker;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
+import org.limbo.utils.JacksonUtils;
 
 import java.io.Serializable;
 

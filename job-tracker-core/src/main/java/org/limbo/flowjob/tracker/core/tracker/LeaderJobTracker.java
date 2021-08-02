@@ -37,8 +37,8 @@ public class LeaderJobTracker extends LocalJobTracker {
      */
     protected List<RemoteJobTracker> followers;
 
-    public LeaderJobTracker(WorkerRepository workerRepository) {
-        super(workerRepository);
+    public LeaderJobTracker(String hostname, int port, WorkerRepository workerRepository) {
+        super(hostname, port, workerRepository);
         this.followers = new LinkedList<>();
     }
 

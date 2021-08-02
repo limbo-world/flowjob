@@ -44,7 +44,7 @@ public class JobDispatchLauncher {
                                 "Cannot create JobDispatcher for dispatch type: " + jobInstance.getDispatchOption().getDispatchType());
                     }
 
-                    // 成功 失败 拒绝 不同情况的处理
+                    // 成功 失败 拒绝 不同情况的处理 todo
                     jobInstance.onContextAccepted().subscribe(c -> {
                         System.out.println(c.getWorkerId() + " accepted");
                         jobInstanceRepository.updateInstance(jobInstance);

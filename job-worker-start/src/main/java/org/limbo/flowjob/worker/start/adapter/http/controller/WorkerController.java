@@ -17,17 +17,21 @@
 package org.limbo.flowjob.worker.start.adapter.http.controller;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
 import org.limbo.flowjob.tracker.commons.dto.job.JobInstanceDto;
+import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.worker.start.application.WorkerService;
 import org.limbo.utils.verifies.VerifyException;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+import sun.rmi.runtime.Log;
 
 /**
  * @author Devil
  * @since 2021/7/24
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/worker/v1")
 public class WorkerController {
@@ -42,9 +46,16 @@ public class WorkerController {
      * 接收任务 并处理
      */
     @PostMapping("/job")
-    public Mono<ResponseDto<Void>> receiveJob(@RequestBody JobInstanceDto dto) {
-        workerService.receive(dto);
-        return Mono.just(ResponseDto.<Void>builder().build());
+    public Mono<ResponseDto<JobReceiveResult>> receiveJob(@RequestBody JobInstanceDto dto) {
+        JobReceiveResult receiveResult = new JobReceiveResult();
+        try {
+            workerService.receive(dto);
+            receiveResult.setAccepted(true);
+        } catch (Exception e) {
+            log.error("receive job error ", e);
+            receiveResult.setAccepted(false);
+        }
+        return Mono.just(ResponseDto.<JobReceiveResult>builder().data(receiveResult).build());
     }
 
     @GetMapping("/ping")

@@ -18,8 +18,8 @@ package org.limbo.flowjob.tracker.admin.adapter.config;
 
 import org.limbo.flowjob.tracker.core.dispatcher.JobDispatchLauncher;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
-import org.limbo.flowjob.tracker.core.plan.PlanExecutor;
 import org.limbo.flowjob.tracker.core.plan.PlanBuilderFactory;
+import org.limbo.flowjob.tracker.core.plan.PlanExecutor;
 import org.limbo.flowjob.tracker.core.plan.PlanInstanceRepository;
 import org.limbo.flowjob.tracker.core.schedule.calculator.ScheduleCalculatorFactory;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.HashedWheelTimerScheduler;
@@ -29,7 +29,9 @@ import org.limbo.flowjob.tracker.core.storage.MemoryJobInstanceStorage;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 import org.limbo.flowjob.tracker.core.tracker.LeaderJobTracker;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 
@@ -42,8 +44,11 @@ import org.springframework.context.annotation.ComponentScan;
         "org.limbo.flowjob.tracker.infrastructure.job",
         "org.limbo.flowjob.tracker.infrastructure.worker",
 })
+@EnableConfigurationProperties({TrackerProperties.class})
 public class JobTrackerConfiguration {
 
+    @Autowired
+    private TrackerProperties trackerProperties;
 
     /**
      * JobTracker
@@ -51,7 +56,18 @@ public class JobTrackerConfiguration {
     @Bean
     @ConditionalOnMissingBean(LeaderJobTracker.class)
     public LeaderJobTracker jobTracker(WorkerRepository workerRepository) {
-        return new LeaderJobTracker(workerRepository);
+        String[] clusretStrings = trackerProperties.getCluster().trim().split(",");
+        // todo 根据 name 获取信息
+        String[] nameUrl = clusretStrings[0].trim().split("=");
+        String[] protocolUrl = nameUrl[1].split("://");
+        String protocol = protocolUrl[0];
+        String[] hostport = protocolUrl[1].split(":");
+        String hostname = hostport[0];
+        int port = 80;
+        if (hostport.length > 1) {
+            port = Integer.parseInt(hostport[1]);
+        }
+        return new LeaderJobTracker(hostname, port, workerRepository);
     }
 
     /**

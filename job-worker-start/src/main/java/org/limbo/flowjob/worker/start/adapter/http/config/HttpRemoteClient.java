@@ -24,6 +24,7 @@ import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
 import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFeedbackDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
+import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterResult;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.infrastructure.AbstractRemoteClient;
 import org.limbo.utils.JacksonUtils;
@@ -67,11 +68,11 @@ public class HttpRemoteClient extends AbstractRemoteClient {
 
         OkHttpClient client = (new OkHttpClient.Builder()).build();
         Call call = client.newCall(request);
-        callAndHandlerResult(call);
+        callAndHandlerResult(call, null);
     }
 
     @Override
-    public void register(WorkerRegisterOptionDto dto) {
+    public WorkerRegisterResult register(WorkerRegisterOptionDto dto) {
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(dto));
 
         Request request = new Request.Builder()
@@ -82,7 +83,9 @@ public class HttpRemoteClient extends AbstractRemoteClient {
 
         OkHttpClient client = (new OkHttpClient.Builder()).build();
         Call call = client.newCall(request);
-        callAndHandlerResult(call);
+        ResponseDto<WorkerRegisterResult> responseDto = callAndHandlerResult(call, new TypeReference<ResponseDto<WorkerRegisterResult>>() {
+        });
+        return responseDto.getData();
     }
 
     @Override
@@ -96,7 +99,7 @@ public class HttpRemoteClient extends AbstractRemoteClient {
                 .build();
 
         Call call = client.newCall(request);
-        callAndHandlerResult(call);
+        callAndHandlerResult(call, null);
     }
 
     @Override
@@ -105,7 +108,7 @@ public class HttpRemoteClient extends AbstractRemoteClient {
     }
 
     // todo
-    private <T> ResponseDto<T> callAndHandlerResult(Call call) {
+    private <T> ResponseDto<T> callAndHandlerResult(Call call, TypeReference<ResponseDto<T>> reference) {
         try {
             Response response = call.execute();
             if (!response.isSuccessful()) {
@@ -114,8 +117,13 @@ public class HttpRemoteClient extends AbstractRemoteClient {
             if (response.body() == null) {
                 return null;
             }
-            ResponseDto<T> responseDto = JacksonUtils.parseObject(response.body().string(), new TypeReference<ResponseDto<T>>() {
-            });
+            ResponseDto<T> responseDto;
+            if (reference != null) {
+                responseDto = JacksonUtils.parseObject(response.body().string(), reference);
+            } else {
+                responseDto = JacksonUtils.parseObject(response.body().string(), ResponseDto.class);
+            }
+
             if (HttpStatus.SC_OK != responseDto.getCode()) {
 
             }

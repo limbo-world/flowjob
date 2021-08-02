@@ -21,7 +21,9 @@ import org.limbo.flowjob.tracker.commons.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFeedbackDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
+import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterResult;
 import org.limbo.flowjob.worker.core.domain.Worker;
+import org.limbo.utils.JacksonUtils;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -60,10 +62,12 @@ public abstract class AbstractRemoteClient {
         }
         // 建立连接
         clientStart(host, port);
-        // 注册 todo 注册失败
+        // 注册
         WorkerRegisterOptionDto registerDto = worker.register();
         registerDto.setProtocol(getProtocol());
-        register(registerDto);
+        WorkerRegisterResult registerResult = register(registerDto);
+        // todo 注册失败
+        log.info(JacksonUtils.toJSONString(registerResult));
 
         log.info("register success !");
 
@@ -95,7 +99,7 @@ public abstract class AbstractRemoteClient {
     /**
      * 注册当前的worker
      */
-    public abstract void register(WorkerRegisterOptionDto dto);
+    public abstract WorkerRegisterResult register(WorkerRegisterOptionDto dto);
 
     /**
      * 任务执行完成 将结果反馈给tracker

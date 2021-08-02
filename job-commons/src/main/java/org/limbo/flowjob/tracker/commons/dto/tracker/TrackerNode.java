@@ -43,16 +43,10 @@ public class TrackerNode {
     @Schema(description = "tracker节点服务端口")
     private Integer port;
 
-    /**
-     * 是否是主节点
-     */
-    @Schema(description = "是否是主节点")
-    private Boolean isLeader;
-
-    /**
-     * 此主节点对应的从节点列表。仅在{@link #isLeader} == true时从节点列表存在
-     */
-    @Schema(description = "此主节点对应的从节点列表，仅在isLeader==true时从节点列表存在")
-    private List<TrackerNode> followers;
+//    /**
+//     * 是否是主节点
+//     */
+//    @Schema(description = "是否是主节点")
+//    private Boolean isLeader;
 
 }

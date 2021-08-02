@@ -43,4 +43,14 @@ public abstract class RemoteJobTracker implements JobTracker {
         throw new UnsupportedOperationException("Remote job tracker lifecycle is not supported yet.");
     }
 
+    @Override
+    public String getHostname() {
+        return null;
+    }
+
+    @Override
+    public int getPort() {
+        return 0;
+    }
+
 }

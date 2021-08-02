@@ -188,7 +188,7 @@ public class JobInstance {
     public void acceptContext(Worker worker) throws JobDispatchException {
 
         assertContextStatus(JobScheduleStatus.Scheduling);
-        assertWorkerId(worker.getWorkerId());
+//        assertWorkerId(worker.getWorkerId());
 
         // 更新状态
         setState(JobScheduleStatus.EXECUTING);
@@ -209,7 +209,7 @@ public class JobInstance {
     public void refuseContext(Worker worker) throws JobDispatchException {
 
         assertContextStatus(JobScheduleStatus.Scheduling);
-        assertWorkerId(worker.getWorkerId());
+//        assertWorkerId(worker.getWorkerId());
 
         // 更新状态
 //        setState(JobScheduleStatus.REFUSED);

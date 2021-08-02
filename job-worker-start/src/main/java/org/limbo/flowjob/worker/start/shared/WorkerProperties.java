@@ -26,7 +26,7 @@ import java.util.List;
  * @since 2021/7/24
  */
 @Data
-@ConfigurationProperties(prefix = "worker")
+@ConfigurationProperties(prefix = "flowjob.worker")
 public class WorkerProperties {
     /**
      * 节点名称

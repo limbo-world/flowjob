@@ -16,11 +16,12 @@
 
 package org.limbo.flowjob.tracker.core.tracker.worker;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
+import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
 import org.limbo.flowjob.tracker.commons.dto.job.JobInstanceDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
@@ -36,7 +37,6 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
 
 import java.time.LocalDateTime;
-import java.util.function.Consumer;
 
 /**
  * @author Brozen
@@ -76,18 +76,21 @@ public class HttpWorker extends Worker {
      *
      * @param response    http响应
      * @param byteBufFlux http body数据
-     * @param type        反序列化的bean的类类型
+     * @param reference   反序列化的bean的类类型
      * @param <T>         反序列化的bean的类型
      * @return 一个Mono，异步处理
      */
-    protected <T> Mono<T> responseReceiver(HttpClientResponse response, ByteBufFlux byteBufFlux, Class<T> type) {
+    protected <T> Mono<T> responseReceiver(HttpClientResponse response, ByteBufFlux byteBufFlux, TypeReference<ResponseDto<T>> reference) {
         if (!HttpResponseStatus.OK.equals(response.status())) {
             throw new WorkerException(getWorkerId(), "Worker服务访问失败！");
         }
 
         return byteBufFlux.aggregate()
                 .asString()
-                .map(json -> JacksonUtils.parseObject(json, type));
+                .map(json -> {
+                    System.out.println("worker return " + json);
+                    return JacksonUtils.parseObject(json, reference).getData();
+                });
     }
 
     /**
@@ -99,11 +102,12 @@ public class HttpWorker extends Worker {
     public Mono<WorkerMetric> ping() {
         return Mono.from(client.get()
                 .uri(workerUri("/ping"))
-                .response((resp, flux) -> responseReceiver(resp, flux, WorkerMetric.class)))
+                .response((resp, flux) -> responseReceiver(resp, flux, new TypeReference<ResponseDto<WorkerMetric>>() {
+                }))
                 .doOnNext(metric -> {
                     // 请求成功时，更新worker
                     getMetricRepository().updateMetric(metric);
-                });
+                }));
     }
 
     /**
@@ -122,9 +126,10 @@ public class HttpWorker extends Worker {
                 .uri(workerUri(BASE_URL + "/job"))
                 .send(Mono.just(Unpooled.copiedBuffer(JacksonUtils.toJSONString(dto), CharsetUtil.UTF_8)))
                 // 获取请求响应并解析
-                .response((resp, flux) -> responseReceiver(resp, flux, JobReceiveResult.class)))
+                .response((resp, flux) -> responseReceiver(resp, flux, new TypeReference<ResponseDto<JobReceiveResult>>() {
+                })))
                 .doOnNext(result -> {
-                    // 如果worker接受作业，则更新下发时间
+                    // 如果worker接受作业，则更新下发时间 todo
                     if (result.getAccepted()) {
                         // FIXME 此处是transaction script写法了，要不要改成update全部数据？
                         getStatisticsRepository().updateWorkerDispatchTimes(getWorkerId(), LocalDateTime.now());

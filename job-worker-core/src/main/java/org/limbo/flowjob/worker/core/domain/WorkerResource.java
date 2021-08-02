@@ -55,6 +55,7 @@ public class WorkerResource {
     public static WorkerResource create(int queueSize) throws Exception {
         WorkerResource resource = new WorkerResource();
         resource.queueSize = queueSize;
+        resource.availableQueueSize = queueSize;
         resource.osmxb = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
         SystemInfo systemInfo = new SystemInfo();
         resource.processor = systemInfo.getHardware().getProcessor();
@@ -119,6 +120,10 @@ public class WorkerResource {
     }
 
     public void resize(int queueSize) {
+        if (this.queueSize == queueSize) {
+            return;
+        }
+        this.availableQueueSize = this.availableQueueSize + (queueSize - this.queueSize);
         this.queueSize = queueSize;
     }
 }

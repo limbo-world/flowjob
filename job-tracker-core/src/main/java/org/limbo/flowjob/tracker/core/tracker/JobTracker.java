@@ -22,10 +22,25 @@ import static org.limbo.flowjob.tracker.core.tracker.LeaderJobTracker.*;
 /**
  * 作业分发节点抽象。
  *
+ * tracker节点
+ *
+ *
  * @author Brozen
  * @since 2021-05-16
  */
 public interface JobTracker extends WorkerManager {
+
+    /**
+     * 返回节点 hostname
+     * @return hostname
+     */
+    String getHostname();
+
+    /**
+     * 返回节点 port
+     * @return port
+     */
+    int getPort();
 
     /**
      * 启动JobTracker

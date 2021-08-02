@@ -43,11 +43,27 @@ public abstract class LocalJobTracker extends ReactorJobTrackerLifecycle impleme
     /**
      * 用户管理worker，实现WorkerManager的相关功能
      */
-    private WorkerRepository workerRepository;
+    private final WorkerRepository workerRepository;
 
-    public LocalJobTracker(WorkerRepository workerRepository) {
+    private final String hostname;
+
+    private final int port;
+
+    public LocalJobTracker(String hostname, int port, WorkerRepository workerRepository) {
+        this.hostname = hostname;
+        this.port = port;
         this.workerRepository = workerRepository;
         this.state = new AtomicReference<>(LeaderJobTracker.JobTrackerState.INIT);
+    }
+
+    @Override
+    public String getHostname() {
+        return hostname;
+    }
+
+    @Override
+    public int getPort() {
+        return port;
     }
 
     /**
@@ -65,7 +81,7 @@ public abstract class LocalJobTracker extends ReactorJobTrackerLifecycle impleme
         }
 
         // 生成DisposableJobTracker，触发BEFORE_START事件
-        LeaderJobTracker.DisposableJobTrackerBind disposable = new LeaderJobTracker.DisposableJobTrackerBind();
+        DisposableJobTrackerBind disposable = new DisposableJobTrackerBind();
         triggerBeforeStart(disposable);
 
         // 启动过程中被中断

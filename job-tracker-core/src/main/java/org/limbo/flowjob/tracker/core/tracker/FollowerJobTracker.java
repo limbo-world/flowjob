@@ -31,8 +31,8 @@ public class FollowerJobTracker extends LocalJobTracker {
      */
     protected RemoteJobTracker leader;
 
-    public FollowerJobTracker(WorkerRepository workerRepository) {
-        super(workerRepository);
+    public FollowerJobTracker(String hostname, int port, WorkerRepository workerRepository) {
+        super(hostname, port, workerRepository);
     }
 
     @Override

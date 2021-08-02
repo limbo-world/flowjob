@@ -109,6 +109,7 @@ public class ResponseDto<T> {
          */
         public Builder<T> ok(T data) {
             this.code = HttpStatus.SC_OK;
+            this.data = data;
             return this;
         }
 
