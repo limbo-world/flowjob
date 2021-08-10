@@ -76,6 +76,7 @@
         <swagger>2.1.7</swagger>
         <project.reactor>2020.0.7</project.reactor>
         <netty>4.1.59.Final</netty>
+        <okhttp>3.14.9</okhttp>
         <rsocket>1.1.0</rsocket>
         <mybatis.plus>3.3.2</mybatis.plus>
         <mybatis.spring>2.0.4</mybatis.spring>
@@ -202,6 +203,13 @@
                 <groupId>com.alipay.sofa</groupId>
                 <artifactId>jraft-core</artifactId>
                 <version>${jraft}</version>
+            </dependency>
+
+            <!-- okhttp -->
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>${okhttp}</version>
             </dependency>
 
             <!-- SpringDoc接口文档 & SwaggerV3 -->

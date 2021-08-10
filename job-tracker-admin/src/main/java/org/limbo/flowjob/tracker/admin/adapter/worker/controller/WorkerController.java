@@ -45,7 +45,6 @@ public class WorkerController {
     @Autowired
     private WorkerRegisterService registerService;
 
-
     /**
      * worker注册
      */

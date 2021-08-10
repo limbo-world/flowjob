@@ -24,6 +24,7 @@ import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerExecutorRegisterDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterResult;
+import org.limbo.flowjob.tracker.core.tracker.TrackerNode;
 import org.limbo.flowjob.tracker.core.tracker.worker.HttpWorker;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
@@ -64,6 +65,9 @@ public class WorkerRegisterService {
 
     @Autowired
     private WorkerStatisticsRepository statisticsRepository;
+
+    @Autowired
+    private TrackerNode trackerNode;
 
 
     /**

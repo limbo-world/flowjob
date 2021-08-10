@@ -7,7 +7,7 @@ import org.limbo.flowjob.tracker.core.dispatcher.strategies.JobDispatcherFactory
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
 import org.limbo.flowjob.tracker.core.storage.JobInstanceStorage;
-import org.limbo.flowjob.tracker.core.tracker.JobTracker;
+import org.limbo.flowjob.tracker.core.tracker.WorkerManager;
 
 /**
  * @author Devil
@@ -16,14 +16,15 @@ import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 @Slf4j
 public class JobDispatchLauncher {
 
-    private final JobTracker tracker;
+    private final WorkerManager workerManager;
     private final JobInstanceStorage jobInstanceStorage;
     private final JobInstanceRepository jobInstanceRepository;
     private final JobDispatcherFactory jobDispatcherFactory;
 
 
-    public JobDispatchLauncher(JobTracker tracker, JobInstanceStorage jobInstanceStorage, JobInstanceRepository jobInstanceRepository) {
-        this.tracker = tracker;
+    public JobDispatchLauncher(WorkerManager workerManager, JobInstanceStorage jobInstanceStorage,
+                               JobInstanceRepository jobInstanceRepository) {
+        this.workerManager = workerManager;
         this.jobInstanceStorage = jobInstanceStorage;
         this.jobInstanceRepository = jobInstanceRepository;
         this.jobDispatcherFactory = new JobDispatcherFactory();
@@ -59,7 +60,7 @@ public class JobDispatchLauncher {
                     });
 
                     // 下发任务
-                    jobDispatcher.dispatch(jobInstance, tracker.availableWorkers(), JobInstance::startupContext);
+                    jobDispatcher.dispatch(jobInstance, workerManager.availableWorkers(), JobInstance::startupContext);
 
                 }
             } catch (Exception e) {

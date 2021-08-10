@@ -14,32 +14,33 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.tracker;
+package org.limbo.flowjob.tracker.commons.dto.tracker;
 
-import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
-import java.util.LinkedList;
 import java.util.List;
 
 /**
- * 主从模式下，主节点JobTracker
- * TODO
+ * tracker节点描述
  *
  * @author Brozen
- * @since 2021-06-01
+ * @since 2021-06-16
  */
-@Slf4j
-public class LeaderJobTracker extends LocalJobTracker {
+@Data
+@Schema(title = "tracker节点描述")
+public class TrackerNodeDto {
 
     /**
-     * 当前节点是主节点时，此属性代表从节点tracker列表
+     * tracker节点IP地址
      */
-    protected List<RemoteJobTracker> followers;
+    @Schema(description = "tracker节点IP地址")
+    private String ip;
 
-    public LeaderJobTracker(String hostname, int port, WorkerRepository workerRepository) {
-        super(hostname, port, workerRepository);
-        this.followers = new LinkedList<>();
-    }
+    /**
+     * tracker节点服务端口
+     */
+    @Schema(description = "tracker节点服务端口")
+    private Integer port;
 
 }

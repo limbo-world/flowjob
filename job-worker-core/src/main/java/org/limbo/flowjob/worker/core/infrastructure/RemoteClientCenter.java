@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.worker.core.infrastructure;
 
-import org.limbo.flowjob.tracker.commons.dto.tracker.TrackerNode;
+import org.limbo.flowjob.tracker.commons.dto.tracker.TrackerNodeDto;
 
 import java.util.List;
 
@@ -31,7 +31,7 @@ public class RemoteClientCenter {
     /**
      * 所有的tracker
      */
-    private List<TrackerNode> trackers;
+    private List<TrackerNodeDto> trackers;
 
     public void register(String host, int port, int heartbeatPeriod) {
 

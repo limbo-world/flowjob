@@ -28,7 +28,7 @@ public class ElectionNodeOptions {
     // ip:port
     private String serverAddress;
     // ip:port,ip:port,ip:port
-    private String initialServerAddressList;
+    private String serverAddressList;
     // raft node options
     private NodeOptions nodeOptions;
 
@@ -56,12 +56,12 @@ public class ElectionNodeOptions {
         this.serverAddress = serverAddress;
     }
 
-    public String getInitialServerAddressList() {
-        return initialServerAddressList;
+    public String getServerAddressList() {
+        return serverAddressList;
     }
 
-    public void setInitialServerAddressList(String initialServerAddressList) {
-        this.initialServerAddressList = initialServerAddressList;
+    public void setServerAddressList(String serverAddressList) {
+        this.serverAddressList = serverAddressList;
     }
 
     public NodeOptions getNodeOptions() {
@@ -75,7 +75,7 @@ public class ElectionNodeOptions {
     @Override
     public String toString() {
         return "ElectionNodeOptions{" + "dataPath='" + dataPath + '\'' + ", groupId='" + groupId + '\''
-                + ", serverAddress='" + serverAddress + '\'' + ", initialServerAddressList='" + initialServerAddressList
+                + ", serverAddress='" + serverAddress + '\'' + ", initialServerAddressList='" + serverAddressList
                 + '\'' + ", nodeOptions=" + nodeOptions + '}';
     }
 }

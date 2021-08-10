@@ -11,6 +11,7 @@
         </Console>
     </Appenders>
     <Loggers>
+        <logger name="com.alipay.sofa.jraft.core" level="INFO" />
         <logger name="org.apache.commons" level="INFO" />
         <logger name="org.apache.http" level="INFO" />
         <logger name="org.springframework" level="INFO" />

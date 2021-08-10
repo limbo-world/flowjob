@@ -16,20 +16,26 @@
 
 package org.limbo.flowjob.tracker.admin.adapter.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.core.dispatcher.JobDispatchLauncher;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
 import org.limbo.flowjob.tracker.core.plan.PlanBuilderFactory;
 import org.limbo.flowjob.tracker.core.plan.PlanExecutor;
 import org.limbo.flowjob.tracker.core.plan.PlanInstanceRepository;
+import org.limbo.flowjob.tracker.core.raft.ElectionNodeOptions;
 import org.limbo.flowjob.tracker.core.schedule.calculator.ScheduleCalculatorFactory;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.HashedWheelTimerScheduler;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.Scheduler;
 import org.limbo.flowjob.tracker.core.storage.JobInstanceStorage;
 import org.limbo.flowjob.tracker.core.storage.MemoryJobInstanceStorage;
-import org.limbo.flowjob.tracker.core.tracker.JobTracker;
-import org.limbo.flowjob.tracker.core.tracker.LeaderJobTracker;
+import org.limbo.flowjob.tracker.core.tracker.TrackerNode;
+import org.limbo.flowjob.tracker.core.tracker.WorkerManager;
+import org.limbo.flowjob.tracker.core.tracker.WorkerManagerImpl;
+import org.limbo.flowjob.tracker.core.tracker.election.ElectionJobTrackerFactory;
+import org.limbo.flowjob.tracker.core.tracker.election.ElectionTrackerNode;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -47,27 +53,40 @@ import org.springframework.context.annotation.ComponentScan;
 @EnableConfigurationProperties({TrackerProperties.class})
 public class JobTrackerConfiguration {
 
+    @Value("server.port")
+    private int port;
+
     @Autowired
     private TrackerProperties trackerProperties;
 
-    /**
-     * JobTracker
-     */
+    // todo 优化
     @Bean
-    @ConditionalOnMissingBean(LeaderJobTracker.class)
-    public LeaderJobTracker jobTracker(WorkerRepository workerRepository) {
-        String[] clusretStrings = trackerProperties.getCluster().trim().split(",");
-        // todo 根据 name 获取信息
-        String[] nameUrl = clusretStrings[0].trim().split("=");
-        String[] protocolUrl = nameUrl[1].split("://");
-        String protocol = protocolUrl[0];
-        String[] hostport = protocolUrl[1].split(":");
-        String hostname = hostport[0];
-        int port = 80;
-        if (hostport.length > 1) {
-            port = Integer.parseInt(hostport[1]);
-        }
-        return new LeaderJobTracker(hostname, port, workerRepository);
+    @ConditionalOnMissingBean(TrackerNode.class)
+    public ElectionTrackerNode trackerNode(JobInstanceStorage jobInstanceStorage, WorkerRepository workerRepository, JobInstanceRepository jobInstanceRepository) {
+        // raft 选举参数
+        ElectionNodeOptions electionNodeOptions = new ElectionNodeOptions();
+        electionNodeOptions.setDataPath(trackerProperties.getDataPath());
+        electionNodeOptions.setGroupId(StringUtils.isBlank(trackerProperties.getGroupId()) ? "flowjob" :
+                trackerProperties.getDataPath());
+        electionNodeOptions.setServerAddress(trackerProperties.getServerAddress());
+        electionNodeOptions.setServerAddressList(trackerProperties.getServerAddressList());
+
+        // worker 管理
+        WorkerManager workerManager = new WorkerManagerImpl(workerRepository);
+
+        // 调度器
+        Scheduler scheduler = new HashedWheelTimerScheduler();
+
+        // job
+        JobDispatchLauncher jobDispatchLauncher = new JobDispatchLauncher(workerManager, jobInstanceStorage, jobInstanceRepository);
+        jobDispatchLauncher.start();
+
+        ElectionTrackerNode electionTrackerNode = new ElectionTrackerNode(port, electionNodeOptions,
+                new ElectionJobTrackerFactory(jobInstanceStorage, scheduler, jobDispatchLauncher),
+                workerManager);
+        electionTrackerNode.start();
+
+        return electionTrackerNode;
     }
 
     /**
@@ -77,26 +96,6 @@ public class JobTrackerConfiguration {
     @ConditionalOnMissingBean(JobInstanceStorage.class)
     public JobInstanceStorage jobStorage() {
         return new MemoryJobInstanceStorage();
-    }
-
-    /**
-     * JobTracker
-     */
-    @Bean
-    @ConditionalOnMissingBean(JobDispatchLauncher.class)
-    public JobDispatchLauncher jobDispatchLauncher(JobTracker jobTracker, JobInstanceStorage jobInstanceStorage, JobInstanceRepository jobInstanceRepository) {
-        JobDispatchLauncher jobDispatchLauncher = new JobDispatchLauncher(jobTracker, jobInstanceStorage, jobInstanceRepository);
-        jobDispatchLauncher.start();
-        return jobDispatchLauncher;
-    }
-
-    /**
-     * 调度器
-     */
-    @Bean
-    @ConditionalOnMissingBean(Scheduler.class)
-    public Scheduler scheduler() {
-        return new HashedWheelTimerScheduler();
     }
 
     /**

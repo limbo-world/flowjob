@@ -14,39 +14,22 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.commons.dto.tracker;
+package org.limbo.flowjob.tracker.core.tracker.bak;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-
-import java.util.List;
+import org.limbo.flowjob.tracker.core.tracker.JobTracker;
+import reactor.core.Disposable;
 
 /**
- * tracker节点描述
+ * 持有JobTracker的上下文信息，并提供用于关闭JobTracker的非阻塞API。
  *
  * @author Brozen
- * @since 2021-06-16
+ * @since 2021-05-17
  */
-@Data
-@Schema(title = "tracker节点描述")
-public class TrackerNode {
+public interface DisposableJobTracker extends Disposable {
 
     /**
-     * tracker节点IP地址
+     * 底层JobTracker
      */
-    @Schema(description = "tracker节点IP地址")
-    private String ip;
-
-    /**
-     * tracker节点服务端口
-     */
-    @Schema(description = "tracker节点服务端口")
-    private Integer port;
-
-//    /**
-//     * 是否是主节点
-//     */
-//    @Schema(description = "是否是主节点")
-//    private Boolean isLeader;
+    JobTracker jobTracker();
 
 }

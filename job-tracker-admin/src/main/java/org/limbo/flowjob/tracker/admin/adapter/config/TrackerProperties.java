@@ -12,12 +12,23 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class TrackerProperties {
 
     /**
-     * tracker 名称 集群中唯一
+     * raft数据存放路径
      */
-    private String name;
+    private String dataPath;
 
-    /**
-     * 集群信息 name=http://host:port,name=http://host:port
-     */
-    private String cluster;
+    private String groupId;
+
+    private String serverAddress;
+
+    private String serverAddressList;
+
+//    /**
+//     * tracker 名称 集群中唯一
+//     */
+//    private String name;
+//
+//    /**
+//     * 集群信息 name=http://host:port,name=http://host:port
+//     */
+//    private String cluster;
 }

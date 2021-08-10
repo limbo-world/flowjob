@@ -18,7 +18,7 @@ package org.limbo.flowjob.tracker.commons.dto.worker;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.limbo.flowjob.tracker.commons.dto.tracker.TrackerNode;
+import org.limbo.flowjob.tracker.commons.dto.tracker.TrackerNodeDto;
 
 import java.util.List;
 
@@ -36,6 +36,6 @@ public class WorkerRegisterResult {
     private String workerId;
 
     @Schema(description = "tracker节点列表，主从模式下，列表中仅包括一个主节点")
-    private List<TrackerNode> trackers;
+    private List<TrackerNodeDto> trackers;
 
 }

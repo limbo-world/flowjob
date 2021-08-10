@@ -15,9 +15,9 @@
  */
 
 import org.junit.Test;
-import org.limbo.flowjob.tracker.core.tracker.DisposableJobTracker;
-import org.limbo.flowjob.tracker.core.tracker.JobTracker;
-import org.limbo.flowjob.tracker.core.tracker.ReactorJobTrackerLifecycle;
+import org.limbo.flowjob.tracker.core.tracker.bak.ReactorJobTrackerLifecycle;
+
+import java.util.Scanner;
 
 /**
  * @author Brozen
@@ -45,7 +45,7 @@ public class JobTrackerTest {
 //            }
 //        });
         lifecycle.beforeStart().subscribe(t -> System.out.println("2" + t));
-
+        new Scanner(System.in).next();
     }
 
 }

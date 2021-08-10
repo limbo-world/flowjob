@@ -10,12 +10,11 @@ import org.limbo.flowjob.tracker.commons.dto.plan.ScheduleOptionDto;
 import org.limbo.flowjob.tracker.core.job.DispatchOption;
 import org.limbo.flowjob.tracker.core.job.ExecutorOption;
 import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
 import org.limbo.flowjob.tracker.core.plan.Plan;
 import org.limbo.flowjob.tracker.core.plan.PlanBuilderFactory;
 import org.limbo.flowjob.tracker.core.plan.PlanRepository;
 import org.limbo.flowjob.tracker.core.plan.ScheduleOption;
-import org.limbo.flowjob.tracker.core.schedule.scheduler.Scheduler;
+import org.limbo.flowjob.tracker.core.tracker.TrackerNode;
 import org.limbo.flowjob.tracker.dao.po.PlanPO;
 import org.limbo.flowjob.tracker.infrastructure.plan.repositories.PlanPoRepository;
 import org.limbo.utils.verifies.Verifies;
@@ -39,10 +38,7 @@ public class PlanService {
     private PlanPoRepository planPoRepository;
 
     @Autowired
-    private Scheduler scheduler;
-
-    @Autowired
-    private JobInstanceRepository jobInstanceRepository;
+    private TrackerNode trackerNode;
 
     @Autowired
     private PlanBuilderFactory planBuilderFactory;
@@ -67,9 +63,9 @@ public class PlanService {
         plan.setVersion(newVersion);
 
         // 需要修改plan重新调度
-        if (scheduler.isScheduling(planId)) {
-            scheduler.unschedule(planId);
-            scheduler.schedule(plan);
+        if (trackerNode.jobTracker().isScheduling(planId)) {
+            trackerNode.jobTracker().unschedule(planId);
+            trackerNode.jobTracker().schedule(plan);
         }
     }
 
@@ -97,9 +93,9 @@ public class PlanService {
         currentPlan.setVersion(newVersion);
 
         // 需要修改plan重新调度
-        if (scheduler.isScheduling(planId)) {
-            scheduler.unschedule(planId);
-            scheduler.schedule(currentPlan);
+        if (trackerNode.jobTracker().isScheduling(planId)) {
+            trackerNode.jobTracker().unschedule(planId);
+            trackerNode.jobTracker().schedule(currentPlan);
         }
     }
 
@@ -117,7 +113,7 @@ public class PlanService {
         planPoRepository.switchEnable(planId, true);
 
         // 调度 plan
-        scheduler.schedule(planRepository.getPlan(planId, planPO.getCurrentVersion()));
+        trackerNode.jobTracker().schedule(planRepository.getPlan(planId, planPO.getCurrentVersion()));
     }
 
     /**
@@ -134,7 +130,7 @@ public class PlanService {
         planPoRepository.switchEnable(planId, false);
 
         // 停止调度 plan
-        scheduler.unschedule(planId);
+        trackerNode.jobTracker().unschedule(planId);
     }
 
 

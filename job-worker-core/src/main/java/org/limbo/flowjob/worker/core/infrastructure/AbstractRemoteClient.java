@@ -86,6 +86,11 @@ public abstract class AbstractRemoteClient {
         started = true;
     }
 
+    // todo 失败重试
+    protected void request() {
+
+    }
+
     /**
      * 与tracker建立连接
      */

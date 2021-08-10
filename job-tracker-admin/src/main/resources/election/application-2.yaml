@@ -1,12 +1,9 @@
+# --spring.config.location=classpath:election/application-2.yaml
 server:
-  port: 8081
-
-# JasyptUtils
-jasypt:
-  encryptor:
-    password: 7777777
-
+  port: 8082
 spring:
+  application:
+    name: job-tracker-admin
   # DB
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
@@ -17,11 +14,14 @@ spring:
 #    url: jdbc:mysql://127.0.0.1:3306/flow_job?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
 #    username: root
 #    password: root
-
+# DAO层基于MyBatisPlus
+mybatis-plus:
+  mapper-locations: classpath*:mybatis/mapper/*.xml
 flowjob:
   tracker:
-    dataPath: /data/flowjob1
-    serverAddress: 127.0.0.1:8081
-    serverAddressList: leader=http://127.0.0.1:8081
+    dataPath: /data/flowjob2
+    serverAddress: 127.0.0.1:8072
+    serverAddressList: 127.0.0.1:8071,127.0.0.1:8072,127.0.0.1:8073
+
 
 

@@ -16,27 +16,19 @@
 
 package org.limbo.flowjob.tracker.core.tracker;
 
-import lombok.experimental.Delegate;
+import reactor.core.Disposable;
 
 /**
+ * 持有JobTracker的上下文信息，并提供用于关闭JobTracker的非阻塞API。
+ *
  * @author Brozen
- * @since 2021-06-16
+ * @since 2021-05-17
  */
-public class DelegatedJobTracker implements JobTracker {
-
-    @Delegate
-    private JobTracker tracker;
-
-    public DelegatedJobTracker(JobTracker tracker) {
-        this.tracker = tracker;
-    }
+public interface DisposableTrackerNode extends Disposable {
 
     /**
-     * 重设被代理的JobTracker
-     * @param tracker 实际被调用的tracker
+     * 底层JobTracker
      */
-    public void setDelegatedTracker(JobTracker tracker) {
-        this.tracker = tracker;
-    }
+    TrackerNode node();
 
 }

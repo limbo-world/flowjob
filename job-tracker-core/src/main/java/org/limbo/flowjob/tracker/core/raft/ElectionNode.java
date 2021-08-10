@@ -1,17 +1,18 @@
 /*
- * Copyright 2020-2024 Limbo Team (https://github.com/limbo-world).
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *   	http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.limbo.flowjob.tracker.core.raft;
 
@@ -22,8 +23,10 @@ import com.alipay.sofa.jraft.conf.Configuration;
 import com.alipay.sofa.jraft.entity.PeerId;
 import com.alipay.sofa.jraft.option.NodeOptions;
 import com.alipay.sofa.jraft.rpc.RaftRpcServerFactory;
+import com.alipay.sofa.jraft.rpc.RpcProcessor;
 import com.alipay.sofa.jraft.rpc.RpcServer;
 import com.alipay.sofa.jraft.util.internal.ThrowUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,12 +44,21 @@ public class ElectionNode implements Lifecycle<ElectionNodeOptions> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ElectionNode.class);
 
-    private final List<LeaderStateListener> listeners = new CopyOnWriteArrayList<>();
+    /**
+     * rpc远程调用处理器
+     */
+    private List<RpcProcessor<?>> processors;
+
+    private final List<StateListener> listeners = new CopyOnWriteArrayList<>();
     private RaftGroupService raftGroupService;
     private Node node;
-    private ElectionOnlyStateMachine fsm;
+    private ElectionStateMachine fsm;
 
     private boolean started;
+
+    public ElectionNode(List<RpcProcessor<?>> processors) {
+        this.processors = processors;
+    }
 
     @Override
     public boolean init(final ElectionNodeOptions opts) {
@@ -59,11 +71,11 @@ public class ElectionNode implements Lifecycle<ElectionNodeOptions> {
         if (nodeOpts == null) {
             nodeOpts = new NodeOptions();
         }
-        this.fsm = new ElectionOnlyStateMachine(this.listeners);
+        this.fsm = new ElectionStateMachine(this.listeners);
         nodeOpts.setFsm(this.fsm);
         final Configuration initialConf = new Configuration();
-        if (!initialConf.parse(opts.getInitialServerAddressList())) {
-            throw new IllegalArgumentException("Fail to parse initConf: " + opts.getInitialServerAddressList());
+        if (!initialConf.parse(opts.getServerAddressList())) {
+            throw new IllegalArgumentException("Fail to parse initConf: " + opts.getServerAddressList());
         }
         // Set the initial cluster configuration
         nodeOpts.setInitialConf(initialConf);
@@ -87,6 +99,14 @@ public class ElectionNode implements Lifecycle<ElectionNodeOptions> {
             throw new IllegalArgumentException("Fail to parse serverId: " + opts.getServerAddress());
         }
         final RpcServer rpcServer = RaftRpcServerFactory.createRaftRpcServer(serverId.getEndpoint());
+
+        // register prc processor
+        if (CollectionUtils.isNotEmpty(processors)) {
+            for (RpcProcessor<?> processor : processors) {
+                rpcServer.registerProcessor(processor);
+            }
+        }
+
         this.raftGroupService = new RaftGroupService(groupId, serverId, nodeOpts, rpcServer);
         this.node = this.raftGroupService.start();
         if (this.node != null) {
@@ -116,7 +136,7 @@ public class ElectionNode implements Lifecycle<ElectionNodeOptions> {
         return node;
     }
 
-    public ElectionOnlyStateMachine getFsm() {
+    public ElectionStateMachine getFsm() {
         return fsm;
     }
 
@@ -128,7 +148,7 @@ public class ElectionNode implements Lifecycle<ElectionNodeOptions> {
         return this.fsm.isLeader();
     }
 
-    public void addLeaderStateListener(final LeaderStateListener listener) {
+    public void addStateListener(final StateListener listener) {
         this.listeners.add(listener);
     }
 }
