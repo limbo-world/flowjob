@@ -69,7 +69,6 @@ public class WorkerRegisterService {
     @Autowired
     private TrackerNode trackerNode;
 
-
     /**
      * worker注册
      * @param options 注册参数
@@ -106,7 +105,7 @@ public class WorkerRegisterService {
         // 返回tracker
         WorkerRegisterResult registerResult = new WorkerRegisterResult();
         registerResult.setWorkerId(worker.getWorkerId());
-        registerResult.setTrackers(null);// TODO
+        registerResult.setTrackers(trackerNode.getNodes());
         return Mono.just(registerResult);
     }
 

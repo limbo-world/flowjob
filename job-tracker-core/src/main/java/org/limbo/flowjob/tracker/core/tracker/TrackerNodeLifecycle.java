@@ -16,7 +16,6 @@
 
 package org.limbo.flowjob.tracker.core.tracker;
 
-import org.limbo.flowjob.tracker.core.tracker.bak.DisposableJobTracker;
 import reactor.core.publisher.Mono;
 
 /**
@@ -29,15 +28,15 @@ public interface TrackerNodeLifecycle {
 
     /**
      * 启动前。
-     * @return start之前触发的Mono，可通过{@link DisposableJobTracker}阻止启动
+     * @return start之前触发的Mono，可通过{@link DisposableTrackerNode}阻止启动
      */
-    Mono<DisposableJobTracker> beforeStart();
+    Mono<DisposableTrackerNode> beforeStart();
 
     /**
      * 启动成功后。
-     * @return start之后触发的Mono，可通过{@link DisposableJobTracker}关闭JobTracker
+     * @return start之后触发的Mono，可通过{@link DisposableTrackerNode}关闭JobTracker
      */
-    Mono<DisposableJobTracker> afterStart();
+    Mono<DisposableTrackerNode> afterStart();
 
     /**
      * 停止前。

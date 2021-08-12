@@ -27,8 +27,8 @@ import java.util.regex.Pattern;
  */
 public class NetUtils {
 
-    public static final String LOCALHOST = "127.0.0.1";
-    public static final String ANYHOST = "0.0.0.0";
+    public static final String LOCAL_HOST = "127.0.0.1";
+    public static final String ANY_HOST = "0.0.0.0";
 
     private static final Pattern IP_PATTERN = Pattern.compile("\\d{1,3}(\\.\\d{1,3}){3,5}$");
 
@@ -36,7 +36,7 @@ public class NetUtils {
 
     public static String getLocalIp() {
         InetAddress address = getLocalAddress();
-        return address == null ? LOCALHOST : address.getHostAddress();
+        return address == null ? LOCAL_HOST : address.getHostAddress();
     }
 
     /**
@@ -99,8 +99,8 @@ public class NetUtils {
             return false;
         String name = address.getHostAddress();
         return (name != null
-                && !ANYHOST.equals(name)
-                && !LOCALHOST.equals(name)
+                && !ANY_HOST.equals(name)
+                && !LOCAL_HOST.equals(name)
                 && IP_PATTERN.matcher(name).matches());
     }
 

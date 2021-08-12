@@ -13,7 +13,7 @@ import java.util.List;
  * @author Devil
  * @since 2021/8/4
  */
-public interface TrackerNode extends WorkerManager {
+public interface TrackerNode {
 
     /**
      * 启动JobTracker
@@ -38,7 +38,11 @@ public interface TrackerNode extends WorkerManager {
 
     JobTracker jobTracker();
 
-    List<TrackerNodeDto> getTrackerNodes();
+    /**
+     * 返回可用节点
+     * @return
+     */
+    List<TrackerNodeDto> getNodes();
     /**
      * 获取此JobTracker的生命周期监听注册器。
      * @return 生命周期监听注册器

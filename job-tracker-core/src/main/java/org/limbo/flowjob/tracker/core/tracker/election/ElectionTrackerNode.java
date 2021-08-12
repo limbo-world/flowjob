@@ -1,12 +1,9 @@
 package org.limbo.flowjob.tracker.core.tracker.election;
 
 import com.alipay.sofa.jraft.entity.PeerId;
-import com.alipay.sofa.jraft.rpc.RaftRpcServerFactory;
-import com.alipay.sofa.jraft.rpc.RpcContext;
-import com.alipay.sofa.jraft.rpc.RpcProcessor;
-import com.alipay.sofa.jraft.rpc.RpcServer;
 import com.alipay.sofa.jraft.rpc.impl.BoltRaftRpcFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
 import org.limbo.flowjob.tracker.commons.dto.tracker.TrackerNodeDto;
 import org.limbo.flowjob.tracker.commons.utils.NetUtils;
 import org.limbo.flowjob.tracker.core.raft.ElectionNode;
@@ -14,10 +11,11 @@ import org.limbo.flowjob.tracker.core.raft.ElectionNodeOptions;
 import org.limbo.flowjob.tracker.core.raft.StateListener;
 import org.limbo.flowjob.tracker.core.tracker.*;
 import org.limbo.flowjob.tracker.core.tracker.election.rpc.RpcCaller;
-import org.limbo.flowjob.tracker.core.tracker.election.rpc.ScheduleRequest;
-import org.limbo.flowjob.tracker.core.tracker.election.rpc.TrackerNodeRegisterRequest;
-import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
-import reactor.core.publisher.Mono;
+import org.limbo.flowjob.tracker.core.tracker.election.rpc.processor.IsSchedulingProcessor;
+import org.limbo.flowjob.tracker.core.tracker.election.rpc.processor.NodeInfoProcessor;
+import org.limbo.flowjob.tracker.core.tracker.election.rpc.processor.ScheduleProcessor;
+import org.limbo.flowjob.tracker.core.tracker.election.rpc.processor.UnscheduleProcessor;
+import org.limbo.flowjob.tracker.core.tracker.election.rpc.request.NodeInfoRequest;
 
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
@@ -40,9 +38,12 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
      */
     private final AtomicReference<NodeState> state;
 
+    /**
+     * 管理 worker
+     */
     private WorkerManager workerManager;
 
-    private ElectionJobTrackerFactory electionJobTrackerFactory;
+    private JobTrackerFactory jobTrackerFactory;
 
     /**
      * 当前的 jobTracker
@@ -62,11 +63,9 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
      */
     private RpcCaller rpcCaller;
 
-    private List<TrackerNodeDto> trackerNodes;
-
-    public ElectionTrackerNode(int port, ElectionNodeOptions electionOpts, ElectionJobTrackerFactory electionJobTrackerFactory,
+    public ElectionTrackerNode(int port, ElectionNodeOptions electionOpts, JobTrackerFactory jobTrackerFactory,
                                WorkerManager workerManager) {
-        this.electionJobTrackerFactory = electionJobTrackerFactory;
+        this.jobTrackerFactory = jobTrackerFactory;
         this.workerManager = workerManager;
         this.state = new AtomicReference<>(NodeState.INIT);
         this.electionOpts = electionOpts;
@@ -90,7 +89,7 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
         }
 
         // 生成DisposableJobTracker，触发BEFORE_START事件
-        DisposableTrackerNodeBind disposable = new DisposableTrackerNodeBind();
+        DisposableTrackerNodeBind disposable = new DisposableTrackerNodeBind(this);
         triggerBeforeStart(disposable);
 
         // 启动过程中被中断
@@ -101,40 +100,34 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
         // 选举
         election(disposable);
 
-        // 设置状态，成功则触发AFTER_START事件
-//        if (!state.compareAndSet(NodeState.STARTING, NodeState.STARTED)) {
-//            log.warn("Set JobTracker state to STARTED failed, maybe stop() is called in a async thread?");
-//        } else {
-//            triggerAfterStart(disposable);
-//        }
-
         return disposable;
     }
 
     /**
      * 选举
      */
-    private void election(DisposableTrackerNodeBind disposable) {
-        List<RpcProcessor<?>> processors = new ArrayList<>();
-        // todo
-        processors.add(new RpcProcessor<ScheduleRequest>() {
-            @Override
-            public void handleRequest(RpcContext rpcCtx, ScheduleRequest request) {
+    private void election(DisposableTrackerNode disposable) {
+        electionNode = new ElectionNode();
+        registerProcessors(electionNode);
+        electionNode.addStateListener(stateListener(disposable));
+        electionNode.init(electionOpts);
+    }
 
-            }
+    private void registerProcessors(ElectionNode electionNode) {
+        // 调度请求
+        electionNode.addProcessor(new ScheduleProcessor(this));
+        electionNode.addProcessor(new UnscheduleProcessor(this));
+        electionNode.addProcessor(new IsSchedulingProcessor(this));
+        // 节点信息
+        electionNode.addProcessor(new NodeInfoProcessor(this));
+    }
 
-            @Override
-            public String interest() {
-                return ScheduleRequest.class.getName();
-            }
-        });
-
-        electionNode = new ElectionNode(processors);
-        electionNode.addStateListener(new StateListener() {
+    private StateListener stateListener(DisposableTrackerNode disposable) {
+        return new StateListener() {
             @Override
             public void onLeaderStart(long newTerm) {
                 log.info("start Leader " + electionNode.getNode().getLeaderId());
-                jobTracker = electionJobTrackerFactory.leader();
+                jobTracker = jobTrackerFactory.leader();
 
                 // 选举结束触发事件，提供服务
                 if (state.compareAndSet(NodeState.STARTING, NodeState.STARTED)) {
@@ -152,14 +145,7 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
             @Override
             public void onStartFollowing(PeerId newLeaderId, long newTerm) {
                 log.info(electionNode.getNode().getNodeId() + " start following leader " + newLeaderId);
-                jobTracker = electionJobTrackerFactory.follower(newLeaderId.getEndpoint(), rpcCaller);
-
-                // todo 通过rpc像leader上报自己的节点信息
-                TrackerNodeRegisterRequest request = new TrackerNodeRegisterRequest();
-                request.setIp(NetUtils.getLocalIp());
-                request.setPort(port);
-
-                rpcCaller.invokeSync(newLeaderId.getEndpoint(), request);
+                jobTracker = jobTrackerFactory.follower(newLeaderId.getEndpoint(), rpcCaller);
 
                 // 选举结束触发事件，提供服务
                 if (state.compareAndSet(NodeState.STARTING, NodeState.STARTED)) {
@@ -172,8 +158,7 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
             public void onStopFollowing(PeerId oldLeaderId, long oldTerm) {
                 log.info(electionNode.getNode().getNodeId() + " stop following leader " + oldLeaderId);
             }
-        });
-        electionNode.init(electionOpts);
+        };
     }
 
     /**
@@ -235,9 +220,34 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
         return jobTracker;
     }
 
+    public int getPort() {
+        return port;
+    }
+
     @Override
-    public List<TrackerNodeDto> getTrackerNodes() {
-        return trackerNodes;
+    public List<TrackerNodeDto> getNodes() {
+        // 向各个从节点发送指令 获取所有节点信息
+        List<TrackerNodeDto> nodes = new ArrayList<>();
+
+        // 自己的信息
+        TrackerNodeDto self = new TrackerNodeDto();
+        self.setHostname(NetUtils.getLocalIp());
+        self.setPort(port);
+        nodes.add(self);
+
+        // todo 1. 返回状态处理 2. 缓存 ？？？ 3. 不用发请求给自己了
+        for (PeerId peerId : electionNode.getNode().listAlivePeers()) {
+            ResponseDto<TrackerNodeDto> response = rpcCaller.invokeSync(peerId.getEndpoint(), new NodeInfoRequest());
+            if (response.getCode() == 200 ) {
+                nodes.add(response.getData());
+            }
+        }
+
+        return nodes;
+    }
+
+    public ElectionNode getElectionNode() {
+        return electionNode;
     }
 
     /**
@@ -250,93 +260,4 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @param worker worker节点
-     * @return
-     */
-    @Override
-    public Mono<Worker> registerWorker(Worker worker) {
-        return workerManager.registerWorker(worker);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @return
-     */
-    @Override
-    public List<Worker> availableWorkers() {
-        return workerManager.availableWorkers();
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param workerId worker id。
-     * @return
-     */
-    @Override
-    public Mono<Worker> unregisterWorker(String workerId) {
-        return workerManager.unregisterWorker(workerId);
-    }
-
-    /**
-     * 节点状态
-     */
-    enum NodeState {
-
-        INIT,
-
-        STARTING,
-
-        STARTED,
-
-        STOPPING,
-
-        TERMINATED
-
-    }
-
-
-    /**
-     * {@inheritDoc}
-     * 用于关闭JobTracker的实现。
-     */
-    class DisposableTrackerNodeBind implements DisposableTrackerNode {
-
-        /**
-         * {@inheritDoc}
-         *
-         * @return
-         */
-        @Override
-        public TrackerNode node() {
-            return ElectionTrackerNode.this;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void dispose() {
-            ElectionTrackerNode node = ElectionTrackerNode.this;
-            if (node.isStopped()) {
-                return;
-            }
-
-            node.stop();
-        }
-
-        /**
-         * {@inheritDoc}
-         *
-         * @return
-         */
-        @Override
-        public boolean isDisposed() {
-            return ElectionTrackerNode.this.isStopped();
-        }
-    }
 }

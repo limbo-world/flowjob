@@ -28,11 +28,12 @@ import org.limbo.flowjob.tracker.core.schedule.scheduler.HashedWheelTimerSchedul
 import org.limbo.flowjob.tracker.core.schedule.scheduler.Scheduler;
 import org.limbo.flowjob.tracker.core.storage.JobInstanceStorage;
 import org.limbo.flowjob.tracker.core.storage.MemoryJobInstanceStorage;
+import org.limbo.flowjob.tracker.core.tracker.JobTrackerFactory;
 import org.limbo.flowjob.tracker.core.tracker.TrackerNode;
 import org.limbo.flowjob.tracker.core.tracker.WorkerManager;
 import org.limbo.flowjob.tracker.core.tracker.WorkerManagerImpl;
-import org.limbo.flowjob.tracker.core.tracker.election.ElectionJobTrackerFactory;
 import org.limbo.flowjob.tracker.core.tracker.election.ElectionTrackerNode;
+import org.limbo.flowjob.tracker.core.tracker.single.SingleTrackerNode;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,25 +52,19 @@ import org.springframework.context.annotation.ComponentScan;
         "org.limbo.flowjob.tracker.infrastructure.worker",
 })
 @EnableConfigurationProperties({TrackerProperties.class})
-public class JobTrackerConfiguration {
+public class TrackerConfiguration {
 
-    @Value("server.port")
+    @Value("${server.port}")
     private int port;
 
     @Autowired
     private TrackerProperties trackerProperties;
 
-    // todo 优化
     @Bean
     @ConditionalOnMissingBean(TrackerNode.class)
-    public ElectionTrackerNode trackerNode(JobInstanceStorage jobInstanceStorage, WorkerRepository workerRepository, JobInstanceRepository jobInstanceRepository) {
-        // raft 选举参数
-        ElectionNodeOptions electionNodeOptions = new ElectionNodeOptions();
-        electionNodeOptions.setDataPath(trackerProperties.getDataPath());
-        electionNodeOptions.setGroupId(StringUtils.isBlank(trackerProperties.getGroupId()) ? "flowjob" :
-                trackerProperties.getDataPath());
-        electionNodeOptions.setServerAddress(trackerProperties.getServerAddress());
-        electionNodeOptions.setServerAddressList(trackerProperties.getServerAddressList());
+    public TrackerNode trackerNode(JobInstanceStorage jobInstanceStorage, WorkerRepository workerRepository, JobInstanceRepository jobInstanceRepository) {
+
+        TrackerNode trackerNode = null;
 
         // worker 管理
         WorkerManager workerManager = new WorkerManagerImpl(workerRepository);
@@ -79,14 +74,36 @@ public class JobTrackerConfiguration {
 
         // job
         JobDispatchLauncher jobDispatchLauncher = new JobDispatchLauncher(workerManager, jobInstanceStorage, jobInstanceRepository);
+
+        if (StringUtils.isBlank(trackerProperties.getMode())) {
+            // 单机
+            trackerNode = new SingleTrackerNode(trackerProperties.getHostname(), port,
+                    new JobTrackerFactory(jobInstanceStorage, scheduler, jobDispatchLauncher),
+                    workerManager);
+        } else if ("election".equals(trackerProperties.getMode())) {
+
+            // raft 选举参数
+            ElectionNodeOptions electionNodeOptions = new ElectionNodeOptions();
+            electionNodeOptions.setDataPath(trackerProperties.getDataPath());
+            electionNodeOptions.setGroupId(StringUtils.isBlank(trackerProperties.getGroupId()) ? "flowjob" :
+                    trackerProperties.getDataPath());
+            electionNodeOptions.setServerAddress(trackerProperties.getServerAddress());
+            electionNodeOptions.setServerAddressList(trackerProperties.getServerAddressList());
+
+            trackerNode = new ElectionTrackerNode(port, electionNodeOptions,
+                    new JobTrackerFactory(jobInstanceStorage, scheduler, jobDispatchLauncher),
+                    workerManager);
+        } else if ("cluster".equals(trackerProperties.getMode())) {
+            // todo 集群
+        } else {
+            throw new IllegalArgumentException("flowjob.tracker.mode only can be null or election/cluster");
+        }
+
+        // 启动
         jobDispatchLauncher.start();
+        trackerNode.start();
 
-        ElectionTrackerNode electionTrackerNode = new ElectionTrackerNode(port, electionNodeOptions,
-                new ElectionJobTrackerFactory(jobInstanceStorage, scheduler, jobDispatchLauncher),
-                workerManager);
-        electionTrackerNode.start();
-
-        return electionTrackerNode;
+        return trackerNode;
     }
 
     /**

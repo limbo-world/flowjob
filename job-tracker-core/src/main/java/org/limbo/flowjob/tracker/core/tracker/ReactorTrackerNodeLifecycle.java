@@ -16,7 +16,6 @@
 
 package org.limbo.flowjob.tracker.core.tracker;
 
-import org.limbo.flowjob.tracker.core.tracker.bak.DisposableJobTracker;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
@@ -80,10 +79,10 @@ public class ReactorTrackerNodeLifecycle implements TrackerNodeLifecycle {
      * @return
      */
     @Override
-    public Mono<DisposableJobTracker> beforeStart() {
+    public Mono<DisposableTrackerNode> beforeStart() {
         return Mono.from(eventSink.asFlux()
                 .filter(e -> e.type == TrackerNodeLifecycleEventType.BEFORE_START)
-                .map(e -> ((DisposableJobTracker) e.source)));
+                .map(e -> ((DisposableTrackerNode) e.source)));
     }
 
     /**
@@ -91,10 +90,10 @@ public class ReactorTrackerNodeLifecycle implements TrackerNodeLifecycle {
      * @return
      */
     @Override
-    public Mono<DisposableJobTracker> afterStart() {
+    public Mono<DisposableTrackerNode> afterStart() {
         return Mono.from(eventSink.asFlux()
                 .filter(e -> e.type == TrackerNodeLifecycleEventType.AFTER_START)
-                .map(e -> ((DisposableJobTracker) e.source)));
+                .map(e -> ((DisposableTrackerNode) e.source)));
     }
 
     /**

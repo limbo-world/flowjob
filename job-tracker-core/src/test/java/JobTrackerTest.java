@@ -15,7 +15,10 @@
  */
 
 import org.junit.Test;
-import org.limbo.flowjob.tracker.core.tracker.bak.ReactorJobTrackerLifecycle;
+import org.limbo.flowjob.tracker.core.tracker.DisposableTrackerNode;
+import org.limbo.flowjob.tracker.core.tracker.ReactorTrackerNodeLifecycle;
+import org.limbo.flowjob.tracker.core.tracker.TrackerNode;
+import org.limbo.flowjob.tracker.core.tracker.single.SingleTrackerNode;
 
 import java.util.Scanner;
 
@@ -30,22 +33,47 @@ public class JobTrackerTest {
      */
     @Test
     public void testJobTrackerLifecycle() {
-        ReactorJobTrackerLifecycle lifecycle = new ReactorJobTrackerLifecycle();
-        lifecycle.beforeStart().subscribe(t -> System.out.println("1" + t), System.err::println, () -> System.out.println("OK"));
+        SingleTrackerNode lifecycle = new SingleTrackerNode(100, null, null);
 
-//        lifecycle.triggerBeforeStart(new DisposableJobTracker() {
-//            @Override
-//            public JobTracker jobTracker() {
-//                return null;
-//            }
-//
-//            @Override
-//            public void dispose() {
-//
-//            }
-//        });
-        lifecycle.beforeStart().subscribe(t -> System.out.println("2" + t));
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                lifecycle.beforeStart().subscribe(t -> {
+                    System.out.println(Thread.currentThread().getName());
+                    System.out.println("1" + t);
+                }, System.err::println, () -> System.out.println("OK"));
+
+                System.out.println(Thread.currentThread().getName() + " subscribe");
+                sleep(10000);
+            }
+        }, "Thread-1").start();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                lifecycle.beforeStart().subscribe(t -> {
+                    System.out.println(Thread.currentThread().getName());
+                    System.out.println("2" + t);
+                });
+
+                System.out.println(Thread.currentThread().getName() + " subscribe");
+                sleep(10000);
+            }
+        }, "Thread-2").start();
+
+        // sleep 为了 在订阅后 再发布信息
+        sleep(1000);
+        lifecycle.start();
+
         new Scanner(System.in).next();
+    }
+
+    public void sleep(long time) {
+        try {
+            Thread.sleep(time);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
 }

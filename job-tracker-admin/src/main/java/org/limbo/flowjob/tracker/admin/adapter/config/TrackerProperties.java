@@ -12,6 +12,16 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class TrackerProperties {
 
     /**
+     * tracker 启动模式 默认为 单机 可选 election cluster
+     */
+    private String mode;
+
+    /**
+     * 主机名 配置可用于给 worker 连接
+     */
+    private String hostname;
+
+    /**
      * raft数据存放路径
      */
     private String dataPath;
@@ -22,13 +32,4 @@ public class TrackerProperties {
 
     private String serverAddressList;
 
-//    /**
-//     * tracker 名称 集群中唯一
-//     */
-//    private String name;
-//
-//    /**
-//     * 集群信息 name=http://host:port,name=http://host:port
-//     */
-//    private String cluster;
 }

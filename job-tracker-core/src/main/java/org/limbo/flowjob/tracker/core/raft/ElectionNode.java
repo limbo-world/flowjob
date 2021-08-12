@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -47,7 +48,7 @@ public class ElectionNode implements Lifecycle<ElectionNodeOptions> {
     /**
      * rpc远程调用处理器
      */
-    private List<RpcProcessor<?>> processors;
+    private final List<RpcProcessor<?>> processors = new ArrayList<>();
 
     private final List<StateListener> listeners = new CopyOnWriteArrayList<>();
     private RaftGroupService raftGroupService;
@@ -55,10 +56,6 @@ public class ElectionNode implements Lifecycle<ElectionNodeOptions> {
     private ElectionStateMachine fsm;
 
     private boolean started;
-
-    public ElectionNode(List<RpcProcessor<?>> processors) {
-        this.processors = processors;
-    }
 
     @Override
     public boolean init(final ElectionNodeOptions opts) {
@@ -150,5 +147,9 @@ public class ElectionNode implements Lifecycle<ElectionNodeOptions> {
 
     public void addStateListener(final StateListener listener) {
         this.listeners.add(listener);
+    }
+
+    public void addProcessor(RpcProcessor<?> processor) {
+        this.processors.add(processor);
     }
 }

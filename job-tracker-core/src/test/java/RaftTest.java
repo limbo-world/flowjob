@@ -40,7 +40,7 @@ public class RaftTest {
 
     @Test
     public void testSingle() {
-        bootstrapNormal("/data/server1", groupId, "127.0.0.1:8081", "127.0.0.1:8081");
+        bootstrapNormal("/data/server6", groupId, "127.0.0.1:8081", "127.0.0.1:8081");
         // wait
         new Scanner(System.in).next();
     }

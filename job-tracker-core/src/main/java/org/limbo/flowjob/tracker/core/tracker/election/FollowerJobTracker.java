@@ -1,14 +1,16 @@
 package org.limbo.flowjob.tracker.core.tracker.election;
 
 import com.alipay.sofa.jraft.util.Endpoint;
+import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 import org.limbo.flowjob.tracker.core.tracker.election.rpc.RpcCaller;
-import org.limbo.flowjob.tracker.core.tracker.election.rpc.ScheduleRequest;
-import org.limbo.flowjob.tracker.core.tracker.election.rpc.ScheduleRequestType;
+import org.limbo.flowjob.tracker.core.tracker.election.rpc.request.IsSchedulingRequest;
+import org.limbo.flowjob.tracker.core.tracker.election.rpc.request.ScheduleRequest;
+import org.limbo.flowjob.tracker.core.tracker.election.rpc.request.UnscheduleRequest;
 
 /**
- * 远程调用 leader
+ * 转发请求 远程调用 leader
  *
  * @author Devil
  * @since 2021/8/9
@@ -27,27 +29,24 @@ public class FollowerJobTracker implements JobTracker {
     @Override
     public void schedule(Schedulable schedulable) {
         ScheduleRequest request = new ScheduleRequest();
-        request.setType(ScheduleRequestType.SCHEDULE);
         request.setSchedulable(schedulable);
 
-        rpcCaller.invokeSync(endpoint, request);
+        ResponseDto<Void> response = rpcCaller.invokeSync(endpoint, request);
     }
 
     @Override
     public void unschedule(String id) {
-        ScheduleRequest request = new ScheduleRequest();
-        request.setType(ScheduleRequestType.UNSCHEDULE);
+        UnscheduleRequest request = new UnscheduleRequest();
         request.setId(id);
 
-        rpcCaller.invokeSync(endpoint, request);
+        ResponseDto<Void> response = rpcCaller.invokeSync(endpoint, request);
     }
 
     @Override
     public boolean isScheduling(String id) {
-        ScheduleRequest request = new ScheduleRequest();
-        request.setType(ScheduleRequestType.IS_SCHEDULING);
+        IsSchedulingRequest request = new IsSchedulingRequest();
         request.setId(id);
-
-        return (boolean) rpcCaller.invokeSync(endpoint, request);
+        ResponseDto<Boolean> response = rpcCaller.invokeSync(endpoint, request);
+        return response.getData();
     }
 }
