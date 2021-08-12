@@ -15,8 +15,8 @@ import java.util.List;
  */
 public class SingleTrackerNode extends AbstractTrackerNode {
 
-    public SingleTrackerNode(String hostname, int port, JobTrackerFactory jobTrackerFactory, WorkerManager workerManager) {
-        super(hostname, port, jobTrackerFactory, workerManager);
+    public SingleTrackerNode(String host, int port, JobTrackerFactory jobTrackerFactory, WorkerManager workerManager) {
+        super(host, port, jobTrackerFactory, workerManager);
     }
 
     @Override

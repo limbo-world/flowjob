@@ -220,6 +220,10 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
         return jobTracker;
     }
 
+    public String getHost() {
+        return null;
+    }
+
     public int getPort() {
         return port;
     }
@@ -231,7 +235,7 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
 
         // 自己的信息
         TrackerNodeDto self = new TrackerNodeDto();
-        self.setHostname(NetUtils.getLocalIp());
+        self.setHost(NetUtils.getLocalIp());
         self.setPort(port);
         nodes.add(self);
 

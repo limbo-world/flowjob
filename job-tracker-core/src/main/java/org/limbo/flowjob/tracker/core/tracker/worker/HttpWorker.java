@@ -59,16 +59,16 @@ public class HttpWorker extends Worker {
     }
 
     /**
-     * 格式化URI，返回 http://{ip}:{port}/{path} 的格式，path如果以 / 开头，开头的 / 会被忽略。
+     * 格式化URI，返回 http://{host}:{port}/{path} 的格式，path如果以 / 开头，开头的 / 会被忽略。
      *
-     * @return http://{ip}:{port}/{path}
+     * @return http://{host}:{port}/{path}
      */
     protected String workerUri(String path) {
         if (!path.startsWith("/")) {
             path = "/" + path;
         }
 
-        return String.format("http://%s:%s%s", getIp(), getPort(), path);
+        return String.format("http://%s:%s%s", getHost(), getPort(), path);
     }
 
     /**

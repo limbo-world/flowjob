@@ -60,7 +60,7 @@ public class WorkerPoConverter extends Converter<Worker, WorkerPO> {
         WorkerPO po = new WorkerPO();
         po.setWorkerId(_do.getWorkerId());
         po.setProtocol(_do.getProtocol().protocol);
-        po.setIp(_do.getIp());
+        po.setHost(_do.getHost());
         po.setPort(_do.getPort());
         po.setStatus(_do.getStatus().status);
         po.setDeleted(false);
@@ -98,7 +98,7 @@ public class WorkerPoConverter extends Converter<Worker, WorkerPO> {
         HttpWorker worker = new HttpWorker(httpClient, workerRepository, metricRepository, workerStatisticsRepository);
         worker.setWorkerId(po.getWorkerId());
         worker.setProtocol(WorkerProtocol.parse(po.getProtocol()));
-        worker.setIp(po.getIp());
+        worker.setHost(po.getHost());
         worker.setPort(po.getPort());
         worker.setStatus(WorkerStatus.parse(po.getStatus()));
         return worker;

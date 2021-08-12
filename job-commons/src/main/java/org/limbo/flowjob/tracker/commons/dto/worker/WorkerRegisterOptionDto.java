@@ -54,9 +54,9 @@ public class WorkerRegisterOptionDto implements Serializable {
     /**
      * worker服务的通信IP
      */
-    @NotBlank(message = "worker ip can't be blank")
-    @Schema(description = "worker服务的通信IP")
-    private String ip;
+    @NotBlank(message = "worker host can't be blank")
+    @Schema(description = "worker服务的通信主机名")
+    private String host;
 
     /**
      * worker服务的通信端口

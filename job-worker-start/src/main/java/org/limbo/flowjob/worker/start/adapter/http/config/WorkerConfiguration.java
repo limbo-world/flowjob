@@ -16,10 +16,7 @@
 
 package org.limbo.flowjob.worker.start.adapter.http.config;
 
-import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.tracker.commons.utils.NetUtils;
 import org.limbo.flowjob.worker.core.domain.Worker;
-import org.limbo.flowjob.worker.core.infrastructure.AbstractRemoteClient;
 import org.limbo.flowjob.worker.core.infrastructure.JobExecutor;
 import org.limbo.flowjob.worker.core.infrastructure.ShellJobExecutor;
 import org.limbo.flowjob.worker.start.application.CountExecutor;
@@ -46,15 +43,10 @@ public class WorkerConfiguration {
         List<JobExecutor> executors = new ArrayList<>();
         executors.add(new ShellJobExecutor());
         executors.add(new CountExecutor());
-        return new Worker(StringUtils.isBlank(workerProperties.getLocalHost()) ? NetUtils.getLocalIp() : workerProperties.getLocalHost(),
-                workerProperties.getLocalPort(), workerProperties.getQueueSize(), executors);
-    }
-
-    @Bean
-    public AbstractRemoteClient remoteClient(Worker worker) {
-        AbstractRemoteClient client = new HttpRemoteClient(worker);
-        client.start(workerProperties.getServerHost(), workerProperties.getServerPort(), 5000);
-        return client;
+        Worker worker = new Worker(workerProperties.getLocalHost(), workerProperties.getLocalPort(),
+                workerProperties.getQueueSize(), executors, new HttpRemoteClient());
+        worker.start(workerProperties.getServerHost(), workerProperties.getServerPort(), 5000);
+        return worker;
     }
 
 }

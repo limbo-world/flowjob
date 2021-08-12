@@ -33,7 +33,6 @@ import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerExecutor;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatisticsRepository;
-import org.limbo.utils.JacksonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,7 +87,7 @@ public class WorkerRegisterService {
 
         } else {
 
-            worker.setIp(options.getIp());
+            worker.setHost(options.getHost());
             worker.setPort(options.getPort());
             worker.setProtocol(options.getProtocol());
             worker.setStatus(WorkerStatus.RUNNING);
@@ -126,7 +125,7 @@ public class WorkerRegisterService {
         }
 
         worker.setWorkerId(options.getId());
-        worker.setIp(options.getIp());
+        worker.setHost(options.getHost());
         worker.setPort(options.getPort());
         worker.setProtocol(protocol);
         worker.setStatus(WorkerStatus.RUNNING);

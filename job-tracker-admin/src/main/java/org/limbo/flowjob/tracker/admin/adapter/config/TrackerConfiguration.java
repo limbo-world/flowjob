@@ -77,7 +77,7 @@ public class TrackerConfiguration {
 
         if (StringUtils.isBlank(trackerProperties.getMode())) {
             // 单机
-            trackerNode = new SingleTrackerNode(trackerProperties.getHostname(), port,
+            trackerNode = new SingleTrackerNode(trackerProperties.getHost(), port,
                     new JobTrackerFactory(jobInstanceStorage, scheduler, jobDispatchLauncher),
                     workerManager);
         } else if ("election".equals(trackerProperties.getMode())) {

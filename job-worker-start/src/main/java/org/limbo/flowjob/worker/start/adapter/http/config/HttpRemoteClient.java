@@ -25,7 +25,6 @@ import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFeedbackDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterResult;
-import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.infrastructure.AbstractRemoteClient;
 import org.limbo.utils.JacksonUtils;
 import org.limbo.utils.web.HttpStatus;
@@ -43,12 +42,8 @@ public class HttpRemoteClient extends AbstractRemoteClient {
 
     private String baseUrl;
 
-    public HttpRemoteClient(Worker worker) {
-        super(worker);
-    }
-
     @Override
-    public void clientStart(String host, int port) {
+    public void start(String host, int port) {
         baseUrl = "http://" + host;
         if (port > 0) {
             baseUrl = baseUrl + ":" + port;
@@ -57,7 +52,7 @@ public class HttpRemoteClient extends AbstractRemoteClient {
     }
 
     @Override
-    public void heartbeat(WorkerHeartbeatOptionDto dto) {
+    public ResponseDto<Void> heartbeat(WorkerHeartbeatOptionDto dto) {
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(dto));
 
         Request request = new Request.Builder()
@@ -68,11 +63,11 @@ public class HttpRemoteClient extends AbstractRemoteClient {
 
         OkHttpClient client = (new OkHttpClient.Builder()).build();
         Call call = client.newCall(request);
-        callAndHandlerResult(call, null);
+        return callAndHandlerResult(call, null);
     }
 
     @Override
-    public WorkerRegisterResult register(WorkerRegisterOptionDto dto) {
+    public ResponseDto<WorkerRegisterResult> register(WorkerRegisterOptionDto dto) {
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(dto));
 
         Request request = new Request.Builder()
@@ -83,9 +78,8 @@ public class HttpRemoteClient extends AbstractRemoteClient {
 
         OkHttpClient client = (new OkHttpClient.Builder()).build();
         Call call = client.newCall(request);
-        ResponseDto<WorkerRegisterResult> responseDto = callAndHandlerResult(call, new TypeReference<ResponseDto<WorkerRegisterResult>>() {
+        return callAndHandlerResult(call, new TypeReference<ResponseDto<WorkerRegisterResult>>() {
         });
-        return responseDto.getData();
     }
 
     @Override

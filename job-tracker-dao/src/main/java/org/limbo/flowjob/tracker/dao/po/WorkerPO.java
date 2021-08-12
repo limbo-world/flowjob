@@ -47,9 +47,9 @@ public class WorkerPO extends PO {
     private Byte protocol;
 
     /**
-     * worker服务的通信IP
+     * worker服务的通信 host
      */
-    private String ip;
+    private String host;
 
     /**
      * worker服务的通信端口

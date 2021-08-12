@@ -16,9 +16,9 @@ import java.util.concurrent.atomic.AtomicReference;
 public abstract class AbstractTrackerNode extends ReactorTrackerNodeLifecycle implements TrackerNode {
 
     /**
-     * 提供给worker的服务的hostname
+     * 提供给worker的服务的 host
      */
-    protected String hostname;
+    protected String host;
 
     /**
      * 提供给worker的服务port
@@ -41,10 +41,10 @@ public abstract class AbstractTrackerNode extends ReactorTrackerNodeLifecycle im
      */
     protected JobTracker jobTracker;
 
-    public AbstractTrackerNode(String hostname, int port, JobTrackerFactory jobTrackerFactory, WorkerManager workerManager) {
-        this.hostname = hostname;
-        if (StringUtils.isBlank(this.hostname)) {
-            this.hostname = NetUtils.getLocalIp();
+    public AbstractTrackerNode(String host, int port, JobTrackerFactory jobTrackerFactory, WorkerManager workerManager) {
+        this.host = host;
+        if (StringUtils.isBlank(this.host)) {
+            this.host = NetUtils.getLocalIp();
         }
         this.port = port;
         this.jobTrackerFactory = jobTrackerFactory;
@@ -150,7 +150,7 @@ public abstract class AbstractTrackerNode extends ReactorTrackerNodeLifecycle im
     protected TrackerNodeDto getNodeInfo() {
         // 自己的信息
         TrackerNodeDto self = new TrackerNodeDto();
-        self.setHostname(hostname);
+        self.setHost(host);
         self.setPort(port);
         return self;
     }

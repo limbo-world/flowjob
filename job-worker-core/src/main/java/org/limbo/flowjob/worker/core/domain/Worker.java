@@ -16,20 +16,20 @@
 
 package org.limbo.flowjob.worker.core.domain;
 
-import org.limbo.flowjob.tracker.commons.dto.worker.WorkerExecutorRegisterDto;
-import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
-import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
-import org.limbo.flowjob.tracker.commons.dto.worker.WorkerResourceDto;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
+import org.limbo.flowjob.tracker.commons.dto.worker.*;
+import org.limbo.flowjob.tracker.commons.utils.NetUtils;
 import org.limbo.flowjob.worker.core.infrastructure.AbstractRemoteClient;
 import org.limbo.flowjob.worker.core.infrastructure.JobExecutor;
 import org.limbo.flowjob.worker.core.infrastructure.JobExecutorRunner;
 import org.limbo.flowjob.worker.core.infrastructure.JobManager;
+import org.limbo.utils.JacksonUtils;
 import org.limbo.utils.UUIDUtils;
 import org.limbo.utils.verifies.Verifies;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -38,13 +38,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Devil
  * @since 2021/7/24
  */
+@Slf4j
 public class Worker {
     /**
      * id
      */
     private String id;
 
-    private String ip;
+    private String host;
 
     private int port;
     /**
@@ -59,16 +60,26 @@ public class Worker {
      * job 管理中心
      */
     private final JobManager jobManager;
+    /**
+     * 远程调用
+     */
+    private AbstractRemoteClient remoteClient;
+    /**
+     * 是否已经启动
+     */
+    private volatile boolean started = false;
 
-    public Worker(String ip, int port, int queueSize, List<JobExecutor> executors) throws Exception {
+    public Worker(String host, int port, int queueSize, List<JobExecutor> executors, AbstractRemoteClient remoteClient) throws Exception {
+        Verifies.notEmpty(executors, "empty executors");
+        Verifies.notNull(remoteClient, "remote client can't be null");
+
         this.id = UUIDUtils.randomID();
-        this.ip = ip;
+        this.host = StringUtils.isBlank(host) ? NetUtils.getLocalIp() : host;
         this.port = port;
         this.resource = WorkerResource.create(queueSize);
         this.executors = new ConcurrentHashMap<>();
         this.jobManager = new JobManager();
-
-        Verifies.notEmpty(executors, "empty executors");
+        this.remoteClient = remoteClient;
 
         for (JobExecutor executor : executors) {
             Verifies.notBlank(executor.getName(), "has blank executor name");
@@ -77,9 +88,37 @@ public class Worker {
     }
 
     /**
+     * 启动
+     * @param host server地址
+     * @param port server端口
+     * @param heartbeatPeriod 心跳间隔
+     */
+    public synchronized void start(String host, int port, int heartbeatPeriod) {
+        if (started) {
+            return;
+        }
+        // 建立连接
+        remoteClient.start(host, port);
+
+        // 注册
+        register();
+
+        // 心跳
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                heartbeat();
+            }
+        }, 200, heartbeatPeriod);
+        // 启动完成
+        started = true;
+    }
+
+    /**
      * 向tracker注册
      */
-    public WorkerRegisterOptionDto register() {
+    public void register() {
+        // 注册数据
         WorkerResourceDto resourceDto = new WorkerResourceDto();
         resourceDto.setAvailableCpu(resource.getAvailableCpu());
         resourceDto.setAvailableRAM(resource.getAvailableRAM());
@@ -87,7 +126,7 @@ public class Worker {
 
         WorkerRegisterOptionDto registerOptionDto = new WorkerRegisterOptionDto();
         registerOptionDto.setId(id);
-        registerOptionDto.setIp(ip);
+        registerOptionDto.setHost(host);
         registerOptionDto.setPort(port);
         // 执行器
         List<WorkerExecutorRegisterDto> workerExecutors = new ArrayList<>();
@@ -100,13 +139,22 @@ public class Worker {
         }
         registerOptionDto.setJobExecutors(workerExecutors);
         registerOptionDto.setAvailableResource(resourceDto);
-        return registerOptionDto;
+        registerOptionDto.setProtocol(remoteClient.getProtocol());
+
+        ResponseDto<WorkerRegisterResult> register = remoteClient.register(registerOptionDto);
+        if (!register.isOk()) {
+            // todo 注册失败
+            log.error(JacksonUtils.toJSONString(register.getData()));
+        }
+
+        log.info("register success !");
     }
 
     /**
      * 发送心跳
      */
-    public WorkerHeartbeatOptionDto heartbeat() {
+    public void heartbeat() {
+        // 数据
         WorkerResourceDto resourceDto = new WorkerResourceDto();
         resourceDto.setAvailableCpu(resource.getAvailableCpu());
         resourceDto.setAvailableRAM(resource.getAvailableRAM());
@@ -115,7 +163,12 @@ public class Worker {
         WorkerHeartbeatOptionDto heartbeatOptionDto = new WorkerHeartbeatOptionDto();
         heartbeatOptionDto.setWorkerId(id);
         heartbeatOptionDto.setAvailableResource(resourceDto);
-        return heartbeatOptionDto;
+
+        ResponseDto<Void> heartbeat = remoteClient.heartbeat(heartbeatOptionDto);
+        // todo 心跳失败
+        if (log.isDebugEnabled()) {
+            log.debug("send heartbeat success");
+        }
     }
 
     /**

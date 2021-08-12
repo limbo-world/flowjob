@@ -35,7 +35,7 @@ public class TrackerNodeDto {
      * tracker节点IP地址
      */
     @Schema(description = "tracker节点主机名")
-    private String hostname;
+    private String host;
 
     /**
      * tracker节点服务端口

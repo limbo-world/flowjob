@@ -33,7 +33,7 @@ public class JobTrackerTest {
      */
     @Test
     public void testJobTrackerLifecycle() {
-        SingleTrackerNode lifecycle = new SingleTrackerNode(100, null, null);
+        SingleTrackerNode lifecycle = new SingleTrackerNode("", 100, null, null);
 
         new Thread(new Runnable() {
             @Override

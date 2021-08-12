@@ -19,7 +19,7 @@ public class TrackerProperties {
     /**
      * 主机名 配置可用于给 worker 连接
      */
-    private String hostname;
+    private String host;
 
     /**
      * raft数据存放路径

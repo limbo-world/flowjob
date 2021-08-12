@@ -18,15 +18,11 @@ package org.limbo.flowjob.worker.core.infrastructure;
 
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerProtocol;
+import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
 import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFeedbackDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterResult;
-import org.limbo.flowjob.worker.core.domain.Worker;
-import org.limbo.utils.JacksonUtils;
-
-import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * worker与tracker建立连接 并实现 心跳 和 故障转移
@@ -37,55 +33,6 @@ import java.util.TimerTask;
 @Slf4j
 public abstract class AbstractRemoteClient {
 
-    private final Worker worker;
-    /**
-     * 是否已经启动
-     */
-    private volatile boolean started = false;
-
-    public AbstractRemoteClient(Worker worker) {
-        this.worker = worker;
-    }
-
-    /**
-     * 启动与tracker的连接
-     * @param host host
-     * @param port port
-     * @param heartbeatPeriod 心跳间隔 ms
-     */
-    public void start(String host, int port, int heartbeatPeriod) {
-        // 已经启动则返回
-        synchronized (this) {
-            if (started) {
-                return;
-            }
-        }
-        // 建立连接
-        clientStart(host, port);
-        // 注册
-        WorkerRegisterOptionDto registerDto = worker.register();
-        registerDto.setProtocol(getProtocol());
-        WorkerRegisterResult registerResult = register(registerDto);
-        // todo 注册失败
-        log.info(JacksonUtils.toJSONString(registerResult));
-
-        log.info("register success !");
-
-        // 心跳
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                heartbeat(worker.heartbeat());
-                // todo 心跳失败
-                if (log.isDebugEnabled()) {
-                    log.debug("send heartbeat success");
-                }
-            }
-        }, 200, heartbeatPeriod);
-        // 启动完成
-        started = true;
-    }
-
     // todo 失败重试
     protected void request() {
 
@@ -94,17 +41,17 @@ public abstract class AbstractRemoteClient {
     /**
      * 与tracker建立连接
      */
-    public abstract void clientStart(String host, int port);
+    public abstract void start(String host, int port);
 
     /**
      * 发送心跳给tracker
      */
-    public abstract void heartbeat(WorkerHeartbeatOptionDto dto);
+    public abstract ResponseDto<Void> heartbeat(WorkerHeartbeatOptionDto dto);
 
     /**
      * 注册当前的worker
      */
-    public abstract WorkerRegisterResult register(WorkerRegisterOptionDto dto);
+    public abstract ResponseDto<WorkerRegisterResult> register(WorkerRegisterOptionDto dto);
 
     /**
      * 任务执行完成 将结果反馈给tracker

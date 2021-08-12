@@ -53,9 +53,9 @@ public abstract class Worker {
     private WorkerProtocol protocol;
 
     /**
-     * worker服务的通信IP
+     * worker服务的通信host
      */
-    private String ip;
+    private String host;
 
     /**
      * worker服务的通信端口

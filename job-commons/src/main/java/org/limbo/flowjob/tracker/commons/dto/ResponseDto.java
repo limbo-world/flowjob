@@ -75,6 +75,14 @@ public class ResponseDto<T> {
     }
 
     /**
+     * 请求是否成功
+     * @return
+     */
+    public boolean isOk() {
+        return this.code == HttpStatus.SC_OK;
+    }
+
+    /**
      * 响应类Response的Builder
      */
     public static class Builder<T> {
