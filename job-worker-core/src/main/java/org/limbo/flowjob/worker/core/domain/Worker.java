@@ -94,9 +94,11 @@ public class Worker {
      * @param heartbeatPeriod 心跳间隔
      */
     public synchronized void start(String host, int port, int heartbeatPeriod) {
+        // 重复检测
         if (started) {
             return;
         }
+
         // 建立连接
         remoteClient.start(host, port);
 
@@ -110,6 +112,7 @@ public class Worker {
                 heartbeat();
             }
         }, 200, heartbeatPeriod);
+
         // 启动完成
         started = true;
     }
@@ -147,6 +150,8 @@ public class Worker {
             log.error(JacksonUtils.toJSONString(register.getData()));
         }
 
+        // todo 注册各个节点到client
+
         log.info("register success !");
     }
 
@@ -169,6 +174,8 @@ public class Worker {
         if (log.isDebugEnabled()) {
             log.debug("send heartbeat success");
         }
+
+        // todo 注册各个节点到client
     }
 
     /**
@@ -181,7 +188,7 @@ public class Worker {
 
         JobExecutor jobExecutor = executors.get(job.getExecutorName());
 
-        JobExecutorRunner runner = new JobExecutorRunner(jobManager, jobExecutor);
+        JobExecutorRunner runner = new JobExecutorRunner(jobManager, jobExecutor, remoteClient);
 
         runner.run(job);
     }

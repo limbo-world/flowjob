@@ -33,9 +33,12 @@ public class JobExecutorRunner {
 
     private final JobExecutor executor;
 
-    public JobExecutorRunner(JobManager jobManager, JobExecutor executor) {
+    private final AbstractRemoteClient remoteClient;
+
+    public JobExecutorRunner(JobManager jobManager, JobExecutor executor, AbstractRemoteClient remoteClient) {
         this.jobManager = jobManager;
         this.executor = executor;
+        this.remoteClient = remoteClient;
     }
 
     public void run(Job job) {
@@ -56,8 +59,8 @@ public class JobExecutorRunner {
                     dto.setErrorStackTrace(ExceptionUtils.getStackTrace(e));
                     dto.setResult(JobExecuteResult.FAILED);
                 } finally {
-                    AbstractRemoteClient client = RemoteClientCenter.getClient();
-                    client.jobExecuted(dto);
+                    // 返回结果
+                    remoteClient.jobExecuted(dto);
                     // 最终都要移除任务
                     jobManager.remove(job.getId());
                 }

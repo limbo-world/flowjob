@@ -22,7 +22,7 @@
         <id column="serial_id" property="serialId" />
         <result column="worker_id" property="workerId" />
         <result column="protocol" property="protocol" />
-        <result column="ip" property="ip" />
+        <result column="host" property="host" />
         <result column="port" property="port" />
         <result column="status" property="status" />
         <result column="created_at" property="createdAt" />
@@ -31,12 +31,12 @@
 
     <insert id="insertOrUpdate">
         INSERT IGNORE INTO flowjob_worker (
-            worker_id, protocol, ip, port, status
+            worker_id, protocol, host, port, status
         ) VALUES (
-            #{workerId}, #{protocol}, #{ip}, #{port}, #{status}
+            #{workerId}, #{protocol}, #{host}, #{port}, #{status}
         )
         ON DUPLICATE KEY UPDATE
-        protocol = VALUES(protocol), ip = VALUES(ip), port = VALUES(port), status = VALUES(status)
+        protocol = VALUES(protocol), host = VALUES(host), port = VALUES(port), status = VALUES(status)
     </insert>
 
 </mapper>
