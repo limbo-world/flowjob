@@ -78,6 +78,7 @@ public class HashedWheelTimerScheduler implements Scheduler {
         // 如果不会被触发，则无需继续调度
         long triggerAt = schedulable.nextTriggerAt();
         if (triggerAt <= 0) {
+            // todo 移除的时候是否应该将任务状态改为stop？？？ nextTriggerAt 不同调度器有时候直接就返回 0 了，需要处理
             scheduling.remove(schedulable.getId());
             return;
         }
@@ -104,8 +105,8 @@ public class HashedWheelTimerScheduler implements Scheduler {
             // 执行调度逻辑 todo 可以交由线程池？增加下发速度
             schedulable.schedule();
 
-            // 检测是否需要重新调度 todo 不应该直接就触发
-//            this.reschedule(schedulable);
+            // 检测是否需要重新调度
+            this.reschedule(schedulable);
 
         }, delay, TimeUnit.MILLISECONDS);
     }

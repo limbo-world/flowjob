@@ -16,6 +16,8 @@
 
 package org.limbo.flowjob.tracker.infrastructure.job.repositories;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
 import org.limbo.flowjob.tracker.dao.mybatis.JobInstanceMapper;
@@ -53,28 +55,42 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
      */
     @Override
     public void updateInstance(JobInstance instance) {
-
-//        JobExecuteRecordPO po = converter.convert(instance);
-//        Objects.requireNonNull(po);
-
-//        mapper.update(po, Wrappers.<JobExecuteRecordPO>lambdaUpdate()
-//                .eq(JobExecuteRecordPO::getJobId, po.getJobId())
-//                .eq(JobExecuteRecordPO::getRecordId, po.getRecordId()));
+        JobInstancePO po = jobInstancePoConverter.convert(instance);
+        jobInstanceMapper.update(po, Wrappers.<JobInstancePO>lambdaUpdate()
+                .eq(JobInstancePO::getPlanId, po.getPlanId())
+                .eq(JobInstancePO::getPlanInstanceId, po.getPlanInstanceId())
+                .eq(JobInstancePO::getJobId, po.getJobId())
+        );
     }
+
+    @Override
+    public void compareAndSwapInstanceState(String planId, Long planInstanceId, String jobId,
+                                     JobScheduleStatus oldState, JobScheduleStatus newState) {
+        jobInstanceMapper.update(null, Wrappers.<JobInstancePO>lambdaUpdate()
+                .set(JobInstancePO::getState, newState.status)
+                .eq(JobInstancePO::getPlanId, planId)
+                .eq(JobInstancePO::getPlanInstanceId, planInstanceId)
+                .eq(JobInstancePO::getJobId, jobId)
+                .eq(JobInstancePO::getState, oldState.status)
+        );
+    }
+
 
     /**
      * {@inheritDoc}
+     * @param planId 作业ID
+     * @param planInstanceId 实例ID
      * @param jobId 作业ID
-     * @param instanceId 上下文ID
      * @return
      */
     @Override
-    public JobInstance getInstance(String jobId, String instanceId) {
-//        JobExecuteRecordPO po = mapper.selectOne(Wrappers.<JobExecuteRecordPO>lambdaQuery()
-//                .eq(JobExecuteRecordPO::getJobId, jobId)
-//                .eq(JobExecuteRecordPO::getRecordId, instanceId));
-//        return converter.reverse().convert(po);
-        return null;
+    public JobInstance getInstance(String planId, Long planInstanceId, String jobId) {
+        JobInstancePO po = jobInstanceMapper.selectOne(Wrappers.<JobInstancePO>lambdaQuery()
+                .eq(JobInstancePO::getPlanId, planId)
+                .eq(JobInstancePO::getPlanInstanceId, planInstanceId)
+                .eq(JobInstancePO::getJobId, jobId)
+        );
+        return jobInstancePoConverter.reverse().convert(po);
     }
 
     /**

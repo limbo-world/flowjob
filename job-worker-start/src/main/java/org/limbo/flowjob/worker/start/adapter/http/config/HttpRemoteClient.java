@@ -61,7 +61,6 @@ public class HttpRemoteClient extends AbstractRemoteClient {
                 .post(body)
                 .build();
 
-        OkHttpClient client = (new OkHttpClient.Builder()).build();
         Call call = client.newCall(request);
         return callAndHandlerResult(call, null);
     }
@@ -76,7 +75,6 @@ public class HttpRemoteClient extends AbstractRemoteClient {
                 .post(body)
                 .build();
 
-        OkHttpClient client = (new OkHttpClient.Builder()).build();
         Call call = client.newCall(request);
         return callAndHandlerResult(call, new TypeReference<ResponseDto<WorkerRegisterResult>>() {
         });
@@ -87,7 +85,7 @@ public class HttpRemoteClient extends AbstractRemoteClient {
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(dto));
 
         Request request = new Request.Builder()
-                .url(baseUrl + "/api/worker/v1/heartbeat")
+                .url(baseUrl + "/api/worker/v1/job/execute/feedback")
                 .header("Content-Type", "application/json")
                 .post(body)
                 .build();

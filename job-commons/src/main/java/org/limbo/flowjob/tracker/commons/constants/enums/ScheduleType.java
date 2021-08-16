@@ -26,7 +26,6 @@ import lombok.Getter;
  *     <li>{@linkplain ScheduleType#FIXED_RATE 固定速度}</li>
  *     <li>{@linkplain ScheduleType#FIXED_INTERVAL 固定间隔时间}</li>
  *     <li>{@linkplain ScheduleType#CRON CRON}</li>
- *     <li>{@linkplain ScheduleType#DAG DAG工作流}</li>
  * </ul>
  *
  * @author Brozen
@@ -50,18 +49,13 @@ public enum ScheduleType implements DescribableEnum<Byte> {
     FIXED_INTERVAL(3, "固定间隔时间"),
 
     /**
-     * 通过CRON表达式指定作业触发调度的时间点。
+     * 通过CRON表达式指定作业触发调度的时间点。FIXED_RATE 的另一种模式
      */
     CRON(4, "CRON表达式"),
 
-    /**
-     * TODO
-     */
-    DAG(5, "DAG工作流"),
-
     ;
 
-    public static final String DESCRIPTION = "1-固定延迟; 2-固定速度; 3-固定间隔时间; 4-CRON表达式; 5-DAG工作流;";
+    public static final String DESCRIPTION = "1-固定延迟; 2-固定速度; 3-固定间隔时间; 4-CRON表达式;";
 
     public final byte type;
 

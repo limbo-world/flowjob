@@ -87,10 +87,7 @@ public class HttpWorker extends Worker {
 
         return byteBufFlux.aggregate()
                 .asString()
-                .map(json -> {
-                    System.out.println("worker return " + json);
-                    return JacksonUtils.parseObject(json, reference).getData();
-                });
+                .map(json -> JacksonUtils.parseObject(json, reference).getData());
     }
 
     /**
@@ -129,7 +126,7 @@ public class HttpWorker extends Worker {
                 .response((resp, flux) -> responseReceiver(resp, flux, new TypeReference<ResponseDto<JobReceiveResult>>() {
                 })))
                 .doOnNext(result -> {
-                    // 如果worker接受作业，则更新下发时间 todo
+                    // todo 如果worker接受作业，则更新下发时间
                     if (result.getAccepted()) {
                         // FIXME 此处是transaction script写法了，要不要改成update全部数据？
                         getStatisticsRepository().updateWorkerDispatchTimes(getWorkerId(), LocalDateTime.now());

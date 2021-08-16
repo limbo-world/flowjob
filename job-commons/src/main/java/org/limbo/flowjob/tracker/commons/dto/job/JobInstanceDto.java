@@ -63,8 +63,4 @@ public class JobInstanceDto {
      */
     private Map<String, List<String>> attributes;
 
-    public String getId() {
-        return planId + "-" + planInstanceId + "-" + jobId;
-    }
-
 }

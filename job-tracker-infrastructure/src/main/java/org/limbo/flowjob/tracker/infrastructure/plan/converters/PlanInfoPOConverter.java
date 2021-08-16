@@ -20,9 +20,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Converter;
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.plan.ScheduleOption;
 import org.limbo.flowjob.tracker.core.plan.Plan;
 import org.limbo.flowjob.tracker.core.plan.PlanBuilderFactory;
+import org.limbo.flowjob.tracker.core.plan.ScheduleOption;
 import org.limbo.flowjob.tracker.dao.po.PlanInfoPO;
 import org.limbo.utils.JacksonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,8 +56,8 @@ public class PlanInfoPOConverter extends Converter<Plan, PlanInfoPO> {
         ScheduleOption scheduleOption = plan.getScheduleOption();
         po.setScheduleType(scheduleOption.getScheduleType().type);
         po.setScheduleStartAt(scheduleOption.getScheduleStartAt());
-        po.setScheduleDelay(scheduleOption.getScheduleDelay().toMillis());
-        po.setScheduleInterval(scheduleOption.getScheduleInterval().toMillis());
+        po.setScheduleDelay((int) scheduleOption.getScheduleDelay().getSeconds());
+        po.setScheduleInterval((int) scheduleOption.getScheduleInterval().getSeconds());
         po.setScheduleCron(scheduleOption.getScheduleCron());
         po.setJobs(JacksonUtils.toJSONString(plan.getJobs()));
 

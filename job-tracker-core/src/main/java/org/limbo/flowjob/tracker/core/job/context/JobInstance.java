@@ -20,7 +20,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.tracker.commons.exceptions.JobDispatchException;
@@ -109,28 +108,15 @@ public class JobInstance {
      */
     private String errorStackTrace;
 
-
-    // ----------------------- 分隔
-
-//    /**
-//     * 用于更新JobContext
-//     */
-//    @Getter(AccessLevel.NONE)
-//    @Setter(AccessLevel.NONE)
-//    @ToString.Exclude
-//    private JobInstanceRepository jobInstanceRepository;
-
     /**
      * 用于触发、发布上下文生命周期事件
      */
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ToString.Exclude
-    private Sinks.Many<JobContextLifecycleEvent> lifecycleEventTrigger;
+    private Sinks.Many<JobInstanceLifecycleEvent> lifecycleEventTrigger;
 
     public JobInstance() {
-//    public JobInstance(JobInstanceRepository jobInstanceRepository) {
-//        this.jobInstanceRepository = Objects.requireNonNull(jobInstanceRepository, "JobContextRepository");
         this.lifecycleEventTrigger = Sinks.many().multicast().directAllOrNothing();
     }
 
@@ -156,7 +142,7 @@ public class JobInstance {
             // 发送上下文到worker
             Mono<JobReceiveResult> mono = worker.sendJob(this);
             // 发布事件
-            lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.STARTED, Sinks.EmitFailureHandler.FAIL_FAST);
+            lifecycleEventTrigger.emitNext(JobInstanceLifecycleEvent.STARTED, Sinks.EmitFailureHandler.FAIL_FAST);
 
             // 等待发送结果，根据客户端接收结果，更新状态
             JobReceiveResult result = mono.block();
@@ -165,13 +151,9 @@ public class JobInstance {
             } else {
                 this.refuseContext(worker);
             }
-
-//        } catch (JobWorkerException e) {
         } catch (Exception e) {
             // 失败时更新上下文状态，冒泡异常
             setState(JobScheduleStatus.FAILED);
-//            jobInstanceRepository.updateInstance(this);
-
             throw new JobDispatchException(getJobId(), worker.getWorkerId(),
                     "Context startup failed due to send job to worker error!", e);
         }
@@ -186,16 +168,17 @@ public class JobInstance {
      * @throws JobDispatchException 接受上下文的worker和上下文记录的worker不同时，抛出异常。
      */
     public void acceptContext(Worker worker) throws JobDispatchException {
-
-        assertContextStatus(JobScheduleStatus.Scheduling);
-//        assertWorkerId(worker.getWorkerId());
+        // 不为此状态 无需更新
+        if (getState() != JobScheduleStatus.Scheduling) {
+            return;
+        }
 
         // 更新状态
         setState(JobScheduleStatus.EXECUTING);
-//        jobInstanceRepository.updateInstance(this);
+        setWorkerId(worker.getWorkerId());
 
         // 发布事件
-        lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.ACCEPTED, Sinks.EmitFailureHandler.FAIL_FAST);
+        lifecycleEventTrigger.emitNext(JobInstanceLifecycleEvent.ACCEPTED, Sinks.EmitFailureHandler.FAIL_FAST);
     }
 
     /**
@@ -207,16 +190,17 @@ public class JobInstance {
      * @throws JobDispatchException 拒绝上下文的worker和上下文记录的worker不同时，抛出异常。
      */
     public void refuseContext(Worker worker) throws JobDispatchException {
+        // 不为此状态 无需更新
+        if (getState() != JobScheduleStatus.Scheduling) {
+            return;
+        }
 
-        assertContextStatus(JobScheduleStatus.Scheduling);
-//        assertWorkerId(worker.getWorkerId());
-
-        // 更新状态
-//        setState(JobScheduleStatus.REFUSED);
-//        jobInstanceRepository.updateInstance(this);
+        // todo 更新状态 拒绝应该根据策略 判断是否走重试
+//        setState(JobScheduleStatus.FAILED);
+//        setWorkerId(worker.getWorkerId());
 
         // 发布事件
-        lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.REFUSED, Sinks.EmitFailureHandler.FAIL_FAST);
+        lifecycleEventTrigger.emitNext(JobInstanceLifecycleEvent.REFUSED, Sinks.EmitFailureHandler.FAIL_FAST);
     }
 
 
@@ -229,13 +213,15 @@ public class JobInstance {
      */
     public void closeContext() throws JobDispatchException {
 
-        assertContextStatus(JobScheduleStatus.EXECUTING);
+        // 当前状态无需变更
+        if (getState() == JobScheduleStatus.SUCCEED || getState() == JobScheduleStatus.FAILED) {
+            return;
+        }
 
         setState(JobScheduleStatus.SUCCEED);
-//        jobInstanceRepository.updateInstance(this);
 
         // 发布事件
-        lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.CLOSED, Sinks.EmitFailureHandler.FAIL_FAST);
+        lifecycleEventTrigger.emitNext(JobInstanceLifecycleEvent.CLOSED, Sinks.EmitFailureHandler.FAIL_FAST);
         lifecycleEventTrigger.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
     }
 
@@ -247,39 +233,18 @@ public class JobInstance {
      */
     public void closeContext(String errorMsg, String errorStackTrace) {
 
-        assertContextStatus(JobScheduleStatus.EXECUTING);
+        // 当前状态无需变更
+        if (getState() == JobScheduleStatus.SUCCEED || getState() == JobScheduleStatus.FAILED) {
+            return;
+        }
 
         setState(JobScheduleStatus.FAILED);
         setErrorMsg(errorMsg);
         setErrorStackTrace(errorStackTrace);
-//        jobInstanceRepository.updateInstance(this);
 
         // 发布事件
-        lifecycleEventTrigger.emitNext(JobContextLifecycleEvent.CLOSED, Sinks.EmitFailureHandler.FAIL_FAST);
+        lifecycleEventTrigger.emitNext(JobInstanceLifecycleEvent.CLOSED, Sinks.EmitFailureHandler.FAIL_FAST);
         lifecycleEventTrigger.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
-    }
-
-
-    /**
-     * 断言当前上下文处于某个状态，否则将抛出{@link JobDispatchException}
-     * @param assertStatus 断言当前上下文的状态
-     */
-    protected void assertContextStatus(JobScheduleStatus assertStatus) throws JobDispatchException {
-        if (getState() != assertStatus) {
-            throw new JobDispatchException(getJobId(), getId(),
-                    "Expect context status: " + assertStatus + " but is: " + getState());
-        }
-    }
-
-    /**
-     * 断言当前上下文的workerId是指定值，否则将抛出{@link JobDispatchException}
-     * @param assertWorkerId 断言当前上下文的workerId
-     */
-    protected void assertWorkerId(String assertWorkerId) throws JobDispatchException {
-        if (!StringUtils.equalsIgnoreCase(getWorkerId(), assertWorkerId)) {
-            throw new JobDispatchException(getJobId(), getId(),
-                    "Except worker: " + assertWorkerId + " but worker is: " + getWorkerId());
-        }
     }
 
     /**
@@ -292,7 +257,7 @@ public class JobInstance {
     public Mono<JobInstance> onContextRefused() {
         return Mono.create(sink -> this.lifecycleEventTrigger
                 .asFlux()
-                .filter(e -> e == JobContextLifecycleEvent.REFUSED)
+                .filter(e -> e == JobInstanceLifecycleEvent.REFUSED)
                 .subscribe(e -> sink.success(this), sink::error, sink::success));
     }
 
@@ -306,7 +271,7 @@ public class JobInstance {
     public Mono<JobInstance> onContextAccepted() {
         return Mono.create(sink -> this.lifecycleEventTrigger
                 .asFlux()
-                .filter(e -> e == JobContextLifecycleEvent.ACCEPTED)
+                .filter(e -> e == JobInstanceLifecycleEvent.ACCEPTED)
                 .subscribe(e -> sink.success(this), sink::error, sink::success));
     }
 
@@ -320,7 +285,7 @@ public class JobInstance {
     public Mono<JobInstance> onContextClosed() {
         return Mono.create(sink -> this.lifecycleEventTrigger
                 .asFlux()
-                .filter(e -> e == JobContextLifecycleEvent.CLOSED)
+                .filter(e -> e == JobInstanceLifecycleEvent.CLOSED)
                 .subscribe(e -> sink.success(this), sink::error, sink::success));
     }
 
@@ -338,9 +303,9 @@ public class JobInstance {
      * TODO 此方式只支持单机监听，如果tracker集群部署，监听需用其他方式处理
      *
      * @return 声明周期事件发生时触发
-     * @see JobContextLifecycleEvent
+     * @see JobInstanceLifecycleEvent
      */
-    public Flux<JobContextLifecycleEvent> onLifecycleEvent() {
+    public Flux<JobInstanceLifecycleEvent> onLifecycleEvent() {
         return this.lifecycleEventTrigger.asFlux();
     }
 
@@ -353,7 +318,7 @@ public class JobInstance {
      *     <li><code>CLOSED</code> - 上下文被关闭</li>
      * </ul>
      */
-    enum JobContextLifecycleEvent {
+    enum JobInstanceLifecycleEvent {
 
         /**
          * @see JobInstance#startupContext(Worker)

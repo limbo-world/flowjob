@@ -16,6 +16,7 @@
 
 package org.limbo.flowjob.tracker.admin.service.job;
 
+import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.tracker.commons.constants.WorkerHeaders;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobExecuteResult;
 import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFeedbackDto;
@@ -30,13 +31,12 @@ import reactor.core.publisher.Mono;
  * @author Brozen
  * @since 2021-07-07
  */
+@Slf4j
 @Service
 public class JobExecuteService {
 
     @Autowired
     private JobInstanceRepository jobInstanceRepository;
-
-
 
     /**
      * 处理任务执行反馈
@@ -50,16 +50,26 @@ public class JobExecuteService {
 
             return feedbackMono.map(fb -> {
 
-                // 更新context状态
-                JobInstance context = jobInstanceRepository.getInstance(fb.getJobId(), fb.getContextId());
+                // 获取实例
+                JobInstance jobInstance = jobInstanceRepository.getInstance(fb.getPlanId(), fb.getPlanInstanceId(), fb.getJobId());
                 JobExecuteResult result = fb.getResult();
+
+                // 订阅执行情况
+                jobInstance.onContextClosed().subscribe(instance -> {
+                    if (log.isDebugEnabled()) {
+                        log.debug(instance.getWorkerId() + " closed " + instance.getId());
+                    }
+                    jobInstanceRepository.updateInstance(instance);
+                });
+
+                // 变更状态
                 switch (result) {
                     case SUCCEED:
-                        context.closeContext();
+                        jobInstance.closeContext();
                         break;
 
                     case FAILED:
-                        context.closeContext(fb.getErrorMsg(), fb.getErrorStackTrace());
+                        jobInstance.closeContext(fb.getErrorMsg(), fb.getErrorStackTrace());
                         break;
 
                     case TERMINATED:

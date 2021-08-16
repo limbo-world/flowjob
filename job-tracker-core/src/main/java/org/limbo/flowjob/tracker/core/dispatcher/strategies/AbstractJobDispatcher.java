@@ -66,6 +66,7 @@ public abstract class AbstractJobDispatcher implements JobDispatcher {
             throw new JobWorkerException(instance.getJobId(), null, "No worker available!");
         }
 
+        // todo worker 拒绝后的重试
         Worker worker = selectWorker(instance, availableWorkers);
         if (worker == null) {
             throw new JobWorkerException(instance.getJobId(), null, "No worker available!");

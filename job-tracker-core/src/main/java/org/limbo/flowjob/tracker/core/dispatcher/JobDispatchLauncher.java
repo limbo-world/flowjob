@@ -1,6 +1,7 @@
 package org.limbo.flowjob.tracker.core.dispatcher;
 
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.commons.exceptions.JobExecuteException;
 import org.limbo.flowjob.tracker.core.dispatcher.strategies.JobDispatcher;
 import org.limbo.flowjob.tracker.core.dispatcher.strategies.JobDispatcherFactory;
@@ -45,18 +46,22 @@ public class JobDispatchLauncher {
                                 "Cannot create JobDispatcher for dispatch type: " + jobInstance.getDispatchOption().getDispatchType());
                     }
 
-                    // 成功 失败 拒绝 不同情况的处理 todo
-                    jobInstance.onContextAccepted().subscribe(c -> {
-                        System.out.println(c.getWorkerId() + " accepted");
-                        jobInstanceRepository.updateInstance(jobInstance);
+                    // 订阅下发成功
+                    jobInstance.onContextAccepted().subscribe(instance -> {
+                        if (log.isDebugEnabled()) {
+                            log.debug(instance.getWorkerId() + " accepted " + instance.getId());
+                        }
+                        // 由于无法确定先接收到任务执行成功还是任务接收成功的消息，所以可能任务先被直接执行完成了，所以这里需要cas处理
+                        jobInstanceRepository.compareAndSwapInstanceState(instance.getPlanId(), instance.getPlanInstanceId(),
+                                instance.getJobId(), JobScheduleStatus.Scheduling, instance.getState());
                     });
-                    jobInstance.onContextRefused().subscribe(c -> {
-                        System.out.println(c.getWorkerId() + " refused");
-                        jobInstanceRepository.updateInstance(jobInstance);
-                    });
-                    jobInstance.onContextClosed().subscribe(c -> {
-                        System.out.println(c.getId() + " closed");
-                        jobInstanceRepository.updateInstance(jobInstance);
+                    // 订阅下发拒绝
+                    jobInstance.onContextRefused().subscribe(instance -> {
+                        if (log.isDebugEnabled()) {
+                            log.debug(instance.getWorkerId() + " refused " + instance.getId());
+                        }
+                        jobInstanceRepository.compareAndSwapInstanceState(instance.getPlanId(), instance.getPlanInstanceId(),
+                                instance.getJobId(), JobScheduleStatus.Scheduling, instance.getState());
                     });
 
                     // 下发任务

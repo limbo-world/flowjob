@@ -23,9 +23,19 @@ package org.limbo.flowjob.worker.core.domain;
 public class Job {
 
     /**
-     * 唯一ID
+     * 计划ID
      */
-    private String id;
+    private String planId;
+
+    /**
+     * 计划实例的ID
+     */
+    private Long planInstanceId;
+
+    /**
+     * 作业ID planId + planInstanceId + jobId 全局唯一
+     */
+    private String jobId;
     /**
      * 执行器的名称
      */
@@ -36,11 +46,31 @@ public class Job {
     private String executorParam;
 
     public String getId() {
-        return id;
+        return planId + "-" + planInstanceId + "-" + jobId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public String getPlanId() {
+        return planId;
+    }
+
+    public void setPlanId(String planId) {
+        this.planId = planId;
+    }
+
+    public Long getPlanInstanceId() {
+        return planInstanceId;
+    }
+
+    public void setPlanInstanceId(Long planInstanceId) {
+        this.planInstanceId = planInstanceId;
+    }
+
+    public String getJobId() {
+        return jobId;
+    }
+
+    public void setJobId(String jobId) {
+        this.jobId = jobId;
     }
 
     public String getExecutorName() {

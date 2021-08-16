@@ -38,7 +38,7 @@ public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
     }
 
     @Override
-    public PlanInstance getInstance(String planId, String planInstanceId) {
+    public PlanInstance getInstance(String planId, Long planInstanceId) {
         PlanInstancePO po = planInstanceMapper.selectOne(Wrappers.<PlanInstancePO>lambdaQuery()
                 .eq(PlanInstancePO::getPlanId, planId)
                 .eq(PlanInstancePO::getPlanInstanceId, planInstanceId));

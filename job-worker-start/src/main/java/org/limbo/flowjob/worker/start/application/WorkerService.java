@@ -36,7 +36,9 @@ public class WorkerService {
 
     public void receive(JobInstanceDto dto) {
         Job job = new Job();
-        job.setId(dto.getId());
+        job.setPlanId(dto.getPlanId());
+        job.setPlanInstanceId(dto.getPlanInstanceId());
+        job.setJobId(dto.getJobId());
         job.setExecutorName(dto.getExecutorName());
         job.setExecutorParam(dto.getExecutorParam());
         worker.receive(job);

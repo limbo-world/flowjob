@@ -36,23 +36,30 @@ import java.util.Map;
 public class JobExecuteFeedbackDto {
 
     /**
+     * 计划ID
+     */
+    @NotBlank(message = "planId can't be null")
+    @Schema(description = "计划ID")
+    private String planId;
+
+    /**
+     * 计划实例ID
+     */
+    @NotNull(message = "planInstanceId can't be null")
+    @Schema(description = "计划实例ID")
+    private Long planInstanceId;
+
+    /**
      * 作业ID
      */
-    @NotBlank
+    @NotBlank(message = "jobId can't be null")
     @Schema(description = "作业ID")
     private String jobId;
 
     /**
-     * 作业上下文ID
-     */
-    @NotBlank
-    @Schema(description = "作业上下文ID")
-    private String contextId;
-
-    /**
      * 执行结果
      */
-    @NotNull
+    @NotNull(message = "result can't be null")
     @Schema(description = "执行结果")
     private JobExecuteResult result;
 

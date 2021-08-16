@@ -72,6 +72,8 @@ public class Plan implements Schedulable {
      */
     private List<Job> jobs;
 
+    private Instant lastScheduleAt;
+
     // -------- 需要注入
     /**
      * 作业触发计算器
@@ -109,15 +111,10 @@ public class Plan implements Schedulable {
         return planId;
     }
 
-
-    /**
-     * TODO
-     */
     @Override
     public Instant getLastScheduleAt() {
-        return null;
+        return lastScheduleAt;
     }
-
 
     /**
      * TODO
@@ -131,6 +128,7 @@ public class Plan implements Schedulable {
     @Override
     public void schedule() {
         executor.execute(this);
+        lastScheduleAt = Instant.now();
     }
 
     /**
@@ -161,8 +159,12 @@ public class Plan implements Schedulable {
         if (CollectionUtils.isEmpty(jobs)) {
             return null;
         }
+        for (Job job : jobs) {
+            if (job.getJobId().equals(jobId)) {
+                return job;
+            }
+        }
         return null;
-//        return jobRepository.getJob(jobId);
     }
 
 

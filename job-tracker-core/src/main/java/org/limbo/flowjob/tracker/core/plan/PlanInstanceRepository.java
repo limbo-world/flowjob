@@ -28,7 +28,7 @@ public interface PlanInstanceRepository {
      * @param planInstanceId 实例ID
      * @return 实例
      */
-    default PlanInstance getInstance(String planId, String planInstanceId) {
+    default PlanInstance getInstance(String planId, Long planInstanceId) {
         throw new UnsupportedOperationException();
     }
 
