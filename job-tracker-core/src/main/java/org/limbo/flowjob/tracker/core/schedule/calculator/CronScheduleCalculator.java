@@ -41,7 +41,6 @@ public class CronScheduleCalculator extends ScheduleCalculator implements Strate
         super(ScheduleType.CRON);
     }
 
-
     /**
      * 通过此策略计算下一次触发调度的时间戳。如果不应该被触发，返回0或负数。
      * @param schedulable 待调度对象
@@ -50,14 +49,16 @@ public class CronScheduleCalculator extends ScheduleCalculator implements Strate
     @Override
     public Long apply(Schedulable schedulable) {
 
-        // 未到调度开始时间，不触发下次调度
-        Instant nowInstant = Instant.now();
         ScheduleOption scheduleOption = schedulable.getScheduleOption();
+        Instant nowInstant = Instant.now();
         long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
-        if (nowInstant.getEpochSecond() < startScheduleAt) {
-            return NO_TRIGGER;
+
+        // 计算第一次调度
+        if (schedulable.getLastScheduleAt() == null) {
+            return Math.max(startScheduleAt, nowInstant.getEpochSecond());
         }
 
+        // 计算下一次调度
         String cron = scheduleOption.getScheduleCron();
         try {
             // 校验CRON表达式
@@ -67,6 +68,7 @@ public class CronScheduleCalculator extends ScheduleCalculator implements Strate
             // 解析下次触发时间
             Date nextSchedule = expression.getNextValidTimeAfter(Date.from(nowInstant));
             if (nextSchedule == null) {
+                log.error("cron expression {} next schedule is null", cron);
                 return NO_TRIGGER;
             }
 

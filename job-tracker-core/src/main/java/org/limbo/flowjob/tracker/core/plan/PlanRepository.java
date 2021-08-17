@@ -35,9 +35,9 @@ public interface PlanRepository {
     /**
      * 新创建一个plan版本
      *
-     * @param plan 计划plan
+     * @param plan 新plan
      */
-    Integer newPlanVersion(Plan plan);
+    Plan newVersion(Plan plan);
 
     /**
      * 根据计划ID查询计划

@@ -18,14 +18,10 @@ package org.limbo.flowjob.tracker.core.schedule.calculator;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
-import org.limbo.flowjob.tracker.core.plan.ScheduleOption;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
 import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
 
-import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 /**
  * 固定延迟作业调度时间计算器
@@ -49,20 +45,14 @@ public class DelayedScheduleCalculator extends ScheduleCalculator implements Str
     @Override
     public Long apply(Schedulable schedulable) {
         // 只调度一次
-        Instant lastScheduleAt = schedulable.getLastScheduleAt();
-        if (lastScheduleAt != null) {
+        if (schedulable.getLastScheduleAt() != null) {
             return NO_TRIGGER;
         }
 
-        // 从创建时间开始，间隔固定delay进行调度
-        ScheduleOption scheduleOption = schedulable.getScheduleOption();
-        LocalDateTime startAt = scheduleOption.getScheduleStartAt();
-        Duration delay = scheduleOption.getScheduleDelay();
-        long triggerAt = startAt.toEpochSecond(ZoneOffset.UTC);
-        triggerAt = delay != null ? triggerAt + delay.toMillis() : triggerAt;
-
+        // 从创建时间开始，间隔固定delay调度
+        long startScheduleAt = calculateStartScheduleTimestamp(schedulable.getScheduleOption());
         long now = Instant.now().getEpochSecond();
-        return Math.max(triggerAt, now);
+        return Math.max(startScheduleAt, now);
     }
 
 }

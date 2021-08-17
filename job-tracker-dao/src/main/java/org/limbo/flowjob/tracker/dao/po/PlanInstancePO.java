@@ -1,7 +1,5 @@
 package org.limbo.flowjob.tracker.dao.po;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -44,6 +42,11 @@ public class PlanInstancePO extends PO {
      * 状态
      */
     private Byte state;
+
+    /**
+     * 是否需要重新调度 目前只有 FIXED_INTERVAL 类型在任务执行完成后才会需要重新调度
+     */
+    private Boolean reschedule;
 
     /**
      * 开始时间

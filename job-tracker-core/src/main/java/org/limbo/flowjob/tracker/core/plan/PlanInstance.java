@@ -22,6 +22,8 @@ import lombok.ToString;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.tracker.core.job.Job;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -59,6 +61,21 @@ public class PlanInstance {
      * 此执行计划对应的所有作业
      */
     private List<Job> jobs;
+
+    /**
+     * 是否需要重新调度 目前只有 FIXED_INTERVAL 类型在任务执行完成后才会需要重新调度
+     */
+    private boolean reschedule;
+
+    /**
+     * 开始时间
+     */
+    private Instant startAt;
+
+    /**
+     * 结束时间
+     */
+    private Instant endAt;
 
     /**
      * 获取最先需要执行的job 因为 DAG 可能会有多个一起执行 todo

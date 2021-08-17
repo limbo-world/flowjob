@@ -66,9 +66,4 @@ public interface DescribableEnum<T> {
         });
     }
 
-    static void main(String[] args) {
-        System.out.println(describe(ScheduleType.class));
-    }
-
-
 }

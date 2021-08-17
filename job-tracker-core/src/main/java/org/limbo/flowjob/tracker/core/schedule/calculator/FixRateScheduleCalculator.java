@@ -48,34 +48,23 @@ public class FixRateScheduleCalculator extends ScheduleCalculator implements Str
     @Override
     public Long apply(Schedulable schedulable) {
 
-        long now = Instant.now().getEpochSecond();
-        long scheduleAt;
-
-        // 未到调度开始时间，不触发下次调度
         ScheduleOption scheduleOption = schedulable.getScheduleOption();
+        long now = Instant.now().getEpochSecond();
         long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
-        if (now < startScheduleAt) {
+
+        // 计算第一次调度
+        if (schedulable.getLastScheduleAt() == null) {
+            return Math.max(startScheduleAt, now);
+        }
+
+        // 上次调度一定间隔后调度
+        Duration interval = scheduleOption.getScheduleInterval();
+        if (interval == null) {
+            log.error("cannot calculate next trigger timestamp of {} because interval is not assigned!", schedulable);
             return NO_TRIGGER;
         }
 
-        Instant lastScheduleAt = schedulable.getLastScheduleAt();
-        if (lastScheduleAt == null) {
-
-            scheduleAt = now;
-
-        } else {
-
-            Duration interval = scheduleOption.getScheduleInterval();
-            if (interval == null) {
-                log.error("cannot calculate next trigger timestamp of {} because interval is not assigned!", schedulable);
-                return NO_TRIGGER;
-            }
-
-            // 已经调度过，则根据调度记录，计算下一次
-            scheduleAt = lastScheduleAt.toEpochMilli() + interval.toMillis();
-
-        }
-
+        long scheduleAt = schedulable.getLastScheduleAt().toEpochMilli() + interval.toMillis();
         return Math.max(scheduleAt, now);
     }
 

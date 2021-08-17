@@ -31,10 +31,6 @@ import org.springframework.web.bind.support.WebExchangeBindException;
 @RestControllerAdvice
 public class ControllerExceptionHandler {
 
-    public ControllerExceptionHandler() {
-        System.out.println("POK");
-    }
-
     /**
      * 所有未处理的异常最终执行分支
      */

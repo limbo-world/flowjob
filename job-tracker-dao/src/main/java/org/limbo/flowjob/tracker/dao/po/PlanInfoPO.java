@@ -68,12 +68,12 @@ public class PlanInfoPO extends PO {
     /**
      * 作业调度延迟时间，单位秒
      */
-    private Integer scheduleDelay;
+    private Long scheduleDelay;
 
     /**
      * 作业调度间隔时间，单位秒。
      */
-    private Integer scheduleInterval;
+    private Long scheduleInterval;
 
     /**
      * 作业调度的CRON表达式

@@ -57,15 +57,12 @@ public class PlanService {
      */
     public void replace(String planId, PlanReplaceDto dto) {
         // 获取当前的plan数据
-        Plan plan = convertToDo(planId, dto);
-
-        Integer newVersion = planRepository.newPlanVersion(plan);
-        plan.setVersion(newVersion);
+        Plan newVersion = planRepository.newVersion(convertToDo(planId, dto));
 
         // 需要修改plan重新调度
         if (trackerNode.jobTracker().isScheduling(planId)) {
             trackerNode.jobTracker().unschedule(planId);
-            trackerNode.jobTracker().schedule(plan);
+            trackerNode.jobTracker().schedule(newVersion);
         }
     }
 
@@ -89,13 +86,12 @@ public class PlanService {
         // 修改job信息
         currentPlan.setJobs(convertToDo(jobs));
 
-        Integer newVersion = planRepository.newPlanVersion(currentPlan);
-        currentPlan.setVersion(newVersion);
+        Plan newVersion = planRepository.newVersion(currentPlan);
 
         // 需要修改plan重新调度
         if (trackerNode.jobTracker().isScheduling(planId)) {
             trackerNode.jobTracker().unschedule(planId);
-            trackerNode.jobTracker().schedule(currentPlan);
+            trackerNode.jobTracker().schedule(newVersion);
         }
     }
 
@@ -147,7 +143,6 @@ public class PlanService {
     public Plan convertToDo(String planId, PlanReplaceDto dto) {
         return planBuilderFactory.newBuilder()
                 .planId(planId)
-                .version(0)
                 .planDesc(dto.getPlanDesc())
                 .scheduleOption(convertToDo(dto.getScheduleOption()))
                 .jobs(convertToDo(dto.getJobs()))

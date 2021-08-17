@@ -18,6 +18,7 @@ package org.limbo.flowjob.tracker.core.plan;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
+import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.schedule.executor.Executor;
 import org.limbo.flowjob.tracker.core.storage.JobInstanceStorage;
@@ -55,7 +56,8 @@ public class PlanExecutor implements Executor<Plan> {
         Long planInstanceId = planInstanceRepository.createId(plan.getPlanId());
 
         // 持久化存储
-        PlanInstance planInstance = plan.newInstance(planInstanceId, PlanScheduleStatus.Scheduling);
+        PlanInstance planInstance = plan.newInstance(planInstanceId, PlanScheduleStatus.Scheduling,
+                ScheduleType.FIXED_INTERVAL == plan.getScheduleOption().getScheduleType());
         planInstanceRepository.addInstance(planInstance);
 
         // 下发需要最先执行的job

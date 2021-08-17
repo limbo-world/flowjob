@@ -22,6 +22,9 @@ import org.limbo.flowjob.tracker.core.plan.PlanInstance;
 import org.limbo.flowjob.tracker.dao.po.PlanInstancePO;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+
 /**
  * @author Devil
  * @since 2021/7/24
@@ -39,6 +42,9 @@ public class PlanInstancePoConverter extends Converter<PlanInstance, PlanInstanc
         po.setPlanInstanceId(planInstance.getPlanInstanceId());
         po.setVersion(planInstance.getVersion());
         po.setState(planInstance.getState().status);
+        po.setReschedule(planInstance.isReschedule());
+        po.setStartAt(planInstance.getStartAt() == null ? null : LocalDateTime.ofInstant(planInstance.getStartAt(), ZoneOffset.UTC));
+        po.setEndAt(planInstance.getEndAt() == null ? null : LocalDateTime.ofInstant(planInstance.getEndAt(), ZoneOffset.UTC));
         return po;
     }
 
@@ -49,9 +55,13 @@ public class PlanInstancePoConverter extends Converter<PlanInstance, PlanInstanc
     @Override
     protected PlanInstance doBackward(PlanInstancePO po) {
         PlanInstance planInstance = new PlanInstance();
-        planInstance.setPlanInstanceId(po.getPlanInstanceId());
         planInstance.setPlanId(po.getPlanId());
+        planInstance.setPlanInstanceId(po.getPlanInstanceId());
+        planInstance.setVersion(po.getVersion());
         planInstance.setState(PlanScheduleStatus.parse(po.getState()));
+        planInstance.setReschedule(po.getReschedule());
+        planInstance.setStartAt(po.getStartAt() == null ? null : po.getStartAt().toInstant(ZoneOffset.UTC));
+        planInstance.setEndAt(po.getEndAt() == null ? null : po.getEndAt().toInstant(ZoneOffset.UTC));
         return planInstance;
     }
 

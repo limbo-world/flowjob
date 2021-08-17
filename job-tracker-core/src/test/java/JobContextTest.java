@@ -89,13 +89,13 @@ public class JobContextTest {
         context.setState(JobScheduleStatus.Scheduling);
         context.setJobAttributes(null);
 
-        context.onContextAccepted().subscribe(c -> System.out.println(c.getWorkerId() + " accepted"));
-        context.onContextRefused().subscribe(c -> System.out.println(c.getWorkerId() + " refused"));
-        context.onContextClosed().subscribe(c -> System.out.println(c.getId() + " closed"));
+        context.onAccepted().subscribe(c -> System.out.println(c.getWorkerId() + " accepted"));
+        context.onRefused().subscribe(c -> System.out.println(c.getWorkerId() + " refused"));
+        context.onClosed().subscribe(c -> System.out.println(c.getId() + " closed"));
 
-        context.startupContext(idleWorker);
-        context.acceptContext(idleWorker);
-        context.closeContext();
+        context.startup(idleWorker);
+        context.accept(idleWorker);
+        context.close();
     }
 
 

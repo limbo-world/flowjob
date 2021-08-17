@@ -56,8 +56,8 @@ public class PlanInfoPOConverter extends Converter<Plan, PlanInfoPO> {
         ScheduleOption scheduleOption = plan.getScheduleOption();
         po.setScheduleType(scheduleOption.getScheduleType().type);
         po.setScheduleStartAt(scheduleOption.getScheduleStartAt());
-        po.setScheduleDelay((int) scheduleOption.getScheduleDelay().getSeconds());
-        po.setScheduleInterval((int) scheduleOption.getScheduleInterval().getSeconds());
+        po.setScheduleDelay(scheduleOption.getScheduleDelay().toMillis());
+        po.setScheduleInterval(scheduleOption.getScheduleInterval().toMillis());
         po.setScheduleCron(scheduleOption.getScheduleCron());
         po.setJobs(JacksonUtils.toJSONString(plan.getJobs()));
 

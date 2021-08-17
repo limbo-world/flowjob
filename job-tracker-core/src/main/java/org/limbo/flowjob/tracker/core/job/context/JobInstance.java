@@ -129,7 +129,7 @@ public class JobInstance {
      * @param worker 会将此上下文分发去执行的worker
      * @throws JobDispatchException 状态检测失败时，即此上下文的状态不是INIT或FAILED时抛出异常。
      */
-    public void startupContext(Worker worker) throws JobDispatchException {
+    public void startup(Worker worker) throws JobDispatchException {
         JobScheduleStatus status = getState();
 
         // 检测状态
@@ -147,9 +147,9 @@ public class JobInstance {
             // 等待发送结果，根据客户端接收结果，更新状态
             JobReceiveResult result = mono.block();
             if (result != null && result.getAccepted()) {
-                this.acceptContext(worker);
+                this.accept(worker);
             } else {
-                this.refuseContext(worker);
+                this.refuse(worker);
             }
         } catch (Exception e) {
             // 失败时更新上下文状态，冒泡异常
@@ -167,7 +167,7 @@ public class JobInstance {
      * @param worker 确认接收此上下文的worker
      * @throws JobDispatchException 接受上下文的worker和上下文记录的worker不同时，抛出异常。
      */
-    public void acceptContext(Worker worker) throws JobDispatchException {
+    public void accept(Worker worker) throws JobDispatchException {
         // 不为此状态 无需更新
         if (getState() != JobScheduleStatus.Scheduling) {
             return;
@@ -189,7 +189,7 @@ public class JobInstance {
      * @param worker 拒绝接收此上下文的worker
      * @throws JobDispatchException 拒绝上下文的worker和上下文记录的worker不同时，抛出异常。
      */
-    public void refuseContext(Worker worker) throws JobDispatchException {
+    public void refuse(Worker worker) throws JobDispatchException {
         // 不为此状态 无需更新
         if (getState() != JobScheduleStatus.Scheduling) {
             return;
@@ -211,7 +211,7 @@ public class JobInstance {
      *
      * @throws JobDispatchException 上下文状态不是{@link JobScheduleStatus#EXECUTING}时抛出异常。
      */
-    public void closeContext() throws JobDispatchException {
+    public void close() throws JobDispatchException {
 
         // 当前状态无需变更
         if (getState() == JobScheduleStatus.SUCCEED || getState() == JobScheduleStatus.FAILED) {
@@ -231,7 +231,7 @@ public class JobInstance {
      * @param errorMsg 执行失败的异常信息
      * @param errorStackTrace 执行失败的异常堆栈
      */
-    public void closeContext(String errorMsg, String errorStackTrace) {
+    public void close(String errorMsg, String errorStackTrace) {
 
         // 当前状态无需变更
         if (getState() == JobScheduleStatus.SUCCEED || getState() == JobScheduleStatus.FAILED) {
@@ -254,7 +254,7 @@ public class JobInstance {
      *
      * @return
      */
-    public Mono<JobInstance> onContextRefused() {
+    public Mono<JobInstance> onRefused() {
         return Mono.create(sink -> this.lifecycleEventTrigger
                 .asFlux()
                 .filter(e -> e == JobInstanceLifecycleEvent.REFUSED)
@@ -268,7 +268,7 @@ public class JobInstance {
      *
      * @return
      */
-    public Mono<JobInstance> onContextAccepted() {
+    public Mono<JobInstance> onAccepted() {
         return Mono.create(sink -> this.lifecycleEventTrigger
                 .asFlux()
                 .filter(e -> e == JobInstanceLifecycleEvent.ACCEPTED)
@@ -282,7 +282,7 @@ public class JobInstance {
      *
      * @return
      */
-    public Mono<JobInstance> onContextClosed() {
+    public Mono<JobInstance> onClosed() {
         return Mono.create(sink -> this.lifecycleEventTrigger
                 .asFlux()
                 .filter(e -> e == JobInstanceLifecycleEvent.CLOSED)
@@ -321,22 +321,22 @@ public class JobInstance {
     enum JobInstanceLifecycleEvent {
 
         /**
-         * @see JobInstance#startupContext(Worker)
+         * @see JobInstance#startup(Worker)
          */
         STARTED,
 
         /**
-         * @see JobInstance#refuseContext(Worker)
+         * @see JobInstance#refuse(Worker)
          */
         REFUSED,
 
         /**
-         * @see JobInstance#acceptContext(Worker)
+         * @see JobInstance#accept(Worker)
          */
         ACCEPTED,
 
         /**
-         * @see JobInstance#closeContext()
+         * @see JobInstance#close()
          */
         CLOSED
 

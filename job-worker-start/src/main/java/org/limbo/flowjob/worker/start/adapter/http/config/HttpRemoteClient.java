@@ -121,8 +121,7 @@ public class HttpRemoteClient extends AbstractRemoteClient {
             }
             return responseDto;
         } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+            throw new RuntimeException(e);
         }
     }
 

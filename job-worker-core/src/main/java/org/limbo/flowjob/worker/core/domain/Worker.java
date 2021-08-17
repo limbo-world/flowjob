@@ -184,6 +184,9 @@ public class Worker {
     public synchronized void receive(Job job) {
         Verifies.verify(executors.containsKey(job.getExecutorName()), "worker doesn't " + job.getExecutorName() + " executor");
         Verifies.verify(jobManager.size() < resource.getAvailableQueueSize(), "worker's queue is full");
+
+        log.info("receive job " + job.getId());
+
         // todo 是否超过cpu/ram/queue 失败
 
         JobExecutor jobExecutor = executors.get(job.getExecutorName());

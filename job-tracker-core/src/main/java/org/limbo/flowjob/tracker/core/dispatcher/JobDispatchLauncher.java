@@ -1,12 +1,13 @@
 package org.limbo.flowjob.tracker.core.dispatcher;
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.commons.exceptions.JobExecuteException;
 import org.limbo.flowjob.tracker.core.dispatcher.strategies.JobDispatcher;
 import org.limbo.flowjob.tracker.core.dispatcher.strategies.JobDispatcherFactory;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
+import org.limbo.flowjob.tracker.core.schedule.consumer.AcceptedConsumer;
+import org.limbo.flowjob.tracker.core.schedule.consumer.RefusedConsumer;
 import org.limbo.flowjob.tracker.core.storage.JobInstanceStorage;
 import org.limbo.flowjob.tracker.core.tracker.WorkerManager;
 
@@ -47,25 +48,12 @@ public class JobDispatchLauncher {
                     }
 
                     // 订阅下发成功
-                    jobInstance.onContextAccepted().subscribe(instance -> {
-                        if (log.isDebugEnabled()) {
-                            log.debug(instance.getWorkerId() + " accepted " + instance.getId());
-                        }
-                        // 由于无法确定先接收到任务执行成功还是任务接收成功的消息，所以可能任务先被直接执行完成了，所以这里需要cas处理
-                        jobInstanceRepository.compareAndSwapInstanceState(instance.getPlanId(), instance.getPlanInstanceId(),
-                                instance.getJobId(), JobScheduleStatus.Scheduling, instance.getState());
-                    });
+                    jobInstance.onAccepted().subscribe(new AcceptedConsumer(jobInstanceRepository));
                     // 订阅下发拒绝
-                    jobInstance.onContextRefused().subscribe(instance -> {
-                        if (log.isDebugEnabled()) {
-                            log.debug(instance.getWorkerId() + " refused " + instance.getId());
-                        }
-                        jobInstanceRepository.compareAndSwapInstanceState(instance.getPlanId(), instance.getPlanInstanceId(),
-                                instance.getJobId(), JobScheduleStatus.Scheduling, instance.getState());
-                    });
+                    jobInstance.onRefused().subscribe(new RefusedConsumer(jobInstanceRepository));
 
                     // 下发任务
-                    jobDispatcher.dispatch(jobInstance, workerManager.availableWorkers(), JobInstance::startupContext);
+                    jobDispatcher.dispatch(jobInstance, workerManager.availableWorkers(), JobInstance::startup);
 
                 }
             } catch (Exception e) {

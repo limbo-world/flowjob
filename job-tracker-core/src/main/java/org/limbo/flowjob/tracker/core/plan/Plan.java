@@ -74,6 +74,8 @@ public class Plan implements Schedulable {
 
     private Instant lastScheduleAt;
 
+    private Instant lastFeedBackAt;
+
     // -------- 需要注入
     /**
      * 作业触发计算器
@@ -116,32 +118,34 @@ public class Plan implements Schedulable {
         return lastScheduleAt;
     }
 
-    /**
-     * TODO
-     * @return
-     */
     @Override
     public Instant getLastFeedbackAt() {
-        return null;
+        return lastFeedBackAt;
     }
 
     @Override
     public void schedule() {
+        // 执行调度
         executor.execute(this);
+        // 此次任务的调度时间
         lastScheduleAt = Instant.now();
+        // 此次任务调度了还没反馈 所以反馈时间为空
+        lastFeedBackAt = null;
     }
 
     /**
      * 生成新的计划实例
      * @return 实例
      */
-    public PlanInstance newInstance(Long planInstanceId, PlanScheduleStatus state) {
+    public PlanInstance newInstance(Long planInstanceId, PlanScheduleStatus state, boolean reschedule) {
         PlanInstance instance = new PlanInstance();
         instance.setPlanId(planId);
         instance.setVersion(version);
         instance.setPlanInstanceId(planInstanceId);
         instance.setState(state);
+        instance.setReschedule(reschedule);
         instance.setJobs(jobs);
+        instance.setStartAt(Instant.now());
         return instance;
     }
 
@@ -173,11 +177,11 @@ public class Plan implements Schedulable {
      */
     public static class Builder {
 
-        private StrategyFactory<ScheduleType, ScheduleCalculator, Schedulable, Long> strategyFactory;
+        private final StrategyFactory<ScheduleType, ScheduleCalculator, Schedulable, Long> strategyFactory;
 
         private ScheduleCalculator triggerCalculator;
 
-        private Executor<Plan> executor;
+        private final Executor<Plan> executor;
 
         private ScheduleOption scheduleOption;
 
@@ -226,8 +230,8 @@ public class Plan implements Schedulable {
 
         public Plan build() {
             Plan plan = new Plan(
-                    Verifies.requireNotNull(triggerCalculator, "triggerCalculator"),
-                    Verifies.requireNotNull(executor, "executor")
+                    Verifies.requireNotNull(triggerCalculator, "triggerCalculator is null"),
+                    Verifies.requireNotNull(executor, "executor is null")
             );
 
             plan.setPlanId(planId);

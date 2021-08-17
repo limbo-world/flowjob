@@ -19,10 +19,17 @@ package org.limbo.flowjob.tracker.admin.service.job;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.tracker.commons.constants.WorkerHeaders;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobExecuteResult;
+import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFeedbackDto;
 import org.limbo.flowjob.tracker.commons.utils.Symbol;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
+import org.limbo.flowjob.tracker.core.plan.Plan;
+import org.limbo.flowjob.tracker.core.plan.PlanInstance;
+import org.limbo.flowjob.tracker.core.plan.PlanInstanceRepository;
+import org.limbo.flowjob.tracker.core.plan.PlanRepository;
+import org.limbo.flowjob.tracker.core.schedule.consumer.ClosedConsumer;
+import org.limbo.flowjob.tracker.core.tracker.TrackerNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -36,16 +43,26 @@ import reactor.core.publisher.Mono;
 public class JobExecuteService {
 
     @Autowired
+    private TrackerNode trackerNode;
+
+    @Autowired
     private JobInstanceRepository jobInstanceRepository;
+
+    @Autowired
+    private PlanInstanceRepository planInstanceRepository;
+
+    @Autowired
+    private PlanRepository planRepository;
 
     /**
      * 处理任务执行反馈
+     *
      * @param mono 反馈参数
      */
     public Mono<Symbol> feedback(Mono<JobExecuteFeedbackDto> mono) {
         return mono.transformDeferredContextual((feedbackMono, ctx) -> {
 
-            // 从context读取workerId
+            // todo 从context读取workerId ??? 不知道这行干嘛
             String workerId = ctx.getOrDefault(WorkerHeaders.WORKER_ID, "");
 
             return feedbackMono.map(fb -> {
@@ -55,35 +72,28 @@ public class JobExecuteService {
                 JobExecuteResult result = fb.getResult();
 
                 // 订阅执行情况
-                jobInstance.onContextClosed().subscribe(instance -> {
-                    if (log.isDebugEnabled()) {
-                        log.debug(instance.getWorkerId() + " closed " + instance.getId());
-                    }
-                    jobInstanceRepository.updateInstance(instance);
-                });
+                jobInstance.onClosed().subscribe(new ClosedConsumer(jobInstanceRepository, planInstanceRepository,
+                        planRepository, trackerNode));
 
                 // 变更状态
                 switch (result) {
                     case SUCCEED:
-                        jobInstance.closeContext();
+                        jobInstance.close();
                         break;
 
                     case FAILED:
-                        jobInstance.closeContext(fb.getErrorMsg(), fb.getErrorStackTrace());
+                        jobInstance.close(fb.getErrorMsg(), fb.getErrorStackTrace());
                         break;
 
                     case TERMINATED:
                         throw new UnsupportedOperationException("暂不支持手动终止任务");
                 }
 
-                // TODO 触发任务完成事件，进行任务再次调度检测
-
                 return Symbol.newSymbol();
             });
 
         });
     }
-
 
 
 }

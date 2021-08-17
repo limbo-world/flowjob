@@ -76,7 +76,7 @@ public class MyBatisPlanRepo implements PlanRepository {
     }
 
     @Override
-    public Integer newPlanVersion(Plan plan) {
+    public Plan newVersion(Plan plan) {
         PlanPO planPO = planMapper.selectById(plan.getPlanId());
         Verifies.notNull(planPO, "plan isn't exist");
 
@@ -100,7 +100,7 @@ public class MyBatisPlanRepo implements PlanRepository {
         PlanInfoPO planInfoPO = converter.convert(plan);
         planInfoPO.setIsDeleted(false);
         planInfoMapper.insert(planInfoPO);
-        return newVersion;
+        return plan;
     }
 
     /**
