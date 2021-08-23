@@ -17,6 +17,7 @@
 package org.limbo.flowjob.tracker.admin.adapter.config;
 
 import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.tracker.commons.constants.enums.TrackerModes;
 import org.limbo.flowjob.tracker.core.dispatcher.JobDispatchLauncher;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
 import org.limbo.flowjob.tracker.core.plan.PlanBuilderFactory;
@@ -62,49 +63,77 @@ public class TrackerConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(TrackerNode.class)
-    public TrackerNode trackerNode(JobInstanceStorage jobInstanceStorage, WorkerRepository workerRepository, JobInstanceRepository jobInstanceRepository) {
+    public TrackerNode trackerNode(WorkerManager workerManager,
+                                   JobTrackerFactory jobTrackerFactory) {
 
-        TrackerNode trackerNode = null;
+        TrackerModes mode = TrackerModes.parse(trackerProperties.getMode());
+        switch (mode) {
+            case SINGLE:
+                return new SingleTrackerNode(trackerProperties.getHost(), port, jobTrackerFactory, workerManager);
 
-        // worker 管理
-        WorkerManager workerManager = new WorkerManagerImpl(workerRepository);
+            case ELECTION: {
+                // raft 选举参数
+                ElectionNodeOptions electionNodeOptions = new ElectionNodeOptions();
+                electionNodeOptions.setDataPath(trackerProperties.getDataPath());
+                electionNodeOptions.setGroupId(StringUtils.isBlank(trackerProperties.getGroupId()) ? "flowjob" :
+                        trackerProperties.getDataPath());
+                electionNodeOptions.setServerAddress(trackerProperties.getServerAddress());
+                electionNodeOptions.setServerAddressList(trackerProperties.getServerAddressList());
 
-        // 调度器
-        Scheduler scheduler = new HashedWheelTimerScheduler();
+                return new ElectionTrackerNode(port, electionNodeOptions, jobTrackerFactory, workerManager);
+            }
 
-        // job
-        JobDispatchLauncher jobDispatchLauncher = new JobDispatchLauncher(workerManager, jobInstanceStorage, jobInstanceRepository);
+            case CLUSTER:
+                throw new UnsupportedOperationException("cluster mode is not supported now.");
 
-        if (StringUtils.isBlank(trackerProperties.getMode())) {
-            // 单机
-            trackerNode = new SingleTrackerNode(trackerProperties.getHost(), port,
-                    new JobTrackerFactory(jobInstanceStorage, scheduler, jobDispatchLauncher),
-                    workerManager);
-        } else if ("election".equals(trackerProperties.getMode())) {
+            default:
+                throw new IllegalArgumentException("flowjob.tracker.mode only can be null or election/cluster");
 
-            // raft 选举参数
-            ElectionNodeOptions electionNodeOptions = new ElectionNodeOptions();
-            electionNodeOptions.setDataPath(trackerProperties.getDataPath());
-            electionNodeOptions.setGroupId(StringUtils.isBlank(trackerProperties.getGroupId()) ? "flowjob" :
-                    trackerProperties.getDataPath());
-            electionNodeOptions.setServerAddress(trackerProperties.getServerAddress());
-            electionNodeOptions.setServerAddressList(trackerProperties.getServerAddressList());
 
-            trackerNode = new ElectionTrackerNode(port, electionNodeOptions,
-                    new JobTrackerFactory(jobInstanceStorage, scheduler, jobDispatchLauncher),
-                    workerManager);
-        } else if ("cluster".equals(trackerProperties.getMode())) {
-            // todo 集群
-        } else {
-            throw new IllegalArgumentException("flowjob.tracker.mode only can be null or election/cluster");
         }
 
-        // 启动
-        jobDispatchLauncher.start();
-        trackerNode.start();
-
-        return trackerNode;
     }
+
+
+    /**
+     * 主从模式下，tracker 节点工厂
+     */
+    @Bean
+    public JobTrackerFactory jobTrackerFactory(Scheduler scheduler,
+                                               JobInstanceStorage jobInstanceStorage,
+                                               JobDispatchLauncher jobDispatchLauncher) {
+        return new JobTrackerFactory(jobInstanceStorage, scheduler, jobDispatchLauncher);
+    }
+
+
+    /**
+     * 任务调度器
+     */
+    @Bean
+    public Scheduler scheduler() {
+        return new HashedWheelTimerScheduler();
+    }
+
+
+    /**
+     * 异步进行任务下发的launcher
+     */
+    @Bean
+    public JobDispatchLauncher jobDispatchLauncher(JobInstanceStorage jobInstanceStorage,
+                                                   WorkerManager workerManager,
+                                                   JobInstanceRepository jobInstanceRepository) {
+        return new JobDispatchLauncher(workerManager, jobInstanceStorage, jobInstanceRepository);
+    }
+
+
+    /**
+     * worker 管理，持久化等
+     */
+    @Bean
+    public WorkerManager workerManager(WorkerRepository workerRepository) {
+        return new WorkerManagerImpl(workerRepository);
+    }
+
 
     /**
      * job 存储
@@ -120,8 +149,12 @@ public class TrackerConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(PlanBuilderFactory.class)
-    public PlanBuilderFactory planFactory(PlanInstanceRepository planInstanceRepository, JobInstanceStorage jobInstanceStorage) {
-        return new PlanBuilderFactory(new ScheduleCalculatorFactory(), new PlanExecutor(planInstanceRepository, jobInstanceStorage));
+    public PlanBuilderFactory planFactory(PlanInstanceRepository planInstanceRepository,
+                                          JobInstanceStorage jobInstanceStorage) {
+        return new PlanBuilderFactory(
+                new ScheduleCalculatorFactory(),
+                new PlanExecutor(planInstanceRepository, jobInstanceStorage)
+        );
     }
 
 }

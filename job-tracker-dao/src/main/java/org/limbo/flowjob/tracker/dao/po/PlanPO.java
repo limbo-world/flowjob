@@ -31,7 +31,7 @@ public class PlanPO extends PO {
     private String planId;
 
     /**
-     * 当前版本
+     * 当前版本。可能发生回滚，因此 currentVersion 可能小于 recentlyVersion 。
      */
     private Integer currentVersion;
 

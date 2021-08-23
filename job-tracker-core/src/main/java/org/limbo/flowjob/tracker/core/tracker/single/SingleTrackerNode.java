@@ -6,6 +6,7 @@ import org.limbo.flowjob.tracker.core.tracker.DisposableTrackerNode;
 import org.limbo.flowjob.tracker.core.tracker.JobTrackerFactory;
 import org.limbo.flowjob.tracker.core.tracker.WorkerManager;
 
+import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.List;
 
@@ -19,6 +20,7 @@ public class SingleTrackerNode extends AbstractTrackerNode {
         super(host, port, jobTrackerFactory, workerManager);
     }
 
+    @PostConstruct
     @Override
     public DisposableTrackerNode start() {
         // 注册 JobTracker

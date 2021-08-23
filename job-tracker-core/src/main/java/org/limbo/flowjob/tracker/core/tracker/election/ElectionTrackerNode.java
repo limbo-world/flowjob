@@ -17,6 +17,7 @@ import org.limbo.flowjob.tracker.core.tracker.election.rpc.processor.SchedulePro
 import org.limbo.flowjob.tracker.core.tracker.election.rpc.processor.UnscheduleProcessor;
 import org.limbo.flowjob.tracker.core.tracker.election.rpc.request.NodeInfoRequest;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
@@ -81,6 +82,7 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
      *
      * @return
      */
+    @PostConstruct
     @Override
     public DisposableTrackerNode start() {
         // 重复启动检测

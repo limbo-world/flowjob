@@ -15,9 +15,13 @@
  */
 
 import org.junit.Test;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.ReplayProcessor;
 import reactor.core.publisher.Sinks;
+import reactor.core.scheduler.Schedulers;
+
+import java.util.concurrent.locks.LockSupport;
 
 /**
  * @author Brozen
@@ -58,6 +62,32 @@ public class ReactorTest {
         one.asMono().subscribe(System.out::println);
         one.asMono().subscribe(System.out::println);
 
+    }
+
+    @Test
+    public void subscribeOn() throws InterruptedException {
+        final Flux<String> flux = Flux
+                .range(1, 2)
+                .map(i -> {
+                    System.out.println("map before " + Thread.currentThread().getName());
+                    return "10" + i;
+                })
+                .subscribeOn(Schedulers.newSingle("Scheduler"))
+                .map(i -> {
+                    System.out.println("map after " + Thread.currentThread().getName());
+                    return "value " + i;
+                }).take(1);
+
+        Thread t = new Thread(() -> {
+            flux.subscribe(s1 -> {
+                System.out.println(s1);
+                System.out.println("subscribe " + Thread.currentThread().getName());
+            });
+        });
+
+        t.start();
+        t.join();
+        LockSupport.park();
     }
 
 }
