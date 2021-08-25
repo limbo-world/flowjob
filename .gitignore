@@ -12,7 +12,7 @@ tmp/
 local.properties
 .settings/
 .loadpath
-*.http
+# *.http
 
 # Eclipse Core
 .project

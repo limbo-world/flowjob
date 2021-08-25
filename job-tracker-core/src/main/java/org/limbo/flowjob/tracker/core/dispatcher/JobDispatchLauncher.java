@@ -47,7 +47,7 @@ public class JobDispatchLauncher {
      */
     private ExecutorService launchGroup;
 
-    private AtomicBoolean running;
+    private final AtomicBoolean running;
 
     public JobDispatchLauncher(WorkerManager workerManager,
                                JobInstanceStorage jobInstanceStorage,

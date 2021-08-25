@@ -25,12 +25,11 @@ import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.tracker.commons.exceptions.JobDispatchException;
 import org.limbo.flowjob.tracker.core.job.DispatchOption;
 import org.limbo.flowjob.tracker.core.job.ExecutorOption;
+import org.limbo.flowjob.tracker.core.job.handler.JobFailHandler;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
-
-import java.util.List;
 
 /**
  * 作业执行上下文
@@ -84,19 +83,14 @@ public class JobInstance {
     private String workerId;
 
     /**
-     * 此作业依赖的父节点ID
-     */
-    private List<String> parentJobIds;
-
-    /**
-     * 此作业完成后需要通知的子节点ID
-     */
-    private List<String> childrenJobIds;
-
-    /**
      * 作业属性，不可变。作业属性可用于分片作业、MapReduce作业、DAG工作流进行传参
      */
     private JobAttributes jobAttributes;
+
+    /**
+     * 失败时候的处理
+     */
+    private JobFailHandler failHandler;
 
     /**
      * 执行失败时的异常信息
@@ -295,6 +289,20 @@ public class JobInstance {
      */
     public String getId() {
         return planId + "-" + planInstanceId + "-" + jobId;
+    }
+
+    /**
+     * 是否能触发下级任务
+     */
+    public boolean canTriggerNext() {
+        if (JobScheduleStatus.SUCCEED == state) {
+            return true;
+        } else if (JobScheduleStatus.FAILED == state) {
+            // 根据 handler 类型来判断
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

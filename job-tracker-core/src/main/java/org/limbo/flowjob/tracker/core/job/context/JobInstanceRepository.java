@@ -18,6 +18,8 @@ package org.limbo.flowjob.tracker.core.job.context;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 
+import java.util.List;
+
 /**
  * @author Brozen
  * @since 2021-05-19
@@ -61,6 +63,17 @@ public interface JobInstanceRepository {
      * @return 作业实例
      */
     default JobInstance getInstance(String planId, Long planInstanceId, String jobId) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * 批量获取作业执行实例
+     * @param planId 作业ID
+     * @param planInstanceId 实例ID
+     * @param jobIds 作业ID
+     * @return 作业实例
+     */
+    default List<JobInstance> getInstances(String planId, Long planInstanceId, List<String> jobIds) {
         throw new UnsupportedOperationException();
     }
 

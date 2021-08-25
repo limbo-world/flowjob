@@ -16,6 +16,8 @@
 
 package org.limbo.flowjob.tracker.core.plan;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobNodeType;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
@@ -52,6 +54,15 @@ public class PlanExecutor implements Executor<Plan> {
      */
     @Override
     public void execute(Plan plan) {
+        // 校验能否下发
+        List<Job> jobs = plan.getEarliestJobs();
+        if (CollectionUtils.isEmpty(jobs)) {
+            return;
+        }
+        if (jobs.size() == 1 && JobNodeType.END == jobs.get(0).getNodeType()) {
+            return;
+        }
+
         // 判断是这个计划 第几次调度 决定 实例ID
         Long planInstanceId = planInstanceRepository.createId(plan.getPlanId());
 
@@ -61,13 +72,11 @@ public class PlanExecutor implements Executor<Plan> {
         planInstanceRepository.addInstance(planInstance);
 
         // 下发需要最先执行的job
-        List<Job> jobs = planInstance.getEarliestJobs();
         for (Job job : jobs) {
             jobInstanceStorage.store(job.newInstance(plan.getPlanId(), planInstanceId, plan.getVersion(), JobScheduleStatus.Scheduling));
         }
 
     }
-
 
 
 }

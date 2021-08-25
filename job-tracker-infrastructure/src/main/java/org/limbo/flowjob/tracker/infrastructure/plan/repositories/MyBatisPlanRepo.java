@@ -111,7 +111,6 @@ public class MyBatisPlanRepo implements PlanRepository {
      */
     @Override
     public Plan getPlan(String planId, Integer version) {
-
         PlanInfoPO planInfoPO = planInfoMapper.selectOne(Wrappers.<PlanInfoPO>lambdaQuery()
                 .eq(PlanInfoPO::getPlanId, planId)
                 .eq(PlanInfoPO::getVersion, version)

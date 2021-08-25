@@ -22,6 +22,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobNodeType;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.commons.utils.strategies.StrategyFactory;
@@ -68,9 +69,11 @@ public class Plan implements Schedulable {
     private ScheduleOption scheduleOption;
 
     /**
-     * 此执行计划对应的所有作业
+     * todo jobs为空的情况
      */
     private List<Job> jobs;
+
+    private Job startJob;
 
     private Instant lastScheduleAt;
 
@@ -149,11 +152,6 @@ public class Plan implements Schedulable {
         return instance;
     }
 
-
-    public List<Job> getJobs() {
-        return jobs == null ? new ArrayList<>() : jobs;
-    }
-
     /**
      * 查询此plan下的job
      * @param jobId 作业ID
@@ -171,6 +169,41 @@ public class Plan implements Schedulable {
         return null;
     }
 
+    public Job getStartJob() {
+        if (startJob != null) {
+            return startJob;
+        }
+        for (Job job : jobs) {
+            if (JobNodeType.START == job.getNodeType()) {
+                startJob = job;
+                break;
+            }
+        }
+        return startJob;
+    }
+
+    /**
+     * 获取最先需要执行的job 因为 DAG 可能会有多个一起执行
+     * @return 最先执行的 job
+     */
+    public List<Job> getEarliestJobs() {
+        return getStartJob().getChildren();
+    }
+
+    /**
+     * 获取job后续的作业
+     */
+    public List<Job> getSubJobs(String jobId) {
+        return getJob(jobId).getChildren();
+    }
+
+    /**
+     * 获取job前置的作业
+     */
+    public List<Job> getPreJobs(String jobId) {
+        return getJob(jobId).getParents();
+    }
+
 
     /**
      * Plan领域对象的Builder模式封装
@@ -185,7 +218,7 @@ public class Plan implements Schedulable {
 
         private ScheduleOption scheduleOption;
 
-        private String planId = UUIDUtils.randomID();
+        private String planId;
 
         private Integer version;
 
@@ -199,9 +232,7 @@ public class Plan implements Schedulable {
         }
 
         public Builder planId(String planId) {
-            if (StringUtils.isNotBlank(planId)) {
-                this.planId = planId;
-            }
+            this.planId = planId;
             return this;
         }
 
@@ -229,16 +260,16 @@ public class Plan implements Schedulable {
         }
 
         public Plan build() {
-            Plan plan = new Plan(
-                    Verifies.requireNotNull(triggerCalculator, "triggerCalculator is null"),
-                    Verifies.requireNotNull(executor, "executor is null")
-            );
+            Verifies.requireNotNull(triggerCalculator, "triggerCalculator is null");
+            Verifies.requireNotNull(executor, "executor is null");
+            Verifies.requireNotNull(scheduleOption, "scheduleOption is null");
 
-            plan.setPlanId(planId);
-            plan.setVersion(version);
+            Plan plan = new Plan(triggerCalculator, executor);
+            plan.setPlanId(StringUtils.isNotBlank(planId) ? planId : UUIDUtils.randomID());
+            plan.setVersion(version == null ? 1 : version);
             plan.setPlanDesc(planDesc);
             plan.setScheduleOption(scheduleOption);
-            plan.setJobs(jobs);
+            plan.setJobs(jobs == null ? new ArrayList<>() : jobs);
             return plan;
         }
 

@@ -54,6 +54,7 @@ public abstract class AbstractJobDispatcher implements JobDispatcher {
             if (metric == null || CollectionUtils.isEmpty(metric.getExecutors())) {
                 continue;
             }
+            // 判断是否有对应的执行器
             for (WorkerExecutor executor : metric.getExecutors()) {
                 if (executor.getExecuteType() == instance.getExecutorOption().getType()
                         && executor.getExecutorName().equals(instance.getExecutorOption().getName())) {

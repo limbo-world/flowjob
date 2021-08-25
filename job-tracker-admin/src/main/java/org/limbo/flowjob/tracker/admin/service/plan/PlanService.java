@@ -1,6 +1,7 @@
 package org.limbo.flowjob.tracker.admin.service.plan;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobNodeType;
 import org.limbo.flowjob.tracker.commons.dto.job.DispatchOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.job.ExecutorOptionDto;
 import org.limbo.flowjob.tracker.commons.dto.job.JobDto;
@@ -10,6 +11,8 @@ import org.limbo.flowjob.tracker.commons.dto.plan.ScheduleOptionDto;
 import org.limbo.flowjob.tracker.core.job.DispatchOption;
 import org.limbo.flowjob.tracker.core.job.ExecutorOption;
 import org.limbo.flowjob.tracker.core.job.Job;
+import org.limbo.flowjob.tracker.core.job.dag.DAG;
+import org.limbo.flowjob.tracker.core.job.dag.DAGNode;
 import org.limbo.flowjob.tracker.core.plan.Plan;
 import org.limbo.flowjob.tracker.core.plan.PlanBuilderFactory;
 import org.limbo.flowjob.tracker.core.plan.PlanRepository;
@@ -22,7 +25,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Devil
@@ -67,35 +72,6 @@ public class PlanService {
     }
 
     /**
-     * 修改计划 可能会触发 内存时间轮改动
-     */
-    public void update(String planId, String planDesc, ScheduleOptionDto scheduleOption, List<JobDto> jobs) {
-        // 获取当前的plan数据
-        Plan currentPlan = planRepository.getCurrentPlan(planId);
-
-        if (planDesc != null) {
-            currentPlan.setPlanDesc(planDesc);
-        }
-
-        // 修改调度信息
-        if (scheduleOption != null) {
-            ScheduleOption newScheduleOption = currentPlan.getScheduleOption().mergeIntoCurrent(scheduleOption);
-            currentPlan.setScheduleOption(newScheduleOption);
-        }
-
-        // 修改job信息
-        currentPlan.setJobs(convertToDo(jobs));
-
-        Plan newVersion = planRepository.newVersion(currentPlan);
-
-        // 需要修改plan重新调度
-        if (trackerNode.jobTracker().isScheduling(planId)) {
-            trackerNode.jobTracker().unschedule(planId);
-            trackerNode.jobTracker().schedule(newVersion);
-        }
-    }
-
-    /**
      * 启动计划 开始调度 todo 并发
      */
     public void start(String planId) {
@@ -106,10 +82,14 @@ public class PlanService {
             return;
         }
 
+        Plan plan = planRepository.getPlan(planId, planPO.getCurrentVersion());
+        Verifies.notEmpty(plan.getJobs(), "job is empty");
+
+        // 更新状态
         planPoRepository.switchEnable(planId, true);
 
         // 调度 plan
-        trackerNode.jobTracker().schedule(planRepository.getPlan(planId, planPO.getCurrentVersion()));
+        trackerNode.jobTracker().schedule(plan);
     }
 
     /**
@@ -130,17 +110,17 @@ public class PlanService {
     }
 
 
-    public Plan convertToDo(PlanAddDto dto) {
+    private Plan convertToDo(PlanAddDto dto) {
         return planBuilderFactory.newBuilder()
                 .planId(dto.getPlanId())
-                .version(0)
+                .version(1)
                 .planDesc(dto.getPlanDesc())
                 .scheduleOption(convertToDo(dto.getScheduleOption()))
                 .jobs(convertToDo(dto.getJobs()))
                 .build();
     }
 
-    public Plan convertToDo(String planId, PlanReplaceDto dto) {
+    private Plan convertToDo(String planId, PlanReplaceDto dto) {
         return planBuilderFactory.newBuilder()
                 .planId(planId)
                 .planDesc(dto.getPlanDesc())
@@ -149,21 +129,21 @@ public class PlanService {
                 .build();
     }
 
-    public DispatchOption convertToDo(DispatchOptionDto dto) {
+    private DispatchOption convertToDo(DispatchOptionDto dto) {
         if (dto == null) {
             return null;
         }
         return new DispatchOption(dto.getDispatchType(), dto.getCpuRequirement(), dto.getRamRequirement());
     }
 
-    public ExecutorOption convertToDo(ExecutorOptionDto dto) {
+    private ExecutorOption convertToDo(ExecutorOptionDto dto) {
         if (dto == null) {
             return null;
         }
         return new ExecutorOption(dto.getName(), dto.getType());
     }
 
-    public ScheduleOption convertToDo(ScheduleOptionDto dto) {
+    private ScheduleOption convertToDo(ScheduleOptionDto dto) {
         if (dto == null) {
             return null;
         }
@@ -171,23 +151,46 @@ public class PlanService {
                 dto.getScheduleInterval(), dto.getScheduleCron());
     }
 
-    public List<Job> convertToDo(List<JobDto> dtos) {
+    private List<Job> convertToDo(List<JobDto> dtos) {
         List<Job> list = new ArrayList<>();
         if (CollectionUtils.isEmpty(dtos)) {
             return list;
         }
+
+        // 判断 ID 是否相同 是否多个起点，多个终点
+        DAGNode dagStart = null;
+        DAGNode dagEnd = null;
+        Map<String, DAGNode> dagNodes = new HashMap<>();
+        for (JobDto dto : dtos) {
+            Verifies.verify(!dagNodes.containsKey(dto.getJobId()), "exist same job id:" + dto.getJobId());
+            DAGNode dagNode = new DAGNode(dto.getJobId(), dto.getChildrenIds());
+            dagNodes.put(dagNode.getId(), dagNode);
+            if (JobNodeType.START.toString().equalsIgnoreCase(dto.getNodeType())) {
+                Verifies.isNull(dagStart, "DAG start node must be one");
+                dagStart = dagNode;
+            } else if (JobNodeType.END.toString().equalsIgnoreCase(dto.getNodeType())) {
+                Verifies.isNull(dagEnd, "DAG end node must be one");
+                dagEnd = dagNode;
+            }
+        }
+        Verifies.notNull(dagStart, "DAG start node must be one");
+        Verifies.notNull(dagEnd, "DAG end node must be one");
+
+        // 检测是否成环
+        Verifies.verify(!DAG.hasCyclic(dagStart, dagNodes), "there has cyclic in graph!");
+
+        // 封装对象
         for (JobDto dto : dtos) {
             list.add(convertToDo(dto));
         }
-        // todo 检测是否成环
         return list;
     }
 
-    public Job convertToDo(JobDto dto) {
+    private Job convertToDo(JobDto dto) {
         Job job = new Job();
         job.setJobId(dto.getJobId());
         job.setJobDesc(dto.getJobDesc());
-        job.setParentJobIds(dto.getParentJobIds());
+//       todo job.setChildrenIds(dto.getChildrenIds());
         job.setDispatchOption(convertToDo(dto.getDispatchOption()));
         job.setExecutorOption(convertToDo(dto.getExecutorOption()));
         return job;

@@ -17,6 +17,7 @@
 package org.limbo.flowjob.tracker.infrastructure.job.repositories;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
@@ -25,6 +26,9 @@ import org.limbo.flowjob.tracker.dao.po.JobInstancePO;
 import org.limbo.flowjob.tracker.infrastructure.job.converters.JobInstancePoConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Brozen
@@ -91,6 +95,30 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
                 .eq(JobInstancePO::getJobId, jobId)
         );
         return jobInstancePoConverter.reverse().convert(po);
+    }
+
+    /**
+     * {@inheritDoc}
+     * @param planId 作业ID
+     * @param planInstanceId 实例ID
+     * @param jobIds 作业ID
+     * @return
+     */
+    @Override
+    public List<JobInstance> getInstances(String planId, Long planInstanceId, List<String> jobIds) {
+        List<JobInstancePO> pos = jobInstanceMapper.selectList(Wrappers.<JobInstancePO>lambdaQuery()
+                .eq(JobInstancePO::getPlanId, planId)
+                .eq(JobInstancePO::getPlanInstanceId, planInstanceId)
+                .in(JobInstancePO::getJobId, jobIds)
+        );
+        List<JobInstance> dos = new ArrayList<>();
+        if (CollectionUtils.isEmpty(pos)) {
+            return dos;
+        }
+        for (JobInstancePO po : pos) {
+            dos.add(jobInstancePoConverter.reverse().convert(po));
+        }
+        return dos;
     }
 
     /**

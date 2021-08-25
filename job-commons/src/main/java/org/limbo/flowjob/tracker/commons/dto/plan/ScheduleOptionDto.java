@@ -1,6 +1,5 @@
 package org.limbo.flowjob.tracker.commons.dto.plan;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
@@ -57,4 +56,10 @@ public class ScheduleOptionDto {
      */
     @Schema(title = "作业调度的CRON表达式", description = "当调度方式为CRON时，根据此CRON表达式计算得到的时间点触发作业调度。")
     private String scheduleCron;
+
+    /**
+     * 重试次数
+     */
+    @Schema(title = "重试次数")
+    private Integer retry;
 }

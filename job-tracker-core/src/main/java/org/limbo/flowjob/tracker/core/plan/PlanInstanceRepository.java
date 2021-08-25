@@ -1,5 +1,7 @@
 package org.limbo.flowjob.tracker.core.plan;
 
+import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
+
 /**
  * @author Devil
  * @since 2021/7/24
@@ -15,10 +17,9 @@ public interface PlanInstanceRepository {
     }
 
     /**
-     * 更新实例
-     * @param instance 实例
+     * 实例结束
      */
-    default void updateInstance(PlanInstance instance) {
+    default void endInstance(String planId, Long planInstanceId, PlanScheduleStatus state) {
         throw new UnsupportedOperationException();
     }
 

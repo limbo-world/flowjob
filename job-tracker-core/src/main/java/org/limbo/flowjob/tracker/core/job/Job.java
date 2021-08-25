@@ -19,6 +19,7 @@ package org.limbo.flowjob.tracker.core.job;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobNodeType;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 
@@ -52,12 +53,12 @@ public class Job {
     /**
      * 此作业依赖的父作业ID
      */
-    private List<String> parentJobIds;
+    private List<Job> parents;
 
     /**
      * 后续节点
      */
-    private List<String> childrenJobIds;
+    private List<Job> children;
 
     /**
      * 作业分发配置参数
@@ -68,6 +69,11 @@ public class Job {
      * 作业执行器配置参数
      */
     private ExecutorOption executorOption;
+
+    /**
+     * todo 节点类型
+     */
+    private JobNodeType nodeType;
 
     /**
      * 生成新的作业实例

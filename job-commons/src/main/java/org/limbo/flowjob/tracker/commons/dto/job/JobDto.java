@@ -25,11 +25,14 @@ public class JobDto {
     @Schema(title = "作业描述")
     private String jobDesc;
 
+    @Schema(title = "节点类型")
+    private String nodeType;
+
     /**
-     * 此作业依赖的父作业ID
+     * 此作业相连的下级作业ID
      */
-    @Schema(title = "此作业依赖的父作业ID")
-    private List<String> parentJobIds;
+    @Schema(title = "此作业相连的下级作业ID")
+    private List<String> childrenIds;
 
     /**
      * 作业分发配置参数

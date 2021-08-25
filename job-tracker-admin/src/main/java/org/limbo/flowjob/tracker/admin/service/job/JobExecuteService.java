@@ -29,6 +29,7 @@ import org.limbo.flowjob.tracker.core.plan.PlanInstance;
 import org.limbo.flowjob.tracker.core.plan.PlanInstanceRepository;
 import org.limbo.flowjob.tracker.core.plan.PlanRepository;
 import org.limbo.flowjob.tracker.core.schedule.consumer.ClosedConsumer;
+import org.limbo.flowjob.tracker.core.storage.JobInstanceStorage;
 import org.limbo.flowjob.tracker.core.tracker.TrackerNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -54,6 +55,9 @@ public class JobExecuteService {
     @Autowired
     private PlanRepository planRepository;
 
+    @Autowired
+    private JobInstanceStorage jobInstanceStorage;
+
     /**
      * 处理任务执行反馈
      *
@@ -73,7 +77,7 @@ public class JobExecuteService {
 
                 // 订阅执行情况
                 jobInstance.onClosed().subscribe(new ClosedConsumer(jobInstanceRepository, planInstanceRepository,
-                        planRepository, trackerNode));
+                        planRepository, trackerNode, jobInstanceStorage));
 
                 // 变更状态
                 switch (result) {

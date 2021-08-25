@@ -1,6 +1,7 @@
 package org.limbo.flowjob.tracker.infrastructure.plan.repositories;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.tracker.core.plan.PlanInstance;
 import org.limbo.flowjob.tracker.core.plan.PlanInstanceRepository;
 import org.limbo.flowjob.tracker.dao.mybatis.PlanInstanceMapper;
@@ -8,6 +9,9 @@ import org.limbo.flowjob.tracker.dao.po.PlanInstancePO;
 import org.limbo.flowjob.tracker.infrastructure.plan.converters.PlanInstancePoConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * @author Devil
@@ -29,13 +33,13 @@ public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
     }
 
     @Override
-    public void updateInstance(PlanInstance instance) {
+    public void endInstance(String planId, Long planInstanceId, PlanScheduleStatus state) {
         planInstanceMapper.update(null, Wrappers.<PlanInstancePO>lambdaUpdate()
-                .set(PlanInstancePO::getPlanId, instance.getPlanId())
-                .set(instance.getState() != null, PlanInstancePO::getState, instance.getState().status)
-                .set(instance.getEndAt() != null, PlanInstancePO::getEndAt, instance.getEndAt())
-                .eq(PlanInstancePO::getPlanId, instance.getPlanId())
-                .eq(PlanInstancePO::getPlanInstanceId, instance.getPlanInstanceId())
+                .set(PlanInstancePO::getPlanId, planId)
+                .set(PlanInstancePO::getState, state)
+                .set(PlanInstancePO::getEndAt, LocalDateTime.now())
+                .eq(PlanInstancePO::getPlanId, planId)
+                .eq(PlanInstancePO::getPlanInstanceId, planInstanceId)
         );
     }
 
