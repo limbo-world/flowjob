@@ -35,6 +35,6 @@ public class WorkerExecutorRegisterDto {
 
     private String description;
 
-    private JobExecuteType executeType;
+    private JobExecuteType type;
 
 }

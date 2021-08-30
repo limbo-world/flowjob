@@ -83,8 +83,8 @@ public class MyBatisWorkerMetricRepo implements WorkerMetricRepository {
         if (CollectionUtils.isNotEmpty(executors)) {
             workerExecutorMapper.batchInsert(executors.stream()
                     .map(workerExecutor -> {
-                        if (StringUtils.isBlank(workerExecutor.getExecutorDesc())) {
-                            workerExecutor.setExecutorDesc(StringUtils.EMPTY);
+                        if (StringUtils.isBlank(workerExecutor.getDescription())) {
+                            workerExecutor.setDescription(StringUtils.EMPTY);
                         }
                         return workerExecutorPoConverter.convert(workerExecutor);
                     })

@@ -20,19 +20,19 @@
     <!-- 通用查询映射结果 -->
     <resultMap id="WorkerExecutorPO" type="org.limbo.flowjob.tracker.dao.po.WorkerExecutorPO">
         <id column="worker_id" property="workerId" />
-        <result column="executor_name" property="executorName" />
-        <result column="executor_desc" property="executorDesc" />
-        <result column="execute_type" property="executeType" />
+        <result column="name" property="name" />
+        <result column="description" property="description" />
+        <result column="type" property="type" />
         <result column="created_at" property="createdAt" />
         <result column="updated_at" property="updatedAt" />
     </resultMap>
 
     <insert id="batchInsert">
         INSERT INTO flowjob_worker_executor(
-            worker_id, executor_name, executor_desc, execute_type
+            worker_id, `name`, description, `type`
         ) VALUES
         <foreach collection="executors" item="exe" separator=",">
-            ( #{exe.workerId}, #{exe.executorName}, #{exe.executorDesc}, #{exe.executeType} )
+            ( #{exe.workerId}, #{exe.name}, #{exe.description}, #{exe.type} )
         </foreach>
     </insert>
 

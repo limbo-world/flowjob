@@ -36,5 +36,5 @@ public interface PlanInstanceRepository {
     /**
      * 创建ID
      */
-    Long createId(String planId);
+    Long createId(Plan plan);
 }

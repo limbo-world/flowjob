@@ -51,7 +51,7 @@ public class PlanInfoPOConverter extends Converter<Plan, PlanInfoPO> {
 
         po.setPlanId(plan.getPlanId());
         po.setVersion(plan.getVersion());
-        po.setPlanDesc(plan.getPlanDesc());
+        po.setDescription(plan.getDescription());
 
         ScheduleOption scheduleOption = plan.getScheduleOption();
         po.setScheduleType(scheduleOption.getScheduleType().type);
@@ -59,7 +59,7 @@ public class PlanInfoPOConverter extends Converter<Plan, PlanInfoPO> {
         po.setScheduleDelay(scheduleOption.getScheduleDelay().toMillis());
         po.setScheduleInterval(scheduleOption.getScheduleInterval().toMillis());
         po.setScheduleCron(scheduleOption.getScheduleCron());
-        po.setJobs(JacksonUtils.toJSONString(plan.getJobs()));
+        po.setJobs(JacksonUtils.toJSONString(plan.getDag().jobs()));
 
         return po;
     }
@@ -73,7 +73,7 @@ public class PlanInfoPOConverter extends Converter<Plan, PlanInfoPO> {
         return planBuilderFactory.newBuilder()
                 .planId(po.getPlanId())
                 .version(po.getVersion())
-                .planDesc(po.getPlanDesc())
+                .description(po.getDescription())
                 .scheduleOption(new ScheduleOption(
                         ScheduleType.parse(po.getScheduleType()),
                         po.getScheduleStartAt(),

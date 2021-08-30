@@ -2,6 +2,7 @@ package org.limbo.flowjob.tracker.infrastructure.plan.repositories;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
+import org.limbo.flowjob.tracker.core.plan.Plan;
 import org.limbo.flowjob.tracker.core.plan.PlanInstance;
 import org.limbo.flowjob.tracker.core.plan.PlanInstanceRepository;
 import org.limbo.flowjob.tracker.dao.mybatis.PlanInstanceMapper;
@@ -36,7 +37,7 @@ public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
     public void endInstance(String planId, Long planInstanceId, PlanScheduleStatus state) {
         planInstanceMapper.update(null, Wrappers.<PlanInstancePO>lambdaUpdate()
                 .set(PlanInstancePO::getPlanId, planId)
-                .set(PlanInstancePO::getState, state)
+                .set(PlanInstancePO::getState, state.status)
                 .set(PlanInstancePO::getEndAt, LocalDateTime.now())
                 .eq(PlanInstancePO::getPlanId, planId)
                 .eq(PlanInstancePO::getPlanInstanceId, planInstanceId)
@@ -52,8 +53,8 @@ public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
     }
 
     @Override
-    public Long createId(String planId) {
-        Long recentlyIdForUpdate = planInstanceMapper.getRecentlyIdForUpdate(planId);
+    public Long createId(Plan plan) {
+        Long recentlyIdForUpdate = planInstanceMapper.getRecentlyIdForUpdate(plan.getPlanId());
         return recentlyIdForUpdate == null ? 1L : recentlyIdForUpdate + 1;
     }
 

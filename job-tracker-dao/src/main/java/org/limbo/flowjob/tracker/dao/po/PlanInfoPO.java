@@ -53,7 +53,7 @@ public class PlanInfoPO extends PO {
     /**
      * 执行计划描述
      */
-    private String planDesc;
+    private String description;
 
     /**
      * 计划作业调度方式

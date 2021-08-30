@@ -34,7 +34,7 @@ public class JobInstancePoConverter extends Converter<JobInstance, JobInstancePO
     @Override
     protected JobInstance doBackward(JobInstancePO po) {
         Plan plan = planRepository.getPlan(po.getPlanId(), po.getVersion());
-        Job job = plan.getJob(po.getJobId());
+        Job job = plan.getDag().getJob(po.getJobId());
         return job.newInstance(po.getPlanId(), po.getPlanInstanceId(), po.getVersion(), JobScheduleStatus.parse(po.getState()));
     }
 

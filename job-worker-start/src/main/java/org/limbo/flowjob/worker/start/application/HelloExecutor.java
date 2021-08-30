@@ -8,17 +8,17 @@ import org.limbo.flowjob.worker.core.infrastructure.JobExecutor;
  * @author Devil
  * @since 2021/7/28
  */
-public class CountExecutor implements JobExecutor {
+public class HelloExecutor implements JobExecutor {
 
     @Override
     public String run(Job job) {
-        System.out.println("hello");
+        System.out.println("hello " + job.getId());
         return null;
     }
 
     @Override
     public String getName() {
-        return "count";
+        return "hello";
     }
 
     @Override

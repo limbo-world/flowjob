@@ -7,14 +7,12 @@ Content-Type: application/json
   "planDesc": "test",
   "scheduleOption": {
     "scheduleType": 1,
-    "scheduleDelay": 1,
-    "scheduleInterval": 3,
     "scheduleStartAt": "2021-07-26 16:15:00"
   },
   "jobs": [
     {
       "jobId": "1",
-      "jobDesc": "test",
+      "childrenIds": ["3"],
       "dispatchOption": {
         "dispatchType": 2
       },
@@ -22,26 +20,41 @@ Content-Type: application/json
         "name": "hello",
         "type": 1
       }
-    }
-  ]
-}
-
-### 替换 plan
-PUT http://{{host}}:{{port}}/api/admin/v1/plan/abcdef
-Content-Type: application/json
-
-{
-  "planDesc": "test",
-  "scheduleOption": {
-    "scheduleType": 3,
-    "scheduleDelay": 1,
-    "scheduleInterval": 3,
-    "scheduleStartAt": "2021-07-26 16:15:00"
-  },
-  "jobs": [
+    },
     {
-      "jobId": "1",
-      "jobDesc": "test",
+      "jobId": "2",
+      "childrenIds": ["3"],
+      "dispatchOption": {
+        "dispatchType": 2
+      },
+      "executorOption": {
+        "name": "hello",
+        "type": 1
+      }
+    },
+    {
+      "jobId": "3",
+      "childrenIds": ["4", 5],
+      "dispatchOption": {
+        "dispatchType": 2
+      },
+      "executorOption": {
+        "name": "hello",
+        "type": 1
+      }
+    },
+    {
+      "jobId": "4",
+      "dispatchOption": {
+        "dispatchType": 2
+      },
+      "executorOption": {
+        "name": "hello",
+        "type": 1
+      }
+    },
+    {
+      "jobId": "5",
       "dispatchOption": {
         "dispatchType": 2
       },

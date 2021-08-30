@@ -137,7 +137,7 @@ public class Worker {
             WorkerExecutorRegisterDto workerExecutorRegisterDto = new WorkerExecutorRegisterDto();
             workerExecutorRegisterDto.setName(executor.getName());
             workerExecutorRegisterDto.setDescription(executor.getDescription());
-            workerExecutorRegisterDto.setExecuteType(executor.getType());
+            workerExecutorRegisterDto.setType(executor.getType());
             workerExecutors.add(workerExecutorRegisterDto);
         }
         registerOptionDto.setJobExecutors(workerExecutors);

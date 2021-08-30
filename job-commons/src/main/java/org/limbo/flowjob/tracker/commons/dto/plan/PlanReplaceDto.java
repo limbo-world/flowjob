@@ -18,7 +18,7 @@ public class PlanReplaceDto {
      * 计划描述
      */
     @Schema(title = "计划描述")
-    private String planDesc;
+    private String description;
 
     /**
      * 作业计划调度配置参数

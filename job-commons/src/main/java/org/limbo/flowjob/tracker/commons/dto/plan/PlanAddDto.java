@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.limbo.flowjob.tracker.commons.dto.job.JobDto;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -12,7 +13,9 @@ import java.util.List;
  */
 @Data
 @Schema(title = "新增计划参数")
-public class PlanAddDto {
+public class PlanAddDto implements Serializable {
+
+    private static final long serialVersionUID = 3349688739542837391L;
 
     /**
      * 作业计划ID
@@ -24,7 +27,7 @@ public class PlanAddDto {
      * 计划描述
      */
     @Schema(title = "计划描述")
-    private String planDesc;
+    private String description;
 
     /**
      * 作业计划调度配置参数

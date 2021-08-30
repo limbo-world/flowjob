@@ -62,7 +62,8 @@ public class JobDispatchLauncher {
 
     /**
      * 配置并发launch
-     * @param concurrency 并发线程数
+     *
+     * @param concurrency   并发线程数
      * @param threadFactory 线程工厂
      * @return 链式调用
      */
@@ -91,7 +92,6 @@ public class JobDispatchLauncher {
 
         return this;
     }
-
 
 
     /**
@@ -131,8 +131,10 @@ public class JobDispatchLauncher {
 
         // 提交任务
         for (int i = 0; i < concurrency; i++) {
-            launchGroup.submit(LaunchTask::new);
+            launchGroup.submit(new LaunchTask()); // submit(LaunchTask::new); 会用 LaunchTask 的构造方法代替 call 方法 所以不执行run
         }
+
+        log.info("JobDispatchLauncher started");
     }
 
 
@@ -155,7 +157,6 @@ public class JobDispatchLauncher {
 
         @Override
         public void run() {
-            log.info("JobDispatchLauncher started");
             while (running.get()) {
                 try {
 

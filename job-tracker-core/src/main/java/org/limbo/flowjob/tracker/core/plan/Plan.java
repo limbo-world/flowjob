@@ -20,13 +20,12 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobNodeType;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.commons.utils.strategies.StrategyFactory;
 import org.limbo.flowjob.tracker.core.job.Job;
+import org.limbo.flowjob.tracker.core.job.JobDAG;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
 import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.tracker.core.schedule.executor.Executor;
@@ -34,7 +33,6 @@ import org.limbo.utils.UUIDUtils;
 import org.limbo.utils.verifies.Verifies;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -59,21 +57,16 @@ public class Plan implements Schedulable {
     private Integer version;
 
     /**
-     * 计划描述
+     * 描述
      */
-    private String planDesc;
+    private String description;
 
     /**
      * 作业计划调度配置参数
      */
     private ScheduleOption scheduleOption;
 
-    /**
-     * todo jobs为空的情况
-     */
-    private List<Job> jobs;
-
-    private Job startJob;
+    private JobDAG dag;
 
     private Instant lastScheduleAt;
 
@@ -147,61 +140,8 @@ public class Plan implements Schedulable {
         instance.setPlanInstanceId(planInstanceId);
         instance.setState(state);
         instance.setReschedule(reschedule);
-        instance.setJobs(jobs);
         instance.setStartAt(Instant.now());
         return instance;
-    }
-
-    /**
-     * 查询此plan下的job
-     * @param jobId 作业ID
-     * @return 作业领域
-     */
-    public Job getJob(String jobId) {
-        if (CollectionUtils.isEmpty(jobs)) {
-            return null;
-        }
-        for (Job job : jobs) {
-            if (job.getJobId().equals(jobId)) {
-                return job;
-            }
-        }
-        return null;
-    }
-
-    public Job getStartJob() {
-        if (startJob != null) {
-            return startJob;
-        }
-        for (Job job : jobs) {
-            if (JobNodeType.START == job.getNodeType()) {
-                startJob = job;
-                break;
-            }
-        }
-        return startJob;
-    }
-
-    /**
-     * 获取最先需要执行的job 因为 DAG 可能会有多个一起执行
-     * @return 最先执行的 job
-     */
-    public List<Job> getEarliestJobs() {
-        return getStartJob().getChildren();
-    }
-
-    /**
-     * 获取job后续的作业
-     */
-    public List<Job> getSubJobs(String jobId) {
-        return getJob(jobId).getChildren();
-    }
-
-    /**
-     * 获取job前置的作业
-     */
-    public List<Job> getPreJobs(String jobId) {
-        return getJob(jobId).getParents();
     }
 
 
@@ -222,7 +162,7 @@ public class Plan implements Schedulable {
 
         private Integer version;
 
-        private String planDesc;
+        private String description;
 
         private List<Job> jobs;
 
@@ -241,8 +181,8 @@ public class Plan implements Schedulable {
             return this;
         }
 
-        public Builder planDesc(String planDesc) {
-            this.planDesc = planDesc;
+        public Builder description(String description) {
+            this.description = description;
             return this;
         }
 
@@ -267,9 +207,9 @@ public class Plan implements Schedulable {
             Plan plan = new Plan(triggerCalculator, executor);
             plan.setPlanId(StringUtils.isNotBlank(planId) ? planId : UUIDUtils.randomID());
             plan.setVersion(version == null ? 1 : version);
-            plan.setPlanDesc(planDesc);
+            plan.setDescription(description);
             plan.setScheduleOption(scheduleOption);
-            plan.setJobs(jobs == null ? new ArrayList<>() : jobs);
+            plan.setDag(new JobDAG(jobs));
             return plan;
         }
 

@@ -3,7 +3,7 @@ package org.limbo.flowjob.tracker.commons.dto.job;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author Devil
@@ -23,16 +23,13 @@ public class JobDto {
      * 作业描述
      */
     @Schema(title = "作业描述")
-    private String jobDesc;
-
-    @Schema(title = "节点类型")
-    private String nodeType;
+    private String description;
 
     /**
      * 此作业相连的下级作业ID
      */
     @Schema(title = "此作业相连的下级作业ID")
-    private List<String> childrenIds;
+    private Set<String> childrenIds;
 
     /**
      * 作业分发配置参数

@@ -58,11 +58,6 @@ public class PlanInstance {
     private PlanScheduleStatus state;
 
     /**
-     * 此执行计划对应的所有作业
-     */
-    private List<Job> jobs;
-
-    /**
      * 是否需要重新调度 目前只有 FIXED_INTERVAL 类型在任务执行完成后才会需要重新调度
      */
     private boolean reschedule;

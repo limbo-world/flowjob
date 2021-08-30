@@ -39,16 +39,16 @@ public class WorkerExecutorPO extends PO {
     /**
      * 执行器名称
      */
-    private String executorName;
+    private String name;
 
     /**
      * 执行器描述信息
      */
-    private String executorDesc;
+    private String description;
 
     /**
      * 执行器类型
      */
-    private Byte executeType;
+    private Byte type;
 
 }

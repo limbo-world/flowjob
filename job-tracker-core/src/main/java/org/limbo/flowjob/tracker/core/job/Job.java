@@ -19,11 +19,21 @@ package org.limbo.flowjob.tracker.core.job;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobNodeType;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
+import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
+import org.limbo.flowjob.tracker.commons.utils.strategies.StrategyFactory;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
+import org.limbo.flowjob.tracker.core.plan.Plan;
+import org.limbo.flowjob.tracker.core.plan.ScheduleOption;
+import org.limbo.flowjob.tracker.core.schedule.Schedulable;
+import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
+import org.limbo.flowjob.tracker.core.schedule.executor.Executor;
+import org.limbo.utils.UUIDUtils;
+import org.limbo.utils.verifies.Verifies;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 作业的抽象。主要定义了作业领域的的行为方法，属性的访问操作在{@link Job}轻量级领域对象中。
@@ -48,17 +58,9 @@ public class Job {
     /**
      * 作业描述
      */
-    private String jobDesc;
+    private String description;
 
-    /**
-     * 此作业依赖的父作业ID
-     */
-    private List<Job> parents;
-
-    /**
-     * 后续节点
-     */
-    private List<Job> children;
+    private Set<String> childrenIds;
 
     /**
      * 作业分发配置参数
@@ -69,11 +71,6 @@ public class Job {
      * 作业执行器配置参数
      */
     private ExecutorOption executorOption;
-
-    /**
-     * todo 节点类型
-     */
-    private JobNodeType nodeType;
 
     /**
      * 生成新的作业实例

@@ -40,9 +40,9 @@ public class WorkerExecutorPoConverter extends Converter<WorkerExecutor, WorkerE
     protected WorkerExecutorPO doForward(@Nonnull WorkerExecutor vo) {
         WorkerExecutorPO po = new WorkerExecutorPO();
         po.setWorkerId(vo.getWorkerId());
-        po.setExecutorName(vo.getExecutorName());
-        po.setExecutorDesc(vo.getExecutorDesc());
-        po.setExecuteType(vo.getExecuteType().type);
+        po.setName(vo.getName());
+        po.setDescription(vo.getDescription());
+        po.setType(vo.getType().type);
         return po;
     }
 
@@ -56,9 +56,9 @@ public class WorkerExecutorPoConverter extends Converter<WorkerExecutor, WorkerE
     protected WorkerExecutor doBackward(@Nonnull WorkerExecutorPO po) {
         WorkerExecutor vo = new WorkerExecutor();
         vo.setWorkerId(po.getWorkerId());
-        vo.setExecutorName(po.getExecutorName());
-        vo.setExecutorDesc(po.getExecutorDesc());
-        vo.setExecuteType(JobExecuteType.parse(po.getExecuteType()));
+        vo.setName(po.getName());
+        vo.setDescription(po.getDescription());
+        vo.setType(JobExecuteType.parse(po.getType()));
         return vo;
     }
 }

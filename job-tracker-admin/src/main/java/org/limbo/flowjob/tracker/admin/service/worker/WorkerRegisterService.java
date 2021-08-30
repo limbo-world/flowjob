@@ -171,9 +171,9 @@ public class WorkerRegisterService {
      */
     private WorkerExecutor convertWorkerExecutor(WorkerExecutorRegisterDto dto) {
         WorkerExecutor executor = new WorkerExecutor();
-        executor.setExecutorName(dto.getName());
-        executor.setExecutorDesc(dto.getDescription());
-        executor.setExecuteType(dto.getExecuteType());
+        executor.setName(dto.getName());
+        executor.setDescription(dto.getDescription());
+        executor.setType(dto.getType());
         return executor;
     }
 

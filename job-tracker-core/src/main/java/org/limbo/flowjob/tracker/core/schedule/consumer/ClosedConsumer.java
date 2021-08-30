@@ -1,7 +1,7 @@
 package org.limbo.flowjob.tracker.core.schedule.consumer;
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobNodeType;
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
@@ -78,16 +78,11 @@ public class ClosedConsumer implements Consumer<JobInstance> {
     public void handlerSuccess(PlanInstance planInstance, JobInstance jobInstance) {
         Plan plan = planRepository.getPlan(planInstance.getPlanId(), planInstance.getVersion());
 
-        // 判断是否有后续节点，后续job是否能执行
-        List<Job> subJobs = plan.getSubJobs(jobInstance.getJobId());
-        for (Job job : subJobs) {
-            // 判断是否满足下发条件
-            if (!preCheckBeforeJobCreate(plan.getPlanId(), planInstance.getPlanInstanceId(), plan.getPreJobs(job.getJobId()))) {
-                continue;
-            }
-
-            if (JobNodeType.END == job.getNodeType()) {
-                // 如果是end节点 且end节点已经满足结束情况
+        List<Job> subJobs = plan.getDag().getSubJobs(jobInstance.getJobId());
+        if (CollectionUtils.isEmpty(subJobs)) {
+            // 无后续节点，需要判断是否plan结束
+            if (checkPreJobsFinished(plan.getPlanId(), planInstance.getPlanInstanceId(), plan.getDag().getFinalJobs())) {
+                // 结束plan
                 planInstanceRepository.endInstance(planInstance.getPlanId(), planInstance.getPlanInstanceId(), PlanScheduleStatus.SUCCEED);
 
                 // 判断 plan 是否需要 feedback 只有 FIXED_INTERVAL类型需要反馈，让任务在时间轮里面能重新下发，手动的和其他的都不需要
@@ -96,9 +91,13 @@ public class ClosedConsumer implements Consumer<JobInstance> {
                 if (ScheduleType.FIXED_INTERVAL == plan.getScheduleOption().getScheduleType() && planInstance.isReschedule()) {
                     trackerNode.jobTracker().schedule(plan);
                 }
-            } else {
-                // 不为end节点，继续下发
-                jobInstanceStorage.store(job.newInstance(plan.getPlanId(), planInstance.getPlanInstanceId(), plan.getVersion(), JobScheduleStatus.Scheduling));
+            }
+        } else {
+            // 不为end节点，继续下发
+            for (Job job : subJobs) {
+                if (checkPreJobsFinished(plan.getPlanId(), planInstance.getPlanInstanceId(), plan.getDag().getPreJobs(job.getJobId()))) {
+                    jobInstanceStorage.store(job.newInstance(plan.getPlanId(), planInstance.getPlanInstanceId(), plan.getVersion(), JobScheduleStatus.Scheduling));
+                }
             }
         }
 
@@ -121,17 +120,26 @@ public class ClosedConsumer implements Consumer<JobInstance> {
 
     }
 
-    public boolean preCheckBeforeJobCreate(String planId, Long planInstanceId, List<Job> preJobs) {
+    /**
+     * 判断前置节点是否完成
+     * @param planId
+     * @param planInstanceId
+     * @param preJobs
+     * @return
+     */
+    public boolean checkPreJobsFinished(String planId, Long planInstanceId, List<Job> preJobs) {
         // 获取db中 job实例
-        List<JobInstance> preInstances = jobInstanceRepository.getInstances(planId, planInstanceId,
+        List<JobInstance> finalInstances = jobInstanceRepository.getInstances(planId, planInstanceId,
                 preJobs.stream().map(Job::getJobId).collect(Collectors.toList()));
+
         // 有实例还未创建直接返回
-        if (preJobs.size() > preInstances.size()) {
+        if (preJobs.size() > finalInstances.size()) {
             return false;
         }
+
         // 判断是否所有实例都可以触发下个任务
-        for (JobInstance preInstance : preInstances) {
-            if (!preInstance.canTriggerNext()) {
+        for (JobInstance finalInstance : finalInstances) {
+            if (!finalInstance.canTriggerNext()) {
                 return false;
             }
         }
