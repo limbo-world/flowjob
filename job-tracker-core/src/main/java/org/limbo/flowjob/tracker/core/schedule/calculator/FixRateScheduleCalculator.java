@@ -18,13 +18,13 @@ package org.limbo.flowjob.tracker.core.schedule.calculator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
+import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
 import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
 import org.limbo.flowjob.tracker.core.plan.ScheduleOption;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
 import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
 
 import java.time.Duration;
-import java.time.Instant;
 
 /**
  * 固定速度作业调度时间计算器
@@ -49,7 +49,7 @@ public class FixRateScheduleCalculator extends ScheduleCalculator implements Str
     public Long apply(Schedulable schedulable) {
 
         ScheduleOption scheduleOption = schedulable.getScheduleOption();
-        long now = Instant.now().getEpochSecond();
+        long now = TimeUtil.nowInstant().getEpochSecond();
         long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
 
         // 计算第一次调度

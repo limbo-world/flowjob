@@ -17,12 +17,12 @@
 package org.limbo.flowjob.tracker.core.schedule;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
+import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
 import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
 import org.limbo.flowjob.tracker.core.plan.ScheduleOption;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 /**
  * 调度时间计算策略，用于计算下次触发调度时间戳
@@ -79,7 +79,7 @@ public abstract class ScheduleCalculator implements Strategy<Schedulable, Long> 
     protected long calculateStartScheduleTimestamp(ScheduleOption scheduleOption) {
         LocalDateTime startAt = scheduleOption.getScheduleStartAt();
         Duration delay = scheduleOption.getScheduleDelay();
-        long startScheduleAt = startAt.toEpochSecond(ZoneOffset.UTC);
+        long startScheduleAt = startAt.toEpochSecond(TimeUtil.zoneOffset());
         return delay != null ? startScheduleAt + delay.toMillis() : startScheduleAt;
     }
 

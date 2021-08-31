@@ -34,11 +34,11 @@ public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
     }
 
     @Override
-    public void endInstance(String planId, Long planInstanceId, PlanScheduleStatus state) {
+    public void endInstance(String planId, Long planInstanceId, LocalDateTime endTime, PlanScheduleStatus state) {
         planInstanceMapper.update(null, Wrappers.<PlanInstancePO>lambdaUpdate()
                 .set(PlanInstancePO::getPlanId, planId)
                 .set(PlanInstancePO::getState, state.status)
-                .set(PlanInstancePO::getEndAt, LocalDateTime.now())
+                .set(PlanInstancePO::getEndAt, endTime)
                 .eq(PlanInstancePO::getPlanId, planId)
                 .eq(PlanInstancePO::getPlanInstanceId, planInstanceId)
         );

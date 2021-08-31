@@ -23,6 +23,7 @@ import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
+import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
 import org.limbo.flowjob.tracker.commons.utils.strategies.StrategyFactory;
 import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.job.JobDAG;
@@ -124,7 +125,7 @@ public class Plan implements Schedulable {
         // 执行调度
         executor.execute(this);
         // 此次任务的调度时间
-        lastScheduleAt = Instant.now();
+        lastScheduleAt = TimeUtil.nowInstant();
         // 此次任务调度了还没反馈 所以反馈时间为空
         lastFeedBackAt = null;
     }
@@ -140,7 +141,7 @@ public class Plan implements Schedulable {
         instance.setPlanInstanceId(planInstanceId);
         instance.setState(state);
         instance.setReschedule(reschedule);
-        instance.setStartAt(Instant.now());
+        instance.setStartAt(TimeUtil.nowInstant());
         return instance;
     }
 

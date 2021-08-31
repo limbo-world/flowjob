@@ -18,6 +18,7 @@ package org.limbo.flowjob.tracker.core.schedule.calculator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
+import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
 import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
 import org.limbo.flowjob.tracker.core.plan.ScheduleOption;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
@@ -49,7 +50,7 @@ public class FixIntervalScheduleCalculator extends ScheduleCalculator implements
     public Long apply(Schedulable schedulable) {
 
         ScheduleOption scheduleOption = schedulable.getScheduleOption();
-        long now = Instant.now().getEpochSecond();
+        long now = TimeUtil.nowInstant().getEpochSecond();
         long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
 
         // 计算第一次调度

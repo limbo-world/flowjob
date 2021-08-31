@@ -5,6 +5,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
+import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
 import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
@@ -16,6 +17,7 @@ import org.limbo.flowjob.tracker.core.plan.PlanRepository;
 import org.limbo.flowjob.tracker.core.storage.JobInstanceStorage;
 import org.limbo.flowjob.tracker.core.tracker.TrackerNode;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -82,12 +84,13 @@ public class ClosedConsumer implements Consumer<JobInstance> {
         if (CollectionUtils.isEmpty(subJobs)) {
             // 无后续节点，需要判断是否plan结束
             if (checkPreJobsFinished(plan.getPlanId(), planInstance.getPlanInstanceId(), plan.getDag().getFinalJobs())) {
+                LocalDateTime endTime = TimeUtil.nowLocalDateTime();
                 // 结束plan
-                planInstanceRepository.endInstance(planInstance.getPlanId(), planInstance.getPlanInstanceId(), PlanScheduleStatus.SUCCEED);
+                planInstanceRepository.endInstance(planInstance.getPlanId(), planInstance.getPlanInstanceId(), endTime, PlanScheduleStatus.SUCCEED);
 
                 // 判断 plan 是否需要 feedback 只有 FIXED_INTERVAL类型需要反馈，让任务在时间轮里面能重新下发，手动的和其他的都不需要
                 plan.setLastScheduleAt(planInstance.getStartAt());
-                plan.setLastFeedBackAt(planInstance.getEndAt());
+                plan.setLastFeedBackAt(TimeUtil.toInstant(endTime));
                 if (ScheduleType.FIXED_INTERVAL == plan.getScheduleOption().getScheduleType() && planInstance.isReschedule()) {
                     trackerNode.jobTracker().schedule(plan);
                 }
@@ -113,7 +116,8 @@ public class ClosedConsumer implements Consumer<JobInstance> {
             // todo 判断是否超过重试 超过则结束plan 否则重试
             // todo 重试应该考虑 是否worker能跑同参数的相同任务
 
-            planInstanceRepository.endInstance(planInstance.getPlanId(), planInstance.getPlanInstanceId(), PlanScheduleStatus.SUCCEED);
+            planInstanceRepository.endInstance(planInstance.getPlanId(), planInstance.getPlanInstanceId(),
+                    TimeUtil.nowLocalDateTime(), PlanScheduleStatus.FAILED);
         } else {
             handlerSuccess(planInstance, jobInstance);
         }

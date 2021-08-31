@@ -26,6 +26,7 @@ import org.limbo.flowjob.tracker.commons.dto.job.JobInstanceDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.commons.exceptions.WorkerException;
+import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetricRepository;
@@ -35,8 +36,6 @@ import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufFlux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
-
-import java.time.LocalDateTime;
 
 /**
  * @author Brozen
@@ -129,7 +128,7 @@ public class HttpWorker extends Worker {
                     // todo 如果worker接受作业，则更新下发时间
                     if (result.getAccepted()) {
                         // FIXME 此处是transaction script写法了，要不要改成update全部数据？
-                        getStatisticsRepository().updateWorkerDispatchTimes(getWorkerId(), LocalDateTime.now());
+                        getStatisticsRepository().updateWorkerDispatchTimes(getWorkerId(), TimeUtil.nowLocalDateTime());
                     }
                 });
     }

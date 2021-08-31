@@ -30,20 +30,6 @@ import java.util.Map;
  */
 public class JacksonPropertySharpTest {
 
-
-    /*public static void main(String[] args) {
-        ScheduleOptionDto dto = new ScheduleOptionDto();
-        dto.setScheduleDelay(Duration.ofMinutes(10));
-        dto.setScheduleStartAt(LocalDateTime.now());
-        System.out.println(JacksonUtils.toJSONString(dto));
-
-        ScheduleOption opt = JacksonUtils.parseObject(JacksonUtils.toJSONString(dto), ScheduleOption.class);
-        System.out.println(opt);
-        System.out.println(JacksonUtils.toJSONString(opt));
-    }*/
-
-
-
     public static void main(String[] args) {
         Map<String, Object> map = new HashMap<>();
         map.put("type", DispatchType.APPOINT);

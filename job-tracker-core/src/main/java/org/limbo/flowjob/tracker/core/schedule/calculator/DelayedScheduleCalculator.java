@@ -17,11 +17,10 @@
 package org.limbo.flowjob.tracker.core.schedule.calculator;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
+import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
 import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
 import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
-
-import java.time.Instant;
 
 /**
  * 固定延迟作业调度时间计算器
@@ -51,7 +50,7 @@ public class DelayedScheduleCalculator extends ScheduleCalculator implements Str
 
         // 从创建时间开始，间隔固定delay调度
         long startScheduleAt = calculateStartScheduleTimestamp(schedulable.getScheduleOption());
-        long now = Instant.now().getEpochSecond();
+        long now = TimeUtil.nowInstant().getEpochSecond();
         return Math.max(startScheduleAt, now);
     }
 

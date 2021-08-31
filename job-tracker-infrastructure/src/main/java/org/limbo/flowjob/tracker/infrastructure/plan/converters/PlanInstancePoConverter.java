@@ -18,12 +18,10 @@ package org.limbo.flowjob.tracker.infrastructure.plan.converters;
 
 import com.google.common.base.Converter;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
+import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
 import org.limbo.flowjob.tracker.core.plan.PlanInstance;
 import org.limbo.flowjob.tracker.dao.po.PlanInstancePO;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 /**
  * @author Devil
@@ -43,8 +41,8 @@ public class PlanInstancePoConverter extends Converter<PlanInstance, PlanInstanc
         po.setVersion(planInstance.getVersion());
         po.setState(planInstance.getState().status);
         po.setReschedule(planInstance.isReschedule());
-        po.setStartAt(planInstance.getStartAt() == null ? null : LocalDateTime.ofInstant(planInstance.getStartAt(), ZoneOffset.UTC));
-        po.setEndAt(planInstance.getEndAt() == null ? null : LocalDateTime.ofInstant(planInstance.getEndAt(), ZoneOffset.UTC));
+        po.setStartAt(planInstance.getStartAt() == null ? null : TimeUtil.toLocalDateTime(planInstance.getStartAt()));
+        po.setEndAt(planInstance.getEndAt() == null ? null : TimeUtil.toLocalDateTime(planInstance.getStartAt()));
         return po;
     }
 
@@ -60,8 +58,8 @@ public class PlanInstancePoConverter extends Converter<PlanInstance, PlanInstanc
         planInstance.setVersion(po.getVersion());
         planInstance.setState(PlanScheduleStatus.parse(po.getState()));
         planInstance.setReschedule(po.getReschedule());
-        planInstance.setStartAt(po.getStartAt() == null ? null : po.getStartAt().toInstant(ZoneOffset.UTC));
-        planInstance.setEndAt(po.getEndAt() == null ? null : po.getEndAt().toInstant(ZoneOffset.UTC));
+        planInstance.setStartAt(po.getStartAt() == null ? null : TimeUtil.toInstant(po.getStartAt()));
+        planInstance.setEndAt(po.getEndAt() == null ? null : TimeUtil.toInstant(po.getEndAt()));
         return planInstance;
     }
 
