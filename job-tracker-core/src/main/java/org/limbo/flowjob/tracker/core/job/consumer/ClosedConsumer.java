@@ -82,7 +82,7 @@ public class ClosedConsumer implements Consumer<Task> {
     }
 
     public void handlerNormalTaskSuccess(Task task) {
-        // 判断是否所有 task 成功
+        // 判断是否所有 task 执行过
         if (taskRepository.unclosedTaskCount(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), task.getJobId(), task.getJobInstanceId()) > 0) {
             return;
         }
