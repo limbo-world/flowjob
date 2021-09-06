@@ -27,7 +27,7 @@ import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.commons.exceptions.WorkerException;
 import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
-import org.limbo.flowjob.tracker.core.job.context.JobInstance;
+import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatisticsRepository;
@@ -113,7 +113,7 @@ public class HttpWorker extends Worker {
      * @return
      * @throws JobWorkerException
      */
-    public Mono<JobReceiveResult> sendJob(JobInstance instance) throws JobWorkerException {
+    public Mono<JobReceiveResult> sendJob(Task instance) throws JobWorkerException {
         // 生成 dto
         JobInstanceDto dto = convertToDto(instance);
         return Mono.from(client
@@ -142,7 +142,7 @@ public class HttpWorker extends Worker {
         updateWorker();
     }
 
-    private JobInstanceDto convertToDto(JobInstance instance) {
+    private JobInstanceDto convertToDto(Task instance) {
         JobInstanceDto dto = new JobInstanceDto();
         dto.setPlanId(instance.getPlanId());
         dto.setPlanInstanceId(instance.getPlanInstanceId());

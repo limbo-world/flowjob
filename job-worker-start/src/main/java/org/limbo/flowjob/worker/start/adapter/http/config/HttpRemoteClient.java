@@ -85,7 +85,7 @@ public class HttpRemoteClient extends AbstractRemoteClient {
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(dto));
 
         Request request = new Request.Builder()
-                .url(baseUrl + "/api/worker/v1/job/execute/feedback")
+                .url(baseUrl + "/api/worker/v1/task/feedback")
                 .header("Content-Type", "application/json")
                 .post(body)
                 .build();

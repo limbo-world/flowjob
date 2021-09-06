@@ -18,7 +18,7 @@ package org.limbo.flowjob.worker.core.infrastructure;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobExecuteResult;
+import org.limbo.flowjob.tracker.commons.constants.enums.ExecuteResult;
 import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFeedbackDto;
 import org.limbo.flowjob.worker.core.domain.Job;
 
@@ -55,13 +55,13 @@ public class JobExecutorRunner {
                 dto.setJobId(job.getJobId());
                 try {
                     dto.setParams(executor.run(job));
-                    dto.setResult(JobExecuteResult.SUCCEED);
+                    dto.setResult(ExecuteResult.SUCCEED);
                 } catch (Exception e) {
                     log.error("job run error", e);
                     dto.setErrorStackTrace(ExceptionUtils.getStackTrace(e));
-                    dto.setResult(JobExecuteResult.FAILED);
+                    dto.setResult(ExecuteResult.FAILED);
                 } finally {
-                    // 返回结果
+                    // 返回结果 todo 超时等情况，需要重试
                     remoteClient.jobExecuted(dto);
                     // 最终都要移除任务
                     jobManager.remove(job.getId());

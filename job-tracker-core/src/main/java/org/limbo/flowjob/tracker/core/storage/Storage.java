@@ -1,7 +1,5 @@
 package org.limbo.flowjob.tracker.core.storage;
 
-import org.limbo.flowjob.tracker.core.job.context.JobInstance;
-
 /**
  * 作业贮藏所
  *
@@ -19,18 +17,16 @@ import org.limbo.flowjob.tracker.core.job.context.JobInstance;
  * @author Devil
  * @since 2021/7/24
  */
-public interface JobInstanceStorage {
+public interface Storage {
 
     /**
-     * 存储一个 job 实例
-     * @param instance 实例
+     * 存储一个对象
      */
-    void store(JobInstance instance);
+    void store(Storable storable);
 
     /**
-     * 取走一个 job 实例
-     * @return 实例
+     * 取走一个对象
      */
-    JobInstance take();
+    Storable take();
 
 }

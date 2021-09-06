@@ -127,7 +127,7 @@ public class PlanService {
         if (dto == null) {
             return null;
         }
-        return new DispatchOption(dto.getDispatchType(), dto.getCpuRequirement(), dto.getRamRequirement());
+        return new DispatchOption(dto.getLoadBalanceType(), dto.getCpuRequirement(), dto.getRamRequirement());
     }
 
     private ExecutorOption convertToDo(ExecutorOptionDto dto) {

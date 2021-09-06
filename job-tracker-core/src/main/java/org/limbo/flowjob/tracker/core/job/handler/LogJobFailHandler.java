@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class LogJobFailHandler implements JobFailHandler {
     @Override
-    public void execute() {
+    public void handle() {
 
     }
 

@@ -30,6 +30,7 @@ import org.limbo.flowjob.tracker.core.job.JobDAG;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
 import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.tracker.core.schedule.executor.Executor;
+import org.limbo.flowjob.tracker.core.storage.Storable;
 import org.limbo.utils.UUIDUtils;
 import org.limbo.utils.verifies.Verifies;
 
@@ -45,7 +46,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class Plan implements Schedulable {
+public class Plan implements Schedulable, Storable {
 
     /**
      * 作业计划ID
@@ -96,6 +97,7 @@ public class Plan implements Schedulable {
      * 计算作业下一次被触发时的时间戳。如果作业不会被触发，返回0或负数；
      * @return 作业下一次被触发时的时间戳，从1970-01-01 00:00:00到触发时刻的毫秒数。
      */
+    @Override
     public long nextTriggerAt() {
         return triggerCalculator.apply(this);
     }
@@ -130,19 +132,16 @@ public class Plan implements Schedulable {
         lastFeedBackAt = null;
     }
 
-    /**
-     * 生成新的计划实例
-     * @return 实例
-     */
-    public PlanInstance newInstance(Long planInstanceId, PlanScheduleStatus state, boolean reschedule) {
-        PlanInstance instance = new PlanInstance();
-        instance.setPlanId(planId);
-        instance.setVersion(version);
-        instance.setPlanInstanceId(planInstanceId);
-        instance.setState(state);
-        instance.setReschedule(reschedule);
-        instance.setStartAt(TimeUtil.nowInstant());
-        return instance;
+    public PlanRecord newRecord(Long recordId, PlanScheduleStatus state, boolean reschedule) {
+        PlanRecord record = new PlanRecord();
+        record.setPlanId(planId);
+        record.setVersion(version);
+        record.setPlanRecordId(recordId);
+        record.setDag(dag);
+        record.setState(state);
+        record.setReschedule(reschedule);
+        record.setStartAt(TimeUtil.nowInstant());
+        return record;
     }
 
 

@@ -16,7 +16,7 @@ Content-Type: application/json
       "jobId": "1",
       "jobDesc": "test",
       "dispatchOption": {
-        "dispatchType": 2
+        "loadBalanceType": 2
       },
       "executorOption": {
         "name": "hello",
@@ -43,7 +43,7 @@ Content-Type: application/json
       "jobId": "1",
       "jobDesc": "test",
       "dispatchOption": {
-        "dispatchType": 2
+        "loadBalanceType": 2
       },
       "executorOption": {
         "name": "hello",

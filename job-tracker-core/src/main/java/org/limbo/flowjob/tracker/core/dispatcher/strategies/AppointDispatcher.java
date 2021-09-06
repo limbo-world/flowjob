@@ -16,35 +16,28 @@
 
 package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
-import org.limbo.flowjob.tracker.commons.constants.enums.DispatchType;
-import org.limbo.flowjob.tracker.core.job.context.JobInstance;
+import org.limbo.flowjob.tracker.commons.constants.enums.LoadBalanceType;
+import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
 import java.util.Collection;
-import java.util.function.BiConsumer;
 
 /**
- * 作业分发器，封装了作业分发时的worker选择规则{@link DispatchType}：
- * <ul>
- *     <li>{@link DispatchType#ROUND_ROBIN}</li>
- *     <li>{@link DispatchType#RANDOM}</li>
- *     <li>{@link DispatchType#APPOINT}</li>
- *     <li>{@link DispatchType#LEAST_FREQUENTLY_USED}</li>
- *     <li>{@link DispatchType#LEAST_RECENTLY_USED}</li>
- *     <li>{@link DispatchType#CONSISTENT_HASH}</li>
- * </ul>
- *
  * @author Brozen
- * @since 2021-05-14
+ * @since 2021-05-27
+ * @see LoadBalanceType#APPOINT
  */
-public interface JobDispatcher {
+public class AppointDispatcher extends AbstractDispatcher implements Dispatcher {
 
     /**
-     * 选择作业上下文应当下发给的worker。
+     * {@inheritDoc}
      * @param context 待下发的作业上下文
      * @param workers 待下发上下文可用的worker
-     * @param callback 选择worker后执行的回调
+     * @return
      */
-    void dispatch(JobInstance context, Collection<Worker> workers, BiConsumer<JobInstance, Worker> callback);
-
+    @Override
+    protected Worker selectWorker(Task context, Collection<Worker> workers) {
+        // TODO
+        return null;
+    }
 }

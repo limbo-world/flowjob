@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * @author Brozen
  * @since 2021-07-07
  */
-public enum JobExecuteResult {
+public enum ExecuteResult {
 
 
     SUCCEED(1, "执行成功"),
@@ -47,11 +47,11 @@ public enum JobExecuteResult {
      */
     public final String desc;
 
-    JobExecuteResult(int result, String desc) {
+    ExecuteResult(int result, String desc) {
         this(((byte) result), desc);
     }
 
-    JobExecuteResult(byte result, String desc) {
+    ExecuteResult(byte result, String desc) {
         this.result = result;
         this.desc = desc;
     }
@@ -72,8 +72,8 @@ public enum JobExecuteResult {
      * @return 解析失败返回null
      */
     @JsonCreator
-    public static JobExecuteResult parse(Number result) {
-        for (JobExecuteResult _result : values()) {
+    public static ExecuteResult parse(Number result) {
+        for (ExecuteResult _result : values()) {
             if (_result.is(result)) {
                 return _result;
             }

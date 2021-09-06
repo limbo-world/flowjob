@@ -21,6 +21,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.tracker.core.job.Job;
+import org.limbo.flowjob.tracker.core.job.JobDAG;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -43,24 +44,18 @@ public class PlanInstance {
     private String planId;
 
     /**
-     * 计划的版本
+     * 从 1 开始增加 planId + planInstanceId 全局唯一
      */
-    private Integer version;
+    private Long planRecordId;
 
-    /**
-     * 从 1 开始增加 planId + version + planInstanceId 全局唯一
-     */
     private Long planInstanceId;
+
+    private JobDAG dag;
 
     /**
      * 状态
      */
     private PlanScheduleStatus state;
-
-    /**
-     * 是否需要重新调度 目前只有 FIXED_INTERVAL 类型在任务执行完成后才会需要重新调度
-     */
-    private boolean reschedule;
 
     /**
      * 开始时间

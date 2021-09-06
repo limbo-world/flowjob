@@ -39,6 +39,7 @@ public class PlanInstancePoConverter extends Converter<PlanInstance, PlanInstanc
         po.setPlanId(planInstance.getPlanId());
         po.setPlanInstanceId(planInstance.getPlanInstanceId());
         po.setVersion(planInstance.getVersion());
+        po.setRetry(planInstance.getRetry());
         po.setState(planInstance.getState().status);
         po.setReschedule(planInstance.isReschedule());
         po.setStartAt(planInstance.getStartAt() == null ? null : TimeUtil.toLocalDateTime(planInstance.getStartAt()));
@@ -56,6 +57,7 @@ public class PlanInstancePoConverter extends Converter<PlanInstance, PlanInstanc
         planInstance.setPlanId(po.getPlanId());
         planInstance.setPlanInstanceId(po.getPlanInstanceId());
         planInstance.setVersion(po.getVersion());
+        po.setRetry(planInstance.getRetry());
         planInstance.setState(PlanScheduleStatus.parse(po.getState()));
         planInstance.setReschedule(po.getReschedule());
         planInstance.setStartAt(po.getStartAt() == null ? null : TimeUtil.toInstant(po.getStartAt()));

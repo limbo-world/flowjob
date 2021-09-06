@@ -18,17 +18,19 @@ package org.limbo.flowjob.tracker.admin.adapter.config;
 
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.TrackerModes;
-import org.limbo.flowjob.tracker.core.dispatcher.JobDispatchLauncher;
+import org.limbo.flowjob.tracker.core.dispatcher.DispatchLauncher;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
+import org.limbo.flowjob.tracker.core.job.context.JobRecordRepository;
 import org.limbo.flowjob.tracker.core.plan.PlanBuilderFactory;
 import org.limbo.flowjob.tracker.core.plan.PlanExecutor;
 import org.limbo.flowjob.tracker.core.plan.PlanInstanceRepository;
+import org.limbo.flowjob.tracker.core.plan.PlanRecordRepository;
 import org.limbo.flowjob.tracker.core.raft.ElectionNodeOptions;
 import org.limbo.flowjob.tracker.core.schedule.calculator.ScheduleCalculatorFactory;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.HashedWheelTimerScheduler;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.Scheduler;
-import org.limbo.flowjob.tracker.core.storage.JobInstanceStorage;
-import org.limbo.flowjob.tracker.core.storage.MemoryJobInstanceStorage;
+import org.limbo.flowjob.tracker.core.storage.MemoryStorage;
+import org.limbo.flowjob.tracker.core.storage.Storage;
 import org.limbo.flowjob.tracker.core.tracker.JobTrackerFactory;
 import org.limbo.flowjob.tracker.core.tracker.TrackerNode;
 import org.limbo.flowjob.tracker.core.tracker.WorkerManager;
@@ -100,9 +102,9 @@ public class TrackerConfiguration {
      */
     @Bean
     public JobTrackerFactory jobTrackerFactory(Scheduler scheduler,
-                                               JobInstanceStorage jobInstanceStorage,
-                                               JobDispatchLauncher jobDispatchLauncher) {
-        return new JobTrackerFactory(jobInstanceStorage, scheduler, jobDispatchLauncher);
+                                               Storage storage,
+                                               DispatchLauncher dispatchLauncher) {
+        return new JobTrackerFactory(storage, scheduler, dispatchLauncher);
     }
 
 
@@ -119,10 +121,13 @@ public class TrackerConfiguration {
      * 异步进行任务下发的launcher
      */
     @Bean
-    public JobDispatchLauncher jobDispatchLauncher(JobInstanceStorage jobInstanceStorage,
-                                                   WorkerManager workerManager,
-                                                   JobInstanceRepository jobInstanceRepository) {
-        return new JobDispatchLauncher(workerManager, jobInstanceStorage, jobInstanceRepository);
+    public DispatchLauncher jobDispatchLauncher(Storage storage,
+                                                WorkerManager workerManager,
+                                                PlanRecordRepository planRecordRepository,
+                                                PlanInstanceRepository planInstanceRepository,
+                                                JobRecordRepository jobRecordRepository,
+                                                JobInstanceRepository jobInstanceRepository) {
+        return new DispatchLauncher(workerManager, storage, planRecordRepository, planInstanceRepository, jobRecordRepository, jobInstanceRepository);
     }
 
 
@@ -139,9 +144,9 @@ public class TrackerConfiguration {
      * job 存储
      */
     @Bean
-    @ConditionalOnMissingBean(JobInstanceStorage.class)
-    public JobInstanceStorage jobStorage() {
-        return new MemoryJobInstanceStorage();
+    @ConditionalOnMissingBean(Storage.class)
+    public Storage jobStorage() {
+        return new MemoryStorage();
     }
 
     /**
@@ -149,11 +154,10 @@ public class TrackerConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(PlanBuilderFactory.class)
-    public PlanBuilderFactory planFactory(PlanInstanceRepository planInstanceRepository,
-                                          JobInstanceStorage jobInstanceStorage) {
+    public PlanBuilderFactory planFactory(Storage storage) {
         return new PlanBuilderFactory(
                 new ScheduleCalculatorFactory(),
-                new PlanExecutor(planInstanceRepository, jobInstanceStorage)
+                new PlanExecutor(storage)
         );
     }
 

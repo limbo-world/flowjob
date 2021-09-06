@@ -6,7 +6,7 @@ package org.limbo.flowjob.tracker.core.job.handler;
  */
 public class TerminateJobFailHandler implements JobFailHandler {
     @Override
-    public void execute() {
+    public void handle() {
     }
 
     @Override

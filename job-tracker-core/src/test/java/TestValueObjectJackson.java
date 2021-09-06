@@ -18,10 +18,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.core.job.context.JobAttributes;
-import org.limbo.flowjob.tracker.core.job.context.JobInstance;
+import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.utils.JacksonUtils;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -55,7 +54,7 @@ public class TestValueObjectJackson {
 
     @Test
     public void testJobContext() {
-        JobInstance JobContext = new JobInstance();
+        Task JobContext = new Task();
         JobContext.setJobId("job1");
         JobContext.setState(JobScheduleStatus.Scheduling);
         JobContext.setWorkerId("");
@@ -64,7 +63,7 @@ public class TestValueObjectJackson {
         String json = JacksonUtils.toJSONString(JobContext);
         System.out.println("Serialized ==>" + json);
 
-        JobInstance jobContext1 = JacksonUtils.parseObject(json, JobInstance.class);
+        Task jobContext1 = JacksonUtils.parseObject(json, Task.class);
         System.out.println("Deserialized ==> " + jobContext1);
 
     }

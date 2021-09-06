@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 import java.time.LocalDateTime;
 
 /**
- * 计划实例
+ * plan执行实例
  *
  * @author Devil
  * @since 2021/7/24
@@ -31,23 +31,14 @@ public class PlanInstancePO extends PO {
     /**
      * 从 1 开始增加 planId + planInstanceId 全局唯一
      */
+    private Long planRecordId;
+
     private Long planInstanceId;
-
-    /**
-     * 计划的版本
-     */
-    private Integer version;
-
 
     /**
      * 状态
      */
     private Byte state;
-
-    /**
-     * 是否需要重新调度 目前只有 FIXED_INTERVAL 类型在任务执行完成后才会需要重新调度
-     */
-    private Boolean reschedule;
 
     /**
      * 开始时间

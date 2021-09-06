@@ -18,18 +18,15 @@ package org.limbo.flowjob.tracker.admin.service.job;
 
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.tracker.commons.constants.WorkerHeaders;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobExecuteResult;
-import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
+import org.limbo.flowjob.tracker.commons.constants.enums.ExecuteResult;
 import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFeedbackDto;
 import org.limbo.flowjob.tracker.commons.utils.Symbol;
-import org.limbo.flowjob.tracker.core.job.context.JobInstance;
-import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
-import org.limbo.flowjob.tracker.core.plan.Plan;
-import org.limbo.flowjob.tracker.core.plan.PlanInstance;
+import org.limbo.flowjob.tracker.core.job.context.Task;
+import org.limbo.flowjob.tracker.core.job.context.TaskRepository;
 import org.limbo.flowjob.tracker.core.plan.PlanInstanceRepository;
 import org.limbo.flowjob.tracker.core.plan.PlanRepository;
-import org.limbo.flowjob.tracker.core.schedule.consumer.ClosedConsumer;
-import org.limbo.flowjob.tracker.core.storage.JobInstanceStorage;
+import org.limbo.flowjob.tracker.core.job.consumer.ClosedConsumer;
+import org.limbo.flowjob.tracker.core.storage.Storage;
 import org.limbo.flowjob.tracker.core.tracker.TrackerNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,7 +44,7 @@ public class JobExecuteService {
     private TrackerNode trackerNode;
 
     @Autowired
-    private JobInstanceRepository jobInstanceRepository;
+    private TaskRepository taskRepository;
 
     @Autowired
     private PlanInstanceRepository planInstanceRepository;
@@ -56,7 +53,7 @@ public class JobExecuteService {
     private PlanRepository planRepository;
 
     @Autowired
-    private JobInstanceStorage jobInstanceStorage;
+    private Storage storage;
 
     /**
      * 处理任务执行反馈
@@ -72,21 +69,22 @@ public class JobExecuteService {
             return feedbackMono.map(fb -> {
 
                 // 获取实例
-                JobInstance jobInstance = jobInstanceRepository.getInstance(fb.getPlanId(), fb.getPlanInstanceId(), fb.getJobId());
-                JobExecuteResult result = fb.getResult();
+                Task task = taskRepository.get(fb.getPlanId(), fb.getPlanRecordId(), fb.getPlanInstanceId(),
+                        fb.getJobId(), fb.getJobInstanceId(), fb.getTaskId());
+                ExecuteResult result = fb.getResult();
 
                 // 订阅执行情况
-                jobInstance.onClosed().subscribe(new ClosedConsumer(jobInstanceRepository, planInstanceRepository,
-                        planRepository, trackerNode, jobInstanceStorage));
+                task.onClosed().subscribe(new ClosedConsumer(taskRepository, planInstanceRepository,
+                        planRepository, trackerNode, storage));
 
                 // 变更状态
                 switch (result) {
                     case SUCCEED:
-                        jobInstance.close();
+                        task.close();
                         break;
 
                     case FAILED:
-                        jobInstance.close(fb.getErrorMsg(), fb.getErrorStackTrace());
+                        task.close(fb.getErrorMsg(), fb.getErrorStackTrace());
                         break;
 
                     case TERMINATED:

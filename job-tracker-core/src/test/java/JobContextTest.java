@@ -21,7 +21,7 @@ import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
 import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.tracker.commons.exceptions.JobDispatchException;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
-import org.limbo.flowjob.tracker.core.job.context.JobInstance;
+import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.HashedWheelTimerScheduler;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
@@ -64,7 +64,7 @@ public class JobContextTest {
             }
 
             @Override
-            public Mono<JobReceiveResult> sendJob(JobInstance context) throws JobWorkerException {
+            public Mono<JobReceiveResult> sendJob(Task context) throws JobWorkerException {
                 return null;
             }
 
@@ -84,7 +84,7 @@ public class JobContextTest {
 //                System.out.println("updateContext");
 //            }
 //        });
-        JobInstance context = new JobInstance();
+        Task context = new Task();
         context.setJobId("job1");
         context.setState(JobScheduleStatus.Scheduling);
         context.setJobAttributes(null);

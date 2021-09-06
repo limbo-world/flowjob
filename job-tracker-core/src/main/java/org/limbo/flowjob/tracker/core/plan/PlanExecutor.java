@@ -17,12 +17,9 @@
 package org.limbo.flowjob.tracker.core.plan;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
-import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
-import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.schedule.executor.Executor;
-import org.limbo.flowjob.tracker.core.storage.JobInstanceStorage;
+import org.limbo.flowjob.tracker.core.storage.Storage;
 
 import java.util.List;
 
@@ -35,20 +32,14 @@ import java.util.List;
  */
 public class PlanExecutor implements Executor<Plan> {
 
-    private final PlanInstanceRepository planInstanceRepository;
+    private final Storage storage;
 
-    private final JobInstanceStorage jobInstanceStorage;
-
-    public PlanExecutor(PlanInstanceRepository planInstanceRepository, JobInstanceStorage jobInstanceStorage) {
-        this.planInstanceRepository = planInstanceRepository;
-        this.jobInstanceStorage = jobInstanceStorage;
+    public PlanExecutor(Storage storage) {
+        this.storage = storage;
     }
 
     /**
-     * 生成 planInstance 存入 db
-     * 获取 plan 中需要最先执行的 job
-     * 生成 jobInstance 存入 db
-     * todo 事务
+     * 将数据存储，交由下游，劲量不阻塞时间轮线程
      * @param plan 计划
      */
     @Override
@@ -59,19 +50,8 @@ public class PlanExecutor implements Executor<Plan> {
             return;
         }
 
-        // 判断是这个计划 第几次调度 决定 实例ID
-        Long planInstanceId = planInstanceRepository.createId(plan);
-
-        // 持久化存储
-        PlanInstance planInstance = plan.newInstance(planInstanceId, PlanScheduleStatus.Scheduling,
-                ScheduleType.FIXED_INTERVAL == plan.getScheduleOption().getScheduleType());
-        planInstanceRepository.addInstance(planInstance);
-
-        // 下发需要最先执行的job
-        for (Job job : jobs) {
-            jobInstanceStorage.store(job.newInstance(plan.getPlanId(), planInstanceId, plan.getVersion(), JobScheduleStatus.Scheduling));
-        }
-
+        // todo 如果 plan 需要持久化，那么持久化一个 PlanRecord 那么如果出现主从切换，从节点会获取到这个数据并执行下发 如果plan不需要持久化 那么plan存在内存，如果主节点挂了这次执行可能就会丢失
+        storage.store(plan);
     }
 
 

@@ -18,7 +18,7 @@ package org.limbo.flowjob.tracker.commons.dto.job;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobExecuteResult;
+import org.limbo.flowjob.tracker.commons.constants.enums.ExecuteResult;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -43,6 +43,13 @@ public class JobExecuteFeedbackDto {
     private String planId;
 
     /**
+     * 计划记录ID
+     */
+    @NotNull(message = "planRecordId can't be null")
+    @Schema(description = "计划记录ID")
+    private Long planRecordId;
+
+    /**
      * 计划实例ID
      */
     @NotNull(message = "planInstanceId can't be null")
@@ -57,11 +64,25 @@ public class JobExecuteFeedbackDto {
     private String jobId;
 
     /**
+     * 作业实例ID
+     */
+    @NotBlank(message = "jobInstanceId can't be null")
+    @Schema(description = "作业实例ID")
+    private Long jobInstanceId;
+
+    /**
+     * 任务ID
+     */
+    @NotBlank(message = "taskId can't be null")
+    @Schema(description = "任务ID")
+    private String taskId;
+
+    /**
      * 执行结果
      */
     @NotNull(message = "result can't be null")
     @Schema(description = "执行结果")
-    private JobExecuteResult result;
+    private ExecuteResult result;
 
     /**
      * 返回的用于下个计算的参数

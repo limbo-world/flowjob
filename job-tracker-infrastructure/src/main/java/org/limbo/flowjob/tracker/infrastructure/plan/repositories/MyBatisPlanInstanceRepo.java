@@ -28,13 +28,13 @@ public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
     private PlanInstancePoConverter converter;
 
     @Override
-    public void addInstance(PlanInstance instance) {
+    public void add(PlanInstance instance) {
         PlanInstancePO po = converter.convert(instance);
         planInstanceMapper.insert(po);
     }
 
     @Override
-    public void endInstance(String planId, Long planInstanceId, LocalDateTime endTime, PlanScheduleStatus state) {
+    public void end(String planId, Long planInstanceId, LocalDateTime endTime, PlanScheduleStatus state) {
         planInstanceMapper.update(null, Wrappers.<PlanInstancePO>lambdaUpdate()
                 .set(PlanInstancePO::getPlanId, planId)
                 .set(PlanInstancePO::getState, state.status)
@@ -45,7 +45,7 @@ public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
     }
 
     @Override
-    public PlanInstance getInstance(String planId, Long planInstanceId) {
+    public PlanInstance get(String planId, Long planInstanceId) {
         PlanInstancePO po = planInstanceMapper.selectOne(Wrappers.<PlanInstancePO>lambdaQuery()
                 .eq(PlanInstancePO::getPlanId, planId)
                 .eq(PlanInstancePO::getPlanInstanceId, planInstanceId));
@@ -53,8 +53,8 @@ public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
     }
 
     @Override
-    public Long createId(Plan plan) {
-        Long recentlyIdForUpdate = planInstanceMapper.getRecentlyIdForUpdate(plan.getPlanId());
+    public Long createId(String planId, Long planRecordId) {
+        Long recentlyIdForUpdate = planInstanceMapper.getRecentlyIdForUpdate(planId, planRecordId);
         return recentlyIdForUpdate == null ? 1L : recentlyIdForUpdate + 1;
     }
 

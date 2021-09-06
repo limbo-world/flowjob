@@ -24,7 +24,7 @@ import java.util.List;
  * @author Brozen
  * @since 2021-05-19
  */
-public interface JobInstanceRepository {
+public interface TaskRepository {
 
     Long createId();
 
@@ -32,15 +32,15 @@ public interface JobInstanceRepository {
      * 持久化作业实例
      * @param instance 作业执行实例
      */
-    void add(JobInstance instance);
+    void addInstance(Task instance);
 
     /**
      * 更新作业实例
-     * @param instance 作业执行实例
+     * @param task 作业执行实例
      */
-    void updateInstance(Task instance);
+    void end(Task task);
 
-    void end(JobInstance instance);
+    Integer unclosedTaskCount(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId);
 
     /**
      * 将实例的状态由旧值更新为新值，如果当前状态不为旧值不会更新
@@ -54,12 +54,8 @@ public interface JobInstanceRepository {
 
     /**
      * 获取作业执行实例
-     * @param planId 作业ID
-     * @param planInstanceId 实例ID
-     * @param jobId 作业ID
-     * @return 作业实例
      */
-    Task getInstance(String planId, Long planInstanceId, String jobId);
+    Task get(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId, String taskId);
 
     /**
      * 批量获取作业执行实例

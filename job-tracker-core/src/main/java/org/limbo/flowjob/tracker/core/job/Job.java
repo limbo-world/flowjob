@@ -19,20 +19,9 @@ package org.limbo.flowjob.tracker.core.job;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
-import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
-import org.limbo.flowjob.tracker.commons.utils.strategies.StrategyFactory;
-import org.limbo.flowjob.tracker.core.job.context.JobInstance;
-import org.limbo.flowjob.tracker.core.plan.Plan;
-import org.limbo.flowjob.tracker.core.plan.ScheduleOption;
-import org.limbo.flowjob.tracker.core.schedule.Schedulable;
-import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
-import org.limbo.flowjob.tracker.core.schedule.executor.Executor;
-import org.limbo.utils.UUIDUtils;
-import org.limbo.utils.verifies.Verifies;
+import org.limbo.flowjob.tracker.core.job.context.JobRecord;
 
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -72,21 +61,17 @@ public class Job {
      */
     private ExecutorOption executorOption;
 
-    /**
-     * 生成新的作业实例
-     * @return 实例
-     */
-    public JobInstance newInstance(String planId, Long planInstanceId, Integer version, JobScheduleStatus state) {
-        JobInstance instance = new JobInstance();
-        instance.setPlanId(planId);
-        instance.setPlanInstanceId(planInstanceId);
-        instance.setJobId(jobId);
-        instance.setVersion(version);
-        instance.setState(state);
-        instance.setDispatchOption(dispatchOption);
-        instance.setExecutorOption(executorOption);
-        instance.setJobAttributes(null); // todo
-        return instance;
+    public JobRecord newRecord(String planId, Long planRecordId, Long planInstanceId, JobScheduleStatus state) {
+        JobRecord record = new JobRecord();
+        record.setPlanId(planId);
+        record.setPlanRecordId(planRecordId);
+        record.setPlanInstanceId(planInstanceId);
+        record.setJobId(jobId);
+        record.setState(state);
+        record.setDispatchOption(dispatchOption);
+        record.setExecutorOption(executorOption);
+        record.setAttributes(null); // todo
+        return record;
     }
 
 }

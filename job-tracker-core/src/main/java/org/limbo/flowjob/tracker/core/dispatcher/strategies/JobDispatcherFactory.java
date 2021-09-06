@@ -16,10 +16,10 @@
 
 package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
-import org.limbo.flowjob.tracker.commons.constants.enums.DispatchType;
+import org.limbo.flowjob.tracker.commons.constants.enums.LoadBalanceType;
 
 /**
- * {@link org.limbo.flowjob.tracker.core.dispatcher.strategies.JobDispatcher} 工厂
+ * {@link Dispatcher} 工厂
  *
  * @author Brozen
  * @since 2021-05-18
@@ -28,29 +28,30 @@ public class JobDispatcherFactory {
 
     /**
      * Double Dispatch (￣▽￣)~* <br/>
-     * 根据作业的分发方式，创建一个分发器实例。委托给{@link DispatchType}执行。
-     * @param dispatchType 分发类型
+     * 根据作业的分发方式，创建一个分发器实例。委托给{@link LoadBalanceType}执行。
+     *
+     * @param loadBalanceType 分发类型
      * @return 作业分发器
      */
-    public JobDispatcher  newDispatcher(DispatchType dispatchType) {
-        switch (dispatchType) {
+    public Dispatcher newDispatcher(LoadBalanceType loadBalanceType) {
+        switch (loadBalanceType) {
             case ROUND_ROBIN:
-                return new RoundRobinJobDispatcher();
+                return new RoundRobinDispatcher();
 
             case RANDOM:
-                return new RandomJobDispatcher();
+                return new RandomDispatcher();
 
             case LEAST_FREQUENTLY_USED:
-                return new LFUJobDispatcher();
+                return new LFUDispatcher();
 
             case LEAST_RECENTLY_USED:
-                return new LRUJobDispatcher();
+                return new LRUDispatcher();
 
             case APPOINT:
-                return new AppointJobDispatcher();
+                return new AppointDispatcher();
 
             case CONSISTENT_HASH:
-                return new ConsistentHashJobDispatcher();
+                return new ConsistentHashDispatcher();
 
             default:
                 return null;

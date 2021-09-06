@@ -18,7 +18,7 @@ package org.limbo.flowjob.tracker.admin.test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.limbo.flowjob.tracker.commons.constants.enums.DescribableEnum;
-import org.limbo.flowjob.tracker.commons.constants.enums.DispatchType;
+import org.limbo.flowjob.tracker.commons.constants.enums.LoadBalanceType;
 import org.limbo.utils.JacksonUtils;
 
 import java.util.HashMap;
@@ -32,7 +32,7 @@ public class JacksonPropertySharpTest {
 
     public static void main(String[] args) {
         Map<String, Object> map = new HashMap<>();
-        map.put("type", DispatchType.APPOINT);
+        map.put("type", LoadBalanceType.APPOINT);
         String json = JacksonUtils.toJSONString(map);
         System.out.println(json);
 
@@ -40,7 +40,7 @@ public class JacksonPropertySharpTest {
         });
         System.out.println(map2);
 
-        System.out.println(DescribableEnum.describe(DispatchType.class));
+        System.out.println(DescribableEnum.describe(LoadBalanceType.class));
     }
 
 }

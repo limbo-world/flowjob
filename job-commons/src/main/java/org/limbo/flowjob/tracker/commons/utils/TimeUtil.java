@@ -11,8 +11,19 @@ import java.time.ZoneOffset;
  */
 public class TimeUtil {
 
+    private static ZoneOffset zoneOffset;
+
+    private static final Clock CLOCK = Clock.systemDefaultZone();
+
+    public static ZoneOffset zoneOffset() {
+        if (zoneOffset == null) {
+            zoneOffset = ZoneOffset.systemDefault().getRules().getOffset(Instant.now(CLOCK));
+        }
+        return zoneOffset;
+    }
+
     public static Instant nowInstant() {
-        return Instant.now(Clock.systemDefaultZone());
+        return Instant.now(CLOCK);
     }
 
     public static Instant toInstant(LocalDateTime localDateTime) {
@@ -20,21 +31,13 @@ public class TimeUtil {
     }
 
     public static LocalDateTime nowLocalDateTime() {
-        return LocalDateTime.now(Clock.systemDefaultZone());
+        return LocalDateTime.now(CLOCK);
     }
 
     public static LocalDateTime toLocalDateTime(Instant instant) {
         return LocalDateTime.ofInstant(instant, zoneOffset());
     }
 
-    private static ZoneOffset zoneOffset;
 
-
-    public static ZoneOffset zoneOffset() {
-        if (zoneOffset == null) {
-            zoneOffset = ZoneOffset.systemDefault().getRules().getOffset(nowInstant());
-        }
-        return zoneOffset;
-    }
 
 }

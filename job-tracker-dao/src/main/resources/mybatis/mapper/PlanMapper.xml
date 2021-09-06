@@ -37,7 +37,7 @@
 <!--            schedule_type, schedule_start_at, schedule_delay,-->
 <!--            schedule_interval, schedule_cron-->
 <!--        ) VALUES (-->
-<!--            #{plan.planId}, #{plan.planDesc}, #{plan.dispatchType},-->
+<!--            #{plan.planId}, #{plan.planDesc}, #{plan.loadBalanceType},-->
 <!--            #{plan.scheduleType}, #{plan.scheduleStartAt}, #{plan.scheduleDelay},-->
 <!--            #{plan.scheduleInterval}, #{plan.scheduleCron}-->
 <!--        ) ON DUPLICATE KEY UPDATE-->

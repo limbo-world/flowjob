@@ -57,7 +57,7 @@ public interface PlanRepository {
 
     /**
      * 查询所有需要被调度的计划。
-     *
+     * TODO 主节点切换 自动查询可调度任务
      * @return 所有需要被调度的作业计划
      */
     List<Plan> listSchedulablePlans();

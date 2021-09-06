@@ -21,6 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
+import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.dao.mybatis.JobInstanceMapper;
 import org.limbo.flowjob.tracker.dao.po.JobInstancePO;
 import org.limbo.flowjob.tracker.infrastructure.job.converters.JobInstancePoConverter;
@@ -43,12 +44,17 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
     @Autowired
     private JobInstanceMapper jobInstanceMapper;
 
+    @Override
+    public Long createId() {
+        return null;
+    }
+
     /**
      * {@inheritDoc}
      * @param instance 作业执行上下文
      */
     @Override
-    public void addInstance(JobInstance instance) {
+    public void add(JobInstance instance) {
         JobInstancePO po = jobInstancePoConverter.convert(instance);
         jobInstanceMapper.insert(po);
     }
@@ -58,7 +64,7 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
      * @param instance 作业执行上下文
      */
     @Override
-    public void updateInstance(JobInstance instance) {
+    public void updateInstance(Task instance) {
         JobInstancePO po = jobInstancePoConverter.convert(instance);
         jobInstanceMapper.update(po, Wrappers.<JobInstancePO>lambdaUpdate()
                 .eq(JobInstancePO::getPlanId, po.getPlanId())
@@ -88,7 +94,7 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
      * @return
      */
     @Override
-    public JobInstance getInstance(String planId, Long planInstanceId, String jobId) {
+    public Task getInstance(String planId, Long planInstanceId, String jobId) {
         JobInstancePO po = jobInstanceMapper.selectOne(Wrappers.<JobInstancePO>lambdaQuery()
                 .eq(JobInstancePO::getPlanId, planId)
                 .eq(JobInstancePO::getPlanInstanceId, planInstanceId)
@@ -105,13 +111,13 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
      * @return
      */
     @Override
-    public List<JobInstance> getInstances(String planId, Long planInstanceId, List<String> jobIds) {
+    public List<Task> getInstances(String planId, Long planInstanceId, List<String> jobIds) {
         List<JobInstancePO> pos = jobInstanceMapper.selectList(Wrappers.<JobInstancePO>lambdaQuery()
                 .eq(JobInstancePO::getPlanId, planId)
                 .eq(JobInstancePO::getPlanInstanceId, planInstanceId)
                 .in(JobInstancePO::getJobId, jobIds)
         );
-        List<JobInstance> dos = new ArrayList<>();
+        List<Task> dos = new ArrayList<>();
         if (CollectionUtils.isEmpty(pos)) {
             return dos;
         }
@@ -127,7 +133,7 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
      * @return
      */
     @Override
-    public JobInstance getLatestInstance(String jobId) {
+    public Task getLatestInstance(String jobId) {
 //        JobExecuteRecordPO po = mapper.selectOne(Wrappers.<JobExecuteRecordPO>lambdaQuery()
 //                .eq(JobExecuteRecordPO::getJobId, jobId)
 //                .orderByDesc(JobExecuteRecordPO::getCreatedAt)

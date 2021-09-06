@@ -16,26 +16,18 @@
 
 package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
-import org.limbo.flowjob.tracker.commons.constants.enums.DispatchType;
-import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
-import org.limbo.flowjob.tracker.core.job.context.JobInstance;
+import org.limbo.flowjob.tracker.commons.constants.enums.LoadBalanceType;
+import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
 import java.util.Collection;
-import java.util.Random;
 
 /**
  * @author Brozen
  * @since 2021-05-27
- * @see DispatchType#RANDOM
+ * @see LoadBalanceType#LEAST_FREQUENTLY_USED
  */
-public class RandomJobDispatcher extends AbstractJobDispatcher implements JobDispatcher {
-
-    private Random random;
-
-    public RandomJobDispatcher() {
-        this.random = new Random();
-    }
+public class LFUDispatcher extends AbstractDispatcher implements Dispatcher {
 
     /**
      * {@inheritDoc}
@@ -44,16 +36,8 @@ public class RandomJobDispatcher extends AbstractJobDispatcher implements JobDis
      * @return
      */
     @Override
-    protected Worker selectWorker(JobInstance context, Collection<Worker> workers) {
-        int index = this.random.nextInt(workers.size());
-
-        int i = 0;
-        for (Worker worker : workers) {
-            if (i == index) {
-                return worker;
-            }
-            i++;
-        }
+    protected Worker selectWorker(Task context, Collection<Worker> workers) {
+        // TODO
         return null;
     }
 

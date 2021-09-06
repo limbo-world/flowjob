@@ -16,18 +16,21 @@
 
 package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
-import org.limbo.flowjob.tracker.commons.constants.enums.DispatchType;
-import org.limbo.flowjob.tracker.core.job.context.JobInstance;
+import org.limbo.flowjob.tracker.commons.constants.enums.LoadBalanceType;
+import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
 import java.util.Collection;
 
 /**
+ * 轮询作业分发器。
+ * TODO
+ *
  * @author Brozen
- * @since 2021-05-27
- * @see DispatchType#LEAST_FREQUENTLY_USED
+ * @since 2021-05-19
+ * @see LoadBalanceType#ROUND_ROBIN
  */
-public class LFUJobDispatcher extends AbstractJobDispatcher implements JobDispatcher {
+public class RoundRobinDispatcher extends AbstractDispatcher implements Dispatcher {
 
     /**
      * {@inheritDoc}
@@ -36,7 +39,7 @@ public class LFUJobDispatcher extends AbstractJobDispatcher implements JobDispat
      * @return
      */
     @Override
-    protected Worker selectWorker(JobInstance context, Collection<Worker> workers) {
+    protected Worker selectWorker(Task context, Collection<Worker> workers) {
         // TODO
         return null;
     }

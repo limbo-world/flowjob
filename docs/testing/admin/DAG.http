@@ -16,7 +16,7 @@ Content-Type: application/json
       "jobId": "1",
       "childrenIds": ["3"],
       "dispatchOption": {
-        "dispatchType": 2
+        "loadBalanceType": 2
       },
       "executorOption": {
         "name": "hello",
@@ -27,7 +27,7 @@ Content-Type: application/json
       "jobId": "2",
       "childrenIds": ["3"],
       "dispatchOption": {
-        "dispatchType": 2
+        "loadBalanceType": 2
       },
       "executorOption": {
         "name": "hello",
@@ -38,7 +38,7 @@ Content-Type: application/json
       "jobId": "3",
       "childrenIds": ["4", 5],
       "dispatchOption": {
-        "dispatchType": 2
+        "loadBalanceType": 2
       },
       "executorOption": {
         "name": "hello",
@@ -48,7 +48,7 @@ Content-Type: application/json
     {
       "jobId": "4",
       "dispatchOption": {
-        "dispatchType": 2
+        "loadBalanceType": 2
       },
       "executorOption": {
         "name": "hello",
@@ -58,7 +58,7 @@ Content-Type: application/json
     {
       "jobId": "5",
       "dispatchOption": {
-        "dispatchType": 2
+        "loadBalanceType": 2
       },
       "executorOption": {
         "name": "hello",

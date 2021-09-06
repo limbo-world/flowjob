@@ -16,8 +16,8 @@
 
 package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
-import org.limbo.flowjob.tracker.commons.constants.enums.DispatchType;
-import org.limbo.flowjob.tracker.core.job.context.JobInstance;
+import org.limbo.flowjob.tracker.commons.constants.enums.LoadBalanceType;
+import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
 import java.util.Collection;
@@ -25,9 +25,9 @@ import java.util.Collection;
 /**
  * @author Brozen
  * @since 2021-05-27
- * @see DispatchType#CONSISTENT_HASH
+ * @see LoadBalanceType#LEAST_RECENTLY_USED
  */
-public class ConsistentHashJobDispatcher extends AbstractJobDispatcher implements JobDispatcher {
+public class LRUDispatcher extends AbstractDispatcher implements Dispatcher {
 
     /**
      * {@inheritDoc}
@@ -36,8 +36,9 @@ public class ConsistentHashJobDispatcher extends AbstractJobDispatcher implement
      * @return
      */
     @Override
-    protected Worker selectWorker(JobInstance context, Collection<Worker> workers) {
+    protected Worker selectWorker(Task context, Collection<Worker> workers) {
         // TODO
         return null;
     }
+
 }

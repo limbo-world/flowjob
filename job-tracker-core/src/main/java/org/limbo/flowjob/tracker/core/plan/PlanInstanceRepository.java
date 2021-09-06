@@ -14,16 +14,12 @@ public interface PlanInstanceRepository {
      * 持久化实例
      * @param instance 实例
      */
-    default void addInstance(PlanInstance instance) {
-        throw new UnsupportedOperationException();
-    }
+    void add(PlanInstance instance);
 
     /**
      * 实例结束
      */
-    default void endInstance(String planId, Long planInstanceId, LocalDateTime endTime, PlanScheduleStatus state) {
-        throw new UnsupportedOperationException();
-    }
+    void end(String planId, Long planInstanceId, LocalDateTime endTime, PlanScheduleStatus state);
 
     /**
      * 获取实例
@@ -31,12 +27,10 @@ public interface PlanInstanceRepository {
      * @param planInstanceId 实例ID
      * @return 实例
      */
-    default PlanInstance getInstance(String planId, Long planInstanceId) {
-        throw new UnsupportedOperationException();
-    }
+    PlanInstance get(String planId, Long planInstanceId);
 
     /**
      * 创建ID
      */
-    Long createId(Plan plan);
+    Long createId(String planId, Long planRecordId);
 }

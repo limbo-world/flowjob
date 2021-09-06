@@ -1,8 +1,8 @@
-package org.limbo.flowjob.tracker.core.schedule.consumer;
+package org.limbo.flowjob.tracker.core.job.consumer;
 
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
-import org.limbo.flowjob.tracker.core.job.context.JobInstance;
+import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
 
 import java.util.function.Consumer;
@@ -12,7 +12,7 @@ import java.util.function.Consumer;
  * @since 2021/8/16
  */
 @Slf4j
-public class RefusedConsumer implements Consumer<JobInstance> {
+public class RefusedConsumer implements Consumer<Task> {
 
     private final JobInstanceRepository jobInstanceRepository;
 
@@ -22,11 +22,11 @@ public class RefusedConsumer implements Consumer<JobInstance> {
 
 
     @Override
-    public void accept(JobInstance jobInstance) {
+    public void accept(Task task) {
         if (log.isDebugEnabled()) {
-            log.debug(jobInstance.getWorkerId() + " refused " + jobInstance.getId());
+            log.debug(task.getWorkerId() + " refused " + task.getId());
         }
-        jobInstanceRepository.compareAndSwapInstanceState(jobInstance.getPlanId(), jobInstance.getPlanInstanceId(),
-                jobInstance.getJobId(), JobScheduleStatus.Scheduling, jobInstance.getState());
+        jobInstanceRepository.compareAndSwapInstanceState(task.getPlanId(), task.getPlanInstanceId(),
+                task.getJobId(), JobScheduleStatus.Scheduling, task.getState());
     }
 }
