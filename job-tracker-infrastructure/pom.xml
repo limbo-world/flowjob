@@ -87,6 +87,13 @@
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis-spring</artifactId>
         </dependency>
+
+        <!-- 单元测试 -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 
