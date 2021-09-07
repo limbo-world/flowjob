@@ -20,6 +20,8 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.tracker.core.evnets.Event;
+import org.limbo.flowjob.tracker.core.evnets.EventPublisher;
 import org.limbo.utils.tuple.Tuple3;
 import org.limbo.utils.tuple.Tuples;
 import org.limbo.utils.verifies.Verifies;
@@ -49,7 +51,7 @@ public class ReactorEventPublisher extends Flux<Event<?>> implements EventPublis
     /**
      * 用于负载均衡的发布者
      */
-    private List<Tuple3<Sinks.Many<Event<?>>, Scheduler, Flux<Event<?>>>> publishers;
+    private final List<Tuple3<Sinks.Many<Event<?>>, Scheduler, Flux<Event<?>>>> publishers;
 
     /**
      * 事件发布失败时的处理器
@@ -135,11 +137,11 @@ public class ReactorEventPublisher extends Flux<Event<?>> implements EventPublis
      */
     static class MultiUpstreamSubscriber implements CoreSubscriber<Event<?>>, Subscription {
 
-        private CoreSubscriber<? super Event<?>> actual;
+        private final CoreSubscriber<? super Event<?>> actual;
 
-        private List<Subscription> upstreamSubscriptions;
+        private final List<Subscription> upstreamSubscriptions;
 
-        private AtomicBoolean downstreamOnSubscribeNotified = new AtomicBoolean(false);
+        private final AtomicBoolean downstreamOnSubscribeNotified = new AtomicBoolean(false);
 
         static final AtomicLongFieldUpdater<MultiUpstreamSubscriber> REQUESTED =
                 AtomicLongFieldUpdater.newUpdater(MultiUpstreamSubscriber.class, "requested");
@@ -213,11 +215,11 @@ public class ReactorEventPublisher extends Flux<Event<?>> implements EventPublis
 
     static class ConditionalMultiUpstreamSubscriber implements Fuseable.ConditionalSubscriber<Event<?>>, Subscription {
 
-        private Fuseable.ConditionalSubscriber<? super Event<?>> actual;
+        private final Fuseable.ConditionalSubscriber<? super Event<?>> actual;
 
-        private List<Subscription> upstreamSubscriptions;
+        private final List<Subscription> upstreamSubscriptions;
 
-        private AtomicBoolean downstreamOnSubscribeNotified = new AtomicBoolean(false);
+        private final AtomicBoolean downstreamOnSubscribeNotified = new AtomicBoolean(false);
 
         static final AtomicLongFieldUpdater<ConditionalMultiUpstreamSubscriber> REQUESTED =
                 AtomicLongFieldUpdater.newUpdater(ConditionalMultiUpstreamSubscriber.class, "requested");

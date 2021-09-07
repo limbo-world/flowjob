@@ -16,22 +16,67 @@
 
 package org.limbo.flowjob.tracker.commons.constants.enums;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
- * task的执行结果
  * @author Brozen
  * @since 2021-05-19
  */
-public interface TaskResult {
+public enum TaskResult {
+
+    NONE(0, "未执行结束"),
+    FAILED(1, "执行失败"),
+    SUCCEED(2, "执行成功"),
+    ;
+
+    @JsonValue
+    public final byte result;
+
+    public final String desc;
+
+    @JsonCreator
+    TaskResult(int result, String desc) {
+        this(((byte) result), desc);
+    }
+
+    TaskResult(byte result, String desc) {
+        this.result = result;
+        this.desc = desc;
+    }
+
     /**
-     * 未执行结束
+     * 校验是否是当前状态
+     * @param result 待校验值
      */
-    byte NONE = 0;
+    public boolean is(TaskResult result) {
+        return equals(result);
+    }
+
     /**
-     * 执行失败
+     * 校验是否是当前状态
+     * @param result 待校验状态值
      */
-    byte FAILED = 1;
+    public boolean is(Number result) {
+        return result != null && result.byteValue() == this.result;
+    }
+
     /**
-     * 执行成功
+     * 解析上下文状态值
      */
-    byte SUCCEED = 2;
+    @JsonCreator
+    public static TaskResult parse(Number result) {
+        if (result == null) {
+            return null;
+        }
+
+        for (TaskResult taskResult : values()) {
+            if (taskResult.is(result)) {
+                return taskResult;
+            }
+        }
+
+        return null;
+    }
+
 }

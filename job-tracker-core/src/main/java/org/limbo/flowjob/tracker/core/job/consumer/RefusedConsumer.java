@@ -26,7 +26,8 @@ public class RefusedConsumer implements Consumer<Task> {
         if (log.isDebugEnabled()) {
             log.debug(task.getWorkerId() + " refused " + task.getId());
         }
-        jobInstanceRepository.compareAndSwapInstanceState(task.getPlanId(), task.getPlanInstanceId(),
-                task.getJobId(), JobScheduleStatus.Scheduling, task.getState());
+        // todo 拒绝应该重试
+//        jobInstanceRepository.compareAndSwapInstanceState(task.getPlanId(), task.getPlanInstanceId(),
+//                task.getJobId(), JobScheduleStatus.Scheduling, task.getState());
     }
 }

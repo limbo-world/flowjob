@@ -1,9 +1,7 @@
 package org.limbo.flowjob.tracker.core.tracker.single;
 
-import org.limbo.flowjob.tracker.core.dispatcher.DispatchLauncher;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.Scheduler;
-import org.limbo.flowjob.tracker.core.storage.Storage;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 
 /**
@@ -14,17 +12,10 @@ import org.limbo.flowjob.tracker.core.tracker.JobTracker;
  */
 public class SingleJobTracker implements JobTracker {
 
-    private final Storage storage;
-
     private final Scheduler scheduler;
 
-    private final DispatchLauncher dispatchLauncher;
-
-    public SingleJobTracker(Storage storage, Scheduler scheduler,
-                            DispatchLauncher dispatchLauncher) {
-        this.storage = storage;
+    public SingleJobTracker(Scheduler scheduler) {
         this.scheduler = scheduler;
-        this.dispatchLauncher = dispatchLauncher;
     }
 
     @Override

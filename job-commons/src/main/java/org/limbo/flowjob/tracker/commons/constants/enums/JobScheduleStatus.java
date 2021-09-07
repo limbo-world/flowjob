@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum JobScheduleStatus {
 
-    Scheduling(1, "调度中"),
+    SCHEDULING(1, "调度中"),
     EXECUTING(2, "执行中"),
     SUCCEED(3, "执行成功"),
     FAILED(4, "执行异常"), // worker拒绝，进入容错策略 失败次数不增加 TERMINATED 作业被手动终止 不再增加一个状态 而是写入 errMsg

@@ -16,60 +16,29 @@
 
 package org.limbo.flowjob.tracker.core.job.context;
 
-import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
-
-import java.util.List;
-
 /**
  * @author Brozen
  * @since 2021-05-19
  */
 public interface TaskRepository {
 
-    Long createId();
-
     /**
      * 持久化作业实例
-     * @param instance 作业执行实例
+     * @param task 作业执行实例
      */
-    void addInstance(Task instance);
+    void add(Task task);
 
     /**
      * 更新作业实例
      * @param task 作业执行实例
      */
-    void end(Task task);
+    void executed(Task task);
 
-    Integer unclosedTaskCount(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId);
-
-    /**
-     * 将实例的状态由旧值更新为新值，如果当前状态不为旧值不会更新
-     * @param planId
-     * @param planInstanceId
-     * @param jobId
-     * @param oldState
-     * @param newState
-     */
-    void compareAndSwapInstanceState(String planId, Long planInstanceId, String jobId, JobScheduleStatus oldState, JobScheduleStatus newState);
+    Integer unclosedCount(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId);
 
     /**
      * 获取作业执行实例
      */
     Task get(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId, String taskId);
 
-    /**
-     * 批量获取作业执行实例
-     * @param planId 作业ID
-     * @param planInstanceId 实例ID
-     * @param jobIds 作业ID
-     * @return 作业实例
-     */
-    List<Task> getInstances(String planId, Long planInstanceId, List<String> jobIds);
-
-    /**
-     * 获取最近一次作业执行时的实例
-     * @param jobId 作业ID
-     * @return 最近一次作业执行时的实例
-     */
-    Task getLatestInstance(String jobId);
 }

@@ -21,6 +21,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
+import org.limbo.flowjob.tracker.commons.constants.enums.TaskResult;
+import org.limbo.flowjob.tracker.commons.constants.enums.TaskScheduleStatus;
 import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.tracker.commons.exceptions.JobDispatchException;
 import org.limbo.flowjob.tracker.core.job.DispatchOption;
@@ -32,6 +34,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
+import java.io.Serializable;
+
 /**
  * 作业执行上下文
  *
@@ -41,7 +45,8 @@ import reactor.core.publisher.Sinks;
 @Getter
 @Setter
 @ToString
-public class Task implements Storable {
+public class Task implements Storable, Serializable {
+    private static final long serialVersionUID = -9164373359695671417L;
 
     /**
      * 计划ID
@@ -67,9 +72,13 @@ public class Task implements Storable {
     private Integer version;
 
     /**
-     * 此上下文状态
+     * 调度状态
      */
-    private JobScheduleStatus state;
+    private TaskScheduleStatus state;
+    /**
+     * 执行结果
+     */
+    private TaskResult result;
 
     /**
      * 作业分发配置参数
@@ -111,6 +120,8 @@ public class Task implements Storable {
      */
     private String errorStackTrace;
 
+    private boolean needPublish;
+
     /**
      * 用于触发、发布上下文生命周期事件
      */
@@ -133,10 +144,10 @@ public class Task implements Storable {
      * @throws JobDispatchException 状态检测失败时，即此上下文的状态不是INIT或FAILED时抛出异常。
      */
     public void startup(Worker worker) throws JobDispatchException {
-        JobScheduleStatus status = getState();
+        TaskScheduleStatus status = getState();
 
         // 检测状态
-        if (status != JobScheduleStatus.Scheduling && status != JobScheduleStatus.FAILED) {
+        if (status != TaskScheduleStatus.SCHEDULING) {
             throw new JobDispatchException(getJobId(), getId(), "Cannot startup context due to current status: " + status);
         }
 
@@ -156,7 +167,8 @@ public class Task implements Storable {
             }
         } catch (Exception e) {
             // 失败时更新上下文状态，冒泡异常
-            setState(JobScheduleStatus.FAILED);
+            // todo 如果是下发失败网络问题等，应该需要重试
+//            setState(TaskScheduleStatus.FAILED);
             throw new JobDispatchException(getJobId(), worker.getWorkerId(),
                     "Context startup failed due to send job to worker error!", e);
         }
@@ -172,13 +184,14 @@ public class Task implements Storable {
      */
     public void accept(Worker worker) throws JobDispatchException {
         // 不为此状态 无需更新
-        if (getState() != JobScheduleStatus.Scheduling) {
+        if (getState() != TaskScheduleStatus.SCHEDULING) {
             return;
         }
 
         // 更新状态
-        setState(JobScheduleStatus.EXECUTING);
+        setState(TaskScheduleStatus.EXECUTING);
         setWorkerId(worker.getWorkerId());
+        setNeedPublish(true);
 
         // 发布事件
         lifecycleEventTrigger.emitNext(JobInstanceLifecycleEvent.ACCEPTED, Sinks.EmitFailureHandler.FAIL_FAST);
@@ -194,13 +207,11 @@ public class Task implements Storable {
      */
     public void refuse(Worker worker) throws JobDispatchException {
         // 不为此状态 无需更新
-        if (getState() != JobScheduleStatus.Scheduling) {
+        if (getState() != TaskScheduleStatus.SCHEDULING) {
             return;
         }
 
-        // todo 更新状态 拒绝应该根据策略 判断是否走重试
-//        setState(JobScheduleStatus.FAILED);
-//        setWorkerId(worker.getWorkerId());
+        // todo 拒绝了 应该把task丢到队列尾部 等待重试
 
         // 发布事件
         lifecycleEventTrigger.emitNext(JobInstanceLifecycleEvent.REFUSED, Sinks.EmitFailureHandler.FAIL_FAST);
@@ -217,11 +228,13 @@ public class Task implements Storable {
     public void close() throws JobDispatchException {
 
         // 当前状态无需变更
-        if (getState() == JobScheduleStatus.SUCCEED || getState() == JobScheduleStatus.FAILED) {
+        if (getState() == TaskScheduleStatus.COMPLETED) {
             return;
         }
 
-        setState(JobScheduleStatus.SUCCEED);
+        setState(TaskScheduleStatus.COMPLETED);
+        setResult(TaskResult.SUCCEED);
+        setNeedPublish(true);
 
         // 发布事件
         lifecycleEventTrigger.emitNext(JobInstanceLifecycleEvent.CLOSED, Sinks.EmitFailureHandler.FAIL_FAST);
@@ -237,13 +250,15 @@ public class Task implements Storable {
     public void close(String errorMsg, String errorStackTrace) {
 
         // 当前状态无需变更
-        if (getState() == JobScheduleStatus.SUCCEED || getState() == JobScheduleStatus.FAILED) {
+        if (getState() == TaskScheduleStatus.COMPLETED) {
             return;
         }
 
-        setState(JobScheduleStatus.FAILED);
+        setState(TaskScheduleStatus.COMPLETED);
+        setResult(TaskResult.SUCCEED);
         setErrorMsg(errorMsg);
         setErrorStackTrace(errorStackTrace);
+        setNeedPublish(true);
 
         // 发布事件
         lifecycleEventTrigger.emitNext(JobInstanceLifecycleEvent.CLOSED, Sinks.EmitFailureHandler.FAIL_FAST);
@@ -298,20 +313,6 @@ public class Task implements Storable {
      */
     public String getId() {
         return planId + "-" + planInstanceId + "-" + jobId;
-    }
-
-    /**
-     * 是否能触发下级任务
-     */
-    public boolean canTriggerNext() {
-        if (JobScheduleStatus.SUCCEED == state) {
-            return true;
-        } else if (JobScheduleStatus.FAILED == state) {
-            // 根据 handler 类型来判断
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**

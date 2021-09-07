@@ -37,9 +37,9 @@ public class PlanInstancePoConverter extends Converter<PlanInstance, PlanInstanc
     protected PlanInstancePO doForward(PlanInstance planInstance) {
         PlanInstancePO po = new PlanInstancePO();
         po.setPlanId(planInstance.getPlanId());
+        po.setPlanRecordId(planInstance.getPlanRecordId());
         po.setPlanInstanceId(planInstance.getPlanInstanceId());
         po.setVersion(planInstance.getVersion());
-        po.setRetry(planInstance.getRetry());
         po.setState(planInstance.getState().status);
         po.setReschedule(planInstance.isReschedule());
         po.setStartAt(planInstance.getStartAt() == null ? null : TimeUtil.toLocalDateTime(planInstance.getStartAt()));

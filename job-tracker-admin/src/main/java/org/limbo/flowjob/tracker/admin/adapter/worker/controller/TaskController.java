@@ -18,7 +18,7 @@ package org.limbo.flowjob.tracker.admin.adapter.worker.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.limbo.flowjob.tracker.admin.service.job.JobExecuteService;
+import org.limbo.flowjob.tracker.admin.service.job.TaskService;
 import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
 import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFeedbackDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ import javax.validation.Valid;
 public class TaskController {
 
     @Autowired
-    private JobExecuteService jobExecuteService;
+    private TaskService taskService;
 
     /**
      * 作业执行反馈接口
@@ -48,7 +48,7 @@ public class TaskController {
     @Operation(summary = "作业执行反馈接口")
     @PostMapping("/feedback")
     public Mono<ResponseDto<Void>> feedback(@Valid @RequestBody Mono<JobExecuteFeedbackDto> feedback) {
-        return jobExecuteService.feedback(feedback)
+        return taskService.feedback(feedback)
                 .map(symbol -> ResponseDto.<Void>builder().ok().build());
     }
 

@@ -1,8 +1,6 @@
 package org.limbo.flowjob.tracker.core.tracker.election;
 
-import org.limbo.flowjob.tracker.core.dispatcher.DispatchLauncher;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.Scheduler;
-import org.limbo.flowjob.tracker.core.storage.Storage;
 import org.limbo.flowjob.tracker.core.tracker.single.SingleJobTracker;
 
 /**
@@ -11,8 +9,8 @@ import org.limbo.flowjob.tracker.core.tracker.single.SingleJobTracker;
  */
 public class LeaderJobTracker extends SingleJobTracker {
 
-    public LeaderJobTracker(Storage storage, Scheduler scheduler, DispatchLauncher dispatchLauncher) {
-        super(storage, scheduler, dispatchLauncher);
+    public LeaderJobTracker(Scheduler scheduler) {
+        super(scheduler);
     }
 
 }

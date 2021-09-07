@@ -3,6 +3,7 @@ package org.limbo.flowjob.tracker.core.plan;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author Devil
@@ -19,7 +20,7 @@ public interface PlanInstanceRepository {
     /**
      * 实例结束
      */
-    void end(String planId, Long planInstanceId, LocalDateTime endTime, PlanScheduleStatus state);
+    void end(String planId, Long planRecordId, Long planInstanceId, PlanScheduleStatus state);
 
     /**
      * 获取实例
@@ -27,7 +28,9 @@ public interface PlanInstanceRepository {
      * @param planInstanceId 实例ID
      * @return 实例
      */
-    PlanInstance get(String planId, Long planInstanceId);
+    PlanInstance get(String planId, Long planRecordId, Long planInstanceId);
+
+    List<PlanInstance> list(String planId, Long planRecordId);
 
     /**
      * 创建ID

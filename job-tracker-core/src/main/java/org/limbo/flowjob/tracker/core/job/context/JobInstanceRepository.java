@@ -26,6 +26,11 @@ import java.util.List;
  */
 public interface JobInstanceRepository {
 
+    void executing(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId);
+
+    void end(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId, JobScheduleStatus state);
+
+
     Long createId();
 
     /**
@@ -35,45 +40,13 @@ public interface JobInstanceRepository {
     void add(JobInstance instance);
 
     /**
-     * 更新作业实例
-     * @param instance 作业执行实例
-     */
-    void updateInstance(Task instance);
-
-    void end(JobInstance instance);
-
-    /**
-     * 将实例的状态由旧值更新为新值，如果当前状态不为旧值不会更新
-     * @param planId
-     * @param planInstanceId
-     * @param jobId
-     * @param oldState
-     * @param newState
-     */
-    void compareAndSwapInstanceState(String planId, Long planInstanceId, String jobId, JobScheduleStatus oldState, JobScheduleStatus newState);
-
-    /**
      * 获取作业执行实例
      * @param planId 作业ID
      * @param planInstanceId 实例ID
      * @param jobId 作业ID
      * @return 作业实例
      */
-    Task getInstance(String planId, Long planInstanceId, String jobId);
+    Task get(String planId, Long planInstanceId, String jobId);
 
-    /**
-     * 批量获取作业执行实例
-     * @param planId 作业ID
-     * @param planInstanceId 实例ID
-     * @param jobIds 作业ID
-     * @return 作业实例
-     */
-    List<Task> getInstances(String planId, Long planInstanceId, List<String> jobIds);
-
-    /**
-     * 获取最近一次作业执行时的实例
-     * @param jobId 作业ID
-     * @return 最近一次作业执行时的实例
-     */
-    Task getLatestInstance(String jobId);
+    List<JobInstance> list(String planId, Long planRecordId, Long planInstanceId, String jobId);
 }

@@ -18,16 +18,17 @@ package org.limbo.flowjob.tracker.admin.adapter.config;
 
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.TrackerModes;
-import org.limbo.flowjob.tracker.core.dispatcher.DispatchLauncher;
+import org.limbo.flowjob.tracker.core.evnets.Event;
+import org.limbo.flowjob.tracker.core.evnets.EventPublisher;
+import org.limbo.flowjob.tracker.core.job.consumer.*;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
 import org.limbo.flowjob.tracker.core.job.context.JobRecordRepository;
-import org.limbo.flowjob.tracker.core.plan.PlanBuilderFactory;
-import org.limbo.flowjob.tracker.core.plan.PlanExecutor;
-import org.limbo.flowjob.tracker.core.plan.PlanInstanceRepository;
-import org.limbo.flowjob.tracker.core.plan.PlanRecordRepository;
+import org.limbo.flowjob.tracker.core.job.context.TaskRepository;
+import org.limbo.flowjob.tracker.core.plan.*;
 import org.limbo.flowjob.tracker.core.raft.ElectionNodeOptions;
 import org.limbo.flowjob.tracker.core.schedule.calculator.ScheduleCalculatorFactory;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.HashedWheelTimerScheduler;
+import org.limbo.flowjob.tracker.core.schedule.scheduler.NamedThreadFactory;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.Scheduler;
 import org.limbo.flowjob.tracker.core.storage.MemoryStorage;
 import org.limbo.flowjob.tracker.core.storage.Storage;
@@ -38,6 +39,7 @@ import org.limbo.flowjob.tracker.core.tracker.WorkerManagerImpl;
 import org.limbo.flowjob.tracker.core.tracker.election.ElectionTrackerNode;
 import org.limbo.flowjob.tracker.core.tracker.single.SingleTrackerNode;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
+import org.limbo.flowjob.tracker.infrastructure.events.ReactorEventPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -97,14 +99,41 @@ public class TrackerConfiguration {
     }
 
 
+    @Bean
+    public EventPublisher<Event<?>> eventPublisher(TrackerNode trackerNode, TaskRepository taskRepository,
+                                                   PlanInstanceRepository planInstanceRepository,
+                                                   PlanRepository planRepository, Storage storage,
+                                                   JobRecordRepository jobRecordRepository,
+                                                   JobInstanceRepository jobInstanceRepository,
+                                                   PlanRecordRepository planRecordRepository,
+                                                   WorkerManager workerManager) {
+        ReactorEventPublisher eventPublisher = new ReactorEventPublisher(4, NamedThreadFactory.newInstance("Event-Publisher"));
+        // plan 下发
+        eventPublisher.subscribe(new PlanDispatchConsumer(planRecordRepository, eventPublisher));
+        // plan record 下发
+        eventPublisher.subscribe(new PlanRecordDispatchConsumer(planInstanceRepository, jobRecordRepository, eventPublisher));
+        // job record 下发
+        eventPublisher.subscribe(new JobRecordDispatchConsumer(jobInstanceRepository, eventPublisher));
+        // task 下发
+        eventPublisher.subscribe(new TaskDispatchConsumer(jobInstanceRepository, workerManager));
+        // task 完成
+        eventPublisher.subscribe(new ClosedConsumer(taskRepository,
+                planRecordRepository,
+                planInstanceRepository,
+                planRepository,
+                jobRecordRepository,
+                jobInstanceRepository,
+                trackerNode,
+                eventPublisher));
+        return eventPublisher;
+    }
+
     /**
      * 主从模式下，tracker 节点工厂
      */
     @Bean
-    public JobTrackerFactory jobTrackerFactory(Scheduler scheduler,
-                                               Storage storage,
-                                               DispatchLauncher dispatchLauncher) {
-        return new JobTrackerFactory(storage, scheduler, dispatchLauncher);
+    public JobTrackerFactory jobTrackerFactory(Scheduler scheduler) {
+        return new JobTrackerFactory(scheduler);
     }
 
 
@@ -114,20 +143,6 @@ public class TrackerConfiguration {
     @Bean
     public Scheduler scheduler() {
         return new HashedWheelTimerScheduler();
-    }
-
-
-    /**
-     * 异步进行任务下发的launcher
-     */
-    @Bean
-    public DispatchLauncher jobDispatchLauncher(Storage storage,
-                                                WorkerManager workerManager,
-                                                PlanRecordRepository planRecordRepository,
-                                                PlanInstanceRepository planInstanceRepository,
-                                                JobRecordRepository jobRecordRepository,
-                                                JobInstanceRepository jobInstanceRepository) {
-        return new DispatchLauncher(workerManager, storage, planRecordRepository, planInstanceRepository, jobRecordRepository, jobInstanceRepository);
     }
 
 
@@ -154,10 +169,11 @@ public class TrackerConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(PlanBuilderFactory.class)
-    public PlanBuilderFactory planFactory(Storage storage) {
+    public PlanBuilderFactory planFactory(Storage storage, EventPublisher<Event<?>> eventPublisher) {
         return new PlanBuilderFactory(
                 new ScheduleCalculatorFactory(),
-                new PlanExecutor(storage)
+                new PlanExecutor(eventPublisher)
+//                new PlanExecutor(storage)
         );
     }
 

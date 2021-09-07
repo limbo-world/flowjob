@@ -1,9 +1,8 @@
 package org.limbo.flowjob.tracker.core.job.consumer;
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
-import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
+import org.limbo.flowjob.tracker.core.job.context.Task;
 
 import java.util.function.Consumer;
 
@@ -27,7 +26,6 @@ public class AcceptedConsumer implements Consumer<Task> {
             log.debug(task.getWorkerId() + " accepted " + task.getId());
         }
         // 由于无法确定先接收到任务执行成功还是任务接收成功的消息，所以可能任务先被直接执行完成了，所以这里需要cas处理
-        jobInstanceRepository.compareAndSwapInstanceState(task.getPlanId(), task.getPlanInstanceId(),
-                task.getJobId(), JobScheduleStatus.Scheduling, task.getState());
+        jobInstanceRepository.executing(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), task.getJobId(), task.getJobInstanceId());
     }
 }

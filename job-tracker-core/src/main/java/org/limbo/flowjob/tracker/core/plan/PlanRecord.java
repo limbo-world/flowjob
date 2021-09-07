@@ -6,6 +6,7 @@ import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
 import org.limbo.flowjob.tracker.core.job.JobDAG;
 import org.limbo.flowjob.tracker.core.storage.Storable;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 /**
@@ -13,8 +14,9 @@ import java.time.Instant;
  * @since 2021/9/1
  */
 @Data
-public class PlanRecord implements Storable {
+public class PlanRecord implements Storable, Serializable {
 
+    private static final long serialVersionUID = 1837382860200548371L;
     /**
      * 计划ID
      */

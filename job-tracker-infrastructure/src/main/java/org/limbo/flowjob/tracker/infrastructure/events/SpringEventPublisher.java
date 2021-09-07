@@ -17,6 +17,7 @@
 package org.limbo.flowjob.tracker.infrastructure.events;
 
 import lombok.Setter;
+import org.limbo.flowjob.tracker.core.evnets.EventPublisher;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Objects;

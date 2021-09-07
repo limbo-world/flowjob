@@ -38,6 +38,10 @@ public class TaskPO extends PO {
      * 状态
      */
     private Byte state;
+    /**
+     * 成功/失败
+     */
+    private Byte result;
 
     /**
      * 执行作业的worker ID

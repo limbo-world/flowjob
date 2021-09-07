@@ -7,6 +7,7 @@ import org.limbo.flowjob.tracker.core.job.DispatchOption;
 import org.limbo.flowjob.tracker.core.job.ExecutorOption;
 import org.limbo.flowjob.tracker.core.storage.Storable;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -14,7 +15,9 @@ import java.time.LocalDateTime;
  * @since 2021/9/1
  */
 @Data
-public class JobRecord implements Storable {
+public class JobRecord implements Storable, Serializable {
+
+    private static final long serialVersionUID = -4343833583716806197L;
 
     private String planId;
 
@@ -69,6 +72,20 @@ public class JobRecord implements Storable {
         instance.setState(state);
         instance.setStartAt(TimeUtil.nowInstant());
         return instance;
+    }
+
+    /**
+     * 是否能触发下级任务
+     */
+    public boolean canTriggerNext() {
+        if (JobScheduleStatus.SUCCEED == state) {
+            return true;
+        } else if (JobScheduleStatus.FAILED == state) {
+            // todo 根据 handler 类型来判断
+            return true;
+        } else {
+            return false;
+        }
     }
 
 }

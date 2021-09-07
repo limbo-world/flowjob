@@ -17,8 +17,8 @@
 package org.limbo.flowjob.tracker.infrastructure.job.repositories;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
+import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
 import org.limbo.flowjob.tracker.core.job.context.Task;
@@ -28,7 +28,6 @@ import org.limbo.flowjob.tracker.infrastructure.job.converters.JobInstancePoConv
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -51,6 +50,7 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
 
     /**
      * {@inheritDoc}
+     *
      * @param instance 作业执行上下文
      */
     @Override
@@ -59,86 +59,56 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
         jobInstanceMapper.insert(po);
     }
 
-    /**
-     * {@inheritDoc}
-     * @param instance 作业执行上下文
-     */
     @Override
-    public void updateInstance(Task instance) {
-        JobInstancePO po = jobInstancePoConverter.convert(instance);
-        jobInstanceMapper.update(po, Wrappers.<JobInstancePO>lambdaUpdate()
-                .eq(JobInstancePO::getPlanId, po.getPlanId())
-                .eq(JobInstancePO::getPlanInstanceId, po.getPlanInstanceId())
-                .eq(JobInstancePO::getJobId, po.getJobId())
-        );
-    }
-
-    @Override
-    public void compareAndSwapInstanceState(String planId, Long planInstanceId, String jobId,
-                                     JobScheduleStatus oldState, JobScheduleStatus newState) {
+    public void executing(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId) {
         jobInstanceMapper.update(null, Wrappers.<JobInstancePO>lambdaUpdate()
-                .set(JobInstancePO::getState, newState.status)
+                .set(JobInstancePO::getState, JobScheduleStatus.EXECUTING.status)
                 .eq(JobInstancePO::getPlanId, planId)
+                .eq(JobInstancePO::getPlanRecordId, planRecordId)
                 .eq(JobInstancePO::getPlanInstanceId, planInstanceId)
                 .eq(JobInstancePO::getJobId, jobId)
-                .eq(JobInstancePO::getState, oldState.status)
+                .eq(JobInstancePO::getJobInstanceId, jobInstanceId)
+                .eq(JobInstancePO::getState, JobScheduleStatus.SCHEDULING.status)
+        );
+    }
+
+    @Override
+    public void end(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId, JobScheduleStatus state) {
+        jobInstanceMapper.update(null, Wrappers.<JobInstancePO>lambdaUpdate()
+                .set(JobInstancePO::getState, state.status)
+                .set(JobInstancePO::getEndAt, TimeUtil.nowLocalDateTime())
+                .eq(JobInstancePO::getPlanId, planId)
+                .eq(JobInstancePO::getPlanRecordId, planRecordId)
+                .eq(JobInstancePO::getPlanInstanceId, planInstanceId)
+                .eq(JobInstancePO::getJobId, jobId)
+                .eq(JobInstancePO::getJobInstanceId, jobInstanceId)
+                .eq(JobInstancePO::getState, JobScheduleStatus.EXECUTING.status)
         );
     }
 
 
     /**
      * {@inheritDoc}
-     * @param planId 作业ID
+     *
+     * @param planId         作业ID
      * @param planInstanceId 实例ID
-     * @param jobId 作业ID
+     * @param jobId          作业ID
      * @return
      */
     @Override
-    public Task getInstance(String planId, Long planInstanceId, String jobId) {
+    public Task get(String planId, Long planInstanceId, String jobId) {
         JobInstancePO po = jobInstanceMapper.selectOne(Wrappers.<JobInstancePO>lambdaQuery()
                 .eq(JobInstancePO::getPlanId, planId)
                 .eq(JobInstancePO::getPlanInstanceId, planInstanceId)
                 .eq(JobInstancePO::getJobId, jobId)
         );
-        return jobInstancePoConverter.reverse().convert(po);
+        // todo
+        return null;
+//        return jobInstancePoConverter.reverse().convert(po);
     }
 
-    /**
-     * {@inheritDoc}
-     * @param planId 作业ID
-     * @param planInstanceId 实例ID
-     * @param jobIds 作业ID
-     * @return
-     */
     @Override
-    public List<Task> getInstances(String planId, Long planInstanceId, List<String> jobIds) {
-        List<JobInstancePO> pos = jobInstanceMapper.selectList(Wrappers.<JobInstancePO>lambdaQuery()
-                .eq(JobInstancePO::getPlanId, planId)
-                .eq(JobInstancePO::getPlanInstanceId, planInstanceId)
-                .in(JobInstancePO::getJobId, jobIds)
-        );
-        List<Task> dos = new ArrayList<>();
-        if (CollectionUtils.isEmpty(pos)) {
-            return dos;
-        }
-        for (JobInstancePO po : pos) {
-            dos.add(jobInstancePoConverter.reverse().convert(po));
-        }
-        return dos;
-    }
-
-    /**
-     * {@inheritDoc}
-     * @param jobId 作业ID
-     * @return
-     */
-    @Override
-    public Task getLatestInstance(String jobId) {
-//        JobExecuteRecordPO po = mapper.selectOne(Wrappers.<JobExecuteRecordPO>lambdaQuery()
-//                .eq(JobExecuteRecordPO::getJobId, jobId)
-//                .orderByDesc(JobExecuteRecordPO::getCreatedAt)
-//                .last("limit 1"));
-//        return converter.reverse().convert(po);
+    public List<JobInstance> list(String planId, Long planRecordId, Long planInstanceId, String jobId) {
         return null;
     }
 

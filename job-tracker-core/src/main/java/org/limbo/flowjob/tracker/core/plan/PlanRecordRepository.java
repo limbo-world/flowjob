@@ -1,5 +1,7 @@
 package org.limbo.flowjob.tracker.core.plan;
 
+import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
+
 /**
  * @author Devil
  * @since 2021/7/24
@@ -20,4 +22,6 @@ public interface PlanRecordRepository {
      * 创建ID
      */
     Long createId(String planId);
+
+    void end(String planId, Long planRecordId, PlanScheduleStatus state);
 }

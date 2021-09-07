@@ -7,14 +7,14 @@ import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.commons.exceptions.JobExecuteException;
 import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
+import org.limbo.flowjob.tracker.core.evnets.Event;
+import org.limbo.flowjob.tracker.core.evnets.EventPublisher;
 import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.job.context.*;
 import org.limbo.flowjob.tracker.core.job.handler.JobFailHandler;
 import org.limbo.flowjob.tracker.core.plan.*;
-import org.limbo.flowjob.tracker.core.storage.Storage;
 import org.limbo.flowjob.tracker.core.tracker.TrackerNode;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  * @since 2021/8/16
  */
 @Slf4j
-public class ClosedConsumer implements Consumer<Task> {
+public class ClosedConsumer implements Consumer<Event<?>> {
 
     private final TaskRepository taskRepository;
 
@@ -40,28 +40,33 @@ public class ClosedConsumer implements Consumer<Task> {
 
     private final TrackerNode trackerNode;
 
-    private final Storage storage;
+    private final EventPublisher<Event<?>> eventPublisher;
 
     public ClosedConsumer(TaskRepository taskRepository,
+                          PlanRecordRepository planRecordRepository,
                           PlanInstanceRepository planInstanceRepository,
                           PlanRepository planRepository,
+                          JobRecordRepository jobRecordRepository,
+                          JobInstanceRepository jobInstanceRepository,
                           TrackerNode trackerNode,
-                          Storage storage) {
+                          EventPublisher<Event<?>> eventPublisher) {
         this.taskRepository = taskRepository;
+        this.planRecordRepository = planRecordRepository;
         this.planInstanceRepository = planInstanceRepository;
         this.planRepository = planRepository;
+        this.jobRecordRepository = jobRecordRepository;
+        this.jobInstanceRepository = jobInstanceRepository;
         this.trackerNode = trackerNode;
-        this.storage = storage;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
-    public void accept(Task task) {
-        if (log.isDebugEnabled()) {
-            log.debug(task.getWorkerId() + " closed " + task.getId());
+    public void accept(Event<?> event) {
+        if (!(event.getSource() instanceof Task)) {
+            return;
         }
-        taskRepository.end(task);
-
-        switch (task.getState()) {
+        Task task = (Task) event.getSource();
+        switch (task.getResult()) {
             case SUCCEED:
                 handlerSuccess(task);
                 break;
@@ -83,27 +88,29 @@ public class ClosedConsumer implements Consumer<Task> {
 
     public void handlerNormalTaskSuccess(Task task) {
         // 判断是否所有 task 执行过
-        if (taskRepository.unclosedTaskCount(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), task.getJobId(), task.getJobInstanceId()) > 0) {
+        if (taskRepository.unclosedCount(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), task.getJobId(), task.getJobInstanceId()) > 0) {
             return;
         }
-        // todo
-        jobInstanceRepository.end(null);
-        jobRecordRepository.end();
+        // 结束 job
+        jobInstanceRepository.end(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), task.getJobId(),
+                task.getJobInstanceId(), JobScheduleStatus.SUCCEED);
+        jobRecordRepository.end(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), task.getJobId(),
+                JobScheduleStatus.SUCCEED);
 
-        Plan plan = planRepository.getPlan(task.getPlanId(), task.getVersion());
+        PlanInstance planInstance = planInstanceRepository.get(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId());
 
-        List<Job> subJobs = plan.getDag().getSubJobs(task.getJobId());
+        List<Job> subJobs = planInstance.getDag().getSubJobs(task.getJobId());
         if (CollectionUtils.isEmpty(subJobs)) {
             // 无后续节点，需要判断是否plan结束
-            if (checkPreJobsFinished(plan.getPlanId(), task.getPlanInstanceId(), plan.getDag().getFinalJobs())) {
-                LocalDateTime endTime = TimeUtil.nowLocalDateTime();
+            if (checkJobsFinished(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), planInstance.getDag().getFinalJobs())) {
                 // 结束plan
-                planInstanceRepository.end(planInstance.getPlanId(), planInstance.getPlanInstanceId(), endTime, PlanScheduleStatus.SUCCEED);
-                planRecordRepository.end(planInstance.getPlanId(), planInstance.getPlanInstanceId(), endTime, PlanScheduleStatus.SUCCEED);
+                planInstanceRepository.end(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), PlanScheduleStatus.SUCCEED);
+                planRecordRepository.end(task.getPlanId(), task.getPlanRecordId(), PlanScheduleStatus.SUCCEED);
 
                 // 判断 plan 是否需要 feedback 只有 FIXED_INTERVAL类型需要反馈，让任务在时间轮里面能重新下发，手动的和其他的都不需要
+                Plan plan = planRepository.getPlan(task.getPlanId(), task.getVersion());
                 plan.setLastScheduleAt(planInstance.getStartAt());
-                plan.setLastFeedBackAt(TimeUtil.toInstant(endTime));
+                plan.setLastFeedBackAt(TimeUtil.nowInstant());
                 if (ScheduleType.FIXED_INTERVAL == plan.getScheduleOption().getScheduleType() && planInstance.isReschedule()) {
                     trackerNode.jobTracker().schedule(plan);
                 }
@@ -111,8 +118,8 @@ public class ClosedConsumer implements Consumer<Task> {
         } else {
             // 不为end节点，继续下发
             for (Job job : subJobs) {
-                if (checkPreJobsFinished(plan.getPlanId(), planInstance.getPlanInstanceId(), plan.getDag().getPreJobs(job.getJobId()))) {
-                    storage.store(job.newInstance(plan.getPlanId(), planInstance.getPlanInstanceId(), plan.getVersion(), JobScheduleStatus.Scheduling));
+                if (checkJobsFinished(planInstance.getPlanId(), planInstance.getPlanRecordId(), planInstance.getPlanInstanceId(), planInstance.getDag().getPreJobs(job.getJobId()))) {
+                    eventPublisher.publish(new Event<>(job.newRecord(planInstance.getPlanId(), planInstance.getPlanRecordId(), planInstance.getPlanInstanceId(), JobScheduleStatus.SCHEDULING)));
                 }
             }
         }
@@ -120,19 +127,25 @@ public class ClosedConsumer implements Consumer<Task> {
 
 
     public void handlerFailed(Task task) {
-        // 获取jobInstance
-        JobInstance jobInstance = null;
-        JobRecord jobRecord = null;
-        int retry =3;
-
-        // 此次jobinstance失败
-        jobInstanceRepository.end(null);
-
-        // 如果 jobRecord 可以重试，重新下发一个jobinstance
-        if (retry > 0) {
-            storage.store(jobRecord);
+        PlanInstance planInstance = planInstanceRepository.get(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId());
+        // 重复处理的情况
+        if (planInstance.getState() == PlanScheduleStatus.SUCCEED || planInstance.getState() == PlanScheduleStatus.FAILED) {
             return;
         }
+
+        jobInstanceRepository.end(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), task.getJobId(),
+                task.getJobInstanceId(), JobScheduleStatus.FAILED);
+
+        JobRecord jobRecord = jobRecordRepository.get(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), task.getJobId());
+        List<JobInstance> jobInstances = jobInstanceRepository.list(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), task.getJobId());
+        // 判断是否超过重试次数
+        if (jobRecord.getRetry() >= CollectionUtils.size(jobInstances)) {
+            eventPublisher.publish(new Event<>(jobRecord));
+            return;
+        }
+
+        jobRecordRepository.end(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), task.getJobId(),
+                JobScheduleStatus.FAILED);
 
         // 超过重试次数 执行handler
         JobFailHandler failHandler = task.getFailHandler();
@@ -140,45 +153,38 @@ public class ClosedConsumer implements Consumer<Task> {
             failHandler.handle();
             handlerSuccess(task);
         } catch (JobExecuteException e) {
-            PlanRecord planRecord = null;
-
             // 此次 planInstance 失败
-            planInstanceRepository.end(planInstance.getPlanId(), planInstance.getPlanInstanceId(),
-                    TimeUtil.nowLocalDateTime(), PlanScheduleStatus.FAILED);
-
-            // 如果 planRecord 可以重试，重新下发一个 jobinstance
-            if (retry > 0) {
-                storage.store(planRecord);
+            planInstanceRepository.end(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), PlanScheduleStatus.FAILED);
+            List<PlanInstance> planInstances = planInstanceRepository.list(task.getPlanId(), task.getPlanRecordId());
+            // 判断是否超过重试次数
+            if (planInstance.getRetry() >= CollectionUtils.size(planInstances)) {
+                PlanRecord planRecord = planRecordRepository.get(task.getPlanId(), task.getPlanRecordId());
+                eventPublisher.publish(new Event<>(planRecord));
                 return;
             }
 
             // 如果超过重试次数 此planRecord失败
-            planRecordRepository.end(planInstance.getPlanId(), planInstance.getPlanInstanceId(),
-                    TimeUtil.nowLocalDateTime(), PlanScheduleStatus.FAILED);
+            planRecordRepository.end(task.getPlanId(), task.getPlanRecordId(), PlanScheduleStatus.FAILED);
         }
 
     }
 
     /**
-     * 判断前置节点是否完成
-     * @param planId
-     * @param planInstanceId
-     * @param preJobs
-     * @return
+     * 判断一批job是否完成可以执行下一步
      */
-    public boolean checkPreJobsFinished(String planId, Long planInstanceId, List<Job> preJobs) {
+    public boolean checkJobsFinished(String planId, Long planRecordId, Long planInstanceId, List<Job> jobs) {
         // 获取db中 job实例
-        List<Task> finalInstances = jobInstanceRepository.getInstances(planId, planInstanceId,
-                preJobs.stream().map(Job::getJobId).collect(Collectors.toList()));
+        List<JobRecord> jobRecords = jobRecordRepository.getRecords(planId, planRecordId, planInstanceId,
+                jobs.stream().map(Job::getJobId).collect(Collectors.toList()));
 
         // 有实例还未创建直接返回
-        if (preJobs.size() > finalInstances.size()) {
+        if (jobs.size() > jobRecords.size()) {
             return false;
         }
 
         // 判断是否所有实例都可以触发下个任务
-        for (Task finalInstance : finalInstances) {
-            if (!finalInstance.canTriggerNext()) {
+        for (JobRecord jobRecord : jobRecords) {
+            if (!jobRecord.canTriggerNext()) {
                 return false;
             }
         }

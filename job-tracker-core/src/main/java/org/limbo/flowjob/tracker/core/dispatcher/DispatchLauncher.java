@@ -234,7 +234,7 @@ public class DispatchLauncher {
 
             List<Job> jobs = planInstance.getDag().getEarliestJobs();
             for (Job job : jobs) {
-                JobRecord jobRecord = job.newRecord(planInstance.getPlanId(), planInstance.getPlanRecordId(), planInstanceId, JobScheduleStatus.Scheduling);
+                JobRecord jobRecord = job.newRecord(planInstance.getPlanId(), planInstance.getPlanRecordId(), planInstanceId, JobScheduleStatus.SCHEDULING);
                 jobRecordRepository.add(jobRecord);
                 storage.store(jobRecord);
             }
@@ -252,7 +252,7 @@ public class DispatchLauncher {
         public void dispatch(Storable storable) {
             JobRecord jobRecord = (JobRecord) storable;
             Long jobInstanceId = jobInstanceRepository.createId();
-            JobInstance jobInstance = jobRecord.newInstance(jobInstanceId, JobScheduleStatus.Scheduling);
+            JobInstance jobInstance = jobRecord.newInstance(jobInstanceId, JobScheduleStatus.SCHEDULING);
             jobInstanceRepository.add(jobInstance);
             List<Task> tasks = jobInstance.tasks();
             for (Task task : tasks) {
@@ -270,22 +270,22 @@ public class DispatchLauncher {
 
         @Override
         public void dispatch(Storable storable) {
-            Task task = (Task) storable;
+//            Task task = (Task) storable;
             // todo 下发前确认下对应的jobInstance是否已经关闭
             // 初始化dispatcher
-            Dispatcher dispatcher = jobDispatcherFactory.newDispatcher(task.getDispatchOption().getLoadBalanceType());
-            if (dispatcher == null) {
-                throw new JobExecuteException(task.getJobId(),
-                        "Cannot create JobDispatcher for dispatch type: " + task.getDispatchOption().getLoadBalanceType());
-            }
-
-            // 订阅下发成功
-            task.onAccepted().subscribe(new AcceptedConsumer(jobInstanceRepository));
-            // 订阅下发拒绝
-            task.onRefused().subscribe(new RefusedConsumer(jobInstanceRepository));
-
-            // 下发任务
-            dispatcher.dispatch(task, workerManager.availableWorkers(), Task::startup);
+//            Dispatcher dispatcher = jobDispatcherFactory.newDispatcher(task.getDispatchOption().getLoadBalanceType());
+//            if (dispatcher == null) {
+//                throw new JobExecuteException(task.getJobId(),
+//                        "Cannot create JobDispatcher for dispatch type: " + task.getDispatchOption().getLoadBalanceType());
+//            }
+//
+//            // 订阅下发成功
+//            task.onAccepted().subscribe(new AcceptedConsumer(jobInstanceRepository));
+//            // 订阅下发拒绝
+//            task.onRefused().subscribe(new RefusedConsumer(jobInstanceRepository));
+//
+//            // 下发任务
+//            dispatcher.dispatch(task, workerManager.availableWorkers(), Task::startup);
         }
 
         @Override

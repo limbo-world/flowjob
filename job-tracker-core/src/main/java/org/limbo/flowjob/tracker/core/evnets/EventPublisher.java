@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.infrastructure.events;
+package org.limbo.flowjob.tracker.core.evnets;
 
 /**
  * 领域事件发布器
+ *
+ * Reactor（Memory），Redis，MQ，DB，Disk等
  *
  * @author Brozen
  * @since 2021-08-25

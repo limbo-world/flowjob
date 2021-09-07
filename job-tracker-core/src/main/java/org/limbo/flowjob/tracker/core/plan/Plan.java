@@ -34,6 +34,7 @@ import org.limbo.flowjob.tracker.core.storage.Storable;
 import org.limbo.utils.UUIDUtils;
 import org.limbo.utils.verifies.Verifies;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
 
@@ -46,8 +47,9 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class Plan implements Schedulable, Storable {
+public class Plan implements Schedulable, Storable, Serializable {
 
+    private static final long serialVersionUID = 5657376836197403211L;
     /**
      * 作业计划ID
      */

@@ -16,6 +16,7 @@
 
 package org.limbo.flowjob.tracker.infrastructure.events;
 
+import org.limbo.flowjob.tracker.core.evnets.Event;
 import org.springframework.context.ApplicationEvent;
 
 import java.time.Instant;

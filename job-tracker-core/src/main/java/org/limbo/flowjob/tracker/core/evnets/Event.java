@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.infrastructure.events;
+package org.limbo.flowjob.tracker.core.evnets;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -28,7 +28,7 @@ import java.time.Instant;
  * @author Brozen
  * @since 2021-08-25
  */
-public abstract class Event<T extends Serializable> implements Serializable {
+public class Event<T extends Serializable> implements Serializable {
 
     private static final long serialVersionUID = -1091865930180190422L;
 
@@ -44,6 +44,10 @@ public abstract class Event<T extends Serializable> implements Serializable {
      */
     @Getter
     private T source;
+
+    @Getter
+    @Setter
+    private String tag;
 
     /**
      * 事件触发时的时间戳

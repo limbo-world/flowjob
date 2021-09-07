@@ -17,6 +17,8 @@
 package org.limbo.flowjob.tracker.core.plan;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.tracker.core.evnets.Event;
+import org.limbo.flowjob.tracker.core.evnets.EventPublisher;
 import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.schedule.executor.Executor;
 import org.limbo.flowjob.tracker.core.storage.Storage;
@@ -32,10 +34,16 @@ import java.util.List;
  */
 public class PlanExecutor implements Executor<Plan> {
 
-    private final Storage storage;
+//    private final Storage storage;
+//
+//    public PlanExecutor(Storage storage) {
+//        this.storage = storage;
+//    }
 
-    public PlanExecutor(Storage storage) {
-        this.storage = storage;
+    private final EventPublisher<Event<?>> eventEventPublisher;
+
+    public PlanExecutor(EventPublisher<Event<?>> eventEventPublisher) {
+        this.eventEventPublisher = eventEventPublisher;
     }
 
     /**
@@ -51,7 +59,8 @@ public class PlanExecutor implements Executor<Plan> {
         }
 
         // todo 如果 plan 需要持久化，那么持久化一个 PlanRecord 那么如果出现主从切换，从节点会获取到这个数据并执行下发 如果plan不需要持久化 那么plan存在内存，如果主节点挂了这次执行可能就会丢失
-        storage.store(plan);
+//        storage.store(plan);
+        eventEventPublisher.publish(new Event<>(plan));
     }
 
 
