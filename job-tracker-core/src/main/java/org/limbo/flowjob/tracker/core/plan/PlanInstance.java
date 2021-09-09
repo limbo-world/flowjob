@@ -50,13 +50,6 @@ public class PlanInstance {
 
     private Long planInstanceId;
 
-    private JobDAG dag;
-
-    /**
-     * 是否需要重新调度 目前只有 FIXED_INTERVAL 类型在任务执行完成后才会需要重新调度
-     */
-    private boolean reschedule;
-
     /**
      * 状态
      */

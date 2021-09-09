@@ -49,9 +49,9 @@ public class PlanRecordPO extends PO {
     private Integer retry;
 
     /**
-     * 是否需要重新调度 目前只有 FIXED_INTERVAL 类型在任务执行完成后才会需要重新调度
+     * 是否手动下发
      */
-    private Boolean reschedule;
+    private Boolean manual;
 
     /**
      * 开始时间

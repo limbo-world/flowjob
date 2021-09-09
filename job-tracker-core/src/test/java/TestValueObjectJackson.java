@@ -17,7 +17,8 @@
 import org.junit.Before;
 import org.junit.Test;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
-import org.limbo.flowjob.tracker.core.job.context.JobAttributes;
+import org.limbo.flowjob.tracker.commons.constants.enums.TaskScheduleStatus;
+import org.limbo.flowjob.tracker.core.job.context.Attributes;
 import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.utils.JacksonUtils;
 
@@ -42,25 +43,25 @@ public class TestValueObjectJackson {
     @Test
     public void testJobAttribute() {
 
-        JobAttributes attributes = new JobAttributes(attr);
+        Attributes attributes = new Attributes(attr);
 
         String json = JacksonUtils.toJSONString(attributes);
         System.out.println("Serialized ==>" + json);
 
-        JobAttributes attributes1 = JacksonUtils.parseObject(json, JobAttributes.class);
+        Attributes attributes1 = JacksonUtils.parseObject(json, Attributes.class);
         System.out.println("Deserialized ==> " + attributes1);
 
     }
 
     @Test
     public void testJobContext() {
-        Task JobContext = new Task();
-        JobContext.setJobId("job1");
-        JobContext.setState(JobScheduleStatus.Scheduling);
-        JobContext.setWorkerId("");
-        JobContext.setJobAttributes(new JobAttributes(attr));
+        Task task = new Task();
+        task.setJobId("job1");
+        task.setState(TaskScheduleStatus.SCHEDULING);
+        task.setWorkerId("");
+        task.setAttributes(new Attributes(attr));
 
-        String json = JacksonUtils.toJSONString(JobContext);
+        String json = JacksonUtils.toJSONString(task);
         System.out.println("Serialized ==>" + json);
 
         Task jobContext1 = JacksonUtils.parseObject(json, Task.class);

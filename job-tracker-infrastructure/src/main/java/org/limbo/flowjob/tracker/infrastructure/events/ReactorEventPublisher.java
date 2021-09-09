@@ -29,7 +29,9 @@ import org.reactivestreams.Subscription;
 import reactor.core.CorePublisher;
 import reactor.core.CoreSubscriber;
 import reactor.core.Fuseable;
-import reactor.core.publisher.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Operators;
+import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
@@ -59,14 +61,12 @@ public class ReactorEventPublisher extends Flux<Event<?>> implements EventPublis
     @Setter
     private Sinks.EmitFailureHandler publishFailHandler;
 
-    public ReactorEventPublisher(int concurrency, ThreadFactory threadFactory) {
+    public ReactorEventPublisher(int concurrency, int bufferSize, ThreadFactory threadFactory) {
         Verifies.verify(concurrency > 0, "concurrency must be a positive integer");
         Verifies.notNull(threadFactory, "threadFactory must not be null");
 
         this.publishers = new ArrayList<>(concurrency);
 
-        // FIXME 暂时写死允许1W消息积压
-        final int bufferSize = 10000;
         for (int i = 0; i <concurrency; i++) {
             Sinks.Many<Event<?>> publisher = Sinks.many().multicast().onBackpressureBuffer(bufferSize);
             this.publishers.add(Tuples.of(

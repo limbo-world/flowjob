@@ -17,28 +17,31 @@
 package org.limbo.flowjob.tracker.core.job.attribute;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.tracker.core.job.context.JobAttributes;
+import org.limbo.flowjob.tracker.core.job.context.Attributes;
+import org.limbo.utils.JacksonUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * 适用于并发场景
+ *
  * @author Brozen
  * @since 2021-05-19
  */
-public class MutableJobAttribute extends JobAttributes {
+public class MutableAttribute extends Attributes {
 
     /**
      * 内部数据结构
      */
     private final Map<String, List<String>> attributes;
 
-    public MutableJobAttribute(JobAttributes jobAttributes) {
-        this(jobAttributes.toMap());
+    public MutableAttribute(Attributes attributes) {
+        this(attributes.toMap());
     }
 
-    public MutableJobAttribute(Map<String, List<String>> attributes) {
-        super(null);
+    public MutableAttribute(Map<String, List<String>> attributes) {
+        super(attributes);
         this.attributes = new ConcurrentHashMap<>(attributes);
     }
 
@@ -91,5 +94,9 @@ public class MutableJobAttribute extends JobAttributes {
         return attributes.remove(key);
     }
 
+    @Override
+    public String toString() {
+        return JacksonUtils.toJSONString(attributes);
+    }
 
 }

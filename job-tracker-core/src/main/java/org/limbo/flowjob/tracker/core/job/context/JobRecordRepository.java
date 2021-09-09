@@ -21,6 +21,8 @@ public interface JobRecordRepository {
      */
     JobRecord get(String planId, Long planRecordId, Long planInstanceId, String jobId);
 
+    void executing(String planId, Long planRecordId, Long planInstanceId, String jobId);
+
     void end(String planId, Long planRecordId, Long planInstanceId, String jobId, JobScheduleStatus state);
 
     List<JobRecord> getRecords(String planId, Long planRecordId, Long planInstanceId, List<String> jobIds);

@@ -37,14 +37,14 @@ public abstract class AbstractDispatcher implements Dispatcher {
     /**
      * {@inheritDoc}
      *
-     * @param instance 待下发的作业实例
+     * @param task 待下发的作业实例
      * @param workers  可用的worker
      * @param callback 作业执行回调
      */
     @Override
-    public void dispatch(Task instance, Collection<Worker> workers, BiConsumer<Task, Worker> callback) {
+    public void dispatch(Task task, Collection<Worker> workers, BiConsumer<Task, Worker> callback) {
         if (CollectionUtils.isEmpty(workers)) {
-            throw new JobWorkerException(instance.getJobId(), null, "No worker available!");
+            throw new JobWorkerException(task.getJobId(), null, "No worker available!");
         }
 
         List<Worker> availableWorkers = new ArrayList<>();
@@ -56,23 +56,23 @@ public abstract class AbstractDispatcher implements Dispatcher {
             }
             // 判断是否有对应的执行器
             for (WorkerExecutor executor : metric.getExecutors()) {
-                if (executor.getType() == instance.getExecutorOption().getType()
-                        && executor.getName().equals(instance.getExecutorOption().getName())) {
+                if (executor.getType() == task.getExecutorOption().getType()
+                        && executor.getName().equals(task.getExecutorOption().getName())) {
                     availableWorkers.add(worker);
                 }
             }
         }
 
         if (CollectionUtils.isEmpty(availableWorkers)) {
-            throw new JobWorkerException(instance.getJobId(), null, "No worker available!");
+            throw new JobWorkerException(task.getJobId(), null, "No worker available!");
         }
 
         // todo worker 拒绝后的重试
-        Worker worker = selectWorker(instance, availableWorkers);
+        Worker worker = selectWorker(task, availableWorkers);
         if (worker == null) {
-            throw new JobWorkerException(instance.getJobId(), null, "No worker available!");
+            throw new JobWorkerException(task.getJobId(), null, "No worker available!");
         }
-        callback.accept(instance, worker);
+        callback.accept(task, worker);
 
     }
 

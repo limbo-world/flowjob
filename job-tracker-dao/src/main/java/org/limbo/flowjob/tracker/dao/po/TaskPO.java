@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.time.LocalDateTime;
+
 /**
  * 最小的执行单元 下发给worker
  *
@@ -49,6 +51,11 @@ public class TaskPO extends PO {
     private String workerId;
 
     /**
+     * sharding normal
+     */
+    private String type;
+
+    /**
      * 此次执行的参数
      */
     private String attributes;
@@ -62,5 +69,15 @@ public class TaskPO extends PO {
      * 执行失败时的异常堆栈
      */
     private String errorStackTrace;
+
+    /**
+     * 开始时间
+     */
+    private LocalDateTime startAt;
+
+    /**
+     * 结束时间
+     */
+    private LocalDateTime endAt;
 
 }

@@ -30,8 +30,6 @@ import org.limbo.flowjob.tracker.core.schedule.calculator.ScheduleCalculatorFact
 import org.limbo.flowjob.tracker.core.schedule.scheduler.HashedWheelTimerScheduler;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.NamedThreadFactory;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.Scheduler;
-import org.limbo.flowjob.tracker.core.storage.MemoryStorage;
-import org.limbo.flowjob.tracker.core.storage.Storage;
 import org.limbo.flowjob.tracker.core.tracker.JobTrackerFactory;
 import org.limbo.flowjob.tracker.core.tracker.TrackerNode;
 import org.limbo.flowjob.tracker.core.tracker.WorkerManager;
@@ -46,6 +44,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Lazy;
 
 /**
  * @author Brozen
@@ -98,26 +97,38 @@ public class TrackerConfiguration {
 
     }
 
-
     @Bean
     public EventPublisher<Event<?>> eventPublisher(TrackerNode trackerNode, TaskRepository taskRepository,
                                                    PlanInstanceRepository planInstanceRepository,
-                                                   PlanRepository planRepository, Storage storage,
+                                                   PlanRepository planRepository,
                                                    JobRecordRepository jobRecordRepository,
                                                    JobInstanceRepository jobInstanceRepository,
                                                    PlanRecordRepository planRecordRepository,
                                                    WorkerManager workerManager) {
-        ReactorEventPublisher eventPublisher = new ReactorEventPublisher(4, NamedThreadFactory.newInstance("Event-Publisher"));
+        ReactorEventPublisher eventPublisher = new ReactorEventPublisher(4, 10000, NamedThreadFactory.newInstance("Event-Publisher"));
         // plan 下发
-        eventPublisher.subscribe(new PlanDispatchConsumer(planRecordRepository, eventPublisher));
+        eventPublisher.subscribe(new PlanDispatchConsumer(
+                planRecordRepository,
+                eventPublisher));
         // plan record 下发
-        eventPublisher.subscribe(new PlanRecordDispatchConsumer(planInstanceRepository, jobRecordRepository, eventPublisher));
+        eventPublisher.subscribe(new PlanRecordDispatchConsumer(
+                planInstanceRepository,
+                jobRecordRepository,
+                eventPublisher));
         // job record 下发
-        eventPublisher.subscribe(new JobRecordDispatchConsumer(jobInstanceRepository, eventPublisher));
+        eventPublisher.subscribe(new JobRecordDispatchConsumer(
+                jobInstanceRepository,
+                taskRepository,
+                eventPublisher));
         // task 下发
-        eventPublisher.subscribe(new TaskDispatchConsumer(jobInstanceRepository, workerManager));
+        eventPublisher.subscribe(new TaskDispatchConsumer(
+                jobRecordRepository,
+                jobInstanceRepository,
+                taskRepository,
+                workerManager));
         // task 完成
-        eventPublisher.subscribe(new ClosedConsumer(taskRepository,
+        eventPublisher.subscribe(new ClosedConsumer(
+                taskRepository,
                 planRecordRepository,
                 planInstanceRepository,
                 planRepository,
@@ -154,26 +165,15 @@ public class TrackerConfiguration {
         return new WorkerManagerImpl(workerRepository);
     }
 
-
-    /**
-     * job 存储
-     */
-    @Bean
-    @ConditionalOnMissingBean(Storage.class)
-    public Storage jobStorage() {
-        return new MemoryStorage();
-    }
-
     /**
      * 计划工厂
      */
     @Bean
     @ConditionalOnMissingBean(PlanBuilderFactory.class)
-    public PlanBuilderFactory planFactory(Storage storage, EventPublisher<Event<?>> eventPublisher) {
+    public PlanBuilderFactory planFactory(EventPublisher<Event<?>> eventPublisher) {
         return new PlanBuilderFactory(
                 new ScheduleCalculatorFactory(),
                 new PlanExecutor(eventPublisher)
-//                new PlanExecutor(storage)
         );
     }
 

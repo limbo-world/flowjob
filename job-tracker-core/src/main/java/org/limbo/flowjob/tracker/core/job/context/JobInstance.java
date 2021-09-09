@@ -27,6 +27,7 @@ public class JobInstance {
      * 状态
      */
     private JobScheduleStatus state;
+
     /**
      * 开始时间
      */
@@ -38,7 +39,7 @@ public class JobInstance {
     private Instant endAt;
 
     public List<Task> tasks() {
-        // 根据下发类型 单机 广播 分片
+        // todo 根据下发类型 单机 广播 分片
         return null;
     }
 

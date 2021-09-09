@@ -31,7 +31,7 @@ public interface JobInstanceRepository {
     void end(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId, JobScheduleStatus state);
 
 
-    Long createId();
+    Long createId(String planId, Long planRecordId, Long planInstanceId, String jobId);
 
     /**
      * 持久化作业实例
@@ -40,13 +40,12 @@ public interface JobInstanceRepository {
     void add(JobInstance instance);
 
     /**
-     * 获取作业执行实例
-     * @param planId 作业ID
-     * @param planInstanceId 实例ID
-     * @param jobId 作业ID
-     * @return 作业实例
+     * 列出 JobRecord 下对应的所有 JobInstance
+     * @param planId
+     * @param planRecordId
+     * @param planInstanceId
+     * @param jobId
+     * @return
      */
-    Task get(String planId, Long planInstanceId, String jobId);
-
-    List<JobInstance> list(String planId, Long planRecordId, Long planInstanceId, String jobId);
+    List<JobInstance> listByRecord(String planId, Long planRecordId, Long planInstanceId, String jobId);
 }

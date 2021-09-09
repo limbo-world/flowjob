@@ -39,11 +39,9 @@ public class PlanInstancePoConverter extends Converter<PlanInstance, PlanInstanc
         po.setPlanId(planInstance.getPlanId());
         po.setPlanRecordId(planInstance.getPlanRecordId());
         po.setPlanInstanceId(planInstance.getPlanInstanceId());
-        po.setVersion(planInstance.getVersion());
         po.setState(planInstance.getState().status);
-        po.setReschedule(planInstance.isReschedule());
-        po.setStartAt(planInstance.getStartAt() == null ? null : TimeUtil.toLocalDateTime(planInstance.getStartAt()));
-        po.setEndAt(planInstance.getEndAt() == null ? null : TimeUtil.toLocalDateTime(planInstance.getStartAt()));
+        po.setStartAt(TimeUtil.toLocalDateTime(planInstance.getStartAt()));
+        po.setEndAt(TimeUtil.toLocalDateTime(planInstance.getStartAt()));
         return po;
     }
 
@@ -56,12 +54,10 @@ public class PlanInstancePoConverter extends Converter<PlanInstance, PlanInstanc
         PlanInstance planInstance = new PlanInstance();
         planInstance.setPlanId(po.getPlanId());
         planInstance.setPlanInstanceId(po.getPlanInstanceId());
-        planInstance.setVersion(po.getVersion());
-        po.setRetry(planInstance.getRetry());
         planInstance.setState(PlanScheduleStatus.parse(po.getState()));
-        planInstance.setReschedule(po.getReschedule());
-        planInstance.setStartAt(po.getStartAt() == null ? null : TimeUtil.toInstant(po.getStartAt()));
-        planInstance.setEndAt(po.getEndAt() == null ? null : TimeUtil.toInstant(po.getEndAt()));
+        planInstance.setRetry(po.getRetry());
+        planInstance.setStartAt(TimeUtil.toInstant(po.getStartAt()));
+        planInstance.setEndAt(TimeUtil.toInstant(po.getEndAt()));
         return planInstance;
     }
 

@@ -1,7 +1,6 @@
 package org.limbo.flowjob.tracker.core.job.consumer;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
-import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.core.evnets.Event;
 import org.limbo.flowjob.tracker.core.evnets.EventPublisher;
 import org.limbo.flowjob.tracker.core.plan.Plan;
@@ -16,9 +15,9 @@ import java.util.function.Consumer;
  */
 public class PlanDispatchConsumer implements Consumer<Event<?>> {
 
-    private PlanRecordRepository planRecordRepository;
+    private final PlanRecordRepository planRecordRepository;
 
-    private EventPublisher<Event<?>> eventPublisher;
+    private final EventPublisher<Event<?>> eventPublisher;
 
     public PlanDispatchConsumer(PlanRecordRepository planRecordRepository, EventPublisher<Event<?>> eventPublisher) {
         this.planRecordRepository = planRecordRepository;
@@ -32,8 +31,7 @@ public class PlanDispatchConsumer implements Consumer<Event<?>> {
         }
         Plan plan = (Plan) event.getSource();
         Long planRecordId = planRecordRepository.createId(plan.getPlanId());
-        PlanRecord planRecord = plan.newRecord(planRecordId, PlanScheduleStatus.Scheduling,
-                ScheduleType.FIXED_INTERVAL == plan.getScheduleOption().getScheduleType());
+        PlanRecord planRecord = plan.newRecord(planRecordId, PlanScheduleStatus.SCHEDULING, false);
         planRecordRepository.add(planRecord);
         eventPublisher.publish(new Event<>(planRecord));
     }

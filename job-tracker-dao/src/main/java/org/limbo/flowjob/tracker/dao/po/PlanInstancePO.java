@@ -40,6 +40,8 @@ public class PlanInstancePO extends PO {
      */
     private Byte state;
 
+    private Integer retry;
+
     /**
      * 开始时间
      */

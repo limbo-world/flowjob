@@ -2,6 +2,7 @@ package org.limbo.flowjob.tracker.core.plan;
 
 import lombok.Data;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
+import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
 import org.limbo.flowjob.tracker.core.job.JobDAG;
 import org.limbo.flowjob.tracker.core.storage.Storable;
@@ -29,8 +30,6 @@ public class PlanRecord implements Storable, Serializable {
      */
     private Integer version;
 
-    private JobDAG dag;
-
     private PlanScheduleStatus state;
 
     /**
@@ -39,9 +38,9 @@ public class PlanRecord implements Storable, Serializable {
     private Integer retry;
 
     /**
-     * 是否需要重新调度 目前只有 FIXED_INTERVAL 类型在任务执行完成后才会需要重新调度
+     * 是否手动下发
      */
-    private boolean reschedule;
+    private boolean manual;
 
     /**
      * 开始时间
@@ -53,14 +52,18 @@ public class PlanRecord implements Storable, Serializable {
      */
     private Instant endAt;
 
+    // ===== 非 po 属性
+
+    private JobDAG dag;
+
     public PlanInstance newInstance(Long planInstanceId, PlanScheduleStatus state) {
         PlanInstance instance = new PlanInstance();
         instance.setPlanId(planId);
         instance.setPlanRecordId(planRecordId);
         instance.setPlanInstanceId(planInstanceId);
-        instance.setDag(dag);
         instance.setState(state);
         instance.setStartAt(TimeUtil.nowInstant());
         return instance;
     }
+
 }

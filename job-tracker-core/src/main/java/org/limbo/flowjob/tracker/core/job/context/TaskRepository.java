@@ -16,6 +16,8 @@
 
 package org.limbo.flowjob.tracker.core.job.context;
 
+import org.limbo.flowjob.tracker.commons.constants.enums.TaskResult;
+
 /**
  * @author Brozen
  * @since 2021-05-19
@@ -29,10 +31,19 @@ public interface TaskRepository {
     void add(Task task);
 
     /**
-     * 更新作业实例
-     * @param task 作业执行实例
+     * 更新状态为执行中
+     */
+    void executing(Task task);
+
+    /**
+     * 更新状态为已反馈
      */
     void executed(Task task);
+
+    /**
+     * 更新状态为已完成
+     */
+    void end(Task task);
 
     Integer unclosedCount(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId);
 

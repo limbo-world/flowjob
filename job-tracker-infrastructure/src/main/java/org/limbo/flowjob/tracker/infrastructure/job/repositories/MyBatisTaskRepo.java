@@ -23,13 +23,11 @@ import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.core.job.context.TaskRepository;
 import org.limbo.flowjob.tracker.dao.mybatis.TaskMapper;
 import org.limbo.flowjob.tracker.dao.po.TaskPO;
+import org.limbo.flowjob.tracker.infrastructure.job.converters.TaskPoConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 /**
- * todo
  * @author Brozen
  * @since 2021-06-02
  */
@@ -39,15 +37,34 @@ public class MyBatisTaskRepo implements TaskRepository {
     @Autowired
     private TaskMapper taskMapper;
 
+    @Autowired
+    private TaskPoConverter converter;
+
     @Override
     public void add(Task task) {
-
+        TaskPO po = converter.convert(task);
+        taskMapper.insert(po);
     }
 
     @Override
     public void executed(Task task) {
         taskMapper.update(null, Wrappers.<TaskPO>lambdaUpdate()
-                .set(TaskPO::getState, task.getState().status)
+                .set(TaskPO::getState, TaskScheduleStatus.SCHEDULING.status)
+                .eq(TaskPO::getPlanId, task.getPlanId())
+                .eq(TaskPO::getPlanRecordId, task.getPlanRecordId())
+                .eq(TaskPO::getPlanInstanceId, task.getPlanInstanceId())
+                .eq(TaskPO::getJobId, task.getJobId())
+                .eq(TaskPO::getJobInstanceId, task.getJobInstanceId())
+                .eq(TaskPO::getTaskId, task.getTaskId())
+                .eq(TaskPO::getState, TaskScheduleStatus.FEEDBACK.status)
+                .eq(TaskPO::getResult, TaskResult.NONE.result)
+        );
+    }
+
+    @Override
+    public void end(Task task) {
+        taskMapper.update(null, Wrappers.<TaskPO>lambdaUpdate()
+                .set(TaskPO::getState, TaskScheduleStatus.COMPLETED.status)
                 .set(TaskPO::getResult, task.getResult())
                 .eq(TaskPO::getPlanId, task.getPlanId())
                 .eq(TaskPO::getPlanRecordId, task.getPlanRecordId())
@@ -55,19 +72,49 @@ public class MyBatisTaskRepo implements TaskRepository {
                 .eq(TaskPO::getJobId, task.getJobId())
                 .eq(TaskPO::getJobInstanceId, task.getJobInstanceId())
                 .eq(TaskPO::getTaskId, task.getTaskId())
-                .eq(TaskPO::getState, TaskScheduleStatus.EXECUTING.status)
+                .eq(TaskPO::getState, TaskScheduleStatus.FEEDBACK.status)
+                .eq(TaskPO::getResult, TaskResult.NONE.result)
+        );
+    }
+
+    @Override
+    public void executing(Task task) {
+        taskMapper.update(null, Wrappers.<TaskPO>lambdaUpdate()
+                .set(TaskPO::getState, TaskScheduleStatus.EXECUTING.status)
+                .eq(TaskPO::getPlanId, task.getPlanId())
+                .eq(TaskPO::getPlanRecordId, task.getPlanRecordId())
+                .eq(TaskPO::getPlanInstanceId, task.getPlanInstanceId())
+                .eq(TaskPO::getJobId, task.getJobId())
+                .eq(TaskPO::getJobInstanceId, task.getJobInstanceId())
+                .eq(TaskPO::getTaskId, task.getTaskId())
+                .eq(TaskPO::getState, TaskScheduleStatus.SCHEDULING.status)
                 .eq(TaskPO::getResult, TaskResult.NONE.result)
         );
     }
 
     @Override
     public Integer unclosedCount(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId) {
-        return null;
+        return taskMapper.selectCount(Wrappers.<TaskPO>lambdaQuery()
+                .eq(TaskPO::getPlanId, planId)
+                .eq(TaskPO::getPlanRecordId, planRecordId)
+                .eq(TaskPO::getPlanInstanceId, planInstanceId)
+                .eq(TaskPO::getJobId, jobId)
+                .eq(TaskPO::getJobInstanceId, jobInstanceId)
+                .eq(TaskPO::getState, TaskScheduleStatus.COMPLETED.status)
+        );
     }
 
     @Override
     public Task get(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId, String taskId) {
-        return null;
+        TaskPO po = taskMapper.selectOne(Wrappers.<TaskPO>lambdaQuery()
+                .eq(TaskPO::getPlanId, planId)
+                .eq(TaskPO::getPlanRecordId, planRecordId)
+                .eq(TaskPO::getPlanInstanceId, planInstanceId)
+                .eq(TaskPO::getJobId, jobId)
+                .eq(TaskPO::getJobInstanceId, jobInstanceId)
+                .eq(TaskPO::getTaskId, taskId)
+        );
+        return converter.reverse().convert(po);
     }
 
 }

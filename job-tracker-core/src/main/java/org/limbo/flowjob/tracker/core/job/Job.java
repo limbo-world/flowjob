@@ -68,8 +68,6 @@ public class Job {
         record.setPlanInstanceId(planInstanceId);
         record.setJobId(jobId);
         record.setState(state);
-        record.setDispatchOption(dispatchOption);
-        record.setExecutorOption(executorOption);
         record.setAttributes(null); // todo
         return record;
     }

@@ -78,7 +78,7 @@ public class PlanService {
         }
 
         Plan plan = planRepository.getPlan(planId, planPO.getCurrentVersion());
-//      todo Verifies.notEmpty(plan.getJobs(), "job is empty");
+        Verifies.verify(plan.getDag() != null && CollectionUtils.isNotEmpty(plan.getDag().getEarliestJobs()), "job is empty");
 
         // 更新状态
         planPoRepository.switchEnable(planId, true);

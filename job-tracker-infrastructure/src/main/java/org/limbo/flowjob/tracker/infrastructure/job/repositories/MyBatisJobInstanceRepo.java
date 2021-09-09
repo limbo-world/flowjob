@@ -17,17 +17,18 @@
 package org.limbo.flowjob.tracker.infrastructure.job.repositories;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
-import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.dao.mybatis.JobInstanceMapper;
 import org.limbo.flowjob.tracker.dao.po.JobInstancePO;
 import org.limbo.flowjob.tracker.infrastructure.job.converters.JobInstancePoConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,14 +39,15 @@ import java.util.List;
 public class MyBatisJobInstanceRepo implements JobInstanceRepository {
 
     @Autowired
-    private JobInstancePoConverter jobInstancePoConverter;
+    private JobInstancePoConverter convert;
 
     @Autowired
     private JobInstanceMapper jobInstanceMapper;
 
     @Override
-    public Long createId() {
-        return null;
+    public Long createId(String planId, Long planRecordId, Long planInstanceId, String jobId) {
+        Long recentlyIdForUpdate = jobInstanceMapper.getRecentlyIdForUpdate(planId, planRecordId, planInstanceId, jobId);
+        return recentlyIdForUpdate == null ? 1L : recentlyIdForUpdate + 1;
     }
 
     /**
@@ -55,7 +57,7 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
      */
     @Override
     public void add(JobInstance instance) {
-        JobInstancePO po = jobInstancePoConverter.convert(instance);
+        JobInstancePO po = convert.convert(instance);
         jobInstanceMapper.insert(po);
     }
 
@@ -86,30 +88,22 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
         );
     }
 
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param planId         作业ID
-     * @param planInstanceId 实例ID
-     * @param jobId          作业ID
-     * @return
-     */
     @Override
-    public Task get(String planId, Long planInstanceId, String jobId) {
-        JobInstancePO po = jobInstanceMapper.selectOne(Wrappers.<JobInstancePO>lambdaQuery()
+    public List<JobInstance> listByRecord(String planId, Long planRecordId, Long planInstanceId, String jobId) {
+        List<JobInstance> result = new ArrayList<>();
+        List<JobInstancePO> pos = jobInstanceMapper.selectList(Wrappers.<JobInstancePO>lambdaQuery()
                 .eq(JobInstancePO::getPlanId, planId)
+                .eq(JobInstancePO::getPlanRecordId, planRecordId)
                 .eq(JobInstancePO::getPlanInstanceId, planInstanceId)
                 .eq(JobInstancePO::getJobId, jobId)
         );
-        // todo
-        return null;
-//        return jobInstancePoConverter.reverse().convert(po);
-    }
-
-    @Override
-    public List<JobInstance> list(String planId, Long planRecordId, Long planInstanceId, String jobId) {
-        return null;
+        if (CollectionUtils.isEmpty(pos)) {
+            return result;
+        }
+        for (JobInstancePO po : pos) {
+            result.add(convert.reverse().convert(po));
+        }
+        return result;
     }
 
 }

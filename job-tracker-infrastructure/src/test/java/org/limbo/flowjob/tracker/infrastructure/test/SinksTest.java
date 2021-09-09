@@ -36,7 +36,7 @@ public class SinksTest {
 
     @Test
     public void testReactorEventPublisher() {
-        ReactorEventPublisher publisher = new ReactorEventPublisher(1, NamedThreadFactory.newInstance("test"));
+        ReactorEventPublisher publisher = new ReactorEventPublisher(1, 10000, NamedThreadFactory.newInstance("test"));
 //        publisher.subscribe(e -> {
 //            System.out.println(e.getSource() + " at " + Thread.currentThread().getName());
 //        });

@@ -45,7 +45,7 @@ public class WorkerController {
     /**
      * 接收任务 并处理
      */
-    @PostMapping("/job")
+    @PostMapping("/task")
     public Mono<ResponseDto<JobReceiveResult>> receiveJob(@RequestBody JobInstanceDto dto) {
         JobReceiveResult receiveResult = new JobReceiveResult();
         try {

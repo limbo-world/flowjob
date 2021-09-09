@@ -1,26 +1,17 @@
 package org.limbo.flowjob.tracker.core.dispatcher;
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
-import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
-import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
-import org.limbo.flowjob.tracker.commons.exceptions.JobExecuteException;
-import org.limbo.flowjob.tracker.core.dispatcher.strategies.Dispatcher;
-import org.limbo.flowjob.tracker.core.dispatcher.strategies.JobDispatcherFactory;
-import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.consumer.AcceptedConsumer;
-import org.limbo.flowjob.tracker.core.job.consumer.RefusedConsumer;
-import org.limbo.flowjob.tracker.core.job.context.*;
-import org.limbo.flowjob.tracker.core.plan.*;
+import org.limbo.flowjob.tracker.core.job.context.JobRecord;
+import org.limbo.flowjob.tracker.core.job.context.Task;
+import org.limbo.flowjob.tracker.core.plan.Plan;
+import org.limbo.flowjob.tracker.core.plan.PlanRecord;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.NamedThreadFactory;
 import org.limbo.flowjob.tracker.core.storage.Storable;
 import org.limbo.flowjob.tracker.core.storage.Storage;
-import org.limbo.flowjob.tracker.core.tracker.WorkerManager;
 import org.limbo.utils.verifies.Verifies;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,13 +23,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class DispatchLauncher {
 
-    private final WorkerManager workerManager;
-    private final Storage storage;
-    private final PlanRecordRepository planRecordRepository;
-    private final PlanInstanceRepository planInstanceRepository;
-    private final JobRecordRepository jobRecordRepository;
-    private final JobInstanceRepository jobInstanceRepository;
-    private final JobDispatcherFactory jobDispatcherFactory;
+//    private final WorkerManager workerManager;
+    private Storage storage;
+//    private final PlanRecordRepository planRecordRepository;
+//    private final PlanInstanceRepository planInstanceRepository;
+//    private final JobRecordRepository jobRecordRepository;
+//    private final JobInstanceRepository jobInstanceRepository;
+//    private final JobDispatcherFactory jobDispatcherFactory;
 
     /**
      * launcher下发任务并发线程数
@@ -59,22 +50,26 @@ public class DispatchLauncher {
 
     private List<DispatchHandler> dispatchHandlers;
 
-    public DispatchLauncher(WorkerManager workerManager,
-                            Storage storage,
-                            PlanRecordRepository planRecordRepository,
-                            PlanInstanceRepository planInstanceRepository,
-                            JobRecordRepository jobRecordRepository,
-                            JobInstanceRepository jobInstanceRepository) {
-        this.workerManager = workerManager;
-        this.storage = storage;
-        this.planRecordRepository = planRecordRepository;
-        this.planInstanceRepository = planInstanceRepository;
-        this.jobRecordRepository = jobRecordRepository;
-        this.jobInstanceRepository = jobInstanceRepository;
-        this.jobDispatcherFactory = new JobDispatcherFactory();
-        this.dispatchHandlers = new ArrayList<>();
+    public DispatchLauncher() {
         this.running = new AtomicBoolean(false);
     }
+
+//    public DispatchLauncher(WorkerManager workerManager,
+//                            Storage storage,
+//                            PlanRecordRepository planRecordRepository,
+//                            PlanInstanceRepository planInstanceRepository,
+//                            JobRecordRepository jobRecordRepository,
+//                            JobInstanceRepository jobInstanceRepository) {
+//        this.workerManager = workerManager;
+//        this.storage = storage;
+//        this.planRecordRepository = planRecordRepository;
+//        this.planInstanceRepository = planInstanceRepository;
+//        this.jobRecordRepository = jobRecordRepository;
+//        this.jobInstanceRepository = jobInstanceRepository;
+//        this.jobDispatcherFactory = new JobDispatcherFactory();
+//        this.dispatchHandlers = new ArrayList<>();
+//        this.running = new AtomicBoolean(false);
+//    }
 
 
     /**
@@ -202,6 +197,7 @@ public class DispatchLauncher {
 
     private interface DispatchHandler {
         void dispatch(Storable t);
+
         boolean matched(Storable t);
     }
 
@@ -209,12 +205,12 @@ public class DispatchLauncher {
 
         @Override
         public void dispatch(Storable storable) {
-            Plan plan = (Plan) storable;
-            Long planRecordId = planRecordRepository.createId(plan.getPlanId());
-            PlanRecord planRecord = plan.newRecord(planRecordId, PlanScheduleStatus.Scheduling,
-                    ScheduleType.FIXED_INTERVAL == plan.getScheduleOption().getScheduleType());
-            planRecordRepository.add(planRecord);
-            storage.store(planRecord);
+//            Plan plan = (Plan) storable;
+//            Long planRecordId = planRecordRepository.createId(plan.getPlanId());
+//            PlanRecord planRecord = plan.newRecord(planRecordId, PlanScheduleStatus.Scheduling,
+//                    ScheduleType.FIXED_INTERVAL == plan.getScheduleOption().getScheduleType());
+//            planRecordRepository.add(planRecord);
+//            storage.store(planRecord);
         }
 
         @Override
@@ -227,17 +223,17 @@ public class DispatchLauncher {
 
         @Override
         public void dispatch(Storable storable) {
-            PlanRecord planRecord = (PlanRecord) storable;
-            Long planInstanceId = planInstanceRepository.createId(planRecord.getPlanId(), planRecord.getPlanRecordId());
-            PlanInstance planInstance = planRecord.newInstance(planInstanceId, PlanScheduleStatus.Scheduling);
-            planInstanceRepository.add(planInstance);
-
-            List<Job> jobs = planInstance.getDag().getEarliestJobs();
-            for (Job job : jobs) {
-                JobRecord jobRecord = job.newRecord(planInstance.getPlanId(), planInstance.getPlanRecordId(), planInstanceId, JobScheduleStatus.SCHEDULING);
-                jobRecordRepository.add(jobRecord);
-                storage.store(jobRecord);
-            }
+//            PlanRecord planRecord = (PlanRecord) storable;
+//            Long planInstanceId = planInstanceRepository.createId(planRecord.getPlanId(), planRecord.getPlanRecordId());
+//            PlanInstance planInstance = planRecord.newInstance(planInstanceId, PlanScheduleStatus.Scheduling);
+//            planInstanceRepository.add(planInstance);
+//
+//            List<Job> jobs = planInstance.getDag().getEarliestJobs();
+//            for (Job job : jobs) {
+//                JobRecord jobRecord = job.newRecord(planInstance.getPlanId(), planInstance.getPlanRecordId(), planInstanceId, JobScheduleStatus.SCHEDULING);
+//                jobRecordRepository.add(jobRecord);
+//                storage.store(jobRecord);
+//            }
         }
 
         @Override
@@ -250,14 +246,14 @@ public class DispatchLauncher {
 
         @Override
         public void dispatch(Storable storable) {
-            JobRecord jobRecord = (JobRecord) storable;
-            Long jobInstanceId = jobInstanceRepository.createId();
-            JobInstance jobInstance = jobRecord.newInstance(jobInstanceId, JobScheduleStatus.SCHEDULING);
-            jobInstanceRepository.add(jobInstance);
-            List<Task> tasks = jobInstance.tasks();
-            for (Task task : tasks) {
-                storage.store(task);
-            }
+//            JobRecord jobRecord = (JobRecord) storable;
+//            Long jobInstanceId = jobInstanceRepository.createId();
+//            JobInstance jobInstance = jobRecord.newInstance(jobInstanceId, JobScheduleStatus.SCHEDULING);
+//            jobInstanceRepository.add(jobInstance);
+//            List<Task> tasks = jobInstance.tasks();
+//            for (Task task : tasks) {
+//                storage.store(task);
+//            }
         }
 
         @Override

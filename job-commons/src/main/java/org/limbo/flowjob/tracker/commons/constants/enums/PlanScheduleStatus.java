@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum PlanScheduleStatus {
 
-    Scheduling(1, "调度中"), // 还没有任务在执行状态
+    SCHEDULING(1, "调度中"), // 还没有任务在执行状态
     EXECUTING(2, "执行中"), // 第一个任务切换为执行中的时候
     SUCCEED(3, "执行成功"), // 所有节点都执行成功
     FAILED(4, "执行异常"), // 有一个节点执行失败，并触发plan的失败场景

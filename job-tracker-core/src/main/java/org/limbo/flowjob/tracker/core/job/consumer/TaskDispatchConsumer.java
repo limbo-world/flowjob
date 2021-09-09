@@ -5,7 +5,9 @@ import org.limbo.flowjob.tracker.core.dispatcher.strategies.Dispatcher;
 import org.limbo.flowjob.tracker.core.dispatcher.strategies.JobDispatcherFactory;
 import org.limbo.flowjob.tracker.core.evnets.Event;
 import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
+import org.limbo.flowjob.tracker.core.job.context.JobRecordRepository;
 import org.limbo.flowjob.tracker.core.job.context.Task;
+import org.limbo.flowjob.tracker.core.job.context.TaskRepository;
 import org.limbo.flowjob.tracker.core.tracker.WorkerManager;
 
 import java.util.function.Consumer;
@@ -18,15 +20,21 @@ public class TaskDispatchConsumer implements Consumer<Event<?>> {
 
     private final JobDispatcherFactory jobDispatcherFactory;
 
+    private final JobRecordRepository jobRecordRepository;
+
     private final JobInstanceRepository jobInstanceRepository;
+
+    private final TaskRepository taskRepository;
 
     private final WorkerManager workerManager;
 
-    public TaskDispatchConsumer(JobInstanceRepository jobInstanceRepository,
-                                WorkerManager workerManager) {
+    public TaskDispatchConsumer(JobRecordRepository jobRecordRepository, JobInstanceRepository jobInstanceRepository,
+                                TaskRepository taskRepository, WorkerManager workerManager) {
         this.jobDispatcherFactory = new JobDispatcherFactory();
         this.workerManager = workerManager;
+        this.jobRecordRepository = jobRecordRepository;
         this.jobInstanceRepository = jobInstanceRepository;
+        this.taskRepository = taskRepository;
     }
 
     @Override
@@ -44,7 +52,7 @@ public class TaskDispatchConsumer implements Consumer<Event<?>> {
         }
 
         // 订阅下发成功
-        task.onAccepted().subscribe(new AcceptedConsumer(jobInstanceRepository));
+        task.onAccepted().subscribe(new AcceptedConsumer(jobRecordRepository, jobInstanceRepository, taskRepository));
         // 订阅下发拒绝
         task.onRefused().subscribe(new RefusedConsumer(jobInstanceRepository));
 

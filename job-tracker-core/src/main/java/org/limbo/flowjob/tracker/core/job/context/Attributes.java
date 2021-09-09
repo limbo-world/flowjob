@@ -18,7 +18,10 @@ package org.limbo.flowjob.tracker.core.job.context;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.limbo.utils.JacksonUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -30,15 +33,20 @@ import java.util.Map;
  * @author Brozen
  * @since 2021-05-21
  */
-public class JobAttributes {
+public class Attributes {
 
     /**
      * 内部数据结构
      */
     private final Map<String, List<String>> attributes;
 
+    public Attributes(String attributes) {
+        this.attributes = StringUtils.isBlank(attributes) ? new HashMap<>() : JacksonUtils.parseObject(attributes, new TypeReference<Map<String, List<String>>>() {
+        });
+    }
+
     @JsonCreator
-    public JobAttributes(Map<String, List<String>> attributes) {
+    public Attributes(Map<String, List<String>> attributes) {
         this.attributes = attributes == null ? new HashMap<>() : new HashMap<>(attributes);
     }
 
@@ -70,4 +78,8 @@ public class JobAttributes {
         return new HashMap<>(attributes);
     }
 
+    @Override
+    public String toString() {
+        return JacksonUtils.toJSONString(attributes);
+    }
 }

@@ -109,17 +109,17 @@ public class HttpWorker extends Worker {
     /**
      * {@inheritDoc}
      *
-     * @param instance 作业实例
+     * @param task 作业实例
      * @return
      * @throws JobWorkerException
      */
-    public Mono<JobReceiveResult> sendJob(Task instance) throws JobWorkerException {
+    public Mono<JobReceiveResult> sendTask(Task task) throws JobWorkerException {
         // 生成 dto
-        JobInstanceDto dto = convertToDto(instance);
+        JobInstanceDto dto = convertToDto(task);
         return Mono.from(client
                 .headers(headers -> headers.add("Content-type", "application/json"))
                 .post()
-                .uri(workerUri(BASE_URL + "/job"))
+                .uri(workerUri(BASE_URL + "/task"))
                 .send(Mono.just(Unpooled.copiedBuffer(JacksonUtils.toJSONString(dto), CharsetUtil.UTF_8)))
                 // 获取请求响应并解析
                 .response((resp, flux) -> responseReceiver(resp, flux, new TypeReference<ResponseDto<JobReceiveResult>>() {
@@ -142,13 +142,12 @@ public class HttpWorker extends Worker {
         updateWorker();
     }
 
-    private JobInstanceDto convertToDto(Task instance) {
+    private JobInstanceDto convertToDto(Task task) {
         JobInstanceDto dto = new JobInstanceDto();
-        dto.setPlanId(instance.getPlanId());
-        dto.setPlanInstanceId(instance.getPlanInstanceId());
-        dto.setJobId(instance.getJobId());
-        dto.setVersion(instance.getVersion());
-        dto.setExecutorName(instance.getExecutorOption().getName());
+        dto.setPlanId(task.getPlanId());
+        dto.setPlanInstanceId(task.getPlanInstanceId());
+        dto.setJobId(task.getJobId());
+        dto.setExecutorName(task.getExecutorOption().getName());
         return dto;
     }
 

@@ -97,34 +97,33 @@ public class ClosedConsumer implements Consumer<Event<?>> {
         jobRecordRepository.end(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), task.getJobId(),
                 JobScheduleStatus.SUCCEED);
 
-        PlanInstance planInstance = planInstanceRepository.get(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId());
+        PlanRecord planRecord = planRecordRepository.get(task.getPlanId(), task.getPlanRecordId());
 
-        List<Job> subJobs = planInstance.getDag().getSubJobs(task.getJobId());
+        List<Job> subJobs = planRecord.getDag().getSubJobs(task.getJobId());
         if (CollectionUtils.isEmpty(subJobs)) {
             // 无后续节点，需要判断是否plan结束
-            if (checkJobsFinished(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), planInstance.getDag().getFinalJobs())) {
+            if (checkJobsFinished(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), planRecord.getDag().getFinalJobs())) {
                 // 结束plan
                 planInstanceRepository.end(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), PlanScheduleStatus.SUCCEED);
                 planRecordRepository.end(task.getPlanId(), task.getPlanRecordId(), PlanScheduleStatus.SUCCEED);
 
-                // 判断 plan 是否需要 feedback 只有 FIXED_INTERVAL类型需要反馈，让任务在时间轮里面能重新下发，手动的和其他的都不需要
-                Plan plan = planRepository.getPlan(task.getPlanId(), task.getVersion());
-                plan.setLastScheduleAt(planInstance.getStartAt());
-                plan.setLastFeedBackAt(TimeUtil.nowInstant());
-                if (ScheduleType.FIXED_INTERVAL == plan.getScheduleOption().getScheduleType() && planInstance.isReschedule()) {
+                // 判断 plan 是否需要 重新调度 只有 FIXED_INTERVAL类型需要反馈，让任务在时间轮里面能重新下发，手动的和其他的都不需要
+                Plan plan = planRepository.getPlan(task.getPlanId(), planRecord.getVersion());
+                if (ScheduleType.FIXED_INTERVAL == plan.getScheduleOption().getScheduleType() && planRecord.isManual()) {
+                    plan.setLastScheduleAt(planRecord.getStartAt());
+                    plan.setLastFeedBackAt(TimeUtil.nowInstant());
                     trackerNode.jobTracker().schedule(plan);
                 }
             }
         } else {
             // 不为end节点，继续下发
             for (Job job : subJobs) {
-                if (checkJobsFinished(planInstance.getPlanId(), planInstance.getPlanRecordId(), planInstance.getPlanInstanceId(), planInstance.getDag().getPreJobs(job.getJobId()))) {
-                    eventPublisher.publish(new Event<>(job.newRecord(planInstance.getPlanId(), planInstance.getPlanRecordId(), planInstance.getPlanInstanceId(), JobScheduleStatus.SCHEDULING)));
+                if (checkJobsFinished(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), planRecord.getDag().getPreJobs(job.getJobId()))) {
+                    eventPublisher.publish(new Event<>(job.newRecord(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), JobScheduleStatus.SCHEDULING)));
                 }
             }
         }
     }
-
 
     public void handlerFailed(Task task) {
         PlanInstance planInstance = planInstanceRepository.get(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId());
@@ -137,7 +136,7 @@ public class ClosedConsumer implements Consumer<Event<?>> {
                 task.getJobInstanceId(), JobScheduleStatus.FAILED);
 
         JobRecord jobRecord = jobRecordRepository.get(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), task.getJobId());
-        List<JobInstance> jobInstances = jobInstanceRepository.list(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), task.getJobId());
+        List<JobInstance> jobInstances = jobInstanceRepository.listByRecord(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), task.getJobId());
         // 判断是否超过重试次数
         if (jobRecord.getRetry() >= CollectionUtils.size(jobInstances)) {
             eventPublisher.publish(new Event<>(jobRecord));
@@ -148,7 +147,7 @@ public class ClosedConsumer implements Consumer<Event<?>> {
                 JobScheduleStatus.FAILED);
 
         // 超过重试次数 执行handler
-        JobFailHandler failHandler = task.getFailHandler();
+        JobFailHandler failHandler = jobRecord.getFailHandler();
         try {
             failHandler.handle();
             handlerSuccess(task);

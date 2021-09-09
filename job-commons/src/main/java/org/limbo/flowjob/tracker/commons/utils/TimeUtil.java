@@ -27,7 +27,7 @@ public class TimeUtil {
     }
 
     public static Instant toInstant(LocalDateTime localDateTime) {
-        return localDateTime.toInstant(zoneOffset());
+        return localDateTime == null ? null : localDateTime.toInstant(zoneOffset());
     }
 
     public static LocalDateTime nowLocalDateTime() {
@@ -35,7 +35,7 @@ public class TimeUtil {
     }
 
     public static LocalDateTime toLocalDateTime(Instant instant) {
-        return LocalDateTime.ofInstant(instant, zoneOffset());
+        return instant == null ? null : LocalDateTime.ofInstant(instant, zoneOffset());
     }
 
 

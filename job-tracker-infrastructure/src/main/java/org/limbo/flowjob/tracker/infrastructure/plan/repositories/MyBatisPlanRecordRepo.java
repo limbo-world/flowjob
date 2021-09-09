@@ -1,50 +1,41 @@
 package org.limbo.flowjob.tracker.infrastructure.plan.repositories;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
+import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
 import org.limbo.flowjob.tracker.core.plan.PlanRecord;
 import org.limbo.flowjob.tracker.core.plan.PlanRecordRepository;
 import org.limbo.flowjob.tracker.dao.mybatis.PlanRecordMapper;
-import org.limbo.flowjob.tracker.dao.po.PlanInstancePO;
-import org.limbo.flowjob.tracker.infrastructure.plan.converters.PlanInstancePoConverter;
+import org.limbo.flowjob.tracker.dao.po.PlanRecordPO;
+import org.limbo.flowjob.tracker.infrastructure.plan.converters.PlanRecordPoConverter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Devil
  * @since 2021/7/24
  */
-@Service
+@Repository
 public class MyBatisPlanRecordRepo implements PlanRecordRepository {
 
     @Autowired
     private PlanRecordMapper planRecordMapper;
 
     @Autowired
-    private PlanInstancePoConverter converter;
-
-//    @Override
-//    public void endInstance(String planId, Long planInstanceId, LocalDateTime endTime, PlanScheduleStatus state) {
-//        planInstanceMapper.update(null, Wrappers.<PlanInstancePO>lambdaUpdate()
-//                .set(PlanInstancePO::getPlanId, planId)
-//                .set(PlanInstancePO::getState, state.status)
-//                .set(PlanInstancePO::getEndAt, endTime)
-//                .eq(PlanInstancePO::getPlanId, planId)
-//                .eq(PlanInstancePO::getPlanInstanceId, planInstanceId)
-//        );
-//    }
-
+    private PlanRecordPoConverter converter;
 
     @Override
     public void add(PlanRecord record) {
-        PlanInstancePO po = converter.convert(instance);
-        planInstanceMapper.insert(po);
+        PlanRecordPO po = converter.convert(record);
+        planRecordMapper.insert(po);
     }
 
     @Override
     public PlanRecord get(String planId, Long planRecordId) {
-        PlanInstancePO po = planInstanceMapper.selectOne(Wrappers.<PlanInstancePO>lambdaQuery()
-                .eq(PlanInstancePO::getPlanId, planId)
-                .eq(PlanInstancePO::getPlanInstanceId, planInstanceId));
+        PlanRecordPO po = planRecordMapper.selectOne(Wrappers.<PlanRecordPO>lambdaQuery()
+                .eq(PlanRecordPO::getPlanId, planId)
+                .eq(PlanRecordPO::getPlanRecordId, planRecordId));
         return converter.reverse().convert(po);
     }
 
@@ -52,5 +43,16 @@ public class MyBatisPlanRecordRepo implements PlanRecordRepository {
     public Long createId(String planId) {
         Long recentlyIdForUpdate = planRecordMapper.getRecentlyIdForUpdate(planId);
         return recentlyIdForUpdate == null ? 1L : recentlyIdForUpdate + 1;
+    }
+
+    @Override
+    public void end(String planId, Long planRecordId, PlanScheduleStatus state) {
+        planRecordMapper.update(null, Wrappers.<PlanRecordPO>lambdaUpdate()
+                .set(PlanRecordPO::getState, state.status)
+                .set(PlanRecordPO::getEndAt, TimeUtil.nowLocalDateTime())
+                .eq(PlanRecordPO::getPlanId, planId)
+                .eq(PlanRecordPO::getPlanRecordId, planRecordId)
+                .eq(PlanRecordPO::getState, PlanScheduleStatus.SCHEDULING.status)
+        );
     }
 }

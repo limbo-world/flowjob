@@ -16,7 +16,7 @@
 
 import org.junit.Before;
 import org.junit.Test;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
+import org.limbo.flowjob.tracker.commons.constants.enums.TaskScheduleStatus;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
 import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.tracker.commons.exceptions.JobDispatchException;
@@ -64,7 +64,7 @@ public class JobContextTest {
             }
 
             @Override
-            public Mono<JobReceiveResult> sendJob(Task context) throws JobWorkerException {
+            public Mono<JobReceiveResult> sendTask(Task instance) throws JobWorkerException {
                 return null;
             }
 
@@ -84,18 +84,18 @@ public class JobContextTest {
 //                System.out.println("updateContext");
 //            }
 //        });
-        Task context = new Task();
-        context.setJobId("job1");
-        context.setState(JobScheduleStatus.Scheduling);
-        context.setJobAttributes(null);
+        Task task = new Task();
+        task.setJobId("job1");
+        task.setState(TaskScheduleStatus.SCHEDULING);
+        task.setAttributes(null);
 
-        context.onAccepted().subscribe(c -> System.out.println(c.getWorkerId() + " accepted"));
-        context.onRefused().subscribe(c -> System.out.println(c.getWorkerId() + " refused"));
-        context.onClosed().subscribe(c -> System.out.println(c.getId() + " closed"));
+        task.onAccepted().subscribe(c -> System.out.println(c.getWorkerId() + " accepted"));
+        task.onRefused().subscribe(c -> System.out.println(c.getWorkerId() + " refused"));
+        task.onClosed().subscribe(c -> System.out.println(c.getId() + " closed"));
 
-        context.startup(idleWorker);
-        context.accept(idleWorker);
-        context.close();
+        task.startup(idleWorker);
+        task.accept(idleWorker);
+        task.close();
     }
 
 

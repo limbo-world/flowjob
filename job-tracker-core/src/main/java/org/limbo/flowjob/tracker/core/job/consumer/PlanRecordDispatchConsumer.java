@@ -41,10 +41,10 @@ public class PlanRecordDispatchConsumer implements Consumer<Event<?>> {
         }
         PlanRecord planRecord = (PlanRecord) event.getSource();
         Long planInstanceId = planInstanceRepository.createId(planRecord.getPlanId(), planRecord.getPlanRecordId());
-        PlanInstance planInstance = planRecord.newInstance(planInstanceId, PlanScheduleStatus.Scheduling);
+        PlanInstance planInstance = planRecord.newInstance(planInstanceId, PlanScheduleStatus.SCHEDULING);
         planInstanceRepository.add(planInstance);
 
-        List<Job> jobs = planInstance.getDag().getEarliestJobs();
+        List<Job> jobs = planRecord.getDag().getEarliestJobs();
         for (Job job : jobs) {
             JobRecord jobRecord = job.newRecord(planInstance.getPlanId(), planInstance.getPlanRecordId(), planInstanceId, JobScheduleStatus.SCHEDULING);
             jobRecordRepository.add(jobRecord);

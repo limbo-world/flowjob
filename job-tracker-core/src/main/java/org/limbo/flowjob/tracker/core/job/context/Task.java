@@ -27,7 +27,6 @@ import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.tracker.commons.exceptions.JobDispatchException;
 import org.limbo.flowjob.tracker.core.job.DispatchOption;
 import org.limbo.flowjob.tracker.core.job.ExecutorOption;
-import org.limbo.flowjob.tracker.core.job.handler.JobFailHandler;
 import org.limbo.flowjob.tracker.core.storage.Storable;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import reactor.core.publisher.Flux;
@@ -35,6 +34,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
 import java.io.Serializable;
+import java.time.Instant;
 
 /**
  * 作业执行上下文
@@ -48,28 +48,17 @@ import java.io.Serializable;
 public class Task implements Storable, Serializable {
     private static final long serialVersionUID = -9164373359695671417L;
 
-    /**
-     * 计划ID
-     */
     private String planId;
 
     private Long planRecordId;
 
     private Long planInstanceId;
 
-    /**
-     * 作业ID planId + planInstanceId + jobId 全局唯一
-     */
     private String jobId;
 
     private Long jobInstanceId;
 
     private String taskId;
-
-    /**
-     * plan 版本
-     */
-    private Integer version;
 
     /**
      * 调度状态
@@ -79,16 +68,6 @@ public class Task implements Storable, Serializable {
      * 执行结果
      */
     private TaskResult result;
-
-    /**
-     * 作业分发配置参数
-     */
-    private DispatchOption dispatchOption;
-
-    /**
-     * 作业执行器配置参数
-     */
-    private ExecutorOption executorOption;
 
     /**
      * 此分发执行此作业上下文的worker
@@ -103,12 +82,7 @@ public class Task implements Storable, Serializable {
     /**
      * 作业属性，不可变。作业属性可用于分片作业、MapReduce作业、DAG工作流进行传参
      */
-    private JobAttributes jobAttributes;
-
-    /**
-     * 失败时候的处理
-     */
-    private JobFailHandler failHandler;
+    private Attributes attributes;
 
     /**
      * 执行失败时的异常信息
@@ -120,6 +94,31 @@ public class Task implements Storable, Serializable {
      */
     private String errorStackTrace;
 
+    /**
+     * 开始时间
+     */
+    private Instant startAt;
+
+    /**
+     * 结束时间
+     */
+    private Instant endAt;
+
+    // -------- 非 po 属性
+
+    /**
+     * 作业分发配置参数
+     */
+    private DispatchOption dispatchOption;
+
+    /**
+     * 作业执行器配置参数
+     */
+    private ExecutorOption executorOption;
+
+    /**
+     * todo 由于部分情况如当前task状态校验失败等，此task则无需后续执行 比如同个task下发多次
+     */
     private boolean needPublish;
 
     /**
@@ -139,7 +138,7 @@ public class Task implements Storable, Serializable {
      *
      * FIXME 更新上下文，需锁定contextId，防止并发问题
      *
-     * 只有{@link JobScheduleStatus#Scheduling}和{@link JobScheduleStatus#FAILED}状态的上下文可被开启。
+     * 只有{@link JobScheduleStatus#SCHEDULING}和{@link JobScheduleStatus#FAILED}状态的上下文可被开启。
      * @param worker 会将此上下文分发去执行的worker
      * @throws JobDispatchException 状态检测失败时，即此上下文的状态不是INIT或FAILED时抛出异常。
      */
@@ -154,7 +153,7 @@ public class Task implements Storable, Serializable {
         try {
 
             // 发送上下文到worker
-            Mono<JobReceiveResult> mono = worker.sendJob(this);
+            Mono<JobReceiveResult> mono = worker.sendTask(this);
             // 发布事件
             lifecycleEventTrigger.emitNext(JobInstanceLifecycleEvent.STARTED, Sinks.EmitFailureHandler.FAIL_FAST);
 

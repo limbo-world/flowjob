@@ -134,14 +134,15 @@ public class Plan implements Schedulable, Storable, Serializable {
         lastFeedBackAt = null;
     }
 
-    public PlanRecord newRecord(Long recordId, PlanScheduleStatus state, boolean reschedule) {
+
+    public PlanRecord newRecord(Long recordId, PlanScheduleStatus state, boolean manual) {
         PlanRecord record = new PlanRecord();
         record.setPlanId(planId);
         record.setVersion(version);
         record.setPlanRecordId(recordId);
         record.setDag(dag);
         record.setState(state);
-        record.setReschedule(reschedule);
+        record.setManual(manual);
         record.setStartAt(TimeUtil.nowInstant());
         return record;
     }
