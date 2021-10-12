@@ -140,6 +140,7 @@ public class Plan implements Schedulable, Storable, Serializable {
         record.setPlanId(planId);
         record.setVersion(version);
         record.setPlanRecordId(recordId);
+        record.setRetry(scheduleOption.getRetry());
         record.setDag(dag);
         record.setState(state);
         record.setManual(manual);

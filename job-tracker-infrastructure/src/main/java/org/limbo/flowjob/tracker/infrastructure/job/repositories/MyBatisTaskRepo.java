@@ -93,7 +93,7 @@ public class MyBatisTaskRepo implements TaskRepository {
     }
 
     @Override
-    public Integer unclosedCount(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId) {
+    public Integer unclosedCount(String planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId) {
         return taskMapper.selectCount(Wrappers.<TaskPO>lambdaQuery()
                 .eq(TaskPO::getPlanId, planId)
                 .eq(TaskPO::getPlanRecordId, planRecordId)
@@ -105,7 +105,7 @@ public class MyBatisTaskRepo implements TaskRepository {
     }
 
     @Override
-    public Task get(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId, String taskId) {
+    public Task get(String planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId, String taskId) {
         TaskPO po = taskMapper.selectOne(Wrappers.<TaskPO>lambdaQuery()
                 .eq(TaskPO::getPlanId, planId)
                 .eq(TaskPO::getPlanRecordId, planRecordId)

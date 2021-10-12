@@ -26,12 +26,12 @@ import java.util.List;
  */
 public interface JobInstanceRepository {
 
-    void executing(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId);
+    void executing(String planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId);
 
-    void end(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId, JobScheduleStatus state);
+    void end(String planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId, JobScheduleStatus state);
 
 
-    Long createId(String planId, Long planRecordId, Long planInstanceId, String jobId);
+    Integer createId(String planId, Long planRecordId, Integer planInstanceId, String jobId);
 
     /**
      * 持久化作业实例
@@ -47,5 +47,5 @@ public interface JobInstanceRepository {
      * @param jobId
      * @return
      */
-    List<JobInstance> listByRecord(String planId, Long planRecordId, Long planInstanceId, String jobId);
+    List<JobInstance> listByRecord(String planId, Long planRecordId, Integer planInstanceId, String jobId);
 }

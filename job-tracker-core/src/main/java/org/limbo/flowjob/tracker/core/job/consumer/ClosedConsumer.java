@@ -155,9 +155,10 @@ public class ClosedConsumer implements Consumer<Event<?>> {
             // 此次 planInstance 失败
             planInstanceRepository.end(task.getPlanId(), task.getPlanRecordId(), task.getPlanInstanceId(), PlanScheduleStatus.FAILED);
             List<PlanInstance> planInstances = planInstanceRepository.list(task.getPlanId(), task.getPlanRecordId());
+
+            PlanRecord planRecord = planRecordRepository.get(task.getPlanId(), task.getPlanRecordId());
             // 判断是否超过重试次数
-            if (planInstance.getRetry() >= CollectionUtils.size(planInstances)) {
-                PlanRecord planRecord = planRecordRepository.get(task.getPlanId(), task.getPlanRecordId());
+            if (planRecord.getRetry() >= CollectionUtils.size(planInstances)) {
                 eventPublisher.publish(new Event<>(planRecord));
                 return;
             }
@@ -171,7 +172,7 @@ public class ClosedConsumer implements Consumer<Event<?>> {
     /**
      * 判断一批job是否完成可以执行下一步
      */
-    public boolean checkJobsFinished(String planId, Long planRecordId, Long planInstanceId, List<Job> jobs) {
+    public boolean checkJobsFinished(String planId, Long planRecordId, Integer planInstanceId, List<Job> jobs) {
         // 获取db中 job实例
         List<JobRecord> jobRecords = jobRecordRepository.getRecords(planId, planRecordId, planInstanceId,
                 jobs.stream().map(Job::getJobId).collect(Collectors.toList()));

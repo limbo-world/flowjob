@@ -27,7 +27,7 @@ public class JobRecordPO extends PO {
 
     private Long planRecordId;
 
-    private Long planInstanceId;
+    private Integer planInstanceId;
 
     private String jobId;
 

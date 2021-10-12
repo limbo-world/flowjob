@@ -23,24 +23,16 @@ public class PlanInstancePO extends PO {
      */
     private Long serialId;
 
-    /**
-     * 计划ID
-     */
     private String planId;
 
-    /**
-     * 从 1 开始增加 planId + planInstanceId 全局唯一
-     */
     private Long planRecordId;
 
-    private Long planInstanceId;
+    private Integer planInstanceId;
 
     /**
      * 状态
      */
     private Byte state;
-
-    private Integer retry;
 
     /**
      * 开始时间

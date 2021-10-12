@@ -18,9 +18,7 @@ import java.time.Instant;
 public class PlanRecord implements Storable, Serializable {
 
     private static final long serialVersionUID = 1837382860200548371L;
-    /**
-     * 计划ID
-     */
+
     private String planId;
 
     private Long planRecordId;
@@ -33,7 +31,7 @@ public class PlanRecord implements Storable, Serializable {
     private PlanScheduleStatus state;
 
     /**
-     * 已经重试的次数
+     * 重试次数
      */
     private Integer retry;
 
@@ -56,7 +54,7 @@ public class PlanRecord implements Storable, Serializable {
 
     private JobDAG dag;
 
-    public PlanInstance newInstance(Long planInstanceId, PlanScheduleStatus state) {
+    public PlanInstance newInstance(Integer planInstanceId, PlanScheduleStatus state) {
         PlanInstance instance = new PlanInstance();
         instance.setPlanId(planId);
         instance.setPlanRecordId(planRecordId);

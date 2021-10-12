@@ -26,6 +26,7 @@ import org.limbo.flowjob.tracker.dao.po.PlanPO;
 import org.limbo.flowjob.tracker.infrastructure.plan.converters.PlanInfoPOConverter;
 import org.limbo.utils.verifies.Verifies;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

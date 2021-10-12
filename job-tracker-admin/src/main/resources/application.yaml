@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: @spring.profiles.active@
+    active: dev
 
   application:
     name: job-tracker-admin

@@ -27,11 +27,11 @@ public class JobInstancePO extends PO {
 
     private Long planRecordId;
 
-    private Long planInstanceId;
+    private Integer planInstanceId;
 
     private String jobId;
 
-    private Long jobInstanceId;
+    private Integer jobInstanceId;
 
     /**
      * 状态

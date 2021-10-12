@@ -19,13 +19,12 @@ package org.limbo.flowjob.worker.start.adapter.http.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
-import org.limbo.flowjob.tracker.commons.dto.job.JobInstanceDto;
+import org.limbo.flowjob.tracker.commons.dto.task.TaskDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.worker.start.application.WorkerService;
 import org.limbo.utils.verifies.VerifyException;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-import sun.rmi.runtime.Log;
 
 /**
  * @author Devil
@@ -46,7 +45,7 @@ public class WorkerController {
      * 接收任务 并处理
      */
     @PostMapping("/task")
-    public Mono<ResponseDto<JobReceiveResult>> receiveJob(@RequestBody JobInstanceDto dto) {
+    public Mono<ResponseDto<JobReceiveResult>> receiveJob(@RequestBody TaskDto dto) {
         JobReceiveResult receiveResult = new JobReceiveResult();
         try {
             workerService.receive(dto);

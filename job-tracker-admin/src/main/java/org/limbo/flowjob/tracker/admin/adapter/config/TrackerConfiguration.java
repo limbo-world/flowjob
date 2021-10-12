@@ -40,11 +40,11 @@ import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
 import org.limbo.flowjob.tracker.infrastructure.events.ReactorEventPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Lazy;
 
 /**
  * @author Brozen
@@ -98,44 +98,8 @@ public class TrackerConfiguration {
     }
 
     @Bean
-    public EventPublisher<Event<?>> eventPublisher(TrackerNode trackerNode, TaskRepository taskRepository,
-                                                   PlanInstanceRepository planInstanceRepository,
-                                                   PlanRepository planRepository,
-                                                   JobRecordRepository jobRecordRepository,
-                                                   JobInstanceRepository jobInstanceRepository,
-                                                   PlanRecordRepository planRecordRepository,
-                                                   WorkerManager workerManager) {
+    public EventPublisher<Event<?>> eventPublisher() {
         ReactorEventPublisher eventPublisher = new ReactorEventPublisher(4, 10000, NamedThreadFactory.newInstance("Event-Publisher"));
-        // plan 下发
-        eventPublisher.subscribe(new PlanDispatchConsumer(
-                planRecordRepository,
-                eventPublisher));
-        // plan record 下发
-        eventPublisher.subscribe(new PlanRecordDispatchConsumer(
-                planInstanceRepository,
-                jobRecordRepository,
-                eventPublisher));
-        // job record 下发
-        eventPublisher.subscribe(new JobRecordDispatchConsumer(
-                jobInstanceRepository,
-                taskRepository,
-                eventPublisher));
-        // task 下发
-        eventPublisher.subscribe(new TaskDispatchConsumer(
-                jobRecordRepository,
-                jobInstanceRepository,
-                taskRepository,
-                workerManager));
-        // task 完成
-        eventPublisher.subscribe(new ClosedConsumer(
-                taskRepository,
-                planRecordRepository,
-                planInstanceRepository,
-                planRepository,
-                jobRecordRepository,
-                jobInstanceRepository,
-                trackerNode,
-                eventPublisher));
         return eventPublisher;
     }
 

@@ -22,7 +22,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
 import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
-import org.limbo.flowjob.tracker.commons.dto.job.JobInstanceDto;
+import org.limbo.flowjob.tracker.commons.dto.task.TaskDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.commons.exceptions.WorkerException;
@@ -46,7 +46,7 @@ public class HttpWorker extends Worker {
     /**
      * 基于Netty的Http客户端
      */
-    private HttpClient client;
+    private final HttpClient client;
 
     private final static String BASE_URL = "/api/worker/v1";
 
@@ -115,7 +115,7 @@ public class HttpWorker extends Worker {
      */
     public Mono<JobReceiveResult> sendTask(Task task) throws JobWorkerException {
         // 生成 dto
-        JobInstanceDto dto = convertToDto(task);
+        TaskDto dto = convertToDto(task);
         return Mono.from(client
                 .headers(headers -> headers.add("Content-type", "application/json"))
                 .post()
@@ -142,11 +142,15 @@ public class HttpWorker extends Worker {
         updateWorker();
     }
 
-    private JobInstanceDto convertToDto(Task task) {
-        JobInstanceDto dto = new JobInstanceDto();
+    private TaskDto convertToDto(Task task) {
+        TaskDto dto = new TaskDto();
         dto.setPlanId(task.getPlanId());
+        dto.setPlanRecordId(task.getPlanRecordId());
         dto.setPlanInstanceId(task.getPlanInstanceId());
         dto.setJobId(task.getJobId());
+        dto.setJobInstanceId(task.getJobInstanceId());
+        dto.setTaskId(task.getTaskId());
+        dto.setType(task.getType());
         dto.setExecutorName(task.getExecutorOption().getName());
         return dto;
     }

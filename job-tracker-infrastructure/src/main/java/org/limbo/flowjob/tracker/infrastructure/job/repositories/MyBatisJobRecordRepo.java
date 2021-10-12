@@ -50,7 +50,7 @@ public class MyBatisJobRecordRepo implements JobRecordRepository {
     }
 
     @Override
-    public JobRecord get(String planId, Long planRecordId, Long planInstanceId, String jobId) {
+    public JobRecord get(String planId, Long planRecordId, Integer planInstanceId, String jobId) {
         JobRecordPO po = jobRecordMapper.selectOne(Wrappers.<JobRecordPO>lambdaQuery()
                 .eq(JobRecordPO::getPlanId, planId)
                 .eq(JobRecordPO::getPlanRecordId, planRecordId)
@@ -61,7 +61,7 @@ public class MyBatisJobRecordRepo implements JobRecordRepository {
     }
 
     @Override
-    public void executing(String planId, Long planRecordId, Long planInstanceId, String jobId) {
+    public void executing(String planId, Long planRecordId, Integer planInstanceId, String jobId) {
         jobRecordMapper.update(null, Wrappers.<JobRecordPO>lambdaUpdate()
                 .set(JobRecordPO::getState, JobScheduleStatus.EXECUTING.status)
                 .eq(JobRecordPO::getPlanId, planId)
@@ -73,7 +73,7 @@ public class MyBatisJobRecordRepo implements JobRecordRepository {
     }
 
     @Override
-    public void end(String planId, Long planRecordId, Long planInstanceId, String jobId, JobScheduleStatus state) {
+    public void end(String planId, Long planRecordId, Integer planInstanceId, String jobId, JobScheduleStatus state) {
         jobRecordMapper.update(null, Wrappers.<JobRecordPO>lambdaUpdate()
                 .set(JobRecordPO::getState, state.status)
                 .eq(JobRecordPO::getPlanId, planId)
@@ -85,7 +85,7 @@ public class MyBatisJobRecordRepo implements JobRecordRepository {
     }
 
     @Override
-    public List<JobRecord> getRecords(String planId, Long planRecordId, Long planInstanceId, List<String> jobIds) {
+    public List<JobRecord> getRecords(String planId, Long planRecordId, Integer planInstanceId, List<String> jobIds) {
         List<JobRecord> result = new ArrayList<>();
         if (CollectionUtils.isEmpty(jobIds)) {
             return result;

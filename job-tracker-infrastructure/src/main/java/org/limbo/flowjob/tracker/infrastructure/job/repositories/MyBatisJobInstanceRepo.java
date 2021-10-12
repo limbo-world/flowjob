@@ -45,9 +45,9 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
     private JobInstanceMapper jobInstanceMapper;
 
     @Override
-    public Long createId(String planId, Long planRecordId, Long planInstanceId, String jobId) {
-        Long recentlyIdForUpdate = jobInstanceMapper.getRecentlyIdForUpdate(planId, planRecordId, planInstanceId, jobId);
-        return recentlyIdForUpdate == null ? 1L : recentlyIdForUpdate + 1;
+    public Integer createId(String planId, Long planRecordId, Integer planInstanceId, String jobId) {
+        Integer recentlyIdForUpdate = jobInstanceMapper.getRecentlyIdForUpdate(planId, planRecordId, planInstanceId, jobId);
+        return recentlyIdForUpdate == null ? 1 : recentlyIdForUpdate + 1;
     }
 
     /**
@@ -62,7 +62,7 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
     }
 
     @Override
-    public void executing(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId) {
+    public void executing(String planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId) {
         jobInstanceMapper.update(null, Wrappers.<JobInstancePO>lambdaUpdate()
                 .set(JobInstancePO::getState, JobScheduleStatus.EXECUTING.status)
                 .eq(JobInstancePO::getPlanId, planId)
@@ -75,7 +75,7 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
     }
 
     @Override
-    public void end(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId, JobScheduleStatus state) {
+    public void end(String planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId, JobScheduleStatus state) {
         jobInstanceMapper.update(null, Wrappers.<JobInstancePO>lambdaUpdate()
                 .set(JobInstancePO::getState, state.status)
                 .set(JobInstancePO::getEndAt, TimeUtil.nowLocalDateTime())
@@ -89,7 +89,7 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
     }
 
     @Override
-    public List<JobInstance> listByRecord(String planId, Long planRecordId, Long planInstanceId, String jobId) {
+    public List<JobInstance> listByRecord(String planId, Long planRecordId, Integer planInstanceId, String jobId) {
         List<JobInstance> result = new ArrayList<>();
         List<JobInstancePO> pos = jobInstanceMapper.selectList(Wrappers.<JobInstancePO>lambdaQuery()
                 .eq(JobInstancePO::getPlanId, planId)

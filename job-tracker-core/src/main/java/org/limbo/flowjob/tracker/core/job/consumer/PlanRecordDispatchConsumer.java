@@ -40,7 +40,7 @@ public class PlanRecordDispatchConsumer implements Consumer<Event<?>> {
             return;
         }
         PlanRecord planRecord = (PlanRecord) event.getSource();
-        Long planInstanceId = planInstanceRepository.createId(planRecord.getPlanId(), planRecord.getPlanRecordId());
+        Integer planInstanceId = planInstanceRepository.createId(planRecord.getPlanId(), planRecord.getPlanRecordId());
         PlanInstance planInstance = planRecord.newInstance(planInstanceId, PlanScheduleStatus.SCHEDULING);
         planInstanceRepository.add(planInstance);
 

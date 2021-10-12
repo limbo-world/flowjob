@@ -14,53 +14,43 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.commons.dto.job;
+package org.limbo.flowjob.worker.core.domain;
 
 import lombok.Data;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Devil
  * @since 2021/7/24
  */
 @Data
-public class JobInstanceDto {
+public class Task {
 
-    /**
-     * 计划ID
-     */
     private String planId;
 
-    /**
-     * 计划实例的ID
-     */
-    private Long planInstanceId;
+    private Long planRecordId;
 
-    /**
-     * 作业ID planId + planInstanceId + jobId 全局唯一
-     */
+    private Integer planInstanceId;
+
     private String jobId;
 
-    /**
-     * plan 版本
-     */
-    private Integer version;
+    private Integer jobInstanceId;
 
+    private String taskId;
+
+    /**
+     * sharding normal
+     */
+    private Byte type;
     /**
      * 执行器的名称
      */
     private String executorName;
-
     /**
      * 执行时候的参数
      */
     private String executorParam;
 
-    /**
-     * 作业上下文元数据
-     */
-    private Map<String, List<String>> attributes;
-
+    public String getId() {
+        return planId + "-" + planRecordId + "-" + planInstanceId + "-" + jobId + "-" + jobInstanceId + "-" + taskId;
+    }
 }

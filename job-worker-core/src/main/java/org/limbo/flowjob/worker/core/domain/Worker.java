@@ -181,7 +181,7 @@ public class Worker {
     /**
      * 提交任务
      */
-    public synchronized void receive(Job job) {
+    public synchronized void receive(Task job) {
         Verifies.verify(executors.containsKey(job.getExecutorName()), "worker doesn't " + job.getExecutorName() + " executor");
         Verifies.verify(jobManager.size() < resource.getAvailableQueueSize(), "worker's queue is full");
 

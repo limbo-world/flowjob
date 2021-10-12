@@ -48,7 +48,7 @@ public abstract class AbstractDispatcher implements Dispatcher {
         }
 
         List<Worker> availableWorkers = new ArrayList<>();
-        // todo 比较 cpu 和 内存 以及下发给对应的执行器 worker没找到怎么处理
+        // todo 比较 cpu 和 内存 标签等信息 以及下发给对应的执行器 worker没找到怎么处理
         for (Worker worker : workers) {
             WorkerMetric metric = worker.getMetric();
             if (metric == null || CollectionUtils.isEmpty(metric.getExecutors())) {

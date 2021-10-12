@@ -79,7 +79,8 @@ public class PlanInfoPOConverter extends Converter<Plan, PlanInfoPO> {
                         po.getScheduleStartAt(),
                         Duration.ofMillis(po.getScheduleDelay()),
                         Duration.ofMillis(po.getScheduleInterval()),
-                        po.getScheduleCron()
+                        po.getScheduleCron(),
+                        po.getRetry()
                 ))
                 .jobs(JacksonUtils.parseObject(po.getJobs(), new TypeReference<List<Job>>() {
                 }))

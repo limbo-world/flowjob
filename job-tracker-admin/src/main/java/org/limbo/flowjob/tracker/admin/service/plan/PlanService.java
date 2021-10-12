@@ -142,7 +142,7 @@ public class PlanService {
             return null;
         }
         return new ScheduleOption(dto.getScheduleType(), dto.getScheduleStartAt(), dto.getScheduleDelay(),
-                dto.getScheduleInterval(), dto.getScheduleCron());
+                dto.getScheduleInterval(), dto.getScheduleCron(), dto.getRetry());
     }
 
     private List<Job> convertToDo(List<JobDto> dtos) {

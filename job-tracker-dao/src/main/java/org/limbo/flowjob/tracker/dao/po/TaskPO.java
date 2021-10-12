@@ -27,11 +27,11 @@ public class TaskPO extends PO {
 
     private Long planRecordId;
 
-    private Long planInstanceId;
+    private Integer planInstanceId;
 
     private String jobId;
 
-    private Long jobInstanceId;
+    private Integer jobInstanceId;
     /**
      * JobInstance下唯一
      */
@@ -53,7 +53,7 @@ public class TaskPO extends PO {
     /**
      * sharding normal
      */
-    private String type;
+    private Byte type;
 
     /**
      * 此次执行的参数

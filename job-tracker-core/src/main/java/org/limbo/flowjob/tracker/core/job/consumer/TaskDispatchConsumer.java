@@ -4,10 +4,7 @@ import org.limbo.flowjob.tracker.commons.exceptions.JobExecuteException;
 import org.limbo.flowjob.tracker.core.dispatcher.strategies.Dispatcher;
 import org.limbo.flowjob.tracker.core.dispatcher.strategies.JobDispatcherFactory;
 import org.limbo.flowjob.tracker.core.evnets.Event;
-import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
-import org.limbo.flowjob.tracker.core.job.context.JobRecordRepository;
-import org.limbo.flowjob.tracker.core.job.context.Task;
-import org.limbo.flowjob.tracker.core.job.context.TaskRepository;
+import org.limbo.flowjob.tracker.core.job.context.*;
 import org.limbo.flowjob.tracker.core.tracker.WorkerManager;
 
 import java.util.function.Consumer;
@@ -39,10 +36,23 @@ public class TaskDispatchConsumer implements Consumer<Event<?>> {
 
     @Override
     public void accept(Event<?> event) {
-        if (!(event.getSource() instanceof Task)) {
+        if (!(event.getSource() instanceof TaskInfo)) {
             return;
         }
-        Task task = (Task) event.getSource();
+        TaskInfo taskInfo = (TaskInfo) event.getSource();
+        // todo 根据下发类型 单机 广播 分片
+        switch (taskInfo.getType()) {
+            case NORMAL:
+                // 直接创建
+            case SHARDING:
+                // 创建一个分片任务
+            case BROADCAST:
+                // 根据 worker 创建广播任务
+            default:
+                // todo 未知的类型 如果直接返回的话，job如何结束，这个其实和没有task是同个逻辑，需要考虑一下
+                return;
+        }
+
         // todo 下发前确认下对应的jobInstance是否已经关闭
         // 初始化dispatcher
         Dispatcher dispatcher = jobDispatcherFactory.newDispatcher(task.getDispatchOption().getLoadBalanceType());

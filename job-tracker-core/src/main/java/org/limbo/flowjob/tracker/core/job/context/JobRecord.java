@@ -3,14 +3,11 @@ package org.limbo.flowjob.tracker.core.job.context;
 import lombok.Data;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
-import org.limbo.flowjob.tracker.core.job.DispatchOption;
-import org.limbo.flowjob.tracker.core.job.ExecutorOption;
 import org.limbo.flowjob.tracker.core.job.handler.JobFailHandler;
 import org.limbo.flowjob.tracker.core.storage.Storable;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 /**
  * @author Devil
@@ -25,7 +22,7 @@ public class JobRecord implements Storable, Serializable {
 
     private Long planRecordId;
 
-    private Long planInstanceId;
+    private Integer planInstanceId;
 
     private String jobId;
 
@@ -61,7 +58,7 @@ public class JobRecord implements Storable, Serializable {
      */
     private JobFailHandler failHandler;
 
-    public JobInstance newInstance(Long jobInstanceId, JobScheduleStatus state) {
+    public JobInstance newInstance(Integer jobInstanceId, JobScheduleStatus state) {
         JobInstance instance = new JobInstance();
         instance.setPlanId(planId);
         instance.setPlanRecordId(planRecordId);

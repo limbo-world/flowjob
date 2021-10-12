@@ -52,11 +52,11 @@ public class Task implements Storable, Serializable {
 
     private Long planRecordId;
 
-    private Long planInstanceId;
+    private Integer planInstanceId;
 
     private String jobId;
 
-    private Long jobInstanceId;
+    private Integer jobInstanceId;
 
     private String taskId;
 
@@ -77,7 +77,7 @@ public class Task implements Storable, Serializable {
     /**
      * sharding normal
      */
-    private String type;
+    private Byte type;
 
     /**
      * 作业属性，不可变。作业属性可用于分片作业、MapReduce作业、DAG工作流进行传参

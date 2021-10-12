@@ -20,7 +20,7 @@ public interface PlanInstanceRepository {
     /**
      * 实例结束
      */
-    void end(String planId, Long planRecordId, Long planInstanceId, PlanScheduleStatus state);
+    void end(String planId, Long planRecordId, Integer planInstanceId, PlanScheduleStatus state);
 
     /**
      * 获取实例
@@ -28,12 +28,12 @@ public interface PlanInstanceRepository {
      * @param planInstanceId 实例ID
      * @return 实例
      */
-    PlanInstance get(String planId, Long planRecordId, Long planInstanceId);
+    PlanInstance get(String planId, Long planRecordId, Integer planInstanceId);
 
     List<PlanInstance> list(String planId, Long planRecordId);
 
     /**
      * 创建ID
      */
-    Long createId(String planId, Long planRecordId);
+    Integer createId(String planId, Long planRecordId);
 }

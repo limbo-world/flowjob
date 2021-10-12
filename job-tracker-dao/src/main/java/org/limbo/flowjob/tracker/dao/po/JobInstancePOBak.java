@@ -29,7 +29,7 @@ public class JobInstancePOBak extends PO {
     /**
      * 计划实例的ID
      */
-    private Long planInstanceId;
+    private Integer planInstanceId;
 
     /**
      * 作业ID planId + planInstanceId + jobId 全局唯一

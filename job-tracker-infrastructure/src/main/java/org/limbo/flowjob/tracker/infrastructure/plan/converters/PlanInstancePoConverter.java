@@ -55,7 +55,6 @@ public class PlanInstancePoConverter extends Converter<PlanInstance, PlanInstanc
         planInstance.setPlanId(po.getPlanId());
         planInstance.setPlanInstanceId(po.getPlanInstanceId());
         planInstance.setState(PlanScheduleStatus.parse(po.getState()));
-        planInstance.setRetry(po.getRetry());
         planInstance.setStartAt(TimeUtil.toInstant(po.getStartAt()));
         planInstance.setEndAt(TimeUtil.toInstant(po.getEndAt()));
         return planInstance;

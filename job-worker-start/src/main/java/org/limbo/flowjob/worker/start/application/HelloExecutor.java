@@ -1,7 +1,7 @@
 package org.limbo.flowjob.worker.start.application;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.JobExecuteType;
-import org.limbo.flowjob.worker.core.domain.Job;
+import org.limbo.flowjob.worker.core.domain.Task;
 import org.limbo.flowjob.worker.core.infrastructure.JobExecutor;
 
 /**
@@ -11,7 +11,7 @@ import org.limbo.flowjob.worker.core.infrastructure.JobExecutor;
 public class HelloExecutor implements JobExecutor {
 
     @Override
-    public String run(Job job) {
+    public String run(Task job) {
         System.out.println("hello " + job.getId());
         return null;
     }

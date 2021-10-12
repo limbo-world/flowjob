@@ -14,37 +14,50 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker.core.infrastructure;
+package org.limbo.flowjob.tracker.commons.dto.task;
 
-import org.limbo.flowjob.tracker.commons.constants.enums.JobExecuteType;
-import org.limbo.flowjob.worker.core.domain.Task;
+import lombok.Data;
+
+import java.util.List;
+import java.util.Map;
 
 /**
- * shell 脚本执行器
- *
  * @author Devil
  * @since 2021/7/24
  */
-public class ShellJobExecutor implements JobExecutor {
+@Data
+public class TaskDto {
 
-    @Override
-    public String run(Task job) {
-        // todo
-        return null;
-    }
+    private String planId;
 
-    @Override
-    public String getName() {
-        return "shell";
-    }
+    private Long planRecordId;
 
-    @Override
-    public String getDescription() {
-        return "";
-    }
+    private Integer planInstanceId;
 
-    @Override
-    public JobExecuteType getType() {
-        return JobExecuteType.SHELL;
-    }
+    private String jobId;
+
+    private Integer jobInstanceId;
+
+    private String taskId;
+
+    /**
+     * sharding normal
+     */
+    private Byte type;
+
+    /**
+     * 执行器的名称
+     */
+    private String executorName;
+
+    /**
+     * 执行时候的参数
+     */
+    private String executorParam;
+
+    /**
+     * 作业上下文元数据
+     */
+    private Map<String, List<String>> attributes;
+
 }

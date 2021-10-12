@@ -61,7 +61,7 @@ public class Job {
      */
     private ExecutorOption executorOption;
 
-    public JobRecord newRecord(String planId, Long planRecordId, Long planInstanceId, JobScheduleStatus state) {
+    public JobRecord newRecord(String planId, Long planRecordId, Integer planInstanceId, JobScheduleStatus state) {
         JobRecord record = new JobRecord();
         record.setPlanId(planId);
         record.setPlanRecordId(planRecordId);

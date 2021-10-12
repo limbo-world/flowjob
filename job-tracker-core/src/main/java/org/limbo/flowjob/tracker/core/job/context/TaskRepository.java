@@ -45,11 +45,11 @@ public interface TaskRepository {
      */
     void end(Task task);
 
-    Integer unclosedCount(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId);
+    Integer unclosedCount(String planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId);
 
     /**
      * 获取作业执行实例
      */
-    Task get(String planId, Long planRecordId, Long planInstanceId, String jobId, Long jobInstanceId, String taskId);
+    Task get(String planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId, String taskId);
 
 }

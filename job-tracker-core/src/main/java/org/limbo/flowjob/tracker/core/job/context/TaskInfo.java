@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.plan;
+package org.limbo.flowjob.tracker.core.job.context;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
-import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.JobDAG;
+import org.limbo.flowjob.tracker.commons.constants.enums.TaskType;
+import org.limbo.flowjob.tracker.core.job.DispatchOption;
+import org.limbo.flowjob.tracker.core.job.ExecutorOption;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.List;
+import java.io.Serializable;
 
 /**
- * 计划实例
+ * 任务信息
  *
  * @author Brozen
  * @since 2021-05-14
@@ -36,30 +34,42 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class PlanInstance {
+public class TaskInfo implements Serializable {
 
-    /**
-     * 计划ID
-     */
+    private static final long serialVersionUID = -9097550508482197117L;
+
     private String planId;
 
     private Long planRecordId;
 
     private Integer planInstanceId;
 
-    /**
-     * 状态
-     */
-    private PlanScheduleStatus state;
+    private String jobId;
+
+    private Integer jobInstanceId;
+
+    private String taskId;
 
     /**
-     * 开始时间
+     * 任务类型
      */
-    private Instant startAt;
+    private TaskType type;
 
     /**
-     * 结束时间
+     * 作业属性，不可变。作业属性可用于分片作业、MapReduce作业、DAG工作流进行传参
      */
-    private Instant endAt;
+    private Attributes attributes;
+
+    // -------- 非 po 属性
+
+    /**
+     * 作业分发配置参数
+     */
+    private DispatchOption dispatchOption;
+
+    /**
+     * 作业执行器配置参数
+     */
+    private ExecutorOption executorOption;
 
 }

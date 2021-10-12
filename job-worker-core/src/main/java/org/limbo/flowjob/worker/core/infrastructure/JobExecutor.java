@@ -18,7 +18,7 @@ package org.limbo.flowjob.worker.core.infrastructure;
 
 
 import org.limbo.flowjob.tracker.commons.constants.enums.JobExecuteType;
-import org.limbo.flowjob.worker.core.domain.Job;
+import org.limbo.flowjob.worker.core.domain.Task;
 
 /**
  * job执行器 不支持并发
@@ -28,7 +28,7 @@ import org.limbo.flowjob.worker.core.domain.Job;
  */
 public interface JobExecutor {
 
-    String run(Job job);
+    String run(Task job);
 
     String getName();
 

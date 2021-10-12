@@ -39,14 +39,14 @@ public class PlanRecordPO extends PO {
     private Integer version;
 
     /**
+     * 重试次数
+     */
+    private Integer retry;
+
+    /**
      * 状态
      */
     private Byte state;
-
-    /**
-     * 已经重试的次数 todo 可以不要这个字段，直接从db获取instance个数   不管用不用这个字段，可能存在worker重复反馈导致数据问题
-     */
-    private Integer retry;
 
     /**
      * 是否手动下发

@@ -54,7 +54,7 @@ public class JobExecuteFeedbackDto {
      */
     @NotNull(message = "planInstanceId can't be null")
     @Schema(description = "计划实例ID")
-    private Long planInstanceId;
+    private Integer planInstanceId;
 
     /**
      * 作业ID
@@ -68,7 +68,7 @@ public class JobExecuteFeedbackDto {
      */
     @NotBlank(message = "jobInstanceId can't be null")
     @Schema(description = "作业实例ID")
-    private Long jobInstanceId;
+    private Integer jobInstanceId;
 
     /**
      * 任务ID

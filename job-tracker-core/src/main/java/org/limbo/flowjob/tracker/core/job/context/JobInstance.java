@@ -4,7 +4,6 @@ import lombok.Data;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 
 import java.time.Instant;
-import java.util.List;
 
 /**
  * @author Devil
@@ -17,11 +16,11 @@ public class JobInstance {
 
     private Long planRecordId;
 
-    private Long planInstanceId;
+    private Integer planInstanceId;
 
     private String jobId;
 
-    private Long jobInstanceId;
+    private Integer jobInstanceId;
 
     /**
      * 状态
@@ -38,8 +37,7 @@ public class JobInstance {
      */
     private Instant endAt;
 
-    public List<Task> tasks() {
-        // todo 根据下发类型 单机 广播 分片
+    public TaskInfo taskInfo() {
         return null;
     }
 

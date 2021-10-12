@@ -68,23 +68,31 @@ public class ScheduleOption {
      */
     private final String scheduleCron;
 
+    /**
+     * 作业重试次数
+     */
+    private final Integer retry;
+
     @JsonCreator
     public ScheduleOption(
             @JsonProperty("scheduleType") ScheduleType scheduleType,
             @JsonProperty("scheduleStartAt") LocalDateTime scheduleStartAt,
             @JsonProperty("scheduleDelay") Duration scheduleDelay,
             @JsonProperty("scheduleInterval") Duration scheduleInterval,
-            @JsonProperty("scheduleCron") String scheduleCron) {
+            @JsonProperty("scheduleCron") String scheduleCron,
+            @JsonProperty("retry") Integer retry) {
         this.scheduleType = scheduleType;
         this.scheduleStartAt = scheduleStartAt;
         this.scheduleDelay = scheduleDelay == null ? Duration.ZERO : scheduleDelay;
         this.scheduleInterval = scheduleInterval == null ? Duration.ZERO : scheduleInterval;
         this.scheduleCron = scheduleCron;
+        this.retry = retry == null ? 0 : retry;
     }
 
 
     /**
      * 将DTO中的调度配置合并到此调度配置中，并生成新的调度配置对象
+     *
      * @param other DTO入参
      * @return 新的调度配置信息
      */
@@ -94,7 +102,8 @@ public class ScheduleOption {
                 other.getScheduleStartAt() != null ? other.getScheduleStartAt() : this.getScheduleStartAt(),
                 other.getScheduleDelay() != null ? other.getScheduleDelay() : this.getScheduleDelay(),
                 other.getScheduleInterval() != null ? other.getScheduleInterval() : this.getScheduleInterval(),
-                other.getScheduleCron() != null ? other.getScheduleCron() : this.getScheduleCron()
+                other.getScheduleCron() != null ? other.getScheduleCron() : this.getScheduleCron(),
+                other.getRetry() != null ? other.getRetry() : this.getRetry()
         );
     }
 
