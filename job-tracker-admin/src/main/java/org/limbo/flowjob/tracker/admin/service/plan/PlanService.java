@@ -70,6 +70,7 @@ public class PlanService {
      * 启动计划 开始调度 todo 并发
      */
     public void start(String planId) {
+        // 校验，计划存在且已启用
         PlanPO planPO = planPoRepository.getById(planId);
         Verifies.notNull(planPO, "plan is not exist");
 

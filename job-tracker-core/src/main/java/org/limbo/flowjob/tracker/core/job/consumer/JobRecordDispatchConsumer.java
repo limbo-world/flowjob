@@ -14,7 +14,7 @@ import java.util.function.Consumer;
  * @author Devil
  * @since 2021/9/7
  */
-public class JobRecordDispatchConsumer implements Consumer<Event<?>> {
+public class JobRecordDispatchConsumer extends AbstractEventConsumer<JobRecord> {
 
     private final JobInstanceRepository jobInstanceRepository;
 
@@ -22,20 +22,24 @@ public class JobRecordDispatchConsumer implements Consumer<Event<?>> {
 
     public JobRecordDispatchConsumer(JobInstanceRepository jobInstanceRepository,
                                      EventPublisher<Event<?>> eventPublisher) {
+        super(JobRecord.class);
         this.jobInstanceRepository = jobInstanceRepository;
         this.eventPublisher = eventPublisher;
     }
 
+
+    /**
+     * {@inheritDoc}
+     * @param event 指定泛型类型的事件
+     */
     @Override
-    public void accept(Event<?> event) {
-        if (!(event.getSource() instanceof JobRecord)) {
-            return;
-        }
-        JobRecord jobRecord = (JobRecord) event.getSource();
+    protected void consumeEvent(Event<JobRecord> event) {
+        JobRecord jobRecord = event.getSource();
         Integer jobInstanceId = jobInstanceRepository.createId(jobRecord.getPlanId(), jobRecord.getPlanRecordId(), jobRecord.getPlanInstanceId(), jobRecord.getJobId());
         JobInstance jobInstance = jobRecord.newInstance(jobInstanceId, JobScheduleStatus.SCHEDULING);
         jobInstanceRepository.add(jobInstance);
         TaskInfo taskInfo = jobInstance.taskInfo();
         eventPublisher.publish(new Event<>(taskInfo));
     }
+
 }

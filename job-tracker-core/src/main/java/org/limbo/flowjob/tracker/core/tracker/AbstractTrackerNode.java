@@ -24,6 +24,7 @@ public abstract class AbstractTrackerNode extends ReactorTrackerNodeLifecycle im
      * 提供给worker的服务port
      */
     protected int port;
+
     /**
      * 当前JobTracker状态
      */

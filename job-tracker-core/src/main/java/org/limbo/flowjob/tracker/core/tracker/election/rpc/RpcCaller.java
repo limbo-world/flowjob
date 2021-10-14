@@ -22,7 +22,7 @@ public class RpcCaller {
         this.rpcClient = rpcClient;
     }
 
-    // todo
+    // todo 异常处理？
     public <T extends ResponseDto> T invokeSync(Endpoint endpoint, RpcRequest<T> request) {
         try {
             return (T) rpcClient.invokeSync(endpoint, request, null, timeout);

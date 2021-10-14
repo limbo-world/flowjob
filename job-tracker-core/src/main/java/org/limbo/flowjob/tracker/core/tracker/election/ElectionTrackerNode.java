@@ -91,6 +91,8 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
         }
 
         // 生成DisposableJobTracker，触发BEFORE_START事件
+        // FIXME 事件需要同步触发，才能保证事件处理者调用dispose后，下面的判断可以检测到
+        //       所以这里triggerBeforeStart用的Flux异步处理就不太合适了，需要改下
         DisposableTrackerNodeBind disposable = new DisposableTrackerNodeBind(this);
         triggerBeforeStart(disposable);
 
@@ -137,7 +139,7 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
                 }
             }
 
-            // todo 状态变更
+            // todo 状态变更，是不是要变更为选举中，在这段时间内停止响应
             @Override
             public void onLeaderStop(long oldTerm) {
                 log.info("stop Leader " + electionNode.getNode().getLeaderId());
@@ -219,6 +221,7 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
         if (NodeState.STARTED != this.state.get()) {
             throw new IllegalStateException("Job Tracker is not started!");
         }
+        // FIXME 如果丢失了主节点身份，JobTracker为null，是否需要阻塞一下？
         return jobTracker;
     }
 

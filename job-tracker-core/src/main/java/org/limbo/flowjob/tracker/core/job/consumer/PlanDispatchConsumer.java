@@ -7,32 +7,34 @@ import org.limbo.flowjob.tracker.core.plan.Plan;
 import org.limbo.flowjob.tracker.core.plan.PlanRecord;
 import org.limbo.flowjob.tracker.core.plan.PlanRecordRepository;
 
-import java.util.function.Consumer;
-
 /**
  * @author Devil
  * @since 2021/9/7
  */
-public class PlanDispatchConsumer implements Consumer<Event<?>> {
+public class PlanDispatchConsumer extends AbstractEventConsumer<Plan> {
 
     private final PlanRecordRepository planRecordRepository;
 
     private final EventPublisher<Event<?>> eventPublisher;
 
     public PlanDispatchConsumer(PlanRecordRepository planRecordRepository, EventPublisher<Event<?>> eventPublisher) {
+        super(Plan.class);
         this.planRecordRepository = planRecordRepository;
         this.eventPublisher = eventPublisher;
     }
 
+
+    /**
+     * {@inheritDoc}
+     * @param event 指定泛型类型的事件
+     */
     @Override
-    public void accept(Event<?> event) {
-        if (!(event.getSource() instanceof Plan)) {
-            return;
-        }
-        Plan plan = (Plan) event.getSource();
+    protected void consumeEvent(Event<Plan> event) {
+        Plan plan = event.getSource();
         Long planRecordId = planRecordRepository.createId(plan.getPlanId());
         PlanRecord planRecord = plan.newRecord(planRecordId, PlanScheduleStatus.SCHEDULING, false);
         planRecordRepository.add(planRecord);
         eventPublisher.publish(new Event<>(planRecord));
     }
+
 }

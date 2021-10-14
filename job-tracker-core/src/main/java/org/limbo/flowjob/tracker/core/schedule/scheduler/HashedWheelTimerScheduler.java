@@ -101,7 +101,9 @@ public class HashedWheelTimerScheduler implements Scheduler {
                 return;
             }
 
-            // 执行调度逻辑 todo 可以交由线程池？增加下发速度
+            // 执行调度逻辑
+            // todo 可以交由线程池？增加下发速度
+            //      异步调度的话，需要保证在schedule执行完成后进行reschedule
             schedulable.schedule();
 
             // 检测是否需要重新调度

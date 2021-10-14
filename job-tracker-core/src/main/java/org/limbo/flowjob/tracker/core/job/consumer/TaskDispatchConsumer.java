@@ -7,13 +7,11 @@ import org.limbo.flowjob.tracker.core.evnets.Event;
 import org.limbo.flowjob.tracker.core.job.context.*;
 import org.limbo.flowjob.tracker.core.tracker.WorkerManager;
 
-import java.util.function.Consumer;
-
 /**
  * @author Devil
  * @since 2021/9/7
  */
-public class TaskDispatchConsumer implements Consumer<Event<?>> {
+public class TaskDispatchConsumer extends AbstractEventConsumer<TaskInfo> {
 
     private final JobDispatcherFactory jobDispatcherFactory;
 
@@ -25,8 +23,13 @@ public class TaskDispatchConsumer implements Consumer<Event<?>> {
 
     private final WorkerManager workerManager;
 
-    public TaskDispatchConsumer(JobRecordRepository jobRecordRepository, JobInstanceRepository jobInstanceRepository,
-                                TaskRepository taskRepository, WorkerManager workerManager) {
+    public TaskDispatchConsumer(
+            JobRecordRepository jobRecordRepository,
+            JobInstanceRepository jobInstanceRepository,
+            TaskRepository taskRepository,
+            WorkerManager workerManager
+    ) {
+        super(TaskInfo.class);
         this.jobDispatcherFactory = new JobDispatcherFactory();
         this.workerManager = workerManager;
         this.jobRecordRepository = jobRecordRepository;
@@ -34,12 +37,15 @@ public class TaskDispatchConsumer implements Consumer<Event<?>> {
         this.taskRepository = taskRepository;
     }
 
+
+    /**
+     * {@inheritDoc}
+     * @param event 指定泛型类型的事件
+     */
     @Override
-    public void accept(Event<?> event) {
-        if (!(event.getSource() instanceof TaskInfo)) {
-            return;
-        }
-        TaskInfo taskInfo = (TaskInfo) event.getSource();
+    protected void consumeEvent(Event<TaskInfo> event) {
+
+        TaskInfo taskInfo = event.getSource();
         // todo 根据下发类型 单机 广播 分片
         switch (taskInfo.getType()) {
             case NORMAL:
@@ -68,5 +74,7 @@ public class TaskDispatchConsumer implements Consumer<Event<?>> {
 
         // 下发任务
         dispatcher.dispatch(task, workerManager.availableWorkers(), Task::startup);
+
     }
+
 }

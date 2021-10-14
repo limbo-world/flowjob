@@ -31,6 +31,7 @@ public class FollowerJobTracker implements JobTracker {
         ScheduleRequest request = new ScheduleRequest();
         request.setSchedulable(schedulable);
 
+        // TODO 异常处理
         ResponseDto<Void> response = rpcCaller.invokeSync(endpoint, request);
     }
 
@@ -39,6 +40,7 @@ public class FollowerJobTracker implements JobTracker {
         UnscheduleRequest request = new UnscheduleRequest();
         request.setId(id);
 
+        // TODO 异常处理
         ResponseDto<Void> response = rpcCaller.invokeSync(endpoint, request);
     }
 
@@ -46,6 +48,8 @@ public class FollowerJobTracker implements JobTracker {
     public boolean isScheduling(String id) {
         IsSchedulingRequest request = new IsSchedulingRequest();
         request.setId(id);
+
+        // TODO 异常处理
         ResponseDto<Boolean> response = rpcCaller.invokeSync(endpoint, request);
         return response.getData();
     }
