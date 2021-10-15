@@ -151,7 +151,6 @@ public class Task implements Storable, Serializable {
         }
 
         try {
-
             // 发送上下文到worker
             Mono<JobReceiveResult> mono = worker.sendTask(this);
             // 发布事件

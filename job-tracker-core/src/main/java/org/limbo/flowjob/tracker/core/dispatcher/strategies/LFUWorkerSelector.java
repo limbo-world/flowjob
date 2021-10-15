@@ -27,7 +27,7 @@ import java.util.Collection;
  * @since 2021-05-27
  * @see LoadBalanceType#LEAST_FREQUENTLY_USED
  */
-public class LFUDispatcher extends AbstractDispatcher implements Dispatcher {
+public class LFUWorkerSelector extends AbstractWorkerSelector implements WorkerSelector {
 
     /**
      * {@inheritDoc}

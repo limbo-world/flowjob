@@ -25,9 +25,9 @@ import java.util.Collection;
 /**
  * @author Brozen
  * @since 2021-05-27
- * @see LoadBalanceType#APPOINT
+ * @see LoadBalanceType#CONSISTENT_HASH
  */
-public class AppointDispatcher extends AbstractDispatcher implements Dispatcher {
+public class ConsistentHashWorkerSelector extends AbstractWorkerSelector implements WorkerSelector {
 
     /**
      * {@inheritDoc}

@@ -19,39 +19,39 @@ package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 import org.limbo.flowjob.tracker.commons.constants.enums.LoadBalanceType;
 
 /**
- * {@link Dispatcher} 工厂
+ * {@link WorkerSelector} 工厂
  *
  * @author Brozen
  * @since 2021-05-18
  */
-public class JobDispatcherFactory {
+public class WorkerSelectorFactory {
 
     /**
-     * Double Dispatch (￣▽￣)~* <br/>
+     * Double Selector (￣▽￣)~* <br/>
      * 根据作业的分发方式，创建一个分发器实例。委托给{@link LoadBalanceType}执行。
      *
      * @param loadBalanceType 分发类型
      * @return 作业分发器
      */
-    public Dispatcher newDispatcher(LoadBalanceType loadBalanceType) {
+    public WorkerSelector newSelector(LoadBalanceType loadBalanceType) {
         switch (loadBalanceType) {
             case ROUND_ROBIN:
-                return new RoundRobinDispatcher();
+                return new RoundRobinWorkerSelector();
 
             case RANDOM:
-                return new RandomDispatcher();
+                return new RandomWorkerSelector();
 
             case LEAST_FREQUENTLY_USED:
-                return new LFUDispatcher();
+                return new LFUWorkerSelector();
 
             case LEAST_RECENTLY_USED:
-                return new LRUDispatcher();
+                return new LRUWorkerSelector();
 
             case APPOINT:
-                return new AppointDispatcher();
+                return new AppointWorkerSelector();
 
             case CONSISTENT_HASH:
-                return new ConsistentHashDispatcher();
+                return new ConsistentHashWorkerSelector();
 
             default:
                 return null;

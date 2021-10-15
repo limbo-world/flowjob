@@ -21,13 +21,20 @@ import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
 import java.util.Collection;
+import java.util.Random;
 
 /**
  * @author Brozen
  * @since 2021-05-27
- * @see LoadBalanceType#CONSISTENT_HASH
+ * @see LoadBalanceType#RANDOM
  */
-public class ConsistentHashDispatcher extends AbstractDispatcher implements Dispatcher {
+public class RandomWorkerSelector extends AbstractWorkerSelector implements WorkerSelector {
+
+    private Random random;
+
+    public RandomWorkerSelector() {
+        this.random = new Random();
+    }
 
     /**
      * {@inheritDoc}
@@ -37,7 +44,16 @@ public class ConsistentHashDispatcher extends AbstractDispatcher implements Disp
      */
     @Override
     protected Worker selectWorker(Task context, Collection<Worker> workers) {
-        // TODO
+        int index = this.random.nextInt(workers.size());
+
+        int i = 0;
+        for (Worker worker : workers) {
+            if (i == index) {
+                return worker;
+            }
+            i++;
+        }
         return null;
     }
+
 }

@@ -6,3 +6,10 @@
 5. DAG 工作流
 
 
+Plan {
+    Jobs: []
+}
+
+Plan -> PlanRecord -> PlanInstance(retry) 
+-> n JobRecord -> JobInstance(retyr)
+-> Task(to worker)

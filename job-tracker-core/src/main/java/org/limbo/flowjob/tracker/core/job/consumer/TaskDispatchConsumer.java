@@ -1,11 +1,13 @@
 package org.limbo.flowjob.tracker.core.job.consumer;
 
 import org.limbo.flowjob.tracker.commons.exceptions.JobExecuteException;
-import org.limbo.flowjob.tracker.core.dispatcher.strategies.Dispatcher;
-import org.limbo.flowjob.tracker.core.dispatcher.strategies.JobDispatcherFactory;
+import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
+import org.limbo.flowjob.tracker.core.dispatcher.strategies.WorkerSelector;
+import org.limbo.flowjob.tracker.core.dispatcher.strategies.WorkerSelectorFactory;
 import org.limbo.flowjob.tracker.core.evnets.Event;
 import org.limbo.flowjob.tracker.core.job.context.*;
 import org.limbo.flowjob.tracker.core.tracker.WorkerManager;
+import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
 /**
  * @author Devil
@@ -13,7 +15,7 @@ import org.limbo.flowjob.tracker.core.tracker.WorkerManager;
  */
 public class TaskDispatchConsumer extends AbstractEventConsumer<TaskInfo> {
 
-    private final JobDispatcherFactory jobDispatcherFactory;
+    private final WorkerSelectorFactory workerSelectorFactory;
 
     private final JobRecordRepository jobRecordRepository;
 
@@ -30,7 +32,7 @@ public class TaskDispatchConsumer extends AbstractEventConsumer<TaskInfo> {
             WorkerManager workerManager
     ) {
         super(TaskInfo.class);
-        this.jobDispatcherFactory = new JobDispatcherFactory();
+        this.workerSelectorFactory = new WorkerSelectorFactory();
         this.workerManager = workerManager;
         this.jobRecordRepository = jobRecordRepository;
         this.jobInstanceRepository = jobInstanceRepository;
@@ -47,22 +49,30 @@ public class TaskDispatchConsumer extends AbstractEventConsumer<TaskInfo> {
 
         TaskInfo taskInfo = event.getSource();
         // todo 根据下发类型 单机 广播 分片
+        // todo 下发前确认下对应的jobInstance是否已经关闭
         switch (taskInfo.getType()) {
             case NORMAL:
-                // 直接创建
+                // 单节点任务
+                normal();
+                break;
             case SHARDING:
                 // 创建一个分片任务
+                sharding();
+                break;
             case BROADCAST:
                 // 根据 worker 创建广播任务
+                broadcast();
+                break;
             default:
-                // todo 未知的类型 如果直接返回的话，job如何结束，这个其实和没有task是同个逻辑，需要考虑一下
-                return;
+                // 未知的类型 正常来说不可能保存成功
+                break;
         }
+    }
 
-        // todo 下发前确认下对应的jobInstance是否已经关闭
-        // 初始化dispatcher
-        Dispatcher dispatcher = jobDispatcherFactory.newDispatcher(task.getDispatchOption().getLoadBalanceType());
-        if (dispatcher == null) {
+    public void normal() {
+        Task task = new Task(); // todo
+        WorkerSelector workerSelector = workerSelectorFactory.newSelector(task.getDispatchOption().getLoadBalanceType());
+        if (workerSelector == null) {
             throw new JobExecuteException(task.getJobId(),
                     "Cannot create JobDispatcher for dispatch type: " + task.getDispatchOption().getLoadBalanceType());
         }
@@ -73,8 +83,33 @@ public class TaskDispatchConsumer extends AbstractEventConsumer<TaskInfo> {
         task.onRefused().subscribe(new RefusedConsumer(jobInstanceRepository));
 
         // 下发任务
-        dispatcher.dispatch(task, workerManager.availableWorkers(), Task::startup);
 
+        // todo worker 拒绝后的重试
+        Worker worker = workerSelector.select(task, workerManager.availableWorkers());
+        if (worker == null) {
+            throw new JobWorkerException(task.getJobId(), null, "No worker available!");
+        }
+
+        task.startup(worker);
     }
 
+    public void sharding() {
+        // 分片后 根据worker随机下发
+    }
+
+
+    public void broadcast() {
+        // todo 这里可能得获取所有worker？？？
+        for (Worker availableWorker : workerManager.availableWorkers()) {
+            Task task = new Task(); // todo
+
+            // 订阅下发成功
+            task.onAccepted().subscribe(new AcceptedConsumer(jobRecordRepository, jobInstanceRepository, taskRepository));
+            // 订阅下发拒绝
+            task.onRefused().subscribe(new RefusedConsumer(jobInstanceRepository));
+
+            // todo worker 拒绝后的重试
+            task.startup(availableWorker);
+        }
+    }
 }

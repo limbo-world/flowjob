@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.function.BiConsumer;
 
 /**
- * 作业分发器，封装了作业分发时的worker选择规则{@link LoadBalanceType}：
+ * worker选择器，封装了作业分发时的worker选择规则{@link LoadBalanceType}：
  * <ul>
  *     <li>{@link LoadBalanceType#ROUND_ROBIN}</li>
  *     <li>{@link LoadBalanceType#RANDOM}</li>
@@ -37,14 +37,13 @@ import java.util.function.BiConsumer;
  * @author Brozen
  * @since 2021-05-14
  */
-public interface Dispatcher {
+public interface WorkerSelector {
 
     /**
      * 选择作业上下文应当下发给的worker。
      * @param context 待下发的作业上下文
      * @param workers 待下发上下文可用的worker
-     * @param callback 选择worker后执行的回调
      */
-    void dispatch(Task context, Collection<Worker> workers, BiConsumer<Task, Worker> callback);
+    Worker select(Task context, Collection<Worker> workers);
 
 }

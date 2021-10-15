@@ -21,20 +21,16 @@ import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
 import java.util.Collection;
-import java.util.Random;
 
 /**
+ * 轮询作业分发器。
+ * TODO
+ *
  * @author Brozen
- * @since 2021-05-27
- * @see LoadBalanceType#RANDOM
+ * @since 2021-05-19
+ * @see LoadBalanceType#ROUND_ROBIN
  */
-public class RandomDispatcher extends AbstractDispatcher implements Dispatcher {
-
-    private Random random;
-
-    public RandomDispatcher() {
-        this.random = new Random();
-    }
+public class RoundRobinWorkerSelector extends AbstractWorkerSelector implements WorkerSelector {
 
     /**
      * {@inheritDoc}
@@ -44,15 +40,7 @@ public class RandomDispatcher extends AbstractDispatcher implements Dispatcher {
      */
     @Override
     protected Worker selectWorker(Task context, Collection<Worker> workers) {
-        int index = this.random.nextInt(workers.size());
-
-        int i = 0;
-        for (Worker worker : workers) {
-            if (i == index) {
-                return worker;
-            }
-            i++;
-        }
+        // TODO
         return null;
     }
 
