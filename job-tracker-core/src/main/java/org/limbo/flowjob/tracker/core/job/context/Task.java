@@ -27,7 +27,6 @@ import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.tracker.commons.exceptions.JobDispatchException;
 import org.limbo.flowjob.tracker.core.job.DispatchOption;
 import org.limbo.flowjob.tracker.core.job.ExecutorOption;
-import org.limbo.flowjob.tracker.core.storage.Storable;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -45,7 +44,7 @@ import java.time.Instant;
 @Getter
 @Setter
 @ToString
-public class Task implements Storable, Serializable {
+public class Task implements Serializable {
     private static final long serialVersionUID = -9164373359695671417L;
 
     private String planId;
@@ -127,7 +126,7 @@ public class Task implements Storable, Serializable {
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ToString.Exclude
-    private Sinks.Many<JobInstanceLifecycleEvent> lifecycleEventTrigger;
+    private Sinks.Many<TaskLifecycleEvent> lifecycleEventTrigger;
 
     public Task() {
         this.lifecycleEventTrigger = Sinks.many().multicast().directAllOrNothing();
@@ -154,7 +153,7 @@ public class Task implements Storable, Serializable {
             // 发送上下文到worker
             Mono<JobReceiveResult> mono = worker.sendTask(this);
             // 发布事件
-            lifecycleEventTrigger.emitNext(JobInstanceLifecycleEvent.STARTED, Sinks.EmitFailureHandler.FAIL_FAST);
+            lifecycleEventTrigger.emitNext(TaskLifecycleEvent.STARTED, Sinks.EmitFailureHandler.FAIL_FAST);
 
             // 等待发送结果，根据客户端接收结果，更新状态
             JobReceiveResult result = mono.block();
@@ -192,7 +191,7 @@ public class Task implements Storable, Serializable {
         setNeedPublish(true);
 
         // 发布事件
-        lifecycleEventTrigger.emitNext(JobInstanceLifecycleEvent.ACCEPTED, Sinks.EmitFailureHandler.FAIL_FAST);
+        lifecycleEventTrigger.emitNext(TaskLifecycleEvent.ACCEPTED, Sinks.EmitFailureHandler.FAIL_FAST);
     }
 
     /**
@@ -212,7 +211,7 @@ public class Task implements Storable, Serializable {
         // todo 拒绝了 应该把task丢到队列尾部 等待重试
 
         // 发布事件
-        lifecycleEventTrigger.emitNext(JobInstanceLifecycleEvent.REFUSED, Sinks.EmitFailureHandler.FAIL_FAST);
+        lifecycleEventTrigger.emitNext(TaskLifecycleEvent.REFUSED, Sinks.EmitFailureHandler.FAIL_FAST);
     }
 
 
@@ -235,7 +234,7 @@ public class Task implements Storable, Serializable {
         setNeedPublish(true);
 
         // 发布事件
-        lifecycleEventTrigger.emitNext(JobInstanceLifecycleEvent.CLOSED, Sinks.EmitFailureHandler.FAIL_FAST);
+        lifecycleEventTrigger.emitNext(TaskLifecycleEvent.CLOSED, Sinks.EmitFailureHandler.FAIL_FAST);
         lifecycleEventTrigger.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
     }
 
@@ -259,7 +258,7 @@ public class Task implements Storable, Serializable {
         setNeedPublish(true);
 
         // 发布事件
-        lifecycleEventTrigger.emitNext(JobInstanceLifecycleEvent.CLOSED, Sinks.EmitFailureHandler.FAIL_FAST);
+        lifecycleEventTrigger.emitNext(TaskLifecycleEvent.CLOSED, Sinks.EmitFailureHandler.FAIL_FAST);
         lifecycleEventTrigger.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
     }
 
@@ -273,7 +272,7 @@ public class Task implements Storable, Serializable {
     public Mono<Task> onRefused() {
         return Mono.create(sink -> this.lifecycleEventTrigger
                 .asFlux()
-                .filter(e -> e == JobInstanceLifecycleEvent.REFUSED)
+                .filter(e -> e == TaskLifecycleEvent.REFUSED)
                 .subscribe(e -> sink.success(this), sink::error, sink::success));
     }
 
@@ -287,7 +286,7 @@ public class Task implements Storable, Serializable {
     public Mono<Task> onAccepted() {
         return Mono.create(sink -> this.lifecycleEventTrigger
                 .asFlux()
-                .filter(e -> e == JobInstanceLifecycleEvent.ACCEPTED)
+                .filter(e -> e == TaskLifecycleEvent.ACCEPTED)
                 .subscribe(e -> sink.success(this), sink::error, sink::success));
     }
 
@@ -301,7 +300,7 @@ public class Task implements Storable, Serializable {
     public Mono<Task> onClosed() {
         return Mono.create(sink -> this.lifecycleEventTrigger
                 .asFlux()
-                .filter(e -> e == JobInstanceLifecycleEvent.CLOSED)
+                .filter(e -> e == TaskLifecycleEvent.CLOSED)
                 .subscribe(e -> sink.success(this), sink::error, sink::success));
     }
 
@@ -319,9 +318,9 @@ public class Task implements Storable, Serializable {
      * TODO 此方式只支持单机监听，如果tracker集群部署，监听需用其他方式处理
      *
      * @return 声明周期事件发生时触发
-     * @see JobInstanceLifecycleEvent
+     * @see TaskLifecycleEvent
      */
-    public Flux<JobInstanceLifecycleEvent> onLifecycleEvent() {
+    public Flux<TaskLifecycleEvent> onLifecycleEvent() {
         return this.lifecycleEventTrigger.asFlux();
     }
 
@@ -334,7 +333,7 @@ public class Task implements Storable, Serializable {
      *     <li><code>CLOSED</code> - 上下文被关闭</li>
      * </ul>
      */
-    enum JobInstanceLifecycleEvent {
+    enum TaskLifecycleEvent {
 
         /**
          * @see Task#startup(Worker)

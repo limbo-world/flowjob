@@ -18,6 +18,7 @@ package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
+import org.limbo.flowjob.tracker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerExecutor;

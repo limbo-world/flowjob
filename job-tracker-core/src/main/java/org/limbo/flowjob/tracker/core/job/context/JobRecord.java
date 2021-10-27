@@ -4,7 +4,6 @@ import lombok.Data;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
 import org.limbo.flowjob.tracker.core.job.handler.JobFailHandler;
-import org.limbo.flowjob.tracker.core.storage.Storable;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -14,7 +13,7 @@ import java.time.Instant;
  * @since 2021/9/1
  */
 @Data
-public class JobRecord implements Storable, Serializable {
+public class JobRecord implements Serializable {
 
     private static final long serialVersionUID = -4343833583716806197L;
 

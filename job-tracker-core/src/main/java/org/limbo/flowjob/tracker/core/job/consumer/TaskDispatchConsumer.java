@@ -2,8 +2,8 @@ package org.limbo.flowjob.tracker.core.job.consumer;
 
 import org.limbo.flowjob.tracker.commons.exceptions.JobExecuteException;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
-import org.limbo.flowjob.tracker.core.dispatcher.strategies.WorkerSelector;
-import org.limbo.flowjob.tracker.core.dispatcher.strategies.WorkerSelectorFactory;
+import org.limbo.flowjob.tracker.core.dispatcher.WorkerSelector;
+import org.limbo.flowjob.tracker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.tracker.core.evnets.Event;
 import org.limbo.flowjob.tracker.core.job.context.*;
 import org.limbo.flowjob.tracker.core.tracker.WorkerManager;
@@ -38,7 +38,6 @@ public class TaskDispatchConsumer extends AbstractEventConsumer<TaskInfo> {
         this.jobInstanceRepository = jobInstanceRepository;
         this.taskRepository = taskRepository;
     }
-
 
     /**
      * {@inheritDoc}
@@ -97,9 +96,10 @@ public class TaskDispatchConsumer extends AbstractEventConsumer<TaskInfo> {
         // 分片后 根据worker随机下发
     }
 
-
+    /**
+     * 广播模式，广播所有存活节点
+     */
     public void broadcast() {
-        // todo 这里可能得获取所有worker？？？
         for (Worker availableWorker : workerManager.availableWorkers()) {
             Task task = new Task(); // todo
 
@@ -112,4 +112,5 @@ public class TaskDispatchConsumer extends AbstractEventConsumer<TaskInfo> {
             task.startup(availableWorker);
         }
     }
+
 }
