@@ -3,7 +3,7 @@ POST http://{{host}}:{{port}}/api/admin/v1/plan
 Content-Type: application/json
 
 {
-  "planId": "abcdef",
+  "planId": "abcdefghijklm",
   "planDesc": "test",
   "scheduleOption": {
     "scheduleType": 1,
@@ -27,7 +27,7 @@ Content-Type: application/json
 }
 
 ### 替换 plan
-PUT http://{{host}}:{{port}}/api/admin/v1/plan/abcdef
+PUT http://{{host}}:{{port}}/api/admin/v1/plan/abcdefg
 Content-Type: application/json
 
 {
@@ -54,7 +54,7 @@ Content-Type: application/json
 }
 
 ### 开启 plan
-PUT http://{{host}}:{{port}}/api/admin/v1/plan/abcdef/start
+PUT http://{{host}}:{{port}}/api/admin/v1/plan/abcdefghijklm/start
 Content-Type: application/json
 
 ### 停止 plan

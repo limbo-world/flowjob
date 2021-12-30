@@ -41,7 +41,7 @@ public class RoundRobinDispatcher extends AbstractDispatcher implements Dispatch
     @Override
     protected Worker selectWorker(Task context, Collection<Worker> workers) {
         // TODO
-        return null;
+        return workers.iterator().next();
     }
 
 }

@@ -1,7 +1,9 @@
 package org.limbo.flowjob.tracker.core.job.context;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
+import org.limbo.flowjob.tracker.core.plan.PlanInstance;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -19,12 +21,20 @@ public interface JobRecordRepository {
     /**
      * 获取
      */
-    JobRecord get(String planId, Long planRecordId, Integer planInstanceId, String jobId);
+    JobRecord get(JobRecord.ID jobRecordId);
 
-    void executing(String planId, Long planRecordId, Integer planInstanceId, String jobId);
 
-    void end(String planId, Long planRecordId, Integer planInstanceId, String jobId, JobScheduleStatus state);
+    /**
+     * CAS 将此作业执行记录状态从 {@link JobScheduleStatus#SCHEDULING} 修改为 {@link JobScheduleStatus#EXECUTING}
+     * @param jobRecordId 待更新的作业执行记录ID
+     * @return 更新是否成功
+     */
+    boolean execute(JobRecord.ID jobRecordId);
 
-    List<JobRecord> getRecords(String planId, Long planRecordId, Integer planInstanceId, List<String> jobIds);
+
+    void end(JobRecord.ID jobRecordId, JobScheduleStatus state);
+
+
+    List<JobRecord> getRecords(PlanInstance.ID planInstanceId, Collection<String> jobIds);
 
 }

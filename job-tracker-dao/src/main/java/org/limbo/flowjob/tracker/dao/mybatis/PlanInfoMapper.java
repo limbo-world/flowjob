@@ -8,4 +8,7 @@ import org.limbo.flowjob.tracker.dao.po.PlanInfoPO;
  * @since 2021/7/23
  */
 public interface PlanInfoMapper extends BaseMapper<PlanInfoPO> {
+
+
+
 }

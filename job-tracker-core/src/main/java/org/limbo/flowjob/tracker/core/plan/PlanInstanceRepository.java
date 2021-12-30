@@ -1,8 +1,23 @@
+/*
+ * Copyright 2020-2024 Limbo Team (https://github.com/limbo-world).
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.limbo.flowjob.tracker.core.plan;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -17,23 +32,32 @@ public interface PlanInstanceRepository {
      */
     void add(PlanInstance instance);
 
+
     /**
      * 实例结束
      */
-    void end(String planId, Long planRecordId, Integer planInstanceId, PlanScheduleStatus state);
+    void end(PlanInstance.ID planInstanceId, PlanScheduleStatus state);
+
 
     /**
      * 获取实例
-     * @param planId 计划ID
-     * @param planInstanceId 实例ID
+     * @param planInstanceId 计划实例ID
      * @return 实例
      */
-    PlanInstance get(String planId, Long planRecordId, Integer planInstanceId);
+    PlanInstance get(PlanInstance.ID planInstanceId);
 
-    List<PlanInstance> list(String planId, Long planRecordId);
+
+    /**
+     * 查询计划执行记录关联的所有计划实例
+     * @param planRecordId 计划执行记录ID
+     */
+    List<PlanInstance> list(PlanRecord.ID planRecordId);
+
 
     /**
      * 创建ID
      */
-    Integer createId(String planId, Long planRecordId);
+    PlanInstance.ID createId(PlanRecord.ID planRecordId);
+
+
 }

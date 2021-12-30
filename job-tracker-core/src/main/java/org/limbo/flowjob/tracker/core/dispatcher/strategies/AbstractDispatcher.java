@@ -44,11 +44,12 @@ public abstract class AbstractDispatcher implements Dispatcher {
     @Override
     public void dispatch(Task task, Collection<Worker> workers, BiConsumer<Task, Worker> callback) {
         if (CollectionUtils.isEmpty(workers)) {
-            throw new JobWorkerException(task.getJobId(), null, "No worker available!");
+            throw new JobWorkerException(task.getId().jobId, null, "No worker available!");
         }
 
         List<Worker> availableWorkers = new ArrayList<>();
         // todo 比较 cpu 和 内存 标签等信息 以及下发给对应的执行器 worker没找到怎么处理
+        WORKER:
         for (Worker worker : workers) {
             WorkerMetric metric = worker.getMetric();
             if (metric == null || CollectionUtils.isEmpty(metric.getExecutors())) {
@@ -59,22 +60,24 @@ public abstract class AbstractDispatcher implements Dispatcher {
                 if (executor.getType() == task.getExecutorOption().getType()
                         && executor.getName().equals(task.getExecutorOption().getName())) {
                     availableWorkers.add(worker);
+                    continue WORKER;
                 }
             }
         }
 
         if (CollectionUtils.isEmpty(availableWorkers)) {
-            throw new JobWorkerException(task.getJobId(), null, "No worker available!");
+            throw new JobWorkerException(task.getId().jobId, null, "No worker available!");
         }
 
         // todo worker 拒绝后的重试
         Worker worker = selectWorker(task, availableWorkers);
         if (worker == null) {
-            throw new JobWorkerException(task.getJobId(), null, "No worker available!");
+            throw new JobWorkerException(task.getId().jobId, null, "No worker available!");
         }
         callback.accept(task, worker);
 
     }
+
 
     /**
      * 选择一个worker进行作业下发

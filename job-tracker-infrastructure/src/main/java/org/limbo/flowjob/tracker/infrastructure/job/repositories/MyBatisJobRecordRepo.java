@@ -21,6 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.core.job.context.JobRecord;
 import org.limbo.flowjob.tracker.core.job.context.JobRecordRepository;
+import org.limbo.flowjob.tracker.core.plan.PlanInstance;
 import org.limbo.flowjob.tracker.dao.mybatis.JobRecordMapper;
 import org.limbo.flowjob.tracker.dao.po.JobRecordPO;
 import org.limbo.flowjob.tracker.infrastructure.job.converters.JobRecordPoConverter;
@@ -28,7 +29,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Brozen
@@ -43,65 +46,67 @@ public class MyBatisJobRecordRepo implements JobRecordRepository {
     @Autowired
     private JobRecordMapper jobRecordMapper;
 
+
     @Override
     public void add(JobRecord record) {
         JobRecordPO po = this.convert.convert(record);
         jobRecordMapper.insert(po);
     }
 
+
     @Override
-    public JobRecord get(String planId, Long planRecordId, Integer planInstanceId, String jobId) {
+    public JobRecord get(JobRecord.ID jobRecordId) {
         JobRecordPO po = jobRecordMapper.selectOne(Wrappers.<JobRecordPO>lambdaQuery()
-                .eq(JobRecordPO::getPlanId, planId)
-                .eq(JobRecordPO::getPlanRecordId, planRecordId)
-                .eq(JobRecordPO::getPlanInstanceId, planInstanceId)
-                .eq(JobRecordPO::getJobId, jobId)
+                .eq(JobRecordPO::getPlanId, jobRecordId.planId)
+                .eq(JobRecordPO::getPlanRecordId, jobRecordId.planRecordId)
+                .eq(JobRecordPO::getPlanInstanceId, jobRecordId.planInstanceId)
+                .eq(JobRecordPO::getJobId, jobRecordId.jobId)
         );
         return convert.reverse().convert(po);
     }
 
+
+    /**
+     * {@inheritDoc}
+     * @param jobRecordId 待更新的作业执行记录ID
+     * @return
+     */
     @Override
-    public void executing(String planId, Long planRecordId, Integer planInstanceId, String jobId) {
-        jobRecordMapper.update(null, Wrappers.<JobRecordPO>lambdaUpdate()
+    public boolean execute(JobRecord.ID jobRecordId) {
+        return jobRecordMapper.update(null, Wrappers.<JobRecordPO>lambdaUpdate()
                 .set(JobRecordPO::getState, JobScheduleStatus.EXECUTING.status)
-                .eq(JobRecordPO::getPlanId, planId)
-                .eq(JobRecordPO::getPlanRecordId, planRecordId)
-                .eq(JobRecordPO::getPlanInstanceId, planInstanceId)
-                .eq(JobRecordPO::getJobId, jobId)
+                .eq(JobRecordPO::getPlanId, jobRecordId.planId)
+                .eq(JobRecordPO::getPlanRecordId, jobRecordId.planRecordId)
+                .eq(JobRecordPO::getPlanInstanceId, jobRecordId.planInstanceId)
+                .eq(JobRecordPO::getJobId, jobRecordId.jobId)
                 .eq(JobRecordPO::getState, JobScheduleStatus.SCHEDULING.status)
-        );
+        ) > 0;
     }
 
+
     @Override
-    public void end(String planId, Long planRecordId, Integer planInstanceId, String jobId, JobScheduleStatus state) {
+    public void end(JobRecord.ID jobRecordId, JobScheduleStatus state) {
         jobRecordMapper.update(null, Wrappers.<JobRecordPO>lambdaUpdate()
                 .set(JobRecordPO::getState, state.status)
-                .eq(JobRecordPO::getPlanId, planId)
-                .eq(JobRecordPO::getPlanRecordId, planRecordId)
-                .eq(JobRecordPO::getPlanInstanceId, planInstanceId)
-                .eq(JobRecordPO::getJobId, jobId)
+                .eq(JobRecordPO::getPlanId, jobRecordId.planId)
+                .eq(JobRecordPO::getPlanRecordId, jobRecordId.planRecordId)
+                .eq(JobRecordPO::getPlanInstanceId, jobRecordId.planInstanceId)
+                .eq(JobRecordPO::getJobId, jobRecordId.jobId)
                 .eq(JobRecordPO::getState, JobScheduleStatus.EXECUTING.status)
         );
     }
 
+
     @Override
-    public List<JobRecord> getRecords(String planId, Long planRecordId, Integer planInstanceId, List<String> jobIds) {
-        List<JobRecord> result = new ArrayList<>();
-        if (CollectionUtils.isEmpty(jobIds)) {
-            return result;
-        }
-        List<JobRecordPO> pos = jobRecordMapper.selectList(Wrappers.<JobRecordPO>lambdaQuery()
-                .eq(JobRecordPO::getPlanId, planId)
-                .eq(JobRecordPO::getPlanRecordId, planRecordId)
-                .eq(JobRecordPO::getPlanInstanceId, planInstanceId)
+    public List<JobRecord> getRecords(PlanInstance.ID planInstanceId, Collection<String> jobIds) {
+        return jobRecordMapper.selectList(Wrappers.<JobRecordPO>lambdaQuery()
+                .eq(JobRecordPO::getPlanId, planInstanceId.planId)
+                .eq(JobRecordPO::getPlanRecordId, planInstanceId.planRecordId)
+                .eq(JobRecordPO::getPlanInstanceId, planInstanceId.planInstanceId)
                 .in(JobRecordPO::getJobId, jobIds)
-        );
-        if (CollectionUtils.isEmpty(pos)) {
-            return result;
-        }
-        for (JobRecordPO po : pos) {
-            result.add(convert.reverse().convert(po));
-        }
-        return result;
+        )
+                .stream()
+                .map(po -> convert.reverse().convert(po))
+                .collect(Collectors.toList());
     }
 }

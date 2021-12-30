@@ -21,6 +21,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.core.job.context.JobRecord;
+import org.limbo.flowjob.tracker.core.plan.PlanInstance;
 
 import java.util.Set;
 
@@ -61,12 +62,15 @@ public class Job {
      */
     private ExecutorOption executorOption;
 
-    public JobRecord newRecord(String planId, Long planRecordId, Integer planInstanceId, JobScheduleStatus state) {
+
+    public JobRecord newRecord(PlanInstance.ID planInstanceId, JobScheduleStatus state) {
         JobRecord record = new JobRecord();
-        record.setPlanId(planId);
-        record.setPlanRecordId(planRecordId);
-        record.setPlanInstanceId(planInstanceId);
-        record.setJobId(jobId);
+        record.setId(new JobRecord.ID(
+                planInstanceId.planId,
+                planInstanceId.planRecordId,
+                planInstanceId.planInstanceId,
+                jobId
+        ));
         record.setState(state);
         record.setAttributes(null); // todo
         return record;

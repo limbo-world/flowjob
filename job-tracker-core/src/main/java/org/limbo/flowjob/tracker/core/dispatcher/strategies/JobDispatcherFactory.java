@@ -18,6 +18,8 @@ package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.LoadBalanceType;
 
+import javax.inject.Inject;
+
 /**
  * {@link Dispatcher} 工厂
  *
@@ -26,8 +28,10 @@ import org.limbo.flowjob.tracker.commons.constants.enums.LoadBalanceType;
  */
 public class JobDispatcherFactory {
 
+    @Inject
+    private RoundRobinDispatcher roundRobinDispatcher;
+
     /**
-     * Double Dispatch (￣▽￣)~* <br/>
      * 根据作业的分发方式，创建一个分发器实例。委托给{@link LoadBalanceType}执行。
      *
      * @param loadBalanceType 分发类型
@@ -36,7 +40,7 @@ public class JobDispatcherFactory {
     public Dispatcher newDispatcher(LoadBalanceType loadBalanceType) {
         switch (loadBalanceType) {
             case ROUND_ROBIN:
-                return new RoundRobinDispatcher();
+                return roundRobinDispatcher;
 
             case RANDOM:
                 return new RandomDispatcher();
@@ -54,7 +58,7 @@ public class JobDispatcherFactory {
                 return new ConsistentHashDispatcher();
 
             default:
-                return null;
+                throw new IllegalArgumentException("Unknown load balance type: " + loadBalanceType);
         }
     }
 

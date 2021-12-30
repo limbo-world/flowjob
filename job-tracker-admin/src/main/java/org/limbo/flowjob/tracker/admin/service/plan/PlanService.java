@@ -10,13 +10,9 @@ import org.limbo.flowjob.tracker.commons.dto.plan.ScheduleOptionDto;
 import org.limbo.flowjob.tracker.core.job.DispatchOption;
 import org.limbo.flowjob.tracker.core.job.ExecutorOption;
 import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.plan.Plan;
-import org.limbo.flowjob.tracker.core.plan.PlanBuilderFactory;
-import org.limbo.flowjob.tracker.core.plan.PlanRepository;
-import org.limbo.flowjob.tracker.core.plan.ScheduleOption;
+import org.limbo.flowjob.tracker.core.job.JobDAG;
+import org.limbo.flowjob.tracker.core.plan.*;
 import org.limbo.flowjob.tracker.core.tracker.TrackerNode;
-import org.limbo.flowjob.tracker.dao.po.PlanPO;
-import org.limbo.flowjob.tracker.infrastructure.plan.repositories.PlanPoRepository;
 import org.limbo.utils.verifies.Verifies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,94 +31,136 @@ public class PlanService {
     private PlanRepository planRepository;
 
     @Autowired
-    private PlanPoRepository planPoRepository;
-
-    @Autowired
     private TrackerNode trackerNode;
 
     @Autowired
-    private PlanBuilderFactory planBuilderFactory;
+    private PlanInfoBuilderFactory planInfoBuilderFactory;
 
     /**
      * 新增计划 只是个落库操作
      */
     public String add(PlanAddDto dto) {
-        Plan plan = convertToDo(dto);
-        // 保存 plan
-        return planRepository.addPlan(plan);
+        Plan plan = convertToPlan(dto);
+        PlanInfo planInfo = convertToPlanInfo(plan, dto);
+        return planRepository.addPlan(plan, planInfo);
     }
+
 
     /**
      * 覆盖计划 可能会触发 内存时间轮改动
      */
     public void replace(String planId, PlanReplaceDto dto) {
         // 获取当前的plan数据
-        Plan newVersion = planRepository.newVersion(convertToDo(planId, dto));
+        Plan plan = planRepository.get(planId);
+        Verifies.notNull(plan, "plan not exist");
+
+        // 更新版本数据
+        PlanInfo planInfo = convertToPlanInfo(plan, dto);
+        plan.addNewVersion(planInfo);
 
         // 需要修改plan重新调度
         if (trackerNode.jobTracker().isScheduling(planId)) {
             trackerNode.jobTracker().unschedule(planId);
-            trackerNode.jobTracker().schedule(newVersion);
+            trackerNode.jobTracker().schedule(plan.getCurrentVersionInfo());
         }
     }
+
 
     /**
      * 启动计划 开始调度 todo 并发
      */
     public void start(String planId) {
         // 校验，计划存在且已启用
-        PlanPO planPO = planPoRepository.getById(planId);
-        Verifies.notNull(planPO, "plan is not exist");
+        Plan plan = planRepository.get(planId);
+        Verifies.notNull(plan, "plan is not exist");
 
-        if (planPO.getIsEnabled()) {
+        // 已经启动不重复处理
+        if (plan.isEnabled()) {
             return;
         }
 
-        Plan plan = planRepository.getPlan(planId, planPO.getCurrentVersion());
-        Verifies.verify(plan.getDag() != null && CollectionUtils.isNotEmpty(plan.getDag().getEarliestJobs()), "job is empty");
+        // 获取当前版本的计划信息，并校验Jobs
+        PlanInfo planInfo = plan.getCurrentVersionInfo();
+        JobDAG dag = planInfo.getDag();
+        Verifies.notNull(dag, "jobs not exist");
+        Verifies.notEmpty(dag.getEarliestJobs(), "jobs is empty");
 
         // 更新状态
-        planPoRepository.switchEnable(planId, true);
-
-        // 调度 plan
-        trackerNode.jobTracker().schedule(plan);
+        if (plan.enable()) {
+            // 调度 plan
+            trackerNode.jobTracker().schedule(planInfo);
+        }
     }
+
 
     /**
      * 取消计划 停止调度
      */
     public void stop(String planId) {
-        PlanPO planPO = planPoRepository.getById(planId);
-        Verifies.notNull(planPO, "plan is not exist");
+        // 查询计划
+        Plan plan = planRepository.get(planId);
+        Verifies.notNull(plan, "plan is not exist");
 
-        if (!planPO.getIsEnabled()) {
+        // 已经停止不重复处理
+        if (!plan.isEnabled()) {
             return;
         }
 
-        planPoRepository.switchEnable(planId, false);
-
-        // 停止调度 plan
-        trackerNode.jobTracker().unschedule(planId);
+        // 停用计划
+        if (plan.disable()) {
+            // 停止调度 plan
+            trackerNode.jobTracker().unschedule(planId);
+        }
     }
 
 
-    private Plan convertToDo(PlanAddDto dto) {
-        return planBuilderFactory.newBuilder()
-                .planId(dto.getPlanId())
+    /**
+     * 将新增执行计划dto转换为Plan领域对象
+     * FIXME 是否考虑抽取converter
+     * @param dto 新增执行计划dto
+     * @return Plan领域对象
+     */
+    private Plan convertToPlan(PlanAddDto dto) {
+        // Plan dto 转 do
+        Plan plan = new Plan();
+        plan.setPlanId(dto.getPlanId());
+        plan.setEnabled(false);
+
+        return plan;
+    }
+
+
+    /**
+     * 将新增执行计划dto转换为PlanInfo领域对象
+     * @param plan 执行计划
+     * @param dto 新增执行计划dto
+     * @return PlanInfo领域对象
+     */
+    private PlanInfo convertToPlanInfo(Plan plan, PlanAddDto dto) {
+        return planInfoBuilderFactory.builder()
+                .planId(plan.getPlanId())
                 .description(dto.getDescription())
-                .scheduleOption(convertToDo(dto.getScheduleOption()))
+                .scheduleOption(convertToVo(dto.getScheduleOption()))
                 .jobs(convertToDo(dto.getJobs()))
                 .build();
     }
 
-    private Plan convertToDo(String planId, PlanReplaceDto dto) {
-        return planBuilderFactory.newBuilder()
-                .planId(planId)
+
+    /**
+     * 将修改执行计划dto转换为PlanInfo领域对象
+     * @param plan 执行计划
+     * @param dto 修改执行计划dto
+     * @return PlanInfo领域对象
+     */
+    private PlanInfo convertToPlanInfo(Plan plan, PlanReplaceDto dto) {
+        return planInfoBuilderFactory.builder()
+                .planId(plan.getPlanId())
                 .description(dto.getDescription())
-                .scheduleOption(convertToDo(dto.getScheduleOption()))
+                .scheduleOption(convertToVo(dto.getScheduleOption()))
                 .jobs(convertToDo(dto.getJobs()))
                 .build();
     }
+
 
     private DispatchOption convertToDo(DispatchOptionDto dto) {
         if (dto == null) {
@@ -138,7 +176,7 @@ public class PlanService {
         return new ExecutorOption(dto.getName(), dto.getType());
     }
 
-    private ScheduleOption convertToDo(ScheduleOptionDto dto) {
+    private ScheduleOption convertToVo(ScheduleOptionDto dto) {
         if (dto == null) {
             return null;
         }

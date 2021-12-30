@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 public class PlanRecordPO extends PO {
 
     private static final long serialVersionUID = -8999288394853231265L;
+
     /**
      * DB自增序列ID，并不是唯一标识
      */

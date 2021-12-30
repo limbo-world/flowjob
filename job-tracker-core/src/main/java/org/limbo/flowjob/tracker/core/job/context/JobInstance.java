@@ -2,6 +2,9 @@ package org.limbo.flowjob.tracker.core.job.context;
 
 import lombok.Data;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
+import org.limbo.flowjob.tracker.commons.constants.enums.TaskType;
+import org.limbo.flowjob.tracker.core.job.Job;
+import org.limbo.utils.UUIDUtils;
 
 import java.time.Instant;
 
@@ -12,15 +15,10 @@ import java.time.Instant;
 @Data
 public class JobInstance {
 
-    private String planId;
-
-    private Long planRecordId;
-
-    private Integer planInstanceId;
-
-    private String jobId;
-
-    private Integer jobInstanceId;
+    /**
+     * JobInstance 唯一ID，多字段联合
+     */
+    private ID id;
 
     /**
      * 状态
@@ -37,8 +35,49 @@ public class JobInstance {
      */
     private Instant endAt;
 
-    public TaskInfo taskInfo() {
-        return null;
+
+    /**
+     * JobInstance下发给Worker时，以TaskInfo的形式下发
+     */
+    public TaskInfo taskInfo(Job job) {
+        TaskInfo task = new TaskInfo();
+        task.setPlanId(id.planId);
+        task.setPlanRecordId(id.planRecordId);
+        task.setPlanInstanceId(id.planInstanceId);
+        task.setJobId(id.jobId);
+        task.setJobInstanceId(id.jobInstanceId);
+        task.setTaskId(UUIDUtils.randomID());
+        task.setType(TaskType.NORMAL); // TODO 哪里来？
+        task.setAttributes(new Attributes());
+        task.setDispatchOption(job.getDispatchOption());
+        task.setExecutorOption(job.getExecutorOption());
+        return task;
+    }
+
+
+    /**
+     * 值对象，JobInstance 多字段联合ID
+     */
+    @Data
+    public static class ID {
+
+        public final String planId;
+
+        public final Long planRecordId;
+
+        public final Integer planInstanceId;
+
+        public final String jobId;
+
+        public final Integer jobInstanceId;
+
+        public ID(String planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId) {
+            this.planId = planId;
+            this.planRecordId = planRecordId;
+            this.planInstanceId = planInstanceId;
+            this.jobId = jobId;
+            this.jobInstanceId = jobInstanceId;
+        }
     }
 
 }

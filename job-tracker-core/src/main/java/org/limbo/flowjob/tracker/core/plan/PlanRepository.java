@@ -27,17 +27,21 @@ public interface PlanRepository {
     /**
      * 新增plan
      *
-     * @param plan 计划plan
+     * @param plan 执行计划
+     * @param initVersion 初始版本的计划信息
      * @return 返回plan的id。如果入参Plan中没有指定ID，方法内应当自动生成一个并返回。
      */
-    String addPlan(Plan plan);
+    String addPlan(Plan plan, PlanInfo initVersion);
+
 
     /**
-     * 新创建一个plan版本
-     *
-     * @param plan 新plan
+     * 新增执行计划版本号
+     * @param plan 执行计划领域对象
+     * @param newVersion 新版本号
+     * @return 更新成功则返回新的版本号
      */
-    Plan newVersion(Plan plan);
+    Integer updateVersion(Plan plan, Integer newVersion);
+
 
     /**
      * 根据计划ID查询计划
@@ -45,14 +49,7 @@ public interface PlanRepository {
      * @param planId 计划ID
      * @return 计划plan
      */
-    Plan getPlan(String planId, Integer version);
-
-    /**
-     * 获取当前版本
-     * @param planId
-     * @return
-     */
-    Plan getCurrentPlan(String planId);
+    Plan get(String planId);
 
 
     /**
@@ -62,5 +59,20 @@ public interface PlanRepository {
      */
     List<Plan> listSchedulablePlans();
 
+
+    /**
+     * 启用指定计划
+     * @param plan 作业执行计划
+     * @return 返回更新的数据条数
+     */
+    int enablePlan(Plan plan);
+
+
+    /**
+     * 停用指定计划
+     * @param plan 作业执行计划
+     * @return 返回更新的数据条数
+     */
+    int disablePlan(Plan plan);
 
 }

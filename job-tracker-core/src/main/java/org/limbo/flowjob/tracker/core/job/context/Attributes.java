@@ -40,6 +40,10 @@ public class Attributes {
      */
     private final Map<String, List<String>> attributes;
 
+    public Attributes() {
+        this.attributes = new HashMap<>();
+    }
+
     public Attributes(String attributes) {
         this.attributes = StringUtils.isBlank(attributes) ? new HashMap<>() : JacksonUtils.parseObject(attributes, new TypeReference<Map<String, List<String>>>() {
         });

@@ -50,12 +50,12 @@ public class MyBatisTaskRepo implements TaskRepository {
     public void executed(Task task) {
         taskMapper.update(null, Wrappers.<TaskPO>lambdaUpdate()
                 .set(TaskPO::getState, TaskScheduleStatus.SCHEDULING.status)
-                .eq(TaskPO::getPlanId, task.getPlanId())
-                .eq(TaskPO::getPlanRecordId, task.getPlanRecordId())
-                .eq(TaskPO::getPlanInstanceId, task.getPlanInstanceId())
-                .eq(TaskPO::getJobId, task.getJobId())
-                .eq(TaskPO::getJobInstanceId, task.getJobInstanceId())
-                .eq(TaskPO::getTaskId, task.getTaskId())
+                .eq(TaskPO::getPlanId, task.getId().planId)
+                .eq(TaskPO::getPlanRecordId, task.getId().planRecordId)
+                .eq(TaskPO::getPlanInstanceId, task.getId().planInstanceId)
+                .eq(TaskPO::getJobId, task.getId().jobId)
+                .eq(TaskPO::getJobInstanceId, task.getId().jobInstanceId)
+                .eq(TaskPO::getTaskId, task.getId().taskId)
                 .eq(TaskPO::getState, TaskScheduleStatus.FEEDBACK.status)
                 .eq(TaskPO::getResult, TaskResult.NONE.result)
         );
@@ -66,40 +66,40 @@ public class MyBatisTaskRepo implements TaskRepository {
         taskMapper.update(null, Wrappers.<TaskPO>lambdaUpdate()
                 .set(TaskPO::getState, TaskScheduleStatus.COMPLETED.status)
                 .set(TaskPO::getResult, task.getResult())
-                .eq(TaskPO::getPlanId, task.getPlanId())
-                .eq(TaskPO::getPlanRecordId, task.getPlanRecordId())
-                .eq(TaskPO::getPlanInstanceId, task.getPlanInstanceId())
-                .eq(TaskPO::getJobId, task.getJobId())
-                .eq(TaskPO::getJobInstanceId, task.getJobInstanceId())
-                .eq(TaskPO::getTaskId, task.getTaskId())
+                .eq(TaskPO::getPlanId, task.getId().planId)
+                .eq(TaskPO::getPlanRecordId, task.getId().planRecordId)
+                .eq(TaskPO::getPlanInstanceId, task.getId().planInstanceId)
+                .eq(TaskPO::getJobId, task.getId().jobId)
+                .eq(TaskPO::getJobInstanceId, task.getId().jobInstanceId)
+                .eq(TaskPO::getTaskId, task.getId().taskId)
                 .eq(TaskPO::getState, TaskScheduleStatus.FEEDBACK.status)
                 .eq(TaskPO::getResult, TaskResult.NONE.result)
         );
     }
 
     @Override
-    public void executing(Task task) {
-        taskMapper.update(null, Wrappers.<TaskPO>lambdaUpdate()
+    public boolean execute(Task.ID taskId) {
+        return taskMapper.update(null, Wrappers.<TaskPO>lambdaUpdate()
                 .set(TaskPO::getState, TaskScheduleStatus.EXECUTING.status)
-                .eq(TaskPO::getPlanId, task.getPlanId())
-                .eq(TaskPO::getPlanRecordId, task.getPlanRecordId())
-                .eq(TaskPO::getPlanInstanceId, task.getPlanInstanceId())
-                .eq(TaskPO::getJobId, task.getJobId())
-                .eq(TaskPO::getJobInstanceId, task.getJobInstanceId())
-                .eq(TaskPO::getTaskId, task.getTaskId())
+                .eq(TaskPO::getPlanId, taskId.planId)
+                .eq(TaskPO::getPlanRecordId, taskId.planRecordId)
+                .eq(TaskPO::getPlanInstanceId, taskId.planInstanceId)
+                .eq(TaskPO::getJobId, taskId.jobId)
+                .eq(TaskPO::getJobInstanceId, taskId.jobInstanceId)
+                .eq(TaskPO::getTaskId, taskId.taskId)
                 .eq(TaskPO::getState, TaskScheduleStatus.SCHEDULING.status)
                 .eq(TaskPO::getResult, TaskResult.NONE.result)
-        );
+        ) > 0;
     }
 
     @Override
-    public Integer unclosedCount(String planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId) {
+    public Integer countUnclosed(Task.ID taskId) {
         return taskMapper.selectCount(Wrappers.<TaskPO>lambdaQuery()
-                .eq(TaskPO::getPlanId, planId)
-                .eq(TaskPO::getPlanRecordId, planRecordId)
-                .eq(TaskPO::getPlanInstanceId, planInstanceId)
-                .eq(TaskPO::getJobId, jobId)
-                .eq(TaskPO::getJobInstanceId, jobInstanceId)
+                .eq(TaskPO::getPlanId, taskId.planId)
+                .eq(TaskPO::getPlanRecordId, taskId.planRecordId)
+                .eq(TaskPO::getPlanInstanceId, taskId.planInstanceId)
+                .eq(TaskPO::getJobId, taskId.jobId)
+                .eq(TaskPO::getJobInstanceId, taskId.jobInstanceId)
                 .eq(TaskPO::getState, TaskScheduleStatus.COMPLETED.status)
         );
     }

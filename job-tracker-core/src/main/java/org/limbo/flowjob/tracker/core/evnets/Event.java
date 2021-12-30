@@ -45,6 +45,9 @@ public class Event<T extends Serializable> implements Serializable {
     @Getter
     private T source;
 
+    /**
+     * 事件标签，可以用来区分事件类型
+     */
     @Getter
     @Setter
     private String tag;

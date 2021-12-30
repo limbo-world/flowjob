@@ -36,9 +36,10 @@ public class PlanInstancePoConverter extends Converter<PlanInstance, PlanInstanc
     @Override
     protected PlanInstancePO doForward(PlanInstance planInstance) {
         PlanInstancePO po = new PlanInstancePO();
-        po.setPlanId(planInstance.getPlanId());
-        po.setPlanRecordId(planInstance.getPlanRecordId());
-        po.setPlanInstanceId(planInstance.getPlanInstanceId());
+        PlanInstance.ID instanceId = planInstance.getId();
+        po.setPlanId(instanceId.planId);
+        po.setPlanRecordId(instanceId.planRecordId);
+        po.setPlanInstanceId(instanceId.planInstanceId);
         po.setState(planInstance.getState().status);
         po.setStartAt(TimeUtil.toLocalDateTime(planInstance.getStartAt()));
         po.setEndAt(TimeUtil.toLocalDateTime(planInstance.getStartAt()));
@@ -52,8 +53,12 @@ public class PlanInstancePoConverter extends Converter<PlanInstance, PlanInstanc
     @Override
     protected PlanInstance doBackward(PlanInstancePO po) {
         PlanInstance planInstance = new PlanInstance();
-        planInstance.setPlanId(po.getPlanId());
-        planInstance.setPlanInstanceId(po.getPlanInstanceId());
+        PlanInstance.ID instanceId = new PlanInstance.ID(
+                po.getPlanId(),
+                po.getPlanRecordId(),
+                po.getPlanInstanceId()
+        );
+        planInstance.setId(instanceId);
         planInstance.setState(PlanScheduleStatus.parse(po.getState()));
         planInstance.setStartAt(TimeUtil.toInstant(po.getStartAt()));
         planInstance.setEndAt(TimeUtil.toInstant(po.getEndAt()));

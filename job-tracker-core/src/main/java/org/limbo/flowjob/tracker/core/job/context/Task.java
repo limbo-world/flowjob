@@ -16,23 +16,27 @@
 
 package org.limbo.flowjob.tracker.core.job.context;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.commons.constants.enums.TaskResult;
 import org.limbo.flowjob.tracker.commons.constants.enums.TaskScheduleStatus;
+import org.limbo.flowjob.tracker.commons.constants.enums.TaskType;
 import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
 import org.limbo.flowjob.tracker.commons.exceptions.JobDispatchException;
+import org.limbo.flowjob.tracker.core.evnets.Event;
+import org.limbo.flowjob.tracker.core.evnets.EventPublisher;
+import org.limbo.flowjob.tracker.core.evnets.EventTags;
 import org.limbo.flowjob.tracker.core.job.DispatchOption;
 import org.limbo.flowjob.tracker.core.job.ExecutorOption;
+import org.limbo.flowjob.tracker.core.plan.PlanInstance;
+import org.limbo.flowjob.tracker.core.plan.PlanRecord;
 import org.limbo.flowjob.tracker.core.storage.Storable;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
 
+import javax.inject.Inject;
 import java.io.Serializable;
 import java.time.Instant;
 
@@ -46,24 +50,19 @@ import java.time.Instant;
 @Setter
 @ToString
 public class Task implements Storable, Serializable {
+    
     private static final long serialVersionUID = -9164373359695671417L;
 
-    private String planId;
-
-    private Long planRecordId;
-
-    private Integer planInstanceId;
-
-    private String jobId;
-
-    private Integer jobInstanceId;
-
-    private String taskId;
+    /**
+     * 多字段联合ID
+     */
+    private ID id;
 
     /**
      * 调度状态
      */
     private TaskScheduleStatus state;
+
     /**
      * 执行结果
      */
@@ -77,7 +76,7 @@ public class Task implements Storable, Serializable {
     /**
      * sharding normal
      */
-    private Byte type;
+    private TaskType type;
 
     /**
      * 作业属性，不可变。作业属性可用于分片作业、MapReduce作业、DAG工作流进行传参
@@ -122,16 +121,12 @@ public class Task implements Storable, Serializable {
     private boolean needPublish;
 
     /**
-     * 用于触发、发布上下文生命周期事件
+     * 事件发布器
      */
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    @ToString.Exclude
-    private Sinks.Many<JobInstanceLifecycleEvent> lifecycleEventTrigger;
+    @Inject
+    private EventPublisher<Event<?>> eventPublisher;
 
-    public Task() {
-        this.lifecycleEventTrigger = Sinks.many().multicast().directAllOrNothing();
-    }
+
 
     /**
      * 在指定worker上启动此作业上下文，将作业上下文发送给worker。
@@ -147,15 +142,13 @@ public class Task implements Storable, Serializable {
 
         // 检测状态
         if (status != TaskScheduleStatus.SCHEDULING) {
-            throw new JobDispatchException(getJobId(), getId(), "Cannot startup context due to current status: " + status);
+            throw new JobDispatchException(getId().jobId, getId().taskId, "Cannot startup context due to current status: " + status);
         }
 
         try {
 
             // 发送上下文到worker
             Mono<JobReceiveResult> mono = worker.sendTask(this);
-            // 发布事件
-            lifecycleEventTrigger.emitNext(JobInstanceLifecycleEvent.STARTED, Sinks.EmitFailureHandler.FAIL_FAST);
 
             // 等待发送结果，根据客户端接收结果，更新状态
             JobReceiveResult result = mono.block();
@@ -168,7 +161,7 @@ public class Task implements Storable, Serializable {
             // 失败时更新上下文状态，冒泡异常
             // todo 如果是下发失败网络问题等，应该需要重试
 //            setState(TaskScheduleStatus.FAILED);
-            throw new JobDispatchException(getJobId(), worker.getWorkerId(),
+            throw new JobDispatchException(getId().jobId, worker.getWorkerId(),
                     "Context startup failed due to send job to worker error!", e);
         }
     }
@@ -192,8 +185,10 @@ public class Task implements Storable, Serializable {
         setWorkerId(worker.getWorkerId());
         setNeedPublish(true);
 
-        // 发布事件
-        lifecycleEventTrigger.emitNext(JobInstanceLifecycleEvent.ACCEPTED, Sinks.EmitFailureHandler.FAIL_FAST);
+        // 发布领域事件
+        Event<Task> acceptEvent = new Event<>(this);
+        acceptEvent.setTag(EventTags.TASK_ACCEPTED);
+        eventPublisher.publish(acceptEvent);
     }
 
     /**
@@ -212,8 +207,10 @@ public class Task implements Storable, Serializable {
 
         // todo 拒绝了 应该把task丢到队列尾部 等待重试
 
-        // 发布事件
-        lifecycleEventTrigger.emitNext(JobInstanceLifecycleEvent.REFUSED, Sinks.EmitFailureHandler.FAIL_FAST);
+        // 发布领域事件
+        Event<Task> acceptEvent = new Event<>(this);
+        acceptEvent.setTag(EventTags.TASK_REFUSED);
+        eventPublisher.publish(acceptEvent);
     }
 
 
@@ -225,7 +222,6 @@ public class Task implements Storable, Serializable {
      * @throws JobDispatchException 上下文状态不是{@link JobScheduleStatus#EXECUTING}时抛出异常。
      */
     public void close() throws JobDispatchException {
-
         // 当前状态无需变更
         if (getState() == TaskScheduleStatus.COMPLETED) {
             return;
@@ -235,9 +231,10 @@ public class Task implements Storable, Serializable {
         setResult(TaskResult.SUCCEED);
         setNeedPublish(true);
 
-        // 发布事件
-        lifecycleEventTrigger.emitNext(JobInstanceLifecycleEvent.CLOSED, Sinks.EmitFailureHandler.FAIL_FAST);
-        lifecycleEventTrigger.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
+        // 发布领域事件
+        Event<Task> acceptEvent = new Event<>(this);
+        acceptEvent.setTag(EventTags.TASK_CLOSED);
+        eventPublisher.publish(acceptEvent);
     }
 
 
@@ -259,104 +256,72 @@ public class Task implements Storable, Serializable {
         setErrorStackTrace(errorStackTrace);
         setNeedPublish(true);
 
-        // 发布事件
-        lifecycleEventTrigger.emitNext(JobInstanceLifecycleEvent.CLOSED, Sinks.EmitFailureHandler.FAIL_FAST);
-        lifecycleEventTrigger.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
+        // 发布领域事件
+        Event<Task> acceptEvent = new Event<>(this);
+        acceptEvent.setTag(EventTags.TASK_CLOSED);
+        eventPublisher.publish(acceptEvent);
     }
 
-    /**
-     * 上下文被worker拒绝时的回调监听。
-     *
-     * TODO 此方式只支持单机监听，如果tracker集群部署，监听需用其他方式处理
-     *
-     * @return
-     */
-    public Mono<Task> onRefused() {
-        return Mono.create(sink -> this.lifecycleEventTrigger
-                .asFlux()
-                .filter(e -> e == JobInstanceLifecycleEvent.REFUSED)
-                .subscribe(e -> sink.success(this), sink::error, sink::success));
-    }
+
 
     /**
-     * 上下文被worker接收时的回调监听。
-     *
-     * TODO 此方式只支持单机监听，如果tracker集群部署，监听需用其他方式处理
-     *
-     * @return
+     * 值对象，多字段联合ID
      */
-    public Mono<Task> onAccepted() {
-        return Mono.create(sink -> this.lifecycleEventTrigger
-                .asFlux()
-                .filter(e -> e == JobInstanceLifecycleEvent.ACCEPTED)
-                .subscribe(e -> sink.success(this), sink::error, sink::success));
-    }
+    public static class ID {
 
-    /**
-     * 上下文被关闭时的回调监听。
-     *
-     * TODO 此方式只支持单机监听，如果tracker集群部署，监听需用其他方式处理
-     *
-     * @return
-     */
-    public Mono<Task> onClosed() {
-        return Mono.create(sink -> this.lifecycleEventTrigger
-                .asFlux()
-                .filter(e -> e == JobInstanceLifecycleEvent.CLOSED)
-                .subscribe(e -> sink.success(this), sink::error, sink::success));
-    }
+        public final String planId;
 
-    /**
-     * 获取全局唯一的实例ID
-     * @return id
-     */
-    public String getId() {
-        return planId + "-" + planInstanceId + "-" + jobId;
-    }
+        public final Long planRecordId;
 
-    /**
-     * 上下文生命周期事件触发时的回调监听。
-     *
-     * TODO 此方式只支持单机监听，如果tracker集群部署，监听需用其他方式处理
-     *
-     * @return 声明周期事件发生时触发
-     * @see JobInstanceLifecycleEvent
-     */
-    public Flux<JobInstanceLifecycleEvent> onLifecycleEvent() {
-        return this.lifecycleEventTrigger.asFlux();
-    }
+        public final Integer planInstanceId;
 
-    /**
-     * 上下文声明周期事件
-     * <ul>
-     *     <li><code>STARTED</code> - 上下文启动，正在分发给worker</li>
-     *     <li><code>REFUSED</code> - worker拒绝接收上下文</li>
-     *     <li><code>ACCEPTED</code> - worker成功接收上下文</li>
-     *     <li><code>CLOSED</code> - 上下文被关闭</li>
-     * </ul>
-     */
-    enum JobInstanceLifecycleEvent {
+        public final String jobId;
+
+        public final Integer jobInstanceId;
+
+        public final String taskId;
+
+        public ID(String planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId, String taskId) {
+            this.planId = planId;
+            this.planRecordId = planRecordId;
+            this.planInstanceId = planInstanceId;
+            this.jobId = jobId;
+            this.jobInstanceId = jobInstanceId;
+            this.taskId = taskId;
+        }
+
+
 
         /**
-         * @see Task#startup(Worker)
+         * 获取任务对应的 JobRecord.ID
          */
-        STARTED,
+        public JobRecord.ID idOfJobRecord() {
+            return new JobRecord.ID(planId, planRecordId, planInstanceId, jobId);
+        }
+
 
         /**
-         * @see Task#refuse(Worker)
+         * 获取任务对应的 JobInstance.ID
          */
-        REFUSED,
+        public JobInstance.ID idOfJobInstance() {
+            return new JobInstance.ID(planId, planRecordId, planInstanceId, jobId, jobInstanceId);
+        }
+
 
         /**
-         * @see Task#accept(Worker)
+         * 获取任务对应的 PlanInstance.ID
          */
-        ACCEPTED,
+        public PlanInstance.ID idOfPlanInstance() {
+            return new PlanInstance.ID(planId, planRecordId, planInstanceId);
+        }
+
 
         /**
-         * @see Task#close()
+         * 获取任务对应的 PlanRecord.ID
          */
-        CLOSED
-
+        public PlanRecord.ID idOfPlanRecord() {
+            return new PlanRecord.ID(planId, planRecordId);
+        }
     }
 
 }

@@ -20,12 +20,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Converter;
 import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.plan.Plan;
-import org.limbo.flowjob.tracker.core.plan.PlanBuilderFactory;
+import org.limbo.flowjob.tracker.core.plan.PlanInfoBuilderFactory;
+import org.limbo.flowjob.tracker.core.plan.PlanInfo;
 import org.limbo.flowjob.tracker.core.plan.ScheduleOption;
 import org.limbo.flowjob.tracker.dao.po.PlanInfoPO;
 import org.limbo.utils.JacksonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -36,41 +37,47 @@ import java.util.List;
  * @since 2021-07-13
  */
 @Component
-public class PlanInfoPOConverter extends Converter<Plan, PlanInfoPO> {
+public class PlanInfoPOConverter extends Converter<PlanInfo, PlanInfoPO> {
 
     @Autowired
-    private PlanBuilderFactory planBuilderFactory;
+    private ApplicationContext ac;
+
+    @Autowired
+    private PlanInfoBuilderFactory planInfoBuilderFactory;
 
 
     /**
-     * {@link Plan} -> {@link PlanInfoPO}
+     * {@link PlanInfo} -> {@link PlanInfoPO}
      */
     @Override
-    protected PlanInfoPO doForward(Plan plan) {
+    protected PlanInfoPO doForward(PlanInfo planInfo) {
         PlanInfoPO po = new PlanInfoPO();
 
-        po.setPlanId(plan.getPlanId());
-        po.setVersion(plan.getVersion());
-        po.setDescription(plan.getDescription());
+        po.setPlanId(planInfo.getPlanId());
+        po.setVersion(planInfo.getVersion());
+        po.setDescription(planInfo.getDescription());
 
-        ScheduleOption scheduleOption = plan.getScheduleOption();
+        ScheduleOption scheduleOption = planInfo.getScheduleOption();
         po.setScheduleType(scheduleOption.getScheduleType().type);
         po.setScheduleStartAt(scheduleOption.getScheduleStartAt());
         po.setScheduleDelay(scheduleOption.getScheduleDelay().toMillis());
         po.setScheduleInterval(scheduleOption.getScheduleInterval().toMillis());
         po.setScheduleCron(scheduleOption.getScheduleCron());
-        po.setJobs(JacksonUtils.toJSONString(plan.getDag().jobs()));
+        po.setJobs(JacksonUtils.toJSONString(planInfo.getDag().jobs()));
+
+        // 能够查询到info信息，说明未删除
+        po.setIsDeleted(false);
 
         return po;
     }
 
 
     /**
-     * {@link PlanInfoPO} -> {@link Plan}
+     * {@link PlanInfoPO} -> {@link PlanInfo}
      */
     @Override
-    protected Plan doBackward(PlanInfoPO po) {
-        return planBuilderFactory.newBuilder()
+    protected PlanInfo doBackward(PlanInfoPO po) {
+        PlanInfo planInfo = planInfoBuilderFactory.builder()
                 .planId(po.getPlanId())
                 .version(po.getVersion())
                 .description(po.getDescription())
@@ -82,9 +89,13 @@ public class PlanInfoPOConverter extends Converter<Plan, PlanInfoPO> {
                         po.getScheduleCron(),
                         po.getRetry()
                 ))
-                .jobs(JacksonUtils.parseObject(po.getJobs(), new TypeReference<List<Job>>() {
-                }))
+                .jobs(JacksonUtils.parseObject(po.getJobs(), new TypeReference<List<Job>>() {}))
                 .build();
+
+        // 注入依赖
+        ac.getAutowireCapableBeanFactory().autowireBean(planInfo);
+
+        return planInfo;
     }
 
 }

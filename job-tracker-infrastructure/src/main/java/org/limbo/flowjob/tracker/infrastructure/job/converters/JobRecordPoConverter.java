@@ -17,10 +17,11 @@ public class JobRecordPoConverter extends Converter<JobRecord, JobRecordPO> {
     @Override
     protected JobRecordPO doForward(JobRecord record) {
         JobRecordPO po = new JobRecordPO();
-        po.setPlanId(record.getPlanId());
-        po.setPlanRecordId(record.getPlanRecordId());
-        po.setPlanInstanceId(record.getPlanInstanceId());
-        po.setJobId(record.getJobId());
+        JobRecord.ID recordId = record.getId();
+        po.setPlanId(recordId.planId);
+        po.setPlanRecordId(recordId.planRecordId);
+        po.setPlanInstanceId(recordId.planInstanceId);
+        po.setJobId(recordId.jobId);
         po.setState(record.getState().status);
         po.setAttributes(record.getAttributes());
         po.setStartAt(TimeUtil.toLocalDateTime(record.getStartAt()));
@@ -31,10 +32,13 @@ public class JobRecordPoConverter extends Converter<JobRecord, JobRecordPO> {
     @Override
     protected JobRecord doBackward(JobRecordPO po) {
         JobRecord record = new JobRecord();
-        record.setPlanId(po.getPlanId());
-        record.setPlanRecordId(po.getPlanRecordId());
-        record.setPlanInstanceId(po.getPlanInstanceId());
-        record.setJobId(po.getJobId());
+        JobRecord.ID recordId = new JobRecord.ID(
+                po.getPlanId(),
+                po.getPlanRecordId(),
+                po.getPlanInstanceId(),
+                po.getJobId()
+        );
+        record.setId(recordId);
         record.setState(JobScheduleStatus.parse(po.getState()));
         record.setAttributes(record.getAttributes());
         record.setStartAt(TimeUtil.toInstant(po.getStartAt()));

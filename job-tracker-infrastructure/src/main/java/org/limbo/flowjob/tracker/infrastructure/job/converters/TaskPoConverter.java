@@ -3,6 +3,7 @@ package org.limbo.flowjob.tracker.infrastructure.job.converters;
 import com.google.common.base.Converter;
 import org.limbo.flowjob.tracker.commons.constants.enums.TaskResult;
 import org.limbo.flowjob.tracker.commons.constants.enums.TaskScheduleStatus;
+import org.limbo.flowjob.tracker.commons.constants.enums.TaskType;
 import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
 import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.job.context.Attributes;
@@ -26,15 +27,17 @@ public class TaskPoConverter extends Converter<Task, TaskPO> {
     @Override
     protected TaskPO doForward(Task task) {
         TaskPO po = new TaskPO();
-        po.setPlanId(task.getPlanId());
-        po.setPlanRecordId(task.getPlanRecordId());
-        po.setPlanInstanceId(task.getPlanInstanceId());
-        po.setJobId(task.getJobId());
-        po.setJobInstanceId(task.getJobInstanceId());
-        po.setTaskId(task.getTaskId());
+        Task.ID taskId = task.getId();
+        po.setPlanId(taskId.planId);
+        po.setPlanRecordId(taskId.planRecordId);
+        po.setPlanInstanceId(taskId.planInstanceId);
+        po.setJobId(taskId.jobId);
+        po.setJobInstanceId(taskId.jobInstanceId);
+        po.setTaskId(taskId.taskId);
         po.setState(task.getState().status);
         po.setResult(task.getResult().result);
         po.setWorkerId(task.getWorkerId());
+        po.setType(task.getType().type);
         po.setAttributes(task.getAttributes().toString());
         po.setErrorMsg(task.getErrorMsg());
         po.setErrorStackTrace(task.getErrorStackTrace());
@@ -45,22 +48,27 @@ public class TaskPoConverter extends Converter<Task, TaskPO> {
 
     @Override
     protected Task doBackward(TaskPO po) {
-        PlanRecord planRecord = planRecordRepository.get(po.getPlanId(), po.getPlanRecordId());
+        PlanRecord planRecord = planRecordRepository.get(new PlanRecord.ID(
+                po.getPlanId(), po.getPlanRecordId()
+        ));
         Job job = planRecord.getDag().getJob(po.getJobId());
 
         Task task = new Task();
-        task.setPlanId(po.getPlanId());
-        task.setPlanRecordId(po.getPlanRecordId());
-        task.setPlanInstanceId(po.getPlanInstanceId());
-        task.setJobId(po.getJobId());
-        task.setJobInstanceId(po.getJobInstanceId());
-        task.setTaskId(po.getTaskId());
+        Task.ID taskId = new Task.ID(
+                po.getPlanId(),
+                po.getPlanRecordId(),
+                po.getPlanInstanceId(),
+                po.getJobId(),
+                po.getJobInstanceId(),
+                po.getTaskId()
+        );
+        task.setId(taskId);
         task.setState(TaskScheduleStatus.parse(po.getState()));
         task.setResult(TaskResult.parse(po.getResult()));
         task.setDispatchOption(job.getDispatchOption());
         task.setExecutorOption(job.getExecutorOption());
         task.setWorkerId(po.getWorkerId());
-        task.setType(po.getType());
+        task.setType(TaskType.parse(po.getType()));
         task.setAttributes(new Attributes(po.getAttributes()));
         task.setErrorMsg(po.getErrorMsg());
         task.setErrorStackTrace(po.getErrorStackTrace());
