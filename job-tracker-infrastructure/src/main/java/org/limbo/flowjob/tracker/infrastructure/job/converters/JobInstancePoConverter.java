@@ -17,11 +17,12 @@ public class JobInstancePoConverter extends Converter<JobInstance, JobInstancePO
     @Override
     protected JobInstancePO doForward(JobInstance instance) {
         JobInstancePO po = new JobInstancePO();
-        po.setPlanId(instance.getPlanId());
-        po.setPlanRecordId(instance.getPlanRecordId());
-        po.setPlanInstanceId(instance.getPlanInstanceId());
-        po.setJobId(instance.getJobId());
-        po.setJobInstanceId(instance.getJobInstanceId());
+        JobInstance.ID instanceId = instance.getId();
+        po.setPlanId(instanceId.planId);
+        po.setPlanRecordId(instanceId.planRecordId);
+        po.setPlanInstanceId(instanceId.planInstanceId);
+        po.setJobId(instanceId.jobId);
+        po.setJobInstanceId(instanceId.jobInstanceId);
         po.setState(instance.getState().status);
         po.setStartAt(TimeUtil.toLocalDateTime(instance.getStartAt()));
         po.setEndAt(TimeUtil.toLocalDateTime(instance.getEndAt()));
@@ -31,11 +32,14 @@ public class JobInstancePoConverter extends Converter<JobInstance, JobInstancePO
     @Override
     protected JobInstance doBackward(JobInstancePO po) {
         JobInstance instance = new JobInstance();
-        instance.setPlanId(po.getPlanId());
-        instance.setPlanRecordId(po.getPlanRecordId());
-        instance.setPlanInstanceId(po.getPlanInstanceId());
-        instance.setJobId(po.getJobId());
-        instance.setJobInstanceId(po.getJobInstanceId());
+        JobInstance.ID instanceId = new JobInstance.ID(
+                po.getPlanId(),
+                po.getPlanRecordId(),
+                po.getPlanInstanceId(),
+                po.getJobId(),
+                po.getJobInstanceId()
+        );
+        instance.setId(instanceId);
         instance.setState(JobScheduleStatus.parse(po.getState()));
         instance.setStartAt(TimeUtil.toInstant(po.getStartAt()));
         instance.setEndAt(TimeUtil.toInstant(po.getEndAt()));

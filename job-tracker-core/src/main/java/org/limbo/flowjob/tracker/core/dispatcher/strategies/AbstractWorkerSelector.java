@@ -43,11 +43,12 @@ public abstract class AbstractWorkerSelector implements WorkerSelector {
     @Override
     public Worker select(Task task, Collection<Worker> workers) {
         if (CollectionUtils.isEmpty(workers)) {
-            throw new JobWorkerException(task.getJobId(), null, "No worker available!");
+            throw new JobWorkerException(task.getId().jobId, null, "No worker available!");
         }
 
         List<Worker> availableWorkers = new ArrayList<>();
         // todo 比较 cpu 和 内存 标签等信息 以及下发给对应的执行器 worker没找到怎么处理
+        WORKER:
         for (Worker worker : workers) {
             WorkerMetric metric = worker.getMetric();
             if (metric == null || CollectionUtils.isEmpty(metric.getExecutors())) {
@@ -58,16 +59,18 @@ public abstract class AbstractWorkerSelector implements WorkerSelector {
                 if (executor.getType() == task.getExecutorOption().getType()
                         && executor.getName().equals(task.getExecutorOption().getName())) {
                     availableWorkers.add(worker);
+                    continue WORKER;
                 }
             }
         }
 
         if (CollectionUtils.isEmpty(availableWorkers)) {
-            throw new JobWorkerException(task.getJobId(), null, "No worker available!");
+            throw new JobWorkerException(task.getId().jobId, null, "No worker available!");
         }
 
         return selectWorker(task, workers);
     }
+
 
     /**
      * 选择一个worker进行作业下发

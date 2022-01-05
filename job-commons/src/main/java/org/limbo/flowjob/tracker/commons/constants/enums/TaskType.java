@@ -26,8 +26,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum TaskType {
 
     NORMAL(1, "普通任务"),
-    SHARDING(2, "分片任务"),
-    BROADCAST(3, "广播任务"),
+    BROADCAST(2, "广播任务"),
+    SHARDING(3, "分片任务"),
     ;
 
     @JsonValue

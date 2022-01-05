@@ -26,12 +26,9 @@ import java.util.List;
  */
 public interface JobInstanceRepository {
 
-    void executing(String planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId);
 
-    void end(String planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId, JobScheduleStatus state);
+    JobInstance.ID createId(JobRecord.ID jobRecordId);
 
-
-    Integer createId(String planId, Long planRecordId, Integer planInstanceId, String jobId);
 
     /**
      * 持久化作业实例
@@ -39,13 +36,30 @@ public interface JobInstanceRepository {
      */
     void add(JobInstance instance);
 
+
+    void end(JobInstance.ID jobInstanceId, JobScheduleStatus state);
+
+
+    /**
+     * CAS 将此作业执行实例状态从 {@link JobScheduleStatus#SCHEDULING} 修改为 {@link JobScheduleStatus#EXECUTING}
+     * @param jobInstanceId 待更新的作业执行实例ID
+     * @return 更新是否成功
+     */
+    boolean execute(JobInstance.ID jobInstanceId);
+
+
+    /**
+     * 根据ID查询作业执行实例
+     * @param jobInstanceId 作业执行实例ID
+     * @return 作业执行实例
+     */
+    JobInstance get(JobInstance.ID jobInstanceId);
+
+
     /**
      * 列出 JobRecord 下对应的所有 JobInstance
-     * @param planId
-     * @param planRecordId
-     * @param planInstanceId
-     * @param jobId
-     * @return
+     * @param jobRecordId 作业执行记录ID
+     * @return 作业执行记录下关联的所有作业实例
      */
-    List<JobInstance> listByRecord(String planId, Long planRecordId, Integer planInstanceId, String jobId);
+    List<JobInstance> listByRecord(JobRecord.ID jobRecordId);
 }

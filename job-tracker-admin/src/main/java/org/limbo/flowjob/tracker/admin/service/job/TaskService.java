@@ -20,15 +20,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.tracker.commons.constants.enums.ExecuteResult;
 import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFeedbackDto;
 import org.limbo.flowjob.tracker.commons.utils.Symbol;
-import org.limbo.flowjob.tracker.core.evnets.Event;
-import org.limbo.flowjob.tracker.core.evnets.EventPublisher;
 import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.core.job.context.TaskRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.function.Consumer;
+import javax.inject.Inject;
 
 /**
  * @author Brozen
@@ -38,11 +35,9 @@ import java.util.function.Consumer;
 @Service
 public class TaskService {
 
-    @Autowired
+    @Inject
     private TaskRepository taskRepository;
 
-    @Autowired
-    private EventPublisher<Event<?>> eventPublisher;
 
     /**
      * 处理任务执行反馈
@@ -55,23 +50,6 @@ public class TaskService {
             Task task = taskRepository.get(fb.getPlanId(), fb.getPlanRecordId(), fb.getPlanInstanceId(),
                     fb.getJobId(), fb.getJobInstanceId(), fb.getTaskId());
             ExecuteResult result = fb.getResult();
-
-            // 订阅
-            task.onClosed().subscribe(new Consumer<Task>() {
-                @Override
-                public void accept(Task task) {
-                    if (log.isDebugEnabled()) {
-                        log.debug(task.getWorkerId() + " closed " + task.getId());
-                    }
-
-                    // 前置校验
-                    if (task.isNeedPublish()) {
-                        taskRepository.executed(task);
-                        // 修改状态，先返回成功给worker 让worker继续执行 将task丢到队列异步修改后续状态
-                        eventPublisher.publish(new Event<>(task));
-                    }
-                }
-            });
 
             // 变更状态
             switch (result) {

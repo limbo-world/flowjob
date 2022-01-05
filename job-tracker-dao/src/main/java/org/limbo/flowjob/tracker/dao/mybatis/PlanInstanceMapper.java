@@ -11,6 +11,16 @@ import org.limbo.flowjob.tracker.dao.po.PlanInstancePO;
  */
 public interface PlanInstanceMapper extends BaseMapper<PlanInstancePO> {
 
-    @Select("select plan_instance_id from flowjob_plan_instance where plan_id = #{planId} and plan_record_id = #{planRecordId} order by plan_instance_id desc limit 1 for update")
+    @Select("select " +
+                "plan_instance_id " +
+            "from " +
+                "flowjob_plan_instance " +
+            "where plan_id = #{planId} " +
+                    "and plan_record_id = #{planRecordId} " +
+            "order by plan_instance_id desc " +
+            "limit 1 " +
+            "for update"
+    )
     Integer getRecentlyIdForUpdate(@Param("planId") String planId, @Param("planRecordId") Long planRecordId);
+
 }

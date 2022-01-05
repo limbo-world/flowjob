@@ -14,20 +14,28 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.schedule.executor;
+package org.limbo.flowjob.tracker.core.plan;
+
+import org.limbo.flowjob.tracker.core.schedule.calculator.ScheduleCalculatorFactory;
 
 /**
- * 执行器
- *
- * @param <T> 执行上下文
- * @author Brozen
- * @since 2021-07-13
+ * @author Devil
+ * @since 2021/7/26
  */
-public interface Executor<T> {
+public class PlanInfoBuilderFactory {
+
+    private ScheduleCalculatorFactory strategyFactory;
+
+    public PlanInfoBuilderFactory(ScheduleCalculatorFactory strategyFactory) {
+        this.strategyFactory = strategyFactory;
+    }
+
 
     /**
-     * 执行
+     * 生成新的Plan领域对象构建器
      */
-    void execute(T instance);
+    public PlanInfo.Builder builder() {
+        return new PlanInfo.Builder(strategyFactory);
+    }
 
 }

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2020-2024 Limbo Team (https://github.com/limbo-world).
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.limbo.flowjob.tracker.core.plan;
 
 import lombok.Data;
@@ -17,15 +33,16 @@ public class PlanRecord implements Serializable {
 
     private static final long serialVersionUID = 1837382860200548371L;
 
-    private String planId;
-
-    private Long planRecordId;
+    private ID id;
 
     /**
      * 计划的版本
      */
     private Integer version;
 
+    /**
+     * 计划调度状态
+     */
     private PlanScheduleStatus state;
 
     /**
@@ -52,14 +69,28 @@ public class PlanRecord implements Serializable {
 
     private JobDAG dag;
 
-    public PlanInstance newInstance(Integer planInstanceId, PlanScheduleStatus state) {
+    public PlanInstance newInstance(PlanInstance.ID planInstanceId, PlanScheduleStatus state) {
         PlanInstance instance = new PlanInstance();
-        instance.setPlanId(planId);
-        instance.setPlanRecordId(planRecordId);
-        instance.setPlanInstanceId(planInstanceId);
+        instance.setId(planInstanceId);
         instance.setState(state);
         instance.setStartAt(TimeUtil.nowInstant());
         return instance;
+    }
+
+
+    /**
+     * 作业执行记录ID抽象
+     */
+    public static class ID {
+
+        public final String planId;
+
+        public final Long planRecordId;
+
+        public ID(String planId, Long planRecordId) {
+            this.planId = planId;
+            this.planRecordId = planRecordId;
+        }
     }
 
 }

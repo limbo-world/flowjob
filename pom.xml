@@ -85,6 +85,7 @@
         <jraft>1.3.7</jraft>
         <lombok>1.18.16</lombok>
         <slf4j>1.7.30</slf4j>
+        <jsr330>1</jsr330>
         <commons.collections4>4.4</commons.collections4>
         <commons.lang3>3.11</commons.lang3>
         <commons.io>2.6</commons.io>
@@ -234,6 +235,13 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j}</version>
+            </dependency>
+
+            <!-- JSR 330 依赖注入 -->
+            <dependency>
+                <groupId>javax.inject</groupId>
+                <artifactId>javax.inject</artifactId>
+                <version>${jsr330}</version>
             </dependency>
 
             <!-- Utils -->

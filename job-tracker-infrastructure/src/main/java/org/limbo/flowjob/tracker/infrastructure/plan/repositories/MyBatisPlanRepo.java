@@ -18,15 +18,14 @@ package org.limbo.flowjob.tracker.infrastructure.plan.repositories;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.limbo.flowjob.tracker.core.plan.Plan;
+import org.limbo.flowjob.tracker.core.plan.PlanInfo;
+import org.limbo.flowjob.tracker.core.plan.PlanInfoRepository;
 import org.limbo.flowjob.tracker.core.plan.PlanRepository;
-import org.limbo.flowjob.tracker.dao.mybatis.PlanInfoMapper;
 import org.limbo.flowjob.tracker.dao.mybatis.PlanMapper;
-import org.limbo.flowjob.tracker.dao.po.PlanInfoPO;
 import org.limbo.flowjob.tracker.dao.po.PlanPO;
-import org.limbo.flowjob.tracker.infrastructure.plan.converters.PlanInfoPOConverter;
+import org.limbo.flowjob.tracker.infrastructure.plan.converters.PlanPOConverter;
 import org.limbo.utils.verifies.Verifies;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -39,13 +38,14 @@ import java.util.List;
 public class MyBatisPlanRepo implements PlanRepository {
 
     @Autowired
-    private PlanInfoMapper planInfoMapper;
+    private PlanInfoRepository planInfoRepo;
 
     @Autowired
-    private PlanInfoPOConverter converter;
+    private PlanMapper mapper;
 
     @Autowired
-    private PlanMapper planMapper;
+    private PlanPOConverter converter;
+
 
     /**
      * todo 事务 plan 删除处理 硬/软删除
@@ -56,76 +56,64 @@ public class MyBatisPlanRepo implements PlanRepository {
      * @return
      */
     @Override
-    public String addPlan(Plan plan) {
-        // 判断 plan 是否存在
-        PlanPO planPO = planMapper.selectById(plan.getPlanId());
-        Verifies.isNull(planPO, "plan is already exist");
+    public String addPlan(Plan plan, PlanInfo initialInfo) {
+        // 判断 Plan 是否存在，校验 PlanInfo 不为空
+        PlanPO po = mapper.selectById(plan.getPlanId());
+        Verifies.isNull(po, "plan is already exist");
+        Verifies.notNull(initialInfo, "plan info is null");
 
-        planPO = new PlanPO();
-        planPO.setPlanId(plan.getPlanId());
-        planPO.setCurrentVersion(plan.getVersion());
-        planPO.setRecentlyVersion(plan.getVersion());
-        planPO.setIsEnabled(false);
-        planMapper.insert(planPO);
+        // 设置初始版本号
+        Integer initialVersion = 1;
+        initialInfo.setVersion(initialVersion);
+        plan.setCurrentVersion(initialVersion);
+        plan.setRecentlyVersion(initialVersion);
 
-        // 新增 plan info
-        PlanInfoPO planInfoPO = converter.convert(plan);
-        planInfoPO.setIsDeleted(false);
-        planInfoMapper.insert(planInfoPO);
+        // 新增 Plan
+        mapper.insert(converter.convert(plan));
+
+        // 新增 PlanInfo
+        planInfoRepo.addVersion(initialInfo);
 
         return plan.getPlanId();
     }
 
-    @Override
-    public Plan newVersion(Plan plan) {
-        PlanPO planPO = planMapper.selectById(plan.getPlanId());
-        Verifies.notNull(planPO, "plan isn't exist");
-
-        Integer newVersion = planPO.getRecentlyVersion() + 1; // 新版本为最大版本 + 1
-        plan.setVersion(newVersion);
-
-        // 更新版本
-        int update = planMapper.update(null, Wrappers.<PlanPO>lambdaUpdate()
-                .set(PlanPO::getCurrentVersion, newVersion)
-                .set(PlanPO::getRecentlyVersion, newVersion)
-                .eq(PlanPO::getPlanId, planPO.getPlanId())
-                .eq(PlanPO::getCurrentVersion, planPO.getCurrentVersion())
-                .eq(PlanPO::getRecentlyVersion, planPO.getRecentlyVersion())
-        );
-        if (update <= 0) {
-            // todo 更新失败
-            throw new RuntimeException("update fail");
-        }
-
-        // 保存基础数据
-        PlanInfoPO planInfoPO = converter.convert(plan);
-        planInfoPO.setIsDeleted(false);
-        planInfoMapper.insert(planInfoPO);
-        return plan;
-    }
 
     /**
      * {@inheritDoc}
-     *
+     * @param plan 执行计划领域对象
+     * @param newVersion 新版本号
+     * @return
+     */
+    @Override
+    public Integer updateVersion(Plan plan, Integer newVersion) {
+        // 更新 Plan 版本信息
+        int effected = mapper.update(null, Wrappers.<PlanPO>lambdaUpdate()
+                .set(PlanPO::getCurrentVersion, newVersion)
+                .set(PlanPO::getRecentlyVersion, newVersion)
+                .eq(PlanPO::getPlanId, plan.getPlanId())
+                .eq(PlanPO::getCurrentVersion, plan.getCurrentVersion())
+                .eq(PlanPO::getRecentlyVersion, plan.getRecentlyVersion()));
+
+        if (effected > 0) {
+            return newVersion;
+        } else {
+            throw new IllegalStateException("更新Plan版本失败");
+        }
+    }
+
+
+    /**
+     * {@inheritDoc}
      * @param planId 计划ID
      * @return
      */
     @Override
-    public Plan getPlan(String planId, Integer version) {
-        PlanInfoPO planInfoPO = planInfoMapper.selectOne(Wrappers.<PlanInfoPO>lambdaQuery()
-                .eq(PlanInfoPO::getPlanId, planId)
-                .eq(PlanInfoPO::getVersion, version)
+    public Plan get(String planId) {
+        PlanPO po = mapper.selectOne(Wrappers
+                .<PlanPO>lambdaQuery()
+                .eq(PlanPO::getPlanId, planId)
         );
-        if (planInfoPO == null) {
-            return null;
-        }
-        return converter.reverse().convert(planInfoPO);
-    }
-
-    @Override
-    public Plan getCurrentPlan(String planId) {
-        PlanPO planPO = planMapper.selectById(planId);
-        return getPlan(planId, planPO.getCurrentVersion());
+        return converter.reverse().convert(po);
     }
 
 
@@ -138,4 +126,39 @@ public class MyBatisPlanRepo implements PlanRepository {
     public List<Plan> listSchedulablePlans() {
         throw new UnsupportedOperationException();
     }
+
+
+    /**
+     * {@inheritDoc}
+     * @param plan 作业执行计划
+     * @return
+     */
+    @Override
+    public int enablePlan(Plan plan) {
+        // update where 乐观锁
+        return mapper.update(null, Wrappers
+                .<PlanPO>lambdaUpdate()
+                .set(PlanPO::getIsEnabled, true)
+                .eq(PlanPO::getPlanId, plan.getPlanId())
+                .eq(PlanPO::getIsEnabled, false)
+        );
+    }
+
+
+    /**
+     * {@inheritDoc}
+     * @param plan 作业执行计划
+     * @return
+     */
+    @Override
+    public int disablePlan(Plan plan) {
+        // update where 乐观锁
+        return mapper.update(null, Wrappers
+                .<PlanPO>lambdaUpdate()
+                .set(PlanPO::getIsEnabled, false)
+                .eq(PlanPO::getPlanId, plan.getPlanId())
+                .eq(PlanPO::getIsEnabled, true)
+        );
+    }
+
 }

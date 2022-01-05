@@ -18,15 +18,12 @@ package org.limbo.flowjob.tracker.admin.adapter.config;
 
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.TrackerModes;
-import org.limbo.flowjob.tracker.core.evnets.Event;
-import org.limbo.flowjob.tracker.core.evnets.EventPublisher;
-import org.limbo.flowjob.tracker.core.job.consumer.*;
-import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
-import org.limbo.flowjob.tracker.core.job.context.JobRecordRepository;
-import org.limbo.flowjob.tracker.core.job.context.TaskRepository;
-import org.limbo.flowjob.tracker.core.plan.*;
+import org.limbo.flowjob.tracker.core.dispatcher.strategies.JobDispatcherFactory;
+import org.limbo.flowjob.tracker.core.dispatcher.strategies.RoundRobinDispatcher;
+import org.limbo.flowjob.tracker.core.job.context.TaskCreateStrategyFactory;
+import org.limbo.flowjob.tracker.core.plan.PlanInfoBuilderFactory;
 import org.limbo.flowjob.tracker.core.raft.ElectionNodeOptions;
-import org.limbo.flowjob.tracker.core.schedule.calculator.ScheduleCalculatorFactory;
+import org.limbo.flowjob.tracker.core.schedule.calculator.SimpleScheduleCalculatorFactory;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.HashedWheelTimerScheduler;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.NamedThreadFactory;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.Scheduler;
@@ -40,7 +37,6 @@ import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
 import org.limbo.flowjob.tracker.infrastructure.events.ReactorEventPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -98,9 +94,8 @@ public class TrackerConfiguration {
     }
 
     @Bean
-    public EventPublisher<Event<?>> eventPublisher() {
-        ReactorEventPublisher eventPublisher = new ReactorEventPublisher(4, 10000, NamedThreadFactory.newInstance("Event-Publisher"));
-        return eventPublisher;
+    public ReactorEventPublisher eventPublisher() {
+        return new ReactorEventPublisher(4, 10000, NamedThreadFactory.newInstance("Event-Publisher"));
     }
 
     /**
@@ -130,15 +125,48 @@ public class TrackerConfiguration {
     }
 
     /**
-     * 计划工厂
+     * 计划创建器工厂
      */
     @Bean
-    @ConditionalOnMissingBean(PlanBuilderFactory.class)
-    public PlanBuilderFactory planFactory(EventPublisher<Event<?>> eventPublisher) {
-        return new PlanBuilderFactory(
-                new ScheduleCalculatorFactory(),
-                new PlanExecutor(eventPublisher)
-        );
+    @ConditionalOnMissingBean(PlanInfoBuilderFactory.class)
+    public PlanInfoBuilderFactory planFactory(SimpleScheduleCalculatorFactory scheduleCalculatorFactory) {
+        return new PlanInfoBuilderFactory(scheduleCalculatorFactory);
+    }
+
+
+    /**
+     * 调度时间计算器
+     */
+    @Bean
+    public SimpleScheduleCalculatorFactory scheduleCalculatorFactory() {
+        return new SimpleScheduleCalculatorFactory();
+    }
+
+
+    /**
+     * 作业分发器工厂
+     */
+    @Bean
+    public JobDispatcherFactory jobDispatcherFactory() {
+        return new JobDispatcherFactory();
+    }
+
+
+    /**
+     * Worker负载均衡：轮询
+     */
+    @Bean
+    public RoundRobinDispatcher roundRobinDispatcher() {
+        return new RoundRobinDispatcher();
+    }
+
+
+    /**
+     * 任务生成策略工厂
+     */
+    @Bean
+    public TaskCreateStrategyFactory taskCreateStrategyFactory() {
+        return new TaskCreateStrategyFactory();
     }
 
 }

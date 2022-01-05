@@ -144,13 +144,13 @@ public class HttpWorker extends Worker {
 
     private TaskDto convertToDto(Task task) {
         TaskDto dto = new TaskDto();
-        dto.setPlanId(task.getPlanId());
-        dto.setPlanRecordId(task.getPlanRecordId());
-        dto.setPlanInstanceId(task.getPlanInstanceId());
-        dto.setJobId(task.getJobId());
-        dto.setJobInstanceId(task.getJobInstanceId());
-        dto.setTaskId(task.getTaskId());
-        dto.setType(task.getType());
+        dto.setPlanId(task.getId().planId);
+        dto.setPlanRecordId(task.getId().planRecordId);
+        dto.setPlanInstanceId(task.getId().planInstanceId);
+        dto.setJobId(task.getId().jobId);
+        dto.setJobInstanceId(task.getId().jobInstanceId);
+        dto.setTaskId(task.getId().taskId);
+        dto.setType(task.getType().type);
         dto.setExecutorName(task.getExecutorOption().getName());
         return dto;
     }

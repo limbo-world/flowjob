@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.job.context;
 
-import org.limbo.flowjob.tracker.commons.constants.enums.TaskResult;
+import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 
 /**
  * @author Brozen
@@ -31,9 +31,11 @@ public interface TaskRepository {
     void add(Task task);
 
     /**
-     * 更新状态为执行中
+     * CAS 将任务状态从 {@link JobScheduleStatus#SCHEDULING} 更新为 {@link JobScheduleStatus#EXECUTING}
+     * @param id 任务ID
+     * @return 返回是否更新成功
      */
-    void executing(Task task);
+    boolean execute(Task.ID id);
 
     /**
      * 更新状态为已反馈
@@ -45,7 +47,7 @@ public interface TaskRepository {
      */
     void end(Task task);
 
-    Integer unclosedCount(String planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId);
+    Integer countUnclosed(Task.ID taskId);
 
     /**
      * 获取作业执行实例

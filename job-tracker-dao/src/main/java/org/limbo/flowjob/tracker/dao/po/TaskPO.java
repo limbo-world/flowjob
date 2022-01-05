@@ -32,14 +32,17 @@ public class TaskPO extends PO {
     private String jobId;
 
     private Integer jobInstanceId;
+
     /**
      * JobInstance下唯一
      */
     private String taskId;
+
     /**
      * 状态
      */
     private Byte state;
+
     /**
      * 成功/失败
      */

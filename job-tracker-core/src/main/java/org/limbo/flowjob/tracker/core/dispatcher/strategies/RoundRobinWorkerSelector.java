@@ -42,7 +42,7 @@ public class RoundRobinWorkerSelector extends AbstractWorkerSelector implements 
     @Override
     protected Worker selectWorker(Task context, Collection<Worker> workers) {
         // TODO
-        return null;
+        return workers.iterator().next();
     }
 
 }

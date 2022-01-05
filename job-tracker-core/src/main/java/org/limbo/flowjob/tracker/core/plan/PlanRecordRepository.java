@@ -13,15 +13,19 @@ public interface PlanRecordRepository {
      */
     void add(PlanRecord record);
 
+
     /**
      * 获取
      */
-    PlanRecord get(String planId, Long planRecordId);
+    PlanRecord get(PlanRecord.ID planRecordId);
+
 
     /**
      * 创建ID
      */
-    Long createId(String planId);
+    PlanRecord.ID createId(String planId);
 
-    void end(String planId, Long planRecordId, PlanScheduleStatus state);
+
+    void end(PlanRecord.ID planRecordId, PlanScheduleStatus state);
+
 }

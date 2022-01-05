@@ -17,13 +17,10 @@ public class JobRecord implements Serializable {
 
     private static final long serialVersionUID = -4343833583716806197L;
 
-    private String planId;
-
-    private Long planRecordId;
-
-    private Integer planInstanceId;
-
-    private String jobId;
+    /**
+     * JobRecord 多字段联合ID
+     */
+    private ID id;
 
     /**
      * 状态
@@ -57,13 +54,9 @@ public class JobRecord implements Serializable {
      */
     private JobFailHandler failHandler;
 
-    public JobInstance newInstance(Integer jobInstanceId, JobScheduleStatus state) {
+    public JobInstance newInstance(JobInstance.ID jobInstanceId, JobScheduleStatus state) {
         JobInstance instance = new JobInstance();
-        instance.setPlanId(planId);
-        instance.setPlanRecordId(planRecordId);
-        instance.setPlanInstanceId(planInstanceId);
-        instance.setJobId(jobId);
-        instance.setJobInstanceId(jobInstanceId);
+        instance.setId(jobInstanceId);
         instance.setState(state);
         instance.setStartAt(TimeUtil.nowInstant());
         return instance;
@@ -80,6 +73,29 @@ public class JobRecord implements Serializable {
             return true;
         } else {
             return false;
+        }
+    }
+
+
+    /**
+     * 值对象，JobRecord 多字段联合ID
+     */
+    @Data
+    public static class ID {
+
+        public final String planId;
+
+        public final Long planRecordId;
+
+        public final Integer planInstanceId;
+
+        public final String jobId;
+
+        public ID(String planId, Long planRecordId, Integer planInstanceId, String jobId) {
+            this.planId = planId;
+            this.planRecordId = planRecordId;
+            this.planInstanceId = planInstanceId;
+            this.jobId = jobId;
         }
     }
 

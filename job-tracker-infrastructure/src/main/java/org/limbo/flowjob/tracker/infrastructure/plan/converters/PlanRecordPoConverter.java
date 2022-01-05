@@ -19,10 +19,7 @@ package org.limbo.flowjob.tracker.infrastructure.plan.converters;
 import com.google.common.base.Converter;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
-import org.limbo.flowjob.tracker.core.plan.Plan;
-import org.limbo.flowjob.tracker.core.plan.PlanInstance;
-import org.limbo.flowjob.tracker.core.plan.PlanRecord;
-import org.limbo.flowjob.tracker.core.plan.PlanRepository;
+import org.limbo.flowjob.tracker.core.plan.*;
 import org.limbo.flowjob.tracker.dao.po.PlanInstancePO;
 import org.limbo.flowjob.tracker.dao.po.PlanRecordPO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +33,7 @@ import org.springframework.stereotype.Component;
 public class PlanRecordPoConverter extends Converter<PlanRecord, PlanRecordPO> {
 
     @Autowired
-    private PlanRepository planRepository;
+    private PlanInfoRepository planInfoRepo;
 
     /**
      * {@link PlanRecord} -> {@link PlanRecordPO}
@@ -44,8 +41,9 @@ public class PlanRecordPoConverter extends Converter<PlanRecord, PlanRecordPO> {
     @Override
     protected PlanRecordPO doForward(PlanRecord record) {
         PlanRecordPO po = new PlanRecordPO();
-        po.setPlanId(record.getPlanId());
-        po.setPlanRecordId(record.getPlanRecordId());
+        PlanRecord.ID recordId = record.getId();
+        po.setPlanId(recordId.planId);
+        po.setPlanRecordId(recordId.planRecordId);
         po.setVersion(record.getVersion());
         po.setState(record.getState().status);
         po.setRetry(record.getRetry());
@@ -61,14 +59,17 @@ public class PlanRecordPoConverter extends Converter<PlanRecord, PlanRecordPO> {
      */
     @Override
     protected PlanRecord doBackward(PlanRecordPO po) {
-        Plan plan = planRepository.getPlan(po.getPlanId(), po.getVersion());
+        PlanInfo planInfo = planInfoRepo.getByVersion(po.getPlanId(), po.getVersion());
 
         PlanRecord record = new PlanRecord();
-        record.setPlanId(po.getPlanId());
-        record.setPlanRecordId(po.getPlanRecordId());
+        PlanRecord.ID recordId = new PlanRecord.ID(
+                po.getPlanId(),
+                po.getPlanRecordId()
+        );
+        record.setId(recordId);
         record.setVersion(po.getVersion());
         record.setState(PlanScheduleStatus.parse(po.getState()));
-        record.setDag(plan.getDag());
+        record.setDag(planInfo.getDag());
         record.setRetry(po.getRetry());
         record.setManual(po.getManual());
         record.setStartAt(TimeUtil.toInstant(po.getStartAt()));

@@ -19,6 +19,8 @@ package org.limbo.flowjob.tracker.core.dispatcher;
 import org.limbo.flowjob.tracker.commons.constants.enums.LoadBalanceType;
 import org.limbo.flowjob.tracker.core.dispatcher.strategies.*;
 
+import javax.inject.Inject;
+
 /**
  * {@link WorkerSelector} 工厂
  *
@@ -26,6 +28,9 @@ import org.limbo.flowjob.tracker.core.dispatcher.strategies.*;
  * @since 2021-05-18
  */
 public class WorkerSelectorFactory {
+
+    @Inject
+    private RoundRobinDispatcher roundRobinDispatcher;
 
     /**
      * Double Selector (￣▽￣)~* <br/>
@@ -37,7 +42,7 @@ public class WorkerSelectorFactory {
     public WorkerSelector newSelector(LoadBalanceType loadBalanceType) {
         switch (loadBalanceType) {
             case ROUND_ROBIN:
-                return new RoundRobinWorkerSelector();
+                return roundRobinDispatcher;
 
             case RANDOM:
                 return new RandomWorkerSelector();
@@ -55,7 +60,7 @@ public class WorkerSelectorFactory {
                 return new ConsistentHashWorkerSelector();
 
             default:
-                return null;
+                throw new IllegalArgumentException("Unknown load balance type: " + loadBalanceType);
         }
     }
 

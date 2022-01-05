@@ -20,12 +20,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
-import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.JobDAG;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * 计划实例
@@ -41,11 +37,7 @@ public class PlanInstance {
     /**
      * 计划ID
      */
-    private String planId;
-
-    private Long planRecordId;
-
-    private Integer planInstanceId;
+    private ID id;
 
     /**
      * 状态
@@ -61,5 +53,24 @@ public class PlanInstance {
      * 结束时间
      */
     private Instant endAt;
+
+
+    /**
+     * 计划ID抽象
+     */
+    public static class ID {
+
+        public final String planId;
+
+        public final Long planRecordId;
+
+        public final Integer planInstanceId;
+
+        public ID(String planId, Long planRecordId, Integer planInstanceId) {
+            this.planId = planId;
+            this.planRecordId = planRecordId;
+            this.planInstanceId = planInstanceId;
+        }
+    }
 
 }
