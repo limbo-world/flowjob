@@ -20,13 +20,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.storage.Storable;
-import org.limbo.flowjob.tracker.core.job.JobDAG;
-import org.limbo.flowjob.tracker.core.schedule.Schedulable;
-import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
-import org.limbo.flowjob.tracker.core.schedule.executor.Executor;
-import org.limbo.utils.UUIDUtils;
-import org.limbo.utils.verifies.Verifies;
 
 import javax.inject.Inject;
 import java.io.Serializable;
@@ -40,7 +33,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @ToString
-public class Plan implements Schedulable, Serializable {
+public class Plan implements Serializable {
 
     private static final long serialVersionUID = 5657376836197403211L;
 

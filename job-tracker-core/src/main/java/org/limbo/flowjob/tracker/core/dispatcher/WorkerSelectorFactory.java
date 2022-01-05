@@ -30,7 +30,7 @@ import javax.inject.Inject;
 public class WorkerSelectorFactory {
 
     @Inject
-    private RoundRobinDispatcher roundRobinDispatcher;
+    private RoundRobinWorkerSelector roundRobinWorkerSelector;
 
     /**
      * Double Selector (￣▽￣)~* <br/>
@@ -42,7 +42,7 @@ public class WorkerSelectorFactory {
     public WorkerSelector newSelector(LoadBalanceType loadBalanceType) {
         switch (loadBalanceType) {
             case ROUND_ROBIN:
-                return roundRobinDispatcher;
+                return roundRobinWorkerSelector;
 
             case RANDOM:
                 return new RandomWorkerSelector();

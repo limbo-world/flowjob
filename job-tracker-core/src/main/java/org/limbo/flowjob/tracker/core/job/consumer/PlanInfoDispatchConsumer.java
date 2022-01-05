@@ -20,8 +20,8 @@ import lombok.Setter;
 import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.tracker.commons.exceptions.JobExecuteException;
-import org.limbo.flowjob.tracker.core.dispatcher.strategies.Dispatcher;
-import org.limbo.flowjob.tracker.core.dispatcher.strategies.JobDispatcherFactory;
+import org.limbo.flowjob.tracker.core.dispatcher.WorkerSelector;
+import org.limbo.flowjob.tracker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.tracker.core.evnets.Event;
 import org.limbo.flowjob.tracker.core.evnets.EventPublisher;
 import org.limbo.flowjob.tracker.core.job.Job;
@@ -57,7 +57,7 @@ public class PlanInfoDispatchConsumer extends SourceCastEventConsumer<PlanInfo> 
     private TaskCreateStrategyFactory taskCreateStrategyFactory;
 
     @Setter(onMethod_ = @Inject)
-    private JobDispatcherFactory jobDispatcherFactory;
+    private WorkerSelectorFactory workerSelectorFactory;
 
     @Setter(onMethod_ = @Inject)
     private WorkerManager workerManager;
@@ -119,8 +119,8 @@ public class PlanInfoDispatchConsumer extends SourceCastEventConsumer<PlanInfo> 
 
         // todo 下发前确认下对应的jobInstance是否已经关闭
         // 初始化dispatcher
-        Dispatcher dispatcher = jobDispatcherFactory.newDispatcher(taskInfo.getDispatchOption().getLoadBalanceType());
-        if (dispatcher == null) {
+        WorkerSelector workerSelector = workerSelectorFactory.newSelector(taskInfo.getDispatchOption().getLoadBalanceType());
+        if (workerSelector == null) {
             throw new JobExecuteException(taskInfo.getJobId(),
                     "Cannot create JobDispatcher for dispatch type: " + taskInfo.getDispatchOption().getLoadBalanceType());
         }
@@ -136,7 +136,7 @@ public class PlanInfoDispatchConsumer extends SourceCastEventConsumer<PlanInfo> 
 //        task.onRefused().subscribe(new RefusedConsumer(jobInstanceRepository));
 
         // 下发任务
-        dispatcher.dispatch(task, workerManager.availableWorkers(), Task::startup);
+        workerSelector.select(task, workerManager.availableWorkers());
     }
 
 }
