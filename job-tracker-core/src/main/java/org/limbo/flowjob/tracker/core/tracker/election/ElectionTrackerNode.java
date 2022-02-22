@@ -87,7 +87,7 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
     public DisposableTrackerNode start() {
         // 重复启动检测
         if (!state.compareAndSet(NodeState.INIT, NodeState.STARTING)) {
-            throw new IllegalStateException("JobTracker already running!");
+            throw new IllegalStateException("Tracker already running!");
         }
 
         // 生成DisposableJobTracker，触发BEFORE_START事件

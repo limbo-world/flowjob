@@ -17,20 +17,18 @@
 package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.LoadBalanceType;
+import org.limbo.flowjob.tracker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
 import java.util.Collection;
 
 /**
- * 轮询作业分发器。
- * TODO
- *
  * @author Brozen
- * @since 2021-05-19
- * @see LoadBalanceType#ROUND_ROBIN
+ * @since 2021-05-27
+ * @see LoadBalanceType#CONSISTENT_HASH
  */
-public class RoundRobinDispatcher extends AbstractDispatcher implements Dispatcher {
+public class ConsistentHashWorkerSelector extends AbstractWorkerSelector implements WorkerSelector {
 
     /**
      * {@inheritDoc}
@@ -41,7 +39,6 @@ public class RoundRobinDispatcher extends AbstractDispatcher implements Dispatch
     @Override
     protected Worker selectWorker(Task context, Collection<Worker> workers) {
         // TODO
-        return workers.iterator().next();
+        return null;
     }
-
 }

@@ -14,46 +14,36 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.dispatcher.strategies;
+package org.limbo.flowjob.tracker.core.dispatcher;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.LoadBalanceType;
 import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
 import java.util.Collection;
-import java.util.Random;
+import java.util.function.BiConsumer;
 
 /**
+ * worker选择器，封装了作业分发时的worker选择规则{@link LoadBalanceType}：
+ * <ul>
+ *     <li>{@link LoadBalanceType#ROUND_ROBIN}</li>
+ *     <li>{@link LoadBalanceType#RANDOM}</li>
+ *     <li>{@link LoadBalanceType#APPOINT}</li>
+ *     <li>{@link LoadBalanceType#LEAST_FREQUENTLY_USED}</li>
+ *     <li>{@link LoadBalanceType#LEAST_RECENTLY_USED}</li>
+ *     <li>{@link LoadBalanceType#CONSISTENT_HASH}</li>
+ * </ul>
+ *
  * @author Brozen
- * @since 2021-05-27
- * @see LoadBalanceType#RANDOM
+ * @since 2021-05-14
  */
-public class RandomDispatcher extends AbstractDispatcher implements Dispatcher {
-
-    private Random random;
-
-    public RandomDispatcher() {
-        this.random = new Random();
-    }
+public interface WorkerSelector {
 
     /**
-     * {@inheritDoc}
+     * 选择作业上下文应当下发给的worker。
      * @param context 待下发的作业上下文
      * @param workers 待下发上下文可用的worker
-     * @return
      */
-    @Override
-    protected Worker selectWorker(Task context, Collection<Worker> workers) {
-        int index = this.random.nextInt(workers.size());
-
-        int i = 0;
-        for (Worker worker : workers) {
-            if (i == index) {
-                return worker;
-            }
-            i++;
-        }
-        return null;
-    }
+    Worker select(Task context, Collection<Worker> workers);
 
 }

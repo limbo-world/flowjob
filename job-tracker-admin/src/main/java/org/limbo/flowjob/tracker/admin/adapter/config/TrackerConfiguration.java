@@ -18,8 +18,8 @@ package org.limbo.flowjob.tracker.admin.adapter.config;
 
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.tracker.commons.constants.enums.TrackerModes;
-import org.limbo.flowjob.tracker.core.dispatcher.strategies.JobDispatcherFactory;
-import org.limbo.flowjob.tracker.core.dispatcher.strategies.RoundRobinDispatcher;
+import org.limbo.flowjob.tracker.core.dispatcher.WorkerSelectorFactory;
+import org.limbo.flowjob.tracker.core.dispatcher.strategies.RoundRobinWorkerSelector;
 import org.limbo.flowjob.tracker.core.job.context.TaskCreateStrategyFactory;
 import org.limbo.flowjob.tracker.core.plan.PlanInfoBuilderFactory;
 import org.limbo.flowjob.tracker.core.raft.ElectionNodeOptions;
@@ -147,8 +147,8 @@ public class TrackerConfiguration {
      * 作业分发器工厂
      */
     @Bean
-    public JobDispatcherFactory jobDispatcherFactory() {
-        return new JobDispatcherFactory();
+    public WorkerSelectorFactory workerSelectorFactory() {
+        return new WorkerSelectorFactory();
     }
 
 
@@ -156,8 +156,8 @@ public class TrackerConfiguration {
      * Worker负载均衡：轮询
      */
     @Bean
-    public RoundRobinDispatcher roundRobinDispatcher() {
-        return new RoundRobinDispatcher();
+    public RoundRobinWorkerSelector roundRobinWorkerSelector() {
+        return new RoundRobinWorkerSelector();
     }
 
 

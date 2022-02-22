@@ -20,7 +20,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.storage.Storable;
 
 import javax.inject.Inject;
 import java.io.Serializable;
@@ -34,7 +33,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @ToString
-public class Plan implements Storable, Serializable {
+public class Plan implements Serializable {
 
     private static final long serialVersionUID = 5657376836197403211L;
 

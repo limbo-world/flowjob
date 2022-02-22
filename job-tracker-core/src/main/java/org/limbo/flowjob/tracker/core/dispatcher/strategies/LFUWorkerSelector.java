@@ -17,6 +17,7 @@
 package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.LoadBalanceType;
+import org.limbo.flowjob.tracker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
@@ -25,9 +26,9 @@ import java.util.Collection;
 /**
  * @author Brozen
  * @since 2021-05-27
- * @see LoadBalanceType#CONSISTENT_HASH
+ * @see LoadBalanceType#LEAST_FREQUENTLY_USED
  */
-public class ConsistentHashDispatcher extends AbstractDispatcher implements Dispatcher {
+public class LFUWorkerSelector extends AbstractWorkerSelector implements WorkerSelector {
 
     /**
      * {@inheritDoc}
@@ -40,4 +41,5 @@ public class ConsistentHashDispatcher extends AbstractDispatcher implements Disp
         // TODO
         return null;
     }
+
 }

@@ -18,6 +18,7 @@ package org.limbo.flowjob.tracker.core.dispatcher.strategies;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
+import org.limbo.flowjob.tracker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerExecutor;
@@ -26,23 +27,21 @@ import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.BiConsumer;
 
 /**
  * @author Brozen
  * @since 2021-05-27
  */
-public abstract class AbstractDispatcher implements Dispatcher {
+public abstract class AbstractWorkerSelector implements WorkerSelector {
 
     /**
      * {@inheritDoc}
      *
-     * @param task 待下发的作业实例
-     * @param workers  可用的worker
-     * @param callback 作业执行回调
+     * @param task    待下发的作业实例
+     * @param workers 可用的worker
      */
     @Override
-    public void dispatch(Task task, Collection<Worker> workers, BiConsumer<Task, Worker> callback) {
+    public Worker select(Task task, Collection<Worker> workers) {
         if (CollectionUtils.isEmpty(workers)) {
             throw new JobWorkerException(task.getId().jobId, null, "No worker available!");
         }
@@ -69,23 +68,17 @@ public abstract class AbstractDispatcher implements Dispatcher {
             throw new JobWorkerException(task.getId().jobId, null, "No worker available!");
         }
 
-        // todo worker 拒绝后的重试
-        Worker worker = selectWorker(task, availableWorkers);
-        if (worker == null) {
-            throw new JobWorkerException(task.getId().jobId, null, "No worker available!");
-        }
-        callback.accept(task, worker);
-
+        return selectWorker(task, workers);
     }
 
 
     /**
      * 选择一个worker进行作业下发
      *
-     * @param context 待下发的作业上下文
+     * @param task    待下发的作业上下文
      * @param workers 待下发上下文可用的worker
      * @return 需要下发作业上下文的worker
      */
-    protected abstract Worker selectWorker(Task context, Collection<Worker> workers);
+    protected abstract Worker selectWorker(Task task, Collection<Worker> workers);
 
 }

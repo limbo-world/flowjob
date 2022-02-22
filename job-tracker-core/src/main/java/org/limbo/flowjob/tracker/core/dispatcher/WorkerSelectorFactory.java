@@ -14,48 +14,50 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.core.dispatcher.strategies;
+package org.limbo.flowjob.tracker.core.dispatcher;
 
 import org.limbo.flowjob.tracker.commons.constants.enums.LoadBalanceType;
+import org.limbo.flowjob.tracker.core.dispatcher.strategies.*;
 
 import javax.inject.Inject;
 
 /**
- * {@link Dispatcher} 工厂
+ * {@link WorkerSelector} 工厂
  *
  * @author Brozen
  * @since 2021-05-18
  */
-public class JobDispatcherFactory {
+public class WorkerSelectorFactory {
 
     @Inject
-    private RoundRobinDispatcher roundRobinDispatcher;
+    private RoundRobinWorkerSelector roundRobinWorkerSelector;
 
     /**
+     * Double Selector (￣▽￣)~* <br/>
      * 根据作业的分发方式，创建一个分发器实例。委托给{@link LoadBalanceType}执行。
      *
      * @param loadBalanceType 分发类型
      * @return 作业分发器
      */
-    public Dispatcher newDispatcher(LoadBalanceType loadBalanceType) {
+    public WorkerSelector newSelector(LoadBalanceType loadBalanceType) {
         switch (loadBalanceType) {
             case ROUND_ROBIN:
-                return roundRobinDispatcher;
+                return roundRobinWorkerSelector;
 
             case RANDOM:
-                return new RandomDispatcher();
+                return new RandomWorkerSelector();
 
             case LEAST_FREQUENTLY_USED:
-                return new LFUDispatcher();
+                return new LFUWorkerSelector();
 
             case LEAST_RECENTLY_USED:
-                return new LRUDispatcher();
+                return new LRUWorkerSelector();
 
             case APPOINT:
-                return new AppointDispatcher();
+                return new AppointWorkerSelector();
 
             case CONSISTENT_HASH:
-                return new ConsistentHashDispatcher();
+                return new ConsistentHashWorkerSelector();
 
             default:
                 throw new IllegalArgumentException("Unknown load balance type: " + loadBalanceType);

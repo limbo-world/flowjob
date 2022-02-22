@@ -32,7 +32,6 @@ import org.limbo.flowjob.tracker.core.job.DispatchOption;
 import org.limbo.flowjob.tracker.core.job.ExecutorOption;
 import org.limbo.flowjob.tracker.core.plan.PlanInstance;
 import org.limbo.flowjob.tracker.core.plan.PlanRecord;
-import org.limbo.flowjob.tracker.core.storage.Storable;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import reactor.core.publisher.Mono;
 
@@ -49,8 +48,7 @@ import java.time.Instant;
 @Getter
 @Setter
 @ToString
-public class Task implements Storable, Serializable {
-    
+public class Task implements Serializable {
     private static final long serialVersionUID = -9164373359695671417L;
 
     /**
@@ -146,7 +144,6 @@ public class Task implements Storable, Serializable {
         }
 
         try {
-
             // 发送上下文到worker
             Mono<JobReceiveResult> mono = worker.sendTask(this);
 
