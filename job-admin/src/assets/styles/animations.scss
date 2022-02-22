@@ -1,0 +1,10 @@
+
+
+@keyframes rotate-to {
+    from {
+        transform: rotate(0);
+    }
+    to {
+        transform: rotate(var(--rotate-to));
+    }
+}

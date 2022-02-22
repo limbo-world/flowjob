@@ -1,0 +1,13 @@
+
+@forward "element-plus/theme-chalk/src/common/var.scss" with (
+
+    $menu: (
+        'item-height': 40px,
+    )
+
+);
+
+
+.el-menu {
+    --el-menu-item-height: 40px !important;
+}
