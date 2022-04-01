@@ -34,7 +34,7 @@ class EmitFailureHandlersSpecs {
 
     static final class DelegatedEmitFailureHandler implements Sinks.EmitFailureHandler {
 
-        private List<ConditionalEmitFailureHandler> handlers;
+        private final List<ConditionalEmitFailureHandler> handlers;
 
         private DelegatedEmitFailureHandler(List<ConditionalEmitFailureHandler> handlers) {
             if (CollectionUtils.isEmpty(handlers)) {

@@ -31,7 +31,7 @@ import java.util.Random;
  */
 public class RandomWorkerSelector extends AbstractWorkerSelector implements WorkerSelector {
 
-    private Random random;
+    private final Random random;
 
     public RandomWorkerSelector() {
         this.random = new Random();

@@ -13,7 +13,7 @@ import java.util.function.Predicate;
 public abstract class FilterableEventConsumer<T extends Serializable> extends SourceCastEventConsumer<T> {
 
 
-    private Predicate<Event<?>> filter;
+    private final Predicate<Event<?>> filter;
 
     protected FilterableEventConsumer(Predicate<Event<?>> filter, Class<T> eventSourceClass) {
         super(eventSourceClass);

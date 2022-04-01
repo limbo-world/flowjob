@@ -1,6 +1,10 @@
 package org.limbo.flowjob.tracker.admin.adapter.config;
 
-import org.limbo.flowjob.tracker.core.job.consumer.*;
+import org.limbo.flowjob.tracker.core.evnets.Event;
+import org.limbo.flowjob.tracker.core.job.consumer.PlanInfoDispatchConsumer;
+import org.limbo.flowjob.tracker.core.job.consumer.TaskAcceptedConsumer;
+import org.limbo.flowjob.tracker.core.job.consumer.TaskClosedConsumer;
+import org.limbo.flowjob.tracker.core.job.consumer.TaskRefusedConsumer;
 import org.limbo.flowjob.tracker.infrastructure.events.ReactorEventPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -8,6 +12,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.function.Consumer;
 
 /**
  * 解决循环依赖的中转bean
@@ -26,27 +31,25 @@ public class EventPublisherConsumerRegister {
 
     @PostConstruct
     public void subscribe() {
-        AutowireCapableBeanFactory factory = ac.getAutowireCapableBeanFactory();
-
         // plan 下发
-        PlanInfoDispatchConsumer planInfoDispatchConsumer = new PlanInfoDispatchConsumer();
-        factory.autowireBean(planInfoDispatchConsumer);
-        eventPublisher.subscribe(planInfoDispatchConsumer);
+        injectAndSubscribe(new PlanInfoDispatchConsumer());
 
         // task 被接受
-        TaskAcceptedConsumer taskAcceptedConsumer = new TaskAcceptedConsumer();
-        factory.autowireBean(taskAcceptedConsumer);
-        eventPublisher.subscribe(taskAcceptedConsumer);
+        injectAndSubscribe(new TaskAcceptedConsumer());
 
         // task 被拒绝
-        TaskRefusedConsumer taskRefusedConsumer = new TaskRefusedConsumer();
-        factory.autowireBean(taskRefusedConsumer);
-        eventPublisher.subscribe(taskRefusedConsumer);
+        injectAndSubscribe(new TaskRefusedConsumer());
 
         // task 完成
-        TaskClosedConsumer taskClosedConsumer = new TaskClosedConsumer();
-        factory.autowireBean(taskClosedConsumer);
-        eventPublisher.subscribe(taskClosedConsumer);
+        injectAndSubscribe(new TaskClosedConsumer());
     }
+
+    private void injectAndSubscribe(Consumer<Event<?>> consumer) {
+        AutowireCapableBeanFactory factory = ac.getAutowireCapableBeanFactory();
+        // 注入bean信息
+        factory.autowireBean(consumer);
+        eventPublisher.subscribe(consumer);
+    }
+
 
 }

@@ -43,7 +43,7 @@ public class Event<T extends Serializable> implements Serializable {
      * 事件源，事件触发的地方，可以是服务、领域等
      */
     @Getter
-    private T source;
+    private final T source;
 
     /**
      * 事件标签，可以用来区分事件类型
@@ -56,7 +56,7 @@ public class Event<T extends Serializable> implements Serializable {
      * 事件触发时的时间戳
      */
     @Getter
-    private Instant timestamp;
+    private final Instant timestamp;
 
     public Event(T source) {
         this(null, source, Instant.now());
