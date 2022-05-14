@@ -25,7 +25,7 @@ import javax.inject.Inject;
 import java.io.Serializable;
 
 /**
- * 计划的抽象。一个计划{@link Plan}对应至少一个作业{@link Job}
+ * 执行计划。一个计划{@link Plan}对应至少一个作业{@link Job}
  *
  * @author Brozen
  * @since 2021-07-12
@@ -38,7 +38,7 @@ public class Plan implements Serializable {
     private static final long serialVersionUID = 5657376836197403211L;
 
     /**
-     * 作业计划ID
+     * 执行计划ID
      */
     private String planId;
 

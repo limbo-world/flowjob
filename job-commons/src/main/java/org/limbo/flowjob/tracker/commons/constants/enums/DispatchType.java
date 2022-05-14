@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Getter;
 
 /**
- * 负载方式.
+ * 分发方式.
  * <ul>
  *     <li>{@linkplain DispatchType#SINGLE 单点}</li>
  *     <li>{@linkplain DispatchType#BROADCAST 广播}</li>
