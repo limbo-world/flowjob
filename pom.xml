@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.limbo.flowjob</groupId>
-    <artifactId>job-parent</artifactId>
+    <artifactId>broker-parent</artifactId>
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>job-tracker-admin</module>
@@ -15,6 +15,11 @@
         <module>job-tracker-dao</module>
         <module>job-worker-core</module>
         <module>job-worker-start</module>
+        <module>broker-api</module>
+        <module>broker-core</module>
+        <module>broker-ha</module>
+        <module>broker-dao</module>
+        <module>broker-application</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -95,6 +100,28 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- BOM -->
+            <dependency>
+                <groupId>org.limbo.flowjob</groupId>
+                <artifactId>broker-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.limbo.flowjob</groupId>
+                <artifactId>broker-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.limbo.flowjob</groupId>
+                <artifactId>broker-ha</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.limbo.flowjob</groupId>
+                <artifactId>broker-dao</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <!-- BOM -->
             <dependency>
                 <groupId>org.limbo.flowjob</groupId>
