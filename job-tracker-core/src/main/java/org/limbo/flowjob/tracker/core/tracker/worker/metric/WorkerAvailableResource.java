@@ -18,7 +18,7 @@ package org.limbo.flowjob.tracker.core.tracker.worker.metric;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import org.limbo.flowjob.tracker.commons.dto.worker.WorkerResourceDto;
+import org.limbo.flowjob.broker.api.param.worker.WorkerResourceParam;
 
 /**
  * worker节点上可用的资源，资源有以下三种定义：内存、CPU。值对象。
@@ -58,7 +58,7 @@ public class WorkerAvailableResource {
      * @param resource 入参worker资源
      * @return 返回worker领域中的资源值对象
      */
-    public static WorkerAvailableResource from(WorkerResourceDto resource) {
+    public static WorkerAvailableResource from(WorkerResourceParam resource) {
         return new WorkerAvailableResource(resource.getAvailableCpu(), resource.getAvailableRAM(), resource.getAvailableQueueLimit());
     }
 

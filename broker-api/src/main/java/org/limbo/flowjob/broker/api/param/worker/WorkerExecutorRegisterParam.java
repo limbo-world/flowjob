@@ -14,46 +14,27 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.worker.start.shared;
+package org.limbo.flowjob.broker.api.param.worker;
 
 import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import java.util.List;
+import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 
 /**
+ * worker支持的执行器
+ *
  * @author Devil
  * @since 2021/7/24
  */
 @Data
-@ConfigurationProperties(prefix = "flowjob.worker")
-public class WorkerProperties {
+public class WorkerExecutorRegisterParam {
+
     /**
-     * 节点名称
+     * 名称唯一
      */
     private String name;
-    /**
-     * 队列容量
-     */
-    private int queueSize;
-    /**
-     * tracker host
-     */
-    private String serverHost;
-    /**
-     * tracker port
-     */
-    private int serverPort;
-    /**
-     * 当前 worker host 可为空
-     */
-    private String localHost;
-    /**
-     * 当前 worker port
-     */
-    private int localPort;
-    /**
-     * 节点标签
-     */
-    private List<String> tags;
+
+    private String description;
+
+    private JobExecuteType type;
+
 }

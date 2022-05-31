@@ -23,7 +23,7 @@ import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskResult;
 import org.limbo.flowjob.broker.api.constants.enums.TaskScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskType;
-import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
+import org.limbo.flowjob.broker.api.dto.worker.TaskReceiveDTO;
 import org.limbo.flowjob.tracker.commons.exceptions.JobDispatchException;
 import org.limbo.flowjob.tracker.core.evnets.Event;
 import org.limbo.flowjob.tracker.core.evnets.EventPublisher;
@@ -145,10 +145,10 @@ public class Task implements Serializable {
 
         try {
             // 发送上下文到worker
-            Mono<JobReceiveResult> mono = worker.sendTask(this);
+            Mono<TaskReceiveDTO> mono = worker.sendTask(this);
 
             // 等待发送结果，根据客户端接收结果，更新状态
-            JobReceiveResult result = mono.block();
+            TaskReceiveDTO result = mono.block();
             if (result != null && result.getAccepted()) {
                 this.accept(worker);
             } else {

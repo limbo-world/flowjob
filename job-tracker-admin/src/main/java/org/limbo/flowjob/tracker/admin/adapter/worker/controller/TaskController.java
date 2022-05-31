@@ -19,8 +19,8 @@ package org.limbo.flowjob.tracker.admin.adapter.worker.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.limbo.flowjob.tracker.admin.service.job.TaskService;
-import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
-import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFeedbackDto;
+import org.limbo.flowjob.broker.api.dto.ResponseDTO;
+import org.limbo.flowjob.broker.api.param.task.TaskExecuteFeedbackParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -47,9 +47,9 @@ public class TaskController {
      */
     @Operation(summary = "作业执行反馈接口")
     @PostMapping("/feedback")
-    public Mono<ResponseDto<Void>> feedback(@Valid @RequestBody Mono<JobExecuteFeedbackDto> feedback) {
+    public Mono<ResponseDTO<Void>> feedback(@Valid @RequestBody Mono<TaskExecuteFeedbackParam> feedback) {
         return taskService.feedback(feedback)
-                .map(symbol -> ResponseDto.<Void>builder().ok().build());
+                .map(symbol -> ResponseDTO.<Void>builder().ok().build());
     }
 
 

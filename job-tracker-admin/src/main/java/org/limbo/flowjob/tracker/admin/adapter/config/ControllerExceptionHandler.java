@@ -17,7 +17,7 @@
 package org.limbo.flowjob.tracker.admin.adapter.config;
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
+import org.limbo.flowjob.broker.api.dto.ResponseDTO;
 import org.limbo.utils.verifies.VerifyException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -35,9 +35,9 @@ public class ControllerExceptionHandler {
      * 所有未处理的异常最终执行分支
      */
     @ExceptionHandler(value = Exception.class)
-    public ResponseDto<?> handleException(Exception e) {
+    public ResponseDTO<?> handleException(Exception e) {
         log.error("出错了", e);
-        return ResponseDto.builder().error(e.getMessage()).build();
+        return ResponseDTO.builder().error(e.getMessage()).build();
     }
 
 
@@ -45,7 +45,7 @@ public class ControllerExceptionHandler {
      * 处理JSR303参数校验错误
      */
     @ExceptionHandler(WebExchangeBindException.class)
-    public ResponseDto<?> handleValidateFailedException(WebExchangeBindException e) {
+    public ResponseDTO<?> handleValidateFailedException(WebExchangeBindException e) {
         // 拼装错误信息
         StringBuilder errMsg = new StringBuilder();
         e.getFieldErrors().forEach(fe -> {
@@ -53,7 +53,7 @@ public class ControllerExceptionHandler {
                     .append(fe.getDefaultMessage()).append("; ");
         });
 
-        return ResponseDto.builder().badRequest(errMsg.toString()).build();
+        return ResponseDTO.builder().badRequest(errMsg.toString()).build();
     }
 
 
@@ -61,8 +61,8 @@ public class ControllerExceptionHandler {
      * 处理业务校验失败异常
      */
     @ExceptionHandler(VerifyException.class)
-    public ResponseDto<?> handleVerifyFailedException(VerifyException e) {
-        return ResponseDto.builder().badRequest(e.getMessage()).build();
+    public ResponseDTO<?> handleVerifyFailedException(VerifyException e) {
+        return ResponseDTO.builder().badRequest(e.getMessage()).build();
     }
 
 }

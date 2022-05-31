@@ -3,8 +3,8 @@ package org.limbo.flowjob.tracker.core.tracker.election;
 import com.alipay.sofa.jraft.entity.PeerId;
 import com.alipay.sofa.jraft.rpc.impl.BoltRaftRpcFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
-import org.limbo.flowjob.tracker.commons.dto.tracker.TrackerNodeDto;
+import org.limbo.flowjob.broker.api.dto.ResponseDTO;
+import org.limbo.flowjob.broker.api.dto.broker.BrokerDTO;
 import org.limbo.flowjob.tracker.commons.utils.NetUtils;
 import org.limbo.flowjob.broker.ha.election.ElectionNode;
 import org.limbo.flowjob.broker.ha.election.ElectionNodeOptions;
@@ -234,19 +234,19 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
     }
 
     @Override
-    public List<TrackerNodeDto> getNodes() {
+    public List<BrokerDTO> getNodes() {
         // 向各个从节点发送指令 获取所有节点信息
-        List<TrackerNodeDto> nodes = new ArrayList<>();
+        List<BrokerDTO> nodes = new ArrayList<>();
 
         // 自己的信息
-        TrackerNodeDto self = new TrackerNodeDto();
+        BrokerDTO self = new BrokerDTO();
         self.setHost(NetUtils.getLocalIp());
         self.setPort(port);
         nodes.add(self);
 
         // todo 1. 返回状态处理 2. 缓存 ？？？ 3. 不用发请求给自己了
         for (PeerId peerId : electionNode.getNode().listAlivePeers()) {
-            ResponseDto<TrackerNodeDto> response = rpcCaller.invokeSync(peerId.getEndpoint(), new NodeInfoRequest());
+            ResponseDTO<BrokerDTO> response = rpcCaller.invokeSync(peerId.getEndpoint(), new NodeInfoRequest());
             if (response.getCode() == 200 ) {
                 nodes.add(response.getData());
             }

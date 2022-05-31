@@ -1,6 +1,6 @@
 package org.limbo.flowjob.tracker.core.tracker;
 
-import org.limbo.flowjob.tracker.commons.dto.tracker.TrackerNodeDto;
+import org.limbo.flowjob.broker.api.dto.broker.BrokerDTO;
 
 import java.util.List;
 
@@ -42,7 +42,7 @@ public interface TrackerNode {
      * 返回可用节点
      * @return
      */
-    List<TrackerNodeDto> getNodes();
+    List<BrokerDTO> getNodes();
     /**
      * 获取此JobTracker的生命周期监听注册器。
      * @return 生命周期监听注册器

@@ -17,7 +17,7 @@
 package org.limbo.flowjob.tracker.admin.service.worker;
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
+import org.limbo.flowjob.broker.api.param.worker.WorkerHeartbeatParam;
 import org.limbo.flowjob.broker.core.utils.Symbol;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
@@ -46,7 +46,7 @@ public class WorkerService {
      * worker心跳
      * @param heartbeatOption 心跳参数，上报部分指标数据
      */
-    public Mono<Symbol> heartbeat(WorkerHeartbeatOptionDto heartbeatOption) {
+    public Mono<Symbol> heartbeat(WorkerHeartbeatParam heartbeatOption) {
         // 查询worker并校验
         Worker worker = workerRepository.getWorker(heartbeatOption.getWorkerId());
         Verifies.notNull(worker, "worker不存在！");

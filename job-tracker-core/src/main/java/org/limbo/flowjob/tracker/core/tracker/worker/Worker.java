@@ -21,7 +21,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
-import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
+import org.limbo.flowjob.broker.api.dto.worker.TaskReceiveDTO;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
@@ -151,7 +151,7 @@ public abstract class Worker {
      * @param instance 作业实例
      * @return worker接受job后触发
      */
-    public abstract Mono<JobReceiveResult> sendTask(Task instance) throws JobWorkerException;
+    public abstract Mono<TaskReceiveDTO> sendTask(Task instance) throws JobWorkerException;
 
     /**
      * 解注册此worker，worker的状态将被标记为{@link WorkerStatus#TERMINATED}

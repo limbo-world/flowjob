@@ -21,9 +21,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
-import org.limbo.flowjob.tracker.commons.dto.worker.WorkerExecutorRegisterDto;
-import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
-import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterResult;
+import org.limbo.flowjob.broker.api.param.worker.WorkerExecutorRegisterParam;
+import org.limbo.flowjob.broker.api.param.worker.WorkerRegisterParam;
+import org.limbo.flowjob.broker.api.dto.worker.WorkerRegisterDTO;
 import org.limbo.flowjob.tracker.core.tracker.TrackerNode;
 import org.limbo.flowjob.tracker.core.tracker.worker.HttpWorker;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
@@ -74,7 +74,7 @@ public class WorkerRegisterService {
      * @return 返回所有tracker节点信息
      */
     @Transactional(rollbackFor = Throwable.class)
-    public Mono<WorkerRegisterResult> register(WorkerRegisterOptionDto options) {
+    public Mono<WorkerRegisterDTO> register(WorkerRegisterParam options) {
 
         // TODO 租户鉴权
 
@@ -102,7 +102,7 @@ public class WorkerRegisterService {
         log.info("worker registered " + worker);
 
         // 返回tracker
-        WorkerRegisterResult registerResult = new WorkerRegisterResult();
+        WorkerRegisterDTO registerResult = new WorkerRegisterDTO();
         registerResult.setWorkerId(worker.getWorkerId());
         registerResult.setTrackers(trackerNode.getNodes());
         return Mono.just(registerResult);
@@ -114,7 +114,7 @@ public class WorkerRegisterService {
      * @return worker领域对象
      */
     @Nonnull
-    private Worker createNewWorker(WorkerRegisterOptionDto options) {
+    private Worker createNewWorker(WorkerRegisterParam options) {
         // 目前只支持HTTP协议的worker
         Worker worker;
         WorkerProtocol protocol = options.getProtocol();
@@ -139,7 +139,7 @@ public class WorkerRegisterService {
      * @param options worker注册参数
      * @return worker指标领域对象
      */
-    private WorkerMetric createMetric(WorkerRegisterOptionDto options) {
+    private WorkerMetric createMetric(WorkerRegisterParam options) {
         WorkerMetric metric = new WorkerMetric();
         metric.setExecutors(convertWorkerExecutor(options));
         metric.setExecutingJobs(Lists.newArrayList()); // TODO 是否需要记录？
@@ -149,12 +149,12 @@ public class WorkerRegisterService {
 
 
     /**
-     * {@link WorkerExecutorRegisterDto} => {@link WorkerExecutor} 列表转换，根据注册参数中的id设置workerId
+     * {@link WorkerExecutorRegisterParam} => {@link WorkerExecutor} 列表转换，根据注册参数中的id设置workerId
      */
-    private List<WorkerExecutor> convertWorkerExecutor(WorkerRegisterOptionDto options) {
+    private List<WorkerExecutor> convertWorkerExecutor(WorkerRegisterParam options) {
         List<WorkerExecutor> executors;
-        if (CollectionUtils.isNotEmpty(options.getJobExecutors())) {
-            executors = options.getJobExecutors().stream()
+        if (CollectionUtils.isNotEmpty(options.getExecutors())) {
+            executors = options.getExecutors().stream()
                     .map(this::convertWorkerExecutor)
                     .peek(exe -> exe.setWorkerId(options.getId()))
                     .collect(Collectors.toList());
@@ -167,9 +167,9 @@ public class WorkerRegisterService {
 
 
     /**
-     * {@link WorkerExecutorRegisterDto} => {@link WorkerExecutor}
+     * {@link WorkerExecutorRegisterParam} => {@link WorkerExecutor}
      */
-    private WorkerExecutor convertWorkerExecutor(WorkerExecutorRegisterDto dto) {
+    private WorkerExecutor convertWorkerExecutor(WorkerExecutorRegisterParam dto) {
         WorkerExecutor executor = new WorkerExecutor();
         executor.setName(dto.getName());
         executor.setDescription(dto.getDescription());

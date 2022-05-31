@@ -14,30 +14,28 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.commons.dto.worker;
+package org.limbo.flowjob.broker.api.dto.worker;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.limbo.flowjob.broker.api.dto.broker.BrokerDTO;
 
-import java.io.Serializable;
+import java.util.List;
 
 /**
- * worker所属租户信息参数
- * TODO 待实现
+ * worker注册结果
  *
  * @author Brozen
- * @since 2021-06-10
+ * @since 2021-06-16
  */
 @Data
-@Schema(title = "worker的租户信息参数")
-public class WorkerTenantDto implements Serializable {
+@Schema(title = "worker注册结果")
+public class WorkerRegisterDTO {
 
-    private static final long serialVersionUID = 3341023110953492576L;
+    @Schema(description = "workerId的字符串形式，由protocol、ip、port决定")
+    private String workerId;
 
-    /**
-     * 租户ID
-     */
-    @Schema(description = "租户ID")
-    private String tenantId;
+    @Schema(description = "broker节点列表，主从模式下，列表中仅包括一个主节点")
+    private List<BrokerDTO> brokers;
 
 }

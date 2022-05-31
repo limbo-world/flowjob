@@ -14,35 +14,31 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.commons.dto.worker;
+package org.limbo.flowjob.broker.api.dto.broker;
 
-import lombok.Builder;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
-import org.limbo.utils.JacksonUtils;
-
-import java.io.Serializable;
 
 /**
- * 向worker发送作业后，worker的返回数据
+ * broker节点描述
  *
  * @author Brozen
- * @since 2021-05-17
+ * @since 2021-06-16
  */
 @Data
-public class JobReceiveResult implements Serializable {
-
-    private static final long serialVersionUID = 5938197072123607724L;
-
-    /**
-     * 作业ID
-     */
-    private String jobId;
+@Schema(title = "broker节点描述")
+public class BrokerDTO {
 
     /**
-     * worker是否成功接收作业，返回true表明worker接下来会开始执行此作业
+     * tracker节点IP地址
      */
-    private Boolean accepted;
+    @Schema(description = "broker节点主机名")
+    private String host;
+
+    /**
+     * tracker节点服务端口
+     */
+    @Schema(description = "broker节点服务端口")
+    private Integer port;
 
 }

@@ -24,8 +24,14 @@
 
         <!-- Utils -->
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
+            <groupId>io.github.limbo-world</groupId>
+            <artifactId>utils</artifactId>
+        </dependency>
+
+        <!-- SwaggerV3 接口文档注解 -->
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-annotations</artifactId>
         </dependency>
     </dependencies>
 </project>

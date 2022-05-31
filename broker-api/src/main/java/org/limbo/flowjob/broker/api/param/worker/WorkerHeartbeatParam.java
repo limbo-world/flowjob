@@ -14,37 +14,35 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.commons.dto.worker;
+package org.limbo.flowjob.broker.api.param.worker;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
- * worker节点上可用的资源
+ * worker 心跳
  *
  * @author Brozen
- * @since 2021-05-17
+ * @since 2021-06-10
  */
 @Data
-@Schema(title = "worker节点的资源描述")
-public class WorkerResourceDto {
+@Schema(title = "worker心跳参数")
+public class WorkerHeartbeatParam implements Serializable {
+
+    private static final long serialVersionUID = 6512801979734188678L;
 
     /**
-     * 可用的CPU核心数。
+     * worker id
      */
-    @Schema(description = "可用的CPU核心数。")
-    private float availableCpu;
+    @Schema(description = "worker id")
+    private String workerId;
 
     /**
-     * 可用的内存空间，单位GB。
+     * worker可用的资源
      */
-    @Schema(description = "可用的内存空间，单位GB。")
-    private long availableRAM;
-
-    /**
-     * 任务队列剩余可排队数
-     */
-    @Schema(description = "任务队列可排队数")
-    private int availableQueueLimit;
+    @Schema(description = "worker可用的资源")
+    private WorkerResourceParam availableResource;
 
 }

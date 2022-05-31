@@ -16,21 +16,14 @@
 
 package org.limbo.flowjob.tracker.admin.adapter.worker.filters;
 
-import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
-import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 import reactor.util.context.Context;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * @author Brozen

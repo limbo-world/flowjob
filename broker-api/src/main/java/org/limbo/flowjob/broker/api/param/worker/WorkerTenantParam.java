@@ -14,28 +14,30 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.commons.dto.worker;
+package org.limbo.flowjob.broker.api.param.worker;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.limbo.flowjob.tracker.commons.dto.tracker.TrackerNodeDto;
 
-import java.util.List;
+import java.io.Serializable;
 
 /**
- * worker注册结果
+ * worker所属租户信息参数
+ * TODO 待实现
  *
  * @author Brozen
- * @since 2021-06-16
+ * @since 2021-06-10
  */
 @Data
-@Schema(title = "worker注册结果")
-public class WorkerRegisterResult {
+@Schema(title = "worker的租户信息参数")
+public class WorkerTenantParam implements Serializable {
 
-    @Schema(description = "workerId的字符串形式，由protocol、ip、port决定")
-    private String workerId;
+    private static final long serialVersionUID = 3341023110953492576L;
 
-    @Schema(description = "tracker节点列表，主从模式下，列表中仅包括一个主节点")
-    private List<TrackerNodeDto> trackers;
+    /**
+     * 租户ID
+     */
+    @Schema(description = "租户ID")
+    private String tenantId;
 
 }

@@ -14,35 +14,31 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.commons.dto.worker;
+package org.limbo.flowjob.broker.api.dto.worker;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
 
 /**
- * worker 心跳
+ * 向worker发送作业后，worker的返回数据
  *
  * @author Brozen
- * @since 2021-06-10
+ * @since 2021-05-17
  */
 @Data
-@Schema(title = "worker心跳参数")
-public class WorkerHeartbeatOptionDto implements Serializable {
+public class TaskReceiveDTO implements Serializable {
 
-    private static final long serialVersionUID = 6512801979734188678L;
-
-    /**
-     * worker id
-     */
-    @Schema(description = "worker id")
-    private String workerId;
+    private static final long serialVersionUID = 5938197072123607724L;
 
     /**
-     * worker可用的资源
+     * 作业ID
      */
-    @Schema(description = "worker可用的资源")
-    private WorkerResourceDto availableResource;
+    private String taskId;
+
+    /**
+     * worker是否成功接收作业，返回true表明worker接下来会开始执行此作业
+     */
+    private Boolean accepted;
 
 }

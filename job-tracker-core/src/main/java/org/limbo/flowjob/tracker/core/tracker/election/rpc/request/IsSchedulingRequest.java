@@ -1,12 +1,12 @@
 package org.limbo.flowjob.tracker.core.tracker.election.rpc.request;
 
-import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
+import org.limbo.flowjob.broker.api.dto.ResponseDTO;
 
 /**
  * @author Devil
  * @since 2021/8/9
  */
-public class IsSchedulingRequest extends RpcRequest<ResponseDto<Boolean>> {
+public class IsSchedulingRequest extends RpcRequest<ResponseDTO<Boolean>> {
 
     private static final long serialVersionUID = -4460786503935507786L;
 

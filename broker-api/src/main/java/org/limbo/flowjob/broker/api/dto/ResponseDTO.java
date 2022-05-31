@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.commons.dto;
+package org.limbo.flowjob.broker.api.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -29,7 +29,7 @@ import org.limbo.utils.web.HttpStatus;
 @Getter
 @NoArgsConstructor
 @Schema(title = "请求响应封装")
-public class ResponseDto<T> {
+public class ResponseDTO<T> {
 
     /**
      * 响应状态码，参考{@link HttpStatus}中状态码的定义
@@ -49,7 +49,7 @@ public class ResponseDto<T> {
     @Schema(description = "响应数据")
     private T data;
 
-    ResponseDto(int code, String message, T data) {
+    ResponseDTO(int code, String message, T data) {
         this.code = code;
         this.message = message;
         this.data = data;
@@ -97,8 +97,8 @@ public class ResponseDto<T> {
          * 根据Builder的配置生成响应结果
          * @return 响应
          */
-        public ResponseDto<T> build() {
-            return new ResponseDto<>(code, message, data);
+        public ResponseDTO<T> build() {
+            return new ResponseDTO<>(code, message, data);
         }
 
         /**

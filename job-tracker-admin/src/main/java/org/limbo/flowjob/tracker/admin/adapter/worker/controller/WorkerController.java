@@ -20,10 +20,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.limbo.flowjob.tracker.admin.service.worker.WorkerRegisterService;
 import org.limbo.flowjob.tracker.admin.service.worker.WorkerService;
-import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
-import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
-import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterOptionDto;
-import org.limbo.flowjob.tracker.commons.dto.worker.WorkerRegisterResult;
+import org.limbo.flowjob.broker.api.dto.ResponseDTO;
+import org.limbo.flowjob.broker.api.param.worker.WorkerHeartbeatParam;
+import org.limbo.flowjob.broker.api.param.worker.WorkerRegisterParam;
+import org.limbo.flowjob.broker.api.dto.worker.WorkerRegisterDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -49,9 +49,9 @@ public class WorkerController {
      */
     @Operation(summary = "worker注册")
     @PostMapping
-    public Mono<ResponseDto<WorkerRegisterResult>> register(@Validated @RequestBody Mono<WorkerRegisterOptionDto> options) {
+    public Mono<ResponseDTO<WorkerRegisterDTO>> register(@Validated @RequestBody Mono<WorkerRegisterParam> options) {
         return options.map(opt -> registerService.register(opt))
-                .flatMap(result -> result.map(r -> ResponseDto.<WorkerRegisterResult>builder().ok(r).build()));
+                .flatMap(result -> result.map(r -> ResponseDTO.<WorkerRegisterDTO>builder().ok(r).build()));
     }
 
 
@@ -60,9 +60,9 @@ public class WorkerController {
      */
     @Operation(summary = "worker心跳")
     @PostMapping("/heartbeat")
-    public Mono<ResponseDto<Void>> heartbeat(@RequestBody WorkerHeartbeatOptionDto heartbeatOption) {
+    public Mono<ResponseDTO<Void>> heartbeat(@RequestBody WorkerHeartbeatParam heartbeatOption) {
         return workerService.heartbeat(heartbeatOption)
-                .map(result -> ResponseDto.<Void>builder().ok().build());
+                .map(result -> ResponseDTO.<Void>builder().ok().build());
     }
 
 

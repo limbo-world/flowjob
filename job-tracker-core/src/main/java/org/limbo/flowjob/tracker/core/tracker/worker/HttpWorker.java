@@ -21,9 +21,9 @@ import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
-import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
+import org.limbo.flowjob.broker.api.dto.ResponseDTO;
 import org.limbo.flowjob.tracker.commons.dto.task.TaskDto;
-import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;
+import org.limbo.flowjob.broker.api.dto.worker.TaskReceiveDTO;
 import org.limbo.flowjob.tracker.commons.exceptions.JobWorkerException;
 import org.limbo.flowjob.tracker.commons.exceptions.WorkerException;
 import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
@@ -79,7 +79,7 @@ public class HttpWorker extends Worker {
      * @param <T>         反序列化的bean的类型
      * @return 一个Mono，异步处理
      */
-    protected <T> Mono<T> responseReceiver(HttpClientResponse response, ByteBufFlux byteBufFlux, TypeReference<ResponseDto<T>> reference) {
+    protected <T> Mono<T> responseReceiver(HttpClientResponse response, ByteBufFlux byteBufFlux, TypeReference<ResponseDTO<T>> reference) {
         if (!HttpResponseStatus.OK.equals(response.status())) {
             throw new WorkerException(getWorkerId(), "Worker服务访问失败！");
         }
@@ -98,7 +98,7 @@ public class HttpWorker extends Worker {
     public Mono<WorkerMetric> ping() {
         return Mono.from(client.get()
                 .uri(workerUri("/ping"))
-                .response((resp, flux) -> responseReceiver(resp, flux, new TypeReference<ResponseDto<WorkerMetric>>() {
+                .response((resp, flux) -> responseReceiver(resp, flux, new TypeReference<ResponseDTO<WorkerMetric>>() {
                 }))
                 .doOnNext(metric -> {
                     // 请求成功时，更新worker
@@ -113,7 +113,7 @@ public class HttpWorker extends Worker {
      * @return
      * @throws JobWorkerException
      */
-    public Mono<JobReceiveResult> sendTask(Task task) throws JobWorkerException {
+    public Mono<TaskReceiveDTO> sendTask(Task task) throws JobWorkerException {
         // 生成 dto
         TaskDto dto = convertToDto(task);
         return Mono.from(client
@@ -122,7 +122,7 @@ public class HttpWorker extends Worker {
                 .uri(workerUri(BASE_URL + "/task"))
                 .send(Mono.just(Unpooled.copiedBuffer(JacksonUtils.toJSONString(dto), CharsetUtil.UTF_8)))
                 // 获取请求响应并解析
-                .response((resp, flux) -> responseReceiver(resp, flux, new TypeReference<ResponseDto<JobReceiveResult>>() {
+                .response((resp, flux) -> responseReceiver(resp, flux, new TypeReference<ResponseDTO<TaskReceiveDTO>>() {
                 })))
                 .doOnNext(result -> {
                     // todo 如果worker接受作业，则更新下发时间

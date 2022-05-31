@@ -3,7 +3,7 @@ package org.limbo.flowjob.tracker.core.tracker.election.rpc;
 import com.alipay.sofa.jraft.error.RemotingException;
 import com.alipay.sofa.jraft.rpc.RpcClient;
 import com.alipay.sofa.jraft.util.Endpoint;
-import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
+import org.limbo.flowjob.broker.api.dto.ResponseDTO;
 import org.limbo.flowjob.tracker.core.tracker.election.rpc.request.RpcRequest;
 
 /**
@@ -23,7 +23,7 @@ public class RpcCaller {
     }
 
     // todo 异常处理？
-    public <T extends ResponseDto> T invokeSync(Endpoint endpoint, RpcRequest<T> request) {
+    public <T extends ResponseDTO> T invokeSync(Endpoint endpoint, RpcRequest<T> request) {
         try {
             return (T) rpcClient.invokeSync(endpoint, request, null, timeout);
         } catch (InterruptedException e) {

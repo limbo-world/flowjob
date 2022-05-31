@@ -2,7 +2,7 @@ package org.limbo.flowjob.tracker.core.tracker;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.tracker.commons.dto.tracker.TrackerNodeDto;
+import org.limbo.flowjob.broker.api.dto.broker.BrokerDTO;
 import org.limbo.flowjob.tracker.commons.utils.NetUtils;
 
 import javax.annotation.PreDestroy;
@@ -148,9 +148,9 @@ public abstract class AbstractTrackerNode extends ReactorTrackerNodeLifecycle im
         return jobTracker;
     }
 
-    protected TrackerNodeDto getNodeInfo() {
+    protected BrokerDTO getNodeInfo() {
         // 自己的信息
-        TrackerNodeDto self = new TrackerNodeDto();
+        BrokerDTO self = new BrokerDTO();
         self.setHost(host);
         self.setPort(port);
         return self;

@@ -14,33 +14,37 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.commons.dto.tracker;
+package org.limbo.flowjob.broker.api.param.worker;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import java.util.List;
-
 /**
- * tracker节点描述
+ * worker节点上可用的资源
  *
  * @author Brozen
- * @since 2021-06-16
+ * @since 2021-05-17
  */
 @Data
-@Schema(title = "tracker节点描述")
-public class TrackerNodeDto {
+@Schema(title = "worker节点的资源描述")
+public class WorkerResourceParam {
 
     /**
-     * tracker节点IP地址
+     * 可用的CPU核心数。
      */
-    @Schema(description = "tracker节点主机名")
-    private String host;
+    @Schema(description = "可用的CPU核心数。")
+    private float availableCpu;
 
     /**
-     * tracker节点服务端口
+     * 可用的内存空间，单位GB。
      */
-    @Schema(description = "tracker节点服务端口")
-    private Integer port;
+    @Schema(description = "可用的内存空间，单位GB。")
+    private long availableRAM;
+
+    /**
+     * 任务队列剩余可排队数
+     */
+    @Schema(description = "任务队列可排队数")
+    private int availableQueueLimit;
 
 }

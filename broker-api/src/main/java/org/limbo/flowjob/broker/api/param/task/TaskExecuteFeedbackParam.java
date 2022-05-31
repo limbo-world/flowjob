@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.commons.dto.job;
+package org.limbo.flowjob.broker.api.param.task;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -33,7 +33,7 @@ import java.util.Map;
  */
 @Data
 @Schema(title = "作业执行反馈参数")
-public class JobExecuteFeedbackDto {
+public class TaskExecuteFeedbackParam {
 
     /**
      * 计划ID

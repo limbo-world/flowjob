@@ -12,8 +12,6 @@
         <module>job-tracker-infrastructure</module>
         <module>job-tracker-core</module>
         <module>job-commons</module>
-        <module>job-worker-core</module>
-        <module>job-worker-start</module>
         <module>broker-api</module>
         <module>broker-core</module>
         <module>broker-ha</module>

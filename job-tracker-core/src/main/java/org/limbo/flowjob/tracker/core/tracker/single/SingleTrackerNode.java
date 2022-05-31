@@ -1,6 +1,6 @@
 package org.limbo.flowjob.tracker.core.tracker.single;
 
-import org.limbo.flowjob.tracker.commons.dto.tracker.TrackerNodeDto;
+import org.limbo.flowjob.broker.api.dto.broker.BrokerDTO;
 import org.limbo.flowjob.tracker.core.tracker.AbstractTrackerNode;
 import org.limbo.flowjob.tracker.core.tracker.DisposableTrackerNode;
 import org.limbo.flowjob.tracker.core.tracker.JobTrackerFactory;
@@ -29,7 +29,7 @@ public class SingleTrackerNode extends AbstractTrackerNode {
     }
 
     @Override
-    public List<TrackerNodeDto> getNodes() {
+    public List<BrokerDTO> getNodes() {
         return Collections.singletonList(getNodeInfo());
     }
 

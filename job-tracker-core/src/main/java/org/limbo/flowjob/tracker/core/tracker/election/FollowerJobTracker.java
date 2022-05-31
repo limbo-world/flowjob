@@ -1,7 +1,7 @@
 package org.limbo.flowjob.tracker.core.tracker.election;
 
 import com.alipay.sofa.jraft.util.Endpoint;
-import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
+import org.limbo.flowjob.broker.api.dto.ResponseDTO;
 import org.limbo.flowjob.tracker.core.schedule.Schedulable;
 import org.limbo.flowjob.tracker.core.tracker.JobTracker;
 import org.limbo.flowjob.tracker.core.tracker.election.rpc.RpcCaller;
@@ -32,7 +32,7 @@ public class FollowerJobTracker implements JobTracker {
         request.setSchedulable(schedulable);
 
         // TODO 异常处理
-        ResponseDto<Void> response = rpcCaller.invokeSync(endpoint, request);
+        ResponseDTO<Void> response = rpcCaller.invokeSync(endpoint, request);
     }
 
     @Override
@@ -41,7 +41,7 @@ public class FollowerJobTracker implements JobTracker {
         request.setId(id);
 
         // TODO 异常处理
-        ResponseDto<Void> response = rpcCaller.invokeSync(endpoint, request);
+        ResponseDTO<Void> response = rpcCaller.invokeSync(endpoint, request);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class FollowerJobTracker implements JobTracker {
         request.setId(id);
 
         // TODO 异常处理
-        ResponseDto<Boolean> response = rpcCaller.invokeSync(endpoint, request);
+        ResponseDTO<Boolean> response = rpcCaller.invokeSync(endpoint, request);
         return response.getData();
     }
 }

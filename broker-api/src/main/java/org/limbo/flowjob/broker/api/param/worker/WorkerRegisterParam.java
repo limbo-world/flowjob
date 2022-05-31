@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.commons.dto.worker;
+package org.limbo.flowjob.broker.api.param.worker;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -34,7 +34,7 @@ import java.util.List;
  */
 @Data
 @Schema(title = "worker注册参数")
-public class WorkerRegisterOptionDto implements Serializable {
+public class WorkerRegisterParam implements Serializable {
 
     private static final long serialVersionUID = 4234037520144789567L;
 
@@ -69,19 +69,19 @@ public class WorkerRegisterOptionDto implements Serializable {
      * worker可用的资源
      */
     @Schema(description = "worker可用的资源")
-    private WorkerResourceDto availableResource;
+    private WorkerResourceParam availableResource;
 
     /**
      * 执行器
      */
-    @NotEmpty(message = "worker job executor can't be empty")
-    @Schema(description = "job 执行器")
-    private List<WorkerExecutorRegisterDto> jobExecutors;
+    @NotEmpty(message = "worker executor can't be empty")
+    @Schema(description = "执行器")
+    private List<WorkerExecutorRegisterParam> executors;
 
     /**
      * worker所属租户信息
      */
     @Schema(description = "worker所属租户信息")
-    private WorkerTenantDto tenant;
+    private WorkerTenantParam tenant;
 
 }
