@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.schedule.calculator;
 
-import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
+import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.core.schedule.DelegatedScheduleCalculator;
 import org.limbo.flowjob.tracker.core.schedule.ScheduleCalculator;
 

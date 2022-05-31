@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Copyright 2020-2024 Limbo Team (https://github.com/limbo-world).
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ 	http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.limbo.flowjob.broker.dao.mybatis.WorkerMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="WorkerPO" type="org.limbo.flowjob.broker.dao.po.WorkerPO">
+        <id column="serial_id" property="serialId" />
+        <result column="worker_id" property="workerId" />
+        <result column="protocol" property="protocol" />
+        <result column="host" property="host" />
+        <result column="port" property="port" />
+        <result column="status" property="status" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <insert id="insertOrUpdate">
+        INSERT IGNORE INTO flowjob_worker (
+            worker_id, protocol, host, port, status
+        ) VALUES (
+            #{workerId}, #{protocol}, #{host}, #{port}, #{status}
+        )
+        ON DUPLICATE KEY UPDATE
+        protocol = VALUES(protocol), host = VALUES(host), port = VALUES(port), status = VALUES(status)
+    </insert>
+
+</mapper>

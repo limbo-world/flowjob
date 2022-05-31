@@ -1,14 +1,10 @@
-
-
 # flowjob-broker
-
 project
     -- api 其他二方服务或三方服务依赖的模块，提供出入参定义、常量定义
         -- constants
             -- enums 对外提供的枚举
         -- dto 
-            -- param 入参，类名格式：XxxParam
-            -- data 出参数据结构，类名格式：XxxData
+        -- param 入参，类名格式：XxxParam
     -- core 核心逻辑、类之间的依赖关系等，主要是接口，类的实现和组装交给子模块
         -- exceptions 异常定义
         -- utils 工具包
@@ -37,16 +33,3 @@ project
         -- repositories 持久化接口的实现
         -- converter 领域对象和持久对象的转换器
     -- application broker应用层，与web服务框架集成（SpringMVC）
-
-
-# flowjob-worker
-project
-    -- core worker核心功能：注册、接受任务、任务反馈等
-        -- rpc 与broker通信
-            -- retry rpc失败重试
-            -- failover rpc故障转移
-    -- starter 与spring-boot集成，自动装配模块
-    -- application worker项目骨架，也可以单独部署
-
-
-# flowjob-console

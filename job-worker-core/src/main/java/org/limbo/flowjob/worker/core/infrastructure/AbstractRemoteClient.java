@@ -17,7 +17,7 @@
 package org.limbo.flowjob.worker.core.infrastructure;
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.tracker.commons.constants.enums.WorkerProtocol;
+import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
 import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFeedbackDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;

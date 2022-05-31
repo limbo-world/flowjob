@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.tracker.worker;
 
-import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
+import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
 
 import java.util.List;
 

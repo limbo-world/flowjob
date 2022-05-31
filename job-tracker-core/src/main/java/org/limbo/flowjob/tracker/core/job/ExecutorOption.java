@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobExecuteType;
+import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 
 /**
  * 执行器配置，值对象

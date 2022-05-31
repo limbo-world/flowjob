@@ -2,7 +2,7 @@ package org.limbo.flowjob.tracker.commons.dto.job;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobExecuteType;
+import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 
 /**
  * @author Devil

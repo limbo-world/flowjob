@@ -2,7 +2,7 @@ package org.limbo.flowjob.tracker.infrastructure.plan.converters;
 
 import com.google.common.base.Converter;
 import org.limbo.flowjob.tracker.core.plan.Plan;
-import org.limbo.flowjob.tracker.dao.po.PlanPO;
+import org.limbo.flowjob.broker.dao.po.PlanPO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;

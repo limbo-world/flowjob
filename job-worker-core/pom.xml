@@ -41,7 +41,10 @@
         <dependency>
             <groupId>org.limbo.flowjob</groupId>
             <artifactId>job-commons</artifactId>
-            <version>${parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.limbo.flowjob</groupId>
+            <artifactId>broker-core</artifactId>
         </dependency>
 
         <!-- netty -->

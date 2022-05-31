@@ -2,8 +2,8 @@ package org.limbo.flowjob.tracker.commons.dto.job;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.limbo.flowjob.tracker.commons.constants.enums.DispatchType;
-import org.limbo.flowjob.tracker.commons.constants.enums.LoadBalanceType;
+import org.limbo.flowjob.broker.api.constants.enums.DispatchType;
+import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
 
 /**
  * @author Devil

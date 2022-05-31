@@ -1,10 +1,10 @@
 package org.limbo.flowjob.tracker.infrastructure.job.converters;
 
 import com.google.common.base.Converter;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
-import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
+import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
+import org.limbo.flowjob.broker.core.utils.TimeUtil;
 import org.limbo.flowjob.tracker.core.job.context.JobInstance;
-import org.limbo.flowjob.tracker.dao.po.JobInstancePO;
+import org.limbo.flowjob.broker.dao.po.JobInstancePO;
 import org.springframework.stereotype.Component;
 
 /**

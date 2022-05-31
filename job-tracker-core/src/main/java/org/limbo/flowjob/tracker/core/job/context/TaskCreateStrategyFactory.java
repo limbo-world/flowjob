@@ -1,10 +1,8 @@
 package org.limbo.flowjob.tracker.core.job.context;
 
-import org.limbo.flowjob.tracker.commons.constants.enums.TaskResult;
-import org.limbo.flowjob.tracker.commons.constants.enums.TaskScheduleStatus;
-import org.limbo.flowjob.tracker.commons.constants.enums.TaskType;
-import org.limbo.flowjob.tracker.commons.utils.strategies.AbstractStrategyFactory;
-import org.limbo.flowjob.tracker.commons.utils.strategies.Strategy;
+import org.limbo.flowjob.broker.api.constants.enums.TaskResult;
+import org.limbo.flowjob.broker.api.constants.enums.TaskScheduleStatus;
+import org.limbo.flowjob.broker.api.constants.enums.TaskType;
 import org.limbo.utils.UUIDUtils;
 
 import java.time.Instant;

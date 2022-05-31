@@ -18,7 +18,7 @@ package org.limbo.flowjob.worker.core.infrastructure;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.limbo.flowjob.tracker.commons.constants.enums.ExecuteResult;
+import org.limbo.flowjob.broker.api.constants.enums.ExecuteResult;
 import org.limbo.flowjob.tracker.commons.dto.job.JobExecuteFeedbackDto;
 import org.limbo.flowjob.worker.core.domain.Task;
 

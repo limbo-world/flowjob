@@ -17,14 +17,14 @@
 package org.limbo.flowjob.tracker.infrastructure.worker.converters;
 
 import com.google.common.base.Converter;
-import org.limbo.flowjob.tracker.commons.constants.enums.WorkerProtocol;
-import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
+import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
+import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
 import org.limbo.flowjob.tracker.core.tracker.worker.HttpWorker;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatisticsRepository;
-import org.limbo.flowjob.tracker.dao.po.WorkerPO;
+import org.limbo.flowjob.broker.dao.po.WorkerPO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;

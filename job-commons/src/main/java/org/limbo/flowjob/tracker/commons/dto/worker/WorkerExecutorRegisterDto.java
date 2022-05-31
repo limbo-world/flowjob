@@ -17,7 +17,7 @@
 package org.limbo.flowjob.tracker.commons.dto.worker;
 
 import lombok.Data;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobExecuteType;
+import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 
 /**
  * worker支持的执行器

@@ -1,7 +1,7 @@
 package org.limbo.flowjob.tracker.core.job.context;
 
 import lombok.Data;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
+import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
 import org.limbo.flowjob.tracker.core.job.handler.JobFailHandler;
 

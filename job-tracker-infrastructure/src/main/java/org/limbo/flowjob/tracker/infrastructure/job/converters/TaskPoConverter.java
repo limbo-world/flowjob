@@ -1,16 +1,16 @@
 package org.limbo.flowjob.tracker.infrastructure.job.converters;
 
 import com.google.common.base.Converter;
-import org.limbo.flowjob.tracker.commons.constants.enums.TaskResult;
-import org.limbo.flowjob.tracker.commons.constants.enums.TaskScheduleStatus;
-import org.limbo.flowjob.tracker.commons.constants.enums.TaskType;
-import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
+import org.limbo.flowjob.broker.api.constants.enums.TaskResult;
+import org.limbo.flowjob.broker.api.constants.enums.TaskScheduleStatus;
+import org.limbo.flowjob.broker.api.constants.enums.TaskType;
+import org.limbo.flowjob.broker.core.utils.TimeUtil;
 import org.limbo.flowjob.tracker.core.job.Job;
 import org.limbo.flowjob.tracker.core.job.context.Attributes;
 import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.core.plan.PlanRecord;
 import org.limbo.flowjob.tracker.core.plan.PlanRecordRepository;
-import org.limbo.flowjob.tracker.dao.po.TaskPO;
+import org.limbo.flowjob.broker.dao.po.TaskPO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

@@ -20,7 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
-import org.limbo.flowjob.tracker.commons.constants.enums.WorkerStatus;
+import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
 import org.limbo.flowjob.tracker.commons.dto.ResponseDto;
 import org.limbo.flowjob.tracker.commons.dto.task.TaskDto;
 import org.limbo.flowjob.tracker.commons.dto.worker.JobReceiveResult;

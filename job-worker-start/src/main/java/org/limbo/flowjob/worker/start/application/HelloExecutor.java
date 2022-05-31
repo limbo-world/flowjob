@@ -1,6 +1,6 @@
 package org.limbo.flowjob.worker.start.application;
 
-import org.limbo.flowjob.tracker.commons.constants.enums.JobExecuteType;
+import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 import org.limbo.flowjob.worker.core.domain.Task;
 import org.limbo.flowjob.worker.core.infrastructure.JobExecutor;
 

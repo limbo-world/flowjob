@@ -1,6 +1,6 @@
 package org.limbo.flowjob.tracker.core.plan;
 
-import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
+import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
 
 /**
  * @author Devil

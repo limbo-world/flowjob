@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
+import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
 import org.limbo.flowjob.tracker.commons.dto.plan.ScheduleOptionDto;
 
 import java.time.Duration;

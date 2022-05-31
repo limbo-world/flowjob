@@ -2,7 +2,7 @@ package org.limbo.flowjob.tracker.commons.dto.plan;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.limbo.flowjob.tracker.commons.constants.enums.ScheduleType;
+import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
 
 import java.time.Duration;
 import java.time.LocalDateTime;

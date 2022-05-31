@@ -18,7 +18,7 @@ package org.limbo.flowjob.tracker.commons.dto.worker;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.limbo.flowjob.tracker.commons.constants.enums.WorkerProtocol;
+import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;

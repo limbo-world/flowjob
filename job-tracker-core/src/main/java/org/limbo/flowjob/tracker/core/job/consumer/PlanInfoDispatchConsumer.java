@@ -17,16 +17,27 @@
 package org.limbo.flowjob.tracker.core.job.consumer;
 
 import lombok.Setter;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
-import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
-import org.limbo.flowjob.tracker.commons.exceptions.JobExecuteException;
+import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
+import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
+import org.limbo.flowjob.broker.core.exceptions.JobExecuteException;
 import org.limbo.flowjob.tracker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.tracker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.tracker.core.evnets.Event;
 import org.limbo.flowjob.tracker.core.evnets.EventPublisher;
 import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.context.*;
-import org.limbo.flowjob.tracker.core.plan.*;
+import org.limbo.flowjob.tracker.core.job.context.JobInstance;
+import org.limbo.flowjob.tracker.core.job.context.JobInstanceRepository;
+import org.limbo.flowjob.tracker.core.job.context.JobRecord;
+import org.limbo.flowjob.tracker.core.job.context.JobRecordRepository;
+import org.limbo.flowjob.tracker.core.job.context.Task;
+import org.limbo.flowjob.tracker.core.job.context.TaskCreateStrategyFactory;
+import org.limbo.flowjob.tracker.core.job.context.TaskInfo;
+import org.limbo.flowjob.tracker.core.job.context.TaskRepository;
+import org.limbo.flowjob.tracker.core.plan.PlanInfo;
+import org.limbo.flowjob.tracker.core.plan.PlanInstance;
+import org.limbo.flowjob.tracker.core.plan.PlanInstanceRepository;
+import org.limbo.flowjob.tracker.core.plan.PlanRecord;
+import org.limbo.flowjob.tracker.core.plan.PlanRecordRepository;
 import org.limbo.flowjob.tracker.core.tracker.WorkerManager;
 
 import javax.inject.Inject;

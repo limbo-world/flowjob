@@ -17,7 +17,7 @@
 package org.limbo.flowjob.tracker.core.plan;
 
 import lombok.Data;
-import org.limbo.flowjob.tracker.commons.constants.enums.PlanScheduleStatus;
+import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.tracker.commons.utils.TimeUtil;
 import org.limbo.flowjob.tracker.core.job.JobDAG;
 

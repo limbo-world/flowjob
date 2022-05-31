@@ -18,7 +18,7 @@ package org.limbo.flowjob.tracker.infrastructure.worker.converters;
 
 import com.google.common.base.Converter;
 import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatistics;
-import org.limbo.flowjob.tracker.dao.po.WorkerStatisticsPO;
+import org.limbo.flowjob.broker.dao.po.WorkerStatisticsPO;
 import org.limbo.utils.EnhancedBeanUtils;
 import org.springframework.stereotype.Component;
 

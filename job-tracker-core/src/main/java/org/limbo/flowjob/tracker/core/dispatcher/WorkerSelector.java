@@ -16,12 +16,11 @@
 
 package org.limbo.flowjob.tracker.core.dispatcher;
 
-import org.limbo.flowjob.tracker.commons.constants.enums.LoadBalanceType;
+import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
 import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 
 import java.util.Collection;
-import java.util.function.BiConsumer;
 
 /**
  * worker选择器，封装了作业分发时的worker选择规则{@link LoadBalanceType}：

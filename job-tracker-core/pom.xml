@@ -43,6 +43,14 @@
             <groupId>org.limbo.flowjob</groupId>
             <artifactId>job-commons</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.limbo.flowjob</groupId>
+            <artifactId>broker-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.limbo.flowjob</groupId>
+            <artifactId>broker-ha</artifactId>
+        </dependency>
 
         <!-- Reactor -->
         <dependency>
@@ -102,12 +110,6 @@
         <dependency>
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
-        </dependency>
-
-        <!-- JRaft -->
-        <dependency>
-            <groupId>com.alipay.sofa</groupId>
-            <artifactId>jraft-core</artifactId>
         </dependency>
 
         <!-- http client -->

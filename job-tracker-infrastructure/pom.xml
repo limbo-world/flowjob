@@ -42,7 +42,7 @@
         </dependency>
         <dependency>
             <groupId>org.limbo.flowjob</groupId>
-            <artifactId>job-tracker-dao</artifactId>
+            <artifactId>broker-dao</artifactId>
         </dependency>
 
         <!-- 注解支持: SpringBoot  -->

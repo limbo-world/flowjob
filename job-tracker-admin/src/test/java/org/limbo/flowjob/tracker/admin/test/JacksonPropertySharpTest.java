@@ -17,8 +17,8 @@
 package org.limbo.flowjob.tracker.admin.test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.limbo.flowjob.tracker.commons.constants.enums.DescribableEnum;
-import org.limbo.flowjob.tracker.commons.constants.enums.LoadBalanceType;
+import org.limbo.flowjob.broker.api.constants.enums.DescribableEnum;
+import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
 import org.limbo.utils.JacksonUtils;
 
 import java.util.HashMap;

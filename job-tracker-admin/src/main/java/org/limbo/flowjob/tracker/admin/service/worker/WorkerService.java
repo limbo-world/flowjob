@@ -18,7 +18,7 @@ package org.limbo.flowjob.tracker.admin.service.worker;
 
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.tracker.commons.dto.worker.WorkerHeartbeatOptionDto;
-import org.limbo.flowjob.tracker.commons.utils.Symbol;
+import org.limbo.flowjob.broker.core.utils.Symbol;
 import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
 import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
 import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerAvailableResource;

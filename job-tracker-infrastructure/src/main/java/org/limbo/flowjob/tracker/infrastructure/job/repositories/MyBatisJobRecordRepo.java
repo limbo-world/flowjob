@@ -17,18 +17,16 @@
 package org.limbo.flowjob.tracker.infrastructure.job.repositories;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.tracker.commons.constants.enums.JobScheduleStatus;
+import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.tracker.core.job.context.JobRecord;
 import org.limbo.flowjob.tracker.core.job.context.JobRecordRepository;
 import org.limbo.flowjob.tracker.core.plan.PlanInstance;
-import org.limbo.flowjob.tracker.dao.mybatis.JobRecordMapper;
-import org.limbo.flowjob.tracker.dao.po.JobRecordPO;
+import org.limbo.flowjob.broker.dao.mybatis.JobRecordMapper;
+import org.limbo.flowjob.broker.dao.po.JobRecordPO;
 import org.limbo.flowjob.tracker.infrastructure.job.converters.JobRecordPoConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;

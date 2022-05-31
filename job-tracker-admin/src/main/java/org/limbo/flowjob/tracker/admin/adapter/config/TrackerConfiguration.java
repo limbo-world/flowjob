@@ -17,12 +17,12 @@
 package org.limbo.flowjob.tracker.admin.adapter.config;
 
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.tracker.commons.constants.enums.TrackerModes;
+import org.limbo.flowjob.broker.api.constants.enums.TrackerModes;
 import org.limbo.flowjob.tracker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.tracker.core.dispatcher.strategies.RoundRobinWorkerSelector;
 import org.limbo.flowjob.tracker.core.job.context.TaskCreateStrategyFactory;
 import org.limbo.flowjob.tracker.core.plan.PlanInfoBuilderFactory;
-import org.limbo.flowjob.tracker.core.raft.ElectionNodeOptions;
+import org.limbo.flowjob.broker.ha.election.ElectionNodeOptions;
 import org.limbo.flowjob.tracker.core.schedule.calculator.SimpleScheduleCalculatorFactory;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.HashedWheelTimerScheduler;
 import org.limbo.flowjob.tracker.core.schedule.scheduler.NamedThreadFactory;

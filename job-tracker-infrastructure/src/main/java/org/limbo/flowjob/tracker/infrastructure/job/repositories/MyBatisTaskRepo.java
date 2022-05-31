@@ -17,12 +17,12 @@
 package org.limbo.flowjob.tracker.infrastructure.job.repositories;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import org.limbo.flowjob.tracker.commons.constants.enums.TaskResult;
-import org.limbo.flowjob.tracker.commons.constants.enums.TaskScheduleStatus;
+import org.limbo.flowjob.broker.api.constants.enums.TaskResult;
+import org.limbo.flowjob.broker.api.constants.enums.TaskScheduleStatus;
 import org.limbo.flowjob.tracker.core.job.context.Task;
 import org.limbo.flowjob.tracker.core.job.context.TaskRepository;
-import org.limbo.flowjob.tracker.dao.mybatis.TaskMapper;
-import org.limbo.flowjob.tracker.dao.po.TaskPO;
+import org.limbo.flowjob.broker.dao.mybatis.TaskMapper;
+import org.limbo.flowjob.broker.dao.po.TaskPO;
 import org.limbo.flowjob.tracker.infrastructure.job.converters.TaskPoConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;

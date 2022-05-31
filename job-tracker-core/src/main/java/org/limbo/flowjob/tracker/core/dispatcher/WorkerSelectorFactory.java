@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.tracker.core.dispatcher;
 
-import org.limbo.flowjob.tracker.commons.constants.enums.LoadBalanceType;
+import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
 import org.limbo.flowjob.tracker.core.dispatcher.strategies.*;
 
 import javax.inject.Inject;

@@ -12,7 +12,6 @@
         <module>job-tracker-infrastructure</module>
         <module>job-tracker-core</module>
         <module>job-commons</module>
-        <module>job-tracker-dao</module>
         <module>job-worker-core</module>
         <module>job-worker-start</module>
         <module>broker-api</module>
@@ -136,11 +135,6 @@
             <dependency>
                 <groupId>org.limbo.flowjob</groupId>
                 <artifactId>job-tracker-infrastructure</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.limbo.flowjob</groupId>
-                <artifactId>job-tracker-dao</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

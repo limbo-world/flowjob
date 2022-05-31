@@ -19,7 +19,7 @@ package org.limbo.flowjob.tracker.core.job.context;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.limbo.flowjob.tracker.commons.constants.enums.TaskType;
+import org.limbo.flowjob.broker.api.constants.enums.TaskType;
 import org.limbo.flowjob.tracker.core.job.DispatchOption;
 import org.limbo.flowjob.tracker.core.job.ExecutorOption;
 

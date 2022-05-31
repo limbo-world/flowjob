@@ -20,9 +20,9 @@ import com.alipay.sofa.jraft.entity.PeerId;
 import com.alipay.sofa.jraft.option.CliOptions;
 import com.alipay.sofa.jraft.rpc.impl.cli.CliClientServiceImpl;
 import org.junit.Test;
-import org.limbo.flowjob.tracker.core.raft.ElectionNode;
-import org.limbo.flowjob.tracker.core.raft.ElectionNodeOptions;
-import org.limbo.flowjob.tracker.core.raft.StateListener;
+import org.limbo.flowjob.broker.ha.election.ElectionNode;
+import org.limbo.flowjob.broker.ha.election.ElectionNodeOptions;
+import org.limbo.flowjob.broker.ha.election.StateListener;
 
 import java.util.ArrayList;
 import java.util.Collections;
