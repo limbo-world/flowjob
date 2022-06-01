@@ -39,11 +39,11 @@
         <!-- 依赖基础设施层 -->
         <dependency>
             <groupId>org.limbo.flowjob</groupId>
-            <artifactId>job-tracker-infrastructure</artifactId>
+            <artifactId>broker-core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.limbo.flowjob</groupId>
-            <artifactId>broker-core</artifactId>
+            <artifactId>broker-ha</artifactId>
         </dependency>
 
         <!-- Starter: WebFlux -->
@@ -93,6 +93,18 @@
 <!--            <groupId>org.flywaydb</groupId>-->
 <!--            <artifactId>flyway-core</artifactId>-->
 <!--        </dependency>-->
+        <dependency>
+            <groupId>io.rsocket</groupId>
+            <artifactId>rsocket-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.rsocket</groupId>
+            <artifactId>rsocket-transport-netty</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-messaging</artifactId>
+        </dependency>
 
     </dependencies>
 

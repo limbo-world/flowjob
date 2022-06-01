@@ -1,3 +1,7 @@
+# todo
+
+1. @Autowired 改为 @Inject + @Qualifier 的注入方式，并且使用set方法注入
+
 ## 功能
 
 1. web/worker调tracker 从节点302到主节点 如心跳/web端创建任务等

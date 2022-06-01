@@ -22,6 +22,6 @@ import org.mybatis.spring.annotation.MapperScan;
  * @author Brozen
  * @since 2021-06-03
  */
-@MapperScan("org.limbo.flowjob.tracker.dao.mybatis")
+@MapperScan("org.limbo.flowjob.broker.dao.mybatis")
 public class MyBatisConfiguration {
 }

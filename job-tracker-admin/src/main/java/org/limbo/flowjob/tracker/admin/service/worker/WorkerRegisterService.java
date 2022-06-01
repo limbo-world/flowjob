@@ -21,18 +21,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
+import org.limbo.flowjob.broker.api.dto.worker.WorkerRegisterDTO;
 import org.limbo.flowjob.broker.api.param.worker.WorkerExecutorRegisterParam;
 import org.limbo.flowjob.broker.api.param.worker.WorkerRegisterParam;
-import org.limbo.flowjob.broker.api.dto.worker.WorkerRegisterDTO;
-import org.limbo.flowjob.tracker.core.tracker.TrackerNode;
-import org.limbo.flowjob.tracker.core.tracker.worker.HttpWorker;
-import org.limbo.flowjob.tracker.core.tracker.worker.Worker;
-import org.limbo.flowjob.tracker.core.tracker.worker.WorkerRepository;
-import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerAvailableResource;
-import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerExecutor;
-import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetric;
-import org.limbo.flowjob.tracker.core.tracker.worker.metric.WorkerMetricRepository;
-import org.limbo.flowjob.tracker.core.tracker.worker.statistics.WorkerStatisticsRepository;
+import org.limbo.flowjob.broker.core.broker.TrackerNode;
+import org.limbo.flowjob.broker.core.worker.HttpWorker;
+import org.limbo.flowjob.broker.core.worker.Worker;
+import org.limbo.flowjob.broker.core.worker.WorkerRepository;
+import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
+import org.limbo.flowjob.broker.core.worker.metric.WorkerExecutor;
+import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
+import org.limbo.flowjob.broker.core.worker.metric.WorkerMetricRepository;
+import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatisticsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -104,7 +104,7 @@ public class WorkerRegisterService {
         // 返回tracker
         WorkerRegisterDTO registerResult = new WorkerRegisterDTO();
         registerResult.setWorkerId(worker.getWorkerId());
-        registerResult.setTrackers(trackerNode.getNodes());
+        registerResult.setBrokers(trackerNode.getNodes());
         return Mono.just(registerResult);
     }
 

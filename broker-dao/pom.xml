@@ -22,6 +22,18 @@
             <artifactId>mybatis-plus-core</artifactId>
         </dependency>
 
+        <!-- MyBatis集成Spring支持 -->
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis-spring</artifactId>
+        </dependency>
+
+        <!-- 事务 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+        </dependency>
+
         <!-- 用于生成MyBatisPlus的xml -->
         <dependency>
             <groupId>com.baomidou</groupId>

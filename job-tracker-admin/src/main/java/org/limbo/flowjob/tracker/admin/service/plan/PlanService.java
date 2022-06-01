@@ -1,18 +1,22 @@
 package org.limbo.flowjob.tracker.admin.service.plan;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.tracker.commons.dto.job.DispatchOptionDto;
-import org.limbo.flowjob.tracker.commons.dto.job.ExecutorOptionDto;
-import org.limbo.flowjob.tracker.commons.dto.job.JobDto;
-import org.limbo.flowjob.tracker.commons.dto.plan.PlanAddDto;
-import org.limbo.flowjob.tracker.commons.dto.plan.PlanReplaceDto;
-import org.limbo.flowjob.tracker.commons.dto.plan.ScheduleOptionDto;
-import org.limbo.flowjob.tracker.core.job.DispatchOption;
-import org.limbo.flowjob.tracker.core.job.ExecutorOption;
-import org.limbo.flowjob.tracker.core.job.Job;
-import org.limbo.flowjob.tracker.core.job.JobDAG;
-import org.limbo.flowjob.tracker.core.plan.*;
-import org.limbo.flowjob.tracker.core.tracker.TrackerNode;
+import org.limbo.flowjob.broker.api.param.job.DispatchOptionParam;
+import org.limbo.flowjob.broker.api.param.job.ExecutorOptionParam;
+import org.limbo.flowjob.broker.api.param.job.JobAddParam;
+import org.limbo.flowjob.broker.api.param.plan.PlanAddParam;
+import org.limbo.flowjob.broker.api.param.plan.PlanReplaceParam;
+import org.limbo.flowjob.broker.api.param.plan.ScheduleOptionParam;
+import org.limbo.flowjob.broker.core.broker.TrackerNode;
+import org.limbo.flowjob.broker.core.plan.Plan;
+import org.limbo.flowjob.broker.core.plan.PlanInfo;
+import org.limbo.flowjob.broker.core.plan.PlanInfoBuilderFactory;
+import org.limbo.flowjob.broker.core.plan.PlanRepository;
+import org.limbo.flowjob.broker.core.plan.job.DispatchOption;
+import org.limbo.flowjob.broker.core.plan.job.ExecutorOption;
+import org.limbo.flowjob.broker.core.plan.job.Job;
+import org.limbo.flowjob.broker.core.plan.job.JobDAG;
+import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.utils.verifies.Verifies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,7 +43,7 @@ public class PlanService {
     /**
      * 新增计划 只是个落库操作
      */
-    public String add(PlanAddDto dto) {
+    public String add(PlanAddParam dto) {
         Plan plan = convertToPlan(dto);
         PlanInfo planInfo = convertToPlanInfo(plan, dto);
         return planRepository.addPlan(plan, planInfo);
@@ -49,7 +53,7 @@ public class PlanService {
     /**
      * 覆盖计划 可能会触发 内存时间轮改动
      */
-    public void replace(String planId, PlanReplaceDto dto) {
+    public void replace(String planId, PlanReplaceParam dto) {
         // 获取当前的plan数据
         Plan plan = planRepository.get(planId);
         Verifies.notNull(plan, "plan not exist");
@@ -120,7 +124,7 @@ public class PlanService {
      * @param dto 新增执行计划dto
      * @return Plan领域对象
      */
-    private Plan convertToPlan(PlanAddDto dto) {
+    private Plan convertToPlan(PlanAddParam dto) {
         // Plan dto 转 do
         Plan plan = new Plan();
         plan.setPlanId(dto.getPlanId());
@@ -136,7 +140,7 @@ public class PlanService {
      * @param dto 新增执行计划dto
      * @return PlanInfo领域对象
      */
-    private PlanInfo convertToPlanInfo(Plan plan, PlanAddDto dto) {
+    private PlanInfo convertToPlanInfo(Plan plan, PlanAddParam dto) {
         return planInfoBuilderFactory.builder()
                 .planId(plan.getPlanId())
                 .description(dto.getDescription())
@@ -152,7 +156,7 @@ public class PlanService {
      * @param dto 修改执行计划dto
      * @return PlanInfo领域对象
      */
-    private PlanInfo convertToPlanInfo(Plan plan, PlanReplaceDto dto) {
+    private PlanInfo convertToPlanInfo(Plan plan, PlanReplaceParam dto) {
         return planInfoBuilderFactory.builder()
                 .planId(plan.getPlanId())
                 .description(dto.getDescription())
@@ -162,21 +166,21 @@ public class PlanService {
     }
 
 
-    private DispatchOption convertToDo(DispatchOptionDto dto) {
+    private DispatchOption convertToDo(DispatchOptionParam dto) {
         if (dto == null) {
             return null;
         }
         return new DispatchOption(dto.getLoadBalanceType(), dto.getCpuRequirement(), dto.getRamRequirement());
     }
 
-    private ExecutorOption convertToDo(ExecutorOptionDto dto) {
+    private ExecutorOption convertToDo(ExecutorOptionParam dto) {
         if (dto == null) {
             return null;
         }
         return new ExecutorOption(dto.getName(), dto.getType());
     }
 
-    private ScheduleOption convertToVo(ScheduleOptionDto dto) {
+    private ScheduleOption convertToVo(ScheduleOptionParam dto) {
         if (dto == null) {
             return null;
         }
@@ -184,19 +188,19 @@ public class PlanService {
                 dto.getScheduleInterval(), dto.getScheduleCron(), dto.getRetry());
     }
 
-    private List<Job> convertToDo(List<JobDto> dtos) {
+    private List<Job> convertToDo(List<JobAddParam> dtos) {
         List<Job> list = new ArrayList<>();
         if (CollectionUtils.isEmpty(dtos)) {
             return list;
         }
         // 封装对象
-        for (JobDto dto : dtos) {
+        for (JobAddParam dto : dtos) {
             list.add(convertToDo(dto));
         }
         return list;
     }
 
-    private Job convertToDo(JobDto dto) {
+    private Job convertToDo(JobAddParam dto) {
         Job job = new Job();
         job.setJobId(dto.getJobId());
         job.setDescription(dto.getDescription());
