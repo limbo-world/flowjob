@@ -24,7 +24,7 @@ import org.limbo.flowjob.broker.core.plan.PlanInfoBuilderFactory;
 import org.limbo.flowjob.broker.core.plan.job.Job;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.dao.po.PlanInfoPO;
-import org.limbo.utils.JacksonUtils;
+import org.limbo.utils.jackson.JacksonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -87,6 +87,7 @@ public class PlanInfoPOConverter extends Converter<PlanInfo, PlanInfoPO> {
                         Duration.ofMillis(po.getScheduleDelay()),
                         Duration.ofMillis(po.getScheduleInterval()),
                         po.getScheduleCron(),
+                        po.getScheduleCronType(),
                         po.getRetry()
                 ))
                 .jobs(JacksonUtils.parseObject(po.getJobs(), new TypeReference<List<Job>>() {}))

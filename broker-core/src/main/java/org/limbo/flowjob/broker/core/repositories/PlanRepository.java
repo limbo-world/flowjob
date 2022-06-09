@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.broker.core.plan;
+package org.limbo.flowjob.broker.core.repositories;
+
+import org.limbo.flowjob.broker.core.plan.Plan;
+import org.limbo.flowjob.broker.core.plan.PlanInfo;
 
 import java.util.List;
 

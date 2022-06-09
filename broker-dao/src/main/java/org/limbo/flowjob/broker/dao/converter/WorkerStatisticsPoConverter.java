@@ -19,7 +19,7 @@ package org.limbo.flowjob.broker.dao.converter;
 import com.google.common.base.Converter;
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatistics;
 import org.limbo.flowjob.broker.dao.po.WorkerStatisticsPO;
-import org.limbo.utils.EnhancedBeanUtils;
+import org.limbo.utils.reflection.EnhancedBeanUtils;
 import org.springframework.stereotype.Component;
 
 /**

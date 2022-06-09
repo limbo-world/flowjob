@@ -1,18 +1,25 @@
 package org.limbo.flowjob.broker.dao.converter;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Converter;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.api.constants.enums.TaskResult;
 import org.limbo.flowjob.broker.api.constants.enums.TaskScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskType;
 import org.limbo.flowjob.broker.core.plan.PlanRecord;
-import org.limbo.flowjob.broker.core.plan.PlanRecordRepository;
+import org.limbo.flowjob.broker.core.repositories.PlanRecordRepository;
 import org.limbo.flowjob.broker.core.plan.job.Job;
 import org.limbo.flowjob.broker.core.plan.job.context.Attributes;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
 import org.limbo.flowjob.broker.dao.po.TaskPO;
+import org.limbo.utils.jackson.JacksonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Devil
@@ -69,7 +76,8 @@ public class TaskPoConverter extends Converter<Task, TaskPO> {
         task.setExecutorOption(job.getExecutorOption());
         task.setWorkerId(po.getWorkerId());
         task.setType(TaskType.parse(po.getType()));
-        task.setAttributes(new Attributes(po.getAttributes()));
+        task.setAttributes(new Attributes(StringUtils.isBlank(po.getAttributes()) ? new HashMap<>() : JacksonUtils.parseObject(po.getAttributes(), new TypeReference<Map<String, List<String>>>() {
+        })));
         task.setErrorMsg(po.getErrorMsg());
         task.setErrorStackTrace(po.getErrorStackTrace());
         task.setStartAt(TimeUtil.toInstant(po.getStartAt()));

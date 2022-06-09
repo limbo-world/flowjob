@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.broker.core.plan.job.context;
+package org.limbo.flowjob.broker.core.repositories;
 
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
+import org.limbo.flowjob.broker.core.plan.job.context.JobInstance;
+import org.limbo.flowjob.broker.core.plan.job.context.JobRecord;
 
 import java.util.List;
 

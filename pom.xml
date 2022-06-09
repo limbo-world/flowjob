@@ -69,7 +69,7 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <limbo.utils>1.0.2</limbo.utils>
+        <limbo.utils>1.0.3</limbo.utils>
         <spring.boot>2.4.6</spring.boot>
         <spring.doc>1.5.6</spring.doc>
         <swagger>2.1.7</swagger>
@@ -114,11 +114,6 @@
                 <groupId>org.limbo.flowjob</groupId>
                 <artifactId>broker-dao</artifactId>
                 <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.limbo.flowjob</groupId>
-                <artifactId>worker-api</artifactId>
-                <version>1.0-SNAPSHOT</version>
             </dependency>
 
             <!-- SpringBoot BOM -->
@@ -194,6 +189,13 @@
                 <version>${jackson}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- -->
+            <dependency>
+                <groupId>javax.validation</groupId>
+                <artifactId>validation-api</artifactId>
+                <version>2.0.1.Final</version>
             </dependency>
 
             <!-- Quartz -->

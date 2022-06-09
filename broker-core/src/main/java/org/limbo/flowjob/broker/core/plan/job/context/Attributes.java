@@ -18,10 +18,8 @@ package org.limbo.flowjob.broker.core.plan.job.context;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.limbo.utils.JacksonUtils;
+import org.limbo.utils.jackson.JacksonUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -42,11 +40,6 @@ public class Attributes {
 
     public Attributes() {
         this.attributes = new HashMap<>();
-    }
-
-    public Attributes(String attributes) {
-        this.attributes = StringUtils.isBlank(attributes) ? new HashMap<>() : JacksonUtils.parseObject(attributes, new TypeReference<Map<String, List<String>>>() {
-        });
     }
 
     @JsonCreator

@@ -18,7 +18,6 @@ package org.limbo.flowjob.broker.api.constants.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * worker服务的通信协议
@@ -96,7 +95,7 @@ public enum WorkerProtocol {
      */
     @JsonCreator
     public static WorkerProtocol parse(String protocolName) {
-        if (StringUtils.isBlank(protocolName)) {
+        if (protocolName == null) {
             return null;
         }
 

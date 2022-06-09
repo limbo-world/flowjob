@@ -19,8 +19,7 @@ package org.limbo.flowjob.broker.api.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.limbo.utils.JacksonUtils;
-import org.limbo.utils.web.HttpStatus;
+import org.limbo.flowjob.broker.api.constants.HttpStatus;
 
 /**
  * @author Brozen
@@ -53,15 +52,6 @@ public class ResponseDTO<T> {
         this.code = code;
         this.message = message;
         this.data = data;
-    }
-
-
-    /**
-     * 通过{@link JacksonUtils#toJSONString(Object)}将此Response转换为json字符串
-     * @return json字符串
-     */
-    public String toJson() {
-        return JacksonUtils.toJSONString(this);
     }
 
 

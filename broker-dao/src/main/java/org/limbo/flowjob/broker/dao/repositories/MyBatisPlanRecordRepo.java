@@ -3,7 +3,7 @@ package org.limbo.flowjob.broker.dao.repositories;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.broker.core.plan.PlanRecord;
-import org.limbo.flowjob.broker.core.plan.PlanRecordRepository;
+import org.limbo.flowjob.broker.core.repositories.PlanRecordRepository;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
 import org.limbo.flowjob.broker.dao.converter.PlanRecordPoConverter;
 import org.limbo.flowjob.broker.dao.mybatis.PlanRecordMapper;

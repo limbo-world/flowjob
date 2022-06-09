@@ -16,8 +16,6 @@
 
 package org.limbo.flowjob.broker.api.constants.enums;
 
-import org.apache.commons.lang3.StringUtils;
-
 /**
  * @author Brozen
  * @since 2021-08-23
@@ -58,7 +56,7 @@ public enum TrackerModes {
      */
     public static TrackerModes parse(String mode) {
         // 默认单机模式
-        if (StringUtils.isBlank(mode)) {
+        if (mode == null) {
             return SINGLE;
         }
 

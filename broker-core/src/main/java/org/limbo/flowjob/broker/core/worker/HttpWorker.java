@@ -23,15 +23,15 @@ import io.netty.util.CharsetUtil;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
 import org.limbo.flowjob.broker.api.dto.ResponseDTO;
 import org.limbo.flowjob.broker.api.dto.worker.TaskReceiveDTO;
+import org.limbo.flowjob.broker.api.param.task.TaskSubmitParam;
 import org.limbo.flowjob.broker.core.exceptions.TaskReceiveException;
 import org.limbo.flowjob.broker.core.exceptions.WorkerException;
-import org.limbo.flowjob.broker.core.utils.TimeUtil;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
+import org.limbo.flowjob.broker.core.utils.TimeUtil;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatisticsRepository;
-import org.limbo.flowjob.worker.api.TaskParam;
-import org.limbo.utils.JacksonUtils;
+import org.limbo.utils.jackson.JacksonUtils;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufFlux;
 import reactor.netty.http.client.HttpClient;
@@ -67,7 +67,7 @@ public class HttpWorker extends Worker {
             path = "/" + path;
         }
 
-        return String.format("http://%s:%s%s", getHost(), getPort(), path);
+        return String.format("%s://%s:%s%s", getProtocol().name, getHost(), getPort(), path);
     }
 
     /**
@@ -115,7 +115,7 @@ public class HttpWorker extends Worker {
      */
     public Mono<TaskReceiveDTO> sendTask(Task task) throws TaskReceiveException {
         // 生成 dto
-        TaskParam dto = convertToDto(task);
+        TaskSubmitParam dto = convertToDto(task);
         return Mono.from(client
                 .headers(headers -> headers.add("Content-type", "application/json"))
                 .post()
@@ -142,8 +142,8 @@ public class HttpWorker extends Worker {
         updateWorker();
     }
 
-    private TaskParam convertToDto(Task task) {
-        TaskParam dto = new TaskParam();
+    private TaskSubmitParam convertToDto(Task task) {
+        TaskSubmitParam dto = new TaskSubmitParam();
         dto.setPlanId(task.getId().planId);
         dto.setPlanRecordId(task.getId().planRecordId);
         dto.setPlanInstanceId(task.getId().planInstanceId);

@@ -46,6 +46,12 @@
             <artifactId>broker-ha</artifactId>
         </dependency>
 
+        <!-- SwaggerV3 接口文档注解 -->
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-annotations</artifactId>
+        </dependency>
+
         <!-- Starter: WebFlux -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -104,6 +110,12 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-messaging</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

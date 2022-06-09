@@ -16,6 +16,11 @@
 
 package org.limbo.flowjob.broker.core.schedule.calculator;
 
+import com.cronutils.model.CronType;
+import com.cronutils.model.definition.CronDefinition;
+import com.cronutils.model.definition.CronDefinitionBuilder;
+import com.cronutils.model.time.ExecutionTime;
+import com.cronutils.parser.CronParser;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
 import org.limbo.flowjob.broker.core.schedule.Schedulable;
@@ -23,11 +28,10 @@ import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
 import org.limbo.flowjob.broker.core.utils.strategies.Strategy;
-import org.quartz.CronExpression;
 
-import java.text.ParseException;
 import java.time.Instant;
-import java.util.Date;
+import java.time.ZonedDateTime;
+import java.util.Optional;
 
 /**
  * CRON调度时间计算器
@@ -61,21 +65,22 @@ public class CronScheduleCalculator extends ScheduleCalculator implements Strate
 
         // 计算下一次调度
         String cron = scheduleOption.getScheduleCron();
+        String cronType = scheduleOption.getScheduleCronType();
         try {
             // 校验CRON表达式
-            CronExpression.validateExpression(cron);
-            CronExpression expression = new CronExpression(cron);
+            CronDefinition cronDefinition = CronDefinitionBuilder.instanceDefinitionFor(CronType.valueOf(cronType));
+            CronParser parser = new CronParser(cronDefinition);
+            ExecutionTime executionTime = ExecutionTime.forCron(parser.parse(cron));
 
             // 解析下次触发时间
-            Date nextSchedule = expression.getNextValidTimeAfter(Date.from(nowInstant));
-            if (nextSchedule == null) {
-                log.error("cron expression {} next schedule is null", cron);
+            Optional<ZonedDateTime> nextSchedule = executionTime.nextExecution(ZonedDateTime.now());
+            if (!nextSchedule.isPresent()) {
+                log.error("cron expression {} {} next schedule is null", cron, cronType);
                 return ScheduleCalculator.NO_TRIGGER;
             }
-
-            return nextSchedule.getTime();
-        } catch (ParseException e) {
-            log.error("parse cron expression {} failed!", cron, e);
+            return nextSchedule.get().toInstant().toEpochMilli();
+        } catch (Exception e) {
+            log.error("parse cron expression {} {} failed!", cron, cronType, e);
             return ScheduleCalculator.NO_TRIGGER;
         }
 

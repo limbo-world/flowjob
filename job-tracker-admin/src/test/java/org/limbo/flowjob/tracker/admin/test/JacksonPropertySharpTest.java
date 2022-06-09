@@ -17,9 +17,10 @@
 package org.limbo.flowjob.tracker.admin.test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.junit.Test;
 import org.limbo.flowjob.broker.api.constants.enums.DescribableEnum;
 import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
-import org.limbo.utils.JacksonUtils;
+import org.limbo.utils.jackson.JacksonUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +31,8 @@ import java.util.Map;
  */
 public class JacksonPropertySharpTest {
 
-    public static void main(String[] args) {
+    @Test
+    public void test() {
         Map<String, Object> map = new HashMap<>();
         map.put("type", LoadBalanceType.APPOINT);
         String json = JacksonUtils.toJSONString(map);

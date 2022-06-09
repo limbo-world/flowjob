@@ -4,7 +4,7 @@ import lombok.Data;
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskType;
 import org.limbo.flowjob.broker.core.plan.job.Job;
-import org.limbo.utils.UUIDUtils;
+import org.limbo.utils.strings.UUIDUtils;
 
 import java.time.Instant;
 

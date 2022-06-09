@@ -4,10 +4,10 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.events.Event;
 import org.limbo.flowjob.broker.core.events.EventTags;
-import org.limbo.flowjob.broker.core.plan.job.context.JobInstanceRepository;
-import org.limbo.flowjob.broker.core.plan.job.context.JobRecordRepository;
+import org.limbo.flowjob.broker.core.repositories.JobInstanceRepository;
+import org.limbo.flowjob.broker.core.repositories.JobRecordRepository;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
-import org.limbo.flowjob.broker.core.plan.job.context.TaskRepository;
+import org.limbo.flowjob.broker.core.repositories.TaskRepository;
 
 import javax.inject.Inject;
 

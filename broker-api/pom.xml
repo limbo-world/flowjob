@@ -14,24 +14,28 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Jackson -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
+            <scope>provided</scope>
         </dependency>
 
-        <!-- Utils -->
+        <!-- validation -->
         <dependency>
-            <groupId>io.github.limbo-world</groupId>
-            <artifactId>utils</artifactId>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- SwaggerV3 接口文档注解 -->
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-annotations</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

@@ -11,11 +11,11 @@ import org.limbo.flowjob.broker.core.broker.TrackerNode;
 import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.plan.PlanInfoBuilderFactory;
-import org.limbo.flowjob.broker.core.plan.PlanRepository;
 import org.limbo.flowjob.broker.core.plan.job.DispatchOption;
 import org.limbo.flowjob.broker.core.plan.job.ExecutorOption;
 import org.limbo.flowjob.broker.core.plan.job.Job;
 import org.limbo.flowjob.broker.core.plan.job.JobDAG;
+import org.limbo.flowjob.broker.core.repositories.PlanRepository;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.utils.verifies.Verifies;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -185,7 +185,7 @@ public class PlanService {
             return null;
         }
         return new ScheduleOption(dto.getScheduleType(), dto.getScheduleStartAt(), dto.getScheduleDelay(),
-                dto.getScheduleInterval(), dto.getScheduleCron(), dto.getRetry());
+                dto.getScheduleInterval(), dto.getScheduleCron(), dto.getScheduleCronType(), dto.getRetry());
     }
 
     private List<Job> convertToDo(List<JobAddParam> dtos) {

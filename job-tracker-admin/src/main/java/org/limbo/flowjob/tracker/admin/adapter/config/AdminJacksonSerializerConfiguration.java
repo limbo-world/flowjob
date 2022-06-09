@@ -17,7 +17,7 @@
 package org.limbo.flowjob.tracker.admin.adapter.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.limbo.utils.JacksonUtils;
+import org.limbo.utils.jackson.JacksonUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 

@@ -19,7 +19,7 @@ package org.limbo.flowjob.broker.dao.repositories;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.broker.core.plan.job.context.JobInstance;
-import org.limbo.flowjob.broker.core.plan.job.context.JobInstanceRepository;
+import org.limbo.flowjob.broker.core.repositories.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.plan.job.context.JobRecord;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
 import org.limbo.flowjob.broker.dao.converter.JobInstancePoConverter;

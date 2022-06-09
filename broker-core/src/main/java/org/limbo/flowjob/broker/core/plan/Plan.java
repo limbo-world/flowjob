@@ -20,6 +20,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.broker.core.plan.job.Job;
+import org.limbo.flowjob.broker.core.repositories.PlanInfoRepository;
+import org.limbo.flowjob.broker.core.repositories.PlanRepository;
 
 import javax.inject.Inject;
 import java.io.Serializable;

@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.api.constants.enums.ExecuteResult;
 import org.limbo.flowjob.broker.api.param.task.TaskExecuteFeedbackParam;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
-import org.limbo.flowjob.broker.core.plan.job.context.TaskRepository;
+import org.limbo.flowjob.broker.core.repositories.TaskRepository;
 import org.limbo.flowjob.broker.core.utils.Symbol;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;

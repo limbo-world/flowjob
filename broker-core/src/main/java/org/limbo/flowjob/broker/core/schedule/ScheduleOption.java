@@ -69,6 +69,12 @@ public class ScheduleOption {
     private final String scheduleCron;
 
     /**
+     * 作业调度的CRON表达式的类型
+     * 当调度方式为{@link ScheduleType#CRON}时，根据此CRON表达式类型计算得到的时间点触发作业调度。{@link com.cronutils.model.CronType}
+     */
+    private final String scheduleCronType;
+
+    /**
      * 作业重试次数
      */
     private final Integer retry;
@@ -80,12 +86,14 @@ public class ScheduleOption {
             @JsonProperty("scheduleDelay") Duration scheduleDelay,
             @JsonProperty("scheduleInterval") Duration scheduleInterval,
             @JsonProperty("scheduleCron") String scheduleCron,
+            @JsonProperty("scheduleCronType") String scheduleCronType,
             @JsonProperty("retry") Integer retry) {
         this.scheduleType = scheduleType;
         this.scheduleStartAt = scheduleStartAt;
         this.scheduleDelay = scheduleDelay == null ? Duration.ZERO : scheduleDelay;
         this.scheduleInterval = scheduleInterval == null ? Duration.ZERO : scheduleInterval;
         this.scheduleCron = scheduleCron;
+        this.scheduleCronType = scheduleCronType;
         this.retry = retry == null ? 0 : retry;
     }
 
@@ -103,6 +111,7 @@ public class ScheduleOption {
                 other.getScheduleDelay() != null ? other.getScheduleDelay() : this.getScheduleDelay(),
                 other.getScheduleInterval() != null ? other.getScheduleInterval() : this.getScheduleInterval(),
                 other.getScheduleCron() != null ? other.getScheduleCron() : this.getScheduleCron(),
+                other.getScheduleCronType() != null ? other.getScheduleCronType() : this.getScheduleCronType(),
                 other.getRetry() != null ? other.getRetry() : this.getRetry()
         );
     }

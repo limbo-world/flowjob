@@ -2,7 +2,7 @@ package org.limbo.flowjob.broker.dao.repositories;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
-import org.limbo.flowjob.broker.core.plan.PlanInfoRepository;
+import org.limbo.flowjob.broker.core.repositories.PlanInfoRepository;
 import org.limbo.flowjob.broker.dao.converter.PlanInfoPOConverter;
 import org.limbo.flowjob.broker.dao.mybatis.PlanInfoMapper;
 import org.limbo.flowjob.broker.dao.po.PlanInfoPO;

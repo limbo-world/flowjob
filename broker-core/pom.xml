@@ -15,21 +15,12 @@
             <groupId>org.limbo.flowjob</groupId>
             <artifactId>broker-api</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.limbo.flowjob</groupId>
-            <artifactId>worker-api</artifactId>
-        </dependency>
 
-        <!-- Quartz -->
+        <!-- cron -->
         <dependency>
-            <groupId>org.quartz-scheduler</groupId>
-            <artifactId>quartz</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.zaxxer</groupId>
-                    <artifactId>HikariCP-java7</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>com.cronutils</groupId>
+            <artifactId>cron-utils</artifactId>
+            <version>9.1.6</version>
         </dependency>
 
         <!-- netty -->
@@ -52,6 +43,16 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
+
+        <!-- Utils -->
+        <dependency>
+            <groupId>io.github.limbo-world</groupId>
+            <artifactId>utils</artifactId>
         </dependency>
 
         <!-- 单元测试 -->

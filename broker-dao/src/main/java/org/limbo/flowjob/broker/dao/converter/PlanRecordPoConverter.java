@@ -19,7 +19,7 @@ package org.limbo.flowjob.broker.dao.converter;
 import com.google.common.base.Converter;
 import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
-import org.limbo.flowjob.broker.core.plan.PlanInfoRepository;
+import org.limbo.flowjob.broker.core.repositories.PlanInfoRepository;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.plan.PlanRecord;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;

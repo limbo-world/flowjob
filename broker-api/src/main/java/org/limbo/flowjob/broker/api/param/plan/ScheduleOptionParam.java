@@ -58,6 +58,13 @@ public class ScheduleOptionParam {
     private String scheduleCron;
 
     /**
+     * 作业调度的CRON表达式类型
+     * 当调度方式为{@link ScheduleType#CRON}时，根据此CRON表达式计算得到的时间点触发作业调度。{@link com.cronutils.model.CronType}
+     */
+    @Schema(title = "作业调度的CRON表达式类型", description = "当调度方式为CRON时，根据此CRON表达式计算得到的时间点触发作业调度。")
+    private String scheduleCronType = "QUARTZ";
+
+    /**
      * 重试次数
      */
     @Schema(title = "重试次数")

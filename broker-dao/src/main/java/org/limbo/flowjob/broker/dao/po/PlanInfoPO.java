@@ -81,6 +81,11 @@ public class PlanInfoPO extends PO {
     private String scheduleCron;
 
     /**
+     * 作业调度的CRON表达式
+     */
+    private String scheduleCronType;
+
+    /**
      * 重试次数 超过执行就失败
      * job上的这个版本不设计了，用户本来就需要做幂等处理
      */

@@ -1,4 +1,6 @@
-package org.limbo.flowjob.broker.core.plan;
+package org.limbo.flowjob.broker.core.repositories;
+
+import org.limbo.flowjob.broker.core.plan.PlanInfo;
 
 /**
  * @author Brozen
