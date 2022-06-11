@@ -34,7 +34,6 @@ public enum TrackerModes {
 
     /**
      * 集群模式
-     * TODO 暂未实现
      */
     CLUSTER("cluster", "集群模式"),
 

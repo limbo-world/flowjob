@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * 作业执行方式
+ * 作业执行方式 todo 这个是否移除 shell 也是一种特定的function
  *
  * @author Brozen
  * @since 2021-07-05

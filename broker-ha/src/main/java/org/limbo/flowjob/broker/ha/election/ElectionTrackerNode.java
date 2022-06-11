@@ -3,7 +3,7 @@ package org.limbo.flowjob.broker.ha.election;
 import com.alipay.sofa.jraft.entity.PeerId;
 import com.alipay.sofa.jraft.rpc.impl.BoltRaftRpcFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.api.constants.enums.NodeState;
+import org.limbo.flowjob.broker.api.constants.enums.BrokerNodeState;
 import org.limbo.flowjob.broker.api.dto.ResponseDTO;
 import org.limbo.flowjob.broker.api.dto.broker.BrokerDTO;
 import org.limbo.flowjob.broker.core.broker.DisposableTrackerNode;
@@ -42,7 +42,7 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
     /**
      * 当前JobTracker状态
      */
-    private final AtomicReference<NodeState> state;
+    private final AtomicReference<BrokerNodeState> state;
 
     /**
      * 管理 worker
@@ -73,7 +73,7 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
                                WorkerManager workerManager) {
         this.jobTrackerFactory = jobTrackerFactory;
         this.workerManager = workerManager;
-        this.state = new AtomicReference<>(NodeState.INIT);
+        this.state = new AtomicReference<>(BrokerNodeState.INIT);
         this.electionOpts = electionOpts;
         this.port = port;
 
@@ -91,7 +91,7 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
     @Override
     public DisposableTrackerNode start() {
         // 重复启动检测
-        if (!state.compareAndSet(NodeState.INIT, NodeState.STARTING)) {
+        if (!state.compareAndSet(BrokerNodeState.INIT, BrokerNodeState.STARTING)) {
             throw new IllegalStateException("Tracker already running!");
         }
 
@@ -139,7 +139,7 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
                 jobTracker = jobTrackerFactory.leader();
 
                 // 选举结束触发事件，提供服务
-                if (state.compareAndSet(NodeState.STARTING, NodeState.STARTED)) {
+                if (state.compareAndSet(BrokerNodeState.STARTING, BrokerNodeState.STARTED)) {
                     triggerAfterStart(disposable);
                 }
             }
@@ -157,7 +157,7 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
                 jobTracker = jobTrackerFactory.follower(newLeaderId.getEndpoint(), rpcCaller);
 
                 // 选举结束触发事件，提供服务
-                if (state.compareAndSet(NodeState.STARTING, NodeState.STARTED)) {
+                if (state.compareAndSet(BrokerNodeState.STARTING, BrokerNodeState.STARTED)) {
                     triggerAfterStart(disposable);
                 }
             }
@@ -179,12 +179,12 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
     @Override
     public void stop() {
 
-        NodeState currState = state.get();
-        if (currState != NodeState.STARTING && currState != NodeState.STARTED) {
+        BrokerNodeState currState = state.get();
+        if (currState != BrokerNodeState.STARTING && currState != BrokerNodeState.STARTED) {
             throw new IllegalStateException("JobTracker is not running!");
         }
 
-        if (state.compareAndSet(currState, NodeState.STOPPING)) {
+        if (state.compareAndSet(currState, BrokerNodeState.STOPPING)) {
             throw new IllegalStateException("JobTracker already stopped!");
         }
 
@@ -192,7 +192,7 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
         triggerBeforeStop(this);
 
         // 更新状态，并在更新成功时触发AFTER_STOP事件
-        if (!state.compareAndSet(NodeState.STOPPING, NodeState.TERMINATED)) {
+        if (!state.compareAndSet(BrokerNodeState.STOPPING, BrokerNodeState.TERMINATED)) {
             log.warn("Set JobTracker state to TERMINATED failed!");
         } else {
             triggerAfterStop(this);
@@ -208,7 +208,7 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
      */
     @Override
     public boolean isRunning() {
-        return this.state.get() == NodeState.STARTED;
+        return this.state.get() == BrokerNodeState.STARTED;
     }
 
     /**
@@ -217,13 +217,13 @@ public class ElectionTrackerNode extends ReactorTrackerNodeLifecycle implements 
      * @return
      */
     public boolean isStopped() {
-        NodeState state = this.state.get();
-        return state == NodeState.STOPPING || state == NodeState.TERMINATED;
+        BrokerNodeState state = this.state.get();
+        return state == BrokerNodeState.STOPPING || state == BrokerNodeState.TERMINATED;
     }
 
     @Override
     public JobTracker jobTracker() {
-        if (NodeState.STARTED != this.state.get()) {
+        if (BrokerNodeState.STARTED != this.state.get()) {
             throw new IllegalStateException("Job Tracker is not started!");
         }
         // FIXME 如果丢失了主节点身份，JobTracker为null，是否需要阻塞一下？

@@ -2,7 +2,7 @@ package org.limbo.flowjob.broker.ha;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.broker.api.constants.enums.NodeState;
+import org.limbo.flowjob.broker.api.constants.enums.BrokerNodeState;
 import org.limbo.flowjob.broker.api.dto.broker.BrokerDTO;
 import org.limbo.flowjob.broker.core.broker.DisposableTrackerNode;
 import org.limbo.flowjob.broker.core.broker.DisposableTrackerNodeBind;
@@ -38,7 +38,7 @@ public abstract class AbstractTrackerNode extends ReactorTrackerNodeLifecycle im
     /**
      * 当前JobTracker状态
      */
-    protected final AtomicReference<NodeState> state;
+    protected final AtomicReference<BrokerNodeState> state;
 
     /**
      * 管理 worker
@@ -60,7 +60,7 @@ public abstract class AbstractTrackerNode extends ReactorTrackerNodeLifecycle im
         this.port = port;
         this.jobTrackerFactory = jobTrackerFactory;
         this.workerManager = workerManager;
-        this.state = new AtomicReference<>(NodeState.INIT);
+        this.state = new AtomicReference<>(BrokerNodeState.INIT);
 
     }
 
@@ -73,7 +73,7 @@ public abstract class AbstractTrackerNode extends ReactorTrackerNodeLifecycle im
     @Override
     public DisposableTrackerNode start() {
         // 重复启动检测
-        if (!state.compareAndSet(NodeState.INIT, NodeState.STARTING)) {
+        if (!state.compareAndSet(BrokerNodeState.INIT, BrokerNodeState.STARTING)) {
             throw new IllegalStateException("Node is already running!");
         }
 
@@ -89,7 +89,7 @@ public abstract class AbstractTrackerNode extends ReactorTrackerNodeLifecycle im
         }
 
         // 设置状态，成功则触发AFTER_START事件
-        if (!state.compareAndSet(NodeState.STARTING, NodeState.STARTED)) {
+        if (!state.compareAndSet(BrokerNodeState.STARTING, BrokerNodeState.STARTED)) {
             throw new IllegalStateException("Set Node state to STARTED failed, maybe stop() is called in a async thread?");
         }
 
@@ -108,12 +108,12 @@ public abstract class AbstractTrackerNode extends ReactorTrackerNodeLifecycle im
     @Override
     public void stop() {
 
-        NodeState currState = state.get();
-        if (currState != NodeState.STARTING && currState != NodeState.STARTED) {
+        BrokerNodeState currState = state.get();
+        if (currState != BrokerNodeState.STARTING && currState != BrokerNodeState.STARTED) {
             throw new IllegalStateException("Node is not running!");
         }
 
-        if (state.compareAndSet(currState, NodeState.STOPPING)) {
+        if (state.compareAndSet(currState, BrokerNodeState.STOPPING)) {
             throw new IllegalStateException("Node is already stopped!");
         }
 
@@ -121,7 +121,7 @@ public abstract class AbstractTrackerNode extends ReactorTrackerNodeLifecycle im
         triggerBeforeStop(this);
 
         // 更新状态，并在更新成功时触发AFTER_STOP事件
-        if (!state.compareAndSet(NodeState.STOPPING, NodeState.TERMINATED)) {
+        if (!state.compareAndSet(BrokerNodeState.STOPPING, BrokerNodeState.TERMINATED)) {
             log.warn("Set Node state to TERMINATED failed!");
         } else {
             triggerAfterStop(this);
@@ -137,7 +137,7 @@ public abstract class AbstractTrackerNode extends ReactorTrackerNodeLifecycle im
      */
     @Override
     public boolean isRunning() {
-        return this.state.get() == NodeState.STARTED;
+        return this.state.get() == BrokerNodeState.STARTED;
     }
 
     /**
@@ -146,13 +146,13 @@ public abstract class AbstractTrackerNode extends ReactorTrackerNodeLifecycle im
      * @return
      */
     public boolean isStopped() {
-        NodeState state = this.state.get();
-        return state == NodeState.STOPPING || state == NodeState.TERMINATED;
+        BrokerNodeState state = this.state.get();
+        return state == BrokerNodeState.STOPPING || state == BrokerNodeState.TERMINATED;
     }
 
     @Override
     public JobTracker jobTracker() {
-        if (NodeState.STARTED != this.state.get()) {
+        if (BrokerNodeState.STARTED != this.state.get()) {
             throw new IllegalStateException("Node is not started!");
         }
         return jobTracker;

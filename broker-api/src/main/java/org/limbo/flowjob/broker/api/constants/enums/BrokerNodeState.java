@@ -4,7 +4,7 @@ package org.limbo.flowjob.broker.api.constants.enums;
  * @author Devil
  * @since 2021/8/12
  */
-public enum NodeState {
+public enum BrokerNodeState {
     /**
      * 初始化
      */
@@ -25,9 +25,8 @@ public enum NodeState {
      * 停止完成
      */
     TERMINATED,
-
     /**
      * 选举中
      */
-    VOTEING,
+    VOTING,
 }
