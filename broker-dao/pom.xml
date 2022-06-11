@@ -16,6 +16,16 @@
             <artifactId>broker-core</artifactId>
         </dependency>
 
+        <!-- MapStruct Bean转换 -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+        </dependency>
+
         <!-- MyBatisPlus 依赖 -->
         <dependency>
             <groupId>com.baomidou</groupId>
