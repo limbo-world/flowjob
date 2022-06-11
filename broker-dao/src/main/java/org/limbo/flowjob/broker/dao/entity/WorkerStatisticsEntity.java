@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.broker.dao.po;
+package org.limbo.flowjob.broker.dao.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -22,16 +22,18 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.time.LocalDateTime;
+
 /**
  * @author Brozen
  * @since 2021-06-02
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("flowjob_worker_metric")
-public class WorkerMetricPO extends PO {
+@TableName("flowjob_worker_statistics")
+public class WorkerStatisticsEntity extends Entity {
 
-    private static final long serialVersionUID = -3009642474389520555L;
+    private static final long serialVersionUID = 4463926711851672545L;
 
     /**
      * worker节点ID
@@ -40,23 +42,13 @@ public class WorkerMetricPO extends PO {
     private String workerId;
 
     /**
-     * worker节点上正在执行中的作业
+     * 作业下发到此worker的次数
      */
-    private String executingJobs;
+    private Long jobDispatchCount;
 
     /**
-     * 可用的CPU核心数
+     * 最后一次向此worker下发作业成功的时间
      */
-    private Float availableCpu;
-
-    /**
-     * 可用的内存空间，单位GB
-     */
-    private Float availableRam;
-
-    /**
-     * 任务队列剩余可排队数
-     */
-    private Integer availableQueueLimit;
+    private LocalDateTime latestDispatchTime;
 
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.broker.dao.po;
+package org.limbo.flowjob.broker.dao.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -24,46 +24,34 @@ import lombok.EqualsAndHashCode;
 
 /**
  * @author Brozen
- * @since 2021-06-02
+ * @since 2021-07-05
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("flowjob_worker")
-public class WorkerPO extends PO {
+@TableName("flowjob_worker_executor")
+public class WorkerExecutorEntity extends Entity {
 
-    private static final long serialVersionUID = -3237766932023820195L;
-
-    private Long serialId;
+    private static final long serialVersionUID = 7370406980674258946L;
 
     /**
-     * worker节点ID，根据ip、host、protocol计算得到
+     * worker节点ID
      */
     @TableId(type = IdType.INPUT)
     private String workerId;
 
     /**
-     * worker服务使用的通信协议
+     * 执行器名称
      */
-    private Byte protocol;
+    private String name;
 
     /**
-     * worker服务的通信 host
+     * 执行器描述信息
      */
-    private String host;
+    private String description;
 
     /**
-     * worker服务的通信端口
+     * 执行器类型
      */
-    private Integer port;
-
-    /**
-     * worker节点状态
-     */
-    private Byte status;
-
-    /**
-     * 节点是否被删除
-     */
-    private Boolean deleted;
+    private Byte type;
 
 }

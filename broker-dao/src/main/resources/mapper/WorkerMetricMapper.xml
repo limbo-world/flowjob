@@ -18,7 +18,7 @@
 <mapper namespace="org.limbo.flowjob.broker.dao.mybatis.WorkerMetricMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="WorkerMetricPO" type="org.limbo.flowjob.broker.dao.po.WorkerMetricPO">
+    <resultMap id="WorkerMetricPO" type="org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity">
         <id column="worker_id" property="workerId" />
         <result column="executing_jobs" property="executingJobs" />
         <result column="available_cpu" property="availableCpu" />

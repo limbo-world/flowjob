@@ -25,7 +25,7 @@ import org.limbo.flowjob.broker.core.plan.PlanRecord;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
 import org.limbo.flowjob.broker.dao.converter.PlanInstancePoConverter;
 import org.limbo.flowjob.broker.dao.mybatis.PlanInstanceMapper;
-import org.limbo.flowjob.broker.dao.po.PlanInstancePO;
+import org.limbo.flowjob.broker.dao.entity.PlanInstanceContextEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -52,20 +52,20 @@ public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
      */
     @Override
     public void add(PlanInstance instance) {
-        PlanInstancePO po = converter.convert(instance);
+        PlanInstanceContextEntity po = converter.convert(instance);
         planInstanceMapper.insert(po);
     }
 
 
     @Override
     public void end(PlanInstance.ID planInstanceId, PlanScheduleStatus state) {
-        planInstanceMapper.update(null, Wrappers.<PlanInstancePO>lambdaUpdate()
-                .set(PlanInstancePO::getState, state.status)
-                .set(PlanInstancePO::getEndAt, TimeUtil.nowLocalDateTime())
-                .eq(PlanInstancePO::getPlanId, planInstanceId.planId)
-                .eq(PlanInstancePO::getPlanRecordId, planInstanceId.planRecordId)
-                .eq(PlanInstancePO::getPlanInstanceId, planInstanceId.planInstanceId)
-                .eq(PlanInstancePO::getState, PlanScheduleStatus.SCHEDULING.status)
+        planInstanceMapper.update(null, Wrappers.<PlanInstanceContextEntity>lambdaUpdate()
+                .set(PlanInstanceContextEntity::getState, state.status)
+                .set(PlanInstanceContextEntity::getEndAt, TimeUtil.nowLocalDateTime())
+                .eq(PlanInstanceContextEntity::getPlanId, planInstanceId.planId)
+                .eq(PlanInstanceContextEntity::getPlanRecordId, planInstanceId.planRecordId)
+                .eq(PlanInstanceContextEntity::getPlanInstanceId, planInstanceId.planInstanceId)
+                .eq(PlanInstanceContextEntity::getState, PlanScheduleStatus.SCHEDULING.status)
         );
     }
 
@@ -77,10 +77,10 @@ public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
      */
     @Override
     public PlanInstance get(PlanInstance.ID planInstanceId) {
-        PlanInstancePO po = planInstanceMapper.selectOne(Wrappers.<PlanInstancePO>lambdaQuery()
-                .eq(PlanInstancePO::getPlanId, planInstanceId.planId)
-                .eq(PlanInstancePO::getPlanRecordId, planInstanceId.planRecordId)
-                .eq(PlanInstancePO::getPlanInstanceId, planInstanceId.planInstanceId)
+        PlanInstanceContextEntity po = planInstanceMapper.selectOne(Wrappers.<PlanInstanceContextEntity>lambdaQuery()
+                .eq(PlanInstanceContextEntity::getPlanId, planInstanceId.planId)
+                .eq(PlanInstanceContextEntity::getPlanRecordId, planInstanceId.planRecordId)
+                .eq(PlanInstanceContextEntity::getPlanInstanceId, planInstanceId.planInstanceId)
         );
         return converter.reverse().convert(po);
     }
@@ -94,14 +94,14 @@ public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
     @Override
     public List<PlanInstance> list(PlanRecord.ID planRecordId) {
         List<PlanInstance> result = new ArrayList<>();
-        List<PlanInstancePO> pos = planInstanceMapper.selectList(Wrappers.<PlanInstancePO>lambdaQuery()
-                .eq(PlanInstancePO::getPlanId, planRecordId.planId)
-                .eq(PlanInstancePO::getPlanRecordId, planRecordId.planRecordId)
+        List<PlanInstanceContextEntity> pos = planInstanceMapper.selectList(Wrappers.<PlanInstanceContextEntity>lambdaQuery()
+                .eq(PlanInstanceContextEntity::getPlanId, planRecordId.planId)
+                .eq(PlanInstanceContextEntity::getPlanRecordId, planRecordId.planRecordId)
         );
         if (CollectionUtils.isEmpty(pos)) {
             return result;
         }
-        for (PlanInstancePO po : pos) {
+        for (PlanInstanceContextEntity po : pos) {
             result.add(converter.reverse().convert(po));
         }
         return result;

@@ -23,7 +23,7 @@ import org.limbo.flowjob.broker.core.repositories.PlanInfoRepository;
 import org.limbo.flowjob.broker.core.repositories.PlanRepository;
 import org.limbo.flowjob.broker.dao.converter.PlanPOConverter;
 import org.limbo.flowjob.broker.dao.mybatis.PlanMapper;
-import org.limbo.flowjob.broker.dao.po.PlanPO;
+import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.utils.verifies.Verifies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -58,7 +58,7 @@ public class MyBatisPlanRepo implements PlanRepository {
     @Override
     public String addPlan(Plan plan, PlanInfo initialInfo) {
         // 判断 Plan 是否存在，校验 PlanInfo 不为空
-        PlanPO po = mapper.selectById(plan.getPlanId());
+        PlanEntity po = mapper.selectById(plan.getPlanId());
         Verifies.isNull(po, "plan is already exist");
         Verifies.notNull(initialInfo, "plan info is null");
 
@@ -87,12 +87,12 @@ public class MyBatisPlanRepo implements PlanRepository {
     @Override
     public Integer updateVersion(Plan plan, Integer newVersion) {
         // 更新 Plan 版本信息
-        int effected = mapper.update(null, Wrappers.<PlanPO>lambdaUpdate()
-                .set(PlanPO::getCurrentVersion, newVersion)
-                .set(PlanPO::getRecentlyVersion, newVersion)
-                .eq(PlanPO::getPlanId, plan.getPlanId())
-                .eq(PlanPO::getCurrentVersion, plan.getCurrentVersion())
-                .eq(PlanPO::getRecentlyVersion, plan.getRecentlyVersion()));
+        int effected = mapper.update(null, Wrappers.<PlanEntity>lambdaUpdate()
+                .set(PlanEntity::getCurrentVersion, newVersion)
+                .set(PlanEntity::getRecentlyVersion, newVersion)
+                .eq(PlanEntity::getPlanId, plan.getPlanId())
+                .eq(PlanEntity::getCurrentVersion, plan.getCurrentVersion())
+                .eq(PlanEntity::getRecentlyVersion, plan.getRecentlyVersion()));
 
         if (effected > 0) {
             return newVersion;
@@ -109,9 +109,9 @@ public class MyBatisPlanRepo implements PlanRepository {
      */
     @Override
     public Plan get(String planId) {
-        PlanPO po = mapper.selectOne(Wrappers
-                .<PlanPO>lambdaQuery()
-                .eq(PlanPO::getPlanId, planId)
+        PlanEntity po = mapper.selectOne(Wrappers
+                .<PlanEntity>lambdaQuery()
+                .eq(PlanEntity::getPlanId, planId)
         );
         return converter.reverse().convert(po);
     }
@@ -137,10 +137,10 @@ public class MyBatisPlanRepo implements PlanRepository {
     public int enablePlan(Plan plan) {
         // update where 乐观锁
         return mapper.update(null, Wrappers
-                .<PlanPO>lambdaUpdate()
-                .set(PlanPO::getIsEnabled, true)
-                .eq(PlanPO::getPlanId, plan.getPlanId())
-                .eq(PlanPO::getIsEnabled, false)
+                .<PlanEntity>lambdaUpdate()
+                .set(PlanEntity::getIsEnabled, true)
+                .eq(PlanEntity::getPlanId, plan.getPlanId())
+                .eq(PlanEntity::getIsEnabled, false)
         );
     }
 
@@ -154,10 +154,10 @@ public class MyBatisPlanRepo implements PlanRepository {
     public int disablePlan(Plan plan) {
         // update where 乐观锁
         return mapper.update(null, Wrappers
-                .<PlanPO>lambdaUpdate()
-                .set(PlanPO::getIsEnabled, false)
-                .eq(PlanPO::getPlanId, plan.getPlanId())
-                .eq(PlanPO::getIsEnabled, true)
+                .<PlanEntity>lambdaUpdate()
+                .set(PlanEntity::getIsEnabled, false)
+                .eq(PlanEntity::getPlanId, plan.getPlanId())
+                .eq(PlanEntity::getIsEnabled, true)
         );
     }
 

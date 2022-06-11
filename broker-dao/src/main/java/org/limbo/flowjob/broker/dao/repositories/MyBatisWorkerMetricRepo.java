@@ -25,8 +25,8 @@ import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.broker.dao.mybatis.WorkerExecutorMapper;
 import org.limbo.flowjob.broker.dao.mybatis.WorkerMetricMapper;
-import org.limbo.flowjob.broker.dao.po.WorkerExecutorPO;
-import org.limbo.flowjob.broker.dao.po.WorkerMetricPO;
+import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.converter.WorkerExecutorPoConverter;
 import org.limbo.flowjob.broker.dao.converter.WorkerMetricPoConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,12 +62,12 @@ public class MyBatisWorkerMetricRepo implements WorkerMetricRepository {
      */
     @Override
     public void updateMetric(WorkerMetric metric) {
-        WorkerMetricPO po = converter.convert(metric);
+        WorkerMetricEntity po = converter.convert(metric);
         Objects.requireNonNull(po);
 
         // 新增或插入worker指标
-        int effected = mapper.update(po, Wrappers.<WorkerMetricPO>lambdaUpdate()
-                .eq(WorkerMetricPO::getWorkerId, po.getWorkerId()));
+        int effected = mapper.update(po, Wrappers.<WorkerMetricEntity>lambdaUpdate()
+                .eq(WorkerMetricEntity::getWorkerId, po.getWorkerId()));
         if (effected <= 0) {
 
             effected = mapper.insertIgnore(po);
@@ -77,8 +77,8 @@ public class MyBatisWorkerMetricRepo implements WorkerMetricRepository {
         }
 
         // 更新worker执行器
-        workerExecutorMapper.delete(Wrappers.<WorkerExecutorPO>lambdaQuery()
-                .eq(WorkerExecutorPO::getWorkerId, metric.getWorkerId()));
+        workerExecutorMapper.delete(Wrappers.<WorkerExecutorEntity>lambdaQuery()
+                .eq(WorkerExecutorEntity::getWorkerId, metric.getWorkerId()));
         List<WorkerExecutor> executors = metric.getExecutors();
         if (CollectionUtils.isNotEmpty(executors)) {
             workerExecutorMapper.batchInsert(executors.stream()
@@ -101,7 +101,7 @@ public class MyBatisWorkerMetricRepo implements WorkerMetricRepository {
     @Override
     public WorkerMetric getMetric(String workerId) {
         // 查询metric
-        WorkerMetricPO metricPo = mapper.selectById(workerId);
+        WorkerMetricEntity metricPo = mapper.selectById(workerId);
         WorkerMetric metric = converter.reverse().convert(metricPo);
         if (metric == null) {
             return null;
@@ -109,7 +109,7 @@ public class MyBatisWorkerMetricRepo implements WorkerMetricRepository {
 
         // 查询执行器
         List<WorkerExecutor> executors;
-        List<WorkerExecutorPO> executorPos = workerExecutorMapper.findByWorker(workerId);
+        List<WorkerExecutorEntity> executorPos = workerExecutorMapper.findByWorker(workerId);
         if (CollectionUtils.isNotEmpty(executorPos)) {
             executors = executorPos.stream()
                     .map(po -> workerExecutorPoConverter.reverse().convert(po))

@@ -12,7 +12,7 @@ import org.limbo.flowjob.broker.core.plan.job.Job;
 import org.limbo.flowjob.broker.core.plan.job.context.Attributes;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
-import org.limbo.flowjob.broker.dao.po.TaskPO;
+import org.limbo.flowjob.broker.dao.entity.TaskPO;
 import org.limbo.utils.jackson.JacksonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

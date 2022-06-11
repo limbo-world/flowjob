@@ -18,7 +18,7 @@ package org.limbo.flowjob.broker.dao.converter;
 
 import com.google.common.base.Converter;
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatistics;
-import org.limbo.flowjob.broker.dao.po.WorkerStatisticsPO;
+import org.limbo.flowjob.broker.dao.entity.WorkerStatisticsEntity;
 import org.limbo.utils.reflection.EnhancedBeanUtils;
 import org.springframework.stereotype.Component;
 
@@ -27,25 +27,25 @@ import org.springframework.stereotype.Component;
  * @since 2021-06-03
  */
 @Component
-public class WorkerStatisticsPoConverter extends Converter<WorkerStatistics, WorkerStatisticsPO> {
+public class WorkerStatisticsPoConverter extends Converter<WorkerStatistics, WorkerStatisticsEntity> {
 
     /**
-     * 将{@link WorkerStatistics}值对象转换为{@link WorkerStatisticsPO}持久化对象
+     * 将{@link WorkerStatistics}值对象转换为{@link WorkerStatisticsEntity}持久化对象
      * @param vo {@link WorkerStatistics}值对象
-     * @return {@link WorkerStatisticsPO}持久化对象
+     * @return {@link WorkerStatisticsEntity}持久化对象
      */
     @Override
-    protected WorkerStatisticsPO doForward(WorkerStatistics vo) {
-        return EnhancedBeanUtils.createAndCopy(vo, WorkerStatisticsPO.class);
+    protected WorkerStatisticsEntity doForward(WorkerStatistics vo) {
+        return EnhancedBeanUtils.createAndCopy(vo, WorkerStatisticsEntity.class);
     }
 
     /**
-     * 将{@link WorkerStatisticsPO}持久化对象转换为{@link WorkerStatistics}值对象
-     * @param po {@link WorkerStatisticsPO}持久化对象
+     * 将{@link WorkerStatisticsEntity}持久化对象转换为{@link WorkerStatistics}值对象
+     * @param po {@link WorkerStatisticsEntity}持久化对象
      * @return {@link WorkerStatistics}值对象
      */
     @Override
-    protected WorkerStatistics doBackward(WorkerStatisticsPO po) {
+    protected WorkerStatistics doBackward(WorkerStatisticsEntity po) {
         return EnhancedBeanUtils.createAndCopy(po, WorkerStatistics.class);
     }
 }

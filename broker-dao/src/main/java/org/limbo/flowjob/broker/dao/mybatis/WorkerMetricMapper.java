@@ -17,19 +17,19 @@
 package org.limbo.flowjob.broker.dao.mybatis;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.limbo.flowjob.broker.dao.po.WorkerMetricPO;
+import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 
 /**
  * @author Brozen
  * @since 2021-06-02
  */
-public interface WorkerMetricMapper extends BaseMapper<WorkerMetricPO> {
+public interface WorkerMetricMapper extends BaseMapper<WorkerMetricEntity> {
 
     /**
      * 新增worker指标采集数据记录，使用insert ignore语句
      * @param metric 指标信息
      * @return 影响的行数
      */
-    int insertIgnore(WorkerMetricPO metric);
+    int insertIgnore(WorkerMetricEntity metric);
 
 }

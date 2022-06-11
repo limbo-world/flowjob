@@ -3,13 +3,13 @@ package org.limbo.flowjob.broker.dao.mybatis;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
-import org.limbo.flowjob.broker.dao.po.PlanInstancePO;
+import org.limbo.flowjob.broker.dao.entity.PlanInstanceContextEntity;
 
 /**
  * @author Devil
  * @since 2021/7/24
  */
-public interface PlanInstanceMapper extends BaseMapper<PlanInstancePO> {
+public interface PlanInstanceMapper extends BaseMapper<PlanInstanceContextEntity> {
 
     @Select("select " +
                 "plan_instance_id " +

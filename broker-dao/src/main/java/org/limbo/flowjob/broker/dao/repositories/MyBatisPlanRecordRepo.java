@@ -6,8 +6,8 @@ import org.limbo.flowjob.broker.core.plan.PlanRecord;
 import org.limbo.flowjob.broker.core.repositories.PlanRecordRepository;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
 import org.limbo.flowjob.broker.dao.converter.PlanRecordPoConverter;
+import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.mybatis.PlanRecordMapper;
-import org.limbo.flowjob.broker.dao.po.PlanRecordPO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -27,16 +27,16 @@ public class MyBatisPlanRecordRepo implements PlanRecordRepository {
 
     @Override
     public void add(PlanRecord record) {
-        PlanRecordPO po = converter.convert(record);
+        PlanInstanceEntity po = converter.convert(record);
         planRecordMapper.insert(po);
     }
 
 
     @Override
     public PlanRecord get(PlanRecord.ID planRecordId) {
-        PlanRecordPO po = planRecordMapper.selectOne(Wrappers.<PlanRecordPO>lambdaQuery()
-                .eq(PlanRecordPO::getPlanId, planRecordId.planId)
-                .eq(PlanRecordPO::getPlanRecordId, planRecordId.planRecordId));
+        PlanInstanceEntity po = planRecordMapper.selectOne(Wrappers.<PlanInstanceEntity>lambdaQuery()
+                .eq(PlanInstanceEntity::getPlanInstanceId, planRecordId.planId + planRecordId.planRecordId)
+        );
         return converter.reverse().convert(po);
     }
 
@@ -51,12 +51,11 @@ public class MyBatisPlanRecordRepo implements PlanRecordRepository {
 
     @Override
     public void end(PlanRecord.ID planRecordId, PlanScheduleStatus state) {
-        planRecordMapper.update(null, Wrappers.<PlanRecordPO>lambdaUpdate()
-                .set(PlanRecordPO::getState, state.status)
-                .set(PlanRecordPO::getEndAt, TimeUtil.nowLocalDateTime())
-                .eq(PlanRecordPO::getPlanId, planRecordId.planId)
-                .eq(PlanRecordPO::getPlanRecordId, planRecordId.planRecordId)
-                .eq(PlanRecordPO::getState, PlanScheduleStatus.SCHEDULING.status)
+        planRecordMapper.update(null, Wrappers.<PlanInstanceEntity>lambdaUpdate()
+                .set(PlanInstanceEntity::getState, state.status)
+                .set(PlanInstanceEntity::getEndAt, TimeUtil.nowLocalDateTime())
+                .eq(PlanInstanceEntity::getPlanInstanceId, planRecordId.planId + planRecordId.planRecordId)
+                .eq(PlanInstanceEntity::getState, PlanScheduleStatus.SCHEDULING.status)
         );
     }
 

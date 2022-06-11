@@ -20,7 +20,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatistics;
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatisticsRepository;
 import org.limbo.flowjob.broker.dao.mybatis.WorkerStatisticsMapper;
-import org.limbo.flowjob.broker.dao.po.WorkerStatisticsPO;
+import org.limbo.flowjob.broker.dao.entity.WorkerStatisticsEntity;
 import org.limbo.flowjob.broker.dao.converter.WorkerStatisticsPoConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -47,11 +47,11 @@ public class MyBatisWorkerStatisticsRepo implements WorkerStatisticsRepository {
      */
     @Override
     public void addOrUpdateWorkerStatistics(WorkerStatistics statistics) {
-        WorkerStatisticsPO po = converter.convert(statistics);
+        WorkerStatisticsEntity po = converter.convert(statistics);
         Objects.requireNonNull(po);
 
-        int effected = mapper.update(po, Wrappers.<WorkerStatisticsPO>lambdaUpdate()
-                .eq(WorkerStatisticsPO::getWorkerId, po.getWorkerId()));
+        int effected = mapper.update(po, Wrappers.<WorkerStatisticsEntity>lambdaUpdate()
+                .eq(WorkerStatisticsEntity::getWorkerId, po.getWorkerId()));
         if (effected <= 0) {
 
             effected = mapper.insertIgnore(po);

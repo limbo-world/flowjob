@@ -18,7 +18,7 @@
 <mapper namespace="org.limbo.flowjob.broker.dao.mybatis.WorkerMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="WorkerPO" type="org.limbo.flowjob.broker.dao.po.WorkerPO">
+    <resultMap id="WorkerPO" type="org.limbo.flowjob.broker.dao.entity.WorkerEntity">
         <id column="serial_id" property="serialId" />
         <result column="worker_id" property="workerId" />
         <result column="protocol" property="protocol" />

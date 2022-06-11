@@ -4,7 +4,7 @@ import com.google.common.base.Converter;
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.broker.core.plan.job.context.JobRecord;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
-import org.limbo.flowjob.broker.dao.po.JobRecordPO;
+import org.limbo.flowjob.broker.dao.entity.JobInstancePO;
 import org.springframework.stereotype.Component;
 
 /**
@@ -12,11 +12,11 @@ import org.springframework.stereotype.Component;
  * @since 2021/7/24
  */
 @Component
-public class JobRecordPoConverter extends Converter<JobRecord, JobRecordPO> {
+public class JobRecordPoConverter extends Converter<JobRecord, JobInstancePO> {
 
     @Override
-    protected JobRecordPO doForward(JobRecord record) {
-        JobRecordPO po = new JobRecordPO();
+    protected JobInstancePO doForward(JobRecord record) {
+        JobInstancePO po = new JobInstancePO();
         JobRecord.ID recordId = record.getId();
         po.setPlanId(recordId.planId);
         po.setPlanRecordId(recordId.planRecordId);
@@ -30,7 +30,7 @@ public class JobRecordPoConverter extends Converter<JobRecord, JobRecordPO> {
     }
 
     @Override
-    protected JobRecord doBackward(JobRecordPO po) {
+    protected JobRecord doBackward(JobInstancePO po) {
         JobRecord record = new JobRecord();
         JobRecord.ID recordId = new JobRecord.ID(
                 po.getPlanId(),

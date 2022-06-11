@@ -23,7 +23,7 @@ import org.limbo.flowjob.broker.core.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.plan.PlanInfoBuilderFactory;
 import org.limbo.flowjob.broker.core.plan.job.Job;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
-import org.limbo.flowjob.broker.dao.po.PlanInfoPO;
+import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.utils.jackson.JacksonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -37,7 +37,7 @@ import java.util.List;
  * @since 2021-07-13
  */
 @Component
-public class PlanInfoPOConverter extends Converter<PlanInfo, PlanInfoPO> {
+public class PlanInfoPOConverter extends Converter<PlanInfo, PlanInfoEntity> {
 
     @Autowired
     private ApplicationContext ac;
@@ -47,11 +47,11 @@ public class PlanInfoPOConverter extends Converter<PlanInfo, PlanInfoPO> {
 
 
     /**
-     * {@link PlanInfo} -> {@link PlanInfoPO}
+     * {@link PlanInfo} -> {@link PlanInfoEntity}
      */
     @Override
-    protected PlanInfoPO doForward(PlanInfo planInfo) {
-        PlanInfoPO po = new PlanInfoPO();
+    protected PlanInfoEntity doForward(PlanInfo planInfo) {
+        PlanInfoEntity po = new PlanInfoEntity();
 
         po.setPlanId(planInfo.getPlanId());
         po.setVersion(planInfo.getVersion());
@@ -73,10 +73,10 @@ public class PlanInfoPOConverter extends Converter<PlanInfo, PlanInfoPO> {
 
 
     /**
-     * {@link PlanInfoPO} -> {@link PlanInfo}
+     * {@link PlanInfoEntity} -> {@link PlanInfo}
      */
     @Override
-    protected PlanInfo doBackward(PlanInfoPO po) {
+    protected PlanInfo doBackward(PlanInfoEntity po) {
         PlanInfo planInfo = planInfoBuilderFactory.builder()
                 .planId(po.getPlanId())
                 .version(po.getVersion())

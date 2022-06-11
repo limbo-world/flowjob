@@ -21,7 +21,7 @@ import com.google.common.base.Converter;
 import org.limbo.flowjob.broker.core.worker.metric.JobDescription;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
-import org.limbo.flowjob.broker.dao.po.WorkerMetricPO;
+import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.utils.jackson.JacksonUtils;
 import org.springframework.stereotype.Component;
 
@@ -32,16 +32,16 @@ import java.util.List;
  * @since 2021-06-03
  */
 @Component
-public class WorkerMetricPoConverter extends Converter<WorkerMetric, WorkerMetricPO> {
+public class WorkerMetricPoConverter extends Converter<WorkerMetric, WorkerMetricEntity> {
 
     /**
-     * 将{@link WorkerMetric}值对象转换为{@link WorkerMetricPO}持久化对象
+     * 将{@link WorkerMetric}值对象转换为{@link WorkerMetricEntity}持久化对象
      * @param vo {@link WorkerMetric}值对象
-     * @return {@link WorkerMetricPO}持久化对象
+     * @return {@link WorkerMetricEntity}持久化对象
      */
     @Override
-    protected WorkerMetricPO doForward(WorkerMetric vo) {
-        WorkerMetricPO po = new WorkerMetricPO();
+    protected WorkerMetricEntity doForward(WorkerMetric vo) {
+        WorkerMetricEntity po = new WorkerMetricEntity();
         po.setWorkerId(vo.getWorkerId());
 
         WorkerAvailableResource availableResource = vo.getAvailableResource();
@@ -56,12 +56,12 @@ public class WorkerMetricPoConverter extends Converter<WorkerMetric, WorkerMetri
     }
 
     /**
-     * 将{@link WorkerMetricPO}持久化对象转换为{@link WorkerMetric}值对象
-     * @param po {@link WorkerMetricPO}持久化对象
+     * 将{@link WorkerMetricEntity}持久化对象转换为{@link WorkerMetric}值对象
+     * @param po {@link WorkerMetricEntity}持久化对象
      * @return {@link WorkerMetric}值对象
      */
     @Override
-    protected WorkerMetric doBackward(WorkerMetricPO po) {
+    protected WorkerMetric doBackward(WorkerMetricEntity po) {
         WorkerMetric metric = new WorkerMetric();
         metric.setWorkerId(po.getWorkerId());
         metric.setAvailableResource(new WorkerAvailableResource(

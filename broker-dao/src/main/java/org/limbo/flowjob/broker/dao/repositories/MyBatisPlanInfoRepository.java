@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.repositories.PlanInfoRepository;
 import org.limbo.flowjob.broker.dao.converter.PlanInfoPOConverter;
+import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.mybatis.PlanInfoMapper;
-import org.limbo.flowjob.broker.dao.po.PlanInfoPO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -40,10 +40,8 @@ public class MyBatisPlanInfoRepository implements PlanInfoRepository {
      */
     @Override
     public PlanInfo getByVersion(String planId, Integer version) {
-        PlanInfoPO po = mapper.selectOne(Wrappers.<PlanInfoPO>lambdaQuery()
-                .eq(PlanInfoPO::getPlanId, planId)
-                .eq(PlanInfoPO::getVersion, version));
-
+        PlanInfoEntity po = mapper.selectOne(Wrappers.<PlanInfoEntity>lambdaQuery()
+                .eq(PlanInfoEntity::getPlanInfoId, planId + version));
         return converter.reverse().convert(po);
     }
 

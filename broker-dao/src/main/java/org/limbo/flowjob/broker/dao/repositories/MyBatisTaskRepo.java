@@ -23,7 +23,7 @@ import org.limbo.flowjob.broker.core.plan.job.context.Task;
 import org.limbo.flowjob.broker.core.repositories.TaskRepository;
 import org.limbo.flowjob.broker.dao.converter.TaskPoConverter;
 import org.limbo.flowjob.broker.dao.mybatis.TaskMapper;
-import org.limbo.flowjob.broker.dao.po.TaskPO;
+import org.limbo.flowjob.broker.dao.entity.TaskPO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 

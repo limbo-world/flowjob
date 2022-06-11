@@ -22,7 +22,7 @@ import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.converter.WorkerPoConverter;
 import org.limbo.flowjob.broker.dao.mybatis.WorkerMapper;
-import org.limbo.flowjob.broker.dao.po.WorkerPO;
+import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -49,7 +49,7 @@ public class MyBatisWorkerRepo implements WorkerRepository {
      */
     @Override
     public void addWorker(Worker worker) {
-        WorkerPO po = converter.convert(worker);
+        WorkerEntity po = converter.convert(worker);
         Objects.requireNonNull(po);
 
         // todo id 冲突应该给提示更好
@@ -62,11 +62,11 @@ public class MyBatisWorkerRepo implements WorkerRepository {
      */
     @Override
     public void updateWorker(Worker worker) {
-        WorkerPO po = converter.convert(worker);
+        WorkerEntity po = converter.convert(worker);
         Objects.requireNonNull(po);
 
-        mapper.update(po, Wrappers.<WorkerPO>lambdaUpdate()
-                .eq(WorkerPO::getWorkerId, po.getWorkerId()));
+        mapper.update(po, Wrappers.<WorkerEntity>lambdaUpdate()
+                .eq(WorkerEntity::getWorkerId, po.getWorkerId()));
     }
 
     /**
@@ -85,9 +85,9 @@ public class MyBatisWorkerRepo implements WorkerRepository {
      */
     @Override
     public List<Worker> availableWorkers() {
-        return mapper.selectList(Wrappers.<WorkerPO>lambdaQuery()
-                .eq(WorkerPO::getStatus, WorkerStatus.RUNNING.status)
-                .eq(WorkerPO::getDeleted, Boolean.FALSE)
+        return mapper.selectList(Wrappers.<WorkerEntity>lambdaQuery()
+                .eq(WorkerEntity::getStatus, WorkerStatus.RUNNING.status)
+                .eq(WorkerEntity::getDeleted, Boolean.FALSE)
         ).stream()
                 .map(po -> converter.reverse().convert(po))
                 .collect(Collectors.toList());
@@ -99,7 +99,7 @@ public class MyBatisWorkerRepo implements WorkerRepository {
      */
     @Override
     public void removeWorker(String workerId) {
-        WorkerPO po = mapper.selectById(workerId);
+        WorkerEntity po = mapper.selectById(workerId);
         if (po != null) {
             po.setDeleted(true);
             mapper.updateById(po);

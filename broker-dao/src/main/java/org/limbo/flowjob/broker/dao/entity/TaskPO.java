@@ -1,4 +1,4 @@
-package org.limbo.flowjob.broker.dao.po;
+package org.limbo.flowjob.broker.dao.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -15,13 +15,8 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("flowjob_task")
-public class TaskPO extends PO {
+public class TaskPO extends Entity {
     private static final long serialVersionUID = -6865597903513656450L;
-
-    /**
-     * DB自增序列ID，并不是唯一标识
-     */
-    private Long serialId;
 
     private String planId;
 

@@ -1,5 +1,7 @@
-package org.limbo.flowjob.broker.dao.po;
+package org.limbo.flowjob.broker.dao.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -7,40 +9,31 @@ import lombok.EqualsAndHashCode;
 import java.time.LocalDateTime;
 
 /**
- * plan的一次执行
+ * plan 一次执行实例 包含整个生命周期
  *
  * @author Devil
  * @since 2021/9/1
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("flowjob_plan_record")
-public class PlanRecordPO extends PO {
+@TableName("flowjob_plan_instance")
+public class PlanInstanceEntity extends Entity {
 
     private static final long serialVersionUID = -8999288394853231265L;
 
     /**
-     * DB自增序列ID，并不是唯一标识
+     * 全局唯一
      */
-    private Long serialId;
+    @TableId(type = IdType.INPUT)
+    private String planInstanceId;
 
     /**
-     * 计划ID
+     * 对应计划的版本
      */
-    private String planId;
+    private String planInfoId;
 
     /**
-     * 从 1 开始增加 planId + recordId 全局唯一
-     */
-    private Long planRecordId;
-
-    /**
-     * 计划的版本
-     */
-    private Integer version;
-
-    /**
-     * 重试次数
+     * 已经重试的次数
      */
     private Integer retry;
 

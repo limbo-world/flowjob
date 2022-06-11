@@ -3,7 +3,7 @@ package org.limbo.flowjob.broker.dao.mybatis;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
-import org.limbo.flowjob.broker.dao.po.TaskPO;
+import org.limbo.flowjob.broker.dao.entity.TaskPO;
 
 /**
  * @author Devil

@@ -24,7 +24,7 @@ import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatisticsRepository;
-import org.limbo.flowjob.broker.dao.po.WorkerPO;
+import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -35,7 +35,7 @@ import reactor.netty.http.client.HttpClient;
  * @since 2021-06-02
  */
 @Component
-public class WorkerPoConverter extends Converter<Worker, WorkerPO> {
+public class WorkerPoConverter extends Converter<Worker, WorkerEntity> {
 
     @Autowired
     private HttpClient httpClient;
@@ -51,13 +51,13 @@ public class WorkerPoConverter extends Converter<Worker, WorkerPO> {
     private WorkerStatisticsRepository workerStatisticsRepository;
 
     /**
-     * 将领域对象{@link Worker}转换为持久化对象{@link WorkerPO}
+     * 将领域对象{@link Worker}转换为持久化对象{@link WorkerEntity}
      * @param _do {@link Worker}领域对象
-     * @return {@link WorkerPO}持久化对象
+     * @return {@link WorkerEntity}持久化对象
      */
     @Override
-    protected WorkerPO doForward(Worker _do) {
-        WorkerPO po = new WorkerPO();
+    protected WorkerEntity doForward(Worker _do) {
+        WorkerEntity po = new WorkerEntity();
         po.setWorkerId(_do.getWorkerId());
         po.setProtocol(_do.getProtocol().protocol);
         po.setHost(_do.getHost());
@@ -68,12 +68,12 @@ public class WorkerPoConverter extends Converter<Worker, WorkerPO> {
     }
 
     /**
-     * 将持久化对象{@link WorkerPO}转换为领域对象{@link Worker}
-     * @param po {@link WorkerPO}持久化对象
+     * 将持久化对象{@link WorkerEntity}转换为领域对象{@link Worker}
+     * @param po {@link WorkerEntity}持久化对象
      * @return {@link Worker}领域对象
      */
     @Override
-    protected Worker doBackward(WorkerPO po) {
+    protected Worker doBackward(WorkerEntity po) {
         // 已删除则不返回
         if (po.getDeleted()) {
             return null;
@@ -89,11 +89,11 @@ public class WorkerPoConverter extends Converter<Worker, WorkerPO> {
     }
 
     /**
-     * 将持久化对象{@link WorkerPO}转换为领域对象{@link HttpWorker}
-     * @param po {@link WorkerPO}持久化对象
+     * 将持久化对象{@link WorkerEntity}转换为领域对象{@link HttpWorker}
+     * @param po {@link WorkerEntity}持久化对象
      * @return {@link HttpWorker}领域对象
      */
-    private Worker convertToHttpWorker(WorkerPO po) {
+    private Worker convertToHttpWorker(WorkerEntity po) {
 
         HttpWorker worker = new HttpWorker(httpClient, workerRepository, metricRepository, workerStatisticsRepository);
         worker.setWorkerId(po.getWorkerId());

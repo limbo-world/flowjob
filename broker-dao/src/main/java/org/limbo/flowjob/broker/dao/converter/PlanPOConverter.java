@@ -2,7 +2,7 @@ package org.limbo.flowjob.broker.dao.converter;
 
 import com.google.common.base.Converter;
 import org.limbo.flowjob.broker.core.plan.Plan;
-import org.limbo.flowjob.broker.dao.po.PlanPO;
+import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -12,17 +12,17 @@ import org.springframework.stereotype.Component;
  * @since 2021-10-19
  */
 @Component
-public class PlanPOConverter extends Converter<Plan, PlanPO> {
+public class PlanPOConverter extends Converter<Plan, PlanEntity> {
 
     @Autowired
     private ApplicationContext ac;
 
     /**
-     * {@link Plan} -> {@link PlanPO}
+     * {@link Plan} -> {@link PlanEntity}
      */
     @Override
-    protected PlanPO doForward(Plan plan) {
-        PlanPO po = new PlanPO();
+    protected PlanEntity doForward(Plan plan) {
+        PlanEntity po = new PlanEntity();
         po.setPlanId(plan.getPlanId());
         po.setCurrentVersion(plan.getCurrentVersion());
         po.setRecentlyVersion(plan.getRecentlyVersion());
@@ -32,10 +32,10 @@ public class PlanPOConverter extends Converter<Plan, PlanPO> {
 
 
     /**
-     * {@link PlanPO} -> {@link Plan}
+     * {@link PlanEntity} -> {@link Plan}
      */
     @Override
-    protected Plan doBackward(PlanPO po) {
+    protected Plan doBackward(PlanEntity po) {
         Plan plan = new Plan();
         plan.setPlanId(po.getPlanId());
         plan.setCurrentVersion(po.getCurrentVersion());

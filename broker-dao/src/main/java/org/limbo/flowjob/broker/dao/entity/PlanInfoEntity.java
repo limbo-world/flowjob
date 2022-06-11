@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.broker.dao.po;
+package org.limbo.flowjob.broker.dao.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -31,24 +33,15 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("flowjob_plan_info")
-public class PlanInfoPO extends PO {
+public class PlanInfoEntity extends Entity {
 
     private static final long serialVersionUID = -1639602897831847418L;
 
     /**
-     * DB自增序列ID，并不是唯一标识
+     * 版本 全局唯一
      */
-    private Long serialId;
-
-    /**
-     * 作业执行计划ID
-     */
-    private String planId;
-
-    /**
-     * 版本 planId + version 唯一
-     */
-    private Integer version;
+    @TableId(type = IdType.INPUT)
+    private String planInfoId;
 
     /**
      * 执行计划描述

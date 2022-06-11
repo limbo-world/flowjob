@@ -19,7 +19,7 @@ package org.limbo.flowjob.broker.dao.mybatis;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
-import org.limbo.flowjob.broker.dao.po.WorkerExecutorPO;
+import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
 
 import java.util.List;
 
@@ -27,18 +27,18 @@ import java.util.List;
  * @author Brozen
  * @since 2021-07-05
  */
-public interface WorkerExecutorMapper extends BaseMapper<WorkerExecutorPO> {
+public interface WorkerExecutorMapper extends BaseMapper<WorkerExecutorEntity> {
 
     /**
      * 批量插入worker执行器
      * @param executors 执行器po列表
      */
-    int batchInsert(@Param("executors") List<WorkerExecutorPO> executors);
+    int batchInsert(@Param("executors") List<WorkerExecutorEntity> executors);
 
     /**
      * 根据workerId查询所有执行器
      */
     @Select("SELECT * FROM flowjob_worker_executor WHERE worker_id = #{workerId}")
-    List<WorkerExecutorPO> findByWorker(@Param("workerId") String workerId);
+    List<WorkerExecutorEntity> findByWorker(@Param("workerId") String workerId);
 
 }

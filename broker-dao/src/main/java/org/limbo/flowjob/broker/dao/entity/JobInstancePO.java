@@ -1,5 +1,7 @@
-package org.limbo.flowjob.broker.dao.po;
+package org.limbo.flowjob.broker.dao.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -14,22 +16,17 @@ import java.time.LocalDateTime;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("flowjob_job_record")
-public class JobRecordPO extends PO {
+@TableName("flowjob_job_instance")
+public class JobInstancePO extends Entity {
     private static final long serialVersionUID = -1136312243146520057L;
 
     /**
-     * DB自增序列ID，并不是唯一标识
+     * 全局唯一
      */
-    private Long serialId;
+    @TableId(type = IdType.INPUT)
+    private String jobInstanceId;
 
-    private String planId;
-
-    private Long planRecordId;
-
-    private Integer planInstanceId;
-
-    private String jobId;
+    private String planInstanceContextId;
 
     /**
      * 状态

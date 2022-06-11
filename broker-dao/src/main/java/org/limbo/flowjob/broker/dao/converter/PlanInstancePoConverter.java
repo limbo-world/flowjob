@@ -20,7 +20,7 @@ import com.google.common.base.Converter;
 import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
-import org.limbo.flowjob.broker.dao.po.PlanInstancePO;
+import org.limbo.flowjob.broker.dao.entity.PlanInstanceContextEntity;
 import org.springframework.stereotype.Component;
 
 /**
@@ -28,14 +28,14 @@ import org.springframework.stereotype.Component;
  * @since 2021/7/24
  */
 @Component
-public class PlanInstancePoConverter extends Converter<PlanInstance, PlanInstancePO> {
+public class PlanInstancePoConverter extends Converter<PlanInstance, PlanInstanceContextEntity> {
 
     /**
-     * {@link PlanInstance} -> {@link PlanInstancePO}
+     * {@link PlanInstance} -> {@link PlanInstanceContextEntity}
      */
     @Override
-    protected PlanInstancePO doForward(PlanInstance planInstance) {
-        PlanInstancePO po = new PlanInstancePO();
+    protected PlanInstanceContextEntity doForward(PlanInstance planInstance) {
+        PlanInstanceContextEntity po = new PlanInstanceContextEntity();
         PlanInstance.ID instanceId = planInstance.getId();
         po.setPlanId(instanceId.planId);
         po.setPlanRecordId(instanceId.planRecordId);
@@ -48,10 +48,10 @@ public class PlanInstancePoConverter extends Converter<PlanInstance, PlanInstanc
 
 
     /**
-     * {@link PlanInstancePO} -> {@link PlanInstance}
+     * {@link PlanInstanceContextEntity} -> {@link PlanInstance}
      */
     @Override
-    protected PlanInstance doBackward(PlanInstancePO po) {
+    protected PlanInstance doBackward(PlanInstanceContextEntity po) {
         PlanInstance planInstance = new PlanInstance();
         PlanInstance.ID instanceId = new PlanInstance.ID(
                 po.getPlanId(),

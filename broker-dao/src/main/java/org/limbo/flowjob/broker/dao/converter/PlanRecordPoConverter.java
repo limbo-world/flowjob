@@ -19,12 +19,12 @@ package org.limbo.flowjob.broker.dao.converter;
 import com.google.common.base.Converter;
 import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
-import org.limbo.flowjob.broker.core.repositories.PlanInfoRepository;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.plan.PlanRecord;
+import org.limbo.flowjob.broker.core.repositories.PlanInfoRepository;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
-import org.limbo.flowjob.broker.dao.po.PlanInstancePO;
-import org.limbo.flowjob.broker.dao.po.PlanRecordPO;
+import org.limbo.flowjob.broker.dao.entity.PlanInstanceContextEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,21 +33,20 @@ import org.springframework.stereotype.Component;
  * @since 2021/7/24
  */
 @Component
-public class PlanRecordPoConverter extends Converter<PlanRecord, PlanRecordPO> {
+public class PlanRecordPoConverter extends Converter<PlanRecord, PlanInstanceEntity> {
 
     @Autowired
     private PlanInfoRepository planInfoRepo;
 
     /**
-     * {@link PlanRecord} -> {@link PlanRecordPO}
+     * {@link PlanRecord} -> {@link PlanInstanceEntity}
      */
     @Override
-    protected PlanRecordPO doForward(PlanRecord record) {
-        PlanRecordPO po = new PlanRecordPO();
+    protected PlanInstanceEntity doForward(PlanRecord record) {
+        PlanInstanceEntity po = new PlanInstanceEntity();
         PlanRecord.ID recordId = record.getId();
-        po.setPlanId(recordId.planId);
-        po.setPlanRecordId(recordId.planRecordId);
-        po.setVersion(record.getVersion());
+        po.setPlanInstanceId(recordId.planId + recordId.planRecordId);
+        po.setPlanInfoId(recordId.planId + record.getVersion());
         po.setState(record.getState().status);
         po.setRetry(record.getRetry());
         po.setManual(record.isManual());
@@ -58,10 +57,10 @@ public class PlanRecordPoConverter extends Converter<PlanRecord, PlanRecordPO> {
 
 
     /**
-     * {@link PlanInstancePO} -> {@link PlanInstance}
+     * {@link PlanInstanceContextEntity} -> {@link PlanInstance}
      */
     @Override
-    protected PlanRecord doBackward(PlanRecordPO po) {
+    protected PlanRecord doBackward(PlanInstanceEntity po) {
         PlanInfo planInfo = planInfoRepo.getByVersion(po.getPlanId(), po.getVersion());
 
         PlanRecord record = new PlanRecord();

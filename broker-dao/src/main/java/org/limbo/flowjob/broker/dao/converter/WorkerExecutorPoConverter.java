@@ -19,7 +19,7 @@ package org.limbo.flowjob.broker.dao.converter;
 import com.google.common.base.Converter;
 import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerExecutor;
-import org.limbo.flowjob.broker.dao.po.WorkerExecutorPO;
+import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
@@ -29,16 +29,16 @@ import javax.annotation.Nonnull;
  * @since 2021-07-05
  */
 @Component
-public class WorkerExecutorPoConverter extends Converter<WorkerExecutor, WorkerExecutorPO> {
+public class WorkerExecutorPoConverter extends Converter<WorkerExecutor, WorkerExecutorEntity> {
 
     /**
-     * 将 {@link WorkerExecutor} 转换为 {@link WorkerExecutorPO}
+     * 将 {@link WorkerExecutor} 转换为 {@link WorkerExecutorEntity}
      * @param vo {@link WorkerExecutor} 值对象
-     * @return {@link WorkerExecutorPO} 持久化对象
+     * @return {@link WorkerExecutorEntity} 持久化对象
      */
     @Override
-    protected WorkerExecutorPO doForward(@Nonnull WorkerExecutor vo) {
-        WorkerExecutorPO po = new WorkerExecutorPO();
+    protected WorkerExecutorEntity doForward(@Nonnull WorkerExecutor vo) {
+        WorkerExecutorEntity po = new WorkerExecutorEntity();
         po.setWorkerId(vo.getWorkerId());
         po.setName(vo.getName());
         po.setDescription(vo.getDescription());
@@ -48,12 +48,12 @@ public class WorkerExecutorPoConverter extends Converter<WorkerExecutor, WorkerE
 
 
     /**
-     * 将 {@link WorkerExecutorPO} 转换为 {@link WorkerExecutor}
-     * @param po {@link WorkerExecutorPO} 持久化对象
+     * 将 {@link WorkerExecutorEntity} 转换为 {@link WorkerExecutor}
+     * @param po {@link WorkerExecutorEntity} 持久化对象
      * @return {@link WorkerExecutor} 值对象
      */
     @Override
-    protected WorkerExecutor doBackward(@Nonnull WorkerExecutorPO po) {
+    protected WorkerExecutor doBackward(@Nonnull WorkerExecutorEntity po) {
         WorkerExecutor vo = new WorkerExecutor();
         vo.setWorkerId(po.getWorkerId());
         vo.setName(po.getName());

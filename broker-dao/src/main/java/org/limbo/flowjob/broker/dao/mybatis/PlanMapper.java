@@ -1,13 +1,13 @@
 package org.limbo.flowjob.broker.dao.mybatis;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.limbo.flowjob.broker.dao.po.PlanPO;
+import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 
 /**
  * @author Brozen
  * @since 2021-10-19
  */
-public interface PlanMapper extends BaseMapper<PlanPO> {
+public interface PlanMapper extends BaseMapper<PlanEntity> {
 
 //    /**
 //     * 插入Plan记录，通过 insert on duplicate key update 语句实现。

@@ -18,7 +18,7 @@
 <mapper namespace="org.limbo.flowjob.broker.dao.mybatis.WorkerStatisticsMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="WorkerStatisticsPO" type="org.limbo.flowjob.broker.dao.po.WorkerStatisticsPO">
+    <resultMap id="WorkerStatisticsPO" type="org.limbo.flowjob.broker.dao.entity.WorkerStatisticsEntity">
         <id column="worker_id" property="workerId" />
         <result column="job_dispatch_count" property="jobDispatchCount" />
         <result column="latest_dispatch_time" property="latestDispatchTime" />

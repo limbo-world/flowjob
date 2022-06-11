@@ -17,13 +17,13 @@
 package org.limbo.flowjob.broker.dao.mybatis;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.limbo.flowjob.broker.dao.po.WorkerPO;
+import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 
 /**
  * @author Brozen
  * @since 2021-06-02
  */
-public interface WorkerMapper extends BaseMapper<WorkerPO> {
+public interface WorkerMapper extends BaseMapper<WorkerEntity> {
 
 
     /**
@@ -31,6 +31,6 @@ public interface WorkerMapper extends BaseMapper<WorkerPO> {
      * @param worker 工作节点
      * @return 影响的行数
      */
-    int insertOrUpdate(WorkerPO worker);
+    int insertOrUpdate(WorkerEntity worker);
 
 }

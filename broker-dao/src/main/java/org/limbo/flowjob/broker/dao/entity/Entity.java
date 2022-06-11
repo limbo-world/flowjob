@@ -14,41 +14,35 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.broker.dao.po;
+package org.limbo.flowjob.broker.dao.entity;
 
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
  * @author Brozen
  * @since 2021-07-05
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
-@TableName("flowjob_worker_executor")
-public class WorkerExecutorPO extends PO {
+public abstract class Entity implements Serializable {
 
-    private static final long serialVersionUID = 7370406980674258946L;
+    private static final long serialVersionUID = 1797761151294059019L;
 
     /**
-     * worker节点ID
+     * DB自增序列ID，并不是唯一标识
      */
-    private String workerId;
+    private Long id;
 
     /**
-     * 执行器名称
+     * 记录创建时间
      */
-    private String name;
+    private LocalDateTime createdAt;
 
     /**
-     * 执行器描述信息
+     * 记录更新时间
      */
-    private String description;
-
-    /**
-     * 执行器类型
-     */
-    private Byte type;
+    private LocalDateTime updatedAt;
 
 }

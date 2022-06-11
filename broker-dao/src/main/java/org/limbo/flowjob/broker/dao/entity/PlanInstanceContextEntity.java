@@ -1,5 +1,7 @@
-package org.limbo.flowjob.broker.dao.po;
+package org.limbo.flowjob.broker.dao.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -7,27 +9,28 @@ import lombok.EqualsAndHashCode;
 import java.time.LocalDateTime;
 
 /**
- * plan执行实例
+ * plan 执行上下文
  *
  * @author Devil
  * @since 2021/7/24
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("flowjob_plan_instance")
-public class PlanInstancePO extends PO {
+@TableName("flowjob_plan_instance_context")
+public class PlanInstanceContextEntity extends Entity {
 
     private static final long serialVersionUID = -8354897444427352804L;
+
     /**
-     * DB自增序列ID 唯一
+     * 全局唯一
      */
-    private Long serialId;
+    @TableId(type = IdType.INPUT)
+    private String planInstanceContextId;
 
-    private String planId;
-
-    private Long planRecordId;
-
-    private Integer planInstanceId;
+    /**
+     * 属于的 planInstance
+     */
+    private String planInstanceId;
 
     /**
      * 状态

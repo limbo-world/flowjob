@@ -1,4 +1,4 @@
-package org.limbo.flowjob.broker.dao.po;
+package org.limbo.flowjob.broker.dao.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * plan
+ * plan 计划
  *
  * @author Devil
  * @since 2021/7/23
@@ -15,14 +15,9 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("flowjob_plan")
-public class PlanPO extends PO {
+public class PlanEntity extends Entity {
 
     private static final long serialVersionUID = -6323915044280199312L;
-
-    /**
-     * DB自增序列ID，并不是唯一标识
-     */
-    private Long serialId;
 
     /**
      * 作业执行计划ID
@@ -32,13 +27,15 @@ public class PlanPO extends PO {
 
     /**
      * 当前版本。可能发生回滚，因此 currentVersion 可能小于 recentlyVersion 。
+     * 对应 planInfoId
      */
-    private Integer currentVersion;
+    private String currentVersion;
 
     /**
      * 最新版本
+     * 对应 planInfoId
      */
-    private Integer recentlyVersion;
+    private String recentlyVersion;
 
     /**
      * 是否启动 新建plan的时候 默认为不启动

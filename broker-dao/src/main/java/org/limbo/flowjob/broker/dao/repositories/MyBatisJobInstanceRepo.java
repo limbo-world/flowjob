@@ -24,7 +24,7 @@ import org.limbo.flowjob.broker.core.plan.job.context.JobRecord;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
 import org.limbo.flowjob.broker.dao.converter.JobInstancePoConverter;
 import org.limbo.flowjob.broker.dao.mybatis.JobInstanceMapper;
-import org.limbo.flowjob.broker.dao.po.JobInstancePO;
+import org.limbo.flowjob.broker.dao.entity.JobInstanceContextPO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -71,22 +71,22 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
      */
     @Override
     public void add(JobInstance instance) {
-        JobInstancePO po = convert.convert(instance);
+        JobInstanceContextPO po = convert.convert(instance);
         jobInstanceMapper.insert(po);
     }
 
 
     @Override
     public void end(JobInstance.ID jobInstanceId, JobScheduleStatus state) {
-        jobInstanceMapper.update(null, Wrappers.<JobInstancePO>lambdaUpdate()
-                .set(JobInstancePO::getState, state.status)
-                .set(JobInstancePO::getEndAt, TimeUtil.nowLocalDateTime())
-                .eq(JobInstancePO::getPlanId, jobInstanceId.planId)
-                .eq(JobInstancePO::getPlanRecordId, jobInstanceId.planRecordId)
-                .eq(JobInstancePO::getPlanInstanceId, jobInstanceId.planInstanceId)
-                .eq(JobInstancePO::getJobId, jobInstanceId.jobId)
-                .eq(JobInstancePO::getJobInstanceId, jobInstanceId.jobInstanceId)
-                .eq(JobInstancePO::getState, JobScheduleStatus.EXECUTING.status)
+        jobInstanceMapper.update(null, Wrappers.<JobInstanceContextPO>lambdaUpdate()
+                .set(JobInstanceContextPO::getState, state.status)
+                .set(JobInstanceContextPO::getEndAt, TimeUtil.nowLocalDateTime())
+                .eq(JobInstanceContextPO::getPlanId, jobInstanceId.planId)
+                .eq(JobInstanceContextPO::getPlanRecordId, jobInstanceId.planRecordId)
+                .eq(JobInstanceContextPO::getPlanInstanceId, jobInstanceId.planInstanceId)
+                .eq(JobInstanceContextPO::getJobId, jobInstanceId.jobId)
+                .eq(JobInstanceContextPO::getJobInstanceId, jobInstanceId.jobInstanceId)
+                .eq(JobInstanceContextPO::getState, JobScheduleStatus.EXECUTING.status)
         );
     }
 
@@ -98,14 +98,14 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
      */
     @Override
     public boolean execute(JobInstance.ID jobInstanceId) {
-        return jobInstanceMapper.update(null, Wrappers.<JobInstancePO>lambdaUpdate()
-                .set(JobInstancePO::getState, JobScheduleStatus.EXECUTING.status)
-                .eq(JobInstancePO::getPlanId, jobInstanceId.planId)
-                .eq(JobInstancePO::getPlanRecordId, jobInstanceId.planRecordId)
-                .eq(JobInstancePO::getPlanInstanceId, jobInstanceId.planInstanceId)
-                .eq(JobInstancePO::getJobId, jobInstanceId.jobId)
-                .eq(JobInstancePO::getJobInstanceId, jobInstanceId.jobInstanceId)
-                .eq(JobInstancePO::getState, JobScheduleStatus.SCHEDULING.status)
+        return jobInstanceMapper.update(null, Wrappers.<JobInstanceContextPO>lambdaUpdate()
+                .set(JobInstanceContextPO::getState, JobScheduleStatus.EXECUTING.status)
+                .eq(JobInstanceContextPO::getPlanId, jobInstanceId.planId)
+                .eq(JobInstanceContextPO::getPlanRecordId, jobInstanceId.planRecordId)
+                .eq(JobInstanceContextPO::getPlanInstanceId, jobInstanceId.planInstanceId)
+                .eq(JobInstanceContextPO::getJobId, jobInstanceId.jobId)
+                .eq(JobInstanceContextPO::getJobInstanceId, jobInstanceId.jobInstanceId)
+                .eq(JobInstanceContextPO::getState, JobScheduleStatus.SCHEDULING.status)
         ) > 0;
     }
 
@@ -117,13 +117,13 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
      */
     @Override
     public JobInstance get(JobInstance.ID jobInstanceId) {
-        JobInstancePO po = jobInstanceMapper.selectOne(Wrappers
-                .<JobInstancePO>lambdaQuery()
-                .eq(JobInstancePO::getPlanId, jobInstanceId.planId)
-                .eq(JobInstancePO::getPlanRecordId, jobInstanceId.planRecordId)
-                .eq(JobInstancePO::getPlanInstanceId, jobInstanceId.planInstanceId)
-                .eq(JobInstancePO::getJobId, jobInstanceId.jobId)
-                .eq(JobInstancePO::getJobInstanceId, jobInstanceId.jobInstanceId)
+        JobInstanceContextPO po = jobInstanceMapper.selectOne(Wrappers
+                .<JobInstanceContextPO>lambdaQuery()
+                .eq(JobInstanceContextPO::getPlanId, jobInstanceId.planId)
+                .eq(JobInstanceContextPO::getPlanRecordId, jobInstanceId.planRecordId)
+                .eq(JobInstanceContextPO::getPlanInstanceId, jobInstanceId.planInstanceId)
+                .eq(JobInstanceContextPO::getJobId, jobInstanceId.jobId)
+                .eq(JobInstanceContextPO::getJobInstanceId, jobInstanceId.jobInstanceId)
         );
 
         return convert.reverse().convert(po);
@@ -138,11 +138,11 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
     @Override
     public List<JobInstance> listByRecord(JobRecord.ID jobRecordId) {
         return jobInstanceMapper.selectList(Wrappers
-                .<JobInstancePO>lambdaQuery()
-                .eq(JobInstancePO::getPlanId, jobRecordId.planId)
-                .eq(JobInstancePO::getPlanRecordId, jobRecordId.planRecordId)
-                .eq(JobInstancePO::getPlanInstanceId, jobRecordId.planInstanceId)
-                .eq(JobInstancePO::getJobId, jobRecordId.jobId)
+                .<JobInstanceContextPO>lambdaQuery()
+                .eq(JobInstanceContextPO::getPlanId, jobRecordId.planId)
+                .eq(JobInstanceContextPO::getPlanRecordId, jobRecordId.planRecordId)
+                .eq(JobInstanceContextPO::getPlanInstanceId, jobRecordId.planInstanceId)
+                .eq(JobInstanceContextPO::getJobId, jobRecordId.jobId)
         )
                 .stream()
                 .map(po -> convert.reverse().convert(po))
