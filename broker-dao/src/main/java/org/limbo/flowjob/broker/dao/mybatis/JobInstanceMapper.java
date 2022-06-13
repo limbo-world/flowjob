@@ -3,13 +3,13 @@ package org.limbo.flowjob.broker.dao.mybatis;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
-import org.limbo.flowjob.broker.dao.entity.JobInstanceContextPO;
+import org.limbo.flowjob.broker.dao.entity.JobInstanceContextEntity;
 
 /**
  * @author Devil
  * @since 2021/7/24
  */
-public interface JobInstanceMapper extends BaseMapper<JobInstanceContextPO> {
+public interface JobInstanceMapper extends BaseMapper<JobInstanceContextEntity> {
 
     @Select("select job_instance_id from flowjob_job_instance " +
             "where plan_id = #{planId} and plan_record_id = #{planRecordId} and plan_instance_id = #{planInstanceId} and job_id = #{jobId} " +

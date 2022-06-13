@@ -24,7 +24,7 @@ import org.limbo.flowjob.broker.core.plan.job.context.JobRecord;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
 import org.limbo.flowjob.broker.dao.converter.JobInstancePoConverter;
 import org.limbo.flowjob.broker.dao.mybatis.JobInstanceMapper;
-import org.limbo.flowjob.broker.dao.entity.JobInstanceContextPO;
+import org.limbo.flowjob.broker.dao.entity.JobInstanceContextEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -71,22 +71,22 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
      */
     @Override
     public void add(JobInstance instance) {
-        JobInstanceContextPO po = convert.convert(instance);
+        JobInstanceContextEntity po = convert.convert(instance);
         jobInstanceMapper.insert(po);
     }
 
 
     @Override
     public void end(JobInstance.ID jobInstanceId, JobScheduleStatus state) {
-        jobInstanceMapper.update(null, Wrappers.<JobInstanceContextPO>lambdaUpdate()
-                .set(JobInstanceContextPO::getState, state.status)
-                .set(JobInstanceContextPO::getEndAt, TimeUtil.nowLocalDateTime())
-                .eq(JobInstanceContextPO::getPlanId, jobInstanceId.planId)
-                .eq(JobInstanceContextPO::getPlanRecordId, jobInstanceId.planRecordId)
-                .eq(JobInstanceContextPO::getPlanInstanceId, jobInstanceId.planInstanceId)
-                .eq(JobInstanceContextPO::getJobId, jobInstanceId.jobId)
-                .eq(JobInstanceContextPO::getJobInstanceId, jobInstanceId.jobInstanceId)
-                .eq(JobInstanceContextPO::getState, JobScheduleStatus.EXECUTING.status)
+        jobInstanceMapper.update(null, Wrappers.<JobInstanceContextEntity>lambdaUpdate()
+                .set(JobInstanceContextEntity::getState, state.status)
+                .set(JobInstanceContextEntity::getEndAt, TimeUtil.nowLocalDateTime())
+                .eq(JobInstanceContextEntity::getPlanId, jobInstanceId.planId)
+                .eq(JobInstanceContextEntity::getPlanRecordId, jobInstanceId.planRecordId)
+                .eq(JobInstanceContextEntity::getPlanInstanceId, jobInstanceId.planInstanceId)
+                .eq(JobInstanceContextEntity::getJobId, jobInstanceId.jobId)
+                .eq(JobInstanceContextEntity::getJobInstanceId, jobInstanceId.jobInstanceId)
+                .eq(JobInstanceContextEntity::getState, JobScheduleStatus.EXECUTING.status)
         );
     }
 
@@ -98,14 +98,14 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
      */
     @Override
     public boolean execute(JobInstance.ID jobInstanceId) {
-        return jobInstanceMapper.update(null, Wrappers.<JobInstanceContextPO>lambdaUpdate()
-                .set(JobInstanceContextPO::getState, JobScheduleStatus.EXECUTING.status)
-                .eq(JobInstanceContextPO::getPlanId, jobInstanceId.planId)
-                .eq(JobInstanceContextPO::getPlanRecordId, jobInstanceId.planRecordId)
-                .eq(JobInstanceContextPO::getPlanInstanceId, jobInstanceId.planInstanceId)
-                .eq(JobInstanceContextPO::getJobId, jobInstanceId.jobId)
-                .eq(JobInstanceContextPO::getJobInstanceId, jobInstanceId.jobInstanceId)
-                .eq(JobInstanceContextPO::getState, JobScheduleStatus.SCHEDULING.status)
+        return jobInstanceMapper.update(null, Wrappers.<JobInstanceContextEntity>lambdaUpdate()
+                .set(JobInstanceContextEntity::getState, JobScheduleStatus.EXECUTING.status)
+                .eq(JobInstanceContextEntity::getPlanId, jobInstanceId.planId)
+                .eq(JobInstanceContextEntity::getPlanRecordId, jobInstanceId.planRecordId)
+                .eq(JobInstanceContextEntity::getPlanInstanceId, jobInstanceId.planInstanceId)
+                .eq(JobInstanceContextEntity::getJobId, jobInstanceId.jobId)
+                .eq(JobInstanceContextEntity::getJobInstanceId, jobInstanceId.jobInstanceId)
+                .eq(JobInstanceContextEntity::getState, JobScheduleStatus.SCHEDULING.status)
         ) > 0;
     }
 
@@ -117,13 +117,13 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
      */
     @Override
     public JobInstance get(JobInstance.ID jobInstanceId) {
-        JobInstanceContextPO po = jobInstanceMapper.selectOne(Wrappers
-                .<JobInstanceContextPO>lambdaQuery()
-                .eq(JobInstanceContextPO::getPlanId, jobInstanceId.planId)
-                .eq(JobInstanceContextPO::getPlanRecordId, jobInstanceId.planRecordId)
-                .eq(JobInstanceContextPO::getPlanInstanceId, jobInstanceId.planInstanceId)
-                .eq(JobInstanceContextPO::getJobId, jobInstanceId.jobId)
-                .eq(JobInstanceContextPO::getJobInstanceId, jobInstanceId.jobInstanceId)
+        JobInstanceContextEntity po = jobInstanceMapper.selectOne(Wrappers
+                .<JobInstanceContextEntity>lambdaQuery()
+                .eq(JobInstanceContextEntity::getPlanId, jobInstanceId.planId)
+                .eq(JobInstanceContextEntity::getPlanRecordId, jobInstanceId.planRecordId)
+                .eq(JobInstanceContextEntity::getPlanInstanceId, jobInstanceId.planInstanceId)
+                .eq(JobInstanceContextEntity::getJobId, jobInstanceId.jobId)
+                .eq(JobInstanceContextEntity::getJobInstanceId, jobInstanceId.jobInstanceId)
         );
 
         return convert.reverse().convert(po);
@@ -138,11 +138,11 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
     @Override
     public List<JobInstance> listByRecord(JobRecord.ID jobRecordId) {
         return jobInstanceMapper.selectList(Wrappers
-                .<JobInstanceContextPO>lambdaQuery()
-                .eq(JobInstanceContextPO::getPlanId, jobRecordId.planId)
-                .eq(JobInstanceContextPO::getPlanRecordId, jobRecordId.planRecordId)
-                .eq(JobInstanceContextPO::getPlanInstanceId, jobRecordId.planInstanceId)
-                .eq(JobInstanceContextPO::getJobId, jobRecordId.jobId)
+                .<JobInstanceContextEntity>lambdaQuery()
+                .eq(JobInstanceContextEntity::getPlanId, jobRecordId.planId)
+                .eq(JobInstanceContextEntity::getPlanRecordId, jobRecordId.planRecordId)
+                .eq(JobInstanceContextEntity::getPlanInstanceId, jobRecordId.planInstanceId)
+                .eq(JobInstanceContextEntity::getJobId, jobRecordId.jobId)
         )
                 .stream()
                 .map(po -> convert.reverse().convert(po))

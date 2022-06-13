@@ -23,7 +23,7 @@ import org.limbo.flowjob.broker.core.plan.job.context.Task;
 import org.limbo.flowjob.broker.core.repositories.TaskRepository;
 import org.limbo.flowjob.broker.dao.converter.TaskPoConverter;
 import org.limbo.flowjob.broker.dao.mybatis.TaskMapper;
-import org.limbo.flowjob.broker.dao.entity.TaskPO;
+import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -42,77 +42,77 @@ public class MyBatisTaskRepo implements TaskRepository {
 
     @Override
     public void add(Task task) {
-        TaskPO po = converter.convert(task);
+        TaskEntity po = converter.convert(task);
         taskMapper.insert(po);
     }
 
     @Override
     public void executed(Task task) {
-        taskMapper.update(null, Wrappers.<TaskPO>lambdaUpdate()
-                .set(TaskPO::getState, TaskScheduleStatus.SCHEDULING.status)
-                .eq(TaskPO::getPlanId, task.getId().planId)
-                .eq(TaskPO::getPlanRecordId, task.getId().planRecordId)
-                .eq(TaskPO::getPlanInstanceId, task.getId().planInstanceId)
-                .eq(TaskPO::getJobId, task.getId().jobId)
-                .eq(TaskPO::getJobInstanceId, task.getId().jobInstanceId)
-                .eq(TaskPO::getTaskId, task.getId().taskId)
-                .eq(TaskPO::getState, TaskScheduleStatus.FEEDBACK.status)
-                .eq(TaskPO::getResult, TaskResult.NONE.result)
+        taskMapper.update(null, Wrappers.<TaskEntity>lambdaUpdate()
+                .set(TaskEntity::getState, TaskScheduleStatus.SCHEDULING.status)
+                .eq(TaskEntity::getPlanId, task.getId().planId)
+                .eq(TaskEntity::getPlanRecordId, task.getId().planRecordId)
+                .eq(TaskEntity::getPlanInstanceId, task.getId().planInstanceId)
+                .eq(TaskEntity::getJobId, task.getId().jobId)
+                .eq(TaskEntity::getJobInstanceId, task.getId().jobInstanceId)
+                .eq(TaskEntity::getTaskId, task.getId().taskId)
+                .eq(TaskEntity::getState, TaskScheduleStatus.FEEDBACK.status)
+                .eq(TaskEntity::getResult, TaskResult.NONE.result)
         );
     }
 
     @Override
     public void end(Task task) {
-        taskMapper.update(null, Wrappers.<TaskPO>lambdaUpdate()
-                .set(TaskPO::getState, TaskScheduleStatus.COMPLETED.status)
-                .set(TaskPO::getResult, task.getResult())
-                .eq(TaskPO::getPlanId, task.getId().planId)
-                .eq(TaskPO::getPlanRecordId, task.getId().planRecordId)
-                .eq(TaskPO::getPlanInstanceId, task.getId().planInstanceId)
-                .eq(TaskPO::getJobId, task.getId().jobId)
-                .eq(TaskPO::getJobInstanceId, task.getId().jobInstanceId)
-                .eq(TaskPO::getTaskId, task.getId().taskId)
-                .eq(TaskPO::getState, TaskScheduleStatus.FEEDBACK.status)
-                .eq(TaskPO::getResult, TaskResult.NONE.result)
+        taskMapper.update(null, Wrappers.<TaskEntity>lambdaUpdate()
+                .set(TaskEntity::getState, TaskScheduleStatus.COMPLETED.status)
+                .set(TaskEntity::getResult, task.getResult())
+                .eq(TaskEntity::getPlanId, task.getId().planId)
+                .eq(TaskEntity::getPlanRecordId, task.getId().planRecordId)
+                .eq(TaskEntity::getPlanInstanceId, task.getId().planInstanceId)
+                .eq(TaskEntity::getJobId, task.getId().jobId)
+                .eq(TaskEntity::getJobInstanceId, task.getId().jobInstanceId)
+                .eq(TaskEntity::getTaskId, task.getId().taskId)
+                .eq(TaskEntity::getState, TaskScheduleStatus.FEEDBACK.status)
+                .eq(TaskEntity::getResult, TaskResult.NONE.result)
         );
     }
 
     @Override
     public boolean execute(Task.ID taskId) {
-        return taskMapper.update(null, Wrappers.<TaskPO>lambdaUpdate()
-                .set(TaskPO::getState, TaskScheduleStatus.EXECUTING.status)
-                .eq(TaskPO::getPlanId, taskId.planId)
-                .eq(TaskPO::getPlanRecordId, taskId.planRecordId)
-                .eq(TaskPO::getPlanInstanceId, taskId.planInstanceId)
-                .eq(TaskPO::getJobId, taskId.jobId)
-                .eq(TaskPO::getJobInstanceId, taskId.jobInstanceId)
-                .eq(TaskPO::getTaskId, taskId.taskId)
-                .eq(TaskPO::getState, TaskScheduleStatus.SCHEDULING.status)
-                .eq(TaskPO::getResult, TaskResult.NONE.result)
+        return taskMapper.update(null, Wrappers.<TaskEntity>lambdaUpdate()
+                .set(TaskEntity::getState, TaskScheduleStatus.EXECUTING.status)
+                .eq(TaskEntity::getPlanId, taskId.planId)
+                .eq(TaskEntity::getPlanRecordId, taskId.planRecordId)
+                .eq(TaskEntity::getPlanInstanceId, taskId.planInstanceId)
+                .eq(TaskEntity::getJobId, taskId.jobId)
+                .eq(TaskEntity::getJobInstanceId, taskId.jobInstanceId)
+                .eq(TaskEntity::getTaskId, taskId.taskId)
+                .eq(TaskEntity::getState, TaskScheduleStatus.SCHEDULING.status)
+                .eq(TaskEntity::getResult, TaskResult.NONE.result)
         ) > 0;
     }
 
     @Override
     public Integer countUnclosed(Task.ID taskId) {
-        return taskMapper.selectCount(Wrappers.<TaskPO>lambdaQuery()
-                .eq(TaskPO::getPlanId, taskId.planId)
-                .eq(TaskPO::getPlanRecordId, taskId.planRecordId)
-                .eq(TaskPO::getPlanInstanceId, taskId.planInstanceId)
-                .eq(TaskPO::getJobId, taskId.jobId)
-                .eq(TaskPO::getJobInstanceId, taskId.jobInstanceId)
-                .eq(TaskPO::getState, TaskScheduleStatus.COMPLETED.status)
+        return taskMapper.selectCount(Wrappers.<TaskEntity>lambdaQuery()
+                .eq(TaskEntity::getPlanId, taskId.planId)
+                .eq(TaskEntity::getPlanRecordId, taskId.planRecordId)
+                .eq(TaskEntity::getPlanInstanceId, taskId.planInstanceId)
+                .eq(TaskEntity::getJobId, taskId.jobId)
+                .eq(TaskEntity::getJobInstanceId, taskId.jobInstanceId)
+                .eq(TaskEntity::getState, TaskScheduleStatus.COMPLETED.status)
         );
     }
 
     @Override
     public Task get(String planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId, String taskId) {
-        TaskPO po = taskMapper.selectOne(Wrappers.<TaskPO>lambdaQuery()
-                .eq(TaskPO::getPlanId, planId)
-                .eq(TaskPO::getPlanRecordId, planRecordId)
-                .eq(TaskPO::getPlanInstanceId, planInstanceId)
-                .eq(TaskPO::getJobId, jobId)
-                .eq(TaskPO::getJobInstanceId, jobInstanceId)
-                .eq(TaskPO::getTaskId, taskId)
+        TaskEntity po = taskMapper.selectOne(Wrappers.<TaskEntity>lambdaQuery()
+                .eq(TaskEntity::getPlanId, planId)
+                .eq(TaskEntity::getPlanRecordId, planRecordId)
+                .eq(TaskEntity::getPlanInstanceId, planInstanceId)
+                .eq(TaskEntity::getJobId, jobId)
+                .eq(TaskEntity::getJobInstanceId, jobInstanceId)
+                .eq(TaskEntity::getTaskId, taskId)
         );
         return converter.reverse().convert(po);
     }

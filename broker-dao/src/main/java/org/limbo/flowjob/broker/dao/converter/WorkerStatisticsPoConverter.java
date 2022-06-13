@@ -16,36 +16,21 @@
 
 package org.limbo.flowjob.broker.dao.converter;
 
-import com.google.common.base.Converter;
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatistics;
 import org.limbo.flowjob.broker.dao.entity.WorkerStatisticsEntity;
-import org.limbo.utils.reflection.EnhancedBeanUtils;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
 /**
  * @author Brozen
  * @since 2021-06-03
  */
-@Component
-public class WorkerStatisticsPoConverter extends Converter<WorkerStatistics, WorkerStatisticsEntity> {
+@Mapper
+public interface WorkerStatisticsPoConverter {
 
-    /**
-     * 将{@link WorkerStatistics}值对象转换为{@link WorkerStatisticsEntity}持久化对象
-     * @param vo {@link WorkerStatistics}值对象
-     * @return {@link WorkerStatisticsEntity}持久化对象
-     */
-    @Override
-    protected WorkerStatisticsEntity doForward(WorkerStatistics vo) {
-        return EnhancedBeanUtils.createAndCopy(vo, WorkerStatisticsEntity.class);
-    }
+    WorkerStatisticsPoConverter INSTANCE = Mappers.getMapper(WorkerStatisticsPoConverter.class);
 
-    /**
-     * 将{@link WorkerStatisticsEntity}持久化对象转换为{@link WorkerStatistics}值对象
-     * @param po {@link WorkerStatisticsEntity}持久化对象
-     * @return {@link WorkerStatistics}值对象
-     */
-    @Override
-    protected WorkerStatistics doBackward(WorkerStatisticsEntity po) {
-        return EnhancedBeanUtils.createAndCopy(po, WorkerStatistics.class);
-    }
+    WorkerStatistics convertToDO(WorkerStatisticsEntity po);
+
+    WorkerStatisticsEntity convertToPO(WorkerStatistics domain);
 }

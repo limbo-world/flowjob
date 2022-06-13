@@ -26,10 +26,10 @@ import org.limbo.flowjob.broker.core.events.Event;
 import org.limbo.flowjob.broker.core.events.EventPublisher;
 import org.limbo.flowjob.broker.core.exceptions.JobExecuteException;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
+import org.limbo.flowjob.broker.core.plan.PlanInstanceContext;
+import org.limbo.flowjob.broker.core.repositories.PlanInstanceContextRepository;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.repositories.PlanInstanceRepository;
-import org.limbo.flowjob.broker.core.plan.PlanRecord;
-import org.limbo.flowjob.broker.core.repositories.PlanRecordRepository;
 import org.limbo.flowjob.broker.core.plan.job.Job;
 import org.limbo.flowjob.broker.core.plan.job.context.JobInstance;
 import org.limbo.flowjob.broker.core.repositories.JobInstanceRepository;
@@ -50,10 +50,10 @@ import java.util.List;
 public class PlanInfoDispatchConsumer extends SourceCastEventConsumer<PlanInfo> {
 
     @Setter(onMethod_ = @Inject)
-    private PlanRecordRepository planRecordRepo;
+    private PlanInstanceRepository planRecordRepo;
 
     @Setter(onMethod_ = @Inject)
-    private PlanInstanceRepository planInstanceRepo;
+    private PlanInstanceContextRepository planInstanceRepo;
 
     @Setter(onMethod_ = @Inject)
     private JobRecordRepository jobRecordRepos;
@@ -90,17 +90,17 @@ public class PlanInfoDispatchConsumer extends SourceCastEventConsumer<PlanInfo> 
         PlanInfo planInfo = event.getSource();
 
         // 先生成执行计划记录
-        PlanRecord.ID planRecordId = planRecordRepo.createId(planInfo.getPlanId());
-        PlanRecord planRecord = planInfo.newRecord(planRecordId, PlanScheduleStatus.SCHEDULING, false);
-        planRecordRepo.add(planRecord);
+        PlanInstance.ID planRecordId = planRecordRepo.createId(planInfo.getPlanId());
+        PlanInstance planInstance = planInfo.newRecord(planRecordId, PlanScheduleStatus.SCHEDULING, false);
+        planRecordRepo.add(planInstance);
 
         // 生成执行计划实例
-        PlanInstance.ID planInstanceId = planInstanceRepo.createId(planRecord.getId());
-        PlanInstance planInstance = planRecord.newInstance(planInstanceId, PlanScheduleStatus.SCHEDULING);
-        planInstanceRepo.add(planInstance);
+        PlanInstanceContext.ID planInstanceId = planInstanceRepo.createId(planInstance.getId());
+        PlanInstanceContext planInstanceContext = planInstance.newInstance(planInstanceId, PlanScheduleStatus.SCHEDULING);
+        planInstanceRepo.add(planInstanceContext);
 
         // 生成作业执行记录
-        List<Job> jobs = planRecord.getDag().getEarliestJobs();
+        List<Job> jobs = planInstance.getDag().getEarliestJobs();
         for (Job job : jobs) {
             JobRecord jobRecord = job.newRecord(
                     planInstanceId,
@@ -117,7 +117,7 @@ public class PlanInfoDispatchConsumer extends SourceCastEventConsumer<PlanInfo> 
             dispatchTask(jobInstance.taskInfo(job));
         }
 
-        eventPublisher.publish(new Event<>(planRecord));
+        eventPublisher.publish(new Event<>(planInstance));
     }
 
 

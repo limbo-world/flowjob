@@ -11,7 +11,7 @@
         <module>job-tracker-admin</module>
         <module>broker-api</module>
         <module>broker-core</module>
-        <module>broker-ha</module>
+        <module>broker-cluster</module>
         <module>broker-dao</module>
         <module>broker-application</module>
     </modules>
@@ -107,7 +107,7 @@
             </dependency>
             <dependency>
                 <groupId>org.limbo.flowjob</groupId>
-                <artifactId>broker-ha</artifactId>
+                <artifactId>broker-cluster</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

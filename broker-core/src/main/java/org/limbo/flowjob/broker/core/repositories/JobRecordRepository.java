@@ -1,7 +1,7 @@
 package org.limbo.flowjob.broker.core.repositories;
 
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
-import org.limbo.flowjob.broker.core.plan.PlanInstance;
+import org.limbo.flowjob.broker.core.plan.PlanInstanceContext;
 import org.limbo.flowjob.broker.core.plan.job.context.JobRecord;
 
 import java.util.Collection;
@@ -36,6 +36,6 @@ public interface JobRecordRepository {
     void end(JobRecord.ID jobRecordId, JobScheduleStatus state);
 
 
-    List<JobRecord> getRecords(PlanInstance.ID planInstanceId, Collection<String> jobIds);
+    List<JobRecord> getRecords(PlanInstanceContext.ID planInstanceId, Collection<String> jobIds);
 
 }

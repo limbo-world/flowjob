@@ -29,10 +29,10 @@ import org.limbo.flowjob.broker.core.events.EventTags;
 import org.limbo.flowjob.broker.core.exceptions.JobExecuteException;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.repositories.PlanInfoRepository;
+import org.limbo.flowjob.broker.core.plan.PlanInstanceContext;
+import org.limbo.flowjob.broker.core.repositories.PlanInstanceContextRepository;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.repositories.PlanInstanceRepository;
-import org.limbo.flowjob.broker.core.plan.PlanRecord;
-import org.limbo.flowjob.broker.core.repositories.PlanRecordRepository;
 import org.limbo.flowjob.broker.core.plan.job.Job;
 import org.limbo.flowjob.broker.core.plan.job.JobDAG;
 import org.limbo.flowjob.broker.core.plan.job.context.JobInstance;
@@ -59,10 +59,10 @@ public class TaskClosedConsumer extends FilterTagEventConsumer<Task> {
     private TaskRepository taskRepository;
 
     @Setter(onMethod_ = @Inject)
-    private PlanRecordRepository planRecordRepository;
+    private PlanInstanceRepository planInstanceRepository;
 
     @Setter(onMethod_ = @Inject)
-    private PlanInstanceRepository planInstanceRepository;
+    private PlanInstanceContextRepository planInstanceContextRepository;
 
     @Setter(onMethod_ = @Inject)
     private JobRecordRepository jobRecordRepository;
@@ -125,22 +125,22 @@ public class TaskClosedConsumer extends FilterTagEventConsumer<Task> {
         jobInstanceRepository.end(taskId.idOfJobInstance(), JobScheduleStatus.SUCCEED);
         jobRecordRepository.end(taskId.idOfJobRecord(), JobScheduleStatus.SUCCEED);
 
-        PlanRecord planRecord = planRecordRepository.get(taskId.idOfPlanRecord());
-        JobDAG dag = planRecord.getDag();
+        PlanInstance planInstance = planInstanceRepository.get(taskId.idOfPlanRecord());
+        JobDAG dag = planInstance.getDag();
         List<Job> subJobs = dag.getSubJobs(taskId.jobId);
         if (CollectionUtils.isEmpty(subJobs)) {
 
             // 无后续节点，需要判断是否plan结束
             if (checkJobsFinished(taskId.idOfPlanInstance(), dag.jobs())) {
                 // 结束plan
-                planInstanceRepository.end(taskId.idOfPlanInstance(), PlanScheduleStatus.SUCCEED);
-                planRecordRepository.end(taskId.idOfPlanRecord(), PlanScheduleStatus.SUCCEED);
+                planInstanceContextRepository.end(taskId.idOfPlanInstance(), PlanScheduleStatus.SUCCEED);
+                planInstanceRepository.end(taskId.idOfPlanRecord(), PlanScheduleStatus.SUCCEED);
 
                 // 判断 plan 是否需要 重新调度 只有 FIXED_INTERVAL类型需要反馈，让任务在时间轮里面能重新下发，手动的和其他的都不需要
-                PlanInfo planInfo = planInfoRepository.getByVersion(taskId.planId, planRecord.getVersion());
+                PlanInfo planInfo = planInfoRepository.getByVersion(taskId.planId, planInstance.getVersion());
                 if (ScheduleType.FIXED_INTERVAL == planInfo.getScheduleOption().getScheduleType()
-                        && planRecord.isManual()) {
-                    planInfo.setLastScheduleAt(planRecord.getStartAt());
+                        && planInstance.isManual()) {
+                    planInfo.setLastScheduleAt(planInstance.getStartAt());
                     planInfo.setLastFeedbackAt(TimeUtil.nowInstant());
                     trackerNode.jobTracker().schedule(planInfo);
                 }
@@ -164,11 +164,11 @@ public class TaskClosedConsumer extends FilterTagEventConsumer<Task> {
         taskRepository.executed(task);
 
         Task.ID taskId = task.getId();
-        PlanInstance planInstance = planInstanceRepository.get(taskId.idOfPlanInstance());
+        PlanInstanceContext planInstanceContext = planInstanceContextRepository.get(taskId.idOfPlanInstance());
 
         // 重复处理的情况
-        if (planInstance.getState() == PlanScheduleStatus.SUCCEED
-                || planInstance.getState() == PlanScheduleStatus.FAILED) {
+        if (planInstanceContext.getState() == PlanScheduleStatus.SUCCEED
+                || planInstanceContext.getState() == PlanScheduleStatus.FAILED) {
             return;
         }
 
@@ -191,18 +191,18 @@ public class TaskClosedConsumer extends FilterTagEventConsumer<Task> {
             handlerSuccess(task);
         } catch (JobExecuteException e) {
             // 此次 planInstance 失败
-            planInstanceRepository.end(taskId.idOfPlanInstance(), PlanScheduleStatus.FAILED);
-            List<PlanInstance> planInstances = planInstanceRepository.list(taskId.idOfPlanRecord());
+            planInstanceContextRepository.end(taskId.idOfPlanInstance(), PlanScheduleStatus.FAILED);
+            List<PlanInstanceContext> planInstanceContexts = planInstanceContextRepository.list(taskId.idOfPlanRecord());
 
-            PlanRecord planRecord = planRecordRepository.get(taskId.idOfPlanRecord());
+            PlanInstance planInstance = planInstanceRepository.get(taskId.idOfPlanRecord());
             // 判断是否超过重试次数
-            if (planRecord.getRetry() >= CollectionUtils.size(planInstances)) {
-                eventPublisher.publish(new Event<>(planRecord));
+            if (planInstance.getRetry() >= CollectionUtils.size(planInstanceContexts)) {
+                eventPublisher.publish(new Event<>(planInstance));
                 return;
             }
 
             // 如果超过重试次数 此planRecord失败
-            planRecordRepository.end(taskId.idOfPlanRecord(), PlanScheduleStatus.FAILED);
+            planInstanceRepository.end(taskId.idOfPlanRecord(), PlanScheduleStatus.FAILED);
         }
 
     }
@@ -210,7 +210,7 @@ public class TaskClosedConsumer extends FilterTagEventConsumer<Task> {
     /**
      * 判断一批job是否完成可以执行下一步
      */
-    public boolean checkJobsFinished(PlanInstance.ID planInstanceId, List<Job> jobs) {
+    public boolean checkJobsFinished(PlanInstanceContext.ID planInstanceId, List<Job> jobs) {
         // 获取db中 job实例
         List<String> jobIds = jobs.stream().map(Job::getJobId).collect(Collectors.toList());
         List<JobRecord> jobRecords = jobRecordRepository.getRecords(planInstanceId, jobIds);

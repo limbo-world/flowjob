@@ -28,8 +28,8 @@ import org.limbo.flowjob.broker.core.events.Event;
 import org.limbo.flowjob.broker.core.events.EventPublisher;
 import org.limbo.flowjob.broker.core.events.EventTags;
 import org.limbo.flowjob.broker.core.exceptions.JobDispatchException;
+import org.limbo.flowjob.broker.core.plan.PlanInstanceContext;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.plan.PlanRecord;
 import org.limbo.flowjob.broker.core.plan.job.DispatchOption;
 import org.limbo.flowjob.broker.core.plan.job.ExecutorOption;
 import org.limbo.flowjob.broker.core.worker.Worker;
@@ -308,16 +308,16 @@ public class Task implements Serializable {
         /**
          * 获取任务对应的 PlanInstance.ID
          */
-        public PlanInstance.ID idOfPlanInstance() {
-            return new PlanInstance.ID(planId, planRecordId, planInstanceId);
+        public PlanInstanceContext.ID idOfPlanInstance() {
+            return new PlanInstanceContext.ID(planId, planRecordId, planInstanceId);
         }
 
 
         /**
          * 获取任务对应的 PlanRecord.ID
          */
-        public PlanRecord.ID idOfPlanRecord() {
-            return new PlanRecord.ID(planId, planRecordId);
+        public PlanInstance.ID idOfPlanRecord() {
+            return new PlanInstance.ID(planId, planRecordId);
         }
     }
 

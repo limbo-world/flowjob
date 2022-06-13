@@ -18,12 +18,12 @@ package org.limbo.flowjob.broker.dao.repositories;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
-import org.limbo.flowjob.broker.core.plan.PlanInstance;
+import org.limbo.flowjob.broker.core.plan.PlanInstanceContext;
 import org.limbo.flowjob.broker.core.plan.job.context.JobRecord;
 import org.limbo.flowjob.broker.core.repositories.JobRecordRepository;
 import org.limbo.flowjob.broker.dao.converter.JobRecordPoConverter;
 import org.limbo.flowjob.broker.dao.mybatis.JobRecordMapper;
-import org.limbo.flowjob.broker.dao.entity.JobInstancePO;
+import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -47,18 +47,18 @@ public class MyBatisJobRecordRepo implements JobRecordRepository {
 
     @Override
     public void add(JobRecord record) {
-        JobInstancePO po = this.convert.convert(record);
+        JobInstanceEntity po = this.convert.convert(record);
         jobRecordMapper.insert(po);
     }
 
 
     @Override
     public JobRecord get(JobRecord.ID jobRecordId) {
-        JobInstancePO po = jobRecordMapper.selectOne(Wrappers.<JobInstancePO>lambdaQuery()
-                .eq(JobInstancePO::getPlanId, jobRecordId.planId)
-                .eq(JobInstancePO::getPlanRecordId, jobRecordId.planRecordId)
-                .eq(JobInstancePO::getPlanInstanceId, jobRecordId.planInstanceId)
-                .eq(JobInstancePO::getJobId, jobRecordId.jobId)
+        JobInstanceEntity po = jobRecordMapper.selectOne(Wrappers.<JobInstanceEntity>lambdaQuery()
+                .eq(JobInstanceEntity::getPlanId, jobRecordId.planId)
+                .eq(JobInstanceEntity::getPlanRecordId, jobRecordId.planRecordId)
+                .eq(JobInstanceEntity::getPlanInstanceId, jobRecordId.planInstanceId)
+                .eq(JobInstanceEntity::getJobId, jobRecordId.jobId)
         );
         return convert.reverse().convert(po);
     }
@@ -71,37 +71,37 @@ public class MyBatisJobRecordRepo implements JobRecordRepository {
      */
     @Override
     public boolean execute(JobRecord.ID jobRecordId) {
-        return jobRecordMapper.update(null, Wrappers.<JobInstancePO>lambdaUpdate()
-                .set(JobInstancePO::getState, JobScheduleStatus.EXECUTING.status)
-                .eq(JobInstancePO::getPlanId, jobRecordId.planId)
-                .eq(JobInstancePO::getPlanRecordId, jobRecordId.planRecordId)
-                .eq(JobInstancePO::getPlanInstanceId, jobRecordId.planInstanceId)
-                .eq(JobInstancePO::getJobId, jobRecordId.jobId)
-                .eq(JobInstancePO::getState, JobScheduleStatus.SCHEDULING.status)
+        return jobRecordMapper.update(null, Wrappers.<JobInstanceEntity>lambdaUpdate()
+                .set(JobInstanceEntity::getState, JobScheduleStatus.EXECUTING.status)
+                .eq(JobInstanceEntity::getPlanId, jobRecordId.planId)
+                .eq(JobInstanceEntity::getPlanRecordId, jobRecordId.planRecordId)
+                .eq(JobInstanceEntity::getPlanInstanceId, jobRecordId.planInstanceId)
+                .eq(JobInstanceEntity::getJobId, jobRecordId.jobId)
+                .eq(JobInstanceEntity::getState, JobScheduleStatus.SCHEDULING.status)
         ) > 0;
     }
 
 
     @Override
     public void end(JobRecord.ID jobRecordId, JobScheduleStatus state) {
-        jobRecordMapper.update(null, Wrappers.<JobInstancePO>lambdaUpdate()
-                .set(JobInstancePO::getState, state.status)
-                .eq(JobInstancePO::getPlanId, jobRecordId.planId)
-                .eq(JobInstancePO::getPlanRecordId, jobRecordId.planRecordId)
-                .eq(JobInstancePO::getPlanInstanceId, jobRecordId.planInstanceId)
-                .eq(JobInstancePO::getJobId, jobRecordId.jobId)
-                .eq(JobInstancePO::getState, JobScheduleStatus.EXECUTING.status)
+        jobRecordMapper.update(null, Wrappers.<JobInstanceEntity>lambdaUpdate()
+                .set(JobInstanceEntity::getState, state.status)
+                .eq(JobInstanceEntity::getPlanId, jobRecordId.planId)
+                .eq(JobInstanceEntity::getPlanRecordId, jobRecordId.planRecordId)
+                .eq(JobInstanceEntity::getPlanInstanceId, jobRecordId.planInstanceId)
+                .eq(JobInstanceEntity::getJobId, jobRecordId.jobId)
+                .eq(JobInstanceEntity::getState, JobScheduleStatus.EXECUTING.status)
         );
     }
 
 
     @Override
-    public List<JobRecord> getRecords(PlanInstance.ID planInstanceId, Collection<String> jobIds) {
-        return jobRecordMapper.selectList(Wrappers.<JobInstancePO>lambdaQuery()
-                .eq(JobInstancePO::getPlanId, planInstanceId.planId)
-                .eq(JobInstancePO::getPlanRecordId, planInstanceId.planRecordId)
-                .eq(JobInstancePO::getPlanInstanceId, planInstanceId.planInstanceId)
-                .in(JobInstancePO::getJobId, jobIds)
+    public List<JobRecord> getRecords(PlanInstanceContext.ID planInstanceId, Collection<String> jobIds) {
+        return jobRecordMapper.selectList(Wrappers.<JobInstanceEntity>lambdaQuery()
+                .eq(JobInstanceEntity::getPlanId, planInstanceId.planId)
+                .eq(JobInstanceEntity::getPlanRecordId, planInstanceId.planRecordId)
+                .eq(JobInstanceEntity::getPlanInstanceId, planInstanceId.planInstanceId)
+                .in(JobInstanceEntity::getJobId, jobIds)
         )
                 .stream()
                 .map(po -> convert.reverse().convert(po))

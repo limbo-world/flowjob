@@ -6,13 +6,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.api.constants.enums.TaskResult;
 import org.limbo.flowjob.broker.api.constants.enums.TaskScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskType;
-import org.limbo.flowjob.broker.core.plan.PlanRecord;
-import org.limbo.flowjob.broker.core.repositories.PlanRecordRepository;
+import org.limbo.flowjob.broker.core.plan.PlanInstance;
+import org.limbo.flowjob.broker.core.repositories.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.plan.job.Job;
 import org.limbo.flowjob.broker.core.plan.job.context.Attributes;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
-import org.limbo.flowjob.broker.dao.entity.TaskPO;
+import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.utils.jackson.JacksonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,14 +26,14 @@ import java.util.Map;
  * @since 2021/7/24
  */
 @Component
-public class TaskPoConverter extends Converter<Task, TaskPO> {
+public class TaskPoConverter extends Converter<Task, TaskEntity> {
 
     @Autowired
-    private PlanRecordRepository planRecordRepository;
+    private PlanInstanceRepository planInstanceRepository;
 
     @Override
-    protected TaskPO doForward(Task task) {
-        TaskPO po = new TaskPO();
+    protected TaskEntity doForward(Task task) {
+        TaskEntity po = new TaskEntity();
         Task.ID taskId = task.getId();
         po.setPlanId(taskId.planId);
         po.setPlanRecordId(taskId.planRecordId);
@@ -54,11 +54,11 @@ public class TaskPoConverter extends Converter<Task, TaskPO> {
     }
 
     @Override
-    protected Task doBackward(TaskPO po) {
-        PlanRecord planRecord = planRecordRepository.get(new PlanRecord.ID(
+    protected Task doBackward(TaskEntity po) {
+        PlanInstance planInstance = planInstanceRepository.get(new PlanInstance.ID(
                 po.getPlanId(), po.getPlanRecordId()
         ));
-        Job job = planRecord.getDag().getJob(po.getJobId());
+        Job job = planInstance.getDag().getJob(po.getJobId());
 
         Task task = new Task();
         Task.ID taskId = new Task.ID(

@@ -34,29 +34,18 @@ public interface PlanConverter {
      * 新增计划参数转换为 执行计划
      */
     @Mapping(target = "planId", source = "planId")
-    @Mapping(target = "enabled", defaultValue = "false")
+    @Mapping(target = "isEnabled", defaultValue = "false")
     @Mapping(target = "recentlyVersion", ignore = true)
-    @Mapping(target = "planRepository", ignore = true)
-    @Mapping(target = "planInfoRepository", ignore = true)
     @Mapping(target = "currentVersion", ignore = true)
-    Plan convertPlan(PlanAddParam param);
-
-
-    /**
-     * 新增计划参数转换为 执行计划信息
-     * @param param 新增参数
-     * @param plan 执行计划
-     */
-    @Mapping(target = "planId", source = "plan.planId")
-    @Mapping(target = "description", source = "param.description")
-    @Mapping(target = "scheduleOption", source = "scheduleOption", qualifiedByName = "convertScheduleOption")
-    @Mapping(target = "jobs", qualifiedByName = "convertJobDAG")
-    @Mapping(target = "version", ignore = true)
-    @Mapping(target = "triggerCalculator", ignore = true)
+    @Mapping(target = "info", expression = "java(new PlanInfo( param.getPlanId(), null, param.getDescription(), param.getScheduleOption(), new JobDAG(param.getJobs()) ))")
     @Mapping(target = "lastScheduleAt", ignore = true)
     @Mapping(target = "lastFeedbackAt", ignore = true)
-    @Mapping(target = "dag", ignore = true)
-    PlanInfo convertPlanInfo(PlanAddParam param, Plan plan);
+    @Mapping(target = "planRepository", ignore = true)
+    @Mapping(target = "planInfoRepository", ignore = true)
+    @Mapping(target = "triggerCalculator", ignore = true)
+    @Mapping(target = "eventEventPublisher", ignore = true)
+    @Mapping(target = "strategyFactory", ignore = true)
+    Plan convertPlan(PlanAddParam param);
 
 
     /**

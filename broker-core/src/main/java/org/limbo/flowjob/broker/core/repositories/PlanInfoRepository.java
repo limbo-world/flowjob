@@ -23,4 +23,5 @@ public interface PlanInfoRepository {
      * @return 作业执行计划详情
      */
     PlanInfo getByVersion(String planId, Integer version);
+
 }

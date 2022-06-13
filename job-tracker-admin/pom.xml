@@ -43,7 +43,7 @@
         </dependency>
         <dependency>
             <groupId>org.limbo.flowjob</groupId>
-            <artifactId>broker-ha</artifactId>
+            <artifactId>broker-cluster</artifactId>
         </dependency>
 
         <!-- SwaggerV3 接口文档注解 -->

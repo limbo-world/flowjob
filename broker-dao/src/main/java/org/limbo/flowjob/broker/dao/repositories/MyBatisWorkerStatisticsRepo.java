@@ -19,9 +19,9 @@ package org.limbo.flowjob.broker.dao.repositories;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatistics;
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatisticsRepository;
-import org.limbo.flowjob.broker.dao.mybatis.WorkerStatisticsMapper;
-import org.limbo.flowjob.broker.dao.entity.WorkerStatisticsEntity;
 import org.limbo.flowjob.broker.dao.converter.WorkerStatisticsPoConverter;
+import org.limbo.flowjob.broker.dao.entity.WorkerStatisticsEntity;
+import org.limbo.flowjob.broker.dao.mybatis.WorkerStatisticsMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -38,16 +38,13 @@ public class MyBatisWorkerStatisticsRepo implements WorkerStatisticsRepository {
     @Autowired
     private WorkerStatisticsMapper mapper;
 
-    @Autowired
-    private WorkerStatisticsPoConverter converter;
-
     /**
      * {@inheritDoc}
      * @param statistics worker统计记录
      */
     @Override
     public void addOrUpdateWorkerStatistics(WorkerStatistics statistics) {
-        WorkerStatisticsEntity po = converter.convert(statistics);
+        WorkerStatisticsEntity po = WorkerStatisticsPoConverter.INSTANCE.convertToPO(statistics);
         Objects.requireNonNull(po);
 
         int effected = mapper.update(po, Wrappers.<WorkerStatisticsEntity>lambdaUpdate()
@@ -68,7 +65,7 @@ public class MyBatisWorkerStatisticsRepo implements WorkerStatisticsRepository {
      */
     @Override
     public WorkerStatistics getWorkerStatistics(String workerId) {
-        return converter.reverse().convert(mapper.selectById(workerId));
+        return WorkerStatisticsPoConverter.INSTANCE.convertToDO(mapper.selectById(workerId));
     }
 
     /**

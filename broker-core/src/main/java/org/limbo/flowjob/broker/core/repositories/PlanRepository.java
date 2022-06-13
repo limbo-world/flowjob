@@ -31,10 +31,9 @@ public interface PlanRepository {
      * 新增plan
      *
      * @param plan 执行计划
-     * @param initVersion 初始版本的计划信息
      * @return 返回plan的id。如果入参Plan中没有指定ID，方法内应当自动生成一个并返回。
      */
-    String addPlan(Plan plan, PlanInfo initVersion);
+    String addPlan(Plan plan);
 
 
     /**

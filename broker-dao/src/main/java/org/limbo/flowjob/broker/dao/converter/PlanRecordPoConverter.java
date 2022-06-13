@@ -19,8 +19,8 @@ package org.limbo.flowjob.broker.dao.converter;
 import com.google.common.base.Converter;
 import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
+import org.limbo.flowjob.broker.core.plan.PlanInstanceContext;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.plan.PlanRecord;
 import org.limbo.flowjob.broker.core.repositories.PlanInfoRepository;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceContextEntity;
@@ -33,18 +33,18 @@ import org.springframework.stereotype.Component;
  * @since 2021/7/24
  */
 @Component
-public class PlanRecordPoConverter extends Converter<PlanRecord, PlanInstanceEntity> {
+public class PlanRecordPoConverter extends Converter<PlanInstance, PlanInstanceEntity> {
 
     @Autowired
     private PlanInfoRepository planInfoRepo;
 
     /**
-     * {@link PlanRecord} -> {@link PlanInstanceEntity}
+     * {@link PlanInstance} -> {@link PlanInstanceEntity}
      */
     @Override
-    protected PlanInstanceEntity doForward(PlanRecord record) {
+    protected PlanInstanceEntity doForward(PlanInstance record) {
         PlanInstanceEntity po = new PlanInstanceEntity();
-        PlanRecord.ID recordId = record.getId();
+        PlanInstance.ID recordId = record.getId();
         po.setPlanInstanceId(recordId.planId + recordId.planRecordId);
         po.setPlanInfoId(recordId.planId + record.getVersion());
         po.setState(record.getState().status);
@@ -57,14 +57,14 @@ public class PlanRecordPoConverter extends Converter<PlanRecord, PlanInstanceEnt
 
 
     /**
-     * {@link PlanInstanceContextEntity} -> {@link PlanInstance}
+     * {@link PlanInstanceContextEntity} -> {@link PlanInstanceContext}
      */
     @Override
-    protected PlanRecord doBackward(PlanInstanceEntity po) {
+    protected PlanInstance doBackward(PlanInstanceEntity po) {
         PlanInfo planInfo = planInfoRepo.getByVersion(po.getPlanId(), po.getVersion());
 
-        PlanRecord record = new PlanRecord();
-        PlanRecord.ID recordId = new PlanRecord.ID(
+        PlanInstance record = new PlanInstance();
+        PlanInstance.ID recordId = new PlanInstance.ID(
                 po.getPlanId(),
                 po.getPlanRecordId()
         );

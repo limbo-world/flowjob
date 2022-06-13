@@ -18,7 +18,7 @@ package org.limbo.flowjob.broker.dao.converter;
 
 import com.google.common.base.Converter;
 import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
-import org.limbo.flowjob.broker.core.plan.PlanInstance;
+import org.limbo.flowjob.broker.core.plan.PlanInstanceContext;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceContextEntity;
 import org.springframework.stereotype.Component;
@@ -28,41 +28,41 @@ import org.springframework.stereotype.Component;
  * @since 2021/7/24
  */
 @Component
-public class PlanInstancePoConverter extends Converter<PlanInstance, PlanInstanceContextEntity> {
+public class PlanInstancePoConverter extends Converter<PlanInstanceContext, PlanInstanceContextEntity> {
 
     /**
-     * {@link PlanInstance} -> {@link PlanInstanceContextEntity}
+     * {@link PlanInstanceContext} -> {@link PlanInstanceContextEntity}
      */
     @Override
-    protected PlanInstanceContextEntity doForward(PlanInstance planInstance) {
+    protected PlanInstanceContextEntity doForward(PlanInstanceContext planInstanceContext) {
         PlanInstanceContextEntity po = new PlanInstanceContextEntity();
-        PlanInstance.ID instanceId = planInstance.getId();
+        PlanInstanceContext.ID instanceId = planInstanceContext.getId();
         po.setPlanId(instanceId.planId);
         po.setPlanRecordId(instanceId.planRecordId);
         po.setPlanInstanceId(instanceId.planInstanceId);
-        po.setState(planInstance.getState().status);
-        po.setStartAt(TimeUtil.toLocalDateTime(planInstance.getStartAt()));
-        po.setEndAt(TimeUtil.toLocalDateTime(planInstance.getStartAt()));
+        po.setState(planInstanceContext.getState().status);
+        po.setStartAt(TimeUtil.toLocalDateTime(planInstanceContext.getStartAt()));
+        po.setEndAt(TimeUtil.toLocalDateTime(planInstanceContext.getStartAt()));
         return po;
     }
 
 
     /**
-     * {@link PlanInstanceContextEntity} -> {@link PlanInstance}
+     * {@link PlanInstanceContextEntity} -> {@link PlanInstanceContext}
      */
     @Override
-    protected PlanInstance doBackward(PlanInstanceContextEntity po) {
-        PlanInstance planInstance = new PlanInstance();
-        PlanInstance.ID instanceId = new PlanInstance.ID(
+    protected PlanInstanceContext doBackward(PlanInstanceContextEntity po) {
+        PlanInstanceContext planInstanceContext = new PlanInstanceContext();
+        PlanInstanceContext.ID instanceId = new PlanInstanceContext.ID(
                 po.getPlanId(),
                 po.getPlanRecordId(),
                 po.getPlanInstanceId()
         );
-        planInstance.setId(instanceId);
-        planInstance.setState(PlanScheduleStatus.parse(po.getState()));
-        planInstance.setStartAt(TimeUtil.toInstant(po.getStartAt()));
-        planInstance.setEndAt(TimeUtil.toInstant(po.getEndAt()));
-        return planInstance;
+        planInstanceContext.setId(instanceId);
+        planInstanceContext.setState(PlanScheduleStatus.parse(po.getState()));
+        planInstanceContext.setStartAt(TimeUtil.toInstant(po.getStartAt()));
+        planInstanceContext.setEndAt(TimeUtil.toInstant(po.getEndAt()));
+        return planInstanceContext;
     }
 
 }

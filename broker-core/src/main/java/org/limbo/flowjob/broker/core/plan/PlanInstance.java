@@ -16,33 +16,44 @@
 
 package org.limbo.flowjob.broker.core.plan;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
+import org.limbo.flowjob.broker.core.plan.job.JobDAG;
+import org.limbo.flowjob.broker.core.utils.TimeUtil;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 /**
- * 计划实例
- *
- * @author Brozen
- * @since 2021-05-14
+ * @author Devil
+ * @since 2021/9/1
  */
-@Getter
-@Setter
-@ToString
-public class PlanInstance {
+@Data
+public class PlanInstance implements Serializable {
 
-    /**
-     * 计划ID
-     */
+    private static final long serialVersionUID = 1837382860200548371L;
+
     private ID id;
 
     /**
-     * 状态
+     * 计划的版本
+     */
+    private Integer version;
+
+    /**
+     * 计划调度状态
      */
     private PlanScheduleStatus state;
+
+    /**
+     * 重试次数
+     */
+    private Integer retry;
+
+    /**
+     * 是否手动下发
+     */
+    private boolean manual;
 
     /**
      * 开始时间
@@ -54,9 +65,21 @@ public class PlanInstance {
      */
     private Instant endAt;
 
+    // ===== 非 po 属性
+
+    private JobDAG dag;
+
+    public PlanInstanceContext newInstance(PlanInstanceContext.ID planInstanceId, PlanScheduleStatus state) {
+        PlanInstanceContext instance = new PlanInstanceContext();
+        instance.setId(planInstanceId);
+        instance.setState(state);
+        instance.setStartAt(TimeUtil.nowInstant());
+        return instance;
+    }
+
 
     /**
-     * 计划ID抽象
+     * 作业执行记录ID抽象
      */
     public static class ID {
 
@@ -64,12 +87,9 @@ public class PlanInstance {
 
         public final Long planRecordId;
 
-        public final Integer planInstanceId;
-
-        public ID(String planId, Long planRecordId, Integer planInstanceId) {
+        public ID(String planId, Long planRecordId) {
             this.planId = planId;
             this.planRecordId = planRecordId;
-            this.planInstanceId = planInstanceId;
         }
     }
 

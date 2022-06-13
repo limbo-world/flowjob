@@ -18,12 +18,11 @@ package org.limbo.flowjob.broker.dao.repositories;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.limbo.flowjob.broker.core.plan.Plan;
-import org.limbo.flowjob.broker.core.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.repositories.PlanInfoRepository;
 import org.limbo.flowjob.broker.core.repositories.PlanRepository;
 import org.limbo.flowjob.broker.dao.converter.PlanPOConverter;
-import org.limbo.flowjob.broker.dao.mybatis.PlanMapper;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
+import org.limbo.flowjob.broker.dao.mybatis.PlanMapper;
 import org.limbo.utils.verifies.Verifies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -56,15 +55,15 @@ public class MyBatisPlanRepo implements PlanRepository {
      * @return
      */
     @Override
-    public String addPlan(Plan plan, PlanInfo initialInfo) {
+    public String addPlan(Plan plan) {
         // 判断 Plan 是否存在，校验 PlanInfo 不为空
         PlanEntity po = mapper.selectById(plan.getPlanId());
         Verifies.isNull(po, "plan is already exist");
-        Verifies.notNull(initialInfo, "plan info is null");
+        Verifies.notNull(plan.getInfo(), "plan info is null");
 
         // 设置初始版本号
         Integer initialVersion = 1;
-        initialInfo.setVersion(initialVersion);
+        plan.getInfo().setVersion(initialVersion);
         plan.setCurrentVersion(initialVersion);
         plan.setRecentlyVersion(initialVersion);
 
@@ -72,7 +71,7 @@ public class MyBatisPlanRepo implements PlanRepository {
         mapper.insert(converter.convert(plan));
 
         // 新增 PlanInfo
-        planInfoRepo.addVersion(initialInfo);
+        planInfoRepo.addVersion(plan.getInfo());
 
         return plan.getPlanId();
     }
