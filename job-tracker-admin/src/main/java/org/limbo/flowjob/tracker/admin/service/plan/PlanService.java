@@ -19,6 +19,7 @@ import org.limbo.flowjob.broker.core.repositories.PlanRepository;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.utils.verifies.Verifies;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ public class PlanService {
     /**
      * 新增计划 只是个落库操作
      */
-    public String add(PlanAddParam dto) {
+    public Long add(PlanAddParam dto) {
         Plan plan = convertToPlan(dto);
         return planRepository.addPlan(plan);
     }
@@ -49,13 +50,16 @@ public class PlanService {
     /**
      * 覆盖计划 可能会触发 内存时间轮改动
      */
+    @Transactional
     public void replace(String planId, PlanReplaceParam dto) {
         // 获取当前的plan数据
         Plan plan = planRepository.get(planId);
         Verifies.notNull(plan, "plan not exist");
 
         // todo plan 创建新版本 并切换内存中的信息
-//        plan.addNewVersion(planInfo);
+        // 更新版本数据
+        PlanInfo planInfo = new PlanInfo(planId, null, dto.getDescription(), convertToVo(dto.getScheduleOption()), new JobDAG(convertToDo(dto.getJobs())));
+        plan.addNewVersion(planInfo);
 
         // 需要修改plan重新调度
         if (trackerNode.jobTracker().isScheduling(planId)) {
@@ -63,7 +67,6 @@ public class PlanService {
             trackerNode.jobTracker().schedule(plan);
         }
     }
-
 
     /**
      * 启动计划 开始调度 todo 并发
@@ -79,7 +82,8 @@ public class PlanService {
         }
 
         // 获取当前版本的计划信息，并校验Jobs
-        PlanInfo planInfo = plan.getCurrentVersionInfo();
+        PlanInfo planInfo = plan.getInfo();
+        Verifies.notNull(planInfo, "version info not exist");
         JobDAG dag = planInfo.getDag();
         Verifies.notNull(dag, "jobs not exist");
         Verifies.notEmpty(dag.getEarliestJobs(), "jobs is empty");

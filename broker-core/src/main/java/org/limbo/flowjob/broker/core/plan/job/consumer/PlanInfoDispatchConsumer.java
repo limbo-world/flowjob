@@ -87,6 +87,7 @@ public class PlanInfoDispatchConsumer extends SourceCastEventConsumer<PlanInfo> 
      */
     @Override
     protected void consumeEvent(Event<PlanInfo> event) {
+        // todo 这里应该直接由plan生成 由planInstance管理其生命周期
         PlanInfo planInfo = event.getSource();
 
         // 先生成执行计划记录

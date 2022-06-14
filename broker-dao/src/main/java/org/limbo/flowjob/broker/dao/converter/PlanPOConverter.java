@@ -1,52 +1,42 @@
 package org.limbo.flowjob.broker.dao.converter;
 
-import com.google.common.base.Converter;
+import lombok.Setter;
 import org.limbo.flowjob.broker.core.plan.Plan;
+import org.limbo.flowjob.broker.core.plan.PlanInfo;
+import org.limbo.flowjob.broker.core.repositories.PlanInfoRepository;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mapstruct.AfterMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
 import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Component;
+
+import javax.inject.Inject;
 
 /**
  * @author Brozen
  * @since 2021-10-19
  */
-@Component
-public class PlanPOConverter extends Converter<Plan, PlanEntity> {
+@Mapper(componentModel="cdi")
+public abstract class PlanPOConverter {
 
-    @Autowired
+    @Setter(onMethod_ = @Inject)
     private ApplicationContext ac;
 
-    /**
-     * {@link Plan} -> {@link PlanEntity}
-     */
-    @Override
-    protected PlanEntity doForward(Plan plan) {
-        PlanEntity po = new PlanEntity();
-        po.setPlanId(plan.getPlanId());
-        po.setCurrentVersion(plan.getCurrentVersion());
-        po.setRecentlyVersion(plan.getRecentlyVersion());
-        po.setIsEnabled(plan.isEnabled());
-        return po;
-    }
+    @Setter(onMethod_ = @Inject)
+    private PlanInfoRepository planInfoRepository;
 
 
-    /**
-     * {@link PlanEntity} -> {@link Plan}
-     */
-    @Override
-    protected Plan doBackward(PlanEntity po) {
-        Plan plan = new Plan();
-        plan.setPlanId(po.getPlanId());
-        plan.setCurrentVersion(po.getCurrentVersion());
-        plan.setRecentlyVersion(po.getRecentlyVersion());
-        plan.setEnabled(po.getIsEnabled());
+    public abstract PlanEntity toEntity(Plan plan);
 
+    public abstract Plan toDO(PlanEntity entity);
+
+    @AfterMapping
+    public void afterMappingPlan(@MappingTarget Plan plan) {
         // 注入依赖
         ac.getAutowireCapableBeanFactory().autowireBean(plan);
-
-        return plan;
+        // 获取plan 的当前版本
+        PlanInfo currentVersion = planInfoRepository.getByVersion(plan.getCurrentVersion());
+        plan.setInfo(currentVersion);
     }
-
 
 }

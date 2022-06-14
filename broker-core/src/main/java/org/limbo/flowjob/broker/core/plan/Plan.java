@@ -53,17 +53,17 @@ public class Plan implements Schedulable, Serializable {
     /**
      * 执行计划ID
      */
-    private String planId;
+    private Long planId;
 
     /**
      * 当前版本
      */
-    private Integer currentVersion;
+    private String currentVersion;
 
     /**
      * 最新版本
      */
-    private Integer recentlyVersion;
+    private String recentlyVersion;
 
     /**
      * 当前版本的具体信息
@@ -138,25 +138,6 @@ public class Plan implements Schedulable, Serializable {
         return succeed;
     }
 
-
-    /**
-     * 查询具体版本号下的计划信息
-     * @param version 版本号
-     * @return 计划具体信息
-     */
-    public PlanInfo getInfoAtVersion(Integer version) {
-        return planInfoRepository.getByVersion(planId, version);
-    }
-
-
-    /**
-     * 查询当前版本的计划执行信息
-     * @return 计划具体信息
-     */
-    public PlanInfo getCurrentVersionInfo() {
-        return planInfoRepository.getByVersion(planId, currentVersion);
-    }
-
     /**
      * 更新执行计划信息，版本号递增
      * @param planInfo 执行计划信息
@@ -165,9 +146,7 @@ public class Plan implements Schedulable, Serializable {
         // 为 PlanInfo 设置版本号
         int newVersion = getRecentlyVersion() + 1;
         planInfo.setVersion(newVersion);
-
-        // 添加新版本信息
-        planInfoRepository.addVersion(planInfo);
+        info = planInfo;
 
         // 更新当前使用版本信息
         newVersion = planRepository.updateVersion(this, newVersion);

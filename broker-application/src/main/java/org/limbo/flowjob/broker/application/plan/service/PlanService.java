@@ -27,7 +27,7 @@ public class PlanService {
      * @param param 新增计划参数
      * @return planId
      */
-    public String addPlan(PlanAddParam param) {
+    public Long addPlan(PlanAddParam param) {
         Plan plan = converter.convertPlan(param);
         return planRepo.addPlan(plan);
     }

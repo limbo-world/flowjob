@@ -23,19 +23,19 @@ public class PlanEntity extends Entity {
      * 作业执行计划ID
      */
     @TableId(type = IdType.INPUT)
-    private String planId;
+    private Long planId;
 
     /**
      * 当前版本。可能发生回滚，因此 currentVersion 可能小于 recentlyVersion 。
      * 对应 planInfoId
      */
-    private String currentVersion;
+    private Long currentVersion;
 
     /**
      * 最新版本
      * 对应 planInfoId
      */
-    private String recentlyVersion;
+    private Long recentlyVersion;
 
     /**
      * 是否启动 新建plan的时候 默认为不启动

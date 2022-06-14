@@ -202,6 +202,12 @@
                 <artifactId>mapstruct-processor</artifactId>
                 <version>${mapstruct}</version>
             </dependency>
+            <!-- 不加会有lombok一起使用先后顺序问题 -->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok-mapstruct-binding</artifactId>
+                <version>0.2.0</version>
+            </dependency>
 
             <!-- JSR & JEE -->
             <dependency>

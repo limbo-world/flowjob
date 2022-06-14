@@ -17,16 +17,19 @@
 package org.limbo.flowjob.broker.dao.repositories;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import lombok.Setter;
 import org.limbo.flowjob.broker.core.plan.Plan;
-import org.limbo.flowjob.broker.core.repositories.PlanInfoRepository;
 import org.limbo.flowjob.broker.core.repositories.PlanRepository;
+import org.limbo.flowjob.broker.dao.converter.PlanInfoPOConverter;
 import org.limbo.flowjob.broker.dao.converter.PlanPOConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
+import org.limbo.flowjob.broker.dao.mybatis.PlanInfoMapper;
 import org.limbo.flowjob.broker.dao.mybatis.PlanMapper;
 import org.limbo.utils.verifies.Verifies;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.inject.Inject;
 import java.util.List;
 
 /**
@@ -36,14 +39,17 @@ import java.util.List;
 @Repository
 public class MyBatisPlanRepo implements PlanRepository {
 
-    @Autowired
-    private PlanInfoRepository planInfoRepo;
+    @Setter(onMethod_ = @Inject)
+    private PlanMapper planMapper;
 
-    @Autowired
-    private PlanMapper mapper;
+    @Setter(onMethod_ = @Inject)
+    private PlanInfoMapper planInfoMapper;
 
-    @Autowired
-    private PlanPOConverter converter;
+    @Setter(onMethod_ = @Inject)
+    private PlanPOConverter planPOConverter;
+
+    @Setter(onMethod_ = @Inject)
+    private PlanInfoPOConverter planInfoPOConverter;
 
 
     /**
@@ -55,9 +61,10 @@ public class MyBatisPlanRepo implements PlanRepository {
      * @return
      */
     @Override
-    public String addPlan(Plan plan) {
+    @Transactional
+    public Long addPlan(Plan plan) {
         // 判断 Plan 是否存在，校验 PlanInfo 不为空
-        PlanEntity po = mapper.selectById(plan.getPlanId());
+        PlanEntity po = planMapper.selectById(plan.getPlanId());
         Verifies.isNull(po, "plan is already exist");
         Verifies.notNull(plan.getInfo(), "plan info is null");
 
@@ -68,10 +75,10 @@ public class MyBatisPlanRepo implements PlanRepository {
         plan.setRecentlyVersion(initialVersion);
 
         // 新增 Plan
-        mapper.insert(converter.convert(plan));
+        planMapper.insert(planPOConverter.toEntity(plan));
 
         // 新增 PlanInfo
-        planInfoRepo.addVersion(plan.getInfo());
+        planInfoMapper.insert(planInfoPOConverter.convert(plan.getInfo()));
 
         return plan.getPlanId();
     }
@@ -84,16 +91,20 @@ public class MyBatisPlanRepo implements PlanRepository {
      * @return
      */
     @Override
+    @Transactional
     public Integer updateVersion(Plan plan, Integer newVersion) {
+        // 新增 PlanInfo
+        int infoInserted = planInfoMapper.insert(planInfoPOConverter.convert(plan.getInfo()));
+
         // 更新 Plan 版本信息
-        int effected = mapper.update(null, Wrappers.<PlanEntity>lambdaUpdate()
+        int effected = planMapper.update(null, Wrappers.<PlanEntity>lambdaUpdate()
                 .set(PlanEntity::getCurrentVersion, newVersion)
                 .set(PlanEntity::getRecentlyVersion, newVersion)
                 .eq(PlanEntity::getPlanId, plan.getPlanId())
                 .eq(PlanEntity::getCurrentVersion, plan.getCurrentVersion())
                 .eq(PlanEntity::getRecentlyVersion, plan.getRecentlyVersion()));
 
-        if (effected > 0) {
+        if (effected > 0 && infoInserted > 0) {
             return newVersion;
         } else {
             throw new IllegalStateException("更新Plan版本失败");
@@ -108,11 +119,11 @@ public class MyBatisPlanRepo implements PlanRepository {
      */
     @Override
     public Plan get(String planId) {
-        PlanEntity po = mapper.selectOne(Wrappers
+        PlanEntity po = planMapper.selectOne(Wrappers
                 .<PlanEntity>lambdaQuery()
                 .eq(PlanEntity::getPlanId, planId)
         );
-        return converter.reverse().convert(po);
+        return planPOConverter.toDO(po);
     }
 
 
@@ -135,7 +146,7 @@ public class MyBatisPlanRepo implements PlanRepository {
     @Override
     public int enablePlan(Plan plan) {
         // update where 乐观锁
-        return mapper.update(null, Wrappers
+        return planMapper.update(null, Wrappers
                 .<PlanEntity>lambdaUpdate()
                 .set(PlanEntity::getIsEnabled, true)
                 .eq(PlanEntity::getPlanId, plan.getPlanId())
@@ -152,7 +163,7 @@ public class MyBatisPlanRepo implements PlanRepository {
     @Override
     public int disablePlan(Plan plan) {
         // update where 乐观锁
-        return mapper.update(null, Wrappers
+        return planMapper.update(null, Wrappers
                 .<PlanEntity>lambdaUpdate()
                 .set(PlanEntity::getIsEnabled, false)
                 .eq(PlanEntity::getPlanId, plan.getPlanId())
