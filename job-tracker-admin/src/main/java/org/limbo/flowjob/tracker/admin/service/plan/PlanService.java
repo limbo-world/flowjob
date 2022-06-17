@@ -126,7 +126,7 @@ public class PlanService {
     private Plan convertToPlan(PlanAddParam dto) {
         // Plan dto 转 do
         Plan plan = new Plan();
-        plan.setPlanId(dto.getPlanId());
+//        plan.setPlanId(dto.getPlanId()); // todo 数据注入
         plan.setEnabled(false);
 
         return plan;

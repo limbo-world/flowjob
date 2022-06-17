@@ -118,11 +118,26 @@ public class MyBatisPlanRepo implements PlanRepository {
      * @return
      */
     @Override
-    public Plan get(String planId) {
+    public Plan get(Long planId) {
         PlanEntity po = planMapper.selectOne(Wrappers
                 .<PlanEntity>lambdaQuery()
                 .eq(PlanEntity::getPlanId, planId)
         );
+        return planPOConverter.toDO(po);
+    }
+
+    /**
+     * {@inheritDoc}
+     * @param planInfoId 计划版本ID
+     * @return
+     */
+    @Override
+    public Plan getByVersion(Long planId, Long planInfoId) {
+        PlanEntity po = planMapper.selectOne(Wrappers
+                .<PlanEntity>lambdaQuery()
+                .eq(PlanEntity::getPlanId, planId)
+        );
+        // todo 根据版本获取
         return planPOConverter.toDO(po);
     }
 

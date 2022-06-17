@@ -83,11 +83,11 @@ public class PlanInstance implements Serializable {
      */
     public static class ID {
 
-        public final String planId;
+        public final Long planId;
 
         public final Long planRecordId;
 
-        public ID(String planId, Long planRecordId) {
+        public ID(Long planId, Long planRecordId) {
             this.planId = planId;
             this.planRecordId = planRecordId;
         }

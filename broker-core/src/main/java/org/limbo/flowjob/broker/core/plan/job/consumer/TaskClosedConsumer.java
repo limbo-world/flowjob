@@ -28,7 +28,6 @@ import org.limbo.flowjob.broker.core.events.EventPublisher;
 import org.limbo.flowjob.broker.core.events.EventTags;
 import org.limbo.flowjob.broker.core.exceptions.JobExecuteException;
 import org.limbo.flowjob.broker.core.plan.Plan;
-import org.limbo.flowjob.broker.core.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.plan.PlanInstanceContext;
 import org.limbo.flowjob.broker.core.plan.job.Job;
@@ -39,7 +38,6 @@ import org.limbo.flowjob.broker.core.plan.job.context.Task;
 import org.limbo.flowjob.broker.core.plan.job.handler.JobFailHandler;
 import org.limbo.flowjob.broker.core.repositories.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.repositories.JobRecordRepository;
-import org.limbo.flowjob.broker.core.repositories.PlanInfoRepository;
 import org.limbo.flowjob.broker.core.repositories.PlanInstanceContextRepository;
 import org.limbo.flowjob.broker.core.repositories.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.repositories.PlanRepository;
@@ -74,9 +72,6 @@ public class TaskClosedConsumer extends FilterTagEventConsumer<Task> {
 
     @Setter(onMethod_ = @Inject)
     private PlanRepository planRepository;
-
-    @Setter(onMethod_ = @Inject)
-    private PlanInfoRepository planInfoRepository;
 
     @Setter(onMethod_ = @Inject)
     private TrackerNode trackerNode;
@@ -142,9 +137,8 @@ public class TaskClosedConsumer extends FilterTagEventConsumer<Task> {
                 planInstanceRepository.end(taskId.idOfPlanRecord(), PlanScheduleStatus.SUCCEED);
 
                 // 判断 plan 是否需要 重新调度 只有 FIXED_INTERVAL类型需要反馈，让任务在时间轮里面能重新下发，手动的和其他的都不需要
-                Plan plan = planRepository.get(taskId.planId);
-                PlanInfo planInfo = planInfoRepository.getByVersion(taskId.planId, planInstance.getVersion());
-                if (ScheduleType.FIXED_INTERVAL == planInfo.getScheduleOption().getScheduleType()
+                Plan plan = planRepository.getByVersion(taskId.planId, taskId.planInfoId);
+                if (ScheduleType.FIXED_INTERVAL == plan.getInfo().getScheduleOption().getScheduleType()
                         && planInstance.isManual()) {
                     plan.setLastScheduleAt(planInstance.getStartAt());
                     plan.setLastFeedbackAt(TimeUtil.nowInstant());

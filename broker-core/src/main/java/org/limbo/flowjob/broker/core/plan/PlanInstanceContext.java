@@ -60,13 +60,13 @@ public class PlanInstanceContext {
      */
     public static class ID {
 
-        public final String planId;
+        public final Long planId;
 
         public final Long planRecordId;
 
         public final Integer planInstanceId;
 
-        public ID(String planId, Long planRecordId, Integer planInstanceId) {
+        public ID(Long planId, Long planRecordId, Integer planInstanceId) {
             this.planId = planId;
             this.planRecordId = planRecordId;
             this.planInstanceId = planInstanceId;

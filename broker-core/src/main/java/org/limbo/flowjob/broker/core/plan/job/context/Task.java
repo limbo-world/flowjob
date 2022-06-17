@@ -28,8 +28,8 @@ import org.limbo.flowjob.broker.core.events.Event;
 import org.limbo.flowjob.broker.core.events.EventPublisher;
 import org.limbo.flowjob.broker.core.events.EventTags;
 import org.limbo.flowjob.broker.core.exceptions.JobDispatchException;
-import org.limbo.flowjob.broker.core.plan.PlanInstanceContext;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
+import org.limbo.flowjob.broker.core.plan.PlanInstanceContext;
 import org.limbo.flowjob.broker.core.plan.job.DispatchOption;
 import org.limbo.flowjob.broker.core.plan.job.ExecutorOption;
 import org.limbo.flowjob.broker.core.worker.Worker;
@@ -266,7 +266,9 @@ public class Task implements Serializable {
      */
     public static class ID {
 
-        public final String planId;
+        public final Long planId;
+
+        public final Long planInfoId;
 
         public final Long planRecordId;
 
@@ -278,8 +280,9 @@ public class Task implements Serializable {
 
         public final String taskId;
 
-        public ID(String planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId, String taskId) {
+        public ID(Long planId, Long planInfoId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId, String taskId) {
             this.planId = planId;
+            this.planInfoId = planInfoId;
             this.planRecordId = planRecordId;
             this.planInstanceId = planInstanceId;
             this.jobId = jobId;

@@ -83,7 +83,7 @@ public class JobRecord implements Serializable {
     @Data
     public static class ID {
 
-        public final String planId;
+        public final Long planId;
 
         public final Long planRecordId;
 
@@ -91,7 +91,7 @@ public class JobRecord implements Serializable {
 
         public final String jobId;
 
-        public ID(String planId, Long planRecordId, Integer planInstanceId, String jobId) {
+        public ID(Long planId, Long planRecordId, Integer planInstanceId, String jobId) {
             this.planId = planId;
             this.planRecordId = planRecordId;
             this.planInstanceId = planInstanceId;

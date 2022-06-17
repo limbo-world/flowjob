@@ -18,14 +18,11 @@ package org.limbo.flowjob.broker.dao.converter;
 
 import com.google.common.base.Converter;
 import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
-import org.limbo.flowjob.broker.core.plan.PlanInfo;
-import org.limbo.flowjob.broker.core.plan.PlanInstanceContext;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.repositories.PlanInfoRepository;
+import org.limbo.flowjob.broker.core.plan.PlanInstanceContext;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceContextEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -34,9 +31,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class PlanRecordPoConverter extends Converter<PlanInstance, PlanInstanceEntity> {
-
-    @Autowired
-    private PlanInfoRepository planInfoRepo;
 
     /**
      * {@link PlanInstance} -> {@link PlanInstanceEntity}
@@ -61,7 +55,9 @@ public class PlanRecordPoConverter extends Converter<PlanInstance, PlanInstanceE
      */
     @Override
     protected PlanInstance doBackward(PlanInstanceEntity po) {
-        PlanInfo planInfo = planInfoRepo.getByVersion(po.getPlanId(), po.getVersion());
+// todo
+//        PlanInfoEntity po = mapper.selectById(planInfoId);
+//        return PlanInfoPOConverter.reverse().convert(po);
 
         PlanInstance record = new PlanInstance();
         PlanInstance.ID recordId = new PlanInstance.ID(

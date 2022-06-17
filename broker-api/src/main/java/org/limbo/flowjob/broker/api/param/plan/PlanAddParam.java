@@ -18,12 +18,6 @@ public class PlanAddParam implements Serializable {
     private static final long serialVersionUID = 3349688739542837391L;
 
     /**
-     * 作业计划ID
-     */
-    @Schema(title = "作业计划ID")
-    private String planId;
-
-    /**
      * 计划描述
      */
     @Schema(title = "计划描述")

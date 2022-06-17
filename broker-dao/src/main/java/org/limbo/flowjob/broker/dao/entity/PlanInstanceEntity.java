@@ -25,12 +25,12 @@ public class PlanInstanceEntity extends Entity {
      * 全局唯一
      */
     @TableId(type = IdType.INPUT)
-    private String planInstanceId;
+    private Long planInstanceId;
 
     /**
      * 对应计划的版本
      */
-    private String planInfoId;
+    private Long planInfoId;
 
     /**
      * 已经重试的次数

@@ -51,7 +51,15 @@ public interface PlanRepository {
      * @param planId 计划ID
      * @return 计划plan
      */
-    Plan get(String planId);
+    Plan get(Long planId);
+
+    /**
+     * 根据计划ID查询计划
+     *
+     * @param planInfoId 计划版本ID
+     * @return 计划plan
+     */
+    Plan getByVersion(Long planId, Long planInfoId);
 
 
     /**

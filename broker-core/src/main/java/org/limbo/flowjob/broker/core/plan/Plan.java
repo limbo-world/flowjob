@@ -53,7 +53,7 @@ public class Plan implements Schedulable, Serializable {
     /**
      * 执行计划ID
      */
-    private Long planId;
+    private String planId;
 
     /**
      * 当前版本
@@ -73,13 +73,11 @@ public class Plan implements Schedulable, Serializable {
     /**
      * 最后调度时间
      */
-    @Getter
     private Instant lastScheduleAt;
 
     /**
      * 最后接收反馈时间
      */
-    @Getter
     private Instant lastFeedbackAt;
 
     /**
@@ -89,23 +87,17 @@ public class Plan implements Schedulable, Serializable {
 
     // --------需注入
     @ToString.Exclude
-    @Inject
-    private PlanInfoRepository planInfoRepository;
-
-    @ToString.Exclude
-    @Inject
+    @Setter(onMethod_ = @Inject)
     private PlanRepository planRepository;
 
     @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.PRIVATE)
+    @Setter(value = AccessLevel.PRIVATE, onMethod_ = @Inject)
     @ToString.Exclude
-    @Inject
     private transient ScheduleCalculatorFactory strategyFactory;
 
     @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
+    @Setter(value = AccessLevel.NONE, onMethod_ = @Inject)
     @ToString.Exclude
-    @Inject
     private transient EventPublisher<Event<?>> eventEventPublisher;
 
     /**
@@ -158,7 +150,7 @@ public class Plan implements Schedulable, Serializable {
 
     @Override
     public String getId() {
-        return planId;
+        return planId + ":" +currentVersion;
     }
 
     @Override

@@ -61,7 +61,7 @@ public class JobInstance {
     @Data
     public static class ID {
 
-        public final String planId;
+        public final Long planId;
 
         public final Long planRecordId;
 
@@ -71,7 +71,7 @@ public class JobInstance {
 
         public final Integer jobInstanceId;
 
-        public ID(String planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId) {
+        public ID(Long planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId) {
             this.planId = planId;
             this.planRecordId = planRecordId;
             this.planInstanceId = planInstanceId;
