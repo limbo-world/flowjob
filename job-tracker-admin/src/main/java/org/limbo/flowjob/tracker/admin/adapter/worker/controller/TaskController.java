@@ -18,9 +18,9 @@ package org.limbo.flowjob.tracker.admin.adapter.worker.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.limbo.flowjob.tracker.admin.service.job.TaskService;
+import org.limbo.flowjob.broker.api.clent.param.TaskExecuteFeedbackParam;
 import org.limbo.flowjob.broker.api.dto.ResponseDTO;
-import org.limbo.flowjob.broker.api.param.task.TaskExecuteFeedbackParam;
+import org.limbo.flowjob.tracker.admin.service.job.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

@@ -17,8 +17,8 @@
 package org.limbo.flowjob.tracker.admin.service.job;
 
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.broker.api.clent.param.TaskExecuteFeedbackParam;
 import org.limbo.flowjob.broker.api.constants.enums.ExecuteResult;
-import org.limbo.flowjob.broker.api.param.task.TaskExecuteFeedbackParam;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
 import org.limbo.flowjob.broker.core.repositories.TaskRepository;
 import org.limbo.flowjob.broker.core.utils.Symbol;
@@ -47,8 +47,7 @@ public class TaskService {
     public Mono<Symbol> feedback(Mono<TaskExecuteFeedbackParam> mono) {
         return mono.transformDeferredContextual((feedbackMono, ctx) -> feedbackMono.map(fb -> {
             // 获取实例
-            Task task = taskRepository.get(fb.getPlanId(), fb.getPlanRecordId(), fb.getPlanInstanceId(),
-                    fb.getJobId(), fb.getJobInstanceId(), fb.getTaskId());
+            Task task = taskRepository.get(fb.getTaskId());
             ExecuteResult result = fb.getResult();
 
             // 变更状态

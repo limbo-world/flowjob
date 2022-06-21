@@ -25,7 +25,7 @@ public class TaskRefusedConsumer extends FilterTagEventConsumer<Task> {
     protected void consumeEvent(Event<Task> event) {
         Task task = event.getSource();
         if (log.isDebugEnabled()) {
-            log.debug("worker[{}] refused task[{}]", task.getWorkerId(), task.getId());
+            log.debug("worker[{}] refused task[{}]", task.getWorkerId(), task);
         }
 
         // todo 拒绝应该重试

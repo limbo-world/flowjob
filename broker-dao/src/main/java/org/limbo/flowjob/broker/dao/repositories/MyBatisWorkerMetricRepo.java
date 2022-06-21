@@ -23,12 +23,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetricRepository;
-import org.limbo.flowjob.broker.dao.mybatis.WorkerExecutorMapper;
-import org.limbo.flowjob.broker.dao.mybatis.WorkerMetricMapper;
-import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
-import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.converter.WorkerExecutorPoConverter;
 import org.limbo.flowjob.broker.dao.converter.WorkerMetricPoConverter;
+import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
+import org.limbo.flowjob.broker.dao.mybatis.WorkerExecutorMapper;
+import org.limbo.flowjob.broker.dao.mybatis.WorkerMetricMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -86,7 +86,7 @@ public class MyBatisWorkerMetricRepo implements WorkerMetricRepository {
                         if (StringUtils.isBlank(workerExecutor.getDescription())) {
                             workerExecutor.setDescription(StringUtils.EMPTY);
                         }
-                        return workerExecutorPoConverter.convert(workerExecutor);
+                        return workerExecutorPoConverter.toEntity(workerExecutor);
                     })
                     .collect(Collectors.toList()));
         }
@@ -112,7 +112,7 @@ public class MyBatisWorkerMetricRepo implements WorkerMetricRepository {
         List<WorkerExecutorEntity> executorPos = workerExecutorMapper.findByWorker(workerId);
         if (CollectionUtils.isNotEmpty(executorPos)) {
             executors = executorPos.stream()
-                    .map(po -> workerExecutorPoConverter.reverse().convert(po))
+                    .map(entity -> workerExecutorPoConverter.toDO(entity))
                     .collect(Collectors.toList());
         } else {
             executors = Lists.newArrayList();

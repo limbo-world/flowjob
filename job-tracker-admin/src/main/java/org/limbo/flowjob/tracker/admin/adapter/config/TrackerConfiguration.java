@@ -18,23 +18,22 @@ package org.limbo.flowjob.tracker.admin.adapter.config;
 
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.api.constants.enums.TrackerModes;
+import org.limbo.flowjob.broker.cluster.JobTrackerFactory;
+import org.limbo.flowjob.broker.cluster.election.ElectionNodeOptions;
+import org.limbo.flowjob.broker.cluster.election.ElectionTrackerNode;
+import org.limbo.flowjob.broker.cluster.single.SingleTrackerNode;
 import org.limbo.flowjob.broker.core.broker.TrackerNode;
 import org.limbo.flowjob.broker.core.broker.WorkerManager;
 import org.limbo.flowjob.broker.core.broker.WorkerManagerImpl;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.dispatcher.strategies.RoundRobinWorkerSelector;
 import org.limbo.flowjob.broker.core.events.ReactorEventPublisher;
-import org.limbo.flowjob.broker.core.plan.PlanInfoBuilderFactory;
 import org.limbo.flowjob.broker.core.plan.job.context.TaskCreateStrategyFactory;
 import org.limbo.flowjob.broker.core.schedule.calculator.SimpleScheduleCalculatorFactory;
 import org.limbo.flowjob.broker.core.schedule.scheduler.HashedWheelTimerScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.NamedThreadFactory;
 import org.limbo.flowjob.broker.core.schedule.scheduler.Scheduler;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
-import org.limbo.flowjob.broker.cluster.JobTrackerFactory;
-import org.limbo.flowjob.broker.cluster.election.ElectionNodeOptions;
-import org.limbo.flowjob.broker.cluster.election.ElectionTrackerNode;
-import org.limbo.flowjob.broker.cluster.single.SingleTrackerNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -123,16 +122,6 @@ public class TrackerConfiguration {
     public WorkerManager workerManager(WorkerRepository workerRepository) {
         return new WorkerManagerImpl(workerRepository);
     }
-
-    /**
-     * 计划创建器工厂
-     */
-    @Bean
-    @ConditionalOnMissingBean(PlanInfoBuilderFactory.class)
-    public PlanInfoBuilderFactory planFactory(SimpleScheduleCalculatorFactory scheduleCalculatorFactory) {
-        return new PlanInfoBuilderFactory(scheduleCalculatorFactory);
-    }
-
 
     /**
      * 调度时间计算器

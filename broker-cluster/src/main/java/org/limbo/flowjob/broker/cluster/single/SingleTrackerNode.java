@@ -1,9 +1,9 @@
 package org.limbo.flowjob.broker.cluster.single;
 
-import org.limbo.flowjob.broker.api.dto.broker.BrokerDTO;
+import org.limbo.flowjob.broker.api.dto.BrokerDTO;
 import org.limbo.flowjob.broker.cluster.AbstractTrackerNode;
-import org.limbo.flowjob.broker.core.broker.DisposableTrackerNode;
 import org.limbo.flowjob.broker.cluster.JobTrackerFactory;
+import org.limbo.flowjob.broker.core.broker.DisposableTrackerNode;
 import org.limbo.flowjob.broker.core.broker.WorkerManager;
 
 import javax.annotation.PostConstruct;

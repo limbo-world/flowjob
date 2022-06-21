@@ -63,7 +63,7 @@ public class PlanScheduler implements Schedulable, Serializable {
 
     // --------需注入
     @Getter(AccessLevel.NONE)
-    @Setter(value = AccessLevel.NONE, onMethod_ = @Inject)
+    @Setter(value = AccessLevel.PRIVATE, onMethod_ = @Inject)
     @ToString.Exclude
     private transient EventPublisher<Event<?>> eventEventPublisher;
 

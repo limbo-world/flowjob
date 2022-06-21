@@ -58,7 +58,7 @@ public class Plan implements Serializable {
     /**
      * 是否已启用
      */
-    private boolean isEnabled;
+    private boolean enabled;
 
     // --------需注入
     @ToString.Exclude
@@ -72,7 +72,7 @@ public class Plan implements Serializable {
     public boolean enable() {
         boolean succeed = planRepository.enablePlan(this) == 1;
         if (succeed) {
-            this.isEnabled = true;
+            this.enabled = true;
         }
         return succeed;
     }
@@ -84,7 +84,7 @@ public class Plan implements Serializable {
     public boolean disable() {
         boolean succeed = planRepository.disablePlan(this) == 1;
         if (succeed) {
-            this.isEnabled = false;
+            this.enabled = false;
         }
         return succeed;
     }

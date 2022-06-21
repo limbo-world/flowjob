@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
 
@@ -39,6 +40,11 @@ public class DispatchOption {
     private LoadBalanceType loadBalanceType;
 
     /**
+     * 作业重试次数
+     */
+    private final Integer retry;
+
+    /**
      * 所需的CPU核心数，小于等于0表示此作业未定义CPU需求。在分发作业时，会根据此方法返回的CPU核心需求数量来检测一个worker是否有能力执行此作业。
      */
     private float cpuRequirement;
@@ -51,17 +57,19 @@ public class DispatchOption {
     @JsonCreator
     public DispatchOption(@JsonProperty("loadBalanceType") LoadBalanceType loadBalanceType,
                           @JsonProperty("cpuRequirement") Float cpuRequirement,
-                          @JsonProperty("ramRequirement") Float ramRequirement) {
+                          @JsonProperty("ramRequirement") Float ramRequirement,
+                          @JsonProperty("retry") Integer retry) {
         this.loadBalanceType = loadBalanceType;
         this.cpuRequirement = cpuRequirement == null ? 0 : cpuRequirement;
         this.ramRequirement = ramRequirement == null ? 0 : ramRequirement;
+        this.retry = retry == null ? 0 : retry;
     }
 
     /**
      * 设置分发方式
      */
     public DispatchOption setLoadBalanceType(LoadBalanceType loadBalanceType) {
-        return new DispatchOption(loadBalanceType, cpuRequirement, ramRequirement);
+        return new DispatchOption(loadBalanceType, cpuRequirement, ramRequirement, retry);
     }
 
 
@@ -69,7 +77,7 @@ public class DispatchOption {
      * 设置所需cpu核心数
      */
     public DispatchOption setCpuRequirement(float cpuRequirement) {
-        return new DispatchOption(loadBalanceType, cpuRequirement, ramRequirement);
+        return new DispatchOption(loadBalanceType, cpuRequirement, ramRequirement, retry);
     }
 
 
@@ -77,7 +85,7 @@ public class DispatchOption {
      * 设置所需的内存GB数
      */
     public DispatchOption setRamRequirement(float ramRequirement) {
-        return new DispatchOption(loadBalanceType, cpuRequirement, ramRequirement);
+        return new DispatchOption(loadBalanceType, cpuRequirement, ramRequirement, retry);
     }
 
 }

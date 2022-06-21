@@ -21,8 +21,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import org.limbo.flowjob.broker.api.console.param.ScheduleOptionParam;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
+import org.limbo.flowjob.broker.core.utils.Default;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -74,11 +74,7 @@ public class ScheduleOption {
      */
     private final String scheduleCronType;
 
-    /**
-     * 作业重试次数
-     */
-    private final Integer retry;
-
+    @Default
     @JsonCreator
     public ScheduleOption(
             @JsonProperty("scheduleType") ScheduleType scheduleType,
@@ -86,34 +82,13 @@ public class ScheduleOption {
             @JsonProperty("scheduleDelay") Duration scheduleDelay,
             @JsonProperty("scheduleInterval") Duration scheduleInterval,
             @JsonProperty("scheduleCron") String scheduleCron,
-            @JsonProperty("scheduleCronType") String scheduleCronType,
-            @JsonProperty("retry") Integer retry) {
+            @JsonProperty("scheduleCronType") String scheduleCronType) {
         this.scheduleType = scheduleType;
         this.scheduleStartAt = scheduleStartAt;
         this.scheduleDelay = scheduleDelay == null ? Duration.ZERO : scheduleDelay;
         this.scheduleInterval = scheduleInterval == null ? Duration.ZERO : scheduleInterval;
         this.scheduleCron = scheduleCron;
         this.scheduleCronType = scheduleCronType;
-        this.retry = retry == null ? 0 : retry;
-    }
-
-
-    /**
-     * 将DTO中的调度配置合并到此调度配置中，并生成新的调度配置对象
-     *
-     * @param other DTO入参
-     * @return 新的调度配置信息
-     */
-    public ScheduleOption mergeIntoCurrent(ScheduleOptionParam other) {
-        return new ScheduleOption(
-                other.getScheduleType() != null ? other.getScheduleType() : this.getScheduleType(),
-                other.getScheduleStartAt() != null ? other.getScheduleStartAt() : this.getScheduleStartAt(),
-                other.getScheduleDelay() != null ? other.getScheduleDelay() : this.getScheduleDelay(),
-                other.getScheduleInterval() != null ? other.getScheduleInterval() : this.getScheduleInterval(),
-                other.getScheduleCron() != null ? other.getScheduleCron() : this.getScheduleCron(),
-                other.getScheduleCronType() != null ? other.getScheduleCronType() : this.getScheduleCronType(),
-                other.getRetry() != null ? other.getRetry() : this.getRetry()
-        );
     }
 
 }

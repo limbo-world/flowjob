@@ -86,7 +86,6 @@ public class PlanInfo implements Serializable {
         PlanInstance instance = new PlanInstance();
         instance.setPlanId(planId);
         instance.setVersion(version);
-        instance.setRetry(scheduleOption.getRetry());
         instance.setDag(dag);
         instance.setState(state);
         instance.setManual(manual);

@@ -145,7 +145,7 @@ public class PlanService {
         if (dto == null) {
             return null;
         }
-        return new DispatchOption(dto.getLoadBalanceType(), dto.getCpuRequirement(), dto.getRamRequirement());
+        return new DispatchOption(dto.getLoadBalanceType(), dto.getCpuRequirement(), dto.getRamRequirement(), dto.getRetry());
     }
 
     private ExecutorOption convertToDo(ExecutorOptionParam dto) {
@@ -160,7 +160,7 @@ public class PlanService {
             return null;
         }
         return new ScheduleOption(dto.getScheduleType(), dto.getScheduleStartAt(), dto.getScheduleDelay(),
-                dto.getScheduleInterval(), dto.getScheduleCron(), dto.getScheduleCronType(), dto.getRetry());
+                dto.getScheduleInterval(), dto.getScheduleCron(), dto.getScheduleCronType());
     }
 
     private List<Job> convertToDo(List<JobAddParam> dtos) {

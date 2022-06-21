@@ -111,9 +111,10 @@ public class TaskClosedConsumer extends FilterTagEventConsumer<Task> {
      */
     public void handlerNormalTaskSuccess(Task task) {
         // 如果之前已经由提交过task成功 就无需处理 防止重复下发任务
-        if (taskRepository.countByStates(task.getJobInstanceId(), Lists.newArrayList(TaskScheduleStatus.FEEDBACK)) > 0) { // todo 这个干嘛的 和查询结果有点不对
-            return;
-        }
+        // todo 这个干嘛的 和查询结果有点不对
+//        if (taskRepository.countByStates(task.getJobInstanceId(), Lists.newArrayList(TaskScheduleStatus.FEEDBACK)) > 0) {
+//            return;
+//        }
 
         // todo task 状态处理
 
@@ -174,7 +175,8 @@ public class TaskClosedConsumer extends FilterTagEventConsumer<Task> {
         }
 
         JobInstance jobInstance = jobInstanceRepository.get(task.getJobInstanceId());
-        Integer taskNum = taskRepository.countByStates(task.getJobInstanceId()); // todo 如何判断
+        // todo 如何判断
+        Integer taskNum = 0; // = taskRepository.countByStates(task.getJobInstanceId());
         // 如果没有超过重试次数则新下发一个任务
         if (jobInstance.getRetry() >= taskNum) {
             eventPublisher.publish(new Event<>(jobInstance));

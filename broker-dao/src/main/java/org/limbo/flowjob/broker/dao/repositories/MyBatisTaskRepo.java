@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Brozen
@@ -72,16 +73,11 @@ public class MyBatisTaskRepo implements TaskRepository {
 
     @Override
     @Transactional
-    public void end(Task task) {
+    public void end(String taskId, TaskResult result) {
         taskMapper.update(null, Wrappers.<TaskEntity>lambdaUpdate()
                 .set(TaskEntity::getState, TaskScheduleStatus.COMPLETED.status)
-                .set(TaskEntity::getResult, task.getResult())
-                .eq(TaskEntity::getPlanId, task.getId().planId)
-                .eq(TaskEntity::getPlanRecordId, task.getId().planRecordId)
-                .eq(TaskEntity::getPlanInstanceId, task.getId().planInstanceId)
-                .eq(TaskEntity::getJobId, task.getId().jobId)
-                .eq(TaskEntity::getJobInstanceId, task.getId().jobInstanceId)
-                .eq(TaskEntity::getTaskId, task.getId().taskId)
+                .set(TaskEntity::getResult, result.result)
+                .eq(TaskEntity::getTaskId, taskId)
                 .eq(TaskEntity::getState, TaskScheduleStatus.FEEDBACK.status)
                 .eq(TaskEntity::getResult, TaskResult.NONE.result)
         );
@@ -98,22 +94,17 @@ public class MyBatisTaskRepo implements TaskRepository {
     }
 
     @Override
-    public Integer countByStates(String jobInstanceId, List<Byte> states, List<Byte> results) {
+    public Integer countByStates(String jobInstanceId, List<TaskScheduleStatus> statuses, List<TaskResult> results) {
         return taskMapper.selectCount(Wrappers.<TaskEntity>lambdaQuery()
                 .eq(TaskEntity::getJobInstanceId, jobInstanceId)
-                .in(TaskEntity::getState, states)
-                .in(TaskEntity::getResult, results)
+                .in(TaskEntity::getState, statuses.stream().map(s -> s.status).collect(Collectors.toList()))
+                .in(TaskEntity::getResult, results.stream().map(r -> r.result).collect(Collectors.toList()))
         );
     }
 
     @Override
-    public Task get(String planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId, String taskId) {
+    public Task get(String taskId) {
         TaskEntity po = taskMapper.selectOne(Wrappers.<TaskEntity>lambdaQuery()
-                .eq(TaskEntity::getPlanId, planId)
-                .eq(TaskEntity::getPlanRecordId, planRecordId)
-                .eq(TaskEntity::getPlanInstanceId, planInstanceId)
-                .eq(TaskEntity::getJobId, jobId)
-                .eq(TaskEntity::getJobInstanceId, jobInstanceId)
                 .eq(TaskEntity::getTaskId, taskId)
         );
         return converter.reverse().convert(po);

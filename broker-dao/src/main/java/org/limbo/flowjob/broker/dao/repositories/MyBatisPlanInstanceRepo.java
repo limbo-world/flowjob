@@ -8,7 +8,7 @@ import org.limbo.flowjob.broker.core.repositories.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
 import org.limbo.flowjob.broker.dao.converter.PlanRecordPoConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
-import org.limbo.flowjob.broker.dao.mybatis.PlanRecordMapper;
+import org.limbo.flowjob.broker.dao.mybatis.PlanInstanceMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +23,7 @@ import javax.inject.Inject;
 public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
 
     @Autowired
-    private PlanRecordMapper planRecordMapper;
+    private PlanInstanceMapper planInstanceMapper;
 
     @Autowired
     private PlanRecordPoConverter converter;
@@ -40,7 +40,7 @@ public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
         instance.setPlanInstanceId(planInstanceId);
 
         PlanInstanceEntity po = converter.convert(instance);
-        planRecordMapper.insert(po);
+        planInstanceMapper.insert(po);
 
         return planInstanceId;
     }
@@ -48,7 +48,7 @@ public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
 
     @Override
     public PlanInstance get(String planInstanceId) {
-        PlanInstanceEntity po = planRecordMapper.selectOne(Wrappers.<PlanInstanceEntity>lambdaQuery()
+        PlanInstanceEntity po = planInstanceMapper.selectOne(Wrappers.<PlanInstanceEntity>lambdaQuery()
                 .eq(PlanInstanceEntity::getPlanInstanceId, planInstanceId)
         );
         return converter.reverse().convert(po);
@@ -57,7 +57,7 @@ public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
 
     @Override
     public void end(String planInstanceId, PlanScheduleStatus state) {
-        planRecordMapper.update(null, Wrappers.<PlanInstanceEntity>lambdaUpdate()
+        planInstanceMapper.update(null, Wrappers.<PlanInstanceEntity>lambdaUpdate()
                 .set(PlanInstanceEntity::getState, state.status)
                 .set(PlanInstanceEntity::getEndAt, TimeUtil.nowLocalDateTime())
                 .eq(PlanInstanceEntity::getPlanInstanceId, planInstanceId)

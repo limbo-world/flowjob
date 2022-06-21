@@ -2,8 +2,8 @@ package org.limbo.flowjob.broker.cluster.election.rpc.processor;
 
 import com.alipay.sofa.jraft.rpc.RpcContext;
 import com.alipay.sofa.jraft.rpc.RpcProcessor;
+import org.limbo.flowjob.broker.api.dto.BrokerDTO;
 import org.limbo.flowjob.broker.api.dto.ResponseDTO;
-import org.limbo.flowjob.broker.api.dto.broker.BrokerDTO;
 import org.limbo.flowjob.broker.cluster.election.ElectionTrackerNode;
 import org.limbo.flowjob.broker.cluster.election.rpc.request.NodeInfoRequest;
 

@@ -8,6 +8,7 @@ import org.limbo.flowjob.broker.api.console.param.JobAddParam;
 import org.limbo.flowjob.broker.api.console.param.PlanAddParam;
 import org.limbo.flowjob.broker.api.console.param.ScheduleOptionParam;
 import org.limbo.flowjob.broker.core.plan.Plan;
+import org.limbo.flowjob.broker.core.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.plan.job.DispatchOption;
 import org.limbo.flowjob.broker.core.plan.job.ExecutorOption;
 import org.limbo.flowjob.broker.core.plan.job.Job;
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
  * @author Brozen
  * @since 2022-06-11
  */
-@Mapper(uses = PlanConverter.class, unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(uses = PlanConverter.class, unmappedTargetPolicy = ReportingPolicy.IGNORE, imports = {PlanInfo.class, JobDAG.class})
 public interface PlanConverter {
 
     PlanConverter INSTANCE = Mappers.getMapper(PlanConverter.class);
@@ -35,18 +36,9 @@ public interface PlanConverter {
     /**
      * 新增计划参数转换为 执行计划
      */
-    @Mapping(target = "planId", source = "planId")
-    @Mapping(target = "isEnabled", defaultValue = "false")
-    @Mapping(target = "recentlyVersion", ignore = true)
-    @Mapping(target = "currentVersion", ignore = true)
-    @Mapping(target = "info", expression = "java(new PlanInfo( param.getPlanId(), null, param.getDescription(), param.getScheduleOption(), new JobDAG(param.getJobs()) ))")
-    @Mapping(target = "lastScheduleAt", ignore = true)
-    @Mapping(target = "lastFeedbackAt", ignore = true)
-    @Mapping(target = "planRepository", ignore = true)
-    @Mapping(target = "planInfoRepository", ignore = true)
-    @Mapping(target = "triggerCalculator", ignore = true)
-    @Mapping(target = "eventEventPublisher", ignore = true)
-    @Mapping(target = "strategyFactory", ignore = true)
+    @Mapping(target = "enabled", constant = "false")
+//    @Mapping(target = "info", expression = "java(new PlanInfo( null, null, param.getDescription(), param.getScheduleOption(), new JobDAG(param.getJobs()) ))")
+    @Mapping(target = "info", source = "param", qualifiedByName = "convertPlanInfo")
     Plan convertPlan(PlanAddParam param);
 
 
@@ -54,29 +46,30 @@ public interface PlanConverter {
      * 新增计划参数转换为 计划调度配置
      */
     @Named("convertScheduleOption")
-    @Mapping(target = "scheduleType", source = "scheduleType")
-    @Mapping(target = "scheduleStartAt", source = "scheduleStartAt")
-    @Mapping(target = "scheduleDelay", source = "scheduleDelay")
-    @Mapping(target = "scheduleInterval", source = "scheduleInterval")
-    @Mapping(target = "scheduleCron", source = "scheduleCron")
-    @Mapping(target = "scheduleCronType", source = "scheduleCronType")
-    @Mapping(target = "retry", source = "retry")
+//    @Mapping(target = "scheduleType", source = "scheduleType")
+//    @Mapping(target = "scheduleStartAt", source = "scheduleStartAt")
+//    @Mapping(target = "scheduleDelay", source = "scheduleDelay")
+//    @Mapping(target = "scheduleInterval", source = "scheduleInterval")
+//    @Mapping(target = "scheduleCron", source = "scheduleCron")
+//    @Mapping(target = "scheduleCronType", source = "scheduleCronType")
     ScheduleOption convertScheduleOption(ScheduleOptionParam param);
 
-    /**
-     * 转换 作业DAG
-     */
-    @Named("convertJobDAG")
-    default JobDAG convertJobDAG(PlanAddParam param) {
-        List<JobAddParam> jobParams = param.getJobs();
-        if (CollectionUtils.isEmpty(jobParams)) {
+
+    @Named("convertJob")
+    default JobDAG convertJob(List<JobAddParam> jobAddParams) {
+        if (CollectionUtils.isEmpty(jobAddParams)) {
             return new JobDAG(Lists.newArrayList());
         }
 
-        List<Job> jobs = jobParams.stream()
+        List<Job> jobs = jobAddParams.stream()
                 .map(this::convertJob)
                 .collect(Collectors.toList());
         return new JobDAG(jobs);
+    }
+
+    @Named("convertPlanInfo")
+    default PlanInfo convertPlanInfo(PlanAddParam param) {
+        return new PlanInfo(null, null, param.getDescription(), convertScheduleOption(param.getScheduleOption()), convertJob(param.getJobs()));
     }
 
 
@@ -95,9 +88,7 @@ public interface PlanConverter {
      * 转换 作业分发参数
      */
     @Named("convertJobDispatchOption")
-    @Mapping(target = "loadBalanceType", source = "loadBalanceType")
-    @Mapping(target = "cpuRequirement", source = "cpuRequirement")
-    @Mapping(target = "ramRequirement", source = "ramRequirement")
+    // 使用构造函数
     DispatchOption convertJobDispatchOption(DispatchOptionParam param);
 
 

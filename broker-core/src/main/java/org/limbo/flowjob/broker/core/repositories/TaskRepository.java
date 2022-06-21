@@ -16,6 +16,7 @@
 
 package org.limbo.flowjob.broker.core.repositories;
 
+import org.limbo.flowjob.broker.api.constants.enums.TaskResult;
 import org.limbo.flowjob.broker.api.constants.enums.TaskScheduleStatus;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
 
@@ -48,16 +49,16 @@ public interface TaskRepository {
     /**
      * 更新状态为已完成
      */
-    void end(Task task);
+    void end(String taskId, TaskResult result);
 
     /**
      * 根据状态统计数据
      */
-    Integer countByStates(String jobInstanceId, List<Byte> states, List<Byte> results);
+    Integer countByStates(String jobInstanceId, List<TaskScheduleStatus> statuses, List<TaskResult> results);
 
     /**
      * 获取作业执行实例
      */
-    Task get(String planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId, String taskId);
+    Task get(String taskId);
 
 }

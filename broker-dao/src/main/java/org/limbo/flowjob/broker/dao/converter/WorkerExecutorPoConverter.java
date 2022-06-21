@@ -16,9 +16,12 @@
 
 package org.limbo.flowjob.broker.dao.converter;
 
+import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerExecutor;
 import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
+import org.mapstruct.EnumMapping;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -30,8 +33,15 @@ public interface WorkerExecutorPoConverter {
 
     WorkerExecutorPoConverter INSTANCE = Mappers.getMapper(WorkerExecutorPoConverter.class);
 
-    WorkerExecutor convertToDO(WorkerExecutorEntity po);
+    WorkerExecutor toDO(WorkerExecutorEntity po);
 
-    WorkerExecutorEntity convertToPO(WorkerExecutor domain);
-    
+    WorkerExecutorEntity toEntity(WorkerExecutor domain);
+
+    default JobExecuteType jobExecuteTypeConvert(Byte type) {
+        return JobExecuteType.parse(type);
+    }
+
+    default Byte jobExecuteTypeConvert(JobExecuteType type) {
+        return type == null ? null : type.type;
+    }
 }

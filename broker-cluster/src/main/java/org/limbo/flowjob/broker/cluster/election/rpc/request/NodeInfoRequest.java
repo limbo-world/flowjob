@@ -1,7 +1,7 @@
 package org.limbo.flowjob.broker.cluster.election.rpc.request;
 
+import org.limbo.flowjob.broker.api.dto.BrokerDTO;
 import org.limbo.flowjob.broker.api.dto.ResponseDTO;
-import org.limbo.flowjob.broker.api.dto.broker.BrokerDTO;
 
 /**
  * @author Devil

@@ -3,7 +3,7 @@ package org.limbo.flowjob.broker.cluster;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.api.constants.enums.BrokerNodeState;
-import org.limbo.flowjob.broker.api.dto.broker.BrokerDTO;
+import org.limbo.flowjob.broker.api.dto.BrokerDTO;
 import org.limbo.flowjob.broker.core.broker.DisposableTrackerNode;
 import org.limbo.flowjob.broker.core.broker.DisposableTrackerNodeBind;
 import org.limbo.flowjob.broker.core.broker.JobTracker;

@@ -17,11 +17,7 @@
 package org.limbo.flowjob.broker.dao.converter;
 
 import com.google.common.base.Converter;
-import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.plan.PlanInstanceContext;
-import org.limbo.flowjob.broker.core.utils.TimeUtil;
-import org.limbo.flowjob.broker.dao.entity.PlanInstanceContextEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.springframework.stereotype.Component;
 
@@ -37,42 +33,41 @@ public class PlanRecordPoConverter extends Converter<PlanInstance, PlanInstanceE
      */
     @Override
     protected PlanInstanceEntity doForward(PlanInstance record) {
-        PlanInstanceEntity po = new PlanInstanceEntity();
-        PlanInstance.ID recordId = record.getId();
-        po.setPlanInstanceId(recordId.planId + recordId.planRecordId);
-        po.setPlanInfoId(recordId.planId + record.getVersion());
-        po.setState(record.getState().status);
-        po.setRetry(record.getRetry());
-        po.setManual(record.isManual());
-        po.setStartAt(TimeUtil.toLocalDateTime(record.getStartAt()));
-        po.setEndAt(TimeUtil.toLocalDateTime(record.getStartAt()));
-        return po;
+        // todo
+        return null;
+//        PlanInstanceEntity po = new PlanInstanceEntity();
+//        PlanInstance.ID recordId = record.getId();
+//        po.setPlanInstanceId(recordId.planId + recordId.planRecordId);
+//        po.setPlanInfoId(recordId.planId + record.getVersion());
+//        po.setState(record.getState().status);
+//        po.setRetry(record.getRetry());
+//        po.setManual(record.isManual());
+//        po.setStartAt(TimeUtil.toLocalDateTime(record.getStartAt()));
+//        po.setEndAt(TimeUtil.toLocalDateTime(record.getStartAt()));
+//        return po;
     }
 
-
-    /**
-     * {@link PlanInstanceContextEntity} -> {@link PlanInstanceContext}
-     */
     @Override
     protected PlanInstance doBackward(PlanInstanceEntity po) {
-// todo
+        // todo
+        return null;
 //        PlanInfoEntity po = mapper.selectById(planInfoId);
 //        return PlanInfoPOConverter.reverse().convert(po);
 
-        PlanInstance record = new PlanInstance();
-        PlanInstance.ID recordId = new PlanInstance.ID(
-                po.getPlanId(),
-                po.getPlanRecordId()
-        );
-        record.setId(recordId);
-        record.setVersion(po.getVersion());
-        record.setState(PlanScheduleStatus.parse(po.getState()));
-        record.setDag(planInfo.getDag());
-        record.setRetry(po.getRetry());
-        record.setManual(po.getManual());
-        record.setStartAt(TimeUtil.toInstant(po.getStartAt()));
-        record.setEndAt(TimeUtil.toInstant(po.getStartAt()));
-        return record;
+//        PlanInstance record = new PlanInstance();
+//        PlanInstance.ID recordId = new PlanInstance.ID(
+//                po.getPlanId(),
+//                po.getPlanRecordId()
+//        );
+//        record.setId(recordId);
+//        record.setVersion(po.getVersion());
+//        record.setState(PlanScheduleStatus.parse(po.getState()));
+//        record.setDag(planInfo.getDag());
+//        record.setRetry(po.getRetry());
+//        record.setManual(po.getManual());
+//        record.setStartAt(TimeUtil.toInstant(po.getStartAt()));
+//        record.setEndAt(TimeUtil.toInstant(po.getStartAt()));
+//        return record;
     }
 
 }

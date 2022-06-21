@@ -43,7 +43,7 @@ public abstract class AbstractWorkerSelector implements WorkerSelector {
     @Override
     public Worker select(Task task, Collection<Worker> workers) {
         if (CollectionUtils.isEmpty(workers)) {
-            throw new TaskReceiveException(task.getId().jobId, null, "No worker available!");
+            throw new TaskReceiveException(task.getJobId(), null, "No worker available!");
         }
 
         List<Worker> availableWorkers = new ArrayList<>();
@@ -65,7 +65,7 @@ public abstract class AbstractWorkerSelector implements WorkerSelector {
         }
 
         if (CollectionUtils.isEmpty(availableWorkers)) {
-            throw new TaskReceiveException(task.getId().jobId, null, "No worker available!");
+            throw new TaskReceiveException(task.getJobId(), null, "No worker available!");
         }
 
         return selectWorker(task, workers);
