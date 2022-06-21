@@ -5,9 +5,9 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.limbo.flowjob.broker.api.console.param.PlanAddParam;
+import org.limbo.flowjob.broker.api.console.param.PlanReplaceParam;
 import org.limbo.flowjob.broker.api.dto.ResponseDTO;
-import org.limbo.flowjob.broker.api.param.plan.PlanAddParam;
-import org.limbo.flowjob.broker.api.param.plan.PlanReplaceParam;
 import org.limbo.flowjob.tracker.admin.service.plan.PlanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -38,8 +38,8 @@ public class PlanController {
      */
     @Operation(summary = "新增计划")
     @PostMapping
-    public Mono<ResponseDTO<Long>> add(@Validated @RequestBody Mono<PlanAddParam> options) {
-        return options.map(opt -> ResponseDTO.<Long>builder().ok(planService.add(opt)).build());
+    public Mono<ResponseDTO<String>> add(@Validated @RequestBody Mono<PlanAddParam> options) {
+        return options.map(opt -> ResponseDTO.<String>builder().ok(planService.add(opt)).build());
     }
 
     /**

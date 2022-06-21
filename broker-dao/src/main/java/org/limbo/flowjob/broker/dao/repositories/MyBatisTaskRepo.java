@@ -17,15 +17,20 @@
 package org.limbo.flowjob.broker.dao.repositories;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import lombok.Setter;
 import org.limbo.flowjob.broker.api.constants.enums.TaskResult;
 import org.limbo.flowjob.broker.api.constants.enums.TaskScheduleStatus;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
 import org.limbo.flowjob.broker.core.repositories.TaskRepository;
 import org.limbo.flowjob.broker.dao.converter.TaskPoConverter;
-import org.limbo.flowjob.broker.dao.mybatis.TaskMapper;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
+import org.limbo.flowjob.broker.dao.mybatis.TaskMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.inject.Inject;
+import java.util.List;
 
 /**
  * @author Brozen
@@ -40,28 +45,33 @@ public class MyBatisTaskRepo implements TaskRepository {
     @Autowired
     private TaskPoConverter converter;
 
+    @Setter(onMethod_ = @Inject)
+    private IDRepo idRepo;
+
     @Override
-    public void add(Task task) {
+    @Transactional
+    public String add(Task task) {
+        String taskId = idRepo.createTaskId();
+        task.setTaskId(taskId);
+
         TaskEntity po = converter.convert(task);
         taskMapper.insert(po);
+        return taskId;
     }
 
     @Override
-    public void executed(Task task) {
+    @Transactional
+    public void executed(String taskId) {
         taskMapper.update(null, Wrappers.<TaskEntity>lambdaUpdate()
-                .set(TaskEntity::getState, TaskScheduleStatus.SCHEDULING.status)
-                .eq(TaskEntity::getPlanId, task.getId().planId)
-                .eq(TaskEntity::getPlanRecordId, task.getId().planRecordId)
-                .eq(TaskEntity::getPlanInstanceId, task.getId().planInstanceId)
-                .eq(TaskEntity::getJobId, task.getId().jobId)
-                .eq(TaskEntity::getJobInstanceId, task.getId().jobInstanceId)
-                .eq(TaskEntity::getTaskId, task.getId().taskId)
-                .eq(TaskEntity::getState, TaskScheduleStatus.FEEDBACK.status)
+                .set(TaskEntity::getState, TaskScheduleStatus.FEEDBACK.status)
+                .eq(TaskEntity::getTaskId, taskId)
+                .eq(TaskEntity::getState, TaskScheduleStatus.SCHEDULING.status)
                 .eq(TaskEntity::getResult, TaskResult.NONE.result)
         );
     }
 
     @Override
+    @Transactional
     public void end(Task task) {
         taskMapper.update(null, Wrappers.<TaskEntity>lambdaUpdate()
                 .set(TaskEntity::getState, TaskScheduleStatus.COMPLETED.status)
@@ -78,29 +88,21 @@ public class MyBatisTaskRepo implements TaskRepository {
     }
 
     @Override
-    public boolean execute(Task.ID taskId) {
+    public boolean execute(String taskId) {
         return taskMapper.update(null, Wrappers.<TaskEntity>lambdaUpdate()
                 .set(TaskEntity::getState, TaskScheduleStatus.EXECUTING.status)
-                .eq(TaskEntity::getPlanId, taskId.planId)
-                .eq(TaskEntity::getPlanRecordId, taskId.planRecordId)
-                .eq(TaskEntity::getPlanInstanceId, taskId.planInstanceId)
-                .eq(TaskEntity::getJobId, taskId.jobId)
-                .eq(TaskEntity::getJobInstanceId, taskId.jobInstanceId)
-                .eq(TaskEntity::getTaskId, taskId.taskId)
+                .eq(TaskEntity::getTaskId, taskId)
                 .eq(TaskEntity::getState, TaskScheduleStatus.SCHEDULING.status)
                 .eq(TaskEntity::getResult, TaskResult.NONE.result)
         ) > 0;
     }
 
     @Override
-    public Integer countUnclosed(Task.ID taskId) {
+    public Integer countByStates(String jobInstanceId, List<Byte> states, List<Byte> results) {
         return taskMapper.selectCount(Wrappers.<TaskEntity>lambdaQuery()
-                .eq(TaskEntity::getPlanId, taskId.planId)
-                .eq(TaskEntity::getPlanRecordId, taskId.planRecordId)
-                .eq(TaskEntity::getPlanInstanceId, taskId.planInstanceId)
-                .eq(TaskEntity::getJobId, taskId.jobId)
-                .eq(TaskEntity::getJobInstanceId, taskId.jobInstanceId)
-                .eq(TaskEntity::getState, TaskScheduleStatus.COMPLETED.status)
+                .eq(TaskEntity::getJobInstanceId, jobInstanceId)
+                .in(TaskEntity::getState, states)
+                .in(TaskEntity::getResult, results)
         );
     }
 

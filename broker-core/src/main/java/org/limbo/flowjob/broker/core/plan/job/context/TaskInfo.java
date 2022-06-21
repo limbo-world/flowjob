@@ -38,17 +38,15 @@ public class TaskInfo implements Serializable {
 
     private static final long serialVersionUID = -9097550508482197117L;
 
+    private String taskId;
+
     private String planId;
 
-    private Long planRecordId;
-
-    private Integer planInstanceId;
+    private String planInstanceId;
 
     private String jobId;
 
-    private Integer jobInstanceId;
-
-    private String taskId;
+    private String jobInstanceId;
 
     /**
      * 任务类型

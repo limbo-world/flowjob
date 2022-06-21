@@ -16,8 +16,10 @@
 
 package org.limbo.flowjob.broker.core.repositories;
 
-import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
+import org.limbo.flowjob.broker.api.constants.enums.TaskScheduleStatus;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
+
+import java.util.List;
 
 /**
  * @author Brozen
@@ -29,26 +31,29 @@ public interface TaskRepository {
      * 持久化作业实例
      * @param task 作业执行实例
      */
-    void add(Task task);
+    String add(Task task);
 
     /**
-     * CAS 将任务状态从 {@link JobScheduleStatus#SCHEDULING} 更新为 {@link JobScheduleStatus#EXECUTING}
-     * @param id 任务ID
+     * 将任务状态从 {@link TaskScheduleStatus#SCHEDULING} 更新为 {@link TaskScheduleStatus#EXECUTING}
+     * @param taskId 任务ID
      * @return 返回是否更新成功
      */
-    boolean execute(Task.ID id);
+    boolean execute(String taskId);
 
     /**
      * 更新状态为已反馈
      */
-    void executed(Task task);
+    void executed(String taskId);
 
     /**
      * 更新状态为已完成
      */
     void end(Task task);
 
-    Integer countUnclosed(Task.ID taskId);
+    /**
+     * 根据状态统计数据
+     */
+    Integer countByStates(String jobInstanceId, List<Byte> states, List<Byte> results);
 
     /**
      * 获取作业执行实例

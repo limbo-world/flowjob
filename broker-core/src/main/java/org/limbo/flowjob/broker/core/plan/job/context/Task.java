@@ -19,17 +19,15 @@ package org.limbo.flowjob.broker.core.plan.job.context;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.limbo.flowjob.broker.api.clent.dto.TaskReceiveDTO;
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskResult;
 import org.limbo.flowjob.broker.api.constants.enums.TaskScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskType;
-import org.limbo.flowjob.broker.api.dto.worker.TaskReceiveDTO;
 import org.limbo.flowjob.broker.core.events.Event;
 import org.limbo.flowjob.broker.core.events.EventPublisher;
 import org.limbo.flowjob.broker.core.events.EventTags;
 import org.limbo.flowjob.broker.core.exceptions.JobDispatchException;
-import org.limbo.flowjob.broker.core.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.plan.PlanInstanceContext;
 import org.limbo.flowjob.broker.core.plan.job.DispatchOption;
 import org.limbo.flowjob.broker.core.plan.job.ExecutorOption;
 import org.limbo.flowjob.broker.core.worker.Worker;
@@ -51,10 +49,15 @@ import java.time.Instant;
 public class Task implements Serializable {
     private static final long serialVersionUID = -9164373359695671417L;
 
-    /**
-     * 多字段联合ID
-     */
-    private ID id;
+    private String taskId;
+
+    private String planId;
+
+    private String planInstanceId;
+
+    private String jobId;
+
+    private String jobInstanceId;
 
     /**
      * 调度状态
@@ -140,7 +143,7 @@ public class Task implements Serializable {
 
         // 检测状态
         if (status != TaskScheduleStatus.SCHEDULING) {
-            throw new JobDispatchException(getId().jobId, getId().taskId, "Cannot startup context due to current status: " + status);
+            throw new JobDispatchException(jobId, taskId, "Cannot startup context due to current status: " + status);
         }
 
         try {
@@ -158,7 +161,7 @@ public class Task implements Serializable {
             // 失败时更新上下文状态，冒泡异常
             // todo 如果是下发失败网络问题等，应该需要重试
 //            setState(TaskScheduleStatus.FAILED);
-            throw new JobDispatchException(getId().jobId, worker.getWorkerId(),
+            throw new JobDispatchException(jobId, worker.getWorkerId(),
                     "Context startup failed due to send job to worker error!", e);
         }
     }
@@ -257,71 +260,6 @@ public class Task implements Serializable {
         Event<Task> acceptEvent = new Event<>(this);
         acceptEvent.setTag(EventTags.TASK_CLOSED);
         eventPublisher.publish(acceptEvent);
-    }
-
-
-
-    /**
-     * 值对象，多字段联合ID
-     */
-    public static class ID {
-
-        public final Long planId;
-
-        public final Long planInfoId;
-
-        public final Long planRecordId;
-
-        public final Integer planInstanceId;
-
-        public final String jobId;
-
-        public final Integer jobInstanceId;
-
-        public final String taskId;
-
-        public ID(Long planId, Long planInfoId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId, String taskId) {
-            this.planId = planId;
-            this.planInfoId = planInfoId;
-            this.planRecordId = planRecordId;
-            this.planInstanceId = planInstanceId;
-            this.jobId = jobId;
-            this.jobInstanceId = jobInstanceId;
-            this.taskId = taskId;
-        }
-
-
-
-        /**
-         * 获取任务对应的 JobRecord.ID
-         */
-        public JobRecord.ID idOfJobRecord() {
-            return new JobRecord.ID(planId, planRecordId, planInstanceId, jobId);
-        }
-
-
-        /**
-         * 获取任务对应的 JobInstance.ID
-         */
-        public JobInstance.ID idOfJobInstance() {
-            return new JobInstance.ID(planId, planRecordId, planInstanceId, jobId, jobInstanceId);
-        }
-
-
-        /**
-         * 获取任务对应的 PlanInstance.ID
-         */
-        public PlanInstanceContext.ID idOfPlanInstance() {
-            return new PlanInstanceContext.ID(planId, planRecordId, planInstanceId);
-        }
-
-
-        /**
-         * 获取任务对应的 PlanRecord.ID
-         */
-        public PlanInstance.ID idOfPlanRecord() {
-            return new PlanInstance.ID(planId, planRecordId);
-        }
     }
 
 }

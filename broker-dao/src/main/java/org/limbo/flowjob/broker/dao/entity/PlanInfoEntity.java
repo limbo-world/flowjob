@@ -41,12 +41,12 @@ public class PlanInfoEntity extends Entity {
      * 版本 全局唯一
      */
     @TableId(type = IdType.INPUT)
-    private Long planInfoId;
+    private String planInfoId;
 
     /**
      * 属于哪个plan
      */
-    private Long planId;
+    private String planId;
 
     /**
      * 执行计划描述

@@ -18,7 +18,7 @@ package org.limbo.flowjob.broker.core.worker.metric;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import org.limbo.flowjob.broker.api.param.worker.WorkerResourceParam;
+import org.limbo.flowjob.broker.api.clent.param.WorkerResourceParam;
 
 /**
  * worker节点上可用的资源，资源有以下三种定义：内存、CPU。值对象。

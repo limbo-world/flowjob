@@ -4,21 +4,28 @@ import lombok.Data;
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskType;
 import org.limbo.flowjob.broker.core.plan.job.Job;
-import org.limbo.utils.strings.UUIDUtils;
+import org.limbo.flowjob.broker.core.plan.job.handler.JobFailHandler;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 /**
  * @author Devil
- * @since 2021/9/2
+ * @since 2021/9/1
  */
 @Data
-public class JobInstance {
+public class JobInstance implements Serializable {
 
-    /**
-     * JobInstance 唯一ID，多字段联合
-     */
-    private ID id;
+    private static final long serialVersionUID = -4343833583716806197L;
+
+    private String jobInstanceId;
+
+    private String planId;
+
+    private String planInstanceId;
+
+    private String jobId;
+
 
     /**
      * 状态
@@ -35,18 +42,32 @@ public class JobInstance {
      */
     private Instant endAt;
 
+    // ===== 非 po 属性
+
+    /**
+     * 已经重试的次数 todo 可以不要这个字段，直接从db获取instance个数   不管用不用这个字段，可能存在worker重复反馈导致数据问题
+     */
+    private Integer retry;
+
+    /**
+     * 此次执行的参数
+     */
+    private String attributes;
+
+    /**
+     * 失败时候的处理
+     */
+    private JobFailHandler failHandler;
 
     /**
      * JobInstance下发给Worker时，以TaskInfo的形式下发
      */
-    public TaskInfo taskInfo(Job job) {
+    public TaskInfo newTask(Job job) {
         TaskInfo task = new TaskInfo();
-        task.setPlanId(id.planId);
-        task.setPlanRecordId(id.planRecordId);
-        task.setPlanInstanceId(id.planInstanceId);
-        task.setJobId(id.jobId);
-        task.setJobInstanceId(id.jobInstanceId);
-        task.setTaskId(UUIDUtils.randomID());
+        task.setPlanId(planId);
+        task.setPlanInstanceId(planInstanceId);
+        task.setJobId(jobId);
+        task.setJobInstanceId(jobInstanceId);
         task.setType(TaskType.NORMAL); // TODO 哪里来？
         task.setAttributes(new Attributes());
         task.setDispatchOption(job.getDispatchOption());
@@ -54,29 +75,17 @@ public class JobInstance {
         return task;
     }
 
-
     /**
-     * 值对象，JobInstance 多字段联合ID
+     * 是否能触发下级任务
      */
-    @Data
-    public static class ID {
-
-        public final Long planId;
-
-        public final Long planRecordId;
-
-        public final Integer planInstanceId;
-
-        public final String jobId;
-
-        public final Integer jobInstanceId;
-
-        public ID(Long planId, Long planRecordId, Integer planInstanceId, String jobId, Integer jobInstanceId) {
-            this.planId = planId;
-            this.planRecordId = planRecordId;
-            this.planInstanceId = planInstanceId;
-            this.jobId = jobId;
-            this.jobInstanceId = jobInstanceId;
+    public boolean canTriggerNext() {
+        if (JobScheduleStatus.SUCCEED == state) {
+            return true;
+        } else if (JobScheduleStatus.FAILED == state) {
+            // todo 根据 handler 类型来判断
+            return true;
+        } else {
+            return false;
         }
     }
 

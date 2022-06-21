@@ -48,7 +48,7 @@ public class PlanInfo implements Serializable {
     /**
      * 版本 planId + version 唯一
      */
-    private Integer version;
+    private String version;
 
     /**
      * 执行计划描述
@@ -66,7 +66,7 @@ public class PlanInfo implements Serializable {
     private JobDAG dag;
 
 
-    public PlanInfo(String planId, Integer version, String description,
+    public PlanInfo(String planId, String version, String description,
                     ScheduleOption scheduleOption, JobDAG dag) {
         this.planId = planId;
         this.version = version;
@@ -78,21 +78,20 @@ public class PlanInfo implements Serializable {
 
     /**
      * 生成新的计划调度记录
-     * @param recordId 调度记录ID
      * @param state 初始化调度记录状态
      * @param manual 是否手动触发调度
      * @return 调度记录状态
      */
-    public PlanInstance newRecord(PlanInstance.ID recordId, PlanScheduleStatus state, boolean manual) {
-        PlanInstance record = new PlanInstance();
-        record.setId(recordId);
-        record.setVersion(version);
-        record.setRetry(scheduleOption.getRetry());
-        record.setDag(dag);
-        record.setState(state);
-        record.setManual(manual);
-        record.setStartAt(TimeUtil.nowInstant());
-        return record;
+    public PlanInstance newInstance(PlanScheduleStatus state, boolean manual) {
+        PlanInstance instance = new PlanInstance();
+        instance.setPlanId(planId);
+        instance.setVersion(version);
+        instance.setRetry(scheduleOption.getRetry());
+        instance.setDag(dag);
+        instance.setState(state);
+        instance.setManual(manual);
+        instance.setStartAt(TimeUtil.nowInstant());
+        return instance;
     }
 
 }

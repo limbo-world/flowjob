@@ -7,10 +7,10 @@ import org.limbo.flowjob.broker.api.constants.enums.TaskResult;
 import org.limbo.flowjob.broker.api.constants.enums.TaskScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskType;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.repositories.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.plan.job.Job;
 import org.limbo.flowjob.broker.core.plan.job.context.Attributes;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
+import org.limbo.flowjob.broker.core.repositories.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.utils.jackson.JacksonUtils;
@@ -55,9 +55,7 @@ public class TaskPoConverter extends Converter<Task, TaskEntity> {
 
     @Override
     protected Task doBackward(TaskEntity po) {
-        PlanInstance planInstance = planInstanceRepository.get(new PlanInstance.ID(
-                po.getPlanId(), po.getPlanRecordId()
-        ));
+        PlanInstance planInstance = planInstanceRepository.get(po.getPlanInstanceId());
         Job job = planInstance.getDag().getJob(po.getJobId());
 
         Task task = new Task();

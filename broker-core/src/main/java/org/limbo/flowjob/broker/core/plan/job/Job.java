@@ -20,8 +20,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
-import org.limbo.flowjob.broker.core.plan.PlanInstanceContext;
-import org.limbo.flowjob.broker.core.plan.job.context.JobRecord;
+import org.limbo.flowjob.broker.core.plan.job.context.JobInstance;
 
 import java.util.Set;
 
@@ -45,6 +44,8 @@ public class Job {
      */
     private String jobId;
 
+    private String name;
+
     /**
      * 作业描述
      */
@@ -63,17 +64,14 @@ public class Job {
     private ExecutorOption executorOption;
 
 
-    public JobRecord newRecord(PlanInstanceContext.ID planInstanceId, JobScheduleStatus state) {
-        JobRecord record = new JobRecord();
-        record.setId(new JobRecord.ID(
-                planInstanceId.planId,
-                planInstanceId.planRecordId,
-                planInstanceId.planInstanceId,
-                jobId
-        ));
-        record.setState(state);
-        record.setAttributes(null); // todo
-        return record;
+    public JobInstance newInstance(String planId, String planInstanceId, JobScheduleStatus state) {
+        JobInstance jobInstance = new JobInstance();
+        jobInstance.setPlanId(planId);
+        jobInstance.setPlanInstanceId(planInstanceId);
+        jobInstance.setJobId(jobId);
+        jobInstance.setState(state);
+        jobInstance.setAttributes(null); // todo
+        return jobInstance;
     }
 
 }

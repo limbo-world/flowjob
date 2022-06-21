@@ -2,19 +2,21 @@ package org.limbo.flowjob.broker.application.plan.converter;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.api.param.job.DispatchOptionParam;
-import org.limbo.flowjob.broker.api.param.job.ExecutorOptionParam;
-import org.limbo.flowjob.broker.api.param.job.JobAddParam;
-import org.limbo.flowjob.broker.api.param.plan.PlanAddParam;
-import org.limbo.flowjob.broker.api.param.plan.ScheduleOptionParam;
+import org.limbo.flowjob.broker.api.console.param.DispatchOptionParam;
+import org.limbo.flowjob.broker.api.console.param.ExecutorOptionParam;
+import org.limbo.flowjob.broker.api.console.param.JobAddParam;
+import org.limbo.flowjob.broker.api.console.param.PlanAddParam;
+import org.limbo.flowjob.broker.api.console.param.ScheduleOptionParam;
 import org.limbo.flowjob.broker.core.plan.Plan;
-import org.limbo.flowjob.broker.core.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.plan.job.DispatchOption;
 import org.limbo.flowjob.broker.core.plan.job.ExecutorOption;
 import org.limbo.flowjob.broker.core.plan.job.Job;
 import org.limbo.flowjob.broker.core.plan.job.JobDAG;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
+import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;

@@ -1,6 +1,7 @@
 package org.limbo.flowjob.broker.dao.repositories;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import lombok.Setter;
 import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.repositories.PlanInstanceRepository;
@@ -10,6 +11,9 @@ import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.mybatis.PlanRecordMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.inject.Inject;
 
 /**
  * @author Devil
@@ -24,37 +28,39 @@ public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
     @Autowired
     private PlanRecordPoConverter converter;
 
+    @Setter(onMethod_ = @Inject)
+    private IDRepo idRepo;
+
 
     @Override
-    public void add(PlanInstance record) {
-        PlanInstanceEntity po = converter.convert(record);
+    @Transactional
+    public String add(PlanInstance instance) {
+        String planInstanceId = idRepo.createPlanInstanceId();
+
+        instance.setPlanInstanceId(planInstanceId);
+
+        PlanInstanceEntity po = converter.convert(instance);
         planRecordMapper.insert(po);
+
+        return planInstanceId;
     }
 
 
     @Override
-    public PlanInstance get(PlanInstance.ID planRecordId) {
+    public PlanInstance get(String planInstanceId) {
         PlanInstanceEntity po = planRecordMapper.selectOne(Wrappers.<PlanInstanceEntity>lambdaQuery()
-                .eq(PlanInstanceEntity::getPlanInstanceId, planRecordId.planId + planRecordId.planRecordId)
+                .eq(PlanInstanceEntity::getPlanInstanceId, planInstanceId)
         );
         return converter.reverse().convert(po);
     }
 
 
     @Override
-    public PlanInstance.ID createId(String planId) {
-        Long recentlyIdForUpdate = planRecordMapper.getRecentlyIdForUpdate(planId);
-        long planRecordId = recentlyIdForUpdate == null ? 1L : recentlyIdForUpdate + 1;
-        return new PlanInstance.ID(planId, planRecordId);
-    }
-
-
-    @Override
-    public void end(PlanInstance.ID planRecordId, PlanScheduleStatus state) {
+    public void end(String planInstanceId, PlanScheduleStatus state) {
         planRecordMapper.update(null, Wrappers.<PlanInstanceEntity>lambdaUpdate()
                 .set(PlanInstanceEntity::getState, state.status)
                 .set(PlanInstanceEntity::getEndAt, TimeUtil.nowLocalDateTime())
-                .eq(PlanInstanceEntity::getPlanInstanceId, planRecordId.planId + planRecordId.planRecordId)
+                .eq(PlanInstanceEntity::getPlanInstanceId, planInstanceId)
                 .eq(PlanInstanceEntity::getState, PlanScheduleStatus.SCHEDULING.status)
         );
     }

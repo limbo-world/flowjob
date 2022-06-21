@@ -18,20 +18,18 @@ import java.time.LocalDateTime;
 public class TaskEntity extends Entity {
     private static final long serialVersionUID = -6865597903513656450L;
 
-    private String planId;
-
-    private Long planRecordId;
-
-    private Integer planInstanceId;
-
-    private String jobId;
-
-    private Integer jobInstanceId;
-
     /**
      * JobInstance下唯一
      */
     private String taskId;
+
+    private String planId;
+
+    private String planInstanceId;
+
+    private String jobId;
+
+    private String jobInstanceId;
 
     /**
      * 状态

@@ -23,8 +23,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.limbo.flowjob.broker.api.param.job.DispatchOptionParam;
-import org.limbo.flowjob.broker.api.param.job.ExecutorOptionParam;
+import org.limbo.flowjob.broker.api.console.param.DispatchOptionParam;
+import org.limbo.flowjob.broker.api.console.param.ExecutorOptionParam;
 
 /**
  * plan 中 每个流程节点的具体信息

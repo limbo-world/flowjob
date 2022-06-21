@@ -20,10 +20,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
+import org.limbo.flowjob.broker.api.clent.dto.TaskReceiveDTO;
+import org.limbo.flowjob.broker.api.clent.param.TaskSubmitParam;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
 import org.limbo.flowjob.broker.api.dto.ResponseDTO;
-import org.limbo.flowjob.broker.api.dto.worker.TaskReceiveDTO;
-import org.limbo.flowjob.broker.api.param.task.TaskSubmitParam;
 import org.limbo.flowjob.broker.core.exceptions.TaskReceiveException;
 import org.limbo.flowjob.broker.core.exceptions.WorkerException;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
@@ -144,12 +144,11 @@ public class HttpWorker extends Worker {
 
     private TaskSubmitParam convertToDto(Task task) {
         TaskSubmitParam dto = new TaskSubmitParam();
-        dto.setPlanId(task.getId().planId);
-        dto.setPlanRecordId(task.getId().planRecordId);
-        dto.setPlanInstanceId(task.getId().planInstanceId);
-        dto.setJobId(task.getId().jobId);
-        dto.setJobInstanceId(task.getId().jobInstanceId);
-        dto.setTaskId(task.getId().taskId);
+        dto.setTaskId(task.getTaskId());
+        dto.setPlanId(task.getPlanId());
+        dto.setPlanInstanceId(task.getPlanInstanceId());
+        dto.setJobId(task.getJobId());
+        dto.setJobInstanceId(task.getJobInstanceId());
         dto.setType(task.getType().type);
         dto.setExecutorName(task.getExecutorOption().getName());
         return dto;

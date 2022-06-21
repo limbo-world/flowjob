@@ -30,12 +30,7 @@ public class PlanInstanceEntity extends Entity {
     /**
      * 对应计划的版本
      */
-    private Long planInfoId;
-
-    /**
-     * 已经重试的次数
-     */
-    private Integer retry;
+    private String planInfoId;
 
     /**
      * 状态

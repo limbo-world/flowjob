@@ -33,16 +33,15 @@ public interface PlanRepository {
      * @param plan 执行计划
      * @return 返回plan的id。如果入参Plan中没有指定ID，方法内应当自动生成一个并返回。
      */
-    Long addPlan(Plan plan);
+    String addPlan(Plan plan);
 
 
     /**
      * 新增执行计划版本号
      * @param plan 执行计划领域对象
-     * @param newVersion 新版本号
      * @return 更新成功则返回新的版本号
      */
-    Integer updateVersion(Plan plan, Integer newVersion);
+    String updateVersion(Plan plan);
 
 
     /**
@@ -51,23 +50,7 @@ public interface PlanRepository {
      * @param planId 计划ID
      * @return 计划plan
      */
-    Plan get(Long planId);
-
-    /**
-     * 根据计划ID查询计划
-     *
-     * @param planInfoId 计划版本ID
-     * @return 计划plan
-     */
-    Plan getByVersion(Long planId, Long planInfoId);
-
-
-    /**
-     * 查询所有需要被调度的计划。
-     * TODO 主节点切换 自动查询可调度任务
-     * @return 所有需要被调度的作业计划
-     */
-    List<Plan> listSchedulablePlans();
+    Plan get(String planId);
 
 
     /**

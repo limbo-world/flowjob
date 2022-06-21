@@ -1,6 +1,6 @@
 package org.limbo.flowjob.broker.application.plan.service;
 
-import org.limbo.flowjob.broker.api.param.plan.PlanAddParam;
+import org.limbo.flowjob.broker.api.console.param.PlanAddParam;
 import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
 import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.core.repositories.PlanRepository;
@@ -15,7 +15,6 @@ import javax.inject.Inject;
 @ApplicationScoped
 public class PlanService {
 
-
     private final PlanConverter converter = PlanConverter.INSTANCE;
 
     @Inject
@@ -27,7 +26,7 @@ public class PlanService {
      * @param param 新增计划参数
      * @return planId
      */
-    public Long addPlan(PlanAddParam param) {
+    public String addPlan(PlanAddParam param) {
         Plan plan = converter.convertPlan(param);
         return planRepo.addPlan(plan);
     }

@@ -2,20 +2,22 @@ package org.limbo.flowjob.tracker.admin.service.plan;
 
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.api.param.job.DispatchOptionParam;
-import org.limbo.flowjob.broker.api.param.job.ExecutorOptionParam;
-import org.limbo.flowjob.broker.api.param.job.JobAddParam;
-import org.limbo.flowjob.broker.api.param.plan.PlanAddParam;
-import org.limbo.flowjob.broker.api.param.plan.PlanReplaceParam;
-import org.limbo.flowjob.broker.api.param.plan.ScheduleOptionParam;
+import org.limbo.flowjob.broker.api.console.param.DispatchOptionParam;
+import org.limbo.flowjob.broker.api.console.param.ExecutorOptionParam;
+import org.limbo.flowjob.broker.api.console.param.JobAddParam;
+import org.limbo.flowjob.broker.api.console.param.PlanAddParam;
+import org.limbo.flowjob.broker.api.console.param.PlanReplaceParam;
+import org.limbo.flowjob.broker.api.console.param.ScheduleOptionParam;
 import org.limbo.flowjob.broker.core.broker.TrackerNode;
 import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
+import org.limbo.flowjob.broker.core.plan.PlanScheduler;
 import org.limbo.flowjob.broker.core.plan.job.DispatchOption;
 import org.limbo.flowjob.broker.core.plan.job.ExecutorOption;
 import org.limbo.flowjob.broker.core.plan.job.Job;
 import org.limbo.flowjob.broker.core.plan.job.JobDAG;
 import org.limbo.flowjob.broker.core.repositories.PlanRepository;
+import org.limbo.flowjob.broker.core.repositories.PlanSchedulerRepository;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.utils.verifies.Verifies;
 import org.springframework.stereotype.Service;
@@ -36,12 +38,15 @@ public class PlanService {
     private PlanRepository planRepository;
 
     @Setter(onMethod_ = @Inject)
+    private PlanSchedulerRepository planSchedulerRepository;
+
+    @Setter(onMethod_ = @Inject)
     private TrackerNode trackerNode;
 
     /**
      * 新增计划 只是个落库操作
      */
-    public Long add(PlanAddParam dto) {
+    public String add(PlanAddParam dto) {
         Plan plan = convertToPlan(dto);
         return planRepository.addPlan(plan);
     }
@@ -59,12 +64,14 @@ public class PlanService {
         // todo plan 创建新版本 并切换内存中的信息
         // 更新版本数据
         PlanInfo planInfo = new PlanInfo(planId, null, dto.getDescription(), convertToVo(dto.getScheduleOption()), new JobDAG(convertToDo(dto.getJobs())));
-        plan.addNewVersion(planInfo);
+        String version = plan.addNewVersion(planInfo);
+
+        PlanScheduler planScheduler = planSchedulerRepository.get(version);
 
         // 需要修改plan重新调度
         if (trackerNode.jobTracker().isScheduling(planId)) {
             trackerNode.jobTracker().unschedule(planId);
-            trackerNode.jobTracker().schedule(plan);
+            trackerNode.jobTracker().schedule(planScheduler);
         }
     }
 
@@ -91,7 +98,8 @@ public class PlanService {
         // 更新状态
         if (plan.enable()) {
             // 调度 plan
-            trackerNode.jobTracker().schedule(plan);
+            PlanScheduler planScheduler = planSchedulerRepository.get(plan.getCurrentVersion());
+            trackerNode.jobTracker().schedule(planScheduler);
         }
     }
 

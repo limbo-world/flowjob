@@ -19,9 +19,10 @@ package org.limbo.flowjob.broker.dao.repositories;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.Setter;
 import org.limbo.flowjob.broker.core.plan.Plan;
+import org.limbo.flowjob.broker.core.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.repositories.PlanRepository;
-import org.limbo.flowjob.broker.dao.converter.PlanInfoPOConverter;
-import org.limbo.flowjob.broker.dao.converter.PlanPOConverter;
+import org.limbo.flowjob.broker.dao.converter.PlanConverter;
+import org.limbo.flowjob.broker.dao.converter.PlanInfoConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.mybatis.PlanInfoMapper;
 import org.limbo.flowjob.broker.dao.mybatis.PlanMapper;
@@ -30,7 +31,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
-import java.util.List;
 
 /**
  * @author Brozen
@@ -46,10 +46,13 @@ public class MyBatisPlanRepo implements PlanRepository {
     private PlanInfoMapper planInfoMapper;
 
     @Setter(onMethod_ = @Inject)
-    private PlanPOConverter planPOConverter;
+    private PlanConverter planConverter;
 
     @Setter(onMethod_ = @Inject)
-    private PlanInfoPOConverter planInfoPOConverter;
+    private PlanInfoConverter planInfoConverter;
+
+    @Setter(onMethod_ = @Inject)
+    private IDRepo idRepo;
 
 
     /**
@@ -62,40 +65,46 @@ public class MyBatisPlanRepo implements PlanRepository {
      */
     @Override
     @Transactional
-    public Long addPlan(Plan plan) {
+    public String addPlan(Plan plan) {
         // 判断 Plan 是否存在，校验 PlanInfo 不为空
         PlanEntity po = planMapper.selectById(plan.getPlanId());
         Verifies.isNull(po, "plan is already exist");
         Verifies.notNull(plan.getInfo(), "plan info is null");
 
-        // 设置初始版本号
-        Integer initialVersion = 1;
-        plan.getInfo().setVersion(initialVersion);
-        plan.setCurrentVersion(initialVersion);
-        plan.setRecentlyVersion(initialVersion);
+        // 设置id信息
+        String version = idRepo.createPlanInfoId();
+        plan.setCurrentVersion(version);
+        plan.setRecentlyVersion(version);
+
+        String planId = idRepo.createPlanId();
+        plan.setPlanId(planId);
+
 
         // 新增 Plan
-        planMapper.insert(planPOConverter.toEntity(plan));
+        planMapper.insert(planConverter.toEntity(plan));
+
+        PlanInfo info = plan.getInfo();
+        info.setVersion(version);
+        info.setPlanId(planId);
 
         // 新增 PlanInfo
-        planInfoMapper.insert(planInfoPOConverter.convert(plan.getInfo()));
+        planInfoMapper.insert(planInfoConverter.toEntity(plan.getInfo()));
 
-        return plan.getPlanId();
+        return planId;
     }
-
 
     /**
      * {@inheritDoc}
      * @param plan 执行计划领域对象
-     * @param newVersion 新版本号
-     * @return
+     * @return newVersion 新版本号
      */
     @Override
     @Transactional
-    public Integer updateVersion(Plan plan, Integer newVersion) {
-        // 新增 PlanInfo
-        int infoInserted = planInfoMapper.insert(planInfoPOConverter.convert(plan.getInfo()));
+    public String updateVersion(Plan plan) {
+        String newVersion = idRepo.createPlanInfoId();
 
+        // 新增 PlanInfo
+        int infoInserted = planInfoMapper.insert(planInfoConverter.toEntity(plan.getInfo()));
         // 更新 Plan 版本信息
         int effected = planMapper.update(null, Wrappers.<PlanEntity>lambdaUpdate()
                 .set(PlanEntity::getCurrentVersion, newVersion)
@@ -111,45 +120,18 @@ public class MyBatisPlanRepo implements PlanRepository {
         }
     }
 
-
     /**
      * {@inheritDoc}
      * @param planId 计划ID
      * @return
      */
     @Override
-    public Plan get(Long planId) {
+    public Plan get(String planId) {
         PlanEntity po = planMapper.selectOne(Wrappers
                 .<PlanEntity>lambdaQuery()
                 .eq(PlanEntity::getPlanId, planId)
         );
-        return planPOConverter.toDO(po);
-    }
-
-    /**
-     * {@inheritDoc}
-     * @param planInfoId 计划版本ID
-     * @return
-     */
-    @Override
-    public Plan getByVersion(Long planId, Long planInfoId) {
-        PlanEntity po = planMapper.selectOne(Wrappers
-                .<PlanEntity>lambdaQuery()
-                .eq(PlanEntity::getPlanId, planId)
-        );
-        // todo 根据版本获取
-        return planPOConverter.toDO(po);
-    }
-
-
-    /**
-     * {@inheritDoc}
-     *
-     * @return
-     */
-    @Override
-    public List<Plan> listSchedulablePlans() {
-        throw new UnsupportedOperationException();
+        return planConverter.toDO(po);
     }
 
 

@@ -16,26 +16,14 @@
 
 package org.limbo.flowjob.broker.core.plan;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.core.events.Event;
-import org.limbo.flowjob.broker.core.events.EventPublisher;
 import org.limbo.flowjob.broker.core.plan.job.Job;
-import org.limbo.flowjob.broker.core.repositories.PlanInfoRepository;
 import org.limbo.flowjob.broker.core.repositories.PlanRepository;
-import org.limbo.flowjob.broker.core.schedule.Schedulable;
-import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
-import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
-import org.limbo.flowjob.broker.core.schedule.calculator.ScheduleCalculatorFactory;
-import org.limbo.flowjob.broker.core.utils.TimeUtil;
 
 import javax.inject.Inject;
 import java.io.Serializable;
-import java.time.Instant;
-import java.util.List;
 
 /**
  * 执行计划。一个计划{@link Plan}对应至少一个作业{@link Job}
@@ -46,7 +34,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class Plan implements Schedulable, Serializable {
+public class Plan implements Serializable {
 
     private static final long serialVersionUID = 5657376836197403211L;
 
@@ -65,20 +53,7 @@ public class Plan implements Schedulable, Serializable {
      */
     private String recentlyVersion;
 
-    /**
-     * 当前版本的具体信息
-     */
     private PlanInfo info;
-
-    /**
-     * 最后调度时间
-     */
-    private Instant lastScheduleAt;
-
-    /**
-     * 最后接收反馈时间
-     */
-    private Instant lastFeedbackAt;
 
     /**
      * 是否已启用
@@ -89,22 +64,6 @@ public class Plan implements Schedulable, Serializable {
     @ToString.Exclude
     @Setter(onMethod_ = @Inject)
     private PlanRepository planRepository;
-
-    @Getter(AccessLevel.NONE)
-    @Setter(value = AccessLevel.PRIVATE, onMethod_ = @Inject)
-    @ToString.Exclude
-    private transient ScheduleCalculatorFactory strategyFactory;
-
-    @Getter(AccessLevel.NONE)
-    @Setter(value = AccessLevel.NONE, onMethod_ = @Inject)
-    @ToString.Exclude
-    private transient EventPublisher<Event<?>> eventEventPublisher;
-
-    /**
-     * 作业触发计算器
-     */
-    @ToString.Exclude
-    private transient ScheduleCalculator triggerCalculator;
 
 
     /**
@@ -133,77 +92,18 @@ public class Plan implements Schedulable, Serializable {
     /**
      * 更新执行计划信息，版本号递增
      * @param planInfo 执行计划信息
+     * @return 新增的版本号
      */
-    public void addNewVersion(PlanInfo planInfo) {
-        // 为 PlanInfo 设置版本号
-        int newVersion = getRecentlyVersion() + 1;
-        planInfo.setVersion(newVersion);
+    public String addNewVersion(PlanInfo planInfo) {
         info = planInfo;
 
         // 更新当前使用版本信息
-        newVersion = planRepository.updateVersion(this, newVersion);
+        String newVersion = planRepository.updateVersion(this);
 
         // 更新领域对象中的版本号
         currentVersion = newVersion;
         recentlyVersion = newVersion;
+        return newVersion;
     }
 
-    @Override
-    public String getId() {
-        return planId + ":" +currentVersion;
-    }
-
-    @Override
-    public ScheduleOption getScheduleOption() {
-        return info.getScheduleOption();
-    }
-
-    @Override
-    public Instant getLastScheduleAt() {
-        return lastScheduleAt;
-    }
-
-    @Override
-    public Instant getLastFeedbackAt() {
-        return lastFeedbackAt;
-    }
-
-    @Override
-    public void schedule() {
-        // 校验能否下发
-        List<Job> jobs = info.getDag().getEarliestJobs();
-        if (CollectionUtils.isEmpty(jobs)) {
-            return;
-        }
-
-        // 触发调度事件
-        // todo 如果 plan 需要持久化，那么持久化一个 PlanRecord 那么如果出现主从切换，从节点会获取到这个数据并执行下发
-        //      如果 plan 不需要持久化，那么plan存在内存，如果主节点挂了这次执行可能就会丢失
-        eventEventPublisher.publish(new Event<>(this));
-
-        // 此次任务的调度时间
-        lastScheduleAt = TimeUtil.nowInstant();
-        // 此次任务调度了还没反馈 所以反馈时间为空
-        lastFeedbackAt = null;
-    }
-
-    /**
-     * 计算作业下一次被触发时的时间戳。如果作业不会被触发，返回0或负数；
-     * @return 作业下一次被触发时的时间戳，从1970-01-01 00:00:00到触发时刻的毫秒数。
-     */
-    @Override
-    public long nextTriggerAt() {
-        return lazyInitTriggerCalculator().apply(this);
-    }
-
-    /**
-     * 延迟加载作业触发计算器
-     */
-    protected ScheduleCalculator lazyInitTriggerCalculator() {
-        if (triggerCalculator == null) {
-            triggerCalculator = strategyFactory.newStrategy(info.getScheduleOption().getScheduleType());
-        }
-
-        return triggerCalculator;
-    }
 }

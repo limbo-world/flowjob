@@ -26,7 +26,9 @@ public class JobInstanceEntity extends Entity {
     @TableId(type = IdType.INPUT)
     private String jobInstanceId;
 
-    private String planInstanceContextId;
+    private String planInstanceId;
+
+    private String jobInfoId;
 
     /**
      * 状态

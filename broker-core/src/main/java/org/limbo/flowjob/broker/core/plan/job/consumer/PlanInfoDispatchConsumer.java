@@ -26,18 +26,14 @@ import org.limbo.flowjob.broker.core.events.Event;
 import org.limbo.flowjob.broker.core.events.EventPublisher;
 import org.limbo.flowjob.broker.core.exceptions.JobExecuteException;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
-import org.limbo.flowjob.broker.core.plan.PlanInstanceContext;
-import org.limbo.flowjob.broker.core.repositories.PlanInstanceContextRepository;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.repositories.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.plan.job.Job;
 import org.limbo.flowjob.broker.core.plan.job.context.JobInstance;
-import org.limbo.flowjob.broker.core.repositories.JobInstanceRepository;
-import org.limbo.flowjob.broker.core.plan.job.context.JobRecord;
-import org.limbo.flowjob.broker.core.repositories.JobRecordRepository;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
 import org.limbo.flowjob.broker.core.plan.job.context.TaskCreateStrategyFactory;
 import org.limbo.flowjob.broker.core.plan.job.context.TaskInfo;
+import org.limbo.flowjob.broker.core.repositories.JobInstanceRepository;
+import org.limbo.flowjob.broker.core.repositories.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.repositories.TaskRepository;
 
 import javax.inject.Inject;
@@ -51,12 +47,6 @@ public class PlanInfoDispatchConsumer extends SourceCastEventConsumer<PlanInfo> 
 
     @Setter(onMethod_ = @Inject)
     private PlanInstanceRepository planRecordRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private PlanInstanceContextRepository planInstanceRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private JobRecordRepository jobRecordRepos;
 
     @Setter(onMethod_ = @Inject)
     private JobInstanceRepository jobInstanceRepo;
@@ -90,32 +80,20 @@ public class PlanInfoDispatchConsumer extends SourceCastEventConsumer<PlanInfo> 
         // todo 这里应该直接由plan生成 由planInstance管理其生命周期
         PlanInfo planInfo = event.getSource();
 
-        // 先生成执行计划记录
-        PlanInstance.ID planRecordId = planRecordRepo.createId(planInfo.getPlanId());
-        PlanInstance planInstance = planInfo.newRecord(planRecordId, PlanScheduleStatus.SCHEDULING, false);
-        planRecordRepo.add(planInstance);
-
-        // 生成执行计划实例
-        PlanInstanceContext.ID planInstanceId = planInstanceRepo.createId(planInstance.getId());
-        PlanInstanceContext planInstanceContext = planInstance.newInstance(planInstanceId, PlanScheduleStatus.SCHEDULING);
-        planInstanceRepo.add(planInstanceContext);
+        // 先生成执行计划实例
+        PlanInstance planInstance = planInfo.newInstance(PlanScheduleStatus.SCHEDULING, false);
+        String planInstanceId = planRecordRepo.add(planInstance);
+        planInstance.setPlanInstanceId(planInstanceId);
 
         // 生成作业执行记录
         List<Job> jobs = planInstance.getDag().getEarliestJobs();
         for (Job job : jobs) {
-            JobRecord jobRecord = job.newRecord(
-                    planInstanceId,
-                    JobScheduleStatus.SCHEDULING
-            );
-            jobRecordRepos.add(jobRecord);
-
-            // 每个作业执行记录生成作业实例
-            JobInstance.ID jobInstanceId = jobInstanceRepo.createId(jobRecord.getId());
-            JobInstance jobInstance = jobRecord.newInstance(jobInstanceId, JobScheduleStatus.SCHEDULING);
-            jobInstanceRepo.add(jobInstance);
+            JobInstance jobInstance = job.newInstance(planInfo.getPlanId(), planInstanceId, JobScheduleStatus.SCHEDULING);
+            String jobInstanceId = jobInstanceRepo.add(jobInstance);
+            jobInstance.setJobInstanceId(jobInstanceId);
 
             // 将作业对应的任务信息下发给worker
-            dispatchTask(jobInstance.taskInfo(job));
+            dispatchTask(jobInstance.newTask(job));
         }
 
         eventPublisher.publish(new Event<>(planInstance));

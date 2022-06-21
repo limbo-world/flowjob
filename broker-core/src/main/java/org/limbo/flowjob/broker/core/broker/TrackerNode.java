@@ -1,6 +1,6 @@
 package org.limbo.flowjob.broker.core.broker;
 
-import org.limbo.flowjob.broker.api.dto.broker.BrokerDTO;
+import org.limbo.flowjob.broker.api.dto.BrokerDTO;
 
 import java.util.List;
 

@@ -2,7 +2,7 @@ package org.limbo.flowjob.broker.dao.converter;
 
 import com.google.common.base.Converter;
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
-import org.limbo.flowjob.broker.core.plan.job.context.JobRecord;
+import org.limbo.flowjob.broker.core.plan.job.context.JobInstance;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.springframework.stereotype.Component;
@@ -12,12 +12,12 @@ import org.springframework.stereotype.Component;
  * @since 2021/7/24
  */
 @Component
-public class JobRecordPoConverter extends Converter<JobRecord, JobInstanceEntity> {
+public class JobRecordPoConverter extends Converter<JobInstance, JobInstanceEntity> {
 
     @Override
-    protected JobInstanceEntity doForward(JobRecord record) {
+    protected JobInstanceEntity doForward(JobInstance record) {
         JobInstanceEntity po = new JobInstanceEntity();
-        JobRecord.ID recordId = record.getId();
+        JobInstance.ID recordId = record.getId();
         po.setPlanId(recordId.planId);
         po.setPlanRecordId(recordId.planRecordId);
         po.setPlanInstanceId(recordId.planInstanceId);
@@ -30,9 +30,9 @@ public class JobRecordPoConverter extends Converter<JobRecord, JobInstanceEntity
     }
 
     @Override
-    protected JobRecord doBackward(JobInstanceEntity po) {
-        JobRecord record = new JobRecord();
-        JobRecord.ID recordId = new JobRecord.ID(
+    protected JobInstance doBackward(JobInstanceEntity po) {
+        JobInstance record = new JobInstance();
+        JobInstance.ID recordId = new JobInstance.ID(
                 po.getPlanId(),
                 po.getPlanRecordId(),
                 po.getPlanInstanceId(),

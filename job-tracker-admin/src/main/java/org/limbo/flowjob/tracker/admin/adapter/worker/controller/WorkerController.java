@@ -18,15 +18,18 @@ package org.limbo.flowjob.tracker.admin.adapter.worker.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.limbo.flowjob.broker.api.clent.dto.WorkerRegisterDTO;
+import org.limbo.flowjob.broker.api.clent.param.WorkerHeartbeatParam;
+import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
+import org.limbo.flowjob.broker.api.dto.ResponseDTO;
 import org.limbo.flowjob.tracker.admin.service.worker.WorkerRegisterService;
 import org.limbo.flowjob.tracker.admin.service.worker.WorkerService;
-import org.limbo.flowjob.broker.api.dto.ResponseDTO;
-import org.limbo.flowjob.broker.api.param.worker.WorkerHeartbeatParam;
-import org.limbo.flowjob.broker.api.param.worker.WorkerRegisterParam;
-import org.limbo.flowjob.broker.api.dto.worker.WorkerRegisterDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 /**

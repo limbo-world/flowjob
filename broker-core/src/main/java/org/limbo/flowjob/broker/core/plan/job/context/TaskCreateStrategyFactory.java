@@ -5,7 +5,6 @@ import org.limbo.flowjob.broker.api.constants.enums.TaskScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskType;
 import org.limbo.flowjob.broker.core.utils.strategies.AbstractStrategyFactory;
 import org.limbo.flowjob.broker.core.utils.strategies.Strategy;
-import org.limbo.utils.strings.UUIDUtils;
 
 import java.time.Instant;
 
@@ -50,15 +49,11 @@ public class TaskCreateStrategyFactory extends AbstractStrategyFactory<TaskType,
         @Override
         public Task apply(TaskInfo info) {
             Task task = new Task();
-            Task.ID taskId = new Task.ID(
-                    info.getPlanId(),
-                    info.getPlanRecordId(),
-                    info.getPlanInstanceId(),
-                    info.getJobId(),
-                    info.getJobInstanceId(),
-                    UUIDUtils.randomID()
-            );
-            task.setId(taskId);
+            task.setTaskId(info.getTaskId());
+            task.setPlanId(info.getPlanId());
+            task.setPlanInstanceId(info.getPlanInstanceId());
+            task.setJobId(info.getJobId());
+            task.setJobInstanceId(info.getJobInstanceId());
             task.setState(TaskScheduleStatus.SCHEDULING);
             task.setResult(TaskResult.NONE);
             task.setWorkerId("");

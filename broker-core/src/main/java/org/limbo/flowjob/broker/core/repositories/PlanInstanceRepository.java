@@ -12,21 +12,17 @@ public interface PlanInstanceRepository {
     /**
      * 持久化
      */
-    void add(PlanInstance record);
+    String add(PlanInstance instance);
 
 
     /**
      * 获取
      */
-    PlanInstance get(PlanInstance.ID planRecordId);
-
+    PlanInstance get(String planInstanceId);
 
     /**
-     * 创建ID
+     * 结束任务
      */
-    PlanInstance.ID createId(String planId);
-
-
-    void end(PlanInstance.ID planRecordId, PlanScheduleStatus state);
+    void end(String planInstanceId, PlanScheduleStatus state);
 
 }
