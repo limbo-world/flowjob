@@ -29,7 +29,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("flowjob_worker_metric")
-public class WorkerMetricEntity extends Entity {
+public class WorkerMetricEntity extends BaseEntityMeta {
 
     private static final long serialVersionUID = -3009642474389520555L;
 

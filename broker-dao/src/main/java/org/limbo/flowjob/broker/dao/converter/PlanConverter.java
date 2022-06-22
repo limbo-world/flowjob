@@ -8,6 +8,7 @@ import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.mybatis.PlanInfoMapper;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
 import org.springframework.context.ApplicationContext;
 
@@ -17,7 +18,7 @@ import javax.inject.Inject;
  * @author Brozen
  * @since 2021-10-19
  */
-@Mapper(componentModel="cdi")
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public abstract class PlanConverter {
 
     @Setter(onMethod_ = @Inject)

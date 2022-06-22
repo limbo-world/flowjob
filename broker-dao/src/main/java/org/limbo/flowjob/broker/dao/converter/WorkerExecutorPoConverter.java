@@ -19,9 +19,7 @@ package org.limbo.flowjob.broker.dao.converter;
 import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerExecutor;
 import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
-import org.mapstruct.EnumMapping;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 /**

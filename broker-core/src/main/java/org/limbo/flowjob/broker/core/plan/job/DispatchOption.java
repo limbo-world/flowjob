@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
 
@@ -54,11 +53,11 @@ public class DispatchOption {
      */
     private float ramRequirement;
 
-    @JsonCreator
-    public DispatchOption(@JsonProperty("loadBalanceType") LoadBalanceType loadBalanceType,
-                          @JsonProperty("cpuRequirement") Float cpuRequirement,
-                          @JsonProperty("ramRequirement") Float ramRequirement,
-                          @JsonProperty("retry") Integer retry) {
+    @JsonCreator // @JsonProperty("scheduleType") 不去掉mapstruct会用set方式，比较奇怪
+    public DispatchOption(LoadBalanceType loadBalanceType,
+                          Float cpuRequirement,
+                          Float ramRequirement,
+                          Integer retry) {
         this.loadBalanceType = loadBalanceType;
         this.cpuRequirement = cpuRequirement == null ? 0 : cpuRequirement;
         this.ramRequirement = ramRequirement == null ? 0 : ramRequirement;

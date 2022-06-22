@@ -4,15 +4,15 @@ import org.limbo.flowjob.broker.api.console.param.PlanAddParam;
 import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
 import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.core.repositories.PlanRepository;
+import org.springframework.stereotype.Component;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 /**
  * @author Brozen
  * @since 2022-06-11
  */
-@ApplicationScoped
+@Component
 public class PlanService {
 
     private final PlanConverter converter = PlanConverter.INSTANCE;

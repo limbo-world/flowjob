@@ -35,7 +35,7 @@ import org.limbo.flowjob.broker.api.console.param.ExecutorOptionParam;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("flowjob_job_info")
-public class JobInfoEntity extends Entity {
+public class JobInfoEntity extends BaseEntityMeta {
     private static final long serialVersionUID = -492555252883668183L;
 
     /**

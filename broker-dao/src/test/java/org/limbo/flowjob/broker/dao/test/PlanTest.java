@@ -18,12 +18,17 @@
 
 package org.limbo.flowjob.broker.dao.test;
 
+import lombok.Setter;
+import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.limbo.flowjob.broker.core.repositories.PlanRepository;
+import org.limbo.flowjob.broker.dao.entity.PlanEntity;
+import org.limbo.flowjob.broker.dao.repositories.PlanJpaRepo;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.inject.Inject;
+import java.util.Date;
+import java.util.Optional;
 
 /**
  * @author Devil
@@ -33,6 +38,21 @@ import javax.inject.Inject;
 @RunWith(SpringRunner.class)
 public class PlanTest {
 
-    @Inject
-    private PlanRepository planRepository;
+    @Setter(onMethod_ = @Inject)
+    private PlanJpaRepo planJpaRepo;
+
+    @Test
+    public void test() {
+        PlanEntity plan = new PlanEntity();
+        String planId = new Date().toString();
+        plan.setId(planId);
+        plan.setCurrentVersion("");
+        plan.setRecentlyVersion("");
+        plan.setIsEnabled(false);
+
+        PlanEntity planEntity = planJpaRepo.save(plan);
+        System.out.println(planEntity);
+        Optional<PlanEntity> planEntityOptional = planJpaRepo.findById(planId);
+        System.out.println(planEntityOptional.get());
+    }
 }

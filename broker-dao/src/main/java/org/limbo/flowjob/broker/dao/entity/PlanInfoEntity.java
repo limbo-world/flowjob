@@ -33,7 +33,7 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("flowjob_plan_info")
-public class PlanInfoEntity extends Entity {
+public class PlanInfoEntity extends BaseEntityMeta {
 
     private static final long serialVersionUID = -1639602897831847418L;
 

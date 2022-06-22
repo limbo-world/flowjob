@@ -22,7 +22,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
-import org.limbo.flowjob.broker.core.utils.Default;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -74,15 +73,13 @@ public class ScheduleOption {
      */
     private final String scheduleCronType;
 
-    @Default
-    @JsonCreator
-    public ScheduleOption(
-            @JsonProperty("scheduleType") ScheduleType scheduleType,
-            @JsonProperty("scheduleStartAt") LocalDateTime scheduleStartAt,
-            @JsonProperty("scheduleDelay") Duration scheduleDelay,
-            @JsonProperty("scheduleInterval") Duration scheduleInterval,
-            @JsonProperty("scheduleCron") String scheduleCron,
-            @JsonProperty("scheduleCronType") String scheduleCronType) {
+    @JsonCreator // @JsonProperty("scheduleType") 不去掉mapstruct会用set方式，比较奇怪
+    public ScheduleOption(ScheduleType scheduleType,
+                          LocalDateTime scheduleStartAt,
+                          Duration scheduleDelay,
+                          Duration scheduleInterval,
+                          String scheduleCron,
+                          String scheduleCronType) {
         this.scheduleType = scheduleType;
         this.scheduleStartAt = scheduleStartAt;
         this.scheduleDelay = scheduleDelay == null ? Duration.ZERO : scheduleDelay;

@@ -46,12 +46,12 @@ public interface PlanConverter {
      * 新增计划参数转换为 计划调度配置
      */
     @Named("convertScheduleOption")
-//    @Mapping(target = "scheduleType", source = "scheduleType")
-//    @Mapping(target = "scheduleStartAt", source = "scheduleStartAt")
-//    @Mapping(target = "scheduleDelay", source = "scheduleDelay")
-//    @Mapping(target = "scheduleInterval", source = "scheduleInterval")
-//    @Mapping(target = "scheduleCron", source = "scheduleCron")
-//    @Mapping(target = "scheduleCronType", source = "scheduleCronType")
+    @Mapping(target = "scheduleType", source = "scheduleType")
+    @Mapping(target = "scheduleStartAt", source = "scheduleStartAt")
+    @Mapping(target = "scheduleDelay", source = "scheduleDelay")
+    @Mapping(target = "scheduleInterval", source = "scheduleInterval")
+    @Mapping(target = "scheduleCron", source = "scheduleCron")
+    @Mapping(target = "scheduleCronType", source = "scheduleCronType")
     ScheduleOption convertScheduleOption(ScheduleOptionParam param);
 
 
@@ -88,7 +88,9 @@ public interface PlanConverter {
      * 转换 作业分发参数
      */
     @Named("convertJobDispatchOption")
-    // 使用构造函数
+    @Mapping(target = "loadBalanceType", source = "loadBalanceType")
+    @Mapping(target = "cpuRequirement", source = "cpuRequirement")
+    @Mapping(target = "ramRequirement", source = "ramRequirement")
     DispatchOption convertJobDispatchOption(DispatchOptionParam param);
 
 
@@ -99,9 +101,5 @@ public interface PlanConverter {
     @Mapping(target = "name", source = "name")
     @Mapping(target = "type", source = "type")
     ExecutorOption convertJobExecutorOption(ExecutorOptionParam param);
-
-
-
-
 
 }

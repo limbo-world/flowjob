@@ -31,7 +31,7 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("flowjob_worker_statistics")
-public class WorkerStatisticsEntity extends Entity {
+public class WorkerStatisticsEntity extends BaseEntityMeta {
 
     private static final long serialVersionUID = 4463926711851672545L;
 

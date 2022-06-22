@@ -1,10 +1,12 @@
 package org.limbo.flowjob.broker.dao.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import javax.persistence.Entity;
+import javax.persistence.MappedSuperclass;
+import javax.persistence.Table;
 
 /**
  * plan 计划
@@ -15,15 +17,11 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("flowjob_plan")
-public class PlanEntity extends Entity {
+@Table(name = "flowjob_plan")
+@Entity
+public class PlanEntity extends BaseEntityMeta {
 
     private static final long serialVersionUID = -6323915044280199312L;
-
-    /**
-     * 作业执行计划ID
-     */
-    @TableId(type = IdType.INPUT)
-    private String planId;
 
     /**
      * 当前版本。可能发生回滚，因此 currentVersion 可能小于 recentlyVersion 。

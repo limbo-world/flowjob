@@ -52,9 +52,6 @@ public class MyBatisWorkerMetricRepo implements WorkerMetricRepository {
     @Autowired
     private WorkerExecutorMapper workerExecutorMapper;
 
-    @Autowired
-    private WorkerExecutorPoConverter workerExecutorPoConverter;
-
     /**
      * {@inheritDoc}
      *
@@ -86,7 +83,7 @@ public class MyBatisWorkerMetricRepo implements WorkerMetricRepository {
                         if (StringUtils.isBlank(workerExecutor.getDescription())) {
                             workerExecutor.setDescription(StringUtils.EMPTY);
                         }
-                        return workerExecutorPoConverter.toEntity(workerExecutor);
+                        return WorkerExecutorPoConverter.INSTANCE.toEntity(workerExecutor);
                     })
                     .collect(Collectors.toList()));
         }
@@ -112,7 +109,7 @@ public class MyBatisWorkerMetricRepo implements WorkerMetricRepository {
         List<WorkerExecutorEntity> executorPos = workerExecutorMapper.findByWorker(workerId);
         if (CollectionUtils.isNotEmpty(executorPos)) {
             executors = executorPos.stream()
-                    .map(entity -> workerExecutorPoConverter.toDO(entity))
+                    .map(WorkerExecutorPoConverter.INSTANCE::toDO)
                     .collect(Collectors.toList());
         } else {
             executors = Lists.newArrayList();

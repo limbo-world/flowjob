@@ -31,6 +31,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
+import java.util.Optional;
 
 /**
  * @author Brozen
@@ -41,6 +42,9 @@ public class MyBatisPlanRepo implements PlanRepository {
 
     @Setter(onMethod_ = @Inject)
     private PlanMapper planMapper;
+
+    @Setter(onMethod_ = @Inject)
+    private PlanJpaRepo planJpaRepo;
 
     @Setter(onMethod_ = @Inject)
     private PlanInfoMapper planInfoMapper;
@@ -67,8 +71,8 @@ public class MyBatisPlanRepo implements PlanRepository {
     @Transactional
     public String addPlan(Plan plan) {
         // 判断 Plan 是否存在，校验 PlanInfo 不为空
-        PlanEntity po = planMapper.selectById(plan.getPlanId());
-        Verifies.isNull(po, "plan is already exist");
+        Optional<PlanEntity> planEntityOptional = planJpaRepo.findById(plan.getPlanId());
+        Verifies.verify(planEntityOptional.isPresent(), "plan is already exist");
         Verifies.notNull(plan.getInfo(), "plan info is null");
 
         // 设置id信息
@@ -81,7 +85,7 @@ public class MyBatisPlanRepo implements PlanRepository {
 
 
         // 新增 Plan
-        planMapper.insert(planConverter.toEntity(plan));
+        planJpaRepo.saveAndFlush(planConverter.toEntity(plan));
 
         PlanInfo info = plan.getInfo();
         info.setVersion(version);
@@ -109,7 +113,7 @@ public class MyBatisPlanRepo implements PlanRepository {
         int effected = planMapper.update(null, Wrappers.<PlanEntity>lambdaUpdate()
                 .set(PlanEntity::getCurrentVersion, newVersion)
                 .set(PlanEntity::getRecentlyVersion, newVersion)
-                .eq(PlanEntity::getPlanId, plan.getPlanId())
+                .eq(PlanEntity::getId, plan.getPlanId())
                 .eq(PlanEntity::getCurrentVersion, plan.getCurrentVersion())
                 .eq(PlanEntity::getRecentlyVersion, plan.getRecentlyVersion()));
 
@@ -129,7 +133,7 @@ public class MyBatisPlanRepo implements PlanRepository {
     public Plan get(String planId) {
         PlanEntity po = planMapper.selectOne(Wrappers
                 .<PlanEntity>lambdaQuery()
-                .eq(PlanEntity::getPlanId, planId)
+                .eq(PlanEntity::getId, planId)
         );
         return planConverter.toDO(po);
     }
@@ -146,7 +150,7 @@ public class MyBatisPlanRepo implements PlanRepository {
         return planMapper.update(null, Wrappers
                 .<PlanEntity>lambdaUpdate()
                 .set(PlanEntity::getIsEnabled, true)
-                .eq(PlanEntity::getPlanId, plan.getPlanId())
+                .eq(PlanEntity::getId, plan.getPlanId())
                 .eq(PlanEntity::getIsEnabled, false)
         );
     }
@@ -163,7 +167,7 @@ public class MyBatisPlanRepo implements PlanRepository {
         return planMapper.update(null, Wrappers
                 .<PlanEntity>lambdaUpdate()
                 .set(PlanEntity::getIsEnabled, false)
-                .eq(PlanEntity::getPlanId, plan.getPlanId())
+                .eq(PlanEntity::getId, plan.getPlanId())
                 .eq(PlanEntity::getIsEnabled, true)
         );
     }

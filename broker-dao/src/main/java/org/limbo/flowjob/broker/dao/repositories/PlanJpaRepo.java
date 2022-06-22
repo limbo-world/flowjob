@@ -16,15 +16,14 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.utils;
+package org.limbo.flowjob.broker.dao.repositories;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.limbo.flowjob.broker.dao.entity.PlanEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-@Target(ElementType.CONSTRUCTOR)
-@Retention(RetentionPolicy.CLASS)
-public @interface Default {
-
+/**
+ * @author Devil
+ * @since 2022/6/22
+ */
+public interface PlanJpaRepo extends JpaRepository<PlanEntity, String> {
 }

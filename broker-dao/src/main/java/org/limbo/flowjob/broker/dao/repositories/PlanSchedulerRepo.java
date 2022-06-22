@@ -27,6 +27,7 @@ import org.limbo.flowjob.broker.core.repositories.PlanSchedulerRepository;
 import org.limbo.flowjob.broker.dao.converter.PlanInfoConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.mybatis.PlanInfoMapper;
+import org.springframework.stereotype.Component;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -36,7 +37,7 @@ import java.util.List;
  * @author Devil
  * @since 2022/6/20
  */
-@ApplicationScoped
+@Component
 public class PlanSchedulerRepo implements PlanSchedulerRepository {
 
     @Setter(onMethod_ = @Inject)

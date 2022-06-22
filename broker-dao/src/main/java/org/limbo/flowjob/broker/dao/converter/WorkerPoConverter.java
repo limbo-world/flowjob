@@ -37,7 +37,7 @@ import reactor.netty.http.client.HttpClient;
 @Component
 public class WorkerPoConverter extends Converter<Worker, WorkerEntity> {
 
-    @Autowired
+//    @Autowired
     private HttpClient httpClient;
 
     @Lazy

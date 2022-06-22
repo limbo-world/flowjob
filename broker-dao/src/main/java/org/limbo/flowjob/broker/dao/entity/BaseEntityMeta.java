@@ -16,8 +16,12 @@
 
 package org.limbo.flowjob.broker.dao.entity;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
+import javax.persistence.Column;
+import javax.persistence.Id;
+import javax.persistence.MappedSuperclass;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -25,24 +29,29 @@ import java.time.LocalDateTime;
  * @author Brozen
  * @since 2021-07-05
  */
-@Data
-public abstract class Entity implements Serializable {
+@MappedSuperclass
+public abstract class BaseEntityMeta implements Serializable {
 
     private static final long serialVersionUID = 1797761151294059019L;
 
     /**
      * DB自增序列ID，并不是唯一标识
      */
-    private Long id;
+    @Id
+    @Setter
+    @Getter
+    private String id;
 
     /**
      * 记录创建时间
      */
-    private LocalDateTime createdAt;
+    @Getter
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     /**
      * 记录更新时间
      */
-    private LocalDateTime updatedAt;
+    @Getter
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
 }

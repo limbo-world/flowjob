@@ -18,7 +18,7 @@
 
 package org.limbo.flowjob.broker.dao.repositories;
 
-import javax.enterprise.context.ApplicationScoped;
+import org.springframework.stereotype.Component;
 
 /**
  * 控制ID生成 todo
@@ -26,7 +26,7 @@ import javax.enterprise.context.ApplicationScoped;
  * @author Devil
  * @since 2022/6/20
  */
-@ApplicationScoped
+@Component
 public class IDRepo {
 
     public String createPlanId() {

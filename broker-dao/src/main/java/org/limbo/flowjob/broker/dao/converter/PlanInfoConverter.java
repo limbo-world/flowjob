@@ -21,18 +21,18 @@ import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
 import org.springframework.context.ApplicationContext;
 
 import javax.inject.Inject;
 
 /**
- *
  * todo 这个移除 直接在plan里面处理
  *
  * @author Brozen
  * @since 2021-07-13
  */
-@Mapper(componentModel="cdi")
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public abstract class PlanInfoConverter {
 
     @Setter(onMethod_ = @Inject)
