@@ -44,7 +44,7 @@ public class Plan implements Serializable {
     private String planId;
 
     /**
-     * 当前版本
+     * 当前版本，版本号就是 PlanInfo 实体的ID，
      */
     private String currentVersion;
 
@@ -53,6 +53,9 @@ public class Plan implements Serializable {
      */
     private String recentlyVersion;
 
+    /**
+     * 当前版本的Plan数据
+     */
     private PlanInfo info;
 
     /**
@@ -63,7 +66,7 @@ public class Plan implements Serializable {
     // --------需注入
     @ToString.Exclude
     @Setter(onMethod_ = @Inject)
-    private PlanRepository planRepository;
+    private transient PlanRepository planRepository;
 
 
     /**

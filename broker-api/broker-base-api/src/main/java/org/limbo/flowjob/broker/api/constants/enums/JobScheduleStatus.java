@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * 作业调度状态
+ *
  * @author Brozen
  * @since 2021-05-19
  */

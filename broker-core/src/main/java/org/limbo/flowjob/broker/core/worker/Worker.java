@@ -144,14 +144,14 @@ public abstract class Worker {
      * worker节点心跳检测。
      * @return 返回worker节点的指标信息。
      */
-    public abstract Mono<WorkerMetric> ping();
+    public abstract WorkerMetric ping();
 
     /**
      * 发送一个作业到worker执行。当worker接受此task后，将触发返回的{@link Mono}
      * @param instance 作业实例
      * @return worker接受task后触发
      */
-    public abstract Mono<TaskReceiveDTO> sendTask(Task instance) throws TaskReceiveException;
+    public abstract TaskReceiveDTO sendTask(Task instance) throws TaskReceiveException;
 
     /**
      * 解注册此worker，worker的状态将被标记为{@link WorkerStatus#TERMINATED}

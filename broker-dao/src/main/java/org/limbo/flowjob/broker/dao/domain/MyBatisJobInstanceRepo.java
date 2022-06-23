@@ -73,18 +73,32 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
 
     /**
      * {@inheritDoc}
-     * @param jobInstanceId 待更新的作业执行记录ID
+     * @param instance 作业实例
      * @return
      */
     @Override
-    public boolean execute(String jobInstanceId) {
+    public boolean dispatched(JobInstance instance) {
         return jobInstanceMapper.update(null, Wrappers.<JobInstanceEntity>lambdaUpdate()
                 .set(JobInstanceEntity::getState, JobScheduleStatus.EXECUTING.status)
-                .eq(JobInstanceEntity::getJobInstanceId, jobInstanceId)
+                .eq(JobInstanceEntity::getJobInstanceId, instance.getJobInstanceId())
                 .eq(JobInstanceEntity::getState, JobScheduleStatus.SCHEDULING.status)
         ) > 0;
     }
 
+
+    /**
+     * {@inheritDoc}
+     * @param instance 作业实例
+     * @return
+     */
+    @Override
+    public boolean dispatchFailed(JobInstance instance) {
+        return jobInstanceMapper.update(null, Wrappers.<JobInstanceEntity>lambdaUpdate()
+                .set(JobInstanceEntity::getState, JobScheduleStatus.FAILED.status)
+                .eq(JobInstanceEntity::getJobInstanceId, instance.getJobInstanceId())
+                .eq(JobInstanceEntity::getState, JobScheduleStatus.SCHEDULING.status)
+        ) > 0;
+    }
 
     @Override
     public boolean end(String jobInstanceId, JobScheduleStatus state) {

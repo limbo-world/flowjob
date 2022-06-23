@@ -29,17 +29,32 @@ import java.util.List;
 public interface TaskRepository {
 
     /**
-     * 持久化作业实例
-     * @param task 作业执行实例
+     * 持久化任务
+     * @param task 任务
      */
     String add(Task task);
 
     /**
-     * 将任务状态从 {@link TaskScheduleStatus#SCHEDULING} 更新为 {@link TaskScheduleStatus#EXECUTING}
-     * @param taskId 任务ID
+     * 任务下发成功，将任务状态从 {@link TaskScheduleStatus#SCHEDULING} 更新为 {@link TaskScheduleStatus#DISPATCHING}
+     * @param task 任务
      * @return 返回是否更新成功
      */
-    boolean execute(String taskId);
+    boolean dispatching(Task task);
+
+    /**
+     * 任务下发成功，将任务状态从 {@link TaskScheduleStatus#DISPATCHING} 更新为 {@link TaskScheduleStatus#EXECUTING}
+     * @param task 任务
+     * @return 返回是否更新成功
+     */
+    boolean dispatched(Task task);
+
+    /**
+     * 任务下发失败，将任务状态从 {@link TaskScheduleStatus#DISPATCHING} 更新为 {@link TaskScheduleStatus#DISPATCH_FAILED}
+     * @param task 任务
+     * @return 返回是否更新成功
+     */
+    boolean dispatchFailed(Task task);
+
 
     /**
      * 更新状态为已反馈

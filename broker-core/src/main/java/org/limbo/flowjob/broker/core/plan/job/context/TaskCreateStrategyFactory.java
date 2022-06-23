@@ -3,6 +3,7 @@ package org.limbo.flowjob.broker.core.plan.job.context;
 import org.limbo.flowjob.broker.api.constants.enums.TaskResult;
 import org.limbo.flowjob.broker.api.constants.enums.TaskScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskType;
+import org.limbo.flowjob.broker.core.utils.UUIDUtils;
 import org.limbo.flowjob.broker.core.utils.strategies.AbstractStrategyFactory;
 import org.limbo.flowjob.broker.core.utils.strategies.Strategy;
 
@@ -12,7 +13,7 @@ import java.time.Instant;
  * @author Brozen
  * @since 2021-10-20
  */
-public class TaskCreateStrategyFactory extends AbstractStrategyFactory<TaskType, TaskCreateStrategyFactory.TaskCreateStrategy, TaskInfo, Task> {
+public class TaskCreateStrategyFactory extends AbstractStrategyFactory<TaskType, TaskCreateStrategyFactory.TaskCreateStrategy, JobInstance, Task> {
 
     public TaskCreateStrategyFactory() {
         registerStrategyCreator(TaskType.NORMAL, NormalTaskCreateStrategy::new);
@@ -21,9 +22,10 @@ public class TaskCreateStrategyFactory extends AbstractStrategyFactory<TaskType,
     }
 
     /**
-     * Task 创建策略接口
+     * Task 创建策略接口，在这里对 Task 进行多种代理（装饰），实现下发重试策略。
+     * @see DispatchRetryableTask
      */
-    public interface TaskCreateStrategy extends Strategy<TaskInfo, Task> {}
+    public interface TaskCreateStrategy extends Strategy<JobInstance, Task> {}
 
 
     /**
@@ -33,34 +35,34 @@ public class TaskCreateStrategyFactory extends AbstractStrategyFactory<TaskType,
 
         /**
          * 此策略仅适用于 {@link TaskType#NORMAL} 类型的任务
-         * @param data 数据
+         * @param job 作业实例
          */
         @Override
-        public Boolean canApply(TaskInfo data) {
-            return data.getType() == TaskType.NORMAL;
+        public Boolean canApply(JobInstance job) {
+            return job.getTaskType() == TaskType.NORMAL;
         }
 
 
         /**
          * {@inheritDoc}
-         * @param info
+         * @param job
          * @return
          */
         @Override
-        public Task apply(TaskInfo info) {
+        public Task apply(JobInstance job) {
             Task task = new Task();
-            task.setTaskId(info.getTaskId());
-            task.setPlanId(info.getPlanId());
-            task.setPlanInstanceId(info.getPlanInstanceId());
-            task.setJobId(info.getJobId());
-            task.setJobInstanceId(info.getJobInstanceId());
+            task.setTaskId(UUIDUtils.randomID()); // TODO taskId如何生成？
+            task.setPlanId(job.getPlanId());
+            task.setPlanInstanceId(job.getPlanInstanceId());
+            task.setJobId(job.getJobId());
+            task.setJobInstanceId(job.getJobInstanceId());
             task.setState(TaskScheduleStatus.SCHEDULING);
             task.setResult(TaskResult.NONE);
             task.setWorkerId("");
-            task.setType(info.getType());
+            task.setType(job.getTaskType());
             task.setAttributes(new Attributes());
-            task.setDispatchOption(info.getDispatchOption());
-            task.setExecutorOption(info.getExecutorOption());
+            task.setDispatchOption(job.getDispatchOption());
+            task.setExecutorOption(job.getExecutorOption());
             task.setErrorMsg("");
             task.setErrorStackTrace("");
             task.setStartAt(Instant.EPOCH);
@@ -76,12 +78,12 @@ public class TaskCreateStrategyFactory extends AbstractStrategyFactory<TaskType,
     public static class ShardingTaskCreateStrategy implements TaskCreateStrategy {
 
         @Override
-        public Boolean canApply(TaskInfo data) {
+        public Boolean canApply(JobInstance data) {
             return null;
         }
 
         @Override
-        public Task apply(TaskInfo data) {
+        public Task apply(JobInstance data) {
             return null;
         }
     }
@@ -93,12 +95,12 @@ public class TaskCreateStrategyFactory extends AbstractStrategyFactory<TaskType,
     public static class BroadcastTaskCreateStrategy implements TaskCreateStrategy {
 
         @Override
-        public Boolean canApply(TaskInfo data) {
+        public Boolean canApply(JobInstance data) {
             return null;
         }
 
         @Override
-        public Task apply(TaskInfo data) {
+        public Task apply(JobInstance data) {
             return null;
         }
     }

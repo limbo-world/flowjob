@@ -1,12 +1,20 @@
 package org.limbo.flowjob.broker.application.plan.service;
 
+import lombok.Setter;
 import org.limbo.flowjob.broker.api.console.param.PlanAddParam;
+import org.limbo.flowjob.broker.api.console.param.PlanReplaceParam;
 import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
+import org.limbo.flowjob.broker.core.broker.TrackerNode;
 import org.limbo.flowjob.broker.core.plan.Plan;
+import org.limbo.flowjob.broker.core.plan.PlanInfo;
+import org.limbo.flowjob.broker.core.plan.PlanScheduler;
 import org.limbo.flowjob.broker.core.repositories.PlanRepository;
+import org.limbo.flowjob.broker.core.repositories.PlanSchedulerRepository;
+import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 
 /**
  * @author Brozen
@@ -17,8 +25,14 @@ public class PlanService {
 
     private final PlanConverter converter = PlanConverter.INSTANCE;
 
-    @Inject
+    @Setter(onMethod_ = @Inject)
     private PlanRepository planRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private PlanSchedulerRepository planSchedulerRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private TrackerNode trackerNode;
 
 
     /**
@@ -29,6 +43,50 @@ public class PlanService {
     public String addPlan(PlanAddParam param) {
         Plan plan = converter.convertPlan(param);
         return planRepo.save(plan);
+    }
+
+
+    /**
+     * 覆盖计划 可能会触发 内存时间轮改动
+     */
+    @Transactional
+    public void replace(String planId, PlanReplaceParam param) {
+        // 获取当前的plan数据
+        Plan plan = planRepo.get(planId);
+        Verifies.notNull(plan, String.format("Cannot find Plan %s", planId));
+
+        // TODO plan 创建新版本 并切换内存中的信息
+        PlanInfo planInfo = converter.convertPlanInfo(param);
+        String newVersion = plan.addNewVersion(planInfo);
+
+        // 需要修改plan重新调度
+        PlanScheduler scheduler = planSchedulerRepo.get(newVersion);
+        if (trackerNode.jobTracker().isScheduling(planId)) {
+            trackerNode.jobTracker().unschedule(planId);
+            trackerNode.jobTracker().schedule(scheduler);
+        }
+    }
+
+
+    /**
+     * 取消计划 停止调度
+     */
+    @Transactional
+    public void stop(String planId) {
+        // 获取当前的plan数据
+        Plan plan = planRepo.get(planId);
+        Verifies.notNull(plan, String.format("Cannot find Plan %s", planId));
+
+        // 已经停止不重复处理
+        if (!plan.isEnabled()) {
+            return;
+        }
+
+        // 停用计划
+        if (plan.disable()) {
+            // 停止调度 plan
+            trackerNode.jobTracker().unschedule(planId);
+        }
     }
 
 

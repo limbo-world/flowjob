@@ -25,7 +25,7 @@ import org.limbo.flowjob.broker.core.plan.Plan;
 public interface PlanRepository {
 
     /**
-     * 新增plan
+     * 新增plan。新增时无需指定初始version，新增成功后会自动生成。
      *
      * @param plan 执行计划
      * @return 返回plan的id。如果入参Plan中没有指定ID，方法内应当自动生成一个并返回。

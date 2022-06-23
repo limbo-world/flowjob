@@ -32,6 +32,7 @@ import java.util.List;
  * @since 2021/7/24
  */
 @Service
+@Deprecated
 public class PlanService {
 
     @Setter(onMethod_ = @Inject)

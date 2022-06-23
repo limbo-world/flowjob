@@ -19,19 +19,17 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
+import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.plan.PlanScheduler;
 import org.limbo.flowjob.broker.core.repositories.PlanSchedulerRepository;
-import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.converter.PlanInfoConverter;
-import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author Devil
@@ -46,22 +44,33 @@ public class PlanSchedulerRepo implements PlanSchedulerRepository {
     @Setter(onMethod_ = @Inject)
     private PlanInfoConverter planInfoConverter;
 
+
+    /**
+     * {@inheritDoc}
+     * @param version 计划版本ID
+     * @return
+     */
     @Override
     public PlanScheduler get(String version) {
-        Optional<PlanInfoEntity> planInfoEntityOptional = planInfoEntityRepo.findById(version);
-        Verifies.verify(planInfoEntityOptional.isPresent(), "can't find plan with this version");
-
-        PlanInfo planInfo = planInfoConverter.toDO(planInfoEntityOptional.get());
+        PlanInfo planInfo = planInfoEntityRepo.findById(version)
+                .map(planInfoConverter::toDO)
+                .orElseThrow(() -> new VerifyException("can't find plan with this version"));
 
         PlanScheduler planScheduler = new PlanScheduler();
         planScheduler.setInfo(planInfo);
-//        planScheduler.setLastScheduleAt(null); // todo
+//        planScheduler.setLastScheduleAt(null); // todo 这里要todo啥？
 //        planScheduler.setLastFeedbackAt(null);
         return planScheduler;
     }
 
+
+    /**
+     * {@inheritDoc}
+     * @return
+     */
     @Override
     public List<Plan> listSchedulablePlans() {
+        // TODO
         throw new UnsupportedOperationException();
     }
 

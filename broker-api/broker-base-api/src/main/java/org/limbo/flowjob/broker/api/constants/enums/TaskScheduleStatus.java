@@ -20,16 +20,34 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * 调度状态
+ * 任务调度状态
+ *
  * @author Brozen
  * @since 2021-05-19
  */
 public enum TaskScheduleStatus {
 
     SCHEDULING(1, "调度中"), // 任务刚创建，还在内存，未下发给worker
-    EXECUTING(2, "执行中"), // worker接收任务成功
-    FEEDBACK(3, "执行完成"), // worker反馈成功，但是具体对Plan等异步状态变更还没处理
-    COMPLETED(4, "处理完成"), // 整体逻辑执行结束
+
+    /**
+     * 任务已创建，已持久化，正在下发给worker
+     */
+    DISPATCHING(2, "下发中"),
+
+    /**
+     * 任务已经创建且持久化，下发给worker失败，
+     */
+    DISPATCH_FAILED(3, "下发失败"),
+
+    /**
+     * 任务已经创建且持久化，下发给worker成功，正在执行中
+     */
+    EXECUTING(4, "执行中"),
+
+    /**
+     * 任务已经创建且持久化，worker反馈已执行完成
+     */
+    COMPLETED(5, "处理完成"),
     ;
 
     @JsonValue

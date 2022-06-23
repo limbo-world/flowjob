@@ -18,16 +18,31 @@ public class SingleJobTracker implements JobTracker {
         this.scheduler = scheduler;
     }
 
+    /**
+     * {@inheritDoc}
+     * @param schedulable 待调度的对象
+     */
     @Override
     public void schedule(Schedulable schedulable) {
         scheduler.schedule(schedulable);
     }
 
+
+    /**
+     * {@inheritDoc}
+     * @param id 待调度的对象 id
+     */
     @Override
     public void unschedule(String id) {
         scheduler.unschedule(id);
     }
 
+
+    /**
+     * {@inheritDoc}
+     * @param id 调度的对象 id
+     * @return
+     */
     @Override
     public boolean isScheduling(String id) {
         return scheduler.isScheduling(id);

@@ -51,6 +51,12 @@ public class MyBatisTaskRepo implements TaskRepository {
     @Setter(onMethod_ = @Inject)
     private IDRepo idRepo;
 
+
+    /**
+     * {@inheritDoc}
+     * @param task 作业执行实例
+     * @return
+     */
     @Override
     @Transactional
     public String add(Task task) {
@@ -61,6 +67,58 @@ public class MyBatisTaskRepo implements TaskRepository {
         taskMapper.insert(po);
         return taskId;
     }
+
+
+    /**
+     * {@inheritDoc}
+     * @param task 任务
+     * @return
+     */
+    @Override
+    public boolean dispatching(Task task) {
+        return taskMapper.update(null, Wrappers.<TaskEntity>lambdaUpdate()
+                .set(TaskEntity::getState, TaskScheduleStatus.DISPATCHING.status)
+                .set(TaskEntity::getWorkerId, task.getWorkerId())
+                .eq(TaskEntity::getTaskId, task.getTaskId())
+                .eq(TaskEntity::getState, TaskScheduleStatus.SCHEDULING.status)
+                .eq(TaskEntity::getResult, TaskResult.NONE.result)
+        ) > 0;
+    }
+
+
+    /**
+     * {@inheritDoc}
+     * @param task 任务
+     * @return
+     */
+    @Override
+    public boolean dispatched(Task task) {
+        return taskMapper.update(null, Wrappers.<TaskEntity>lambdaUpdate()
+                .set(TaskEntity::getState, TaskScheduleStatus.EXECUTING.status)
+                .set(TaskEntity::getWorkerId, task.getWorkerId())
+                .eq(TaskEntity::getTaskId, task.getTaskId())
+                .eq(TaskEntity::getState, TaskScheduleStatus.DISPATCHING.status)
+                .eq(TaskEntity::getResult, TaskResult.NONE.result)
+        ) > 0;
+    }
+
+
+    /**
+     * {@inheritDoc}
+     * @param task 任务
+     * @return
+     */
+    @Override
+    public boolean dispatchFailed(Task task) {
+        return taskMapper.update(null, Wrappers.<TaskEntity>lambdaUpdate()
+                .set(TaskEntity::getState, TaskScheduleStatus.DISPATCH_FAILED.status)
+                .set(TaskEntity::getWorkerId, task.getWorkerId())
+                .eq(TaskEntity::getTaskId, task.getTaskId())
+                .eq(TaskEntity::getState, TaskScheduleStatus.DISPATCHING.status)
+                .eq(TaskEntity::getResult, TaskResult.NONE.result)
+        ) > 0;
+    }
+
 
     @Override
     @Transactional
@@ -83,16 +141,6 @@ public class MyBatisTaskRepo implements TaskRepository {
                 .eq(TaskEntity::getState, TaskScheduleStatus.FEEDBACK.status)
                 .eq(TaskEntity::getResult, TaskResult.NONE.result)
         );
-    }
-
-    @Override
-    public boolean execute(String taskId) {
-        return taskMapper.update(null, Wrappers.<TaskEntity>lambdaUpdate()
-                .set(TaskEntity::getState, TaskScheduleStatus.EXECUTING.status)
-                .eq(TaskEntity::getTaskId, taskId)
-                .eq(TaskEntity::getState, TaskScheduleStatus.SCHEDULING.status)
-                .eq(TaskEntity::getResult, TaskResult.NONE.result)
-        ) > 0;
     }
 
     @Override

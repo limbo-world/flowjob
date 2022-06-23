@@ -25,11 +25,20 @@ public interface JobInstanceRepository {
 
 
     /**
-     * CAS 将此作业执行记录状态从 {@link JobScheduleStatus#SCHEDULING} 修改为 {@link JobScheduleStatus#EXECUTING}
-     * @param jobInstanceId 待更新的作业执行记录ID
+     * 作业实例下发成功，CAS 将此作业实例状态从 {@link JobScheduleStatus#SCHEDULING} 修改为 {@link JobScheduleStatus#EXECUTING}
+     *
+     * @param instance 作业实例
      * @return 更新是否成功
      */
-    boolean execute(String jobInstanceId);
+    boolean dispatched(JobInstance instance);
+
+    /**
+     * 作业实例下发失败，CAS 将此作业实例状态从 {@link JobScheduleStatus#SCHEDULING} 修改为 {@link JobScheduleStatus#FAILED}
+     *
+     * @param instance 作业实例
+     * @return 更新是否成功
+     */
+    boolean dispatchFailed(JobInstance instance);
 
 
     boolean end(String jobInstanceId, JobScheduleStatus state);

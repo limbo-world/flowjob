@@ -92,8 +92,11 @@ public class HashedWheelTimerScheduler implements Scheduler {
      * @param triggerAt 下次被调度执行的时间戳
      */
     private void doSchedule(Schedulable schedulable, long triggerAt) {
+        // 计算延迟时间
+        long delay = triggerAt - System.currentTimeMillis();
+        delay = delay < 0 ? 0 : delay;
+
         // 在timer上调度作业执行
-        long delay = triggerAt - System.currentTimeMillis(); // todo 这个delay计算是不是有点问题 可能为负数
         this.timer.newTimeout(timeout -> {
             // 已经取消调度了，则不再重新调度作业
             if (!scheduling.containsKey(schedulable.getId())) {

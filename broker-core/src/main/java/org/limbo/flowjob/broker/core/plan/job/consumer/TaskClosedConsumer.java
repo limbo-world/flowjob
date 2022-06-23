@@ -16,14 +16,12 @@
 
 package org.limbo.flowjob.broker.core.plan.job.consumer;
 
-import com.google.common.collect.Lists;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
-import org.limbo.flowjob.broker.api.constants.enums.TaskScheduleStatus;
 import org.limbo.flowjob.broker.core.broker.TrackerNode;
 import org.limbo.flowjob.broker.core.events.Event;
 import org.limbo.flowjob.broker.core.events.EventPublisher;

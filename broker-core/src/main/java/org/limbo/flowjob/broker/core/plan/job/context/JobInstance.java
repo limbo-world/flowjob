@@ -1,11 +1,18 @@
 package org.limbo.flowjob.broker.core.plan.job.context;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Setter;
+import lombok.ToString;
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskType;
+import org.limbo.flowjob.broker.core.plan.job.DispatchOption;
+import org.limbo.flowjob.broker.core.plan.job.ExecutorOption;
 import org.limbo.flowjob.broker.core.plan.job.Job;
 import org.limbo.flowjob.broker.core.plan.job.handler.JobFailHandler;
+import org.limbo.flowjob.broker.core.repositories.JobInstanceRepository;
 
+import javax.inject.Inject;
 import java.io.Serializable;
 import java.time.Instant;
 
@@ -59,21 +66,39 @@ public class JobInstance implements Serializable {
      */
     private JobFailHandler failHandler;
 
+
+    // ---------------------- 需注入
+    @ToString.Exclude
+    @Setter(value = AccessLevel.PUBLIC, onMethod_ = @Inject)
+    private transient JobInstanceRepository jobInstanceRepo;
+
+
     /**
-     * JobInstance下发给Worker时，以TaskInfo的形式下发
+     * 获取此作业实例的下发配置
      */
-    public TaskInfo newTask(Job job) {
-        TaskInfo task = new TaskInfo();
-        task.setPlanId(planId);
-        task.setPlanInstanceId(planInstanceId);
-        task.setJobId(jobId);
-        task.setJobInstanceId(jobInstanceId);
-        task.setType(TaskType.NORMAL); // TODO 哪里来？
-        task.setAttributes(new Attributes());
-        task.setDispatchOption(job.getDispatchOption());
-        task.setExecutorOption(job.getExecutorOption());
-        return task;
+    public DispatchOption getDispatchOption() {
+        // TODO
+        return null;
     }
+
+
+    /**
+     * 获取此作业实例的执行配置
+     */
+    public ExecutorOption getExecutorOption() {
+        // TODO
+        return null;
+    }
+
+
+    /**
+     * TODO 获取此作业实例生成的任务类型
+     */
+    public TaskType getTaskType() {
+        // TODO 哪里来？
+        return TaskType.NORMAL;
+    }
+
 
     /**
      * 是否能触发下级任务
@@ -89,4 +114,21 @@ public class JobInstance implements Serializable {
         }
     }
 
+
+    /**
+     * 作业实例下发成功，更新状态为执行中
+     */
+    public void dispatched() {
+        setState(JobScheduleStatus.EXECUTING);
+        jobInstanceRepo.dispatched(this);
+    }
+
+
+    /**
+     * 作业实例下发失败
+     */
+    public void dispatchFailed() {
+        setState(JobScheduleStatus.FAILED);
+        jobInstanceRepo.dispatchFailed(this);
+    }
 }

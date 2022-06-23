@@ -24,6 +24,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * 业务校验工具类，校验不通过会抛出{@link VerifyException}

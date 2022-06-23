@@ -25,13 +25,12 @@ import org.limbo.flowjob.broker.api.constants.enums.TaskResult;
 import org.limbo.flowjob.broker.api.constants.enums.TaskScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskType;
 import org.limbo.flowjob.broker.core.events.Event;
-import org.limbo.flowjob.broker.core.events.EventPublisher;
 import org.limbo.flowjob.broker.core.events.EventTags;
 import org.limbo.flowjob.broker.core.exceptions.JobDispatchException;
 import org.limbo.flowjob.broker.core.plan.job.DispatchOption;
 import org.limbo.flowjob.broker.core.plan.job.ExecutorOption;
+import org.limbo.flowjob.broker.core.repositories.TaskRepository;
 import org.limbo.flowjob.broker.core.worker.Worker;
-import reactor.core.publisher.Mono;
 
 import javax.inject.Inject;
 import java.io.Serializable;
@@ -116,47 +115,56 @@ public class Task implements Serializable {
      */
     private ExecutorOption executorOption;
 
-    /**
-     * todo 由于部分情况如当前task状态校验失败等，此task则无需后续执行 比如同个task下发多次
-     */
-    private boolean needPublish;
-
-    /**
-     * 事件发布器
-     */
-    @Inject
-    private EventPublisher<Event<?>> eventPublisher;
-
+    // --------------------- 需注入
+    @ToString.Exclude
+    @Setter(onMethod_ = @Inject)
+    private transient TaskRepository taskRepo;
 
 
     /**
-     * 在指定worker上启动此作业上下文，将作业上下文发送给worker。
+     * 将此任务下发给worker。
+     * 只有 {@link TaskScheduleStatus#SCHEDULING} 和 {@link TaskScheduleStatus#DISPATCH_FAILED} 状态的任务可被下发，代表首次下发和重试。
      *
-     * FIXME 更新上下文，需锁定contextId，防止并发问题
-     *
-     * 只有{@link JobScheduleStatus#SCHEDULING}和{@link JobScheduleStatus#FAILED}状态的上下文可被开启。
      * @param worker 会将此上下文分发去执行的worker
+     * @return 任务下发是否成功
      * @throws JobDispatchException 状态检测失败时，即此上下文的状态不是INIT或FAILED时抛出异常。
      */
-    public void startup(Worker worker) throws JobDispatchException {
-        TaskScheduleStatus status = getState();
-
+    public boolean dispatch(Worker worker) throws JobDispatchException {
         // 检测状态
-        if (status != TaskScheduleStatus.SCHEDULING) {
+        TaskScheduleStatus status = getState();
+        if (status != TaskScheduleStatus.SCHEDULING && status != TaskScheduleStatus.DISPATCH_FAILED) {
             throw new JobDispatchException(jobId, taskId, "Cannot startup context due to current status: " + status);
         }
 
-        try {
-            // 发送上下文到worker
-            Mono<TaskReceiveDTO> mono = worker.sendTask(this);
+        // 更新状态
+        setState(TaskScheduleStatus.DISPATCHING);
+        taskRepo.dispatching(this);
 
-            // 等待发送结果，根据客户端接收结果，更新状态
-            TaskReceiveDTO result = mono.block();
+        // 下发任务
+        return doDispatch(worker);
+    }
+
+
+    /**
+     * 执行任务下发
+     */
+    private boolean doDispatch(Worker worker) {
+        try {
+
+            // 发送任务到worker，根据worker返回结果，更新状态
+            TaskReceiveDTO result = worker.sendTask(this);
             if (result != null && result.getAccepted()) {
-                this.accept(worker);
+
+                this.accepted(worker);
+                return true;
+
             } else {
-                this.refuse(worker);
+
+                this.refused(worker);
+                return false;
+
             }
+
         } catch (Exception e) {
             // 失败时更新上下文状态，冒泡异常
             // todo 如果是下发失败网络问题等，应该需要重试
@@ -166,51 +174,42 @@ public class Task implements Serializable {
         }
     }
 
+
     /**
      * worker确认接收此作业上下文，表示开始执行作业
-     *
-     * FIXME 更新上下文，需锁定contextId，防止并发问题
      *
      * @param worker 确认接收此上下文的worker
      * @throws JobDispatchException 接受上下文的worker和上下文记录的worker不同时，抛出异常。
      */
-    public void accept(Worker worker) throws JobDispatchException {
+    public void accepted(Worker worker) throws JobDispatchException {
         // 不为此状态 无需更新
-        if (getState() != TaskScheduleStatus.SCHEDULING) {
+        if (getState() != TaskScheduleStatus.DISPATCHING) {
             return;
         }
 
         // 更新状态
         setState(TaskScheduleStatus.EXECUTING);
         setWorkerId(worker.getWorkerId());
-        setNeedPublish(true);
-
-        // 发布领域事件
-        Event<Task> acceptEvent = new Event<>(this);
-        acceptEvent.setTag(EventTags.TASK_ACCEPTED);
-        eventPublisher.publish(acceptEvent);
+        taskRepo.dispatched(this);
     }
 
+
     /**
-     * worker拒绝接收此作业上下文，作业不会开始执行
+     * worker拒绝接收此任务，表示任务下发失败
      *
-     * FIXME 更新上下文，需锁定contextId，防止并发问题
-     *
-     * @param worker 拒绝接收此上下文的worker
-     * @throws JobDispatchException 拒绝上下文的worker和上下文记录的worker不同时，抛出异常。
+     * @param worker 拒绝接收的worker
+     * @throws JobDispatchException 拒绝任务的worker和任务记录的worker不同时，抛出异常。
      */
-    public void refuse(Worker worker) throws JobDispatchException {
+    public void refused(Worker worker) throws JobDispatchException {
         // 不为此状态 无需更新
-        if (getState() != TaskScheduleStatus.SCHEDULING) {
+        if (getState() != TaskScheduleStatus.DISPATCHING) {
             return;
         }
 
-        // todo 拒绝了 应该把task丢到队列尾部 等待重试
-
-        // 发布领域事件
-        Event<Task> acceptEvent = new Event<>(this);
-        acceptEvent.setTag(EventTags.TASK_REFUSED);
-        eventPublisher.publish(acceptEvent);
+        // 更新状态
+        setState(TaskScheduleStatus.DISPATCH_FAILED);
+        setWorkerId(worker.getWorkerId());
+        taskRepo.dispatchFailed(this);
     }
 
 
