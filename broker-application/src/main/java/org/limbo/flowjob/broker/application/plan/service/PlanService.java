@@ -28,7 +28,7 @@ public class PlanService {
      */
     public String addPlan(PlanAddParam param) {
         Plan plan = converter.convertPlan(param);
-        return planRepo.addPlan(plan);
+        return planRepo.save(plan);
     }
 
 

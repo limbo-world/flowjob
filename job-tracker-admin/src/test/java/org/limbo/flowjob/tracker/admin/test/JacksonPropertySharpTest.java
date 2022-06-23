@@ -20,7 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.Test;
 import org.limbo.flowjob.broker.api.constants.enums.DescribableEnum;
 import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
-import org.limbo.utils.jackson.JacksonUtils;
+import org.limbo.flowjob.broker.core.utils.json.JacksonUtils;
 
 import java.util.HashMap;
 import java.util.Map;

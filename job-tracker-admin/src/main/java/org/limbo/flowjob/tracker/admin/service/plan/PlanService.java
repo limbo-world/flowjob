@@ -19,7 +19,7 @@ import org.limbo.flowjob.broker.core.plan.job.JobDAG;
 import org.limbo.flowjob.broker.core.repositories.PlanRepository;
 import org.limbo.flowjob.broker.core.repositories.PlanSchedulerRepository;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
-import org.limbo.utils.verifies.Verifies;
+import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,7 +48,7 @@ public class PlanService {
      */
     public String add(PlanAddParam dto) {
         Plan plan = convertToPlan(dto);
-        return planRepository.addPlan(plan);
+        return planRepository.save(plan);
     }
 
 

@@ -73,7 +73,7 @@ public class ScheduleOption {
      */
     private final String scheduleCronType;
 
-    @JsonCreator // @JsonProperty("scheduleType") 不去掉mapstruct会用set方式，比较奇怪
+//    @JsonCreator // 加上@JsonProperty("scheduleType") 不去掉mapstruct会用set方式，比较奇怪
     public ScheduleOption(ScheduleType scheduleType,
                           LocalDateTime scheduleStartAt,
                           Duration scheduleDelay,

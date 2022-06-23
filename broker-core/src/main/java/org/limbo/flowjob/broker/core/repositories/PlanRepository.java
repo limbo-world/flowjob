@@ -17,9 +17,6 @@
 package org.limbo.flowjob.broker.core.repositories;
 
 import org.limbo.flowjob.broker.core.plan.Plan;
-import org.limbo.flowjob.broker.core.plan.PlanInfo;
-
-import java.util.List;
 
 /**
  * @author Brozen
@@ -33,7 +30,7 @@ public interface PlanRepository {
      * @param plan 执行计划
      * @return 返回plan的id。如果入参Plan中没有指定ID，方法内应当自动生成一个并返回。
      */
-    String addPlan(Plan plan);
+    String save(Plan plan);
 
 
     /**

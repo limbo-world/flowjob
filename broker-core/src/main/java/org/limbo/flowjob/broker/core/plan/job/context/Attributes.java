@@ -19,7 +19,7 @@ package org.limbo.flowjob.broker.core.plan.job.context;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.utils.jackson.JacksonUtils;
+import org.limbo.flowjob.broker.core.utils.json.JacksonUtils;
 
 import java.util.HashMap;
 import java.util.List;

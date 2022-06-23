@@ -1,11 +1,11 @@
 package org.limbo.flowjob.broker.dao.entity;
 
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.Entity;
-import javax.persistence.MappedSuperclass;
 import javax.persistence.Table;
 
 /**
@@ -16,10 +16,11 @@ import javax.persistence.Table;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("flowjob_plan")
 @Table(name = "flowjob_plan")
 @Entity
-public class PlanEntity extends BaseEntityMeta {
+@DynamicInsert
+@DynamicUpdate
+public class PlanEntity extends BaseEntity {
 
     private static final long serialVersionUID = -6323915044280199312L;
 

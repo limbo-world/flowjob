@@ -18,11 +18,11 @@ package org.limbo.flowjob.broker.dao.converter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Converter;
+import org.limbo.flowjob.broker.core.utils.json.JacksonUtils;
 import org.limbo.flowjob.broker.core.worker.metric.JobDescription;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
-import org.limbo.utils.jackson.JacksonUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

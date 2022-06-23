@@ -17,6 +17,7 @@
         <module>broker-api/broker-base-api</module>
         <module>broker-api/broker-console-api</module>
         <module>broker-api/broker-client-api</module>
+        <module>broker-test</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -72,7 +73,6 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <limbo.utils>1.0.3</limbo.utils>
         <spring.boot>2.4.6</spring.boot>
         <spring.doc>1.5.6</spring.doc>
         <swagger>2.1.7</swagger>
@@ -88,8 +88,6 @@
         <lombok>1.18.16</lombok>
         <slf4j>1.7.30</slf4j>
         <jsr330>1</jsr330>
-        <commons.collections4>4.4</commons.collections4>
-        <commons.lang3>3.11</commons.lang3>
         <commons.io>2.6</commons.io>
         <junit>4.13.1</junit>
         <mockito>3.6.28</mockito>
@@ -291,29 +289,14 @@
 
             <!-- Utils -->
             <dependency>
-                <groupId>io.github.limbo-world</groupId>
-                <artifactId>utils</artifactId>
-                <version>${limbo.utils}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
                 <version>${lombok}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>${commons.lang3}</version>
-            </dependency>
-            <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>${commons.io}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-collections4</artifactId>
-                <version>${commons.collections4}</version>
             </dependency>
 
             <!-- 单元测试 -->

@@ -16,12 +16,13 @@
 
 package org.limbo.flowjob.broker.dao.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.time.LocalDateTime;
 
 /**
@@ -32,16 +33,13 @@ import java.time.LocalDateTime;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("flowjob_plan_info")
-public class PlanInfoEntity extends BaseEntityMeta {
+@Table(name = "flowjob_plan_info")
+@Entity
+@DynamicInsert
+@DynamicUpdate
+public class PlanInfoEntity extends BaseEntity {
 
     private static final long serialVersionUID = -1639602897831847418L;
-
-    /**
-     * 版本 全局唯一
-     */
-    @TableId(type = IdType.INPUT)
-    private String planInfoId;
 
     /**
      * 属于哪个plan
@@ -90,7 +88,7 @@ public class PlanInfoEntity extends BaseEntityMeta {
     private Integer retry;
 
     /**
-     * 任务 json string
+     * 任务 json string todo
      */
     private String jobs;
 
