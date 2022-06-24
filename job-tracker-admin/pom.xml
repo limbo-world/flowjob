@@ -30,16 +30,11 @@
 
     <description>tracker对外的接口层，基于webflux实现</description>
 
-    <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
-    </properties>
-
     <dependencies>
         <!-- 依赖基础设施层 -->
         <dependency>
             <groupId>org.limbo.flowjob</groupId>
-            <artifactId>broker-core</artifactId>
+            <artifactId>broker-dao</artifactId>
         </dependency>
         <dependency>
             <groupId>org.limbo.flowjob</groupId>
@@ -76,12 +71,6 @@
             <artifactId>mysql-connector-java</artifactId>
         </dependency>
 
-        <!-- Starter: MyBatisPlus -->
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-boot-starter</artifactId>
-        </dependency>
-
 
         <!-- 使用Log4j2代替SpringBoot默认的logback -->
         <dependency>
@@ -110,18 +99,6 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-messaging</artifactId>
-        </dependency>
-
-        <!-- test -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
         </dependency>
 
     </dependencies>

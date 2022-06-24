@@ -58,7 +58,7 @@ public class WorkerPoConverter extends Converter<Worker, WorkerEntity> {
     @Override
     protected WorkerEntity doForward(Worker _do) {
         WorkerEntity po = new WorkerEntity();
-        po.setWorkerId(_do.getWorkerId());
+        po.setId(_do.getWorkerId());
         po.setProtocol(_do.getProtocol().protocol);
         po.setHost(_do.getHost());
         po.setPort(_do.getPort());
@@ -96,7 +96,6 @@ public class WorkerPoConverter extends Converter<Worker, WorkerEntity> {
     private Worker convertToHttpWorker(WorkerEntity po) {
 
         HttpWorker worker = new HttpWorker(httpClient, workerRepository, metricRepository, workerStatisticsRepository);
-        worker.setWorkerId(po.getWorkerId());
         worker.setProtocol(WorkerProtocol.parse(po.getProtocol()));
         worker.setHost(po.getHost());
         worker.setPort(po.getPort());

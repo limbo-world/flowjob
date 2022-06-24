@@ -41,13 +41,6 @@ public class WorkerRegisterParam implements Serializable {
     private static final long serialVersionUID = 4234037520144789567L;
 
     /**
-     * worker id
-     */
-    @NotBlank(message = "worker id can't be blank")
-    @Schema(description = "worker id")
-    private String id;
-
-    /**
      * worker服务使用的通信协议，默认为Http协议。
      */
     @Schema(description = "worker服务使用的通信协议，默认为Http协议", implementation = Integer.class)

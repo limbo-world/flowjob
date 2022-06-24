@@ -79,7 +79,7 @@ public class WorkerRegisterService {
         // TODO 租户鉴权
 
         // 新增 or 更新 worker
-        Worker worker = workerRepository.getWorker(options.getId());
+        Worker worker = workerRepository.getWorker(getWorkerId());
         if (worker == null) {
 
             worker = createNewWorker(options);
@@ -123,14 +123,16 @@ public class WorkerRegisterService {
         } else {
             throw new UnsupportedOperationException("不支持的worker协议：" + protocol);
         }
-
-        worker.setWorkerId(options.getId());
         worker.setHost(options.getHost());
         worker.setPort(options.getPort());
         worker.setProtocol(protocol);
         worker.setStatus(WorkerStatus.RUNNING);
 
         return worker;
+    }
+
+    private String getWorkerId() {
+        return null; // todo 统一命名规则
     }
 
 
@@ -141,7 +143,6 @@ public class WorkerRegisterService {
      */
     private WorkerMetric createMetric(WorkerRegisterParam options) {
         WorkerMetric metric = new WorkerMetric();
-        metric.setExecutors(convertWorkerExecutor(options));
         metric.setExecutingJobs(Lists.newArrayList()); // TODO 是否需要记录？
         metric.setAvailableResource(WorkerAvailableResource.from(options.getAvailableResource()));
         return metric;
@@ -156,7 +157,7 @@ public class WorkerRegisterService {
         if (CollectionUtils.isNotEmpty(options.getExecutors())) {
             executors = options.getExecutors().stream()
                     .map(this::convertWorkerExecutor)
-                    .peek(exe -> exe.setWorkerId(options.getId()))
+//                    .peek(exe -> exe.setWorkerId(options.getId())) // todo
                     .collect(Collectors.toList());
         } else {
             executors = Lists.newArrayList();

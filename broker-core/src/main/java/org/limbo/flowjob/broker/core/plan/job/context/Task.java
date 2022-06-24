@@ -228,12 +228,12 @@ public class Task implements Serializable {
 
         setState(TaskScheduleStatus.COMPLETED);
         setResult(TaskResult.SUCCEED);
-        setNeedPublish(true);
+//        setNeedPublish(true); todo
 
         // 发布领域事件
         Event<Task> acceptEvent = new Event<>(this);
         acceptEvent.setTag(EventTags.TASK_CLOSED);
-        eventPublisher.publish(acceptEvent);
+//        eventPublisher.publish(acceptEvent); // todo
     }
 
 
@@ -253,12 +253,12 @@ public class Task implements Serializable {
         setResult(TaskResult.SUCCEED);
         setErrorMsg(errorMsg);
         setErrorStackTrace(errorStackTrace);
-        setNeedPublish(true);
+//        setNeedPublish(true); // todo
 
         // 发布领域事件
         Event<Task> acceptEvent = new Event<>(this);
         acceptEvent.setTag(EventTags.TASK_CLOSED);
-        eventPublisher.publish(acceptEvent);
+//        eventPublisher.publish(acceptEvent); // todo
     }
 
 }

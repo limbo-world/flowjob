@@ -14,9 +14,6 @@ spring:
 #    url: jdbc:mysql://127.0.0.1:3306/flow_job?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
 #    username: root
 #    password: root
-# DAO层基于MyBatisPlus
-mybatis-plus:
-  mapper-locations: classpath*:mybatis/mapper/*.xml
 flowjob:
   tracker:
     dataPath: /data/flowjob1

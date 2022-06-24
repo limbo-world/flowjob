@@ -22,7 +22,6 @@ import org.limbo.flowjob.broker.core.exceptions.TaskReceiveException;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerExecutor;
-import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,12 +49,12 @@ public abstract class AbstractWorkerSelector implements WorkerSelector {
         // todo 比较 cpu 和 内存 标签等信息 以及下发给对应的执行器 worker没找到怎么处理
         WORKER:
         for (Worker worker : workers) {
-            WorkerMetric metric = worker.getMetric();
-            if (metric == null || CollectionUtils.isEmpty(metric.getExecutors())) {
+            List<WorkerExecutor> executors = worker.getExecutors();
+            if (CollectionUtils.isEmpty(executors)) {
                 continue;
             }
             // 判断是否有对应的执行器
-            for (WorkerExecutor executor : metric.getExecutors()) {
+            for (WorkerExecutor executor : executors) {
                 if (executor.getType() == task.getExecutorOption().getType()
                         && executor.getName().equals(task.getExecutorOption().getName())) {
                     availableWorkers.add(worker);

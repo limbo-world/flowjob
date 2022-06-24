@@ -80,8 +80,6 @@
         <netty>4.1.59.Final</netty>
         <okhttp>3.14.9</okhttp>
         <rsocket>1.1.0</rsocket>
-        <mybatis.plus>3.3.2</mybatis.plus>
-        <mybatis.spring>2.0.4</mybatis.spring>
         <jackson>2.12.1</jackson>
         <mapstruct>1.5.1.Final</mapstruct>
         <jraft>1.3.7</jraft>
@@ -89,8 +87,12 @@
         <slf4j>1.7.30</slf4j>
         <jsr330>1</jsr330>
         <commons.io>2.6</commons.io>
+        <commons.collections4>4.4</commons.collections4>
         <junit>4.13.1</junit>
         <mockito>3.6.28</mockito>
+        <commons.lang3>3.11</commons.lang3>
+        <guava>31.1-jre</guava>
+        <cron>9.1.6</cron>
     </properties>
 
     <dependencyManagement>
@@ -164,38 +166,6 @@
                 <groupId>io.rsocket</groupId>
                 <artifactId>rsocket-bom</artifactId>
                 <version>${rsocket}</version>
-            </dependency>
-
-            <!-- MyBatis & MyBatisPlus -->
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-boot-starter</artifactId>
-                <version>${mybatis.plus}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus</artifactId>
-                <version>${mybatis.plus}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-core</artifactId>
-                <version>${mybatis.plus}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-annotation</artifactId>
-                <version>${mybatis.plus}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-generator</artifactId>
-                <version>${mybatis.plus}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.mybatis</groupId>
-                <artifactId>mybatis-spring</artifactId>
-                <version>${mybatis.spring}</version>
             </dependency>
 
             <!-- Jackson BOM -->
@@ -297,6 +267,26 @@
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>${commons.io}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.cronutils</groupId>
+                <artifactId>cron-utils</artifactId>
+                <version>${cron}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-collections4</artifactId>
+                <version>${commons.collections4}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons.lang3}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava}</version>
             </dependency>
 
             <!-- 单元测试 -->

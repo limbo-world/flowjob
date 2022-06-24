@@ -16,19 +16,24 @@
 
 package org.limbo.flowjob.broker.dao.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
 /**
  * @author Brozen
  * @since 2021-06-02
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
-@TableName("flowjob_worker_metric")
+@Setter
+@Getter
+@Table(name = "flowjob_worker_metric")
+@Entity
+@DynamicInsert
+@DynamicUpdate
 public class WorkerMetricEntity extends BaseEntity {
 
     private static final long serialVersionUID = -3009642474389520555L;
@@ -36,7 +41,6 @@ public class WorkerMetricEntity extends BaseEntity {
     /**
      * worker节点ID
      */
-    @TableId(type = IdType.INPUT)
     private String workerId;
 
     /**

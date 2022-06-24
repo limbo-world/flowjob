@@ -44,9 +44,4 @@ public class WorkerMetric {
      */
     private WorkerAvailableResource availableResource;
 
-    /**
-     * worker支持的所有执行器
-     */
-    private List<WorkerExecutor> executors;
-
 }

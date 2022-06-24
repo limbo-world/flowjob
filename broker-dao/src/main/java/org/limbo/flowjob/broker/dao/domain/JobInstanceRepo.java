@@ -18,14 +18,13 @@
 
 package org.limbo.flowjob.broker.dao.domain;
 
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.Setter;
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.broker.core.plan.job.context.JobInstance;
 import org.limbo.flowjob.broker.core.repositories.JobInstanceRepository;
 import org.limbo.flowjob.broker.dao.converter.JobInstanceConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
-import org.limbo.flowjob.broker.dao.mybatis.JobInstanceMapper;
+import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -39,16 +38,16 @@ import java.util.stream.Collectors;
  * @since 2021-06-02
  */
 @Repository
-public class MyBatisJobInstanceRepo implements JobInstanceRepository {
+public class JobInstanceRepo implements JobInstanceRepository {
 
     @Autowired
     private JobInstanceConverter convert;
 
-    @Autowired
-    private JobInstanceMapper jobInstanceMapper;
-
     @Setter(onMethod_ = @Inject)
     private IDRepo idRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private JobInstanceEntityRepo jobInstanceEntityRepo;
 
 
     @Override
@@ -56,18 +55,15 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
         String jobInstanceId = idRepo.createJobInstanceId();
         jobInstance.setJobInstanceId(jobInstanceId);
 
-        JobInstanceEntity po = this.convert.convert(jobInstance);
-        jobInstanceMapper.insert(po);
+        JobInstanceEntity entity = this.convert.convert(jobInstance);
+        jobInstanceEntityRepo.saveAndFlush(entity);
         return jobInstanceId;
     }
 
 
     @Override
     public JobInstance get(String jobInstanceId) {
-        JobInstanceEntity po = jobInstanceMapper.selectOne(Wrappers.<JobInstanceEntity>lambdaQuery()
-                .eq(JobInstanceEntity::getJobInstanceId, jobInstanceId)
-        );
-        return convert.reverse().convert(po);
+        return jobInstanceEntityRepo.findById(jobInstanceId).map(entity -> convert.reverse().convert(entity)).orElse(null);
     }
 
 
@@ -78,10 +74,9 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
      */
     @Override
     public boolean dispatched(JobInstance instance) {
-        return jobInstanceMapper.update(null, Wrappers.<JobInstanceEntity>lambdaUpdate()
-                .set(JobInstanceEntity::getState, JobScheduleStatus.EXECUTING.status)
-                .eq(JobInstanceEntity::getJobInstanceId, instance.getJobInstanceId())
-                .eq(JobInstanceEntity::getState, JobScheduleStatus.SCHEDULING.status)
+        return jobInstanceEntityRepo.updateState(instance.getJobInstanceId(),
+                JobScheduleStatus.SCHEDULING.status,
+                JobScheduleStatus.EXECUTING.status
         ) > 0;
     }
 
@@ -93,30 +88,24 @@ public class MyBatisJobInstanceRepo implements JobInstanceRepository {
      */
     @Override
     public boolean dispatchFailed(JobInstance instance) {
-        return jobInstanceMapper.update(null, Wrappers.<JobInstanceEntity>lambdaUpdate()
-                .set(JobInstanceEntity::getState, JobScheduleStatus.FAILED.status)
-                .eq(JobInstanceEntity::getJobInstanceId, instance.getJobInstanceId())
-                .eq(JobInstanceEntity::getState, JobScheduleStatus.SCHEDULING.status)
+        return jobInstanceEntityRepo.updateState(instance.getJobInstanceId(),
+                JobScheduleStatus.SCHEDULING.status,
+                JobScheduleStatus.FAILED.status
         ) > 0;
     }
 
     @Override
     public boolean end(String jobInstanceId, JobScheduleStatus state) {
-        return jobInstanceMapper.update(null, Wrappers.<JobInstanceEntity>lambdaUpdate()
-                .set(JobInstanceEntity::getState, state.status)
-                .eq(JobInstanceEntity::getJobInstanceId, jobInstanceId)
-                .eq(JobInstanceEntity::getState, JobScheduleStatus.EXECUTING.status)
+        return jobInstanceEntityRepo.updateState(jobInstanceId,
+                JobScheduleStatus.EXECUTING.status,
+                state.status
         ) > 0;
     }
 
 
     @Override
     public List<JobInstance> getInstances(String planInstanceId, Collection<String> jobIds) {
-        return jobInstanceMapper.selectList(Wrappers.<JobInstanceEntity>lambdaQuery()
-                .in(JobInstanceEntity::getJobInfoId, jobIds)
-                .in(JobInstanceEntity::getPlanInstanceId, planInstanceId)
-        )
-                .stream()
+        return jobInstanceEntityRepo.findByPlanInstanceIdAndJobInfoIdIn(planInstanceId, jobIds).stream()
                 .map(po -> convert.reverse().convert(po))
                 .collect(Collectors.toList());
     }

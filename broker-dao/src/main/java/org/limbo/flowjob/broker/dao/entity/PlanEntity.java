@@ -1,12 +1,14 @@
 package org.limbo.flowjob.broker.dao.entity;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.Hibernate;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.util.Objects;
 
 /**
  * plan 计划
@@ -14,8 +16,8 @@ import javax.persistence.Table;
  * @author Devil
  * @since 2021/7/23
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
+@Setter
+@Getter
 @Table(name = "flowjob_plan")
 @Entity
 @DynamicInsert
@@ -41,5 +43,4 @@ public class PlanEntity extends BaseEntity {
      * 接口调用的时候会修改 leader 内存数据以及 db数据 需要保障一致性
      */
     private Boolean isEnabled;
-
 }

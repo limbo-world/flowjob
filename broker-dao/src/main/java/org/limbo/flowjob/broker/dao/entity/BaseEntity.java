@@ -18,16 +18,20 @@ package org.limbo.flowjob.broker.dao.entity;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.Hibernate;
 
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 /**
  * @author Brozen
  * @since 2021-07-05
  */
+@Getter
+@Setter
 @MappedSuperclass
 public abstract class BaseEntity implements Serializable {
 
@@ -37,20 +41,29 @@ public abstract class BaseEntity implements Serializable {
      * DB自增序列ID，并不是唯一标识
      */
     @Id
-    @Setter
-    @Getter
     private String id;
 
     /**
      * 记录创建时间
      */
-    @Getter
     private LocalDateTime createdAt;
 
     /**
      * 记录更新时间
      */
-    @Getter
     private LocalDateTime updatedAt;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        BaseEntity that = (BaseEntity) o;
+        return id != null && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 
 }

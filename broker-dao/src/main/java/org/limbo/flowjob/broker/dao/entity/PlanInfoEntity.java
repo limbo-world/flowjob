@@ -16,8 +16,8 @@
 
 package org.limbo.flowjob.broker.dao.entity;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -31,8 +31,8 @@ import java.time.LocalDateTime;
  * @author Brozen
  * @since 2021-07-13
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
+@Setter
+@Getter
 @Table(name = "flowjob_plan_info")
 @Entity
 @DynamicInsert

@@ -32,6 +32,7 @@ import org.limbo.flowjob.broker.core.utils.json.JacksonUtils;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatisticsRepository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufFlux;
 import reactor.netty.http.client.HttpClient;
@@ -89,21 +90,27 @@ public class HttpWorker extends Worker {
                 .map(json -> JacksonUtils.parseObject(json, reference).getData());
     }
 
+    @Override
+    public String getWorkerId() {
+        return getProtocol().name + "//" + getHost() + ":" + getPort();
+    }
+
     /**
      * {@inheritDoc}
      *
      * @return {@inheritDoc}
      */
     @Override
-    public Mono<WorkerMetric> ping() {
-        return Mono.from(client.get()
+    public WorkerMetric ping() {
+        Flux<WorkerMetric> response = client.get()
                 .uri(workerUri("/ping"))
                 .response((resp, flux) -> responseReceiver(resp, flux, new TypeReference<ResponseDTO<WorkerMetric>>() {
                 }))
                 .doOnNext(metric -> {
                     // 请求成功时，更新worker
                     getMetricRepository().updateMetric(metric);
-                }));
+                });
+        return response.blockFirst();
     }
 
     /**
@@ -113,17 +120,17 @@ public class HttpWorker extends Worker {
      * @return
      * @throws TaskReceiveException
      */
-    public Mono<TaskReceiveDTO> sendTask(Task task) throws TaskReceiveException {
+    public TaskReceiveDTO sendTask(Task task) throws TaskReceiveException {
         // 生成 dto
         TaskSubmitParam dto = convertToDto(task);
-        return Mono.from(client
-                .headers(headers -> headers.add("Content-type", "application/json"))
+
+        Flux<TaskReceiveDTO> taskReceiveDTOFlux = client.headers(headers -> headers.add("Content-type", "application/json"))
                 .post()
                 .uri(workerUri(BASE_URL + "/task"))
                 .send(Mono.just(Unpooled.copiedBuffer(JacksonUtils.toJSONString(dto), CharsetUtil.UTF_8)))
                 // 获取请求响应并解析
                 .response((resp, flux) -> responseReceiver(resp, flux, new TypeReference<ResponseDTO<TaskReceiveDTO>>() {
-                })))
+                }))
                 .doOnNext(result -> {
                     // todo 如果worker接受作业，则更新下发时间
                     if (result.getAccepted()) {
@@ -131,6 +138,7 @@ public class HttpWorker extends Worker {
                         getStatisticsRepository().updateWorkerDispatchTimes(getWorkerId(), TimeUtil.nowLocalDateTime());
                     }
                 });
+        return taskReceiveDTOFlux.blockFirst();
     }
 
     /**

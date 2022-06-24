@@ -18,18 +18,22 @@
 
 package org.limbo.flowjob.broker.dao.domain;
 
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import lombok.Setter;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
+import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.converter.WorkerPoConverter;
-import org.limbo.flowjob.broker.dao.mybatis.WorkerMapper;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
+import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import javax.inject.Inject;
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -37,74 +41,83 @@ import java.util.stream.Collectors;
  * @since 2021-06-02
  */
 @Repository
-public class MyBatisWorkerRepo implements WorkerRepository {
+public class WorkerRepo implements WorkerRepository {
 
-    @Autowired
-    private WorkerMapper mapper;
+    @Setter(onMethod_ = @Inject)
+    private WorkerEntityRepo workerEntityRepo;
 
     @Autowired
     private WorkerPoConverter converter;
 
     /**
      * {@inheritDoc}
+     *
      * @param worker worker节点
      */
     @Override
+    @Transactional
     public void addWorker(Worker worker) {
-        WorkerEntity po = converter.convert(worker);
-        Objects.requireNonNull(po);
+        WorkerEntity entity = converter.convert(worker);
+        Objects.requireNonNull(entity);
 
-        // todo id 冲突应该给提示更好
-        mapper.insertOrUpdate(po);
+        Optional<WorkerEntity> workerEntityOptional = workerEntityRepo.findById(entity.getId());
+        Verifies.verify(workerEntityOptional.isPresent(), "worker is already exist");
+
+        workerEntityRepo.saveAndFlush(entity);
     }
 
     /**
      * {@inheritDoc}
+     *
      * @param worker 更新worker
      */
     @Override
     public void updateWorker(Worker worker) {
-        WorkerEntity po = converter.convert(worker);
-        Objects.requireNonNull(po);
+        WorkerEntity entity = converter.convert(worker);
+        Objects.requireNonNull(entity);
 
-        mapper.update(po, Wrappers.<WorkerEntity>lambdaUpdate()
-                .eq(WorkerEntity::getWorkerId, po.getWorkerId()));
+        workerEntityRepo.saveAndFlush(entity);
     }
 
     /**
      * {@inheritDoc}
+     *
      * @param workerId workerId
      * @return
      */
     @Override
     public Worker getWorker(String workerId) {
-        return converter.reverse().convert(mapper.selectById(workerId));
+        Optional<WorkerEntity> workerEntityOptional = workerEntityRepo.findById(workerId);
+        Verifies.verify(workerEntityOptional.isPresent(), "worker is not exist");
+
+        return converter.reverse().convert(workerEntityOptional.get());
     }
 
     /**
      * {@inheritDoc}
+     *
      * @return
      */
     @Override
     public List<Worker> availableWorkers() {
-        return mapper.selectList(Wrappers.<WorkerEntity>lambdaQuery()
-                .eq(WorkerEntity::getStatus, WorkerStatus.RUNNING.status)
-                .eq(WorkerEntity::getDeleted, Boolean.FALSE)
-        ).stream()
+        return workerEntityRepo.findByStatusAndDeleted(WorkerStatus.RUNNING.status, Boolean.FALSE)
+                .stream()
                 .map(po -> converter.reverse().convert(po))
                 .collect(Collectors.toList());
     }
 
     /**
      * {@inheritDoc}
+     *
      * @param workerId 需要被移除的workerId
      */
     @Override
     public void removeWorker(String workerId) {
-        WorkerEntity po = mapper.selectById(workerId);
-        if (po != null) {
-            po.setDeleted(true);
-            mapper.updateById(po);
+        Optional<WorkerEntity> workerEntityOptional = workerEntityRepo.findById(workerId);
+        if (workerEntityOptional.isPresent()) {
+            WorkerEntity workerEntity = workerEntityOptional.get();
+            workerEntity.setDeleted(true);
+            workerEntityRepo.saveAndFlush(workerEntity);
         }
     }
 }

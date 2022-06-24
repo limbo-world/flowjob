@@ -25,11 +25,14 @@ import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
 import org.limbo.flowjob.broker.core.exceptions.TaskReceiveException;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
+import org.limbo.flowjob.broker.core.worker.metric.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatistics;
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatisticsRepository;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 /**
  * 在Tracker端，作业执行节点的抽象。
@@ -41,11 +44,6 @@ import reactor.core.publisher.Mono;
 @Setter
 @ToString
 public abstract class Worker {
-
-    /**
-     * worker节点ID
-     */
-    private String workerId;
 
     /**
      * worker服务使用的通信协议，默认为Http协议。
@@ -61,6 +59,11 @@ public abstract class Worker {
      * worker服务的通信端口
      */
     private Integer port;
+
+    /**
+     * 执行器
+     */
+    private List<WorkerExecutor> executors;
 
     /**
      * worker节点状态
@@ -139,6 +142,8 @@ public abstract class Worker {
     public WorkerStatistics getStatistics() {
         return statisticsRepository.getWorkerStatistics(getWorkerId());
     }
+
+    public abstract String getWorkerId();
 
     /**
      * worker节点心跳检测。

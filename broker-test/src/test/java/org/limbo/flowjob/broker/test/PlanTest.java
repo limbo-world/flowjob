@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.inject.Inject;
@@ -56,15 +57,24 @@ public class PlanTest {
 
     @Test
     @Transactional
-//    @Rollback(false)
+    @Rollback(false)
+    public void saveUpdate() {
+        String id = "Wed Jun 22 21:00:44 CST 2022";
+        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(id);
+        PlanEntity plan = planEntityOptional.get();
+        plan.setCurrentVersion(new Date().toString());
+
+        PlanEntity planEntity = planEntityRepo.saveAndFlush(plan);
+        System.out.println(planEntity);
+    }
+
+    @Test
+    @Transactional
+    @Rollback(false)
     public void update() {
         String id = "Wed Jun 22 21:00:44 CST 2022";
         Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(id);
         PlanEntity plan = planEntityOptional.get();
-//        plan.setCurrentVersion(new Date().toString());
-
-//        PlanEntity planEntity = planJpaRepo.saveAndFlush(plan);
-//        System.out.println(planEntity);
 
         String newVersion = new Date().toString();
         System.out.println(planEntityRepo.updateVersion(newVersion, newVersion, id, plan.getCurrentVersion(), plan.getRecentlyVersion()));

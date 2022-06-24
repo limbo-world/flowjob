@@ -10,13 +10,6 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>broker-core</artifactId>
 
-    <properties>
-        <commons.lang3>3.11</commons.lang3>
-        <guava>31.1-jre</guava>
-        <cron>9.1.6</cron>
-        <commons.collections4>4.4</commons.collections4>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.limbo.flowjob</groupId>
@@ -31,7 +24,6 @@
         <dependency>
             <groupId>com.cronutils</groupId>
             <artifactId>cron-utils</artifactId>
-            <version>${cron}</version>
         </dependency>
 
         <!-- netty -->
@@ -80,17 +72,14 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
-            <version>${commons.collections4}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>${commons.lang3}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${guava}</version>
         </dependency>
 
         <!-- 单元测试 -->

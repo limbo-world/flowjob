@@ -18,7 +18,6 @@
 
 package org.limbo.flowjob.broker.dao.domain;
 
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.Setter;
 import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
@@ -26,7 +25,7 @@ import org.limbo.flowjob.broker.core.repositories.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
 import org.limbo.flowjob.broker.dao.converter.PlanRecordPoConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
-import org.limbo.flowjob.broker.dao.mybatis.PlanInstanceMapper;
+import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,13 +37,14 @@ import javax.inject.Inject;
  * @since 2021/7/24
  */
 @Repository
-public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
+public class PlanInstanceRepo implements PlanInstanceRepository {
 
-    @Autowired
-    private PlanInstanceMapper planInstanceMapper;
 
     @Autowired
     private PlanRecordPoConverter converter;
+
+    @Setter(onMethod_ = @Inject)
+    private PlanInstanceEntityRepo planInstanceEntityRepo;
 
     @Setter(onMethod_ = @Inject)
     private IDRepo idRepo;
@@ -57,8 +57,9 @@ public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
 
         instance.setPlanInstanceId(planInstanceId);
 
-        PlanInstanceEntity po = converter.convert(instance);
-        planInstanceMapper.insert(po);
+        PlanInstanceEntity entity = converter.convert(instance);
+
+        planInstanceEntityRepo.saveAndFlush(entity);
 
         return planInstanceId;
     }
@@ -66,21 +67,14 @@ public class MyBatisPlanInstanceRepo implements PlanInstanceRepository {
 
     @Override
     public PlanInstance get(String planInstanceId) {
-        PlanInstanceEntity po = planInstanceMapper.selectOne(Wrappers.<PlanInstanceEntity>lambdaQuery()
-                .eq(PlanInstanceEntity::getPlanInstanceId, planInstanceId)
-        );
-        return converter.reverse().convert(po);
+        return planInstanceEntityRepo.findById(planInstanceId).map(entity -> converter.reverse().convert(entity)).orElse(null);
     }
 
 
     @Override
+    @Transactional
     public void end(String planInstanceId, PlanScheduleStatus state) {
-        planInstanceMapper.update(null, Wrappers.<PlanInstanceEntity>lambdaUpdate()
-                .set(PlanInstanceEntity::getState, state.status)
-                .set(PlanInstanceEntity::getEndAt, TimeUtil.nowLocalDateTime())
-                .eq(PlanInstanceEntity::getPlanInstanceId, planInstanceId)
-                .eq(PlanInstanceEntity::getState, PlanScheduleStatus.SCHEDULING.status)
-        );
+        planInstanceEntityRepo.end(planInstanceId, PlanScheduleStatus.SCHEDULING.status, state.status, TimeUtil.nowLocalDateTime());
     }
 
 }

@@ -23,8 +23,3 @@ springdoc:
       pathsToMatch: /api/admin/**
     - group: sdk
       pathsToMatch: /api/sdk/**
-
-
-# DAO层基于MyBatisPlus
-mybatis-plus:
-  mapper-locations: classpath*:mybatis/mapper/*.xml

@@ -17,9 +17,8 @@
 package org.limbo.flowjob.tracker.admin;
 
 import org.limbo.flowjob.tracker.admin.adapter.config.HttpWorkerMessagingConfiguration;
-import org.limbo.flowjob.tracker.admin.adapter.config.TrackerConfiguration;
-import org.limbo.flowjob.tracker.admin.adapter.config.MyBatisConfiguration;
 import org.limbo.flowjob.tracker.admin.adapter.config.RSocketWorkerMessagingConfiguration;
+import org.limbo.flowjob.tracker.admin.adapter.config.TrackerConfiguration;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -32,7 +31,6 @@ import org.springframework.context.annotation.Import;
 @SpringBootApplication
 @Import({
         TrackerConfiguration.class,
-        MyBatisConfiguration.class,
         HttpWorkerMessagingConfiguration.class,
         RSocketWorkerMessagingConfiguration.class,
 })

@@ -2,10 +2,7 @@ package org.limbo.flowjob.tracker.admin.adapter.config;
 
 import org.limbo.flowjob.broker.core.events.Event;
 import org.limbo.flowjob.broker.core.events.ReactorEventPublisher;
-import org.limbo.flowjob.broker.core.plan.job.consumer.PlanInfoDispatchConsumer;
-import org.limbo.flowjob.broker.core.plan.job.consumer.TaskAcceptedConsumer;
 import org.limbo.flowjob.broker.core.plan.job.consumer.TaskClosedConsumer;
-import org.limbo.flowjob.broker.core.plan.job.consumer.TaskRefusedConsumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -31,15 +28,6 @@ public class EventPublisherConsumerRegister {
 
     @PostConstruct
     public void subscribe() {
-        // plan 下发
-        injectAndSubscribe(new PlanInfoDispatchConsumer());
-
-        // task 被接受
-        injectAndSubscribe(new TaskAcceptedConsumer());
-
-        // task 被拒绝
-        injectAndSubscribe(new TaskRefusedConsumer());
-
         // task 完成
         injectAndSubscribe(new TaskClosedConsumer());
     }

@@ -1,11 +1,12 @@
 package org.limbo.flowjob.broker.dao.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.time.LocalDateTime;
 
 /**
@@ -14,17 +15,14 @@ import java.time.LocalDateTime;
  * @author Devil
  * @since 2021/9/1
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
-@TableName("flowjob_job_instance")
+@Setter
+@Getter
+@Table(name = "flowjob_job_instance")
+@Entity
+@DynamicInsert
+@DynamicUpdate
 public class JobInstanceEntity extends BaseEntity {
     private static final long serialVersionUID = -1136312243146520057L;
-
-    /**
-     * 全局唯一
-     */
-    @TableId(type = IdType.INPUT)
-    private String jobInstanceId;
 
     private String planInstanceId;
 

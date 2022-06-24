@@ -18,15 +18,15 @@
 
 package org.limbo.flowjob.broker.dao.domain;
 
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import lombok.Setter;
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatistics;
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatisticsRepository;
 import org.limbo.flowjob.broker.dao.converter.WorkerStatisticsPoConverter;
 import org.limbo.flowjob.broker.dao.entity.WorkerStatisticsEntity;
-import org.limbo.flowjob.broker.dao.mybatis.WorkerStatisticsMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.limbo.flowjob.broker.dao.repositories.WorkerStatisticsEntityRepo;
 import org.springframework.stereotype.Repository;
 
+import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -35,10 +35,10 @@ import java.util.Objects;
  * @since 2021-06-03
  */
 @Repository
-public class MyBatisWorkerStatisticsRepo implements WorkerStatisticsRepository {
+public class WorkerStatisticsRepo implements WorkerStatisticsRepository {
 
-    @Autowired
-    private WorkerStatisticsMapper mapper;
+    @Setter(onMethod_ = @Inject)
+    private WorkerStatisticsEntityRepo workerStatisticsEntityRepo;
 
     /**
      * {@inheritDoc}
@@ -46,18 +46,10 @@ public class MyBatisWorkerStatisticsRepo implements WorkerStatisticsRepository {
      */
     @Override
     public void addOrUpdateWorkerStatistics(WorkerStatistics statistics) {
-        WorkerStatisticsEntity po = WorkerStatisticsPoConverter.INSTANCE.convertToPO(statistics);
-        Objects.requireNonNull(po);
+        WorkerStatisticsEntity entity = WorkerStatisticsPoConverter.INSTANCE.convertToPO(statistics);
+        Objects.requireNonNull(entity);
 
-        int effected = mapper.update(po, Wrappers.<WorkerStatisticsEntity>lambdaUpdate()
-                .eq(WorkerStatisticsEntity::getWorkerId, po.getWorkerId()));
-        if (effected <= 0) {
-
-            effected = mapper.insertIgnore(po);
-            if (effected != 1) {
-                throw new IllegalStateException(String.format("Update worker error, effected %s rows", effected));
-            }
-        }
+        workerStatisticsEntityRepo.saveAndFlush(entity);
     }
 
     /**
@@ -67,7 +59,7 @@ public class MyBatisWorkerStatisticsRepo implements WorkerStatisticsRepository {
      */
     @Override
     public WorkerStatistics getWorkerStatistics(String workerId) {
-        return WorkerStatisticsPoConverter.INSTANCE.convertToDO(mapper.selectById(workerId));
+        return workerStatisticsEntityRepo.findById(workerId).map(WorkerStatisticsPoConverter.INSTANCE::convertToDO).orElse(null);
     }
 
     /**

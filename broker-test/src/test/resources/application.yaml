@@ -12,9 +12,6 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: true  # 日志中显示sql语句
-# DAO层基于MyBatisPlus
-mybatis-plus:
-  mapper-locations: classpath*:mybatis/mapper/*.xml
 
 
 

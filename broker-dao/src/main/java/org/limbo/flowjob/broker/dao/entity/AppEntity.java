@@ -27,45 +27,23 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 
 /**
- * plan 中 每个流程节点的具体信息
+ * 应用 application
  *
  * @author Devil
- * @since 2022/6/11
+ * @since 2022/6/24
  */
 @Setter
 @Getter
-@Table(name = "flowjob_job_info")
+@Table(name = "flowjob_app")
 @Entity
 @DynamicInsert
 @DynamicUpdate
-public class JobInfoEntity extends BaseEntity {
-    private static final long serialVersionUID = -492555252883668183L;
-
-    private String planInfoId;
+public class AppEntity extends BaseEntity {
+    private static final long serialVersionUID = 1834852529057424113L;
 
     /**
-     * 作业名称
+     * 应用名称
      */
     private String name;
 
-    /**
-     * 作业描述
-     */
-    private String description;
-
-    /**
-     * 此作业相连的下级作业ID todo 是否需要再加个关联表查询
-     */
-    private String childrenIds;
-
-    // todo
-//    /**
-//     * 作业分发配置参数
-//     */
-//    private DispatchOptionParam dispatchOption;
-//
-//    /**
-//     * 执行器配置参数
-//     */
-//    private ExecutorOptionParam executorOption;
 }

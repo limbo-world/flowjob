@@ -18,7 +18,6 @@
 
 package org.limbo.flowjob.broker.test;
 
-import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -30,7 +29,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  * @since 2022/6/22
  */
 @SpringBootApplication
-@MapperScan("org.limbo.flowjob.broker.dao.mybatis")
 @ComponentScan(basePackages = "org.limbo.flowjob")
 @EntityScan(basePackages = "org.limbo.flowjob.broker.dao.entity")
 @EnableJpaRepositories(value = "org.limbo.flowjob.broker.dao.repositories")

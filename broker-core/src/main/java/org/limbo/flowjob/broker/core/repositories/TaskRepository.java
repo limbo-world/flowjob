@@ -23,7 +23,7 @@ import org.limbo.flowjob.broker.core.plan.job.context.Task;
 import java.util.List;
 
 /**
- * @author Brozen
+ * @author Brozen todo @B 状态流转
  * @since 2021-05-19
  */
 public interface TaskRepository {
@@ -35,7 +35,8 @@ public interface TaskRepository {
     String add(Task task);
 
     /**
-     * 任务下发成功，将任务状态从 {@link TaskScheduleStatus#SCHEDULING} 更新为 {@link TaskScheduleStatus#DISPATCHING}
+     * todo @B 已经有add 了 为什么还需要DISPATCHING？
+     * 任务持久化成功，将任务状态从 {@link TaskScheduleStatus#SCHEDULING} 更新为 {@link TaskScheduleStatus#DISPATCHING}
      * @param task 任务
      * @return 返回是否更新成功
      */
@@ -69,7 +70,7 @@ public interface TaskRepository {
     /**
      * 根据状态统计数据
      */
-    Integer countByStates(String jobInstanceId, List<TaskScheduleStatus> statuses, List<TaskResult> results);
+    Long countByStates(String jobInstanceId, List<TaskScheduleStatus> statuses, List<TaskResult> results);
 
     /**
      * 获取作业执行实例
