@@ -34,16 +34,6 @@ public enum WorkerProtocol {
      */
     HTTPS(11, "https", 443),
 
-    /**
-     * RSocket通信协议
-     */
-    R_SOCKET(20, "rs", 7136),
-
-    /**
-     * RSocket SSL通信协议
-     */
-    R_SOCKETS(21, "rss", 7137),
-
     ;
 
     /**

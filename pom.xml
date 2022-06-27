@@ -79,7 +79,6 @@
         <project.reactor>2020.0.7</project.reactor>
         <netty>4.1.59.Final</netty>
         <okhttp>3.14.9</okhttp>
-        <rsocket>1.1.0</rsocket>
         <jackson>2.12.1</jackson>
         <mapstruct>1.5.1.Final</mapstruct>
         <jraft>1.3.7</jraft>
@@ -159,13 +158,6 @@
                 <version>${netty}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-
-            <!-- RSocket BOM -->
-            <dependency>
-                <groupId>io.rsocket</groupId>
-                <artifactId>rsocket-bom</artifactId>
-                <version>${rsocket}</version>
             </dependency>
 
             <!-- Jackson BOM -->
