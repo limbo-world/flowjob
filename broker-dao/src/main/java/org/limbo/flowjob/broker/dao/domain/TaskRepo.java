@@ -123,14 +123,36 @@ public class TaskRepo implements TaskRepository {
     }
 
 
+    /**
+     * {@inheritDoc}
+     * @param task
+     * @return
+     */
     @Override
     @Transactional
-    public void executed(String taskId) {
-        taskEntityRepo.updateState(taskId,
-                TaskScheduleStatus.SCHEDULING.status,
-                TaskResult.NONE.result,
-                TaskScheduleStatus.EXECUTING.status
-        );
+    public boolean executeSucceed(Task task) {
+        return taskEntityRepo.updateState(task.getTaskId(),
+                TaskScheduleStatus.EXECUTING.status,
+                TaskResult.SUCCEED.result,
+                TaskScheduleStatus.COMPLETED.status
+        ) > 0;
+    }
+
+
+    /**
+     * {@inheritDoc}
+     * @param task
+     * @return
+     */
+    @Override
+    public boolean executeFailed(Task task) {
+        return taskEntityRepo.updateStateWithError(
+                task.getTaskId(),
+                TaskScheduleStatus.EXECUTING.status,
+                TaskResult.FAILED.result,
+                TaskScheduleStatus.COMPLETED.status,
+                task.getErrorMsg(), task.getErrorStackTrace()
+        ) > 0;
     }
 
     @Override

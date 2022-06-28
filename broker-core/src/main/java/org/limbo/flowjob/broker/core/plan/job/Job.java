@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
+import org.limbo.flowjob.broker.core.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.plan.job.context.JobInstance;
 
 import java.util.Set;
@@ -64,12 +65,16 @@ public class Job {
     private ExecutorOption executorOption;
 
 
-    public JobInstance newInstance(String planId, String planInstanceId, JobScheduleStatus state) {
+    /**
+     * 生成作业实例，新生成的作业状态是 {@link JobScheduleStatus#SCHEDULING}
+     * @param planInstance 作业实例所属计划实例
+     */
+    public JobInstance newInstance(PlanInstance planInstance) {
         JobInstance jobInstance = new JobInstance();
-        jobInstance.setPlanId(planId);
-        jobInstance.setPlanInstanceId(planInstanceId);
+        jobInstance.setPlanId(planInstance.getPlanId());
+        jobInstance.setPlanInstanceId(planInstance.getPlanInstanceId());
         jobInstance.setJobId(jobId);
-        jobInstance.setState(state);
+        jobInstance.setState(JobScheduleStatus.SCHEDULING);
         jobInstance.setAttributes(null); // todo
         return jobInstance;
     }

@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.admin.adapter.worker.controller;
+package org.limbo.flowjob.broker.application.plan.adapter;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.limbo.flowjob.broker.api.clent.param.TaskExecuteFeedbackParam;
 import org.limbo.flowjob.broker.api.dto.ResponseDTO;
-import org.limbo.flowjob.tracker.admin.service.job.TaskService;
+import org.limbo.flowjob.broker.application.plan.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
 
@@ -36,20 +35,21 @@ import javax.validation.Valid;
  */
 @Tag(name = "作业执行相关接口")
 @RestController
-@RequestMapping("/api/worker/v1/task")
+@RequestMapping("/api/v1/task")
 public class TaskController {
 
     @Autowired
     private TaskService taskService;
+
 
     /**
      * 作业执行反馈接口
      */
     @Operation(summary = "作业执行反馈接口")
     @PostMapping("/feedback")
-    public Mono<ResponseDTO<Void>> feedback(@Valid @RequestBody Mono<TaskExecuteFeedbackParam> feedback) {
-        return taskService.feedback(feedback)
-                .map(symbol -> ResponseDTO.<Void>builder().ok().build());
+    public ResponseDTO<Void> feedback(@Valid @RequestBody TaskExecuteFeedbackParam feedback) {
+        taskService.feedback(feedback);
+        return ResponseDTO.<Void>builder().ok().build();
     }
 
 

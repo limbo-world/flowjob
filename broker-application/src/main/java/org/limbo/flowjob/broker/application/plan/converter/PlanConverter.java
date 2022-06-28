@@ -8,10 +8,7 @@ import org.limbo.flowjob.broker.core.plan.job.ExecutorOption;
 import org.limbo.flowjob.broker.core.plan.job.Job;
 import org.limbo.flowjob.broker.core.plan.job.JobDAG;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
@@ -20,10 +17,13 @@ import java.util.List;
  * @author Brozen
  * @since 2022-06-11
  */
-@Mapper(uses = PlanConverter.class, unmappedTargetPolicy = ReportingPolicy.IGNORE, imports = {PlanInfo.class, JobDAG.class})
-public interface PlanConverter {
-
-    PlanConverter INSTANCE = Mappers.getMapper(PlanConverter.class);
+@Mapper(
+        uses = PlanConverter.class,
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
+        componentModel = MappingConstants.ComponentModel.SPRING,
+        imports = {PlanInfo.class, JobDAG.class}
+)
+public abstract class PlanConverter {
 
 
     /**
@@ -31,7 +31,7 @@ public interface PlanConverter {
      */
     @Mapping(target = "enabled", constant = "false")
     @Mapping(source = "param", target = "info",qualifiedByName = "convertPlanInfo")
-    Plan convertPlan(PlanAddParam param);
+    public abstract Plan convertPlan(PlanAddParam param);
 
 
     /**
@@ -41,14 +41,14 @@ public interface PlanConverter {
     @Mapping(source = "description", target = "description")
     @Mapping(source = "scheduleOption", target = "scheduleOption", qualifiedByName = "convertScheduleOption")
     @Mapping(source = "param", target = "dag", qualifiedByName = "convertJobForAdd")
-    PlanInfo convertPlanInfo(PlanAddParam param);
+    public abstract PlanInfo convertPlanInfo(PlanAddParam param);
 
     /**
      * 生成新增计划 JobDAG
      */
     @Named("convertJobForAdd")
     @Mapping(source = "jobs", target = "jobs", qualifiedByName = "convertJobs")
-    JobDAG convertJob(PlanAddParam param);
+    public abstract JobDAG convertJob(PlanAddParam param);
 
 
     /**
@@ -58,18 +58,18 @@ public interface PlanConverter {
     @Mapping(source = "description", target = "description")
     @Mapping(source = "scheduleOption", target = "scheduleOption", qualifiedByName = "convertScheduleOption")
     @Mapping(source = "param", target = "dag", qualifiedByName = "convertJobForReplace")
-    PlanInfo convertPlanInfo(PlanReplaceParam param);
+    public abstract PlanInfo convertPlanInfo(PlanReplaceParam param);
 
     /**
      * 生成更新计划 JobDAG
      */
     @Named("convertJobForReplace")
     @Mapping(source = "jobs", target = "jobs", qualifiedByName = "convertJobs")
-    JobDAG convertJob(PlanReplaceParam param);
+    public abstract JobDAG convertJob(PlanReplaceParam param);
 
 
     @Named("convertJobs")
-    List<Job> convertJobs(List<JobAddParam> jobAddParams);
+    public abstract List<Job> convertJobs(List<JobAddParam> jobAddParams);
 
 
     /**
@@ -80,7 +80,7 @@ public interface PlanConverter {
     @Mapping(target = "childrenIds", source = "childrenIds")
     @Mapping(target = "dispatchOption", source = "dispatchOption", qualifiedByName = "convertJobDispatchOption")
     @Mapping(target = "executorOption", qualifiedByName = "convertJobExecutorOption")
-    Job convertJob(JobAddParam param);
+    public abstract Job convertJob(JobAddParam param);
 
 
     /**
@@ -93,7 +93,7 @@ public interface PlanConverter {
     @Mapping(target = "scheduleInterval", source = "scheduleInterval")
     @Mapping(target = "scheduleCron", source = "scheduleCron")
     @Mapping(target = "scheduleCronType", source = "scheduleCronType")
-    ScheduleOption convertScheduleOption(ScheduleOptionParam param);
+    public abstract ScheduleOption convertScheduleOption(ScheduleOptionParam param);
 
 
     /**
@@ -103,7 +103,7 @@ public interface PlanConverter {
     @Mapping(target = "loadBalanceType", source = "loadBalanceType")
     @Mapping(target = "cpuRequirement", source = "cpuRequirement")
     @Mapping(target = "ramRequirement", source = "ramRequirement")
-    DispatchOption convertJobDispatchOption(DispatchOptionParam param);
+    public abstract DispatchOption convertJobDispatchOption(DispatchOptionParam param);
 
 
     /**
@@ -112,6 +112,6 @@ public interface PlanConverter {
     @Named("convertJobExecutorOption")
     @Mapping(target = "name", source = "name")
     @Mapping(target = "type", source = "type")
-    ExecutorOption convertJobExecutorOption(ExecutorOptionParam param);
+    public abstract ExecutorOption convertJobExecutorOption(ExecutorOptionParam param);
 
 }

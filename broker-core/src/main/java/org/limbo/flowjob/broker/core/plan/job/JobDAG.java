@@ -4,25 +4,24 @@ import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+ * @D 简单描述下 DAG 内存的存储结构？看起来是颗树。
+ *
  * @author Devil
  * @since 2021/8/18
  */
 public class JobDAG {
 
     private static final int STATE_INIT = 0;
+
     /**
      * 当遍历的时候第二次进入某个节点，表示成环
      */
     private static final int STATE_VISITED = 1;
+
     /**
      * 当一个节点 所有子节点都已经被遍历 而且没有环
      * 则它的后继判断也可以省略了
@@ -64,6 +63,10 @@ public class JobDAG {
         init(jobs);
     }
 
+
+    /**
+     * 根据作业列表，初始化 DAG 结构
+     */
     private void init(List<Job> jobsList) {
         // 数据初始化
         jobsList.forEach(job -> {
@@ -103,9 +106,14 @@ public class JobDAG {
         }
     }
 
+
+    /**
+     * 从 DAG 中查找是否存在指定作业ID的节点，存在则返回作业信息，不存在返回null。
+     */
     public Job getJob(String jobId) {
         return jobs.get(jobId);
     }
+
 
     /**
      * 获取最终执行的job
@@ -122,6 +130,7 @@ public class JobDAG {
         }
         return result;
     }
+
 
     /**
      * 获取最先需要执行的job 因为 DAG 可能会有多个一起执行
@@ -155,6 +164,7 @@ public class JobDAG {
         return result;
     }
 
+
     /**
      * 获取job前置的作业
      */
@@ -170,11 +180,12 @@ public class JobDAG {
         return result;
     }
 
+
     /**
      * 深度优先搜索
      *
      * @param node
-     * @return
+     * @return @D 返回的是啥？
      */
     public boolean hasCyclic(DAGNode node) {
         // 表示当前节点已被标记
@@ -199,6 +210,10 @@ public class JobDAG {
         return false;
     }
 
+
+    /**
+     * 获取 DAG 中所有节点对应的作业
+     */
     public List<Job> jobs() {
         return new ArrayList<>(jobs.values());
     }

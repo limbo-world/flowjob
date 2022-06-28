@@ -21,8 +21,13 @@ public interface PlanInstanceRepository {
     PlanInstance get(String planInstanceId);
 
     /**
-     * 结束任务
+     * 计划执行成功
      */
-    void end(String planInstanceId, PlanScheduleStatus state);
+    void executeSucceed(PlanInstance instance);
+
+    /**
+     * 计划执行失败
+     */
+    void executeFailed(PlanInstance instance);
 
 }

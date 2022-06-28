@@ -56,11 +56,17 @@ public interface TaskRepository {
      */
     boolean dispatchFailed(Task task);
 
+    /**
+     * 任务执行成功，将任务状态从 {@link TaskScheduleStatus#EXECUTING} 更新为 {@link TaskScheduleStatus#COMPLETED}
+     * @return 返回是否更新成功
+     */
+    boolean executeSucceed(Task task);
 
     /**
-     * 更新状态为已反馈
+     * 任务执行失败，将任务状态从 {@link TaskScheduleStatus#EXECUTING} 更新为 {@link TaskScheduleStatus#COMPLETED}，并记录错误信息。
+     * @return 返回是否更新成功
      */
-    void executed(String taskId);
+    boolean executeFailed(Task task);
 
     /**
      * 更新状态为已完成
