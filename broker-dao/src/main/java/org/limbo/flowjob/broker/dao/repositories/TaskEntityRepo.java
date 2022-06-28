@@ -42,8 +42,14 @@ public interface TaskEntityRepo extends JpaRepository<TaskEntity, String> {
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update TaskEntity set state = :newState where id = :id and state = :oldState and result = :result")
-    int updateState(@Param("id") String id, @Param("oldState") Byte oldState, @Param("result") Byte result,
-                    @Param("newState") Byte newState);
+    int updateState(@Param("id") String id, @Param("oldState") Byte oldState,
+                    @Param("result") Byte result, @Param("newState") Byte newState);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "update TaskEntity set state = :newState, result = :result, errorMsg = :errorMsg, errorStackTrace = :errorStack where id = :id and state = :oldState")
+    int updateStateWithError(@Param("id") String id, @Param("oldState") Byte oldState,
+                             @Param("result") Byte result, @Param("newState") Byte newState,
+                             @Param("errorMsg") String errorMsg, @Param("errorStack") String errorStack);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update TaskEntity set state = :newState, result = :newResult where id = :id and state = :oldState and result = :oldResult")

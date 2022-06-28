@@ -71,10 +71,34 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
     }
 
 
+    /**
+     * {@inheritDoc}
+     * @param instance
+     */
     @Override
-    @Transactional
-    public void end(String planInstanceId, PlanScheduleStatus state) {
-        planInstanceEntityRepo.end(planInstanceId, PlanScheduleStatus.SCHEDULING.status, state.status, TimeUtil.nowLocalDateTime());
+    public void executeSucceed(PlanInstance instance) {
+        planInstanceEntityRepo.end(
+                instance.getPlanInstanceId(),
+                PlanScheduleStatus.EXECUTING.status,
+                instance.getState().status,
+                TimeUtil.nowLocalDateTime()
+        );
     }
+
+
+    /**
+     * {@inheritDoc}
+     * @param instance
+     */
+    @Override
+    public void executeFailed(PlanInstance instance) {
+        planInstanceEntityRepo.end(
+                instance.getPlanInstanceId(),
+                PlanScheduleStatus.EXECUTING.status,
+                instance.getState().status,
+                TimeUtil.nowLocalDateTime()
+        );
+    }
+
 
 }

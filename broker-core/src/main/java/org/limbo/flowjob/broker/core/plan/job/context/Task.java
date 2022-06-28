@@ -19,22 +19,26 @@ package org.limbo.flowjob.broker.core.plan.job.context;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.api.clent.dto.TaskReceiveDTO;
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskResult;
 import org.limbo.flowjob.broker.api.constants.enums.TaskScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskType;
-import org.limbo.flowjob.broker.core.events.Event;
-import org.limbo.flowjob.broker.core.events.EventTags;
 import org.limbo.flowjob.broker.core.exceptions.JobDispatchException;
+import org.limbo.flowjob.broker.core.plan.PlanInstance;
+import org.limbo.flowjob.broker.core.plan.PlanScheduler;
 import org.limbo.flowjob.broker.core.plan.job.DispatchOption;
 import org.limbo.flowjob.broker.core.plan.job.ExecutorOption;
+import org.limbo.flowjob.broker.core.plan.job.Job;
+import org.limbo.flowjob.broker.core.plan.job.JobDAG;
 import org.limbo.flowjob.broker.core.repositories.TaskRepository;
 import org.limbo.flowjob.broker.core.worker.Worker;
 
 import javax.inject.Inject;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.List;
 
 /**
  * 作业执行上下文
@@ -214,51 +218,95 @@ public class Task implements Serializable {
 
 
     /**
-     * 关闭上下文，绑定该上下文的作业成功执行完成后，才会调用此方法。
+     * 任务执行成功，worker反馈任务执行完成后，才会调用此方法。
      *
-     * FIXME 更新上下文，需锁定contextId，防止并发问题
-     *
-     * @throws JobDispatchException 上下文状态不是{@link JobScheduleStatus#EXECUTING}时抛出异常。
+     * @throws JobDispatchException 任务状态不是{@link JobScheduleStatus#EXECUTING}时抛出异常。
+     * @param scheduler 计划执行器
+     * @param planInstance 执行计划实例
+     * @param jobInstance 作业实例
      */
-    public void close() throws JobDispatchException {
+    public void succeed(PlanScheduler scheduler, PlanInstance planInstance, JobInstance jobInstance) throws JobDispatchException {
         // 当前状态无需变更
         if (getState() == TaskScheduleStatus.COMPLETED) {
             return;
         }
 
+        // 更新任务状态，更新失败说明已经处理过，CAS保证幂等
         setState(TaskScheduleStatus.COMPLETED);
         setResult(TaskResult.SUCCEED);
-//        setNeedPublish(true); todo
+        if (!taskRepo.executeSucceed(this)) {
+            return;
+        }
 
-        // 发布领域事件
-        Event<Task> acceptEvent = new Event<>(this);
-        acceptEvent.setTag(EventTags.TASK_CLOSED);
-//        eventPublisher.publish(acceptEvent); // todo
+        // 更新作业状态，更新失败说明处理过
+        if (!jobInstance.succeed()) {
+            return;
+        }
+
+        // 触发后续任务下发
+        dispatchNextTask(scheduler, planInstance);
     }
 
 
     /**
-     * 关闭上下文，绑定该上下文的作业执行失败后，调用此方法
+     * 下发后续任务
+     * @param scheduler 可调度作业数据
+     * @param planInstance 计划实例
+     */
+    protected void dispatchNextTask(PlanScheduler scheduler, PlanInstance planInstance) {
+
+        // 从作业 DAG 中读取后续的作业节点
+        JobDAG dag = planInstance.getDag();
+        List<Job> subJobs = dag.getSubJobs(this.jobId);
+
+        if (CollectionUtils.isEmpty(subJobs)) {
+
+            // 后续作业不存在，需检测是否 Plan 执行完成
+            if (planInstance.isAllJobFinished()) {
+                planInstance.executeSucceed();
+            }
+
+        } else {
+
+            // 后续作业存在，则检测是否可触发，并继续下发作业
+            for (Job subJob : subJobs) {
+                if (planInstance.isJobTriggerable(subJob)) {
+                    JobInstance subJobInstance = subJob.newInstance(planInstance);
+                    scheduler.dispatchTask(subJob, subJobInstance);
+                }
+            }
+
+        }
+    }
+
+
+    /**
+     * 任务执行失败，worker反馈任务失败时，执行此方法。
+     * @param scheduler 可调度作业信息
+     * @param planInstance 执行计划实例
+     * @param jobInstance 作业实例
      * @param errorMsg 执行失败的异常信息
      * @param errorStackTrace 执行失败的异常堆栈
      */
-    public void close(String errorMsg, String errorStackTrace) {
-
+    public void failed(PlanScheduler scheduler, PlanInstance planInstance,
+                       JobInstance jobInstance, String errorMsg, String errorStackTrace) {
         // 当前状态无需变更
         if (getState() == TaskScheduleStatus.COMPLETED) {
             return;
         }
 
+        // 更新任务状态，更新失败说明已经处理过，CAS保证幂等
         setState(TaskScheduleStatus.COMPLETED);
-        setResult(TaskResult.SUCCEED);
+        setResult(TaskResult.FAILED);
         setErrorMsg(errorMsg);
         setErrorStackTrace(errorStackTrace);
-//        setNeedPublish(true); // todo
+        if (!taskRepo.executeFailed(this)) {
+            return;
+        }
 
-        // 发布领域事件
-        Event<Task> acceptEvent = new Event<>(this);
-        acceptEvent.setTag(EventTags.TASK_CLOSED);
-//        eventPublisher.publish(acceptEvent); // todo
+        // warning 执行失败重试不在这里执行，封装一个 RetryableTask（装饰or继承Task），在内部实现重试
+        //         这里只记录任务、作业实例状态
+
     }
 
 }

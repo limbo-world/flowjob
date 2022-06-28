@@ -23,8 +23,6 @@ import javax.transaction.Transactional;
 @Component
 public class PlanService {
 
-    private final PlanConverter converter = PlanConverter.INSTANCE;
-
     @Setter(onMethod_ = @Inject)
     private PlanRepository planRepo;
 
@@ -33,6 +31,9 @@ public class PlanService {
 
     @Setter(onMethod_ = @Inject)
     private TrackerNode trackerNode;
+
+    @Setter(onMethod_ = @Inject)
+    private PlanConverter converter;
 
 
     /**
@@ -63,6 +64,24 @@ public class PlanService {
         PlanScheduler scheduler = planSchedulerRepo.get(newVersion);
         if (trackerNode.jobTracker().isScheduling(planId)) {
             trackerNode.jobTracker().unschedule(planId);
+            trackerNode.jobTracker().schedule(scheduler);
+        }
+    }
+
+
+    /**
+     * 启动计划，开始调度
+     * @param planId 计划ID
+     */
+    @Transactional
+    public void start(String planId) {
+        Plan plan = planRepo.get(planId);
+        Verifies.notNull(plan, String.format("Cannot find Plan %s", planId));
+        Verifies.verify(!plan.isEnabled(), String.format("Plan %s already started", planId));
+
+        // 更新作业状态，更新成功后启动调度
+        if (plan.enable()) {
+            PlanScheduler scheduler = planSchedulerRepo.get(plan.getCurrentVersion());
             trackerNode.jobTracker().schedule(scheduler);
         }
     }

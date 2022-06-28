@@ -94,17 +94,38 @@ public class JobInstanceRepo implements JobInstanceRepository {
         ) > 0;
     }
 
+
+    /**
+     * {@inheritDoc}
+     * @param instance 作业实例
+     * @return
+     */
     @Override
-    public boolean end(String jobInstanceId, JobScheduleStatus state) {
-        return jobInstanceEntityRepo.updateState(jobInstanceId,
+    public boolean executeSucceed(JobInstance instance) {
+        return jobInstanceEntityRepo.updateState(
+                instance.getJobInstanceId(),
                 JobScheduleStatus.EXECUTING.status,
-                state.status
+                JobScheduleStatus.SUCCEED.status
         ) > 0;
     }
 
 
+    /**
+     * {@inheritDoc}
+     * @param instance 作业实例
+     * @return
+     */
     @Override
-    public List<JobInstance> getInstances(String planInstanceId, Collection<String> jobIds) {
+    public boolean executeFailed(JobInstance instance) {
+        return jobInstanceEntityRepo.updateState(
+                instance.getJobInstanceId(),
+                JobScheduleStatus.EXECUTING.status,
+                JobScheduleStatus.FAILED.status
+        ) > 0;
+    }
+
+    @Override
+    public List<JobInstance> listInstances(String planInstanceId, Collection<String> jobIds) {
         return jobInstanceEntityRepo.findByPlanInstanceIdAndJobInfoIdIn(planInstanceId, jobIds).stream()
                 .map(po -> convert.reverse().convert(po))
                 .collect(Collectors.toList());

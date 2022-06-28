@@ -23,7 +23,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.broker.core.broker.WorkerManager;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
@@ -171,9 +170,8 @@ public class PlanScheduler implements Schedulable, Serializable {
 
         // 生成作业实例
         for (Job job : jobs) {
-            JobInstance jobInstance = job.newInstance(this.info.getPlanId(), planInstanceId, JobScheduleStatus.SCHEDULING);
-            String jobInstanceId = jobInstanceRepo.add(jobInstance);
-            jobInstance.setJobInstanceId(jobInstanceId);
+            JobInstance jobInstance = job.newInstance(planInstance);
+            jobInstanceRepo.add(jobInstance);
 
             // 将作业对应的任务信息下发给worker
             dispatchTask(job, jobInstance);
@@ -191,7 +189,7 @@ public class PlanScheduler implements Schedulable, Serializable {
      * @param job 作业
      * @param instance 待下发的作业实例
      */
-    private void dispatchTask(Job job, JobInstance instance) {
+    public void dispatchTask(Job job, JobInstance instance) {
         // todo 下发前确认下对应的jobInstance是否已经关闭
 
         // 生成并持久化Task

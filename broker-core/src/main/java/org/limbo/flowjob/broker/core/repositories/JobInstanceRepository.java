@@ -14,14 +14,9 @@ import java.util.List;
 public interface JobInstanceRepository {
 
     /**
-     * 持久化
+     * 新增作业实例，持久化到DB。
      */
     String add(JobInstance jobInstance);
-
-    /**
-     * 获取
-     */
-    JobInstance get(String jobInstanceId);
 
 
     /**
@@ -32,6 +27,7 @@ public interface JobInstanceRepository {
      */
     boolean dispatched(JobInstance instance);
 
+
     /**
      * 作业实例下发失败，CAS 将此作业实例状态从 {@link JobScheduleStatus#SCHEDULING} 修改为 {@link JobScheduleStatus#FAILED}
      *
@@ -41,9 +37,35 @@ public interface JobInstanceRepository {
     boolean dispatchFailed(JobInstance instance);
 
 
-    boolean end(String jobInstanceId, JobScheduleStatus state);
+    /**
+     * 作业执行成功，CAS 将此作业实例状态从 {@link JobScheduleStatus#EXECUTING} 修改为 {@link JobScheduleStatus#SUCCEED}
+     *
+     * @param instance 作业实例
+     * @return 更新是否成功
+     */
+    boolean executeSucceed(JobInstance instance);
 
 
-    List<JobInstance> getInstances(String planInstanceId, Collection<String> jobIds);
+    /**
+     * 作业执行失败，CAS 将此作业实例状态从 {@link JobScheduleStatus#EXECUTING} 修改为 {@link JobScheduleStatus#FAILED}
+     *
+     * @param instance 作业实例
+     * @return 更新是否成功
+     */
+    boolean executeFailed(JobInstance instance);
+
+
+    /**
+     * 根据ID获取指定作业实例
+     */
+    JobInstance get(String jobInstanceId);
+
+
+    /**
+     * 查询计划实例中，指定作业ID的作业实例。
+     * @param planInstanceId 计划实例ID
+     * @param jobIds 作业ID集合
+     */
+    List<JobInstance> listInstances(String planInstanceId, Collection<String> jobIds);
 
 }
