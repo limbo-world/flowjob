@@ -46,28 +46,19 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
     @Setter(onMethod_ = @Inject)
     private PlanInstanceEntityRepo planInstanceEntityRepo;
 
-    @Setter(onMethod_ = @Inject)
-    private IDRepo idRepo;
-
 
     @Override
     @Transactional
     public String add(PlanInstance instance) {
-        String planInstanceId = idRepo.createPlanInstanceId();
-
-        instance.setPlanInstanceId(planInstanceId);
-
         PlanInstanceEntity entity = converter.convert(instance);
-
         planInstanceEntityRepo.saveAndFlush(entity);
-
-        return planInstanceId;
+        return String.valueOf(entity.getId());
     }
 
 
     @Override
     public PlanInstance get(String planInstanceId) {
-        return planInstanceEntityRepo.findById(planInstanceId).map(entity -> converter.reverse().convert(entity)).orElse(null);
+        return planInstanceEntityRepo.findById(Long.valueOf(planInstanceId)).map(entity -> converter.reverse().convert(entity)).orElse(null);
     }
 
 
@@ -78,7 +69,7 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
     @Override
     public void executeSucceed(PlanInstance instance) {
         planInstanceEntityRepo.end(
-                instance.getPlanInstanceId(),
+                Long.valueOf(instance.getPlanInstanceId()),
                 PlanScheduleStatus.EXECUTING.status,
                 instance.getState().status,
                 TimeUtil.nowLocalDateTime()
@@ -93,7 +84,7 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
     @Override
     public void executeFailed(PlanInstance instance) {
         planInstanceEntityRepo.end(
-                instance.getPlanInstanceId(),
+                Long.valueOf(instance.getPlanInstanceId()),
                 PlanScheduleStatus.EXECUTING.status,
                 instance.getState().status,
                 TimeUtil.nowLocalDateTime()

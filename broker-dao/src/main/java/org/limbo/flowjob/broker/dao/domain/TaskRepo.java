@@ -23,6 +23,7 @@ import org.limbo.flowjob.broker.api.constants.enums.TaskResult;
 import org.limbo.flowjob.broker.api.constants.enums.TaskScheduleStatus;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
 import org.limbo.flowjob.broker.core.repositories.TaskRepository;
+import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.converter.TaskPoConverter;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
@@ -47,9 +48,6 @@ public class TaskRepo implements TaskRepository {
     @Autowired
     private TaskPoConverter converter;
 
-    @Setter(onMethod_ = @Inject)
-    private IDRepo idRepo;
-
 
     /**
      * {@inheritDoc}
@@ -60,12 +58,10 @@ public class TaskRepo implements TaskRepository {
     @Override
     @Transactional
     public String add(Task task) {
-        String taskId = idRepo.createTaskId();
-        task.setTaskId(taskId);
-
+        Verifies.notNull(task, "task can't be null");
         TaskEntity entity = converter.convert(task);
         taskEntityRepo.saveAndFlush(entity);
-        return taskId;
+        return String.valueOf(entity.getId());
     }
 
 
@@ -78,7 +74,7 @@ public class TaskRepo implements TaskRepository {
     @Override
     @Transactional
     public boolean dispatching(Task task) {
-        return taskEntityRepo.updateState(task.getTaskId(),
+        return taskEntityRepo.updateState(Long.valueOf(task.getTaskId()),
                 TaskScheduleStatus.SCHEDULING.status,
                 TaskResult.NONE.result,
                 TaskScheduleStatus.DISPATCHING.status,
@@ -96,7 +92,7 @@ public class TaskRepo implements TaskRepository {
     @Override
     @Transactional
     public boolean dispatched(Task task) {
-        return taskEntityRepo.updateState(task.getTaskId(),
+        return taskEntityRepo.updateState(Long.valueOf(task.getTaskId()),
                 TaskScheduleStatus.DISPATCHING.status,
                 TaskResult.NONE.result,
                 TaskScheduleStatus.EXECUTING.status,
@@ -114,7 +110,7 @@ public class TaskRepo implements TaskRepository {
     @Override
     @Transactional
     public boolean dispatchFailed(Task task) {
-        return taskEntityRepo.updateState(task.getTaskId(),
+        return taskEntityRepo.updateState(Long.valueOf(task.getTaskId()),
                 TaskScheduleStatus.DISPATCHING.status,
                 TaskResult.NONE.result,
                 TaskScheduleStatus.DISPATCH_FAILED.status,
@@ -131,7 +127,7 @@ public class TaskRepo implements TaskRepository {
     @Override
     @Transactional
     public boolean executeSucceed(Task task) {
-        return taskEntityRepo.updateState(task.getTaskId(),
+        return taskEntityRepo.updateState(Long.valueOf(task.getTaskId()),
                 TaskScheduleStatus.EXECUTING.status,
                 TaskResult.SUCCEED.result,
                 TaskScheduleStatus.COMPLETED.status
@@ -147,7 +143,7 @@ public class TaskRepo implements TaskRepository {
     @Override
     public boolean executeFailed(Task task) {
         return taskEntityRepo.updateStateWithError(
-                task.getTaskId(),
+                Long.valueOf(task.getTaskId()),
                 TaskScheduleStatus.EXECUTING.status,
                 TaskResult.FAILED.result,
                 TaskScheduleStatus.COMPLETED.status,
@@ -158,7 +154,7 @@ public class TaskRepo implements TaskRepository {
     @Override
     @Transactional
     public void end(String taskId, TaskResult result) {
-        taskEntityRepo.updateState(taskId,
+        taskEntityRepo.updateState(Long.valueOf(taskId),
                 TaskScheduleStatus.SCHEDULING.status,
                 TaskResult.NONE.result,
                 TaskScheduleStatus.EXECUTING.status,
@@ -168,14 +164,14 @@ public class TaskRepo implements TaskRepository {
 
     @Override
     public Long countByStates(String jobInstanceId, List<TaskScheduleStatus> statuses, List<TaskResult> results) {
-        return taskEntityRepo.countByJobInstanceIdAndStateInAndResultIn(jobInstanceId,
+        return taskEntityRepo.countByJobInstanceIdAndStateInAndResultIn(Long.valueOf(jobInstanceId),
                 statuses.stream().map(s -> s.status).collect(Collectors.toList()),
                 results.stream().map(r -> r.result).collect(Collectors.toList()));
     }
 
     @Override
     public Task get(String taskId) {
-        return taskEntityRepo.findById(taskId).map(entity -> converter.reverse().convert(entity)).orElse(null);
+        return taskEntityRepo.findById(Long.valueOf(taskId)).map(entity -> converter.reverse().convert(entity)).orElse(null);
     }
 
 }

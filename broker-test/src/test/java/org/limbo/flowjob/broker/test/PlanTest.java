@@ -29,7 +29,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.Date;
 import java.util.Optional;
 
 /**
@@ -46,7 +45,7 @@ public class PlanTest {
     @Test
     public void insert() {
         PlanEntity plan = new PlanEntity();
-        String planId = new Date().toString();
+        Long planId = System.currentTimeMillis();
         plan.setId(planId);
 
         PlanEntity planEntity = planEntityRepo.saveAndFlush(plan);
@@ -59,10 +58,10 @@ public class PlanTest {
     @Transactional
     @Rollback(false)
     public void saveUpdate() {
-        String id = "Wed Jun 22 21:00:44 CST 2022";
+        Long id = 0L;
         Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(id);
         PlanEntity plan = planEntityOptional.get();
-        plan.setCurrentVersion(new Date().toString());
+        plan.setCurrentVersion(System.currentTimeMillis());
 
         PlanEntity planEntity = planEntityRepo.saveAndFlush(plan);
         System.out.println(planEntity);
@@ -72,11 +71,11 @@ public class PlanTest {
     @Transactional
     @Rollback(false)
     public void update() {
-        String id = "Wed Jun 22 21:00:44 CST 2022";
+        Long id = 0L;
         Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(id);
         PlanEntity plan = planEntityOptional.get();
 
-        String newVersion = new Date().toString();
+        Long newVersion = System.currentTimeMillis();
         System.out.println(planEntityRepo.updateVersion(newVersion, newVersion, id, plan.getCurrentVersion(), plan.getRecentlyVersion()));
 
         PlanEntity planEntity = planEntityRepo.findById(id).get();

@@ -19,27 +19,31 @@ package org.limbo.flowjob.broker.dao.converter;
 import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerExecutor;
 import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 
 /**
  * @author Brozen
  * @since 2021-07-05
  */
-@Mapper
-public interface WorkerExecutorPoConverter {
+public class WorkerExecutorPoConverter {
 
-    WorkerExecutorPoConverter INSTANCE = Mappers.getMapper(WorkerExecutorPoConverter.class);
+    public static WorkerExecutor toDO(WorkerExecutorEntity po) {
+        WorkerExecutor workerExecutor = new WorkerExecutor();
+        workerExecutor.setWorkerId(String.valueOf(po.getWorkerId()));
+        workerExecutor.setName(po.getName());
+        workerExecutor.setDescription(po.getDescription());
+        workerExecutor.setType(JobExecuteType.parse(po.getType()));
+        return workerExecutor;
 
-    WorkerExecutor toDO(WorkerExecutorEntity po);
-
-    WorkerExecutorEntity toEntity(WorkerExecutor domain);
-
-    default JobExecuteType jobExecuteTypeConvert(Byte type) {
-        return JobExecuteType.parse(type);
     }
 
-    default Byte jobExecuteTypeConvert(JobExecuteType type) {
-        return type == null ? null : type.type;
+    public static WorkerExecutorEntity toEntity(WorkerExecutor domain) {
+        WorkerExecutorEntity workerExecutorEntity = new WorkerExecutorEntity();
+        workerExecutorEntity.setWorkerId(Long.valueOf(domain.getWorkerId()));
+        workerExecutorEntity.setName(domain.getName());
+        workerExecutorEntity.setDescription(domain.getDescription());
+        workerExecutorEntity.setType(domain.getType() == null ? null : domain.getType().type);
+        return workerExecutorEntity;
+
     }
+
 }

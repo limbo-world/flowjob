@@ -17,6 +17,7 @@
 package org.limbo.flowjob.broker.core.worker.statistics;
 
 import lombok.AccessLevel;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -28,27 +29,22 @@ import java.time.LocalDateTime;
  * @author Brozen
  * @since 2021-05-28
  */
+@Data
 public class WorkerStatistics {
 
     /**
      * 对应worker的ID
      */
-    @Getter
-    @Setter(AccessLevel.PROTECTED)
     private String workerId;
 
     /**
      * 作业下发到此worker的次数
      */
-    @Getter
-    @Setter(AccessLevel.PROTECTED)
     private Long jobDispatchCount;
 
     /**
      * 最后一次向此worker下发作业成功的时间
      */
-    @Getter
-    @Setter(AccessLevel.PROTECTED)
     private LocalDateTime latestDispatchTime;
 
 }

@@ -20,54 +20,45 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Getter;
 
 /**
- * 任务节点触发方式
+ * 触发类型：
  * <ul>
- *     <li>{@linkplain JobTriggerType#UNKNOWN 未知}</li>
- *     <li>{@linkplain JobTriggerType#OUTSIDE 外部触发}</li>
- *     <li>{@linkplain JobTriggerType#SCHEDULE 调度触发}</li>
- *     <li>{@linkplain JobTriggerType#PRE_FINISH 前置节点完成触发}</li>
+ *     <li>{@linkplain TriggerType#API api触发}</li>
+ *     <li>{@linkplain TriggerType#SCHEDULE 调度触发}</li>
+ *     <li>{@linkplain TriggerType#FOLLOW 后继触发}</li>
  * </ul>
  *
  * @author Brozen
  * @since 2021-05-16
  */
-public enum JobTriggerType implements DescribableEnum<Byte> {
-
+public enum TriggerType implements DescribableEnum<Byte> {
     /**
-     * 外部触发 如console worker 等
+     * 调用api触发
      */
-    UNKNOWN(0, "未知"),
+    API(1, "api触发"),
     /**
-     * 外部触发 如console worker 等
-     */
-    OUTSIDE(1, "外部触发"),
-
-    /**
-     * 任务调度后触发
+     * 到达调度时间点触发
      */
     SCHEDULE(2, "调度触发"),
-
     /**
-     * 上个节点执行结束后触发
+     * 获取到前置节点执行结果后触发
      */
-    PRE_FINISH(3, "前置节点完成触发"),
+    FOLLOW(3, "后继触发"),
+
     ;
 
-    /**
-     * 可通过{@link #describe(Class)}方法生成，用于在swagger3为枚举添加说明
-     */
-    public static final String DESCRIPTION = "0-未知; 1-外部触发; 2-调度触发; 3-前置节点完成触发;";
+    public static final String DESCRIPTION = "1-api触发; 2-调度触发; 3-后继触发;";
 
     public final byte type;
 
     @Getter
     public final String desc;
 
-    JobTriggerType(int type, String desc) {
-        this((byte) type, desc);
+
+    TriggerType(int type, String desc) {
+        this(((byte) type), desc);
     }
 
-    JobTriggerType(byte type, String desc) {
+    TriggerType(byte type, String desc) {
         this.type = type;
         this.desc = desc;
     }
@@ -81,18 +72,15 @@ public enum JobTriggerType implements DescribableEnum<Byte> {
         return type;
     }
 
-    /**
-     * 解析作业分发类型。
-     */
     @JsonCreator
-    public static JobTriggerType parse(Number type) {
+    public static TriggerType parse(Number type) {
         if (type == null) {
             return null;
         }
 
-        for (JobTriggerType loadBalanceType : values()) {
-            if (type.byteValue() == loadBalanceType.type) {
-                return loadBalanceType;
+        for (TriggerType triggerType : values()) {
+            if (type.byteValue() == triggerType.type) {
+                return triggerType;
             }
         }
 

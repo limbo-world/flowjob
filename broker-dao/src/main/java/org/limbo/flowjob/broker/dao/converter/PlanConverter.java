@@ -7,11 +7,8 @@ import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
-import org.mapstruct.AfterMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
-import org.mapstruct.MappingTarget;
 import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.util.Optional;
@@ -20,8 +17,8 @@ import java.util.Optional;
  * @author Brozen
  * @since 2021-10-19
  */
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public abstract class PlanConverter {
+@Component
+public class PlanConverter {
 
     @Setter(onMethod_ = @Inject)
     private ApplicationContext ac;
@@ -32,21 +29,32 @@ public abstract class PlanConverter {
     @Setter(onMethod_ = @Inject)
     private PlanInfoConverter planInfoConverter;
 
+    public PlanEntity toEntity(Plan plan) {
+        PlanEntity planEntity = new PlanEntity();
+        planEntity.setCurrentVersion(Long.valueOf(plan.getCurrentVersion()));
+        planEntity.setRecentlyVersion(Long.valueOf(plan.getRecentlyVersion()));
+        planEntity.setIsEnabled(plan.enable());
+        planEntity.setId(Long.valueOf(plan.getPlanId()));
+        return planEntity;
+    }
 
-    public abstract PlanEntity toEntity(Plan plan);
+    public Plan toDO(PlanEntity entity) {
+        Plan plan = new Plan();
+        plan.setPlanId(String.valueOf(entity.getId()));
+        plan.setCurrentVersion(String.valueOf(entity.getCurrentVersion()));
+        plan.setRecentlyVersion(String.valueOf(entity.getRecentlyVersion()));
+        plan.setEnabled(entity.getIsEnabled());
 
-    public abstract Plan toDO(PlanEntity entity);
+        // 获取plan 的当前版本
+        Optional<PlanInfoEntity> planInfoEntityOptional = planInfoEntityRepo.findById(Long.valueOf(plan.getCurrentVersion()));
+        Verifies.verify(planInfoEntityOptional.isPresent(), "does not find info by version--" +plan.getCurrentVersion()+ "");
+        PlanInfo currentVersion = planInfoConverter.toDO(planInfoEntityOptional.get());
+        plan.setInfo(currentVersion);
 
-    @AfterMapping
-    public void afterMappingPlan(@MappingTarget Plan plan) {
         // 注入依赖
         ac.getAutowireCapableBeanFactory().autowireBean(plan);
-        // 获取plan 的当前版本
-        Optional<PlanInfoEntity> planInfoEntityOptional = planInfoEntityRepo.findById(plan.getCurrentVersion());
-        Verifies.verify(planInfoEntityOptional.isPresent(), "does not find info by version--" +plan.getCurrentVersion()+ "");
-        PlanInfoEntity entity = planInfoEntityOptional.get();
-        PlanInfo currentVersion = planInfoConverter.toDO(entity);
-        plan.setInfo(currentVersion);
+        return plan;
+
     }
 
 }

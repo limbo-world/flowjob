@@ -31,12 +31,12 @@ import java.util.List;
  * @author Devil
  * @since 2022/6/24
  */
-public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, String> {
+public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, Long> {
 
-    List<JobInstanceEntity> findByPlanInstanceIdAndJobInfoIdIn(String planInstanceId, Collection<String> jobInfoIds);
+    List<JobInstanceEntity> findByPlanInstanceIdAndJobInfoIdIn(Long planInstanceId, Collection<Long> jobInfoIds);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity set state = :newState where id = :id and state = :oldState")
-    int updateState(@Param("id") String id, @Param("oldState") Byte oldState, @Param("newState") Byte newState);
+    int updateState(@Param("id") Long id, @Param("oldState") Byte oldState, @Param("newState") Byte newState);
 
 }

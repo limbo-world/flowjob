@@ -58,7 +58,7 @@ public class WorkerPoConverter extends Converter<Worker, WorkerEntity> {
     @Override
     protected WorkerEntity doForward(Worker _do) {
         WorkerEntity po = new WorkerEntity();
-        po.setId(_do.getWorkerId());
+        po.setId(Long.valueOf(_do.getWorkerId()));
         po.setProtocol(_do.getProtocol().protocol);
         po.setHost(_do.getHost());
         po.setPort(_do.getPort());

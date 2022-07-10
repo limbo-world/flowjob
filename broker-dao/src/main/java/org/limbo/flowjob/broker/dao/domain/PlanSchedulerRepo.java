@@ -52,7 +52,7 @@ public class PlanSchedulerRepo implements PlanSchedulerRepository {
      */
     @Override
     public PlanScheduler get(String version) {
-        PlanInfo planInfo = planInfoEntityRepo.findById(version)
+        PlanInfo planInfo = planInfoEntityRepo.findById(Long.valueOf(version))
                 .map(planInfoConverter::toDO)
                 .orElseThrow(() -> new VerifyException("can't find plan with this version"));
 

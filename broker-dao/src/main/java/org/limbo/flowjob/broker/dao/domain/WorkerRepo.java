@@ -87,7 +87,7 @@ public class WorkerRepo implements WorkerRepository {
      */
     @Override
     public Worker getWorker(String workerId) {
-        Optional<WorkerEntity> workerEntityOptional = workerEntityRepo.findById(workerId);
+        Optional<WorkerEntity> workerEntityOptional = workerEntityRepo.findById(Long.valueOf(workerId));
         Verifies.verify(workerEntityOptional.isPresent(), "worker is not exist");
 
         return converter.reverse().convert(workerEntityOptional.get());
@@ -113,7 +113,7 @@ public class WorkerRepo implements WorkerRepository {
      */
     @Override
     public void removeWorker(String workerId) {
-        Optional<WorkerEntity> workerEntityOptional = workerEntityRepo.findById(workerId);
+        Optional<WorkerEntity> workerEntityOptional = workerEntityRepo.findById(Long.valueOf(workerId));
         if (workerEntityOptional.isPresent()) {
             WorkerEntity workerEntity = workerEntityOptional.get();
             workerEntity.setDeleted(true);

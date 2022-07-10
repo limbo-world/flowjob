@@ -16,15 +16,18 @@
 
 package org.limbo.flowjob.broker.dao.converter;
 
-import lombok.Setter;
-import org.limbo.flowjob.broker.core.plan.Plan;
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
+import org.limbo.flowjob.broker.core.plan.job.Job;
+import org.limbo.flowjob.broker.core.plan.job.JobDAG;
+import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
+import org.limbo.flowjob.broker.core.utils.json.JacksonUtils;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
-import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
+import java.time.Duration;
+import java.util.List;
 
 /**
  * todo 这个移除 直接在plan里面处理
@@ -32,62 +35,39 @@ import javax.inject.Inject;
  * @author Brozen
  * @since 2021-07-13
  */
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public abstract class PlanInfoConverter {
+@Component
+public class PlanInfoConverter {
 
-    @Setter(onMethod_ = @Inject)
-    private ApplicationContext ac;
+    public PlanInfoEntity toEntity(PlanInfo planInfo) {
+        PlanInfoEntity entity = new PlanInfoEntity();
 
-    public abstract PlanInfoEntity toEntity(PlanInfo planInfo);
+        entity.setPlanId(Long.valueOf(planInfo.getPlanId()));
+        entity.setDescription(planInfo.getDescription());
 
-    public abstract PlanInfo toDO(PlanInfoEntity entity);
+        ScheduleOption scheduleOption = planInfo.getScheduleOption();
+        entity.setScheduleType(scheduleOption.getScheduleType().type);
+        entity.setScheduleStartAt(scheduleOption.getScheduleStartAt());
+        entity.setScheduleDelay(scheduleOption.getScheduleDelay().toMillis());
+        entity.setScheduleInterval(scheduleOption.getScheduleInterval().toMillis());
+        entity.setScheduleCron(scheduleOption.getScheduleCron());
+        entity.setJobs(JacksonUtils.toJSONString(planInfo.getDag().jobs()));
 
+        // 能够查询到info信息，说明未删除
+        entity.setIsDeleted(false);
 
-//    @Override
-//    protected PlanInfoEntity doForward(PlanInfo planInfo) {
-//        PlanInfoEntity po = new PlanInfoEntity();
-//
-//        po.setPlanId(planInfo.getPlanId());
-//        po.setVersion(planInfo.getVersion());
-//        po.setDescription(planInfo.getDescription());
-//
-//        ScheduleOption scheduleOption = planInfo.getScheduleOption();
-//        po.setScheduleType(scheduleOption.getScheduleType().type);
-//        po.setScheduleStartAt(scheduleOption.getScheduleStartAt());
-//        po.setScheduleDelay(scheduleOption.getScheduleDelay().toMillis());
-//        po.setScheduleInterval(scheduleOption.getScheduleInterval().toMillis());
-//        po.setScheduleCron(scheduleOption.getScheduleCron());
-//        po.setJobs(JacksonUtils.toJSONString(planInfo.getDag().jobs()));
-//
-//        // 能够查询到info信息，说明未删除
-//        po.setIsDeleted(false);
-//
-//        return po;
-//    }
-//
-//
-//    @Override
-//    protected PlanInfo doBackward(PlanInfoEntity po) {
-//        PlanInfo planInfo = planInfoBuilderFactory.builder()
-//                .planId(po.getPlanId())
-//                .version(po.getVersion())
-//                .description(po.getDescription())
-//                .scheduleOption(new ScheduleOption(
-//                        ScheduleType.parse(po.getScheduleType()),
-//                        po.getScheduleStartAt(),
-//                        Duration.ofMillis(po.getScheduleDelay()),
-//                        Duration.ofMillis(po.getScheduleInterval()),
-//                        po.getScheduleCron(),
-//                        po.getScheduleCronType(),
-//                        po.getRetry()
-//                ))
-//                .jobs(JacksonUtils.parseObject(po.getJobs(), new TypeReference<List<Job>>() {}))
-//                .build();
-//
-//        // 注入依赖
-//        ac.getAutowireCapableBeanFactory().autowireBean(planInfo);
-//
-//        return planInfo;
-//    }
+        return entity;
+    }
+
+    public PlanInfo toDO(PlanInfoEntity entity) {
+        return new PlanInfo(String.valueOf(entity.getPlanId()), String.valueOf(entity.getId()), entity.getDescription(), new ScheduleOption(
+                ScheduleType.parse(entity.getScheduleType()),
+                entity.getScheduleStartAt(),
+                Duration.ofMillis(entity.getScheduleDelay()),
+                Duration.ofMillis(entity.getScheduleInterval()),
+                entity.getScheduleCron(),
+                entity.getScheduleCronType()
+        ), new JobDAG(JacksonUtils.parseObject(entity.getJobs(), new TypeReference<List<Job>>() {
+        })));
+    }
 
 }

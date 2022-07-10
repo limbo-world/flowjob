@@ -24,9 +24,9 @@ import java.time.LocalDateTime;
 public class JobInstanceEntity extends BaseEntity {
     private static final long serialVersionUID = -1136312243146520057L;
 
-    private String planInstanceId;
+    private Long planInstanceId;
 
-    private String jobInfoId;
+    private Long jobInfoId;
 
     /**
      * 状态

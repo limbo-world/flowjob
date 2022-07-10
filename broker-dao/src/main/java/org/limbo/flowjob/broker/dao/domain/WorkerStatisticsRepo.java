@@ -46,7 +46,7 @@ public class WorkerStatisticsRepo implements WorkerStatisticsRepository {
      */
     @Override
     public void addOrUpdateWorkerStatistics(WorkerStatistics statistics) {
-        WorkerStatisticsEntity entity = WorkerStatisticsPoConverter.INSTANCE.convertToPO(statistics);
+        WorkerStatisticsEntity entity = WorkerStatisticsPoConverter.toEntity(statistics);
         Objects.requireNonNull(entity);
 
         workerStatisticsEntityRepo.saveAndFlush(entity);
@@ -59,7 +59,7 @@ public class WorkerStatisticsRepo implements WorkerStatisticsRepository {
      */
     @Override
     public WorkerStatistics getWorkerStatistics(String workerId) {
-        return workerStatisticsEntityRepo.findById(workerId).map(WorkerStatisticsPoConverter.INSTANCE::convertToDO).orElse(null);
+        return workerStatisticsEntityRepo.findById(Long.valueOf(workerId)).map(WorkerStatisticsPoConverter::toDO).orElse(null);
     }
 
     /**

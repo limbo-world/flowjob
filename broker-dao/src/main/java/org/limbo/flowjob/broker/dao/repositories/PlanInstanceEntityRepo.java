@@ -30,9 +30,9 @@ import java.time.LocalDateTime;
  * @author Devil
  * @since 2022/6/24
  */
-public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity, String> {
+public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity, Long> {
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanInstanceEntity set state = :state, endAt = :endAt where id = :id and state = :oldState")
-    int end(@Param("id") String id, @Param("oldState") Byte oldState, @Param("state") Byte state, @Param("endAt") LocalDateTime endAt);
+    int end(@Param("id") Long id, @Param("oldState") Byte oldState, @Param("state") Byte state, @Param("endAt") LocalDateTime endAt);
 }

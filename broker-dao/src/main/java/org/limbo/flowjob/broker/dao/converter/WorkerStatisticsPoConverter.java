@@ -18,19 +18,27 @@ package org.limbo.flowjob.broker.dao.converter;
 
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatistics;
 import org.limbo.flowjob.broker.dao.entity.WorkerStatisticsEntity;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 
 /**
  * @author Brozen
  * @since 2021-06-03
  */
-@Mapper
-public interface WorkerStatisticsPoConverter {
+public class WorkerStatisticsPoConverter {
 
-    WorkerStatisticsPoConverter INSTANCE = Mappers.getMapper(WorkerStatisticsPoConverter.class);
+    public static WorkerStatistics toDO(WorkerStatisticsEntity po) {
+        WorkerStatistics workerStatistics = new WorkerStatistics();
+        workerStatistics.setWorkerId(String.valueOf(po.getWorkerId()));
+        workerStatistics.setJobDispatchCount(po.getJobDispatchCount());
+        workerStatistics.setLatestDispatchTime(po.getLatestDispatchTime());
+        return workerStatistics;
 
-    WorkerStatistics convertToDO(WorkerStatisticsEntity po);
+    }
 
-    WorkerStatisticsEntity convertToPO(WorkerStatistics domain);
+    public static WorkerStatisticsEntity toEntity(WorkerStatistics domain) {
+        WorkerStatisticsEntity workerStatisticsEntity = new WorkerStatisticsEntity();
+        workerStatisticsEntity.setWorkerId(Long.valueOf(domain.getWorkerId()));
+        workerStatisticsEntity.setJobDispatchCount(domain.getJobDispatchCount());
+        workerStatisticsEntity.setLatestDispatchTime(domain.getLatestDispatchTime());
+        return workerStatisticsEntity;
+    }
 }

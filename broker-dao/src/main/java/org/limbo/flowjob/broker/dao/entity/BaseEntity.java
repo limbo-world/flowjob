@@ -37,11 +37,8 @@ public abstract class BaseEntity implements Serializable {
 
     private static final long serialVersionUID = 1797761151294059019L;
 
-    /**
-     * DB自增序列ID，并不是唯一标识
-     */
     @Id
-    private String id;
+    private Long id;
 
     /**
      * 记录创建时间

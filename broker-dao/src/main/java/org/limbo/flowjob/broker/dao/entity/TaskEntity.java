@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
 public class TaskEntity extends BaseEntity {
     private static final long serialVersionUID = -6865597903513656450L;
 
-    private String jobInstanceId;
+    private Long jobInstanceId;
 
     /**
      * 状态
@@ -39,7 +39,7 @@ public class TaskEntity extends BaseEntity {
     /**
      * 执行作业的worker ID
      */
-    private String workerId;
+    private Long workerId;
 
     /**
      * sharding normal

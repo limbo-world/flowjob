@@ -51,7 +51,7 @@ public class WorkerTest {
 
     @Test
     public void findExecutor() {
-        List<WorkerExecutorEntity> workerExecutorEntities = workerExecutorEntityRepo.findByWorkerId("12B39DF31A46455581C20ED79968E867");
+        List<WorkerExecutorEntity> workerExecutorEntities = workerExecutorEntityRepo.findByWorkerId(1234566L);
         System.out.println(JacksonUtils.toJSONString(workerExecutorEntities));
     }
 
@@ -67,7 +67,7 @@ public class WorkerTest {
     @Transactional
     @Rollback(false)
     public void delete() {
-        int d = workerExecutorEntityRepo.deleteByWorkerId("12B39DF31A46455581C20ED79968E867");
+        int d = workerExecutorEntityRepo.deleteByWorkerId(1234566L);
         System.out.println(d);
     }
 

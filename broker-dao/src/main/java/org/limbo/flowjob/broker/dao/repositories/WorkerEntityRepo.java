@@ -27,7 +27,7 @@ import java.util.List;
  * @author Devil
  * @since 2022/6/24
  */
-public interface WorkerEntityRepo extends JpaRepository<WorkerEntity, String> {
+public interface WorkerEntityRepo extends JpaRepository<WorkerEntity, Long> {
 
     List<WorkerEntity> findByStatusAndDeleted(Byte status, Boolean deleted);
 }

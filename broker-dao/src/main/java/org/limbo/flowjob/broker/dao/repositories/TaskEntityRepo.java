@@ -30,29 +30,29 @@ import java.util.List;
  * @author Devil
  * @since 2022/6/24
  */
-public interface TaskEntityRepo extends JpaRepository<TaskEntity, String> {
+public interface TaskEntityRepo extends JpaRepository<TaskEntity, Long> {
 
-    long countByJobInstanceIdAndStateInAndResultIn(String jobInstanceId, List<Byte> statuses, List<Byte> results);
+    long countByJobInstanceIdAndStateInAndResultIn(Long jobInstanceId, List<Byte> statuses, List<Byte> results);
 
     // todo @B 为啥需要每次都设置workerId 不应该下发了就确定了么 而且没必要每次有result为none的条件吧，只需要执行后有就行 和下面方法可以合并？？
     @Modifying(clearAutomatically = true)
     @Query(value = "update TaskEntity set state = :newState, workerId = :workerId where id = :id and state = :oldState and result = :result")
-    int updateState(@Param("id") String id, @Param("oldState") Byte oldState, @Param("result") Byte result,
+    int updateState(@Param("id") Long id, @Param("oldState") Byte oldState, @Param("result") Byte result,
                     @Param("newState") Byte newState, @Param("workerId") String workerId);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update TaskEntity set state = :newState where id = :id and state = :oldState and result = :result")
-    int updateState(@Param("id") String id, @Param("oldState") Byte oldState,
+    int updateState(@Param("id") Long id, @Param("oldState") Byte oldState,
                     @Param("result") Byte result, @Param("newState") Byte newState);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update TaskEntity set state = :newState, result = :result, errorMsg = :errorMsg, errorStackTrace = :errorStack where id = :id and state = :oldState")
-    int updateStateWithError(@Param("id") String id, @Param("oldState") Byte oldState,
+    int updateStateWithError(@Param("id") Long id, @Param("oldState") Byte oldState,
                              @Param("result") Byte result, @Param("newState") Byte newState,
                              @Param("errorMsg") String errorMsg, @Param("errorStack") String errorStack);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update TaskEntity set state = :newState, result = :newResult where id = :id and state = :oldState and result = :oldResult")
-    int updateState(@Param("id") String id, @Param("oldState") Byte oldState, @Param("oldResult") Byte oldResult,
+    int updateState(@Param("id") Long id, @Param("oldState") Byte oldState, @Param("oldResult") Byte oldResult,
                     @Param("newState") Byte newState, @Param("newResult") Byte newResult);
 }

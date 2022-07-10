@@ -41,7 +41,7 @@ public class WorkerMetricEntity extends BaseEntity {
     /**
      * worker节点ID
      */
-    private String workerId;
+    private Long workerId;
 
     /**
      * worker节点上正在执行中的作业

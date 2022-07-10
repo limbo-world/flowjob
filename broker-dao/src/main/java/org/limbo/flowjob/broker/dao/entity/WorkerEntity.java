@@ -43,7 +43,7 @@ public class WorkerEntity extends BaseEntity {
     /**
      * 所属应用
      */
-    private String appId;
+    private Long appId;
 
     /**
      * worker服务使用的通信协议

@@ -19,6 +19,7 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.broker.core.plan.job.context.JobInstance;
 import org.limbo.flowjob.broker.core.repositories.JobInstanceRepository;
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,37 +46,32 @@ public class JobInstanceRepo implements JobInstanceRepository {
     private JobInstanceConverter convert;
 
     @Setter(onMethod_ = @Inject)
-    private IDRepo idRepo;
-
-    @Setter(onMethod_ = @Inject)
     private JobInstanceEntityRepo jobInstanceEntityRepo;
 
 
     @Override
     public String add(JobInstance jobInstance) {
-        String jobInstanceId = idRepo.createJobInstanceId();
-        jobInstance.setJobInstanceId(jobInstanceId);
-
         JobInstanceEntity entity = this.convert.convert(jobInstance);
         jobInstanceEntityRepo.saveAndFlush(entity);
-        return jobInstanceId;
+        return String.valueOf(entity.getId());
     }
 
 
     @Override
     public JobInstance get(String jobInstanceId) {
-        return jobInstanceEntityRepo.findById(jobInstanceId).map(entity -> convert.reverse().convert(entity)).orElse(null);
+        return jobInstanceEntityRepo.findById(Long.valueOf(jobInstanceId)).map(entity -> convert.reverse().convert(entity)).orElse(null);
     }
 
 
     /**
      * {@inheritDoc}
+     *
      * @param instance 作业实例
      * @return
      */
     @Override
     public boolean dispatched(JobInstance instance) {
-        return jobInstanceEntityRepo.updateState(instance.getJobInstanceId(),
+        return jobInstanceEntityRepo.updateState(Long.valueOf(instance.getJobInstanceId()),
                 JobScheduleStatus.SCHEDULING.status,
                 JobScheduleStatus.EXECUTING.status
         ) > 0;
@@ -83,12 +80,13 @@ public class JobInstanceRepo implements JobInstanceRepository {
 
     /**
      * {@inheritDoc}
+     *
      * @param instance 作业实例
      * @return
      */
     @Override
     public boolean dispatchFailed(JobInstance instance) {
-        return jobInstanceEntityRepo.updateState(instance.getJobInstanceId(),
+        return jobInstanceEntityRepo.updateState(Long.valueOf(instance.getJobInstanceId()),
                 JobScheduleStatus.SCHEDULING.status,
                 JobScheduleStatus.FAILED.status
         ) > 0;
@@ -97,13 +95,14 @@ public class JobInstanceRepo implements JobInstanceRepository {
 
     /**
      * {@inheritDoc}
+     *
      * @param instance 作业实例
      * @return
      */
     @Override
     public boolean executeSucceed(JobInstance instance) {
         return jobInstanceEntityRepo.updateState(
-                instance.getJobInstanceId(),
+                Long.valueOf(instance.getJobInstanceId()),
                 JobScheduleStatus.EXECUTING.status,
                 JobScheduleStatus.SUCCEED.status
         ) > 0;
@@ -112,13 +111,14 @@ public class JobInstanceRepo implements JobInstanceRepository {
 
     /**
      * {@inheritDoc}
+     *
      * @param instance 作业实例
      * @return
      */
     @Override
     public boolean executeFailed(JobInstance instance) {
         return jobInstanceEntityRepo.updateState(
-                instance.getJobInstanceId(),
+                Long.valueOf(instance.getJobInstanceId()),
                 JobScheduleStatus.EXECUTING.status,
                 JobScheduleStatus.FAILED.status
         ) > 0;
@@ -126,7 +126,13 @@ public class JobInstanceRepo implements JobInstanceRepository {
 
     @Override
     public List<JobInstance> listInstances(String planInstanceId, Collection<String> jobIds) {
-        return jobInstanceEntityRepo.findByPlanInstanceIdAndJobInfoIdIn(planInstanceId, jobIds).stream()
+        if (CollectionUtils.isEmpty(jobIds)) {
+            return Collections.emptyList();
+        }
+        return jobInstanceEntityRepo.findByPlanInstanceIdAndJobInfoIdIn(
+                        Long.valueOf(planInstanceId),
+                        jobIds.stream().map(Long::valueOf).collect(Collectors.toList())
+                ).stream()
                 .map(po -> convert.reverse().convert(po))
                 .collect(Collectors.toList());
     }

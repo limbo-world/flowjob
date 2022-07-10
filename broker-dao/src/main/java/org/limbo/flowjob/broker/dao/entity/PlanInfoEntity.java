@@ -44,7 +44,7 @@ public class PlanInfoEntity extends BaseEntity {
     /**
      * 属于哪个plan
      */
-    private String planId;
+    private Long planId;
 
     /**
      * 执行计划描述

@@ -67,7 +67,7 @@ public class WorkerMetricRepo implements WorkerMetricRepository {
     @Override
     public WorkerMetric getMetric(String workerId) {
         // 查询metric
-        Optional<WorkerMetricEntity> workerMetricEntityOptional = workerMetricEntityRepo.findById(workerId);
+        Optional<WorkerMetricEntity> workerMetricEntityOptional = workerMetricEntityRepo.findById(Long.valueOf(workerId));
         return workerMetricEntityOptional.map(workerMetricEntity -> converter.reverse().convert(workerMetricEntity)).orElse(null);
 
     }

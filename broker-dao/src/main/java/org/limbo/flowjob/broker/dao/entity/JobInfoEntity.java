@@ -41,7 +41,7 @@ import javax.persistence.Table;
 public class JobInfoEntity extends BaseEntity {
     private static final long serialVersionUID = -492555252883668183L;
 
-    private String planInfoId;
+    private Long planInfoId;
 
     /**
      * 作业名称

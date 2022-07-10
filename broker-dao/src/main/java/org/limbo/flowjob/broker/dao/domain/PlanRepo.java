@@ -20,12 +20,12 @@ package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
 import org.limbo.flowjob.broker.core.plan.Plan;
-import org.limbo.flowjob.broker.core.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.repositories.PlanRepository;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.converter.PlanConverter;
 import org.limbo.flowjob.broker.dao.converter.PlanInfoConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.springframework.stereotype.Repository;
@@ -53,9 +53,6 @@ public class PlanRepo implements PlanRepository {
     @Setter(onMethod_ = @Inject)
     private PlanInfoConverter planInfoConverter;
 
-    @Setter(onMethod_ = @Inject)
-    private IDRepo idRepo;
-
 
     /**
      * todo 事务 plan 删除处理 硬/软删除
@@ -70,26 +67,21 @@ public class PlanRepo implements PlanRepository {
     public String save(Plan plan) {
         Verifies.notNull(plan.getInfo(), "plan info is null");
 
-        // 设置id信息
-        String version = idRepo.createPlanInfoId();
-        plan.setCurrentVersion(version);
-        plan.setRecentlyVersion(version);
-
-        String planId = idRepo.createPlanId();
-        plan.setPlanId(planId);
-
-
         // 新增 Plan
-        planEntityRepo.saveAndFlush(planConverter.toEntity(plan));
+        PlanEntity planEntity = planConverter.toEntity(plan);
+        planEntityRepo.saveAndFlush(planEntity);
 
-        PlanInfo info = plan.getInfo();
-        info.setVersion(version);
-        info.setPlanId(planId);
+        // 设置版本
+        PlanInfoEntity planInfo = planInfoConverter.toEntity(plan.getInfo());
+        planInfo.setPlanId(planEntity.getId());
+        planInfoEntityRepo.saveAndFlush(planInfo);
 
-        // 新增 PlanInfo
-        planInfoEntityRepo.saveAndFlush(planInfoConverter.toEntity(plan.getInfo()));
+        // 更新版本
+        planEntity.setCurrentVersion(planInfo.getId());
+        planEntity.setRecentlyVersion(planInfo.getId());
+        planEntityRepo.saveAndFlush(planEntity);
 
-        return planId;
+        return String.valueOf(planEntity.getId());
     }
 
     /**
@@ -100,19 +92,19 @@ public class PlanRepo implements PlanRepository {
     @Override
     @Transactional
     public String updateVersion(Plan plan) {
-        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(plan.getPlanId());
+        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(Long.valueOf(plan.getPlanId()));
         Verifies.verify(planEntityOptional.isPresent(), "plan is not exist");
 
-        String newVersion = idRepo.createPlanInfoId();
-
         // 新增 PlanInfo
-        planInfoEntityRepo.saveAndFlush(planInfoConverter.toEntity(plan.getInfo()));
+        PlanInfoEntity planInfo = planInfoConverter.toEntity(plan.getInfo());
+        planInfoEntityRepo.saveAndFlush(planInfo);
 
         // 更新 Plan 版本信息
+        Long newVersion = planInfo.getId();
         PlanEntity planEntity = planEntityOptional.get();
         int effected = planEntityRepo.updateVersion(newVersion, newVersion, planEntity.getId(), planEntity.getCurrentVersion(), planEntity.getRecentlyVersion());
         if (effected > 0) {
-            return newVersion;
+            return String.valueOf(newVersion);
         } else {
             throw new IllegalStateException("更新Plan版本失败");
         }
@@ -125,7 +117,7 @@ public class PlanRepo implements PlanRepository {
      */
     @Override
     public Plan get(String planId) {
-        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(planId);
+        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(Long.valueOf(planId));
         Verifies.verify(planEntityOptional.isPresent(), "plan is not exist");
         return planConverter.toDO(planEntityOptional.get());
     }
@@ -139,7 +131,7 @@ public class PlanRepo implements PlanRepository {
     @Override
     public int enablePlan(Plan plan) {
         // update where 乐观锁
-        return planEntityRepo.updateEnable(plan.getPlanId(), false, true);
+        return planEntityRepo.updateEnable(Long.valueOf(plan.getPlanId()), false, true);
     }
 
 
@@ -151,7 +143,7 @@ public class PlanRepo implements PlanRepository {
     @Override
     public int disablePlan(Plan plan) {
         // update where 乐观锁
-        return planEntityRepo.updateEnable(plan.getPlanId(), true, false);
+        return planEntityRepo.updateEnable(Long.valueOf(plan.getPlanId()), true, false);
     }
 
 }

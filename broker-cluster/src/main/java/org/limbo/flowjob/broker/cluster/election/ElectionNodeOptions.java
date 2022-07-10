@@ -16,10 +16,15 @@
 package org.limbo.flowjob.broker.cluster.election;
 
 import com.alipay.sofa.jraft.option.NodeOptions;
+import lombok.Data;
 
 /**
- * @author jiachun.fjc
+ * 节点的配置
+ *
+ * @author Devil
+ * @since 2021/8/9
  */
+@Data
 public class ElectionNodeOptions {
 
     private String dataPath;
@@ -31,51 +36,4 @@ public class ElectionNodeOptions {
     private String serverAddressList;
     // raft node options
     private NodeOptions nodeOptions;
-
-    public String getDataPath() {
-        return dataPath;
-    }
-
-    public void setDataPath(String dataPath) {
-        this.dataPath = dataPath;
-    }
-
-    public String getGroupId() {
-        return groupId;
-    }
-
-    public void setGroupId(String groupId) {
-        this.groupId = groupId;
-    }
-
-    public String getServerAddress() {
-        return serverAddress;
-    }
-
-    public void setServerAddress(String serverAddress) {
-        this.serverAddress = serverAddress;
-    }
-
-    public String getServerAddressList() {
-        return serverAddressList;
-    }
-
-    public void setServerAddressList(String serverAddressList) {
-        this.serverAddressList = serverAddressList;
-    }
-
-    public NodeOptions getNodeOptions() {
-        return nodeOptions;
-    }
-
-    public void setNodeOptions(NodeOptions nodeOptions) {
-        this.nodeOptions = nodeOptions;
-    }
-
-    @Override
-    public String toString() {
-        return "ElectionNodeOptions{" + "dataPath='" + dataPath + '\'' + ", groupId='" + groupId + '\''
-                + ", serverAddress='" + serverAddress + '\'' + ", initialServerAddressList='" + serverAddressList
-                + '\'' + ", nodeOptions=" + nodeOptions + '}';
-    }
 }

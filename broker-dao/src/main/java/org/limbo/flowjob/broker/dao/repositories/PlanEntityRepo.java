@@ -29,17 +29,18 @@ import org.springframework.data.repository.query.Param;
  * @author Devil
  * @since 2022/6/22
  */
-public interface PlanEntityRepo extends JpaRepository<PlanEntity, String> {
+public interface PlanEntityRepo extends JpaRepository<PlanEntity, Long> {
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanEntity set currentVersion = :newCurrentVersion, recentlyVersion = :newRecentlyVersion where id = :id and currentVersion = :currentVersion and recentlyVersion = :recentlyVersion")
-    int updateVersion(@Param("newCurrentVersion") String newCurrentVersion,
-                      @Param("newRecentlyVersion") String newRecentlyVersion,
-                      @Param("id") String id,
-                      @Param("currentVersion") String currentVersion,
-                      @Param("recentlyVersion") String recentlyVersion);
+    @Query(value = "update PlanEntity set currentVersion = :newCurrentVersion, recentlyVersion = :newRecentlyVersion " +
+            "where id = :id and currentVersion = :currentVersion and recentlyVersion = :recentlyVersion")
+    int updateVersion(@Param("newCurrentVersion") Long newCurrentVersion,
+                      @Param("newRecentlyVersion") Long newRecentlyVersion,
+                      @Param("id") Long id,
+                      @Param("currentVersion") Long currentVersion,
+                      @Param("recentlyVersion") Long recentlyVersion);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanEntity set isEnabled = :newValue where id = :id and isEnabled = :oldValue")
-    int updateEnable(@Param("id") String id, @Param("oldValue") Boolean oldValue, @Param("newValue") Boolean newValue);
+    int updateEnable(@Param("id") Long id, @Param("oldValue") Boolean oldValue, @Param("newValue") Boolean newValue);
 }

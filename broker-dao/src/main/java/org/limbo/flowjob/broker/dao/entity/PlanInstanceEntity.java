@@ -28,7 +28,7 @@ public class PlanInstanceEntity extends BaseEntity {
     /**
      * 对应计划的版本
      */
-    private String planInfoId;
+    private Long planInfoId;
 
     /**
      * 状态
