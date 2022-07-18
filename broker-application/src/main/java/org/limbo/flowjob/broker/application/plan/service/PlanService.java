@@ -4,13 +4,12 @@ import lombok.Setter;
 import org.limbo.flowjob.broker.api.console.param.PlanAddParam;
 import org.limbo.flowjob.broker.api.console.param.PlanReplaceParam;
 import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
-import org.limbo.flowjob.broker.core.broker.TrackerNode;
 import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.plan.PlanScheduler;
 import org.limbo.flowjob.broker.core.repositories.PlanRepository;
 import org.limbo.flowjob.broker.core.repositories.PlanSchedulerRepository;
-import org.limbo.flowjob.broker.core.utils.Verifies;
+import org.limbo.flowjob.common.utils.Verifies;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -29,8 +28,8 @@ public class PlanService {
     @Setter(onMethod_ = @Inject)
     private PlanSchedulerRepository planSchedulerRepo;
 
-    @Setter(onMethod_ = @Inject)
-    private TrackerNode trackerNode;
+//    @Setter(onMethod_ = @Inject)
+//    private TrackerNode trackerNode;
 
     @Setter(onMethod_ = @Inject)
     private PlanConverter converter;
@@ -62,10 +61,11 @@ public class PlanService {
 
         // 需要修改plan重新调度
         PlanScheduler scheduler = planSchedulerRepo.get(newVersion);
-        if (trackerNode.jobTracker().isScheduling(planId)) {
-            trackerNode.jobTracker().unschedule(planId);
-            trackerNode.jobTracker().schedule(scheduler);
-        }
+        // todo
+//        if (trackerNode.jobTracker().isScheduling(planId)) {
+//            trackerNode.jobTracker().unschedule(planId);
+//            trackerNode.jobTracker().schedule(scheduler);
+//        }
     }
 
 
@@ -82,7 +82,8 @@ public class PlanService {
         // 更新作业状态，更新成功后启动调度
         if (plan.enable()) {
             PlanScheduler scheduler = planSchedulerRepo.get(plan.getCurrentVersion());
-            trackerNode.jobTracker().schedule(scheduler);
+            // todo
+//            trackerNode.jobTracker().schedule(scheduler);
         }
     }
 
@@ -104,7 +105,8 @@ public class PlanService {
         // 停用计划
         if (plan.disable()) {
             // 停止调度 plan
-            trackerNode.jobTracker().unschedule(planId);
+            // todo
+//            trackerNode.jobTracker().unschedule(planId);
         }
     }
 

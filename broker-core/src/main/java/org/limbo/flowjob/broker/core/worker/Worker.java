@@ -30,7 +30,6 @@ import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatistics;
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatisticsRepository;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -152,7 +151,7 @@ public abstract class Worker {
     public abstract WorkerMetric ping();
 
     /**
-     * 发送一个作业到worker执行。当worker接受此task后，将触发返回的{@link Mono}
+     * 发送一个作业到worker执行。当worker接受此task后，将触发返回
      * @param instance 作业实例
      * @return worker接受task后触发
      */

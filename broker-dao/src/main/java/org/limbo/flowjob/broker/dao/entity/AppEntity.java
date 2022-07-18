@@ -40,7 +40,10 @@ import javax.persistence.Table;
 @DynamicUpdate
 public class AppEntity extends BaseEntity {
     private static final long serialVersionUID = 1834852529057424113L;
-
+    /**
+     * 所属租户
+     */
+    private Long tenantId;
     /**
      * 应用名称
      */

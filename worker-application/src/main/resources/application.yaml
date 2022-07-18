@@ -1,0 +1,16 @@
+server:
+  port: 8084
+spring:
+  application:
+    name: job-worker
+
+flowjob:
+  worker:
+    name: abc
+    serverHost: localhost
+    serverPort: 8081
+    localPort: 8082
+    queueSize: 8
+    tags:
+      - a=b
+      - c=d

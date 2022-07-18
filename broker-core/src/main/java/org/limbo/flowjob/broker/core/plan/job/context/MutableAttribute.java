@@ -17,7 +17,7 @@
 package org.limbo.flowjob.broker.core.plan.job.context;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.core.utils.json.JacksonUtils;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.util.HashMap;
 import java.util.LinkedList;

@@ -24,8 +24,6 @@ import org.limbo.flowjob.broker.api.clent.param.WorkerExecutorRegisterParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
-import org.limbo.flowjob.broker.core.broker.TrackerNode;
-import org.limbo.flowjob.broker.core.worker.HttpWorker;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
@@ -65,8 +63,8 @@ public class WorkerRegisterService {
     @Autowired
     private WorkerStatisticsRepository statisticsRepository;
 
-    @Autowired
-    private TrackerNode trackerNode;
+//    @Autowired
+//    private TrackerNode trackerNode;
 
     /**
      * worker注册
@@ -104,7 +102,7 @@ public class WorkerRegisterService {
         // 返回tracker
         WorkerRegisterDTO registerResult = new WorkerRegisterDTO();
         registerResult.setWorkerId(worker.getWorkerId());
-        registerResult.setBrokers(trackerNode.getNodes());
+//        registerResult.setBrokers(trackerNode.getNodes());
         return Mono.just(registerResult);
     }
 
@@ -116,10 +114,10 @@ public class WorkerRegisterService {
     @Nonnull
     private Worker createNewWorker(WorkerRegisterParam options) {
         // 目前只支持HTTP协议的worker
-        Worker worker;
+        Worker worker = null;
         WorkerProtocol protocol = options.getProtocol();
         if (protocol == WorkerProtocol.HTTP) {
-            worker = new HttpWorker(httpClient, workerRepository, metricRepository, statisticsRepository);
+//            worker = new HttpWorker(httpClient, workerRepository, metricRepository, statisticsRepository);
         } else {
             throw new UnsupportedOperationException("不支持的worker协议：" + protocol);
         }

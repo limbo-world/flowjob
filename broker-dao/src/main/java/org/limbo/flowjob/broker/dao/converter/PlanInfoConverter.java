@@ -22,8 +22,8 @@ import org.limbo.flowjob.broker.core.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.plan.job.Job;
 import org.limbo.flowjob.broker.core.plan.job.JobDAG;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
-import org.limbo.flowjob.broker.core.utils.json.JacksonUtils;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;

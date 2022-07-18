@@ -20,7 +20,6 @@ import lombok.Data;
 import lombok.Setter;
 import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
-import org.limbo.flowjob.broker.core.broker.TrackerNode;
 import org.limbo.flowjob.broker.core.plan.job.Job;
 import org.limbo.flowjob.broker.core.plan.job.JobDAG;
 import org.limbo.flowjob.broker.core.plan.job.context.JobInstance;
@@ -80,8 +79,8 @@ public class PlanInstance implements Serializable {
     private JobDAG dag;
 
     // ---------------- 需注入
-    @Setter(onMethod_ = @Inject)
-    private transient TrackerNode trackerNode;
+//    @Setter(onMethod_ = @Inject)
+//    private transient TrackerNode trackerNode;
 
     @Setter(onMethod_ = @Inject)
     private transient PlanSchedulerRepository planSchedulerRepo;
@@ -149,7 +148,7 @@ public class PlanInstance implements Serializable {
         if (ScheduleType.FIXED_INTERVAL == scheduleType && isManual()) {
             planScheduler.setLastScheduleAt(this.startAt);
             planScheduler.setLastFeedbackAt(TimeUtil.nowInstant());
-            trackerNode.jobTracker().schedule(planScheduler);
+//            trackerNode.jobTracker().schedule(planScheduler);
         }
     }
 

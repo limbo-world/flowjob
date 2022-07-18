@@ -18,7 +18,7 @@ package org.limbo.flowjob.tracker.admin.adapter.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.api.dto.ResponseDTO;
-import org.limbo.flowjob.broker.core.exceptions.VerifyException;
+import org.limbo.flowjob.common.exception.VerifyException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;

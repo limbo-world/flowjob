@@ -11,7 +11,7 @@ import org.limbo.flowjob.broker.core.repositories.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.repositories.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.repositories.PlanSchedulerRepository;
 import org.limbo.flowjob.broker.core.repositories.TaskRepository;
-import org.limbo.flowjob.broker.core.utils.Verifies;
+import org.limbo.flowjob.common.utils.Verifies;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;

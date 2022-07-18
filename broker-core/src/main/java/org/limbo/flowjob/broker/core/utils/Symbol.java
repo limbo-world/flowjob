@@ -18,6 +18,7 @@ package org.limbo.flowjob.broker.core.utils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import org.limbo.flowjob.common.utils.UUIDUtils;
 
 import java.io.Serializable;
 import java.util.Objects;

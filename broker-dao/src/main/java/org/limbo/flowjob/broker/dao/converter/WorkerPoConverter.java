@@ -18,8 +18,6 @@ package org.limbo.flowjob.broker.dao.converter;
 
 import com.google.common.base.Converter;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
-import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
-import org.limbo.flowjob.broker.core.worker.HttpWorker;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetricRepository;
@@ -28,7 +26,6 @@ import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import reactor.netty.http.client.HttpClient;
 
 /**
  * @author Brozen
@@ -37,8 +34,6 @@ import reactor.netty.http.client.HttpClient;
 @Component
 public class WorkerPoConverter extends Converter<Worker, WorkerEntity> {
 
-//    @Autowired
-    private HttpClient httpClient;
 
     @Lazy
     @Autowired
@@ -89,18 +84,18 @@ public class WorkerPoConverter extends Converter<Worker, WorkerEntity> {
     }
 
     /**
-     * 将持久化对象{@link WorkerEntity}转换为领域对象{@link HttpWorker}
+     * 将持久化对象{@link WorkerEntity}转换为领域对象
      * @param po {@link WorkerEntity}持久化对象
-     * @return {@link HttpWorker}领域对象
+     * @return 领域对象
      */
     private Worker convertToHttpWorker(WorkerEntity po) {
-
-        HttpWorker worker = new HttpWorker(httpClient, workerRepository, metricRepository, workerStatisticsRepository);
-        worker.setProtocol(WorkerProtocol.parse(po.getProtocol()));
-        worker.setHost(po.getHost());
-        worker.setPort(po.getPort());
-        worker.setStatus(WorkerStatus.parse(po.getStatus()));
-        return worker;
+        return null;
+//        HttpWorker worker = new HttpWorker(httpClient, workerRepository, metricRepository, workerStatisticsRepository);
+//        worker.setProtocol(WorkerProtocol.parse(po.getProtocol()));
+//        worker.setHost(po.getHost());
+//        worker.setPort(po.getPort());
+//        worker.setStatus(WorkerStatus.parse(po.getStatus()));
+//        return worker;
 
     }
 }

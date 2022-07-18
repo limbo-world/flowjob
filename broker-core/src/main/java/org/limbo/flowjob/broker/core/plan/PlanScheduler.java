@@ -24,7 +24,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
-import org.limbo.flowjob.broker.core.broker.WorkerManager;
+import org.limbo.flowjob.broker.core.node.WorkerManager;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.exceptions.JobExecuteException;

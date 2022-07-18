@@ -19,7 +19,7 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
-import org.limbo.flowjob.broker.core.exceptions.VerifyException;
+import org.limbo.flowjob.common.exception.VerifyException;
 import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.plan.PlanScheduler;

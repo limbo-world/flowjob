@@ -21,7 +21,7 @@ package org.limbo.flowjob.broker.dao.domain;
 import lombok.Setter;
 import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.core.repositories.PlanRepository;
-import org.limbo.flowjob.broker.core.utils.Verifies;
+import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.broker.dao.converter.PlanConverter;
 import org.limbo.flowjob.broker.dao.converter.PlanInfoConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;

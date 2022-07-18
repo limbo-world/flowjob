@@ -49,14 +49,14 @@ public class TaskExecuteFeedbackParam {
      */
     @NotNull(message = "planRecordId can't be null")
     @Schema(description = "计划记录ID")
-    private Long planRecordId;
+    private String planRecordId;
 
     /**
      * 计划实例ID
      */
     @NotNull(message = "planInstanceId can't be null")
     @Schema(description = "计划实例ID")
-    private Integer planInstanceId;
+    private String planInstanceId;
 
     /**
      * 作业ID
@@ -70,7 +70,7 @@ public class TaskExecuteFeedbackParam {
      */
     @NotBlank(message = "jobInstanceId can't be null")
     @Schema(description = "作业实例ID")
-    private Integer jobInstanceId;
+    private String jobInstanceId;
 
     /**
      * 任务ID

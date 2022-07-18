@@ -16,27 +16,17 @@
 
 package org.limbo.flowjob.tracker.admin.adapter.config;
 
-import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.broker.api.constants.enums.TrackerModes;
-import org.limbo.flowjob.broker.cluster.JobTrackerFactory;
-import org.limbo.flowjob.broker.cluster.election.ElectionNodeOptions;
-import org.limbo.flowjob.broker.cluster.election.ElectionTrackerNode;
-import org.limbo.flowjob.broker.cluster.single.SingleTrackerNode;
-import org.limbo.flowjob.broker.core.broker.TrackerNode;
-import org.limbo.flowjob.broker.core.broker.WorkerManager;
-import org.limbo.flowjob.broker.core.broker.WorkerManagerImpl;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.dispatcher.strategies.RoundRobinWorkerSelector;
-import org.limbo.flowjob.broker.core.events.ReactorEventPublisher;
+import org.limbo.flowjob.broker.core.node.WorkerManager;
+import org.limbo.flowjob.broker.core.node.WorkerManagerImpl;
 import org.limbo.flowjob.broker.core.plan.job.context.TaskCreateStrategyFactory;
 import org.limbo.flowjob.broker.core.schedule.calculator.SimpleScheduleCalculatorFactory;
 import org.limbo.flowjob.broker.core.schedule.scheduler.HashedWheelTimerScheduler;
-import org.limbo.flowjob.broker.core.schedule.scheduler.NamedThreadFactory;
 import org.limbo.flowjob.broker.core.schedule.scheduler.Scheduler;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -59,51 +49,46 @@ public class TrackerConfiguration {
     @Autowired
     private TrackerProperties trackerProperties;
 
-    @Bean
-    @ConditionalOnMissingBean(TrackerNode.class)
-    public TrackerNode trackerNode(WorkerManager workerManager,
-                                   JobTrackerFactory jobTrackerFactory) {
-
-        TrackerModes mode = TrackerModes.parse(trackerProperties.getMode());
-        switch (mode) {
-            case SINGLE:
-                return new SingleTrackerNode(trackerProperties.getHost(), port, jobTrackerFactory, workerManager);
-
-            case ELECTION: {
-                // raft 选举参数
-                ElectionNodeOptions electionNodeOptions = new ElectionNodeOptions();
-                electionNodeOptions.setDataPath(trackerProperties.getDataPath());
-                electionNodeOptions.setGroupId(StringUtils.isBlank(trackerProperties.getGroupId()) ? "flowjob" :
-                        trackerProperties.getDataPath());
-                electionNodeOptions.setServerAddress(trackerProperties.getServerAddress());
-                electionNodeOptions.setServerAddressList(trackerProperties.getServerAddressList());
-
-                return new ElectionTrackerNode(port, electionNodeOptions, jobTrackerFactory, workerManager);
-            }
-
-            case CLUSTER:
-                throw new UnsupportedOperationException("cluster mode is not supported now.");
-
-            default:
-                throw new IllegalArgumentException("flowjob.tracker.mode only can be null or election/cluster");
-
-
-        }
-
-    }
-
-    @Bean
-    public ReactorEventPublisher eventPublisher() {
-        return new ReactorEventPublisher(4, 10000, NamedThreadFactory.newInstance("Event-Publisher"));
-    }
-
-    /**
-     * 主从模式下，tracker 节点工厂
-     */
-    @Bean
-    public JobTrackerFactory jobTrackerFactory(Scheduler scheduler) {
-        return new JobTrackerFactory(scheduler);
-    }
+//    @Bean
+//    @ConditionalOnMissingBean(TrackerNode.class)
+//    public TrackerNode trackerNode(WorkerManager workerManager,
+//                                   JobTrackerFactory jobTrackerFactory) {
+//
+//        TrackerModes mode = TrackerModes.parse(trackerProperties.getMode());
+//        switch (mode) {
+//            case SINGLE:
+//                return new SingleTrackerNode(trackerProperties.getHost(), port, jobTrackerFactory, workerManager);
+//
+//            case ELECTION: {
+//                // raft 选举参数
+//                ElectionNodeOptions electionNodeOptions = new ElectionNodeOptions();
+//                electionNodeOptions.setDataPath(trackerProperties.getDataPath());
+//                electionNodeOptions.setGroupId(StringUtils.isBlank(trackerProperties.getGroupId()) ? "flowjob" :
+//                        trackerProperties.getDataPath());
+//                electionNodeOptions.setServerAddress(trackerProperties.getServerAddress());
+//                electionNodeOptions.setServerAddressList(trackerProperties.getServerAddressList());
+//
+//                return new ElectionTrackerNode(port, electionNodeOptions, jobTrackerFactory, workerManager);
+//            }
+//
+//            case CLUSTER:
+//                throw new UnsupportedOperationException("cluster mode is not supported now.");
+//
+//            default:
+//                throw new IllegalArgumentException("flowjob.tracker.mode only can be null or election/cluster");
+//
+//
+//        }
+//
+//    }
+//
+//    /**
+//     * 主从模式下，tracker 节点工厂
+//     */
+//    @Bean
+//    public JobTrackerFactory jobTrackerFactory(Scheduler scheduler) {
+//        return new JobTrackerFactory(scheduler);
+//    }
 
 
     /**

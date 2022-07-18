@@ -20,7 +20,7 @@ package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
-import org.limbo.flowjob.broker.core.utils.Verifies;
+import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.converter.WorkerPoConverter;

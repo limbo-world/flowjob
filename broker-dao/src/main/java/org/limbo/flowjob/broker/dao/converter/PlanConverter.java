@@ -3,7 +3,7 @@ package org.limbo.flowjob.broker.dao.converter;
 import lombok.Setter;
 import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
-import org.limbo.flowjob.broker.core.utils.Verifies;
+import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
