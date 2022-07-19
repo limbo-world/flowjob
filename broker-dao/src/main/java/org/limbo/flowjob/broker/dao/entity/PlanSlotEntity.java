@@ -16,25 +16,33 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.registry;
+package org.limbo.flowjob.broker.dao.entity;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
 /**
  * @author Devil
  * @since 2022/7/18
  */
-public abstract class BrokerNode {
-
-    private final BrokerRegistry registry;
-
-    public BrokerNode(BrokerRegistry registry) {
-        this.registry = registry;
-    }
-
-    public void start() {
-        start0();
-        registry.register();
-    }
-
-    public abstract void start0();
-
+@Setter
+@Getter
+@Table(name = "flowjob_plan_slot")
+@Entity
+@DynamicInsert
+@DynamicUpdate
+public class PlanSlotEntity extends BaseEntity {
+    /**
+     * 对应计划
+     */
+    private Long planId;
+    /**
+     * 槽位
+     */
+    private Integer slot;
 }

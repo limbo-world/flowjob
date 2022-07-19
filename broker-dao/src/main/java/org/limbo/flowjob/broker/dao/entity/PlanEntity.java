@@ -27,10 +27,6 @@ public class PlanEntity extends BaseEntity {
      */
     private Long appId;
     /**
-     * 槽位
-     */
-    private Integer slot;
-    /**
      * 当前版本。可能发生回滚，因此 currentVersion 可能小于 recentlyVersion 。
      * 对应 planInfo-id
      */

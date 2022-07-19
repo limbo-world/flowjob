@@ -20,24 +20,19 @@ package org.limbo.flowjob.broker.cluster;
 
 /**
  * @author Devil
- * @since 2022/7/15
+ * @since 2022/7/18
  */
-public interface Constants {
+public class NodeEvent {
 
-    /**
-     * plan分片大小
-     */
-    int SLOT_SIZE = 64;
-    /**
-     * 重分配间隔
-     */
-    long REBALANCE_INTERVAL = 10000;
-    /**
-     * 心跳时间间隔
-     */
-    long HEARTBEAT_INTERVAL = 3000;
-    /**
-     * 心跳超时时间
-     */
-    long HEARTBEAT_TIMEOUT = 15000;
+    private final Type type;
+
+    public enum Type
+    {
+        ONLINE,
+        OFFLINE
+    }
+
+    public NodeEvent(Type type) {
+        this.type = type;
+    }
 }

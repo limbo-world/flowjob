@@ -18,26 +18,24 @@
 
 package org.limbo.flowjob.broker.cluster;
 
+import org.limbo.flowjob.broker.api.dto.BrokerDTO;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
 /**
  * @author Devil
- * @since 2022/7/15
+ * @since 2022/7/18
  */
-public interface Constants {
+public interface BrokerRepository {
+    /**
+     * 心跳维持
+     */
+    void heartbeat(String host, int port);
 
     /**
-     * plan分片大小
+     * 上线节点
      */
-    int SLOT_SIZE = 64;
-    /**
-     * 重分配间隔
-     */
-    long REBALANCE_INTERVAL = 10000;
-    /**
-     * 心跳时间间隔
-     */
-    long HEARTBEAT_INTERVAL = 3000;
-    /**
-     * 心跳超时时间
-     */
-    long HEARTBEAT_TIMEOUT = 15000;
+    List<BrokerDTO> online(LocalDateTime lastHeartbeat);
+
 }

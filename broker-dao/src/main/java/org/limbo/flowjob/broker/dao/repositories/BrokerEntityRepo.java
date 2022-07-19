@@ -16,15 +16,19 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.registry;
+package org.limbo.flowjob.broker.dao.repositories;
+
+import org.limbo.flowjob.broker.dao.entity.BrokerEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 /**
- * broker节点监听器
- *
  * @author Devil
  * @since 2022/7/18
  */
-public interface BrokerNodeListener {
+public interface BrokerEntityRepo extends JpaRepository<BrokerEntity, Long> {
 
-
+    List<BrokerEntity> findByLastHeartbeatGreaterThan(LocalDateTime lastHeartbeat);
 }

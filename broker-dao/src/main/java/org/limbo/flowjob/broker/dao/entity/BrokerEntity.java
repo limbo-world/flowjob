@@ -16,28 +16,35 @@
  *
  */
 
-package org.limbo.flowjob.broker.cluster;
+package org.limbo.flowjob.broker.dao.entity;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import java.time.LocalDateTime;
 
 /**
  * @author Devil
- * @since 2022/7/15
+ * @since 2022/7/18
  */
-public interface Constants {
+@Setter
+@Getter
+@Table(name = "flowjob_broker")
+@Entity
+@DynamicInsert
+@DynamicUpdate
+public class BrokerEntity extends BaseEntity {
+    private static final long serialVersionUID = -4470612703071698168L;
 
+    private String host;
+
+    private Integer port;
     /**
-     * plan分片大小
+     * 上次心跳时间
      */
-    int SLOT_SIZE = 64;
-    /**
-     * 重分配间隔
-     */
-    long REBALANCE_INTERVAL = 10000;
-    /**
-     * 心跳时间间隔
-     */
-    long HEARTBEAT_INTERVAL = 3000;
-    /**
-     * 心跳超时时间
-     */
-    long HEARTBEAT_TIMEOUT = 15000;
+    private LocalDateTime lastHeartbeat;
 }

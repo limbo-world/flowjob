@@ -16,19 +16,14 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.registry;
+package org.limbo.flowjob.broker.cluster;
 
 /**
  * @author Devil
- * @since 2022/7/15
+ * @since 2022/7/18
  */
-public interface BrokerRegistry {
-    /**
-     * 注册broker
-     */
-    void register();
-    /**
-     * 订阅监听
-     */
-    void subscribe(BrokerNodeListener listener);
+public interface PlanBalanceRepository {
+
+
+
 }
