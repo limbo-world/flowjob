@@ -16,23 +16,36 @@
  *
  */
 
-package org.limbo.flowjob.broker.cluster;
+package org.limbo.flowjob.broker.core.cluster;
+
+import lombok.Data;
 
 /**
  * @author Devil
- * @since 2022/7/18
+ * @since 2022/7/21
  */
-public class NodeEvent {
+@Data
+public class BrokerConfig {
 
-    private final Type type;
+    /**
+     * 提供给worker的服务的 host
+     */
+    private final String host;
 
-    public enum Type
-    {
-        ONLINE,
-        OFFLINE
-    }
-
-    public NodeEvent(Type type) {
-        this.type = type;
-    }
+    /**
+     * 提供给worker的服务port
+     */
+    private final int port;
+    /**
+     * 心跳时间间隔
+     */
+    long heartbeatInterval = 2000;
+    /**
+     * 心跳超时时间
+     */
+    long heartbeatTimeout = 10000;
+    /**
+     * 重分配间隔
+     */
+    private long rebalanceInterval = 10000;
 }

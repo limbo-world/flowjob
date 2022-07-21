@@ -16,33 +16,38 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.repositories;
-
-import org.limbo.flowjob.broker.core.plan.Plan;
-import org.limbo.flowjob.broker.core.plan.PlanScheduler;
-
-import java.util.List;
+package org.limbo.flowjob.broker.core.cluster;
 
 /**
+ * todo
  * @author Devil
- * @since 2022/6/20
+ * @since 2022/7/15
  */
-public interface PlanSchedulerRepository {
+public abstract class BrokerNodeBak {
 
     /**
-     * 根据计划ID查询计划
-     *
-     * @param version 计划版本ID
-     * @return 计划plan
+     * 启动节点
      */
-    PlanScheduler get(String version);
-
+    public abstract void start();
 
     /**
-     * 查询所有需要被调度的计划。
-     * TODO 主节点切换 自动查询可调度任务
-     * @return 所有需要被调度的作业计划
+     * 重新平衡调度
      */
-    List<Plan> listSchedulablePlans();
+    public abstract void rebalance();
+
+    /**
+     * 停止
+     */
+    public abstract void stop();
+
+    /**
+     * @return 是否正在运行
+     */
+    public abstract boolean isRunning();
+
+    /**
+     * @return 是否已停止
+     */
+    public abstract boolean isStopped();
 
 }

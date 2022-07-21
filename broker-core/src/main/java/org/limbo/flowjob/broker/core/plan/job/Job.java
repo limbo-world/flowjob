@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
+import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.plan.job.context.JobInstance;
 
@@ -53,6 +54,11 @@ public class Job {
     private String description;
 
     private Set<String> childrenIds;
+
+    /**
+     * 触发类型
+     */
+    private TriggerType triggerType;
 
     /**
      * 作业分发配置参数

@@ -16,31 +16,49 @@
 
 package org.limbo.flowjob.broker.core.plan;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
-import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
+import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
+import org.limbo.flowjob.broker.core.cluster.WorkerManager;
+import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
+import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
+import org.limbo.flowjob.broker.core.exceptions.JobExecuteException;
 import org.limbo.flowjob.broker.core.plan.job.Job;
 import org.limbo.flowjob.broker.core.plan.job.JobDAG;
 import org.limbo.flowjob.broker.core.plan.job.context.JobInstance;
+import org.limbo.flowjob.broker.core.plan.job.context.Task;
+import org.limbo.flowjob.broker.core.plan.job.context.TaskCreateStrategyFactory;
 import org.limbo.flowjob.broker.core.repositories.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.repositories.PlanInstanceRepository;
-import org.limbo.flowjob.broker.core.repositories.PlanSchedulerRepository;
+import org.limbo.flowjob.broker.core.repositories.PlanRepository;
+import org.limbo.flowjob.broker.core.repositories.TaskRepository;
+import org.limbo.flowjob.broker.core.schedule.Schedulable;
+import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
+import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
+import org.limbo.flowjob.broker.core.schedule.calculator.ScheduleCalculatorFactory;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
+import org.limbo.flowjob.broker.core.worker.Worker;
 
 import javax.inject.Inject;
 import java.io.Serializable;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * 一个调度的plan实例
+ *
  * @author Devil
  * @since 2021/9/1
  */
 @Data
-public class PlanInstance implements Serializable {
+public class PlanInstance implements Schedulable, Serializable {
 
     private static final long serialVersionUID = 1837382860200548371L;
 
@@ -59,6 +77,16 @@ public class PlanInstance implements Serializable {
     private PlanScheduleStatus state;
 
     /**
+     * 作业计划调度配置参数
+     */
+    private ScheduleOption scheduleOption;
+
+    /**
+     * 触发时间
+     */
+    private long triggerAt;
+
+    /**
      * 是否手动下发
      */
     private boolean manual;
@@ -66,12 +94,12 @@ public class PlanInstance implements Serializable {
     /**
      * 开始时间
      */
-    private Instant startAt;
+    private LocalDateTime scheduleAt;
 
     /**
      * 结束时间
      */
-    private Instant endAt;
+    private LocalDateTime feedbackAt;
 
     /**
      * 执行图
@@ -79,17 +107,39 @@ public class PlanInstance implements Serializable {
     private JobDAG dag;
 
     // ---------------- 需注入
-//    @Setter(onMethod_ = @Inject)
-//    private transient TrackerNode trackerNode;
-
-    @Setter(onMethod_ = @Inject)
-    private transient PlanSchedulerRepository planSchedulerRepo;
-
     @Setter(onMethod_ = @Inject)
     private transient PlanInstanceRepository planInstanceRepo;
 
     @Setter(onMethod_ = @Inject)
     private transient JobInstanceRepository jobInstanceRepo;
+
+    @ToString.Exclude
+    private transient ScheduleCalculator triggerCalculator;
+
+    @Getter(AccessLevel.NONE)
+    @Setter(value = AccessLevel.PUBLIC, onMethod_ = @Inject)
+    @ToString.Exclude
+    private transient ScheduleCalculatorFactory strategyFactory;
+
+    @ToString.Exclude
+    @Setter(onMethod_ = @Inject)
+    private transient TaskRepository taskRepo;
+
+    @ToString.Exclude
+    @Setter(onMethod_ = @Inject)
+    private transient TaskCreateStrategyFactory taskCreateStrategyFactory;
+
+    @ToString.Exclude
+    @Setter(onMethod_ = @Inject)
+    private transient WorkerManager workerManager;
+
+    @ToString.Exclude
+    @Setter(onMethod_ = @Inject)
+    private transient WorkerSelectorFactory workerSelectorFactory;
+
+    @ToString.Exclude
+    @Setter(onMethod_ = @Inject)
+    private transient PlanRepository planRepository;
 
 
     /**
@@ -101,7 +151,7 @@ public class PlanInstance implements Serializable {
 
 
     /**
-     * 判断作业是否可以被触发。检测作业在 DAG 中的前置作业节点是否均可触发子节点。
+     * todo 判断作业是否可以被触发。检测作业在 DAG 中的前置作业节点是否均可触发子节点。
      */
     public boolean isJobTriggerable(Job job) {
         return checkJobsFinished(dag.getPreJobs(job.getJobId()));
@@ -142,14 +192,14 @@ public class PlanInstance implements Serializable {
         setState(PlanScheduleStatus.SUCCEED);
         planInstanceRepo.executeSucceed(this);
 
-        // 检测 Plan 是否需要重新调度，只有 FIXED_INTERVAL 类型的计划，需要在完成时扔到时间轮里重新调度，手动的和其他的都不需要
-        PlanScheduler planScheduler = planSchedulerRepo.get(this.version);
-        ScheduleType scheduleType = planScheduler.getInfo().getScheduleOption().getScheduleType();
-        if (ScheduleType.FIXED_INTERVAL == scheduleType && isManual()) {
-            planScheduler.setLastScheduleAt(this.startAt);
-            planScheduler.setLastFeedbackAt(TimeUtil.nowInstant());
-//            trackerNode.jobTracker().schedule(planScheduler);
-        }
+        // todo 检测 Plan 是否需要重新调度，只有 FIXED_INTERVAL 类型的计划，需要在完成时扔到时间轮里重新调度，手动的和其他的都不需要
+//        PlanScheduler planScheduler = planSchedulerRepo.get(this.version);
+//        ScheduleType scheduleType = scheduleOption.getScheduleType();
+//        if (ScheduleType.FIXED_INTERVAL == scheduleType && isManual()) {
+//            planScheduler.setLastScheduleAt(this.startAt);
+//            planScheduler.setLastFeedbackAt(TimeUtil.nowInstant());
+////            trackerNode.jobTracker().schedule(planScheduler);
+//        }
     }
 
 
@@ -160,6 +210,101 @@ public class PlanInstance implements Serializable {
         // 更新状态
         setState(PlanScheduleStatus.FAILED);
         planInstanceRepo.executeFailed(this);
+    }
+
+    @Override
+    public String getId() {
+        return buildScheduleId(planId, triggerAt);
+    }
+
+    @Override
+    public LocalDateTime scheduleAt() {
+        return scheduleAt;
+    }
+
+    @Override
+    public LocalDateTime feedbackAt() {
+        return feedbackAt;
+    }
+
+    @Override
+    public void schedule() {
+        // 获取 DAG 中最执行的作业，如不存在说明 Plan 无需下发
+        List<Job> jobs = dag.getEarliestJobs();
+        if (CollectionUtils.isEmpty(jobs)) {
+            return;
+        }
+
+        // 生成作业实例
+        for (Job job : jobs) {
+            if (TriggerType.SCHEDULE != job.getTriggerType()) {
+                continue;
+            }
+            JobInstance jobInstance = job.newInstance(this);
+            jobInstanceRepo.add(jobInstance);
+
+            // 将作业对应的任务信息下发给worker
+            dispatchTask(job, jobInstance);
+        }
+
+        // 更新plan的下次触发时间 todo 如果上面执行完到这步失败--可能导致重复下发 所以需要对job和task的数据进行检测
+        Long nextTriggerAt = lazyInitTriggerCalculator().apply(this);
+        planRepository.nextTriggerAt(planId, TimeUtil.toLocalDateTime(nextTriggerAt));
+    }
+
+    /**
+     * 作业下发，会先持久化任务，然后执行下发
+     * @param job 作业
+     * @param instance 待下发的作业实例
+     */
+    public void dispatchTask(Job job, JobInstance instance) {
+        // todo 下发前确认下对应的jobInstance是否已经关闭
+
+        // 生成并持久化Task
+        TaskCreateStrategyFactory.TaskCreateStrategy taskCreateStrategy = taskCreateStrategyFactory.newStrategy(instance.getTaskType());
+        Task task = taskCreateStrategy.apply(instance);
+        taskRepo.add(task);
+
+        // 选择worker
+        WorkerSelector workerSelector = workerSelectorFactory.newSelector(job.getDispatchOption().getLoadBalanceType());
+        if (workerSelector == null) {
+            throw new JobExecuteException(job.getJobId(),
+                    "Cannot create JobDispatcher for dispatch type: " + job.getDispatchOption().getLoadBalanceType());
+        }
+        Worker worker = workerSelector.select(task, workerManager.availableWorkers());
+
+        // 执行下发
+        boolean dispatched = task.dispatch(worker);
+
+        // 根据下发结果，更新作业实例状态
+        if (dispatched) {
+            instance.dispatched();
+        } else {
+            // warning 注意，task下发失败不在这里处理，封装一个 RetryableTask（装饰or继承Task），在内部实现重试
+            //         所以这里只需要记录状态就好了
+            // todo 下发失败判断是否有重试 根据重试机制处理
+            instance.dispatchFailed();
+        }
+    }
+
+    @Override
+    public long triggerAt() {
+        return triggerAt;
+    }
+
+    public static String buildScheduleId(String planId, long triggerAt) {
+        return planId + ":" + triggerAt;
+    }
+
+    /**
+     * 延迟加载作业触发计算器
+     */
+    protected ScheduleCalculator lazyInitTriggerCalculator() {
+        if (triggerCalculator == null) {
+            triggerCalculator = strategyFactory.newStrategy(scheduleOption.getScheduleType());
+        }
+
+        return triggerCalculator;
     }
 
 }

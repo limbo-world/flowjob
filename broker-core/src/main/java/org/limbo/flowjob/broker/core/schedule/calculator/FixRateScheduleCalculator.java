@@ -42,6 +42,7 @@ public class FixRateScheduleCalculator extends ScheduleCalculator implements Str
 
     /**
      * 通过此策略计算下一次触发调度的时间戳。如果不应该被触发，返回0或负数。
+     *
      * @param schedulable 待调度对象
      * @return 下次触发调度的时间戳，当返回非正数时，表示作业不会有触发时间。
      */
@@ -53,7 +54,7 @@ public class FixRateScheduleCalculator extends ScheduleCalculator implements Str
         long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
 
         // 计算第一次调度
-        if (schedulable.getLastScheduleAt() == null) {
+        if (schedulable.scheduleAt() == null) {
             return Math.max(startScheduleAt, now);
         }
 
@@ -64,7 +65,7 @@ public class FixRateScheduleCalculator extends ScheduleCalculator implements Str
             return ScheduleCalculator.NO_TRIGGER;
         }
 
-        long scheduleAt = schedulable.getLastScheduleAt().toEpochMilli() + interval.toMillis();
+        long scheduleAt = TimeUtil.toInstant(schedulable.scheduleAt()).toEpochMilli() + interval.toMillis();
         return Math.max(scheduleAt, now);
     }
 

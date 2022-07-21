@@ -17,10 +17,8 @@
 package org.limbo.flowjob.broker.core.plan.job.context;
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.broker.core.exceptions.JobExecuteException;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.plan.PlanScheduler;
 import org.limbo.flowjob.broker.core.plan.job.handler.JobFailHandler;
 
 /**
@@ -40,16 +38,15 @@ public class RetriableTask extends Task {
     /**
      * {@inheritDoc} 并触发作业中配置的重试策略。
      *
-     * @param scheduler 可调度作业信息
      * @param planInstance 执行计划实例
      * @param jobInstance 作业实例
      * @param errorMsg 执行失败的异常信息
      * @param errorStackTrace 执行失败的异常堆栈
      */
     @Override
-    public void failed(PlanScheduler scheduler, PlanInstance planInstance, JobInstance jobInstance, String errorMsg, String errorStackTrace) {
+    public void failed(PlanInstance planInstance, JobInstance jobInstance, String errorMsg, String errorStackTrace) {
         // 执行父方法，更新状态
-        super.failed(scheduler, planInstance, jobInstance, errorMsg, errorStackTrace);
+        super.failed(planInstance, jobInstance, errorMsg, errorStackTrace);
 
         // 判断重试到第几次，是否超过最大重试次数
         Integer maxRetryTimes = jobInstance.getRetry();
@@ -82,7 +79,7 @@ public class RetriableTask extends Task {
         if (terminatePlan) {
             planInstance.executeFailed();
         } else {
-            dispatchNextTask(scheduler, planInstance);
+            dispatchNextTask(planInstance);
         }
 
 

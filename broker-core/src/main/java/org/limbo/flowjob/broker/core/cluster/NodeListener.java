@@ -16,33 +16,18 @@
  *
  */
 
-package org.limbo.flowjob.broker.dao.entity;
-
-import lombok.Getter;
-import lombok.Setter;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
-
-import javax.persistence.Entity;
-import javax.persistence.Table;
+package org.limbo.flowjob.broker.core.cluster;
 
 /**
+ * broker节点监听器
+ *
  * @author Devil
  * @since 2022/7/18
  */
-@Setter
-@Getter
-@Table(name = "flowjob_plan_slot")
-@Entity
-@DynamicInsert
-@DynamicUpdate
-public class PlanSlotEntity extends BaseEntity {
+public interface NodeListener {
     /**
-     * 对应计划
+     * 监听事件
      */
-    private Long planId;
-    /**
-     * 槽位
-     */
-    private Integer slot;
+    void event(NodeEvent event);
+
 }

@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.broker.core.schedule;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 /**
  * 待调度对象接口
@@ -39,12 +39,12 @@ public interface Schedulable {
     /**
      * 获取上次被调度时间
      */
-    Instant getLastScheduleAt();
+    LocalDateTime scheduleAt();
 
     /**
      * 获取上次调度反馈的时间
      */
-    Instant getLastFeedbackAt();
+    LocalDateTime feedbackAt();
 
     /**
      * 执行业务
@@ -52,10 +52,9 @@ public interface Schedulable {
     void schedule();
 
     /**
-     * 计算作业下一次被触发时的时间戳。如果作业不会被触发，返回0或负数；
-     * @return 作业下一次被触发时的时间戳，从1970-01-01 00:00:00到触发时刻的毫秒数。
+     * 计算作业下一次被触发时的时间戳
      */
-    default long nextTriggerAt() {
+    default long triggerAt() {
         throw new UnsupportedOperationException();
     }
 

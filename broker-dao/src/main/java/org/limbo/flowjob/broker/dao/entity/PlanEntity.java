@@ -7,6 +7,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.time.LocalDateTime;
 
 /**
  * plan 计划
@@ -26,6 +27,18 @@ public class PlanEntity extends BaseEntity {
      * 所属应用
      */
     private Long appId;
+    /**
+     * 槽位
+     */
+    private Integer slot;
+    /**
+     * 下次触发时间
+     */
+    private LocalDateTime nextTriggerAt;
+    /**
+     * 上次完成时间
+     */
+    private LocalDateTime lastFeedbackAt;
     /**
      * 当前版本。可能发生回滚，因此 currentVersion 可能小于 recentlyVersion 。
      * 对应 planInfo-id

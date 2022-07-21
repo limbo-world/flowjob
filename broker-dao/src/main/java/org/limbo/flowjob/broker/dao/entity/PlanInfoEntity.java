@@ -25,6 +25,9 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
 
+import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
+import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
+
 /**
  * plan 的信息存档 历史版本
  *
@@ -53,6 +56,7 @@ public class PlanInfoEntity extends BaseEntity {
 
     /**
      * 计划作业调度方式
+     * @see ScheduleType
      */
     private Byte scheduleType;
 
@@ -88,7 +92,7 @@ public class PlanInfoEntity extends BaseEntity {
     private Integer retry;
 
     /**
-     * 任务 json string todo
+     * 任务 json string todo 迁移到表
      */
     private String jobs;
 

@@ -89,7 +89,7 @@ public class PlanInfo implements Serializable {
         instance.setDag(dag);
         instance.setState(state);
         instance.setManual(manual);
-        instance.setStartAt(TimeUtil.nowInstant());
+        instance.setScheduleAt(TimeUtil.nowLocalDateTime());
         return instance;
     }
 

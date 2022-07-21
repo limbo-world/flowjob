@@ -6,9 +6,7 @@ import org.limbo.flowjob.broker.api.console.param.PlanReplaceParam;
 import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
 import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
-import org.limbo.flowjob.broker.core.plan.PlanScheduler;
 import org.limbo.flowjob.broker.core.repositories.PlanRepository;
-import org.limbo.flowjob.broker.core.repositories.PlanSchedulerRepository;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.springframework.stereotype.Component;
 
@@ -24,9 +22,6 @@ public class PlanService {
 
     @Setter(onMethod_ = @Inject)
     private PlanRepository planRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private PlanSchedulerRepository planSchedulerRepo;
 
 //    @Setter(onMethod_ = @Inject)
 //    private TrackerNode trackerNode;
@@ -59,8 +54,6 @@ public class PlanService {
         PlanInfo planInfo = converter.convertPlanInfo(param);
         String newVersion = plan.addNewVersion(planInfo);
 
-        // 需要修改plan重新调度
-        PlanScheduler scheduler = planSchedulerRepo.get(newVersion);
         // todo
 //        if (trackerNode.jobTracker().isScheduling(planId)) {
 //            trackerNode.jobTracker().unschedule(planId);
@@ -81,7 +74,6 @@ public class PlanService {
 
         // 更新作业状态，更新成功后启动调度
         if (plan.enable()) {
-            PlanScheduler scheduler = planSchedulerRepo.get(plan.getCurrentVersion());
             // todo
 //            trackerNode.jobTracker().schedule(scheduler);
         }

@@ -17,6 +17,8 @@
 package org.limbo.flowjob.broker.core.schedule.scheduler;
 
 import io.netty.util.HashedWheelTimer;
+import io.netty.util.Timer;
+import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.schedule.Schedulable;
 
 import java.util.Map;
@@ -30,12 +32,13 @@ import java.util.concurrent.TimeUnit;
  * @author Brozen
  * @since 2021-05-18
  */
+@Slf4j
 public class HashedWheelTimerScheduler implements Scheduler {
 
     /**
      * 依赖netty的时间轮算法进行作业调度
      */
-    private final HashedWheelTimer timer;
+    private final Timer timer;
 
     /**
      * 所有正在被调度中的对象
@@ -52,71 +55,41 @@ public class HashedWheelTimerScheduler implements Scheduler {
 
     /**
      * {@inheritDoc}
+     *
      * @param schedulable 待调度的对象
      */
     @Override
     public void schedule(Schedulable schedulable) {
-        // 如果不会被触发，则无需加入调度
-        long triggerAt = schedulable.nextTriggerAt();
-        if (triggerAt <= 0) {
-            return;
+        String id = schedulable.getId();
+        if (scheduling.containsKey(id)) {
+            scheduling.put(id, schedulable);
+
+            // 计算延迟时间
+            long delay = schedulable.triggerAt() - System.currentTimeMillis();
+            delay = delay < 0 ? 0 : delay;
+
+            // 在timer上调度作业执行
+            this.timer.newTimeout(timeout -> {
+                try {
+                    // 已经取消调度了，则不再重新调度作业
+                    if (!scheduling.containsKey(id)) {
+                        return;
+                    }
+
+                    // 执行调度逻辑
+                    // todo 可以交由线程池？增加下发速度
+                    schedulable.schedule();
+                } catch (Exception e) {
+                    log.error("[HashedWheelTimerScheduler] schedule fail id:{}", id, e);
+                }
+            }, delay, TimeUnit.MILLISECONDS);
         }
-
-        // 如果值本来不存在 启动调度
-        if (scheduling.put(schedulable.getId(), schedulable) == null) {
-            doSchedule(schedulable, triggerAt);
-        }
-    }
-
-
-    /**
-     * 检测是否需要重新调度
-     * @param schedulable 待调度的对象
-     */
-    protected void reschedule(Schedulable schedulable) {
-        // 如果不会被触发，则无需继续调度
-        long triggerAt = schedulable.nextTriggerAt();
-        if (triggerAt <= 0) {
-            // todo 移除的时候是否应该将plan状态改为stop？？？
-            scheduling.remove(schedulable.getId());
-            return;
-        }
-
-        doSchedule(schedulable, triggerAt);
-    }
-
-
-    /**
-     * 执行调度，根据triggerAt计算执行delay，并注册到timer上执行。
-     * @param schedulable 待调度对象
-     * @param triggerAt 下次被调度执行的时间戳
-     */
-    private void doSchedule(Schedulable schedulable, long triggerAt) {
-        // 计算延迟时间
-        long delay = triggerAt - System.currentTimeMillis();
-        delay = delay < 0 ? 0 : delay;
-
-        // 在timer上调度作业执行
-        this.timer.newTimeout(timeout -> {
-            // 已经取消调度了，则不再重新调度作业
-            if (!scheduling.containsKey(schedulable.getId())) {
-                return;
-            }
-
-            // 执行调度逻辑
-            // todo 可以交由线程池？增加下发速度
-            //      异步调度的话，需要保证在schedule执行完成后进行reschedule
-            schedulable.schedule();
-
-            // 检测是否需要重新调度
-            this.reschedule(schedulable);
-
-        }, delay, TimeUnit.MILLISECONDS);
     }
 
 
     /**
      * {@inheritDoc}
+     *
      * @param id 待调度的对象的id
      */
     @Override
@@ -127,6 +100,7 @@ public class HashedWheelTimerScheduler implements Scheduler {
 
     /**
      * {@inheritDoc}
+     *
      * @param id 调度的对象 id
      * @return 是否调度中
      */

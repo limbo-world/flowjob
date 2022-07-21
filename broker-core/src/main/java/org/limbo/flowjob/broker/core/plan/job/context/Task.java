@@ -27,7 +27,6 @@ import org.limbo.flowjob.broker.api.constants.enums.TaskScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskType;
 import org.limbo.flowjob.broker.core.exceptions.JobDispatchException;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.plan.PlanScheduler;
 import org.limbo.flowjob.broker.core.plan.job.DispatchOption;
 import org.limbo.flowjob.broker.core.plan.job.ExecutorOption;
 import org.limbo.flowjob.broker.core.plan.job.Job;
@@ -221,11 +220,10 @@ public class Task implements Serializable {
      * 任务执行成功，worker反馈任务执行完成后，才会调用此方法。
      *
      * @throws JobDispatchException 任务状态不是{@link JobScheduleStatus#EXECUTING}时抛出异常。
-     * @param scheduler 计划执行器
      * @param planInstance 执行计划实例
      * @param jobInstance 作业实例
      */
-    public void succeed(PlanScheduler scheduler, PlanInstance planInstance, JobInstance jobInstance) throws JobDispatchException {
+    public void succeed(PlanInstance planInstance, JobInstance jobInstance) throws JobDispatchException {
         // 当前状态无需变更
         if (getState() == TaskScheduleStatus.COMPLETED) {
             return;
@@ -244,16 +242,15 @@ public class Task implements Serializable {
         }
 
         // 触发后续任务下发
-        dispatchNextTask(scheduler, planInstance);
+        dispatchNextTask(planInstance);
     }
 
 
     /**
      * 下发后续任务
-     * @param scheduler 可调度作业数据
      * @param planInstance 计划实例
      */
-    protected void dispatchNextTask(PlanScheduler scheduler, PlanInstance planInstance) {
+    protected void dispatchNextTask(PlanInstance planInstance) {
 
         // 从作业 DAG 中读取后续的作业节点
         JobDAG dag = planInstance.getDag();
@@ -272,7 +269,7 @@ public class Task implements Serializable {
             for (Job subJob : subJobs) {
                 if (planInstance.isJobTriggerable(subJob)) {
                     JobInstance subJobInstance = subJob.newInstance(planInstance);
-                    scheduler.dispatchTask(subJob, subJobInstance);
+                    planInstance.dispatchTask(subJob, subJobInstance);
                 }
             }
 
@@ -282,14 +279,12 @@ public class Task implements Serializable {
 
     /**
      * 任务执行失败，worker反馈任务失败时，执行此方法。
-     * @param scheduler 可调度作业信息
      * @param planInstance 执行计划实例
      * @param jobInstance 作业实例
      * @param errorMsg 执行失败的异常信息
      * @param errorStackTrace 执行失败的异常堆栈
      */
-    public void failed(PlanScheduler scheduler, PlanInstance planInstance,
-                       JobInstance jobInstance, String errorMsg, String errorStackTrace) {
+    public void failed(PlanInstance planInstance, JobInstance jobInstance, String errorMsg, String errorStackTrace) {
         // 当前状态无需变更
         if (getState() == TaskScheduleStatus.COMPLETED) {
             return;

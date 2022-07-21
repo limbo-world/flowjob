@@ -24,9 +24,11 @@ import org.limbo.flowjob.broker.core.repositories.PlanRepository;
 
 import javax.inject.Inject;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
  * 执行计划。一个计划{@link Plan}对应至少一个作业{@link Job}
+ * 主要是对plan的管理
  *
  * @author Brozen
  * @since 2021-07-12
@@ -52,6 +54,11 @@ public class Plan implements Serializable {
      * 最新版本
      */
     private String recentlyVersion;
+
+    /**
+     * 下次触发时间
+     */
+    private long nextTriggerAt;
 
     /**
      * 当前版本的Plan数据

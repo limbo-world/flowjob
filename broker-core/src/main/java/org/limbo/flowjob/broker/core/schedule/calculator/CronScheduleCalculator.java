@@ -59,7 +59,7 @@ public class CronScheduleCalculator extends ScheduleCalculator implements Strate
         long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
 
         // 计算第一次调度
-        if (schedulable.getLastScheduleAt() == null) {
+        if (schedulable.scheduleAt() == null) {
             return Math.max(startScheduleAt, nowInstant.getEpochSecond());
         }
 

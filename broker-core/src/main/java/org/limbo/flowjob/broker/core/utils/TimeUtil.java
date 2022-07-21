@@ -3,6 +3,7 @@ package org.limbo.flowjob.broker.core.utils;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 
 /**
@@ -36,6 +37,13 @@ public class TimeUtil {
 
     public static LocalDateTime toLocalDateTime(Instant instant) {
         return instant == null ? null : LocalDateTime.ofInstant(instant, zoneOffset());
+    }
+
+
+    public static LocalDateTime toLocalDateTime(long timestamp) {
+        Instant instant = Instant.ofEpochMilli(timestamp);
+        ZoneId zone = ZoneId.systemDefault();
+        return LocalDateTime.ofInstant(instant, zone);
     }
 
 

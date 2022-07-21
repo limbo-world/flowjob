@@ -18,6 +18,9 @@ package org.limbo.flowjob.broker.core.repositories;
 
 import org.limbo.flowjob.broker.core.plan.Plan;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 /**
  * @author Brozen
  * @since 2021-07-12
@@ -35,6 +38,7 @@ public interface PlanRepository {
 
     /**
      * 新增执行计划版本号
+     *
      * @param plan 执行计划领域对象
      * @return 更新成功则返回新的版本号
      */
@@ -49,9 +53,24 @@ public interface PlanRepository {
      */
     Plan get(String planId);
 
+    /**
+     * 更新下次触发时间
+     */
+    boolean nextTriggerAt(String planId, LocalDateTime nextTriggerAt);
+
+    /**
+     * 查询需要被调度的计划。
+     *
+     * @param startTime 需要触发哪个时间段的任务
+     * @param endTime   需要触发哪个时间段的任务
+     * @return 需要被调度的作业计划
+     */
+    List<Plan> schedulePlans(LocalDateTime startTime, LocalDateTime endTime);
+
 
     /**
      * 启用指定计划
+     *
      * @param plan 作业执行计划
      * @return 返回更新的数据条数
      */
@@ -60,6 +79,7 @@ public interface PlanRepository {
 
     /**
      * 停用指定计划
+     *
      * @param plan 作业执行计划
      * @return 返回更新的数据条数
      */

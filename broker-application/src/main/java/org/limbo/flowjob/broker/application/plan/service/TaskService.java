@@ -4,12 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.api.clent.param.TaskExecuteFeedbackParam;
 import org.limbo.flowjob.broker.api.constants.enums.ExecuteResult;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.plan.PlanScheduler;
 import org.limbo.flowjob.broker.core.plan.job.context.JobInstance;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
 import org.limbo.flowjob.broker.core.repositories.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.repositories.PlanInstanceRepository;
-import org.limbo.flowjob.broker.core.repositories.PlanSchedulerRepository;
 import org.limbo.flowjob.broker.core.repositories.TaskRepository;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.springframework.stereotype.Service;
@@ -26,9 +24,6 @@ public class TaskService {
 
     @Inject
     private TaskRepository taskRepository;
-
-    @Inject
-    private PlanSchedulerRepository planSchedulerRepo;
 
     @Inject
     private PlanInstanceRepository planInstRepo;
@@ -53,19 +48,16 @@ public class TaskService {
         JobInstance jobInst = jobInstanceRepo.get(task.getJobInstanceId());
         Verifies.notNull(planInst, "Job instance not exist!");
 
-        PlanScheduler scheduler = planSchedulerRepo.get(planInst.getVersion());
-        Verifies.notNull(planInst, "Schedulable plan not exist in current broker!");
-
 
         // 变更状态
         ExecuteResult result = param.getResult();
         switch (result) {
             case SUCCEED:
-                task.succeed(scheduler, planInst, jobInst);
+                task.succeed(planInst, jobInst);
                 break;
 
             case FAILED:
-                task.failed(scheduler, planInst, jobInst, param.getErrorMsg(), param.getErrorStackTrace());
+                task.failed(planInst, jobInst, param.getErrorMsg(), param.getErrorStackTrace());
                 break;
 
             case TERMINATED:

@@ -13,7 +13,7 @@
     <dependencies>
         <dependency>
             <groupId>org.limbo.flowjob</groupId>
-            <artifactId>broker-cluster</artifactId>
+            <artifactId>broker-core</artifactId>
         </dependency>
 
         <!-- DB -->

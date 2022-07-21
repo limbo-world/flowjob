@@ -16,28 +16,19 @@
  *
  */
 
-package org.limbo.flowjob.broker.cluster;
+package org.limbo.flowjob.broker.core.cluster;
 
 /**
  * @author Devil
  * @since 2022/7/15
  */
-public interface Constants {
-
+public interface BrokerRegistry {
     /**
-     * plan分片大小
+     * 注册broker
      */
-    int SLOT_SIZE = 64;
+    void register(String host, int port);
     /**
-     * 重分配间隔
+     * 订阅监听
      */
-    long REBALANCE_INTERVAL = 10000;
-    /**
-     * 心跳时间间隔
-     */
-    long HEARTBEAT_INTERVAL = 3000;
-    /**
-     * 心跳超时时间
-     */
-    long HEARTBEAT_TIMEOUT = 15000;
+    void subscribe(NodeListener listener);
 }

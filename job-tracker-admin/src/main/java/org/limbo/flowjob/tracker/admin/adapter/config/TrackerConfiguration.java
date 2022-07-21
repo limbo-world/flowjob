@@ -18,8 +18,8 @@ package org.limbo.flowjob.tracker.admin.adapter.config;
 
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.dispatcher.strategies.RoundRobinWorkerSelector;
-import org.limbo.flowjob.broker.core.node.WorkerManager;
-import org.limbo.flowjob.broker.core.node.WorkerManagerImpl;
+import org.limbo.flowjob.broker.core.cluster.WorkerManager;
+import org.limbo.flowjob.broker.core.cluster.WorkerManagerImpl;
 import org.limbo.flowjob.broker.core.plan.job.context.TaskCreateStrategyFactory;
 import org.limbo.flowjob.broker.core.schedule.calculator.SimpleScheduleCalculatorFactory;
 import org.limbo.flowjob.broker.core.schedule.scheduler.HashedWheelTimerScheduler;

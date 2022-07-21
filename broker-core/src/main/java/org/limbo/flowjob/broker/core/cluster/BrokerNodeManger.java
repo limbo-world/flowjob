@@ -16,19 +16,33 @@
  *
  */
 
-package org.limbo.flowjob.broker.cluster;
+package org.limbo.flowjob.broker.core.cluster;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * todo
  * @author Devil
- * @since 2022/7/15
+ * @since 2022/7/20
  */
-public interface BrokerRegistry {
-    /**
-     * 注册broker
-     */
-    void register(String host, int port);
-    /**
-     * 订阅监听
-     */
-    void subscribe(BrokerNodeListener listener);
+class BrokerNodeManger {
+
+    private static final Map<String, String> map = new ConcurrentHashMap<>();
+
+    public static void online(String host, int port) {
+        String key = host + ":" + port;
+        map.put(key, key);
+    }
+
+    public static void offline(String host, int port) {
+        String key = host + ":" + port;
+        map.remove(key);
+    }
+
+    public static boolean alive(String host, int port) {
+        String key = host + ":" + port;
+        return map.containsKey(key);
+    }
+
 }

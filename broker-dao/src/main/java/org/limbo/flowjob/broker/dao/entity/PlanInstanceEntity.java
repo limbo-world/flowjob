@@ -25,9 +25,8 @@ public class PlanInstanceEntity extends BaseEntity {
 
     private static final long serialVersionUID = -8999288394853231265L;
 
-    /**
-     * 对应计划的版本
-     */
+    private Long planId;
+
     private Long planInfoId;
 
     /**
@@ -41,12 +40,17 @@ public class PlanInstanceEntity extends BaseEntity {
     private Boolean manual;
 
     /**
+     * 预计触发时间 如果是手动下发 则应该为0或默认值
+     */
+    private LocalDateTime expectTriggerAt;
+
+    /**
      * 开始时间
      */
-    private LocalDateTime startAt;
+    private LocalDateTime scheduleAt;
 
     /**
      * 结束时间
      */
-    private LocalDateTime endAt;
+    private LocalDateTime feedbackAt;
 }

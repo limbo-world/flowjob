@@ -32,6 +32,8 @@ import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -120,6 +122,16 @@ public class PlanRepo implements PlanRepository {
         Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(Long.valueOf(planId));
         Verifies.verify(planEntityOptional.isPresent(), "plan is not exist");
         return planConverter.toDO(planEntityOptional.get());
+    }
+
+    @Override
+    public List<Plan> schedulePlans(LocalDateTime startTime, LocalDateTime endTime) {
+        List<PlanEntity> plans = planEntityRepo.findBySlotInAndIsEnabled(slots(), true); // todo 获取最近要触发的
+        return null;
+    }
+
+    private List<Integer> slots() {
+        return null;
     }
 
 

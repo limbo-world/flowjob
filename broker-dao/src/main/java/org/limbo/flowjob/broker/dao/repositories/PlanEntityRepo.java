@@ -24,12 +24,16 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 
 /**
  * @author Devil
  * @since 2022/6/22
  */
 public interface PlanEntityRepo extends JpaRepository<PlanEntity, Long> {
+
+    List<PlanEntity> findBySlotInAndIsEnabled(List<Integer> slots, boolean isEnabled);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanEntity set currentVersion = :newCurrentVersion, recentlyVersion = :newRecentlyVersion " +

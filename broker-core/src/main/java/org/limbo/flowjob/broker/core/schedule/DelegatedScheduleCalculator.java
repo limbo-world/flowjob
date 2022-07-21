@@ -57,7 +57,7 @@ public class DelegatedScheduleCalculator extends ScheduleCalculator {
      * @return
      */
     @Override
-    public Long apply(Schedulable schedulable) {
+    public long apply(Schedulable schedulable) {
         return Objects.requireNonNull(delegated, "delegated target").apply(schedulable);
     }
 }

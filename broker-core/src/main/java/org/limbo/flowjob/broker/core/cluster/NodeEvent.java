@@ -16,12 +16,32 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.node;
+package org.limbo.flowjob.broker.core.cluster;
+
+import lombok.Getter;
 
 /**
  * @author Devil
- * @since 2022/7/15
+ * @since 2022/7/18
  */
-public class BrokerNodeManager {
+@Getter
+public class NodeEvent {
 
+    private final String host;
+
+    private final int port;
+
+    private final Type type;
+
+    public enum Type
+    {
+        ONLINE,
+        OFFLINE
+    }
+
+    public NodeEvent(Type type, String host, int port) {
+        this.type = type;
+        this.host = host;
+        this.port = port;
+    }
 }

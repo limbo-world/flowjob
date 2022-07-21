@@ -43,11 +43,6 @@ public class DelayedScheduleCalculator extends ScheduleCalculator implements Str
      */
     @Override
     public Long apply(Schedulable schedulable) {
-        // 只调度一次
-        if (schedulable.getLastScheduleAt() != null) {
-            return ScheduleCalculator.NO_TRIGGER;
-        }
-
         // 从创建时间开始，间隔固定delay调度
         long startScheduleAt = calculateStartScheduleTimestamp(schedulable.getScheduleOption());
         long now = TimeUtil.nowInstant().getEpochSecond();

@@ -22,6 +22,7 @@ import lombok.Getter;
 /**
  * 作业调度方式：
  * <ul>
+ *     <li>{@linkplain ScheduleType#NONE 无需调度}</li>
  *     <li>{@linkplain ScheduleType#DELAYED 固定延迟}</li>
  *     <li>{@linkplain ScheduleType#FIXED_RATE 固定速度}</li>
  *     <li>{@linkplain ScheduleType#FIXED_INTERVAL 固定间隔时间}</li>
@@ -32,6 +33,11 @@ import lombok.Getter;
  * @since 2021-05-16
  */
 public enum ScheduleType implements DescribableEnum<Byte> {
+
+    /**
+     * 无需调度 由其它方式触发 // todo 此类型需要检查有 api方式的最初节点 非此类型要检查有 schedule 的最初节点
+     */
+    NONE(0, "无需调度"),
 
     /**
      * 固定延迟，作业创建后，从创建时间起延迟一定时间后触发调度。只调度一次。

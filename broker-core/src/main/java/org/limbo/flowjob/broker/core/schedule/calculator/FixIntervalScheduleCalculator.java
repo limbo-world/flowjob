@@ -26,6 +26,7 @@ import org.limbo.flowjob.broker.core.utils.strategies.Strategy;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 /**
  * 固定间隔作业调度时间计算器
@@ -54,11 +55,11 @@ public class FixIntervalScheduleCalculator extends ScheduleCalculator implements
         long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
 
         // 计算第一次调度
-        if (schedulable.getLastScheduleAt() == null) {
+        if (schedulable.scheduleAt() == null) {
             return Math.max(startScheduleAt, now);
         }
 
-        Instant lastFeedbackAt = schedulable.getLastFeedbackAt();
+        LocalDateTime lastFeedbackAt = schedulable.feedbackAt();
         // 如果为空，表示此次上次任务还没反馈，等待反馈后重新调度
         if (lastFeedbackAt == null) {
             return ScheduleCalculator.NO_TRIGGER;
@@ -70,7 +71,7 @@ public class FixIntervalScheduleCalculator extends ScheduleCalculator implements
             return ScheduleCalculator.NO_TRIGGER;
         }
 
-        long scheduleAt = lastFeedbackAt.toEpochMilli() + interval.toMillis();
+        long scheduleAt = TimeUtil.toInstant(lastFeedbackAt).toEpochMilli() + interval.toMillis();
         return Math.max(scheduleAt, now);
     }
 
