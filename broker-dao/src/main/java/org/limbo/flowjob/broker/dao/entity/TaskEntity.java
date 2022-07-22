@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -28,13 +29,9 @@ public class TaskEntity extends BaseEntity {
 
     /**
      * 状态
+     * @see TaskStatus
      */
-    private Byte state;
-
-    /**
-     * 成功/失败
-     */
-    private Byte result;
+    private Byte status;
 
     /**
      * 执行作业的worker ID

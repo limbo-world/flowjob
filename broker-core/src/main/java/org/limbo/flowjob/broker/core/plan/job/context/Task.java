@@ -22,9 +22,10 @@ import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.api.clent.dto.TaskReceiveDTO;
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
-import org.limbo.flowjob.broker.api.constants.enums.TaskResult;
-import org.limbo.flowjob.broker.api.constants.enums.TaskScheduleStatus;
+import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskType;
+import org.limbo.flowjob.broker.core.cluster.WorkerManager;
+import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.broker.core.exceptions.JobDispatchException;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.plan.job.DispatchOption;
@@ -51,97 +52,95 @@ import java.util.List;
 public class Task implements Serializable {
     private static final long serialVersionUID = -9164373359695671417L;
 
-    private String taskId;
+    protected String taskId;
 
-    private String planId;
+    protected String planId;
 
-    private String planInstanceId;
+    protected String planInstanceId;
 
-    private String jobId;
+    protected String jobId;
 
-    private String jobInstanceId;
-
-    /**
-     * 调度状态
-     */
-    private TaskScheduleStatus state;
+    protected String jobInstanceId;
 
     /**
-     * 执行结果
+     * 状态
      */
-    private TaskResult result;
+    protected TaskStatus status;
 
     /**
      * 此分发执行此作业上下文的worker
      */
-    private String workerId;
+    protected String workerId;
 
     /**
      * sharding normal
      */
-    private TaskType type;
+    protected TaskType type;
 
     /**
      * 作业属性，不可变。作业属性可用于分片作业、MapReduce作业、DAG工作流进行传参
      */
-    private Attributes attributes;
+    protected Attributes attributes;
 
     /**
      * 执行失败时的异常信息
      */
-    private String errorMsg;
+    protected String errorMsg;
 
     /**
      * 执行失败时的异常堆栈
      */
-    private String errorStackTrace;
+    protected String errorStackTrace;
 
     /**
      * 开始时间
      */
-    private Instant startAt;
+    protected Instant startAt;
 
     /**
      * 结束时间
      */
-    private Instant endAt;
+    protected Instant endAt;
 
     // -------- 非 po 属性
 
     /**
      * 作业分发配置参数
      */
-    private DispatchOption dispatchOption;
+    protected DispatchOption dispatchOption;
 
     /**
      * 作业执行器配置参数
      */
-    private ExecutorOption executorOption;
+    protected ExecutorOption executorOption;
 
     // --------------------- 需注入
     @ToString.Exclude
     @Setter(onMethod_ = @Inject)
-    private transient TaskRepository taskRepo;
+    protected transient TaskRepository taskRepo;
 
+    @ToString.Exclude
+    @Setter(onMethod_ = @Inject)
+    protected transient WorkerManager workerManager;
 
     /**
      * 将此任务下发给worker。
-     * 只有 {@link TaskScheduleStatus#SCHEDULING} 和 {@link TaskScheduleStatus#DISPATCH_FAILED} 状态的任务可被下发，代表首次下发和重试。
      *
-     * @param worker 会将此上下文分发去执行的worker
+     * @param workerSelector 会将此上下文分发去执行的worker
      * @return 任务下发是否成功
      * @throws JobDispatchException 状态检测失败时，即此上下文的状态不是INIT或FAILED时抛出异常。
      */
-    public boolean dispatch(Worker worker) throws JobDispatchException {
+    public boolean dispatch(WorkerSelector workerSelector) throws JobDispatchException {
         // 检测状态
-        TaskScheduleStatus status = getState();
-        if (status != TaskScheduleStatus.SCHEDULING && status != TaskScheduleStatus.DISPATCH_FAILED) {
+        TaskStatus status = this.getStatus();
+        if (status != TaskStatus.DISPATCHING) {
             throw new JobDispatchException(jobId, taskId, "Cannot startup context due to current status: " + status);
         }
 
-        // 更新状态
-        setState(TaskScheduleStatus.DISPATCHING);
-        taskRepo.dispatching(this);
+        Worker worker = workerSelector.select(this, workerManager.availableWorkers());
+        if (worker == null) {
+            return false;
+        }
 
         // 下发任务
         return doDispatch(worker);
@@ -151,7 +150,7 @@ public class Task implements Serializable {
     /**
      * 执行任务下发
      */
-    private boolean doDispatch(Worker worker) {
+    protected boolean doDispatch(Worker worker) {
         try {
 
             // 发送任务到worker，根据worker返回结果，更新状态
@@ -186,12 +185,12 @@ public class Task implements Serializable {
      */
     public void accepted(Worker worker) throws JobDispatchException {
         // 不为此状态 无需更新
-        if (getState() != TaskScheduleStatus.DISPATCHING) {
+        if (this.getStatus() != TaskStatus.DISPATCHING) {
             return;
         }
 
         // 更新状态
-        setState(TaskScheduleStatus.EXECUTING);
+        setStatus(TaskStatus.EXECUTING);
         setWorkerId(worker.getWorkerId());
         taskRepo.dispatched(this);
     }
@@ -205,12 +204,12 @@ public class Task implements Serializable {
      */
     public void refused(Worker worker) throws JobDispatchException {
         // 不为此状态 无需更新
-        if (getState() != TaskScheduleStatus.DISPATCHING) {
+        if (this.getStatus() != TaskStatus.DISPATCHING) {
             return;
         }
 
         // 更新状态
-        setState(TaskScheduleStatus.DISPATCH_FAILED);
+        setStatus(TaskStatus.DISPATCH_FAILED);
         setWorkerId(worker.getWorkerId());
         taskRepo.dispatchFailed(this);
     }
@@ -225,13 +224,12 @@ public class Task implements Serializable {
      */
     public void succeed(PlanInstance planInstance, JobInstance jobInstance) throws JobDispatchException {
         // 当前状态无需变更
-        if (getState() == TaskScheduleStatus.COMPLETED) {
+        if (this.getStatus().isCompleted()) {
             return;
         }
 
         // 更新任务状态，更新失败说明已经处理过，CAS保证幂等
-        setState(TaskScheduleStatus.COMPLETED);
-        setResult(TaskResult.SUCCEED);
+        setStatus(TaskStatus.SUCCEED);
         if (!taskRepo.executeSucceed(this)) {
             return;
         }
@@ -286,13 +284,12 @@ public class Task implements Serializable {
      */
     public void failed(PlanInstance planInstance, JobInstance jobInstance, String errorMsg, String errorStackTrace) {
         // 当前状态无需变更
-        if (getState() == TaskScheduleStatus.COMPLETED) {
+        if (this.getStatus().isCompleted()) {
             return;
         }
 
         // 更新任务状态，更新失败说明已经处理过，CAS保证幂等
-        setState(TaskScheduleStatus.COMPLETED);
-        setResult(TaskResult.FAILED);
+        setStatus(TaskStatus.FAILED);
         setErrorMsg(errorMsg);
         setErrorStackTrace(errorStackTrace);
         if (!taskRepo.executeFailed(this)) {

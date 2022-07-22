@@ -72,9 +72,9 @@ public enum PlanScheduleStatus {
             return null;
         }
 
-        for (PlanScheduleStatus scheduleStatus : values()) {
-            if (scheduleStatus.is(status)) {
-                return scheduleStatus;
+        for (PlanScheduleStatus statusEnum : values()) {
+            if (statusEnum.is(status)) {
+                return statusEnum;
             }
         }
 

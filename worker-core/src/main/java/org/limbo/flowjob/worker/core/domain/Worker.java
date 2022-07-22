@@ -207,7 +207,7 @@ public class Worker {
     /**
      * 查询任务状态
      */
-    public void jobState(String jobId) {
+    public void jobStatus(String jobId) {
         if (jobManager.hasJob(jobId)) {
 
         }

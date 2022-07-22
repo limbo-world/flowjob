@@ -32,27 +32,19 @@ import java.util.List;
  */
 public interface TaskEntityRepo extends JpaRepository<TaskEntity, Long> {
 
-    long countByJobInstanceIdAndStateInAndResultIn(Long jobInstanceId, List<Byte> statuses, List<Byte> results);
+    long countByJobInstanceIdAndStatusIn(Long jobInstanceId, List<Byte> statuses);
 
     // todo @B 为啥需要每次都设置workerId 不应该下发了就确定了么 而且没必要每次有result为none的条件吧，只需要执行后有就行 和下面方法可以合并？？
     @Modifying(clearAutomatically = true)
-    @Query(value = "update TaskEntity set state = :newState, workerId = :workerId where id = :id and state = :oldState and result = :result")
-    int updateState(@Param("id") Long id, @Param("oldState") Byte oldState, @Param("result") Byte result,
-                    @Param("newState") Byte newState, @Param("workerId") String workerId);
+    @Query(value = "update TaskEntity set status = :newStatus, workerId = :workerId where id = :id and status = :oldStatus")
+    int updateStatus(@Param("id") Long id, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus, @Param("workerId") String workerId);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update TaskEntity set state = :newState where id = :id and state = :oldState and result = :result")
-    int updateState(@Param("id") Long id, @Param("oldState") Byte oldState,
-                    @Param("result") Byte result, @Param("newState") Byte newState);
+    @Query(value = "update TaskEntity set status = :newStatus where id = :id and status = :oldStatus")
+    int updateStatus(@Param("id") Long id, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update TaskEntity set state = :newState, result = :result, errorMsg = :errorMsg, errorStackTrace = :errorStack where id = :id and state = :oldState")
-    int updateStateWithError(@Param("id") Long id, @Param("oldState") Byte oldState,
-                             @Param("result") Byte result, @Param("newState") Byte newState,
-                             @Param("errorMsg") String errorMsg, @Param("errorStack") String errorStack);
-
-    @Modifying(clearAutomatically = true)
-    @Query(value = "update TaskEntity set state = :newState, result = :newResult where id = :id and state = :oldState and result = :oldResult")
-    int updateState(@Param("id") Long id, @Param("oldState") Byte oldState, @Param("oldResult") Byte oldResult,
-                    @Param("newState") Byte newState, @Param("newResult") Byte newResult);
+    @Query(value = "update TaskEntity set status = :newStatus, errorMsg = :errorMsg, errorStackTrace = :errorStack where id = :id and status = :oldStatus")
+    int updateStatusWithError(@Param("id") Long id, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus,
+                              @Param("errorMsg") String errorMsg, @Param("errorStack") String errorStack);
 }

@@ -32,7 +32,7 @@ public class PlanInstanceEntity extends BaseEntity {
     /**
      * 状态
      */
-    private Byte state;
+    private Byte status;
 
     /**
      * 是否手动下发

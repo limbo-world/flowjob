@@ -125,6 +125,11 @@ public class PlanRepo implements PlanRepository {
     }
 
     @Override
+    public boolean nextTriggerAt(String planId, LocalDateTime nextTriggerAt) {
+        return false; // todo
+    }
+
+    @Override
     public List<Plan> schedulePlans(LocalDateTime startTime, LocalDateTime endTime) {
         List<PlanEntity> plans = planEntityRepo.findBySlotInAndIsEnabled(slots(), true); // todo 获取最近要触发的
         return null;

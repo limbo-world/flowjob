@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
+import org.limbo.flowjob.broker.api.constants.enums.PlanTriggerType;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
 import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
@@ -102,9 +103,6 @@ public abstract class BrokerNode {
                 }
 
                 for (Plan plan : plans) {
-                    if (scheduler.isScheduling(PlanInstance.buildScheduleId(plan.getPlanId(), plan.getNextTriggerAt()))) {
-                        continue;
-                    }
                     PlanInfo planInfo = plan.getInfo();
                     if (planInfo.getScheduleOption().getScheduleType() == null) {
                         log.error("{} scheduleType is null info={}", taskName, planInfo);
@@ -116,7 +114,7 @@ public abstract class BrokerNode {
 
                     PlanInstance planInstance = planInstanceRepository.get(plan.getPlanId(), plan.getNextTriggerAt());
                     if (planInstance == null) {
-                        planInstance = planInfo.newInstance(PlanScheduleStatus.SCHEDULING, false);
+                        planInstance = planInfo.newInstance(PlanScheduleStatus.SCHEDULING, PlanTriggerType.SCHEDULE);
                         String planInstanceId = planInstanceRepository.add(planInstance);
                         if (StringUtils.isBlank(planInstanceId)) {
                             // 并发情况可能导致
@@ -124,7 +122,9 @@ public abstract class BrokerNode {
                         }
                     }
                     // 调度
-                    planInstance.schedule();
+                    if (!scheduler.isScheduling(planInstance.scheduleId())) {
+                        planInstance.schedule();
+                    }
                 }
             } catch (Exception e) {
                 log.error("{} load and schedule plan fail", taskName, e);

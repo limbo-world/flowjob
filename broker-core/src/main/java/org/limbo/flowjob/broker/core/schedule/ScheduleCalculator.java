@@ -53,7 +53,7 @@ public abstract class ScheduleCalculator implements Strategy<Schedulable, Long> 
      */
     @Override
     public Boolean canApply(Schedulable schedulable) {
-        return schedulable.getScheduleOption().getScheduleType() == this.scheduleType;
+        return schedulable.scheduleOption().getScheduleType() == this.scheduleType;
     }
 
 

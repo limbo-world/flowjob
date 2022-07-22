@@ -71,7 +71,7 @@ public class JobInstanceRepo implements JobInstanceRepository {
      */
     @Override
     public boolean dispatched(JobInstance instance) {
-        return jobInstanceEntityRepo.updateState(Long.valueOf(instance.getJobInstanceId()),
+        return jobInstanceEntityRepo.updateStatus(Long.valueOf(instance.getJobInstanceId()),
                 JobScheduleStatus.SCHEDULING.status,
                 JobScheduleStatus.EXECUTING.status
         ) > 0;
@@ -86,7 +86,7 @@ public class JobInstanceRepo implements JobInstanceRepository {
      */
     @Override
     public boolean dispatchFailed(JobInstance instance) {
-        return jobInstanceEntityRepo.updateState(Long.valueOf(instance.getJobInstanceId()),
+        return jobInstanceEntityRepo.updateStatus(Long.valueOf(instance.getJobInstanceId()),
                 JobScheduleStatus.SCHEDULING.status,
                 JobScheduleStatus.FAILED.status
         ) > 0;
@@ -101,7 +101,7 @@ public class JobInstanceRepo implements JobInstanceRepository {
      */
     @Override
     public boolean executeSucceed(JobInstance instance) {
-        return jobInstanceEntityRepo.updateState(
+        return jobInstanceEntityRepo.updateStatus(
                 Long.valueOf(instance.getJobInstanceId()),
                 JobScheduleStatus.EXECUTING.status,
                 JobScheduleStatus.SUCCEED.status
@@ -117,7 +117,7 @@ public class JobInstanceRepo implements JobInstanceRepository {
      */
     @Override
     public boolean executeFailed(JobInstance instance) {
-        return jobInstanceEntityRepo.updateState(
+        return jobInstanceEntityRepo.updateStatus(
                 Long.valueOf(instance.getJobInstanceId()),
                 JobScheduleStatus.EXECUTING.status,
                 JobScheduleStatus.FAILED.status

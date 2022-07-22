@@ -16,37 +16,62 @@
 
 package org.limbo.flowjob.broker.core.schedule.calculator;
 
+import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
 import org.limbo.flowjob.broker.core.schedule.Schedulable;
 import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
+import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
 import org.limbo.flowjob.broker.core.utils.strategies.Strategy;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 /**
- * 固定延迟作业调度时间计算器
+ * 固定间隔作业调度时间计算器
  *
  * @author Brozen
  * @since 2021-05-21
  */
-public class DelayedScheduleCalculator extends ScheduleCalculator implements Strategy<Schedulable, Long> {
+@Slf4j
+public class FixDelayScheduleCalculator extends ScheduleCalculator implements Strategy<Schedulable, Long> {
 
-
-    protected DelayedScheduleCalculator() {
-        super(ScheduleType.DELAYED);
+    protected FixDelayScheduleCalculator() {
+        super(ScheduleType.FIXED_DELAY);
     }
-
 
     /**
      * 通过此策略计算下一次触发调度的时间戳。如果不应该被触发，返回0或负数。
+     *
      * @param schedulable 待调度对象
      * @return 下次触发调度的时间戳，当返回非正数时，表示作业不会有触发时间。
      */
     @Override
     public Long apply(Schedulable schedulable) {
-        // 从创建时间开始，间隔固定delay调度
-        long startScheduleAt = calculateStartScheduleTimestamp(schedulable.getScheduleOption());
+
+        ScheduleOption scheduleOption = schedulable.scheduleOption();
         long now = TimeUtil.nowInstant().getEpochSecond();
-        return Math.max(startScheduleAt, now);
+        long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
+
+        // 计算第一次调度
+        if (schedulable.scheduleAt() == null) {
+            return Math.max(startScheduleAt, now);
+        }
+
+        LocalDateTime lastFeedbackAt = schedulable.feedbackAt();
+        // 如果为空，表示此次上次任务还没反馈，等待反馈后重新调度
+        if (lastFeedbackAt == null) {
+            return ScheduleCalculator.NO_TRIGGER;
+        }
+
+        Duration interval = scheduleOption.getScheduleInterval();
+        if (interval == null) {
+            log.error("cannot calculate next trigger timestamp of {} because interval is not assigned!", schedulable);
+            return ScheduleCalculator.NO_TRIGGER;
+        }
+
+        long scheduleAt = TimeUtil.toInstant(lastFeedbackAt).toEpochMilli() + interval.toMillis();
+        return Math.max(scheduleAt, now);
     }
 
 }

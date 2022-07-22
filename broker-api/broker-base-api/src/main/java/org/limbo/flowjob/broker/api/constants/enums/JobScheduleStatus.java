@@ -73,9 +73,9 @@ public enum JobScheduleStatus {
             return null;
         }
 
-        for (JobScheduleStatus jobScheduleStatus : values()) {
-            if (jobScheduleStatus.is(status)) {
-                return jobScheduleStatus;
+        for (JobScheduleStatus statusEnum : values()) {
+            if (statusEnum.is(status)) {
+                return statusEnum;
             }
         }
 

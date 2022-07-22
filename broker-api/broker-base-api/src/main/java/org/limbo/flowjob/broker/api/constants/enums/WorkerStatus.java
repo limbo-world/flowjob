@@ -61,9 +61,9 @@ public enum WorkerStatus {
             return null;
         }
 
-        for (WorkerStatus workerStatus : values()) {
-            if (status.byteValue() == workerStatus.status) {
-                return workerStatus;
+        for (WorkerStatus statusEnum : values()) {
+            if (status.byteValue() == statusEnum.status) {
+                return statusEnum;
             }
         }
 

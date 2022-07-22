@@ -39,9 +39,8 @@ public class SimpleScheduleCalculatorFactory implements ScheduleCalculatorFactor
         Map<ScheduleType, ScheduleCalculator> calculators = new HashMap<>();
 
         // 预设计算器
-        putCalculator(calculators, new DelayedScheduleCalculator());
         putCalculator(calculators, new FixRateScheduleCalculator());
-        putCalculator(calculators, new FixIntervalScheduleCalculator());
+        putCalculator(calculators, new FixDelayScheduleCalculator());
         putCalculator(calculators, new CronScheduleCalculator());
 
         // 自定义计算器

@@ -22,7 +22,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.schedule.Schedulable;
 
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -46,11 +49,23 @@ public class HashedWheelTimerScheduler implements Scheduler {
     private final Map<String, Schedulable> scheduling;
 
     /**
+     * 调度线程池
+     */
+    private final ExecutorService schedulePool;
+
+    /**
      * 使用指定执行器构造一个调度器，该调度器基于哈希时间轮算法。
      */
     public HashedWheelTimerScheduler() {
         this.timer = new HashedWheelTimer(NamedThreadFactory.newInstance(this.getClass().getSimpleName() + "-timer-"));
         this.scheduling = new ConcurrentHashMap<>();
+        this.schedulePool = new ThreadPoolExecutor(
+                Runtime.getRuntime().availableProcessors() * 2,
+                Runtime.getRuntime().availableProcessors() * 4,
+                60,
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(64),
+                new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
     /**
@@ -60,7 +75,7 @@ public class HashedWheelTimerScheduler implements Scheduler {
      */
     @Override
     public void schedule(Schedulable schedulable) {
-        String id = schedulable.getId();
+        String id = schedulable.scheduleId();
         if (scheduling.containsKey(id)) {
             scheduling.put(id, schedulable);
 
@@ -77,8 +92,7 @@ public class HashedWheelTimerScheduler implements Scheduler {
                     }
 
                     // 执行调度逻辑
-                    // todo 可以交由线程池？增加下发速度
-                    schedulable.schedule();
+                    schedulePool.submit(schedulable::schedule);
                 } catch (Exception e) {
                     log.error("[HashedWheelTimerScheduler] schedule fail id:{}", id, e);
                 }

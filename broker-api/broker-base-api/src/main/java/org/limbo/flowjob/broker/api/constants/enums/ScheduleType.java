@@ -23,9 +23,8 @@ import lombok.Getter;
  * 作业调度方式：
  * <ul>
  *     <li>{@linkplain ScheduleType#NONE 无需调度}</li>
- *     <li>{@linkplain ScheduleType#DELAYED 固定延迟}</li>
  *     <li>{@linkplain ScheduleType#FIXED_RATE 固定速度}</li>
- *     <li>{@linkplain ScheduleType#FIXED_INTERVAL 固定间隔时间}</li>
+ *     <li>{@linkplain ScheduleType#FIXED_DELAY 固定延迟}</li>
  *     <li>{@linkplain ScheduleType#CRON CRON}</li>
  * </ul>
  *
@@ -40,28 +39,23 @@ public enum ScheduleType implements DescribableEnum<Byte> {
     NONE(0, "无需调度"),
 
     /**
-     * 固定延迟，作业创建后，从创建时间起延迟一定时间后触发调度。只调度一次。
+     * 固定速度，作业创建后，从创建时间起延迟一定时间后触发作业调度。每次调度下发后，间隔固定时间长度后，再次触发作业调度。
      */
-    DELAYED(1, "固定延迟"),
-
-    /**
-     * 固定速度，作业创建后，从创建时间起延迟一定时间后触发作业调度。每次调度下发成功后，间隔固定时间长度后，再次触发作业调度。
-     */
-    FIXED_RATE(2, "固定速度"),
+    FIXED_RATE(1, "固定速度"),
 
     /**
      * 固定间隔，作业创建后，从创建时间起延迟一定时间后触发作业调度。每次作业下发执行完成（成功或失败）后，间隔固定时间长度后，再次触发作业调度。
      */
-    FIXED_INTERVAL(3, "固定间隔时间"),
+    FIXED_DELAY(2, "固定延迟"),
 
     /**
      * 通过CRON表达式指定作业触发调度的时间点。FIXED_RATE 的另一种模式
      */
-    CRON(4, "CRON表达式"),
+    CRON(3, "CRON表达式"),
 
     ;
 
-    public static final String DESCRIPTION = "1-固定延迟; 2-固定速度; 3-固定间隔时间; 4-CRON表达式;";
+    public static final String DESCRIPTION = "todo";
 
     public final byte type;
 

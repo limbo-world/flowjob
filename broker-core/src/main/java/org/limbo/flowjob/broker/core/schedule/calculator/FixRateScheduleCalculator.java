@@ -49,7 +49,7 @@ public class FixRateScheduleCalculator extends ScheduleCalculator implements Str
     @Override
     public Long apply(Schedulable schedulable) {
 
-        ScheduleOption scheduleOption = schedulable.getScheduleOption();
+        ScheduleOption scheduleOption = schedulable.scheduleOption();
         long now = TimeUtil.nowInstant().getEpochSecond();
         long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
 

@@ -71,7 +71,7 @@ public enum LoadBalanceType implements DescribableEnum<Byte> {
     /**
      * 可通过{@link #describe(Class)}方法生成，用于在swagger3为枚举添加说明
      */
-    public static final String DESCRIPTION = "1-轮询; 2-随机; 3-指定节点; 4-最不经常使用; 5-最近最少使用; 6-一致性hash;";
+    public static final String DESCRIPTION = "todo";
 
     public final byte type;
 

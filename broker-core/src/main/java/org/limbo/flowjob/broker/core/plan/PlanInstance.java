@@ -21,10 +21,11 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
-import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
-import org.limbo.flowjob.broker.core.cluster.WorkerManager;
+import org.limbo.flowjob.broker.api.constants.enums.JobTriggerType;
+import org.limbo.flowjob.broker.api.constants.enums.PlanTriggerType;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.exceptions.JobExecuteException;
@@ -42,7 +43,6 @@ import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.core.schedule.calculator.ScheduleCalculatorFactory;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
-import org.limbo.flowjob.broker.core.worker.Worker;
 
 import javax.inject.Inject;
 import java.io.Serializable;
@@ -57,6 +57,7 @@ import java.util.stream.Collectors;
  * @author Devil
  * @since 2021/9/1
  */
+@Slf4j
 @Data
 public class PlanInstance implements Schedulable, Serializable {
 
@@ -74,7 +75,7 @@ public class PlanInstance implements Schedulable, Serializable {
     /**
      * 计划调度状态
      */
-    private PlanScheduleStatus state;
+    private PlanScheduleStatus status;
 
     /**
      * 作业计划调度配置参数
@@ -87,9 +88,9 @@ public class PlanInstance implements Schedulable, Serializable {
     private long triggerAt;
 
     /**
-     * 是否手动下发
+     * 触发类型
      */
-    private boolean manual;
+    private PlanTriggerType triggerType;
 
     /**
      * 开始时间
@@ -131,16 +132,11 @@ public class PlanInstance implements Schedulable, Serializable {
 
     @ToString.Exclude
     @Setter(onMethod_ = @Inject)
-    private transient WorkerManager workerManager;
-
-    @ToString.Exclude
-    @Setter(onMethod_ = @Inject)
     private transient WorkerSelectorFactory workerSelectorFactory;
 
     @ToString.Exclude
     @Setter(onMethod_ = @Inject)
     private transient PlanRepository planRepository;
-
 
     /**
      * 检测 Plan 实例是否已经执行完成
@@ -189,7 +185,7 @@ public class PlanInstance implements Schedulable, Serializable {
      */
     public void executeSucceed() {
         // 更新状态
-        setState(PlanScheduleStatus.SUCCEED);
+        setStatus(PlanScheduleStatus.SUCCEED);
         planInstanceRepo.executeSucceed(this);
 
         // todo 检测 Plan 是否需要重新调度，只有 FIXED_INTERVAL 类型的计划，需要在完成时扔到时间轮里重新调度，手动的和其他的都不需要
@@ -208,13 +204,18 @@ public class PlanInstance implements Schedulable, Serializable {
      */
     public void executeFailed() {
         // 更新状态
-        setState(PlanScheduleStatus.FAILED);
+        setStatus(PlanScheduleStatus.FAILED);
         planInstanceRepo.executeFailed(this);
     }
 
     @Override
-    public String getId() {
-        return buildScheduleId(planId, triggerAt);
+    public String scheduleId() {
+        return planId + ":" + triggerAt;
+    }
+
+    @Override
+    public ScheduleOption scheduleOption() {
+        return scheduleOption;
     }
 
     @Override
@@ -229,36 +230,48 @@ public class PlanInstance implements Schedulable, Serializable {
 
     @Override
     public void schedule() {
-        // 获取 DAG 中最执行的作业，如不存在说明 Plan 无需下发
-        List<Job> jobs = dag.getEarliestJobs();
-        if (CollectionUtils.isEmpty(jobs)) {
-            return;
-        }
-
-        // 生成作业实例
-        for (Job job : jobs) {
-            if (TriggerType.SCHEDULE != job.getTriggerType()) {
-                continue;
+        try {
+            // 获取 DAG 中最执行的作业，如不存在说明 Plan 无需下发
+            List<Job> jobs = dag.getEarliestJobs();
+            if (CollectionUtils.isEmpty(jobs)) {
+                return;
             }
-            JobInstance jobInstance = job.newInstance(this);
-            jobInstanceRepo.add(jobInstance);
 
-            // 将作业对应的任务信息下发给worker
-            dispatchTask(job, jobInstance);
+            // 生成作业实例
+            for (Job job : jobs) {
+                JobInstance jobInstance = job.newInstance(this);
+                // 下发task
+                ScheduleThreadPool.TASK_DISPATCH_POOL.submit(() -> {
+                    try {
+                        if (JobTriggerType.SCHEDULE != job.getTriggerType()) {
+                            return;
+                        }
+                        jobInstanceRepo.add(jobInstance);
+
+                        // 将作业对应的任务信息下发给worker
+                        dispatchTask(job, jobInstance);
+                    } catch (Exception e) {
+                        log.error("[PlanInstance] dispatchJob fail job:{}", job, e);
+                    }
+                });
+            }
+
+            // 更新plan的下次触发时间 todo 如果上面执行完到这步失败--可能导致重复下发 所以需要对job和task的数据进行检测
+            Long nextTriggerAt = lazyInitTriggerCalculator().apply(this);
+            planRepository.nextTriggerAt(planId, TimeUtil.toLocalDateTime(nextTriggerAt));
+        } catch (Exception e) {
+            log.error("[PlanInstance] schedule fail planInstance:{}", this, e);
         }
-
-        // 更新plan的下次触发时间 todo 如果上面执行完到这步失败--可能导致重复下发 所以需要对job和task的数据进行检测
-        Long nextTriggerAt = lazyInitTriggerCalculator().apply(this);
-        planRepository.nextTriggerAt(planId, TimeUtil.toLocalDateTime(nextTriggerAt));
     }
 
     /**
      * 作业下发，会先持久化任务，然后执行下发
-     * @param job 作业
+     *
+     * @param job      作业
      * @param instance 待下发的作业实例
      */
     public void dispatchTask(Job job, JobInstance instance) {
-        // todo 下发前确认下对应的jobInstance是否已经关闭
+        // todo 下发前确认下对应的jobInstance是否已经关闭--可能重复下发？
 
         // 生成并持久化Task
         TaskCreateStrategyFactory.TaskCreateStrategy taskCreateStrategy = taskCreateStrategyFactory.newStrategy(instance.getTaskType());
@@ -271,10 +284,9 @@ public class PlanInstance implements Schedulable, Serializable {
             throw new JobExecuteException(job.getJobId(),
                     "Cannot create JobDispatcher for dispatch type: " + job.getDispatchOption().getLoadBalanceType());
         }
-        Worker worker = workerSelector.select(task, workerManager.availableWorkers());
 
         // 执行下发
-        boolean dispatched = task.dispatch(worker);
+        boolean dispatched = task.dispatch(workerSelector);
 
         // 根据下发结果，更新作业实例状态
         if (dispatched) {
@@ -290,10 +302,6 @@ public class PlanInstance implements Schedulable, Serializable {
     @Override
     public long triggerAt() {
         return triggerAt;
-    }
-
-    public static String buildScheduleId(String planId, long triggerAt) {
-        return planId + ":" + triggerAt;
     }
 
     /**

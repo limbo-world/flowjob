@@ -20,57 +20,45 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Getter;
 
 /**
- * 分发方式.
+ * 触发类型：
  * <ul>
- *     <li>{@linkplain DispatchType#SINGLE 单点}</li>
- *     <li>{@linkplain DispatchType#BROADCAST 广播}</li>
- *     <li>{@linkplain DispatchType#SHARDING 分片}</li>
+ *     <li>{@linkplain JobTriggerType#API api触发}</li>
+ *     <li>{@linkplain JobTriggerType#SCHEDULE 调度触发}</li>
+ *     <li>{@linkplain JobTriggerType#FOLLOW 后继触发}</li>
  * </ul>
  *
  * @author Brozen
  * @since 2021-05-16
  */
-public enum DispatchType implements DescribableEnum<Byte> {
-
-
+public enum JobTriggerType implements DescribableEnum<Byte> {
     /**
-     * 单点
+     * 调用api触发
      */
-    SINGLE(1, "单点"),
-
+    API(1, "api触发"),
     /**
-     * 广播
+     * 到达调度时间点触发
      */
-    BROADCAST(2, "广播"),
-
+    SCHEDULE(2, "调度触发"),
     /**
-     * 分片
+     * 获取到前置节点执行结果后触发
      */
-    SHARDING(3, "分片"),
+    FOLLOW(3, "后继触发"),
 
     ;
 
-    /**
-     * 可通过{@link #describe(Class)}方法生成，用于在swagger3为枚举添加说明
-     */
-    public static final String DESCRIPTION = "todo";
+    public static final String DESCRIPTION = DescribableEnum.describe(JobTriggerType.class);
 
-    /**
-     * 分发类型值
-     */
     public final byte type;
 
-    /**
-     * 分发类型描述
-     */
     @Getter
     public final String desc;
 
-    DispatchType(int type, String desc) {
-        this((byte) type, desc);
+
+    JobTriggerType(int type, String desc) {
+        this(((byte) type), desc);
     }
 
-    DispatchType(byte type, String desc) {
+    JobTriggerType(byte type, String desc) {
         this.type = type;
         this.desc = desc;
     }
@@ -84,18 +72,15 @@ public enum DispatchType implements DescribableEnum<Byte> {
         return type;
     }
 
-    /**
-     * 解析作业分发类型。
-     */
     @JsonCreator
-    public static DispatchType parse(Number type) {
+    public static JobTriggerType parse(Number type) {
         if (type == null) {
             return null;
         }
 
-        for (DispatchType dispatchType : values()) {
-            if (type.byteValue() == dispatchType.type) {
-                return dispatchType;
+        for (JobTriggerType triggerType : values()) {
+            if (type.byteValue() == triggerType.type) {
+                return triggerType;
             }
         }
 

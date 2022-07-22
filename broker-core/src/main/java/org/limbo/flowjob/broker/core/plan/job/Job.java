@@ -20,7 +20,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
-import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
+import org.limbo.flowjob.broker.api.constants.enums.JobTriggerType;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.plan.job.context.JobInstance;
 
@@ -58,7 +58,7 @@ public class Job {
     /**
      * 触发类型
      */
-    private TriggerType triggerType;
+    private JobTriggerType triggerType;
 
     /**
      * 作业分发配置参数
@@ -80,7 +80,7 @@ public class Job {
         jobInstance.setPlanId(planInstance.getPlanId());
         jobInstance.setPlanInstanceId(planInstance.getPlanInstanceId());
         jobInstance.setJobId(jobId);
-        jobInstance.setState(JobScheduleStatus.SCHEDULING);
+        jobInstance.setStatus(JobScheduleStatus.SCHEDULING);
         jobInstance.setAttributes(null); // todo
         return jobInstance;
     }

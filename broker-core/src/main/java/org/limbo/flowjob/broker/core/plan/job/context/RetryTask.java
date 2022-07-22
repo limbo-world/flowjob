@@ -17,9 +17,16 @@
 package org.limbo.flowjob.broker.core.plan.job.context;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
+import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
+import org.limbo.flowjob.broker.core.exceptions.JobDispatchException;
 import org.limbo.flowjob.broker.core.exceptions.JobExecuteException;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.plan.job.handler.JobFailHandler;
+import org.limbo.flowjob.broker.core.worker.Worker;
+
+import java.util.List;
 
 /**
  * 支持重试的任务，支持：
@@ -32,8 +39,41 @@ import org.limbo.flowjob.broker.core.plan.job.handler.JobFailHandler;
  * @since 2022-06-28
  */
 @Slf4j
-public class RetriableTask extends Task {
+public class RetryTask extends Task {
 
+    /**
+     * 下发重试次数 超过就算下发失败
+     */
+    private int DISPATCH_RETRY_TIME = 3;
+
+    /**
+     *
+     * @param workerSelector 会将此上下文分发去执行的worker
+     * @return
+     */
+    @Override
+    public boolean dispatch(WorkerSelector workerSelector) {
+        // 检测状态
+        TaskStatus status = this.getStatus();
+        if (status != TaskStatus.DISPATCHING) {
+            throw new JobDispatchException(jobId, taskId, "Cannot startup context due to current status: " + status);
+        }
+
+        List<Worker> availableWorkers = workerManager.availableWorkers();
+        if (CollectionUtils.isEmpty(availableWorkers)) {
+            return false;
+        }
+        for (int i = 0; i < DISPATCH_RETRY_TIME; i++) {
+            Worker worker = workerSelector.select(this, availableWorkers);
+            if (worker == null) {
+                return false;
+            }
+
+            boolean dispatched = doDispatch(worker);
+
+        }
+        return false;
+    }
 
     /**
      * {@inheritDoc} 并触发作业中配置的重试策略。

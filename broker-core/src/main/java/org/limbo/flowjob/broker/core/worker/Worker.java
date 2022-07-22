@@ -152,10 +152,10 @@ public abstract class Worker {
 
     /**
      * 发送一个作业到worker执行。当worker接受此task后，将触发返回
-     * @param instance 作业实例
+     * @param task 作业实例
      * @return worker接受task后触发
      */
-    public abstract TaskReceiveDTO sendTask(Task instance) throws TaskReceiveException;
+    public abstract TaskReceiveDTO sendTask(Task task) throws TaskReceiveException;
 
     /**
      * 解注册此worker，worker的状态将被标记为{@link WorkerStatus#TERMINATED}

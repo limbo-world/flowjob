@@ -52,7 +52,7 @@ public class JobInstance implements Serializable {
     /**
      * 状态
      */
-    private JobScheduleStatus state;
+    private JobScheduleStatus status;
 
     /**
      * 开始时间
@@ -119,9 +119,9 @@ public class JobInstance implements Serializable {
      * 是否能触发下级任务
      */
     public boolean canTriggerNext() {
-        if (JobScheduleStatus.SUCCEED == state) {
+        if (JobScheduleStatus.SUCCEED == status) {
             return true;
-        } else if (JobScheduleStatus.FAILED == state) {
+        } else if (JobScheduleStatus.FAILED == status) {
             // todo 根据 handler 类型来判断
             return true;
         } else {
@@ -134,7 +134,7 @@ public class JobInstance implements Serializable {
      * 作业实例下发成功，更新状态为执行中
      */
     public void dispatched() {
-        setState(JobScheduleStatus.EXECUTING);
+        setStatus(JobScheduleStatus.EXECUTING);
         jobInstanceRepo.dispatched(this);
     }
 
@@ -143,7 +143,7 @@ public class JobInstance implements Serializable {
      * 作业实例下发失败
      */
     public void dispatchFailed() {
-        setState(JobScheduleStatus.FAILED);
+        setStatus(JobScheduleStatus.FAILED);
         jobInstanceRepo.dispatchFailed(this);
     }
 
@@ -153,11 +153,11 @@ public class JobInstance implements Serializable {
      * @return 状态更新是否成功
      */
     public boolean succeed() {
-        if (this.state != JobScheduleStatus.EXECUTING) {
+        if (this.status != JobScheduleStatus.EXECUTING) {
             return false;
         }
 
-        setState(JobScheduleStatus.SUCCEED);
+        setStatus(JobScheduleStatus.SUCCEED);
         return jobInstanceRepo.executeSucceed(this);
     }
 
@@ -167,11 +167,11 @@ public class JobInstance implements Serializable {
      * @return 状态更新是否成功
      */
     public boolean failed() {
-        if (this.state != JobScheduleStatus.EXECUTING) {
+        if (this.status != JobScheduleStatus.EXECUTING) {
             return false;
         }
 
-        setState(JobScheduleStatus.SUCCEED);
+        setStatus(JobScheduleStatus.SUCCEED);
         return jobInstanceRepo.executeSucceed(this);
     }
 

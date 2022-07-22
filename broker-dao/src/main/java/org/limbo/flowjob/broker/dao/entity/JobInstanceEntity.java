@@ -31,7 +31,7 @@ public class JobInstanceEntity extends BaseEntity {
     /**
      * 状态
      */
-    private Byte state;
+    private Byte status;
 
     /**
      * 此次执行的参数

@@ -4,7 +4,12 @@ import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.common.utils.Verifies;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -15,12 +20,12 @@ import java.util.stream.Collectors;
  */
 public class JobDAG {
 
-    private static final int STATE_INIT = 0;
+    private static final int STATUS_INIT = 0;
 
     /**
      * 当遍历的时候第二次进入某个节点，表示成环
      */
-    private static final int STATE_VISITED = 1;
+    private static final int STATUS_VISITED = 1;
 
     /**
      * 当一个节点 所有子节点都已经被遍历 而且没有环
@@ -28,7 +33,7 @@ public class JobDAG {
      * 因为如果要形成环，必定是会访问之前已访问的节点
      * 最简单的例子：有环列表
      */
-    private static final int STATE_FILTER = 2;
+    private static final int STATUS_FILTER = 2;
 
     /**
      * job映射关系
@@ -189,16 +194,16 @@ public class JobDAG {
      */
     public boolean hasCyclic(DAGNode node) {
         // 表示当前节点已被标记
-        node.setState(STATE_VISITED);
+        node.setStatus(STATUS_VISITED);
         // 如果不存在子节点 则表示此顶点不再有出度 返回父节点
         if (CollectionUtils.isNotEmpty(node.getChildrenIds())) {
             // 遍历子节点
             for (String childId : node.getChildrenIds()) {
                 DAGNode child = nodes.get(childId);
-                if (child == null || STATE_FILTER == child.getState()) {
+                if (child == null || STATUS_FILTER == child.getStatus()) {
                     continue;
                 }
-                if (STATE_VISITED == child.getState()) {
+                if (STATUS_VISITED == child.getStatus()) {
                     return true;
                 }
                 if (hasCyclic(child)) {
@@ -206,7 +211,7 @@ public class JobDAG {
                 }
             }
         }
-        node.setState(STATE_FILTER);
+        node.setStatus(STATUS_FILTER);
         return false;
     }
 
@@ -229,7 +234,7 @@ public class JobDAG {
         /**
          * 状态 0 初始-未访问 1 已访问
          */
-        private int state;
+        private int status;
 
         public DAGNode(String id, Set<String> childrenIds) {
             this.id = id;

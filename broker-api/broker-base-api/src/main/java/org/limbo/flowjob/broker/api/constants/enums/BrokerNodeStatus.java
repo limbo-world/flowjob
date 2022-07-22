@@ -4,7 +4,7 @@ package org.limbo.flowjob.broker.api.constants.enums;
  * @author Devil
  * @since 2021/8/12
  */
-public enum BrokerNodeState {
+public enum BrokerNodeStatus {
     /**
      * 初始化
      */

@@ -47,7 +47,7 @@ public class DBBrokerRegistry implements BrokerRegistry {
 
     private BrokerConfig config;
 
-    private long nodeStateCheckInterval = 400;
+    private long nodeStatusCheckInterval = 400;
 
     private final List<NodeListener> listeners = new ArrayList<>();
 
@@ -75,7 +75,7 @@ public class DBBrokerRegistry implements BrokerRegistry {
         }, 0, config.getHeartbeatInterval());
 
         // 开启定时任务，监听broker心跳情况
-        new Timer().schedule(new HeartbeatCheckTask(), 0, nodeStateCheckInterval);
+        new Timer().schedule(new HeartbeatCheckTask(), 0, nodeStatusCheckInterval);
     }
 
     @Override

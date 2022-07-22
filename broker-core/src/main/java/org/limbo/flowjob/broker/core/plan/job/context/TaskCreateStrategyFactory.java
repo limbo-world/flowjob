@@ -1,7 +1,6 @@
 package org.limbo.flowjob.broker.core.plan.job.context;
 
-import org.limbo.flowjob.broker.api.constants.enums.TaskResult;
-import org.limbo.flowjob.broker.api.constants.enums.TaskScheduleStatus;
+import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskType;
 import org.limbo.flowjob.broker.core.utils.strategies.AbstractStrategyFactory;
 import org.limbo.flowjob.broker.core.utils.strategies.Strategy;
@@ -50,14 +49,13 @@ public class TaskCreateStrategyFactory extends AbstractStrategyFactory<TaskType,
          */
         @Override
         public Task apply(JobInstance job) {
-            Task task = new Task();
+            Task task = new RetryTask();
             task.setTaskId(UUIDUtils.randomID()); // TODO taskId如何生成？
             task.setPlanId(job.getPlanId());
             task.setPlanInstanceId(job.getPlanInstanceId());
             task.setJobId(job.getJobId());
             task.setJobInstanceId(job.getJobInstanceId());
-            task.setState(TaskScheduleStatus.SCHEDULING);
-            task.setResult(TaskResult.NONE);
+            task.setStatus(TaskStatus.DISPATCHING);
             task.setWorkerId("");
             task.setType(job.getTaskType());
             task.setAttributes(new Attributes());

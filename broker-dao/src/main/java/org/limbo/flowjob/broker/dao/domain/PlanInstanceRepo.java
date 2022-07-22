@@ -80,7 +80,7 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
         planInstanceEntityRepo.end(
                 Long.valueOf(instance.getPlanInstanceId()),
                 PlanScheduleStatus.EXECUTING.status,
-                instance.getState().status,
+                instance.getStatus().status,
                 TimeUtil.nowLocalDateTime()
         );
     }
@@ -96,7 +96,7 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
         planInstanceEntityRepo.end(
                 Long.valueOf(instance.getPlanInstanceId()),
                 PlanScheduleStatus.EXECUTING.status,
-                instance.getState().status,
+                instance.getStatus().status,
                 TimeUtil.nowLocalDateTime()
         );
     }

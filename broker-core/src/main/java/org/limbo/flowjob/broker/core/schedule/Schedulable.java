@@ -29,12 +29,12 @@ public interface Schedulable {
     /**
      * 获取调度对象ID
      */
-    String getId();
+    String scheduleId();
 
     /**
      * 获取调度配置
      */
-    ScheduleOption getScheduleOption();
+    ScheduleOption scheduleOption();
 
     /**
      * 获取上次被调度时间

@@ -54,7 +54,7 @@ public class CronScheduleCalculator extends ScheduleCalculator implements Strate
     @Override
     public Long apply(Schedulable schedulable) {
 
-        ScheduleOption scheduleOption = schedulable.getScheduleOption();
+        ScheduleOption scheduleOption = schedulable.scheduleOption();
         Instant nowInstant = TimeUtil.nowInstant();
         long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
 
