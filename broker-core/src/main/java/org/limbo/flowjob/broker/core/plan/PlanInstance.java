@@ -23,8 +23,8 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.JobTriggerType;
+import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.PlanTriggerType;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
@@ -184,28 +184,28 @@ public class PlanInstance implements Schedulable, Serializable {
      * 计划执行成功
      */
     public void executeSucceed() {
-        // 更新状态
         setStatus(PlanScheduleStatus.SUCCEED);
         planInstanceRepo.executeSucceed(this);
 
-        // todo 检测 Plan 是否需要重新调度，只有 FIXED_INTERVAL 类型的计划，需要在完成时扔到时间轮里重新调度，手动的和其他的都不需要
-//        PlanScheduler planScheduler = planSchedulerRepo.get(this.version);
-//        ScheduleType scheduleType = scheduleOption.getScheduleType();
-//        if (ScheduleType.FIXED_INTERVAL == scheduleType && isManual()) {
-//            planScheduler.setLastScheduleAt(this.startAt);
-//            planScheduler.setLastFeedbackAt(TimeUtil.nowInstant());
-////            trackerNode.jobTracker().schedule(planScheduler);
-//        }
+        planRepository.nextTriggerAt(planId, nextTriggerAt());
     }
-
 
     /**
      * 计划执行成功
      */
     public void executeFailed() {
-        // 更新状态
         setStatus(PlanScheduleStatus.FAILED);
-        planInstanceRepo.executeFailed(this);
+        planInstanceRepo.executeSucceed(this);
+
+        planRepository.nextTriggerAt(planId, nextTriggerAt());
+    }
+
+    /**
+     * 计算下次触发时间
+     */
+    private LocalDateTime nextTriggerAt() {
+        Long nextTriggerAt = lazyInitTriggerCalculator().apply(this);
+        return TimeUtil.toLocalDateTime(nextTriggerAt);
     }
 
     @Override
@@ -257,8 +257,7 @@ public class PlanInstance implements Schedulable, Serializable {
             }
 
             // 更新plan的下次触发时间 todo 如果上面执行完到这步失败--可能导致重复下发 所以需要对job和task的数据进行检测
-            Long nextTriggerAt = lazyInitTriggerCalculator().apply(this);
-            planRepository.nextTriggerAt(planId, TimeUtil.toLocalDateTime(nextTriggerAt));
+            planRepository.nextTriggerAt(planId, nextTriggerAt());
         } catch (Exception e) {
             log.error("[PlanInstance] schedule fail planInstance:{}", this, e);
         }

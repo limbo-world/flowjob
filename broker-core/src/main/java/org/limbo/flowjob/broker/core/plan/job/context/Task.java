@@ -284,7 +284,7 @@ public class Task implements Serializable {
      */
     public void failed(PlanInstance planInstance, JobInstance jobInstance, String errorMsg, String errorStackTrace) {
         // 当前状态无需变更
-        if (this.getStatus().isCompleted()) {
+        if (getStatus().isCompleted()) {
             return;
         }
 
@@ -292,13 +292,7 @@ public class Task implements Serializable {
         setStatus(TaskStatus.FAILED);
         setErrorMsg(errorMsg);
         setErrorStackTrace(errorStackTrace);
-        if (!taskRepo.executeFailed(this)) {
-            return;
-        }
-
-        // warning 执行失败重试不在这里执行，封装一个 RetryableTask（装饰or继承Task），在内部实现重试
-        //         这里只记录任务、作业实例状态
-
+        taskRepo.executeFailed(this);
     }
 
 }

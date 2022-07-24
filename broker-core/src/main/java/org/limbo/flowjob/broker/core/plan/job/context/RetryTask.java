@@ -27,6 +27,8 @@ import org.limbo.flowjob.broker.core.plan.job.handler.JobFailHandler;
 import org.limbo.flowjob.broker.core.worker.Worker;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 支持重试的任务，支持：
@@ -47,7 +49,7 @@ public class RetryTask extends Task {
     private int DISPATCH_RETRY_TIME = 3;
 
     /**
-     *
+     * 下发失败的进行一定次数的重试
      * @param workerSelector 会将此上下文分发去执行的worker
      * @return
      */
@@ -70,7 +72,11 @@ public class RetryTask extends Task {
             }
 
             boolean dispatched = doDispatch(worker);
+            if (dispatched) {
+                return true;
+            }
 
+            availableWorkers = availableWorkers.stream().filter(w -> !Objects.equals(w.getWorkerId(), worker.getWorkerId())).collect(Collectors.toList());
         }
         return false;
     }
@@ -85,7 +91,7 @@ public class RetryTask extends Task {
      */
     @Override
     public void failed(PlanInstance planInstance, JobInstance jobInstance, String errorMsg, String errorStackTrace) {
-        // 执行父方法，更新状态
+        // 执行父方法，更新状态 todo 事务
         super.failed(planInstance, jobInstance, errorMsg, errorStackTrace);
 
         // 判断重试到第几次，是否超过最大重试次数
