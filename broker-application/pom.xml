@@ -32,6 +32,12 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- netty -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-common</artifactId>
+        </dependency>
+
         <!-- SwaggerV3 接口文档注解 -->
         <dependency>
             <groupId>io.swagger.core.v3</groupId>

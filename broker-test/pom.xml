@@ -32,11 +32,7 @@
     <dependencies>
         <dependency>
             <groupId>org.limbo.flowjob</groupId>
-            <artifactId>broker-dao</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.limbo.flowjob</groupId>
-            <artifactId>broker-cluster</artifactId>
+            <artifactId>broker-application</artifactId>
         </dependency>
 
         <!-- test -->

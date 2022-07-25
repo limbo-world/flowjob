@@ -131,6 +131,11 @@
             </dependency>
             <dependency>
                 <groupId>org.limbo.flowjob</groupId>
+                <artifactId>broker-application</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.limbo.flowjob</groupId>
                 <artifactId>worker-core</artifactId>
                 <version>${project.version}</version>
             </dependency>

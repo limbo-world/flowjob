@@ -123,7 +123,7 @@ public abstract class BrokerNode {
                     }
                     // 调度
                     if (!scheduler.isScheduling(planInstance.scheduleId())) {
-                        planInstance.schedule();
+                        scheduler.schedule(planInstance);
                     }
                 }
             } catch (Exception e) {

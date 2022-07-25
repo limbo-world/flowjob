@@ -30,12 +30,6 @@
             <artifactId>cron-utils</artifactId>
         </dependency>
 
-        <!-- netty -->
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-common</artifactId>
-        </dependency>
-
         <!-- javax扩展 -->
         <dependency>
             <groupId>javax.annotation</groupId>

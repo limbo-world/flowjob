@@ -26,18 +26,12 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.api.constants.enums.JobTriggerType;
 import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.PlanTriggerType;
-import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
-import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
-import org.limbo.flowjob.broker.core.exceptions.JobExecuteException;
 import org.limbo.flowjob.broker.core.plan.job.Job;
 import org.limbo.flowjob.broker.core.plan.job.JobDAG;
 import org.limbo.flowjob.broker.core.plan.job.context.JobInstance;
-import org.limbo.flowjob.broker.core.plan.job.context.Task;
-import org.limbo.flowjob.broker.core.plan.job.context.TaskCreateStrategyFactory;
 import org.limbo.flowjob.broker.core.repositories.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.repositories.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.repositories.PlanRepository;
-import org.limbo.flowjob.broker.core.repositories.TaskRepository;
 import org.limbo.flowjob.broker.core.schedule.Schedulable;
 import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
@@ -220,17 +214,11 @@ public class PlanInstance implements Schedulable, Serializable {
             // 生成作业实例
             for (Job job : jobs) {
                 // 下发task
-                ScheduleThreadPool.TASK_DISPATCH_POOL.submit(() -> {
-                    try {
-                        JobInstance jobInstance = job.newInstance(this);
-                        if (JobTriggerType.SCHEDULE != job.getTriggerType()) {
-                            return;
-                        }
-                        jobInstance.dispatch();
-                    } catch (Exception e) {
-                        log.error("[PlanInstance] dispatchJob fail job:{}", job, e);
-                    }
-                });
+                JobInstance jobInstance = job.newInstance(this);
+                if (JobTriggerType.SCHEDULE != job.getTriggerType()) {
+                    return;
+                }
+                jobInstance.dispatch();
             }
 
             // 更新plan的下次触发时间 todo 如果上面执行完到这步失败--可能导致重复下发 所以需要对job和task的数据进行检测

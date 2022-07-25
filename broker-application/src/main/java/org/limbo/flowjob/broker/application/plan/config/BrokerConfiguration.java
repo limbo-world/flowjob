@@ -22,7 +22,7 @@ import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.dispatcher.strategies.RoundRobinWorkerSelector;
 import org.limbo.flowjob.broker.core.plan.job.context.TaskCreateStrategyFactory;
 import org.limbo.flowjob.broker.core.schedule.calculator.SimpleScheduleCalculatorFactory;
-import org.limbo.flowjob.broker.core.schedule.scheduler.HashedWheelTimerScheduler;
+import org.limbo.flowjob.broker.application.plan.component.HashedWheelTimerScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.Scheduler;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.springframework.beans.factory.annotation.Autowired;

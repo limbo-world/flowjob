@@ -1,31 +1,32 @@
 /*
- * Copyright 2020-2024 Limbo Team (https://github.com/limbo-world).
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright 2020-2024 Limbo Team (https://github.com/limbo-world).
+ *  *
+ *  * Licensed under the Apache License, Version 2.0 (the "License");
+ *  * you may not use this file except in compliance with the License.
+ *  * You may obtain a copy of the License at
+ *  *
+ *  * 	http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  * Unless required by applicable law or agreed to in writing, software
+ *  * distributed under the License is distributed on an "AS IS" BASIS,
+ *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  * See the License for the specific language governing permissions and
+ *  * limitations under the License.
  *
- * 	http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
-package org.limbo.flowjob.broker.core.schedule.scheduler;
+package org.limbo.flowjob.broker.application.plan.component;
 
 import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timer;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.schedule.Schedulable;
+import org.limbo.flowjob.broker.core.schedule.scheduler.CacheableScheduler;
 import org.limbo.flowjob.broker.core.utils.TimeUtil;
 
 import java.time.Duration;
-import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -38,17 +39,12 @@ import java.util.concurrent.TimeUnit;
  * @since 2021-05-18
  */
 @Slf4j
-public class HashedWheelTimerScheduler implements Scheduler {
+public class HashedWheelTimerScheduler extends CacheableScheduler {
 
     /**
      * 依赖netty的时间轮算法进行作业调度
      */
     private final Timer timer;
-
-    /**
-     * 所有正在被调度中的对象
-     */
-    private final Map<String, Schedulable> scheduling;
 
     /**
      * 调度线程池
@@ -60,13 +56,12 @@ public class HashedWheelTimerScheduler implements Scheduler {
      */
     public HashedWheelTimerScheduler() {
         this.timer = new HashedWheelTimer(NamedThreadFactory.newInstance(this.getClass().getSimpleName() + "-timer-"));
-        this.scheduling = new ConcurrentHashMap<>();
         this.schedulePool = new ThreadPoolExecutor(
-                Runtime.getRuntime().availableProcessors() * 2,
                 Runtime.getRuntime().availableProcessors() * 4,
+                Runtime.getRuntime().availableProcessors() * 8,
                 60,
                 TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(64),
+                new ArrayBlockingQueue<>(256),
                 new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
@@ -77,10 +72,7 @@ public class HashedWheelTimerScheduler implements Scheduler {
      */
     @Override
     public void schedule(Schedulable schedulable) {
-        String id = schedulable.scheduleId();
-        if (scheduling.containsKey(id)) {
-            scheduling.put(id, schedulable);
-
+        if (checkAndPut(schedulable)) {
             // 计算延迟时间
             long delay = Duration.between(TimeUtil.nowLocalDateTime(), schedulable.triggerAt()).toMillis();
             delay = delay < 0 ? 0 : delay;
@@ -89,40 +81,17 @@ public class HashedWheelTimerScheduler implements Scheduler {
             this.timer.newTimeout(timeout -> {
                 try {
                     // 已经取消调度了，则不再重新调度作业
-                    if (!scheduling.containsKey(id)) {
+                    if (!isScheduling(schedulable.scheduleId())) {
                         return;
                     }
 
                     // 执行调度逻辑
                     schedulePool.submit(schedulable::schedule);
                 } catch (Exception e) {
-                    log.error("[HashedWheelTimerScheduler] schedule fail id:{}", id, e);
+                    log.error("[HashedWheelTimerScheduler] schedule fail id:{}", schedulable.scheduleId(), e);
                 }
             }, delay, TimeUnit.MILLISECONDS);
         }
-    }
-
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param id 待调度的对象的id
-     */
-    @Override
-    public void unschedule(String id) {
-        scheduling.remove(id);
-    }
-
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param id 调度的对象 id
-     * @return 是否调度中
-     */
-    @Override
-    public boolean isScheduling(String id) {
-        return scheduling.containsKey(id);
     }
 
 }
