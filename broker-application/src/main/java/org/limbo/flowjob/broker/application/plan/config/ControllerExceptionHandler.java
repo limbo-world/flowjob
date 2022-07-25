@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.admin.adapter.config;
+package org.limbo.flowjob.broker.application.plan.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.api.dto.ResponseDTO;

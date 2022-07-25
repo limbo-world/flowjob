@@ -54,11 +54,11 @@ public class FixDelayScheduleCalculator extends ScheduleCalculator implements St
         long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
 
         // 计算第一次调度
-        if (schedulable.scheduleAt() == null) {
+        if (schedulable.lastScheduleAt() == null) {
             return Math.max(startScheduleAt, now);
         }
 
-        LocalDateTime lastFeedbackAt = schedulable.feedbackAt();
+        LocalDateTime lastFeedbackAt = schedulable.lastFeedbackAt();
         // 如果为空，表示此次上次任务还没反馈，等待反馈后重新调度
         if (lastFeedbackAt == null) {
             return ScheduleCalculator.NO_TRIGGER;

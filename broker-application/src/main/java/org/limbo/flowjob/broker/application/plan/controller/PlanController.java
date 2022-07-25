@@ -1,4 +1,4 @@
-package org.limbo.flowjob.broker.application.plan.adapter;
+package org.limbo.flowjob.broker.application.plan.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -47,10 +47,10 @@ public class PlanController {
             @Parameter(name = "planId", in = ParameterIn.PATH, description = "计划ID")
     })
     @PutMapping("/{planId}")
-    public ResponseDTO<Void> replace(@NotBlank(message = "ID不能为空") @PathVariable("planId") String planId,
+    public ResponseDTO<String> replace(@NotBlank(message = "ID不能为空") @PathVariable("planId") String planId,
                                            @Validated @RequestBody PlanReplaceParam dto) {
-        planService.replace(planId, dto);
-        return ResponseDTO.<Void>builder().ok().build();
+        ;
+        return ResponseDTO.<String>builder().ok(planService.replace(planId, dto)).build();
     }
 
     /**
@@ -58,9 +58,8 @@ public class PlanController {
      */
     @Operation(summary = "启动计划")
     @PutMapping("/{planId}/start")
-    public ResponseDTO<Void> start(@PathVariable("planId") String planId) {
-        planService.start(planId);
-        return ResponseDTO.<Void>builder().ok().build();
+    public ResponseDTO<Boolean> start(@PathVariable("planId") String planId) {
+        return ResponseDTO.<Boolean>builder().ok(planService.start(planId)).build();
     }
 
     /**
@@ -68,9 +67,8 @@ public class PlanController {
      */
     @Operation(summary = "停止计划")
     @PutMapping("/{planId}/stop")
-    public ResponseDTO<Void> stop(@PathVariable("planId") String planId) {
-        planService.stop(planId);
-        return ResponseDTO.<Void>builder().ok().build();
+    public ResponseDTO<Boolean> stop(@PathVariable("planId") String planId) {
+        return ResponseDTO.<Boolean>builder().ok(planService.stop(planId)).build();
     }
 
 }

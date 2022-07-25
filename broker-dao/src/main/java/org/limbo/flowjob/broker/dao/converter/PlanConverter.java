@@ -33,7 +33,7 @@ public class PlanConverter {
         PlanEntity planEntity = new PlanEntity();
         planEntity.setCurrentVersion(Long.valueOf(plan.getCurrentVersion()));
         planEntity.setRecentlyVersion(Long.valueOf(plan.getRecentlyVersion()));
-        planEntity.setIsEnabled(plan.enable());
+        planEntity.setIsEnabled(plan.isEnabled());
         planEntity.setId(Long.valueOf(plan.getPlanId()));
         return planEntity;
     }

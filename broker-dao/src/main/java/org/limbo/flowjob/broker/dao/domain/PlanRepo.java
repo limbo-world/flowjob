@@ -19,15 +19,15 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
-import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.core.repositories.PlanRepository;
-import org.limbo.flowjob.common.utils.Verifies;
+import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.dao.converter.PlanConverter;
 import org.limbo.flowjob.broker.dao.converter.PlanInfoConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
+import org.limbo.flowjob.common.utils.Verifies;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
@@ -146,9 +146,9 @@ public class PlanRepo implements PlanRepository {
      * @return
      */
     @Override
-    public int enablePlan(Plan plan) {
+    public boolean enablePlan(Plan plan) {
         // update where 乐观锁
-        return planEntityRepo.updateEnable(Long.valueOf(plan.getPlanId()), false, true);
+        return planEntityRepo.updateEnable(Long.valueOf(plan.getPlanId()), false, true) == 1;
     }
 
 
@@ -158,9 +158,9 @@ public class PlanRepo implements PlanRepository {
      * @return
      */
     @Override
-    public int disablePlan(Plan plan) {
+    public boolean disablePlan(Plan plan) {
         // update where 乐观锁
-        return planEntityRepo.updateEnable(Long.valueOf(plan.getPlanId()), true, false);
+        return planEntityRepo.updateEnable(Long.valueOf(plan.getPlanId()), true, false) == 1;
     }
 
 }

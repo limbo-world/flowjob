@@ -23,13 +23,15 @@ import java.util.List;
  */
 public class PlanConverter {
 
-
     /**
      * 新增计划
      */
     public static Plan convertPlan(PlanAddParam param) {
         Plan plan = new Plan();
         plan.setInfo(convertPlanInfo(param));
+
+        plan.getInfo().check();
+
         return plan;
     }
 

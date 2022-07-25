@@ -20,7 +20,9 @@ import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timer;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.schedule.Schedulable;
+import org.limbo.flowjob.broker.core.utils.TimeUtil;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -80,7 +82,7 @@ public class HashedWheelTimerScheduler implements Scheduler {
             scheduling.put(id, schedulable);
 
             // 计算延迟时间
-            long delay = schedulable.triggerAt() - System.currentTimeMillis();
+            long delay = Duration.between(TimeUtil.nowLocalDateTime(), schedulable.triggerAt()).toMillis();
             delay = delay < 0 ? 0 : delay;
 
             // 在timer上调度作业执行

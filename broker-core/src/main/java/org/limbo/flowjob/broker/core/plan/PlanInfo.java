@@ -95,4 +95,11 @@ public class PlanInfo implements Serializable {
         return instance;
     }
 
+    /**
+     * 校验info的正确性
+     */
+    public void check() {
+        // todo
+    }
+
 }

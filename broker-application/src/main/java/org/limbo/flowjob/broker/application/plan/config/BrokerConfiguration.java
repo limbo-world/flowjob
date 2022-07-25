@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.admin.adapter.config;
+package org.limbo.flowjob.broker.application.plan.config;
 
-import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
-import org.limbo.flowjob.broker.core.dispatcher.strategies.RoundRobinWorkerSelector;
 import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.cluster.WorkerManagerImpl;
+import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
+import org.limbo.flowjob.broker.core.dispatcher.strategies.RoundRobinWorkerSelector;
 import org.limbo.flowjob.broker.core.plan.job.context.TaskCreateStrategyFactory;
 import org.limbo.flowjob.broker.core.schedule.calculator.SimpleScheduleCalculatorFactory;
 import org.limbo.flowjob.broker.core.schedule.scheduler.HashedWheelTimerScheduler;
@@ -40,14 +40,14 @@ import org.springframework.context.annotation.ComponentScan;
         "org.limbo.flowjob.tracker.infrastructure.job",
         "org.limbo.flowjob.tracker.infrastructure.worker",
 })
-@EnableConfigurationProperties({TrackerProperties.class})
-public class TrackerConfiguration {
+@EnableConfigurationProperties({BrokerProperties.class})
+public class BrokerConfiguration {
 
     @Value("${server.port}")
     private int port;
 
     @Autowired
-    private TrackerProperties trackerProperties;
+    private BrokerProperties brokerProperties;
 
 //    @Bean
 //    @ConditionalOnMissingBean(TrackerNode.class)

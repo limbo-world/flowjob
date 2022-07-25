@@ -1,4 +1,4 @@
-package org.limbo.flowjob.tracker.admin.adapter.config;
+package org.limbo.flowjob.broker.application.plan.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -6,18 +6,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.format.datetime.DateFormatter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.web.reactive.config.WebFluxConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -27,7 +22,7 @@ import java.time.format.DateTimeFormatter;
  */
 @Slf4j
 @Configuration
-public class WebConfiguration implements WebFluxConfigurer {
+public class WebConfiguration implements WebMvcConfigurer {
 
     private static final String TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
 

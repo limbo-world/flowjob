@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.admin;
+package org.limbo.flowjob.broker.application.plan;
 
-import org.limbo.flowjob.tracker.admin.adapter.config.HttpWorkerMessagingConfiguration;
-import org.limbo.flowjob.tracker.admin.adapter.config.TrackerConfiguration;
+import org.limbo.flowjob.broker.application.plan.config.BrokerConfiguration;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -29,15 +28,14 @@ import org.springframework.context.annotation.Import;
  */
 @SpringBootApplication
 @Import({
-        TrackerConfiguration.class,
-        HttpWorkerMessagingConfiguration.class
+        BrokerConfiguration.class
 })
-public class AdminApplication {
+public class WebApplication {
 
     public static void main(String[] args) {
         new SpringApplicationBuilder()
                 .web(WebApplicationType.REACTIVE)
-                .sources(AdminApplication.class)
+                .sources(WebApplication.class)
                 .build()
                 .run(args);
     }

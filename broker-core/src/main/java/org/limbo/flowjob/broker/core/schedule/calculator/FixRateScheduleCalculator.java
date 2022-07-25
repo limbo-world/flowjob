@@ -54,7 +54,7 @@ public class FixRateScheduleCalculator extends ScheduleCalculator implements Str
         long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
 
         // 计算第一次调度
-        if (schedulable.scheduleAt() == null) {
+        if (schedulable.lastScheduleAt() == null) {
             return Math.max(startScheduleAt, now);
         }
 
@@ -65,7 +65,7 @@ public class FixRateScheduleCalculator extends ScheduleCalculator implements Str
             return ScheduleCalculator.NO_TRIGGER;
         }
 
-        long scheduleAt = TimeUtil.toInstant(schedulable.scheduleAt()).toEpochMilli() + interval.toMillis();
+        long scheduleAt = TimeUtil.toInstant(schedulable.lastScheduleAt()).toEpochMilli() + interval.toMillis();
         return Math.max(scheduleAt, now);
     }
 

@@ -14,29 +14,25 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.admin.adapter.config;
+package org.limbo.flowjob.broker.application.plan.config;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.context.annotation.Bean;
-import reactor.netty.http.client.HttpClient;
+import org.springframework.context.annotation.Primary;
 
 /**
- * 当与Http协议的Worker进行通信时，使用此配置
+ * Jackson的序列化、反序列化处理
  *
  * @author Brozen
- * @since 2021-06-03
+ * @since 2021-07-27
  */
-public class HttpWorkerMessagingConfiguration {
+public class JacksonSerializerConfiguration {
 
-
-    /**
-     * Http通信使用的响应式HttpClient，基于reactor-netty
-     */
     @Bean
-    @ConditionalOnMissingBean(HttpClient.class)
-    public HttpClient httpClient() {
-        return HttpClient.create();
+    @Primary
+    public ObjectMapper objectMapper() {
+        return JacksonUtils.mapper;
     }
-
 
 }

@@ -22,14 +22,19 @@ import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskType;
+import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
+import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
+import org.limbo.flowjob.broker.core.exceptions.JobExecuteException;
 import org.limbo.flowjob.broker.core.plan.job.DispatchOption;
 import org.limbo.flowjob.broker.core.plan.job.ExecutorOption;
 import org.limbo.flowjob.broker.core.plan.job.handler.JobFailHandler;
 import org.limbo.flowjob.broker.core.repositories.JobInstanceRepository;
+import org.limbo.flowjob.broker.core.repositories.TaskRepository;
 
 import javax.inject.Inject;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.List;
 
 /**
  * @author Devil
@@ -48,6 +53,7 @@ public class JobInstance implements Serializable {
 
     private String jobId;
 
+    private DispatchOption dispatchOption;
 
     /**
      * 状态
@@ -88,6 +94,19 @@ public class JobInstance implements Serializable {
     private transient JobInstanceRepository jobInstanceRepo;
 
 
+    @ToString.Exclude
+    @Setter(onMethod_ = @Inject)
+    private transient TaskCreateStrategyFactory taskCreateStrategyFactory;
+
+    @ToString.Exclude
+    @Setter(onMethod_ = @Inject)
+    private transient TaskRepository taskRepo;
+
+    @ToString.Exclude
+    @Setter(onMethod_ = @Inject)
+    private transient WorkerSelectorFactory workerSelectorFactory;
+
+
     /**
      * 获取此作业实例的下发配置
      */
@@ -126,6 +145,42 @@ public class JobInstance implements Serializable {
             return true;
         } else {
             return false;
+        }
+    }
+
+    /**
+     * 作业下发，会先持久化任务，然后执行下发
+     */
+    public void dispatch() {
+
+        jobInstanceRepo.add(this);
+
+        // todo 下发前确认下对应的jobInstance是否已经关闭--可能重复下发？
+
+        // 生成并持久化Task
+        TaskCreateStrategyFactory.TaskCreateStrategy taskCreateStrategy = taskCreateStrategyFactory.newStrategy(getTaskType());
+        List<Task> tasks = taskCreateStrategy.apply(this);
+        for (Task task : tasks) {
+            taskRepo.add(task);
+
+            // 选择worker
+            WorkerSelector workerSelector = workerSelectorFactory.newSelector(dispatchOption.getLoadBalanceType());
+            if (workerSelector == null) {
+                throw new JobExecuteException(getJobId(), "Cannot create WorkerSelector for dispatch type: " + dispatchOption.getLoadBalanceType());
+            }
+
+            // 执行下发
+            boolean dispatched = task.dispatch(workerSelector);
+
+            // 根据下发结果，更新作业实例状态
+            if (dispatched) {
+                dispatched();
+            } else {
+                // warning 注意，task下发失败不在这里处理，封装一个 RetryableTask（装饰or继承Task），在内部实现重试
+                //         所以这里只需要记录状态就好了
+                // todo 下发失败判断是否有重试 根据重试机制处理
+                dispatchFailed();
+            }
         }
     }
 
@@ -174,5 +229,7 @@ public class JobInstance implements Serializable {
         setStatus(JobScheduleStatus.SUCCEED);
         return jobInstanceRepo.executeSucceed(this);
     }
+
+
 
 }

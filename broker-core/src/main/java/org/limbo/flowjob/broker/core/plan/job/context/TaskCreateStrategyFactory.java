@@ -7,12 +7,14 @@ import org.limbo.flowjob.broker.core.utils.strategies.Strategy;
 import org.limbo.flowjob.common.utils.UUIDUtils;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Brozen
  * @since 2021-10-20
  */
-public class TaskCreateStrategyFactory extends AbstractStrategyFactory<TaskType, TaskCreateStrategyFactory.TaskCreateStrategy, JobInstance, Task> {
+public class TaskCreateStrategyFactory extends AbstractStrategyFactory<TaskType, TaskCreateStrategyFactory.TaskCreateStrategy, JobInstance, List<Task>> {
 
     public TaskCreateStrategyFactory() {
         registerStrategyCreator(TaskType.NORMAL, NormalTaskCreateStrategy::new);
@@ -24,7 +26,7 @@ public class TaskCreateStrategyFactory extends AbstractStrategyFactory<TaskType,
      * Task 创建策略接口，在这里对 Task 进行多种代理（装饰），实现下发重试策略。
      * @see DispatchRetryableTask
      */
-    public interface TaskCreateStrategy extends Strategy<JobInstance, Task> {}
+    public interface TaskCreateStrategy extends Strategy<JobInstance, List<Task>> {}
 
 
     /**
@@ -48,7 +50,7 @@ public class TaskCreateStrategyFactory extends AbstractStrategyFactory<TaskType,
          * @return
          */
         @Override
-        public Task apply(JobInstance job) {
+        public List<Task> apply(JobInstance job) {
             Task task = new RetryTask();
             task.setTaskId(UUIDUtils.randomID()); // TODO taskId如何生成？
             task.setPlanId(job.getPlanId());
@@ -65,7 +67,7 @@ public class TaskCreateStrategyFactory extends AbstractStrategyFactory<TaskType,
             task.setErrorStackTrace("");
             task.setStartAt(Instant.EPOCH);
             task.setEndAt(Instant.EPOCH);
-            return task;
+            return Collections.singletonList(task);
         }
     }
 
@@ -81,7 +83,7 @@ public class TaskCreateStrategyFactory extends AbstractStrategyFactory<TaskType,
         }
 
         @Override
-        public Task apply(JobInstance data) {
+        public List<Task> apply(JobInstance data) {
             return null;
         }
     }
@@ -98,7 +100,7 @@ public class TaskCreateStrategyFactory extends AbstractStrategyFactory<TaskType,
         }
 
         @Override
-        public Task apply(JobInstance data) {
+        public List<Task> apply(JobInstance data) {
             return null;
         }
     }

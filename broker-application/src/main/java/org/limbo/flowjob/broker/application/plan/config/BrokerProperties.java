@@ -1,4 +1,4 @@
-package org.limbo.flowjob.tracker.admin.adapter.config;
+package org.limbo.flowjob.broker.application.plan.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -8,8 +8,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @since 2021/7/30
  */
 @Data
-@ConfigurationProperties(prefix = "flowjob.tracker")
-public class TrackerProperties {
+@ConfigurationProperties(prefix = "flowjob.broker")
+public class BrokerProperties {
 
     /**
      * tracker 启动模式 默认为 单机 可选 election cluster

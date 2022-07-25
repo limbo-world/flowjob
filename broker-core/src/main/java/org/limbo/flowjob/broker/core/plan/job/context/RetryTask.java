@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class RetryTask extends Task {
-
+    private static final long serialVersionUID = -3346492341332788277L;
     /**
      * 下发重试次数 超过就算下发失败
      */

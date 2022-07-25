@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.broker.application.plan.adapter;
+package org.limbo.flowjob.broker.application.plan.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

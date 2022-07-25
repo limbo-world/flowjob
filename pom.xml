@@ -8,7 +8,6 @@
     <artifactId>flowjob</artifactId>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>job-tracker-admin</module>
         <module>broker-api</module>
         <module>broker-core</module>
         <module>broker-cluster</module>
@@ -65,14 +64,6 @@
             <organizationUrl>https://github.com/limbo-world</organizationUrl>
         </developer>
     </developers>
-
-    <scm>
-        <!-- TODO -->
-    </scm>
-
-    <distributionManagement>
-        <!-- TODO -->
-    </distributionManagement>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>

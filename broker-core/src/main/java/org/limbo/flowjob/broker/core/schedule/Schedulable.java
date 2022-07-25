@@ -39,12 +39,12 @@ public interface Schedulable {
     /**
      * 获取上次被调度时间
      */
-    LocalDateTime scheduleAt();
+    LocalDateTime lastScheduleAt();
 
     /**
      * 获取上次调度反馈的时间
      */
-    LocalDateTime feedbackAt();
+    LocalDateTime lastFeedbackAt();
 
     /**
      * 执行业务
@@ -52,10 +52,15 @@ public interface Schedulable {
     void schedule();
 
     /**
-     * 计算作业下一次被触发时的时间戳
+     * 这次触发时间
      */
-    default long triggerAt() {
+    default LocalDateTime triggerAt() {
         throw new UnsupportedOperationException();
     }
+
+    /**
+     * 下次触发时间
+     */
+    LocalDateTime nextTriggerAt();
 
 }

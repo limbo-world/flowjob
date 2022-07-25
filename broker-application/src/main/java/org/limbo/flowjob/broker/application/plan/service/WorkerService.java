@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.tracker.admin.service.worker;
+package org.limbo.flowjob.broker.application.plan.service;
 
 import com.google.common.collect.Lists;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.api.clent.dto.WorkerRegisterDTO;
 import org.limbo.flowjob.broker.api.clent.param.WorkerExecutorRegisterParam;
+import org.limbo.flowjob.broker.api.clent.param.WorkerHeartbeatParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
@@ -31,40 +33,54 @@ import org.limbo.flowjob.broker.core.worker.metric.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatisticsRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.limbo.flowjob.common.utils.Verifies;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Mono;
-import reactor.netty.http.client.HttpClient;
 
 import javax.annotation.Nonnull;
+import javax.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 应用服务层：worker注册操作
+ * 应用层服务
  *
  * @author Brozen
- * @since 2021-06-03
+ * @since 2021-07-06
  */
 @Slf4j
 @Service
-public class WorkerRegisterService {
+public class WorkerService {
 
-    @Autowired
-    private HttpClient httpClient;
-
-    @Autowired
+    @Setter(onMethod_ = @Inject)
     private WorkerRepository workerRepository;
 
-    @Autowired
+    @Setter(onMethod_ = @Inject)
     private WorkerMetricRepository metricRepository;
 
-    @Autowired
+    @Setter(onMethod_ = @Inject)
     private WorkerStatisticsRepository statisticsRepository;
 
-//    @Autowired
-//    private TrackerNode trackerNode;
+
+    /**
+     * worker心跳
+     * @param heartbeatOption 心跳参数，上报部分指标数据
+     */
+    public void heartbeat(WorkerHeartbeatParam heartbeatOption) {
+        // 查询worker并校验
+        Worker worker = workerRepository.getWorker(heartbeatOption.getWorkerId());
+        Verifies.notNull(worker, "worker不存在！");
+
+        // 更新metric
+        WorkerMetric metric = worker.getMetric();
+        metric.setAvailableResource(WorkerAvailableResource.from(heartbeatOption.getAvailableResource()));
+        worker.updateMetric(metric);
+
+        if (log.isDebugEnabled()) {
+            log.debug("receive heartbeat from " + worker.getWorkerId());
+        }
+
+    }
 
     /**
      * worker注册
@@ -72,7 +88,7 @@ public class WorkerRegisterService {
      * @return 返回所有tracker节点信息
      */
     @Transactional(rollbackFor = Throwable.class)
-    public Mono<WorkerRegisterDTO> register(WorkerRegisterParam options) {
+    public WorkerRegisterDTO register(WorkerRegisterParam options) {
 
         // TODO 租户鉴权
 
@@ -103,7 +119,7 @@ public class WorkerRegisterService {
         WorkerRegisterDTO registerResult = new WorkerRegisterDTO();
         registerResult.setWorkerId(worker.getWorkerId());
 //        registerResult.setBrokers(trackerNode.getNodes());
-        return Mono.just(registerResult);
+        return registerResult;
     }
 
     /**

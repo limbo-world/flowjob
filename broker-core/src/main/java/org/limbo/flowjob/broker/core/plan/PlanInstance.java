@@ -85,7 +85,7 @@ public class PlanInstance implements Schedulable, Serializable {
     /**
      * 触发时间
      */
-    private long triggerAt;
+    private LocalDateTime triggerAt;
 
     /**
      * 触发类型
@@ -121,18 +121,6 @@ public class PlanInstance implements Schedulable, Serializable {
     @Setter(value = AccessLevel.PUBLIC, onMethod_ = @Inject)
     @ToString.Exclude
     private transient ScheduleCalculatorFactory strategyFactory;
-
-    @ToString.Exclude
-    @Setter(onMethod_ = @Inject)
-    private transient TaskRepository taskRepo;
-
-    @ToString.Exclude
-    @Setter(onMethod_ = @Inject)
-    private transient TaskCreateStrategyFactory taskCreateStrategyFactory;
-
-    @ToString.Exclude
-    @Setter(onMethod_ = @Inject)
-    private transient WorkerSelectorFactory workerSelectorFactory;
 
     @ToString.Exclude
     @Setter(onMethod_ = @Inject)
@@ -200,14 +188,6 @@ public class PlanInstance implements Schedulable, Serializable {
         planRepository.nextTriggerAt(planId, nextTriggerAt());
     }
 
-    /**
-     * 计算下次触发时间
-     */
-    private LocalDateTime nextTriggerAt() {
-        Long nextTriggerAt = lazyInitTriggerCalculator().apply(this);
-        return TimeUtil.toLocalDateTime(nextTriggerAt);
-    }
-
     @Override
     public String scheduleId() {
         return planId + ":" + triggerAt;
@@ -219,12 +199,12 @@ public class PlanInstance implements Schedulable, Serializable {
     }
 
     @Override
-    public LocalDateTime scheduleAt() {
+    public LocalDateTime lastScheduleAt() {
         return scheduleAt;
     }
 
     @Override
-    public LocalDateTime feedbackAt() {
+    public LocalDateTime lastFeedbackAt() {
         return feedbackAt;
     }
 
@@ -239,17 +219,14 @@ public class PlanInstance implements Schedulable, Serializable {
 
             // 生成作业实例
             for (Job job : jobs) {
-                JobInstance jobInstance = job.newInstance(this);
                 // 下发task
                 ScheduleThreadPool.TASK_DISPATCH_POOL.submit(() -> {
                     try {
+                        JobInstance jobInstance = job.newInstance(this);
                         if (JobTriggerType.SCHEDULE != job.getTriggerType()) {
                             return;
                         }
-                        jobInstanceRepo.add(jobInstance);
-
-                        // 将作业对应的任务信息下发给worker
-                        dispatchTask(job, jobInstance);
+                        jobInstance.dispatch();
                     } catch (Exception e) {
                         log.error("[PlanInstance] dispatchJob fail job:{}", job, e);
                     }
@@ -263,44 +240,18 @@ public class PlanInstance implements Schedulable, Serializable {
         }
     }
 
-    /**
-     * 作业下发，会先持久化任务，然后执行下发
-     *
-     * @param job      作业
-     * @param instance 待下发的作业实例
-     */
-    public void dispatchTask(Job job, JobInstance instance) {
-        // todo 下发前确认下对应的jobInstance是否已经关闭--可能重复下发？
-
-        // 生成并持久化Task
-        TaskCreateStrategyFactory.TaskCreateStrategy taskCreateStrategy = taskCreateStrategyFactory.newStrategy(instance.getTaskType());
-        Task task = taskCreateStrategy.apply(instance);
-        taskRepo.add(task);
-
-        // 选择worker
-        WorkerSelector workerSelector = workerSelectorFactory.newSelector(job.getDispatchOption().getLoadBalanceType());
-        if (workerSelector == null) {
-            throw new JobExecuteException(job.getJobId(),
-                    "Cannot create JobDispatcher for dispatch type: " + job.getDispatchOption().getLoadBalanceType());
-        }
-
-        // 执行下发
-        boolean dispatched = task.dispatch(workerSelector);
-
-        // 根据下发结果，更新作业实例状态
-        if (dispatched) {
-            instance.dispatched();
-        } else {
-            // warning 注意，task下发失败不在这里处理，封装一个 RetryableTask（装饰or继承Task），在内部实现重试
-            //         所以这里只需要记录状态就好了
-            // todo 下发失败判断是否有重试 根据重试机制处理
-            instance.dispatchFailed();
-        }
+    @Override
+    public LocalDateTime triggerAt() {
+        return triggerAt;
     }
 
+    /**
+     * 计算下次触发时间
+     */
     @Override
-    public long triggerAt() {
-        return triggerAt;
+    public LocalDateTime nextTriggerAt() {
+        Long nextTriggerAt = lazyInitTriggerCalculator().apply(this);
+        return TimeUtil.toLocalDateTime(nextTriggerAt);
     }
 
     /**

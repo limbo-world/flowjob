@@ -59,6 +59,8 @@ public class DBBrokerRegistry implements BrokerRegistry {
     @Override
     public void register(String host, int port) {
         // 开启定时任务 维持心跳
+        Timer timer = new Timer();
+        timer.cancel();
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {

@@ -267,7 +267,7 @@ public class Task implements Serializable {
             for (Job subJob : subJobs) {
                 if (planInstance.isJobTriggerable(subJob)) {
                     JobInstance subJobInstance = subJob.newInstance(planInstance);
-                    planInstance.dispatchTask(subJob, subJobInstance);
+                    subJobInstance.dispatch();
                 }
             }
 
