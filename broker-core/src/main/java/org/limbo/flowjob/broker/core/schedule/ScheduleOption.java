@@ -20,7 +20,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
+import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -33,12 +35,19 @@ import java.time.LocalDateTime;
  */
 @Getter
 @Setter(AccessLevel.NONE)
-public class ScheduleOption {
+public class ScheduleOption implements Serializable {
+
+    private static final long serialVersionUID = -7313895910957594962L;
 
     /**
      * 调度方式
      */
     private final ScheduleType scheduleType;
+
+    /**
+     * 触发类型
+     */
+    private final TriggerType triggerType;
 
     /**
      * 调度开始时间，从此时间开始执行调度。
@@ -71,12 +80,14 @@ public class ScheduleOption {
 
 //    @JsonCreator // 加上@JsonProperty("scheduleType") 不去掉mapstruct会用set方式，比较奇怪
     public ScheduleOption(ScheduleType scheduleType,
+                          TriggerType triggerType,
                           LocalDateTime scheduleStartAt,
                           Duration scheduleDelay,
                           Duration scheduleInterval,
                           String scheduleCron,
                           String scheduleCronType) {
         this.scheduleType = scheduleType;
+        this.triggerType = triggerType;
         this.scheduleStartAt = scheduleStartAt;
         this.scheduleDelay = scheduleDelay == null ? Duration.ZERO : scheduleDelay;
         this.scheduleInterval = scheduleInterval == null ? Duration.ZERO : scheduleInterval;

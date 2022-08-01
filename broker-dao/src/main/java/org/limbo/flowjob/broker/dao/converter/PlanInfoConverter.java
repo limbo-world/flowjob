@@ -18,9 +18,10 @@ package org.limbo.flowjob.broker.dao.converter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
+import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
-import org.limbo.flowjob.broker.core.plan.job.Job;
-import org.limbo.flowjob.broker.core.plan.job.JobDAG;
+import org.limbo.flowjob.broker.core.plan.job.JobInfo;
+import org.limbo.flowjob.broker.core.plan.job.dag.DAG;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -50,7 +51,7 @@ public class PlanInfoConverter {
         entity.setScheduleDelay(scheduleOption.getScheduleDelay().toMillis());
         entity.setScheduleInterval(scheduleOption.getScheduleInterval().toMillis());
         entity.setScheduleCron(scheduleOption.getScheduleCron());
-        entity.setJobs(JacksonUtils.toJSONString(planInfo.getDag().jobs()));
+        entity.setJobs(JacksonUtils.toJSONString(planInfo.getDag().nodes()));
 
         // 能够查询到info信息，说明未删除
         entity.setIsDeleted(false);
@@ -61,12 +62,13 @@ public class PlanInfoConverter {
     public PlanInfo toDO(PlanInfoEntity entity) {
         return new PlanInfo(String.valueOf(entity.getPlanId()), String.valueOf(entity.getId()), entity.getDescription(), new ScheduleOption(
                 ScheduleType.parse(entity.getScheduleType()),
+                TriggerType.parse(entity.getTriggerType()),
                 entity.getScheduleStartAt(),
                 Duration.ofMillis(entity.getScheduleDelay()),
                 Duration.ofMillis(entity.getScheduleInterval()),
                 entity.getScheduleCron(),
                 entity.getScheduleCronType()
-        ), new JobDAG(JacksonUtils.parseObject(entity.getJobs(), new TypeReference<List<Job>>() {
+        ), new DAG<>(JacksonUtils.parseObject(entity.getJobs(), new TypeReference<List<JobInfo>>() {
         })));
     }
 

@@ -1,7 +1,7 @@
-package org.limbo.flowjob.broker.core.repositories;
+package org.limbo.flowjob.broker.core.repository;
 
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
-import org.limbo.flowjob.broker.core.plan.job.context.JobInstance;
+import org.limbo.flowjob.broker.core.plan.job.JobInstance;
 
 import java.util.Collection;
 import java.util.List;

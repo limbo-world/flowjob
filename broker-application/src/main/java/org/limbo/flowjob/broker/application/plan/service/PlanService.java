@@ -3,15 +3,19 @@ package org.limbo.flowjob.broker.application.plan.service;
 import lombok.Setter;
 import org.limbo.flowjob.broker.api.console.param.PlanAddParam;
 import org.limbo.flowjob.broker.api.console.param.PlanReplaceParam;
+import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
+import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
-import org.limbo.flowjob.broker.core.repositories.PlanRepository;
 import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
+import org.limbo.flowjob.broker.core.plan.PlanInstance;
+import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
+import org.limbo.flowjob.broker.core.repository.PlanRepository;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 
 /**
  * @author Brozen
@@ -26,12 +30,15 @@ public class PlanService {
     @Setter(onMethod_ = @Inject)
     private PlanConverter converter;
 
+    @Setter(onMethod_ = @Inject)
+    private PlanInstanceRepository planInstanceRepository;
 
     /**
      * 新增执行计划
      * @param param 新增计划参数
      * @return planId
      */
+    @Transactional
     public String addPlan(PlanAddParam param) {
         Plan plan = converter.convertPlan(param);
         return planRepository.save(plan);
@@ -48,8 +55,7 @@ public class PlanService {
         Verifies.notNull(plan, String.format("Cannot find Plan %s", planId));
 
         PlanInfo planInfo = converter.convertPlanInfo(param);
-        plan.setInfo(planInfo);
-        return planRepository.updateVersion(plan);
+        return plan.newVersion(planInfo);
     }
 
 
@@ -67,7 +73,7 @@ public class PlanService {
             return true;
         }
 
-        return planRepository.enablePlan(plan);
+        return plan.enable();
     }
 
 
@@ -86,8 +92,31 @@ public class PlanService {
         }
 
         // 停用计划
-        return planRepository.disablePlan(plan);
+        return plan.disable();
     }
 
+    // todo 交由调度器执行
+    @Transactional
+    public void schedule(PlanInstance planInstance) {
+        // 持久化数据
+        planInstanceRepository.savePlanInstanceScheduleInfo(planInstance);
+        // 更新plan的下次触发时间
+        if (ScheduleType.FIXED_DELAY != planInstance.getScheduleOption().getScheduleType() && TriggerType.SCHEDULE == planInstance.getScheduleOption().getTriggerType()) {
+            planRepository.nextTriggerAt(planInstance.getPlanId(), planInstance.nextTriggerAt());
+        }
+        // todo 上面两个在事务中 先执行提交事务
+        planInstance.schedule();
+        // todo 下发后需要将任务下发情况更新
+        // if (dispatched) {
+        //      taskRepo.dispatched(task);
+        //            } else {
+        //                taskRepo.dispatchFailed(task);
+        //            }
+
+        // jobInstanceRepo.dispatched(this);
+
+        // jobInstanceRepo.dispatchFailed(this);
+        // todo 判断是否有重试次数 放入重试队列
+    }
 
 }

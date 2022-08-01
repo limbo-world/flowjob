@@ -23,24 +23,23 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.api.constants.enums.JobTriggerType;
 import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
-import org.limbo.flowjob.broker.api.constants.enums.PlanTriggerType;
-import org.limbo.flowjob.broker.core.plan.job.Job;
-import org.limbo.flowjob.broker.core.plan.job.JobDAG;
-import org.limbo.flowjob.broker.core.plan.job.context.JobInstance;
-import org.limbo.flowjob.broker.core.repositories.JobInstanceRepository;
-import org.limbo.flowjob.broker.core.repositories.PlanInstanceRepository;
-import org.limbo.flowjob.broker.core.repositories.PlanRepository;
+import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
+import org.limbo.flowjob.broker.core.plan.job.JobInfo;
+import org.limbo.flowjob.broker.core.plan.job.JobInstance;
+import org.limbo.flowjob.broker.core.plan.job.context.Task;
+import org.limbo.flowjob.broker.core.plan.job.dag.DAG;
+import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.schedule.Schedulable;
 import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.core.schedule.calculator.ScheduleCalculatorFactory;
-import org.limbo.flowjob.broker.core.utils.TimeUtil;
+import org.limbo.flowjob.common.utils.TimeUtil;
 
 import javax.inject.Inject;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -84,7 +83,7 @@ public class PlanInstance implements Schedulable, Serializable {
     /**
      * 触发类型
      */
-    private PlanTriggerType triggerType;
+    private TriggerType triggerType;
 
     /**
      * 开始时间
@@ -99,55 +98,47 @@ public class PlanInstance implements Schedulable, Serializable {
     /**
      * 执行图
      */
-    private JobDAG dag;
-
-    // ---------------- 需注入
-    @Setter(onMethod_ = @Inject)
-    private transient PlanInstanceRepository planInstanceRepo;
+    private DAG<JobInfo> dag;
 
     @Setter(onMethod_ = @Inject)
     private transient JobInstanceRepository jobInstanceRepo;
 
+    @Getter(AccessLevel.NONE)
     @ToString.Exclude
     private transient ScheduleCalculator triggerCalculator;
 
     @Getter(AccessLevel.NONE)
-    @Setter(value = AccessLevel.PUBLIC, onMethod_ = @Inject)
     @ToString.Exclude
     private transient ScheduleCalculatorFactory strategyFactory;
-
-    @ToString.Exclude
-    @Setter(onMethod_ = @Inject)
-    private transient PlanRepository planRepository;
 
     /**
      * 检测 Plan 实例是否已经执行完成
      */
     public boolean isAllJobFinished() {
-        return checkJobsFinished(dag.jobs());
+        return checkJobsFinished(dag.nodes());
     }
 
 
     /**
      * todo 判断作业是否可以被触发。检测作业在 DAG 中的前置作业节点是否均可触发子节点。
      */
-    public boolean isJobTriggerable(Job job) {
-        return checkJobsFinished(dag.getPreJobs(job.getJobId()));
+    public boolean isJobTriggerable(JobInfo jobInfo) {
+        return checkJobsFinished(dag.preNodes(jobInfo.getJobId()));
     }
 
 
     /**
      * 判断某一计划实例中，一批作业是否全部可以触发下一步
      */
-    private boolean checkJobsFinished(List<Job> jobs) {
+    private boolean checkJobsFinished(List<JobInfo> jobInfos) {
         // 获取db中 job实例
-        Set<String> jobIds = jobs.stream()
-                .map(Job::getJobId)
+        Set<String> jobIds = jobInfos.stream()
+                .map(JobInfo::getJobId)
                 .collect(Collectors.toSet());
         List<JobInstance> jobInstances = jobInstanceRepo.listInstances(planInstanceId, jobIds);
 
         // 有实例还未创建直接返回
-        if (jobs.size() > jobInstances.size()) {
+        if (jobInfos.size() > jobInstances.size()) {
             return false;
         }
 
@@ -167,9 +158,6 @@ public class PlanInstance implements Schedulable, Serializable {
      */
     public void executeSucceed() {
         setStatus(PlanScheduleStatus.SUCCEED);
-        planInstanceRepo.executeSucceed(this);
-
-        planRepository.nextTriggerAt(planId, nextTriggerAt());
     }
 
     /**
@@ -177,9 +165,6 @@ public class PlanInstance implements Schedulable, Serializable {
      */
     public void executeFailed() {
         setStatus(PlanScheduleStatus.FAILED);
-        planInstanceRepo.executeSucceed(this);
-
-        planRepository.nextTriggerAt(planId, nextTriggerAt());
     }
 
     @Override
@@ -205,27 +190,35 @@ public class PlanInstance implements Schedulable, Serializable {
     @Override
     public void schedule() {
         try {
-            // 获取 DAG 中最执行的作业，如不存在说明 Plan 无需下发
-            List<Job> jobs = dag.getEarliestJobs();
-            if (CollectionUtils.isEmpty(jobs)) {
-                return;
-            }
-
-            // 生成作业实例
-            for (Job job : jobs) {
-                // 下发task
-                JobInstance jobInstance = job.newInstance(this);
-                if (JobTriggerType.SCHEDULE != job.getTriggerType()) {
-                    return;
+            if (PlanScheduleStatus.EXECUTING != getStatus()) {
+                setStatus(PlanScheduleStatus.EXECUTING);
+                // 真正执行下发
+                List<JobInstance> jobInstances = scheduleJobInstances();
+                for (JobInstance jobInstance : jobInstances) {
+                    jobInstance.dispatch();
                 }
-                jobInstance.dispatch();
             }
-
-            // 更新plan的下次触发时间 todo 如果上面执行完到这步失败--可能导致重复下发 所以需要对job和task的数据进行检测
-            planRepository.nextTriggerAt(planId, nextTriggerAt());
         } catch (Exception e) {
             log.error("[PlanInstance] schedule fail planInstance:{}", this, e);
         }
+    }
+
+    public List<JobInstance> scheduleJobInstances() {
+        List<JobInstance> jobInstances = new ArrayList<>();
+        // 获取 DAG 中最执行的作业，如不存在说明 Plan 无需下发
+        List<JobInfo> jobInfos = dag.roots();
+        if (CollectionUtils.isEmpty(jobInfos)) {
+            return jobInstances;
+        }
+        for (JobInfo jobInfo : jobInfos) {
+            // 下发task
+            JobInstance jobInstance = jobInfo.newInstance(this);
+            if (TriggerType.SCHEDULE != jobInfo.getTriggerType()) {
+                continue;
+            }
+            jobInstances.add(jobInstance);
+        }
+        return jobInstances;
     }
 
     @Override
@@ -238,7 +231,7 @@ public class PlanInstance implements Schedulable, Serializable {
      */
     @Override
     public LocalDateTime nextTriggerAt() {
-        Long nextTriggerAt = lazyInitTriggerCalculator().apply(this);
+        Long nextTriggerAt = lazyInitTriggerCalculator().calculate(this);
         return TimeUtil.toLocalDateTime(nextTriggerAt);
     }
 
@@ -247,10 +240,15 @@ public class PlanInstance implements Schedulable, Serializable {
      */
     protected ScheduleCalculator lazyInitTriggerCalculator() {
         if (triggerCalculator == null) {
-            triggerCalculator = strategyFactory.newStrategy(scheduleOption.getScheduleType());
+            triggerCalculator = strategyFactory.apply(scheduleOption.getScheduleType());
         }
 
         return triggerCalculator;
+    }
+
+
+    public void handlerTaskSuccess(JobInstance jobInstance, Task task) {
+        jobInstance.handlerTaskSuccess(task);
     }
 
 }

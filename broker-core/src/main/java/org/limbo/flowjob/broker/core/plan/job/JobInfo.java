@@ -20,14 +20,14 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
-import org.limbo.flowjob.broker.api.constants.enums.JobTriggerType;
+import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.plan.job.context.JobInstance;
+import org.limbo.flowjob.broker.core.plan.job.dag.DAGNode;
 
 import java.util.Set;
 
 /**
- * 作业的抽象。主要定义了作业领域的的行为方法，属性的访问操作在{@link Job}轻量级领域对象中。
+ * 作业的抽象。主要定义了作业领域的的行为方法，属性的访问操作在{@link JobInfo}轻量级领域对象中。
  *
  * todo
  * 允许失败的任务，失败后继续执行下面节点
@@ -39,7 +39,7 @@ import java.util.Set;
 @Getter
 @Setter
 @ToString
-public class Job {
+public class JobInfo extends DAGNode {
 
     /**
      * 作业ID
@@ -53,12 +53,10 @@ public class Job {
      */
     private String description;
 
-    private Set<String> childrenIds;
-
     /**
      * 触发类型
      */
-    private JobTriggerType triggerType;
+    private TriggerType triggerType;
 
     /**
      * 作业分发配置参数
@@ -69,6 +67,10 @@ public class Job {
      * 作业执行器配置参数
      */
     private ExecutorOption executorOption;
+
+    public JobInfo(String id, Set<String> childrenIds) {
+        super(id, childrenIds);
+    }
 
 
     /**
@@ -82,6 +84,7 @@ public class Job {
         jobInstance.setJobId(jobId);
         jobInstance.setStatus(JobScheduleStatus.SCHEDULING);
         jobInstance.setAttributes(null); // todo
+        jobInstance.setTaskCreatorFactory(null); // todo
         return jobInstance;
     }
 

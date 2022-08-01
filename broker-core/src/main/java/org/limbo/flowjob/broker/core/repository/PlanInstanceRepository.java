@@ -1,4 +1,4 @@
-package org.limbo.flowjob.broker.core.repositories;
+package org.limbo.flowjob.broker.core.repository;
 
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
 
@@ -12,6 +12,11 @@ public interface PlanInstanceRepository {
      * 持久化
      */
     String add(PlanInstance instance);
+
+    /**
+     * 保存调度信息
+     */
+    void savePlanInstanceScheduleInfo(PlanInstance planInstance);
 
 
     /**
@@ -33,5 +38,10 @@ public interface PlanInstanceRepository {
      * 计划执行失败
      */
     void executeFailed(PlanInstance instance);
+
+    /**
+     * 计划执行中
+     */
+    void executing(PlanInstance instance);
 
 }

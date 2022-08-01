@@ -17,62 +17,65 @@
 package org.limbo.flowjob.broker.api.constants.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
 
 /**
+ * 触发类型：
+ * <ul>
+ *     <li>{@linkplain TriggerType#API api触发}</li>
+ *     <li>{@linkplain TriggerType#SCHEDULE 调度触发}</li>
+ * </ul>
+ *
  * @author Brozen
- * @since 2021-05-19
+ * @since 2021-05-16
  */
-public enum TaskType {
+public enum TriggerType implements DescribableEnum<Byte> {
+    /**
+     * 调用api触发
+     */
+    API(1, "api触发"),
+    /**
+     * 通过调度触发
+     */
+    SCHEDULE(2, "调度触发"),
 
-    NORMAL(1, "普通任务"),
-    BROADCAST(2, "广播任务"),
-    SHARDING(3, "分片任务"),
     ;
 
-    @JsonValue
+    public static final String DESCRIPTION = "todo";
+
     public final byte type;
 
+    @Getter
     public final String desc;
 
-    @JsonCreator
-    TaskType(int type, String desc) {
+
+    TriggerType(int type, String desc) {
         this(((byte) type), desc);
     }
 
-    TaskType(byte type, String desc) {
+    TriggerType(byte type, String desc) {
         this.type = type;
         this.desc = desc;
     }
 
     /**
-     * 校验是否是当前状态
-     * @param type 待校验值
+     * {@inheritDoc}
+     * @return
      */
-    public boolean is(TaskType type) {
-        return equals(type);
+    @Override
+    public Byte getValue() {
+        return type;
     }
 
-    /**
-     * 校验是否是当前状态
-     * @param type 待校验状态值
-     */
-    public boolean is(Number type) {
-        return type != null && type.byteValue() == this.type;
-    }
-
-    /**
-     * 解析上下文状态值
-     */
     @JsonCreator
-    public static TaskType parse(Number type) {
+    public static TriggerType parse(Number type) {
         if (type == null) {
             return null;
         }
 
-        for (TaskType taskType : values()) {
-            if (taskType.is(type)) {
-                return taskType;
+        for (TriggerType triggerType : values()) {
+            if (type.byteValue() == triggerType.type) {
+                return triggerType;
             }
         }
 

@@ -33,7 +33,7 @@ import javax.validation.Valid;
  * @author Brozen
  * @since 2021-07-07
  */
-@Tag(name = "作业执行相关接口")
+@Tag(name = "任务执行相关接口")
 @RestController
 @RequestMapping("/api/v1/task")
 public class TaskController {
@@ -43,9 +43,9 @@ public class TaskController {
 
 
     /**
-     * 作业执行反馈接口
+     * 任务执行反馈接口
      */
-    @Operation(summary = "作业执行反馈接口")
+    @Operation(summary = "任务执行反馈接口")
     @PostMapping("/feedback")
     public ResponseDTO<Void> feedback(@Valid @RequestBody TaskExecuteFeedbackParam feedback) {
         taskService.feedback(feedback);

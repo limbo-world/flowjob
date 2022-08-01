@@ -31,18 +31,23 @@ class BrokerNodeManger {
     private static final Map<String, String> map = new ConcurrentHashMap<>();
 
     public static void online(String host, int port) {
-        String key = host + ":" + port;
+        String key = key(host, port);
         map.put(key, key);
     }
 
     public static void offline(String host, int port) {
-        String key = host + ":" + port;
+        String key = key(host, port);
         map.remove(key);
     }
 
     public static boolean alive(String host, int port) {
-        String key = host + ":" + port;
+        String key = key(host, port);
         return map.containsKey(key);
+    }
+
+
+    private static String key(String host, int port) {
+        return host + ":" + port;
     }
 
 }

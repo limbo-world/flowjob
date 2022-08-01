@@ -11,7 +11,7 @@ Content-Type: application/json
     "scheduleInterval": 3,
     "scheduleStartAt": "2021-07-26 16:15:00"
   },
-  "jobs": [
+  "jobInfos": [
     {
       "jobId": "1",
       "jobDesc": "test",
@@ -38,7 +38,7 @@ Content-Type: application/json
     "scheduleInterval": 3,
     "scheduleStartAt": "2021-07-26 16:15:00"
   },
-  "jobs": [
+  "jobInfos": [
     {
       "jobId": "1",
       "jobDesc": "test",

@@ -11,8 +11,8 @@ import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.plan.job.DispatchOption;
 import org.limbo.flowjob.broker.core.plan.job.ExecutorOption;
-import org.limbo.flowjob.broker.core.plan.job.Job;
-import org.limbo.flowjob.broker.core.plan.job.JobDAG;
+import org.limbo.flowjob.broker.core.plan.job.JobInfo;
+import org.limbo.flowjob.broker.core.plan.job.dag.DAG;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 
 import java.util.List;
@@ -54,15 +54,15 @@ public class PlanConverter {
     /**
      * 生成更新计划 JobDAG
      */
-    public static JobDAG convertJob(List<JobAddParam> jobAddParams) {
-        return new JobDAG(convertJobs(jobAddParams));
+    public static DAG<JobInfo> convertJob(List<JobAddParam> jobAddParams) {
+        return new DAG<>(convertJobs(jobAddParams));
     }
 
 
-    public static List<Job> convertJobs(List<JobAddParam> jobAddParams) {
-        List<Job> joblist=Lists.newArrayList();
-        for (JobAddParam jobAddParam :jobAddParams) {
-        	joblist.add(convertJob(jobAddParam));
+    public static List<JobInfo> convertJobs(List<JobAddParam> jobAddParams) {
+        List<JobInfo> joblist = Lists.newArrayList();
+        for (JobAddParam jobAddParam : jobAddParams) {
+            joblist.add(convertJob(jobAddParam));
         }
         return joblist;
 
@@ -72,14 +72,12 @@ public class PlanConverter {
     /**
      * 生成单个作业
      */
-    public static Job convertJob(JobAddParam param) {
-        Job job = new Job();
-        job.setJobId(param.getJobId());
-        job.setDescription(param.getDescription());
-        job.setChildrenIds(param.getChildrenIds());
-        job.setDispatchOption(convertJobDispatchOption(param.getDispatchOption()));
-        job.setExecutorOption(convertJobExecutorOption(param.getExecutorOption()));
-        return job;
+    public static JobInfo convertJob(JobAddParam param) {
+        JobInfo jobInfo = new JobInfo(param.getJobId(), param.getChildrenIds());
+        jobInfo.setDescription(param.getDescription());
+        jobInfo.setDispatchOption(convertJobDispatchOption(param.getDispatchOption()));
+        jobInfo.setExecutorOption(convertJobExecutorOption(param.getExecutorOption()));
+        return jobInfo;
 
     }
 
@@ -88,13 +86,15 @@ public class PlanConverter {
      * 新增计划参数转换为 计划调度配置
      */
     public static ScheduleOption convertScheduleOption(ScheduleOptionParam param) {
-            return new ScheduleOption(param.getScheduleType(),
-                    param.getScheduleStartAt(),
-                    param.getScheduleDelay(),
-                    param.getScheduleInterval(),
-                    param.getScheduleCron(),
-                    param.getScheduleCronType()
-            );
+        return new ScheduleOption(
+                param.getScheduleType(),
+                param.getTriggerType(),
+                param.getScheduleStartAt(),
+                param.getScheduleDelay(),
+                param.getScheduleInterval(),
+                param.getScheduleCron(),
+                param.getScheduleCronType()
+        );
     }
 
 

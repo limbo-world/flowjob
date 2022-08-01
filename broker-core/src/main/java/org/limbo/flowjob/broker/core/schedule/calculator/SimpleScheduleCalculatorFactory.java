@@ -21,6 +21,7 @@ import org.limbo.flowjob.broker.core.schedule.DelegatedScheduleCalculator;
 import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
 
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,7 +37,7 @@ public class SimpleScheduleCalculatorFactory implements ScheduleCalculatorFactor
     private final Map<ScheduleType, ScheduleCalculator> scheduleCalculators;
 
     public SimpleScheduleCalculatorFactory() {
-        Map<ScheduleType, ScheduleCalculator> calculators = new HashMap<>();
+        Map<ScheduleType, ScheduleCalculator> calculators = new EnumMap<>(ScheduleType.class);
 
         // 预设计算器
         putCalculator(calculators, new FixRateScheduleCalculator());
@@ -61,7 +62,7 @@ public class SimpleScheduleCalculatorFactory implements ScheduleCalculatorFactor
      * @return 触发时间计算器
      */
     @Override
-    public ScheduleCalculator newStrategy(ScheduleType scheduleType) {
+    public ScheduleCalculator apply(ScheduleType scheduleType) {
         ScheduleCalculator calculator = scheduleCalculators.get(scheduleType);
         if (calculator != null) {
             return new DelegatedScheduleCalculator(calculator);
@@ -69,5 +70,4 @@ public class SimpleScheduleCalculatorFactory implements ScheduleCalculatorFactor
 
         throw new IllegalStateException("cannot apply " + (getClass().getName()) + " for " + scheduleType);
     }
-
 }

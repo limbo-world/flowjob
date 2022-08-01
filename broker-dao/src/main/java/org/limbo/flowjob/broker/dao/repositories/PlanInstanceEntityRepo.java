@@ -35,6 +35,10 @@ public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity
     PlanInstanceEntity findByPlanIdAndExpectTriggerAt(Long planId, long expectTriggerTime);
 
     @Modifying(clearAutomatically = true)
+    @Query(value = "update PlanInstanceEntity set status = :newStatus, scheduleAt = :scheduleAt where id = :id and status = :oldStatus")
+    int start(@Param("id") Long id, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus, @Param("scheduleAt") LocalDateTime scheduleAt);
+
+    @Modifying(clearAutomatically = true)
     @Query(value = "update PlanInstanceEntity set status = :newStatus, feedbackAt = :feedbackAt where id = :id and status = :oldStatus")
-    int end(@Param("id") Long id, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus, @Param("endAt") LocalDateTime feedbackAt);
+    int end(@Param("id") Long id, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus, @Param("feedbackAt") LocalDateTime feedbackAt);
 }

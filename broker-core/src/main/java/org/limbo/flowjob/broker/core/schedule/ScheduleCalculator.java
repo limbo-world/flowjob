@@ -17,8 +17,7 @@
 package org.limbo.flowjob.broker.core.schedule;
 
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
-import org.limbo.flowjob.broker.core.utils.TimeUtil;
-import org.limbo.flowjob.broker.core.utils.strategies.Strategy;
+import org.limbo.flowjob.common.utils.TimeUtil;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -29,7 +28,7 @@ import java.time.LocalDateTime;
  * @author Brozen
  * @since 2021-05-20
  */
-public abstract class ScheduleCalculator implements Strategy<Schedulable, Long> {
+public abstract class ScheduleCalculator {
 
     /**
      * 没有下次触发时间时，返回0或负数
@@ -51,8 +50,7 @@ public abstract class ScheduleCalculator implements Strategy<Schedulable, Long> 
      * @param schedulable 可调度的对象
      * @return 是否可用此策略计算作业的触发时间
      */
-    @Override
-    public Boolean canApply(Schedulable schedulable) {
+    public Boolean canCalculate(Schedulable schedulable) {
         return schedulable.scheduleOption().getScheduleType() == this.scheduleType;
     }
 
@@ -62,8 +60,7 @@ public abstract class ScheduleCalculator implements Strategy<Schedulable, Long> 
      * @param schedulable 待调度对象
      * @return 下次触发调度的时间戳，当返回非正数时，表示作业不会有触发时间。
      */
-    @Override
-    public abstract Long apply(Schedulable schedulable);
+    public abstract Long calculate(Schedulable schedulable);
 
 
     public ScheduleType getScheduleType() {

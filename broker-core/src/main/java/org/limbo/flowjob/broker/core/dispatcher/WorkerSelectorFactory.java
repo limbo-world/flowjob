@@ -24,8 +24,6 @@ import org.limbo.flowjob.broker.core.dispatcher.strategies.LRUWorkerSelector;
 import org.limbo.flowjob.broker.core.dispatcher.strategies.RandomWorkerSelector;
 import org.limbo.flowjob.broker.core.dispatcher.strategies.RoundRobinWorkerSelector;
 
-import javax.inject.Inject;
-
 /**
  * {@link WorkerSelector} 工厂
  *
@@ -34,9 +32,6 @@ import javax.inject.Inject;
  */
 public class WorkerSelectorFactory {
 
-    @Inject
-    private RoundRobinWorkerSelector roundRobinWorkerSelector;
-
     /**
      * Double Selector (￣▽￣)~* <br/>
      * 根据作业的分发方式，创建一个分发器实例。委托给{@link LoadBalanceType}执行。
@@ -44,10 +39,10 @@ public class WorkerSelectorFactory {
      * @param loadBalanceType 分发类型
      * @return 作业分发器
      */
-    public WorkerSelector newSelector(LoadBalanceType loadBalanceType) {
+    public static WorkerSelector newSelector(LoadBalanceType loadBalanceType) {
         switch (loadBalanceType) {
             case ROUND_ROBIN:
-                return roundRobinWorkerSelector;
+                return new RoundRobinWorkerSelector();
 
             case RANDOM:
                 return new RandomWorkerSelector();

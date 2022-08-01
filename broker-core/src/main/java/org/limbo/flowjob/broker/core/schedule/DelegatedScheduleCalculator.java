@@ -46,8 +46,8 @@ public class DelegatedScheduleCalculator extends ScheduleCalculator {
      * @return
      */
     @Override
-    public Boolean canApply(Schedulable schedulable) {
-        return Objects.requireNonNull(delegated, "delegated target").canApply(schedulable);
+    public Boolean canCalculate(Schedulable schedulable) {
+        return Objects.requireNonNull(delegated, "delegated target").canCalculate(schedulable);
     }
 
 
@@ -57,7 +57,7 @@ public class DelegatedScheduleCalculator extends ScheduleCalculator {
      * @return
      */
     @Override
-    public Long apply(Schedulable schedulable) {
-        return Objects.requireNonNull(delegated, "delegated target").apply(schedulable);
+    public Long calculate(Schedulable schedulable) {
+        return Objects.requireNonNull(delegated, "delegated target").calculate(schedulable);
     }
 }

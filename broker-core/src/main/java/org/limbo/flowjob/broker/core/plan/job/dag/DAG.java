@@ -1,6 +1,23 @@
-package org.limbo.flowjob.broker.core.plan.job;
+/*
+ *
+ *  * Copyright 2020-2024 Limbo Team (https://github.com/limbo-world).
+ *  *
+ *  * Licensed under the Apache License, Version 2.0 (the "License");
+ *  * you may not use this file except in compliance with the License.
+ *  * You may obtain a copy of the License at
+ *  *
+ *  * 	http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  * Unless required by applicable law or agreed to in writing, software
+ *  * distributed under the License is distributed on an "AS IS" BASIS,
+ *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  * See the License for the specific language governing permissions and
+ *  * limitations under the License.
+ *
+ */
 
-import lombok.Data;
+package org.limbo.flowjob.broker.core.plan.job.dag;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.common.utils.Verifies;
 
@@ -13,12 +30,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * @D 简单描述下 DAG 内存的存储结构？看起来是颗树。
+ * todo @D 简单描述下 DAG 内存的存储结构？看起来是颗树。
  *
  * @author Devil
- * @since 2021/8/18
+ * @since 2022/8/1
  */
-public class JobDAG {
+public class DAG<T extends DAGNode> {
 
     private static final int STATUS_INIT = 0;
 
@@ -36,11 +53,6 @@ public class JobDAG {
     private static final int STATUS_FILTER = 2;
 
     /**
-     * job映射关系
-     */
-    private Map<String, Job> jobs;
-
-    /**
      * 根
      */
     private Set<String> roots;
@@ -53,51 +65,48 @@ public class JobDAG {
     /**
      * 节点映射关系
      */
-    private Map<String, DAGNode> nodes;
+    private Map<String, T> nodes;
 
-    public JobDAG(List<Job> jobs) {
-        if (CollectionUtils.isEmpty(jobs)) {
+    public DAG(List<T> nodeList) {
+        if (CollectionUtils.isEmpty(nodeList)) {
             return;
         }
 
-        this.jobs = new HashMap<>();
         this.nodes = new HashMap<>();
         this.roots = new HashSet<>();
         this.leaf = new HashSet<>();
 
-        init(jobs);
+        init(nodeList);
     }
 
 
     /**
      * 根据作业列表，初始化 DAG 结构
      */
-    private void init(List<Job> jobsList) {
+    private void init(List<T> nodeList) {
         // 数据初始化
-        jobsList.forEach(job -> {
-            // todo 判断每个job数据是否正确
-            jobs.put(job.getJobId(), job);
-            nodes.put(job.getJobId(), new DAGNode(job.getJobId(), job.getChildrenIds()));
+        nodeList.forEach(node -> {
+            nodes.put(node.getId(), node);
         });
-        jobsList.forEach(job -> {
-            if (CollectionUtils.isEmpty(job.getChildrenIds())) {
+        nodeList.forEach(node -> {
+            if (CollectionUtils.isEmpty(node.getChildrenIds())) {
                 return;
             }
-            // 判断childrenId是否都有对应job 设置父id
-            for (String childrenId : job.getChildrenIds()) {
-                DAGNode node = nodes.get(childrenId);
-                Verifies.notNull(node, "job " + job.getJobId() + " child " + childrenId + " is not exist");
-                node.addParent(job.getJobId());
+            // 判断childrenId是否都有对应节点 设置父id
+            for (String childrenId : node.getChildrenIds()) {
+                T t = nodes.get(childrenId);
+                Verifies.notNull(t, "node " + node.getId() + " child " + childrenId + " is not exist");
+                t.addParent(t.getId());
             }
         });
 
         // 获取 根节点（没有其它节点指向的节点）叶子节点（没有子节点的）
-        roots = jobsList.stream().map(Job::getJobId).collect(Collectors.toSet());
-        jobsList.forEach(job -> {
-            if (CollectionUtils.isEmpty(job.getChildrenIds())) {
-                leaf.add(job.getJobId());
+        roots = nodeList.stream().map(T::getId).collect(Collectors.toSet());
+        nodeList.forEach(node -> {
+            if (CollectionUtils.isEmpty(node.getChildrenIds())) {
+                leaf.add(node.getId());
             } else {
-                for (String childrenId : job.getChildrenIds()) {
+                for (String childrenId : node.getChildrenIds()) {
                     roots.remove(childrenId);
                 }
             }
@@ -115,72 +124,68 @@ public class JobDAG {
     /**
      * 从 DAG 中查找是否存在指定作业ID的节点，存在则返回作业信息，不存在返回null。
      */
-    public Job getJob(String jobId) {
-        return jobs.get(jobId);
+    public T getJob(String id) {
+        return nodes.get(id);
     }
 
 
     /**
-     * 获取最终执行的job
-     *
-     * @return 最终执行的 job
+     * 获取叶子节点 也就是最后执行的节点
      */
-    public List<Job> getFinalJobs() {
-        List<Job> result = new ArrayList<>();
+    public List<T> getLeafNodes() {
+        List<T> result = new ArrayList<>();
         if (CollectionUtils.isEmpty(leaf)) {
             return result;
         }
         for (String id : leaf) {
-            result.add(jobs.get(id));
+            result.add(nodes.get(id));
         }
         return result;
     }
 
 
     /**
-     * 获取最先需要执行的job 因为 DAG 可能会有多个一起执行
-     *
-     * @return 最先执行的 job
+     * 获取所有根节点
      */
-    public List<Job> getEarliestJobs() {
-        List<Job> result = new ArrayList<>();
+    public List<T> roots() {
+        List<T> result = new ArrayList<>();
         if (CollectionUtils.isEmpty(roots)) {
             return result;
         }
         for (String root : roots) {
-            result.add(jobs.get(root));
+            result.add(nodes.get(root));
         }
         return result;
     }
 
 
     /**
-     * 获取job后续的作业
+     * 获取后续节点
      */
-    public List<Job> getSubJobs(String jobId) {
-        List<Job> result = new ArrayList<>();
-        Job job = jobs.get(jobId);
-        if (CollectionUtils.isEmpty(job.getChildrenIds())) {
+    public List<T> subNodes(String id) {
+        List<T> result = new ArrayList<>();
+        T node = nodes.get(id);
+        if (CollectionUtils.isEmpty(node.getChildrenIds())) {
             return result;
         }
-        for (String childrenId : job.getChildrenIds()) {
-            result.add(jobs.get(childrenId));
+        for (String childrenId : node.getChildrenIds()) {
+            result.add(nodes.get(childrenId));
         }
         return result;
     }
 
 
     /**
-     * 获取job前置的作业
+     * 获取前置节点
      */
-    public List<Job> getPreJobs(String jobId) {
-        List<Job> result = new ArrayList<>();
-        DAGNode node = nodes.get(jobId);
+    public List<T> preNodes(String id) {
+        List<T> result = new ArrayList<>();
+        DAGNode node = nodes.get(id);
         if (CollectionUtils.isEmpty(node.getParentIds())) {
             return result;
         }
         for (String parentId : node.getParentIds()) {
-            result.add(jobs.get(parentId));
+            result.add(nodes.get(parentId));
         }
         return result;
     }
@@ -219,33 +224,7 @@ public class JobDAG {
     /**
      * 获取 DAG 中所有节点对应的作业
      */
-    public List<Job> jobs() {
-        return new ArrayList<>(jobs.values());
+    public List<T> nodes() {
+        return new ArrayList<>(nodes.values());
     }
-
-    @Data
-    public static class DAGNode {
-
-        private String id;
-
-        private Set<String> parentIds;
-
-        private Set<String> childrenIds;
-        /**
-         * 状态 0 初始-未访问 1 已访问
-         */
-        private int status;
-
-        public DAGNode(String id, Set<String> childrenIds) {
-            this.id = id;
-            this.childrenIds = childrenIds;
-            this.parentIds = new HashSet<>();
-        }
-
-        public void addParent(String childrenId) {
-            parentIds.add(childrenId);
-        }
-
-    }
-
 }

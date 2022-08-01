@@ -16,40 +16,34 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.cluster;
+package org.limbo.flowjob.broker.core.plan.job.dag;
 
 import lombok.Data;
 
-/**
- * @author Devil
- * @since 2022/7/21
- */
+import java.util.HashSet;
+import java.util.Set;
+
 @Data
-public class BrokerConfig {
+public class DAGNode {
 
-    /**
-     * 提供给worker的服务的 host
-     */
-    private final String host;
+    private String id;
 
+    private Set<String> parentIds;
+
+    private Set<String> childrenIds;
     /**
-     * 提供给worker的服务port
+     * 状态 0 初始-未访问 1 已访问
      */
-    private final int port;
-    /**
-     * 心跳时间间隔
-     */
-    long heartbeatInterval = 2000;
-    /**
-     * 心跳超时时间
-     */
-    long heartbeatTimeout = 10000;
-    /**
-     * 重分配间隔
-     */
-    private long rebalanceInterval = 10000;
-    /**
-     * 状态检查间隔
-     */
-    private long statusCheckInterval = 10000;
+    private int status;
+
+    public DAGNode(String id, Set<String> childrenIds) {
+        this.id = id;
+        this.childrenIds = childrenIds;
+        this.parentIds = new HashSet<>();
+    }
+
+    public void addParent(String childrenId) {
+        parentIds.add(childrenId);
+    }
+
 }

@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.repositories;
+package org.limbo.flowjob.broker.core.repository;
 
 import org.limbo.flowjob.broker.core.plan.Plan;
 

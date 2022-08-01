@@ -51,6 +51,7 @@ public class CacheableScheduler implements Scheduler {
      */
     public boolean checkAndPut(Schedulable schedulable) {
         String id = schedulable.scheduleId();
+
         if (scheduling.containsKey(id)) {
             scheduling.put(id, schedulable);
             return true;

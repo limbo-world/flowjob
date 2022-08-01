@@ -19,8 +19,8 @@
 package org.limbo.flowjob.broker.test;
 
 import org.junit.Test;
-import org.limbo.flowjob.broker.core.plan.job.Job;
-import org.limbo.flowjob.broker.core.plan.job.JobDAG;
+import org.limbo.flowjob.broker.core.plan.job.JobInfo;
+import org.limbo.flowjob.broker.core.plan.job.dag.DAG;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,17 +35,17 @@ public class DAGTest {
 
     @Test
     public void testNoRoot() {
-        Job job = job("1", Collections.singleton("2"));
-        Job job2 = job("2", Collections.singleton("3"));
-        Job job3 = job("3", Collections.singleton("1"));
+        JobInfo jobInfo = job("1", Collections.singleton("2"));
+        JobInfo jobInfo2 = job("2", Collections.singleton("3"));
+        JobInfo jobInfo3 = job("3", Collections.singleton("1"));
 
-        List<Job> jobs = new ArrayList<>();
-        jobs.add(job);
-        jobs.add(job2);
-        jobs.add(job3);
+        List<JobInfo> jobInfos = new ArrayList<>();
+        jobInfos.add(jobInfo);
+        jobInfos.add(jobInfo2);
+        jobInfos.add(jobInfo3);
 
         try {
-            JobDAG dag = new JobDAG(jobs);
+            DAG<JobInfo> dag = new DAG<>(jobInfos);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -53,28 +53,25 @@ public class DAGTest {
 
     @Test
     public void testCyclic() {
-        Job job = job("1", Collections.singleton("3"));
-        Job job2 = job("2", Collections.singleton("3"));
-        Job job3 = job("3", Collections.singleton("4"));
-        Job job4 = job("4", Collections.singleton("3"));
+        JobInfo jobInfo = job("1", Collections.singleton("3"));
+        JobInfo jobInfo2 = job("2", Collections.singleton("3"));
+        JobInfo jobInfo3 = job("3", Collections.singleton("4"));
+        JobInfo jobInfo4 = job("4", Collections.singleton("3"));
 
-        List<Job> jobs = new ArrayList<>();
-        jobs.add(job);
-        jobs.add(job2);
-        jobs.add(job3);
-        jobs.add(job4);
+        List<JobInfo> jobInfos = new ArrayList<>();
+        jobInfos.add(jobInfo);
+        jobInfos.add(jobInfo2);
+        jobInfos.add(jobInfo3);
+        jobInfos.add(jobInfo4);
 
         try {
-            JobDAG dag = new JobDAG(jobs);
+            DAG<JobInfo> dag = new DAG<>(jobInfos);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
 
-    private Job job(String id, Set<String> childrenIds) {
-        Job job = new Job();
-        job.setJobId(id);
-        job.setChildrenIds(childrenIds);
-        return job;
+    private JobInfo job(String id, Set<String> childrenIds) {
+        return new JobInfo(id, childrenIds);
     }
 }

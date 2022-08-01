@@ -23,6 +23,7 @@ import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.broker.core.exceptions.JobDispatchException;
 import org.limbo.flowjob.broker.core.exceptions.JobExecuteException;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
+import org.limbo.flowjob.broker.core.plan.job.JobInstance;
 import org.limbo.flowjob.broker.core.plan.job.handler.JobFailHandler;
 import org.limbo.flowjob.broker.core.worker.Worker;
 
@@ -43,43 +44,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class RetryTask extends Task {
     private static final long serialVersionUID = -3346492341332788277L;
-    /**
-     * 下发重试次数 超过就算下发失败
-     */
-    private int DISPATCH_RETRY_TIME = 3;
-
-    /**
-     * 下发失败的进行一定次数的重试
-     * @param workerSelector 会将此上下文分发去执行的worker
-     * @return
-     */
-    @Override
-    public boolean dispatch(WorkerSelector workerSelector) {
-        // 检测状态
-        TaskStatus status = this.getStatus();
-        if (status != TaskStatus.DISPATCHING) {
-            throw new JobDispatchException(jobId, taskId, "Cannot startup context due to current status: " + status);
-        }
-
-        List<Worker> availableWorkers = workerManager.availableWorkers();
-        if (CollectionUtils.isEmpty(availableWorkers)) {
-            return false;
-        }
-        for (int i = 0; i < DISPATCH_RETRY_TIME; i++) {
-            Worker worker = workerSelector.select(this, availableWorkers);
-            if (worker == null) {
-                return false;
-            }
-
-            boolean dispatched = doDispatch(worker);
-            if (dispatched) {
-                return true;
-            }
-
-            availableWorkers = availableWorkers.stream().filter(w -> !Objects.equals(w.getWorkerId(), worker.getWorkerId())).collect(Collectors.toList());
-        }
-        return false;
-    }
 
     /**
      * {@inheritDoc} 并触发作业中配置的重试策略。

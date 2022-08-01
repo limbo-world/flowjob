@@ -21,6 +21,7 @@ package org.limbo.flowjob.broker.api.console.param;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
+import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -30,17 +31,23 @@ import java.time.LocalDateTime;
  * @since 2021/7/24
  */
 @Data
-@Schema(title = "作业计划调度配置参数")
+@Schema(title = "作业调度配置参数")
 public class ScheduleOptionParam {
 
     /**
-     * 作业调度方式
+     * 调度方式
      */
     @Schema(title = "调度方式", implementation = Integer.class, description = ScheduleType.DESCRIPTION)
     private ScheduleType scheduleType;
 
     /**
-     * 作业调度开始时间，从此时间开始执行调度。
+     * 触发方式
+     */
+    @Schema(title = "触发方式", implementation = Integer.class, description = TriggerType.DESCRIPTION)
+    private TriggerType triggerType;
+
+    /**
+     * 调度开始时间，从此时间开始执行调度。
      */
     @Schema(title = "调度开始时间")
     private LocalDateTime scheduleStartAt;

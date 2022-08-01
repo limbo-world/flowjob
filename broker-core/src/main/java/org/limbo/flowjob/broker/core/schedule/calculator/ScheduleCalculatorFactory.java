@@ -2,8 +2,8 @@ package org.limbo.flowjob.broker.core.schedule.calculator;
 
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
 import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
-import org.limbo.flowjob.broker.core.utils.strategies.StrategyFactory;
-import org.limbo.flowjob.broker.core.schedule.Schedulable;
+
+import java.util.function.Function;
 
 /**
  * 重新定义泛型
@@ -11,7 +11,7 @@ import org.limbo.flowjob.broker.core.schedule.Schedulable;
  * @author Brozen
  * @since 2021-10-19
  */
-public interface ScheduleCalculatorFactory extends StrategyFactory<ScheduleType, ScheduleCalculator, Schedulable, Long> {
+public interface ScheduleCalculatorFactory extends Function<ScheduleType, ScheduleCalculator> {
 
 
 }

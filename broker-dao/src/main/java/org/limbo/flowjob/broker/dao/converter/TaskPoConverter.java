@@ -2,7 +2,7 @@ package org.limbo.flowjob.broker.dao.converter;
 
 import com.google.common.base.Converter;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
-import org.limbo.flowjob.broker.core.repositories.PlanInstanceRepository;
+import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

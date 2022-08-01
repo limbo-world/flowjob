@@ -22,15 +22,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
-import org.limbo.flowjob.broker.api.constants.enums.PlanTriggerType;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
+import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.repositories.PlanInstanceRepository;
-import org.limbo.flowjob.broker.core.repositories.PlanRepository;
+import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
+import org.limbo.flowjob.broker.core.repository.PlanRepository;
 import org.limbo.flowjob.broker.core.schedule.scheduler.Scheduler;
-import org.limbo.flowjob.broker.core.utils.TimeUtil;
+import org.limbo.flowjob.common.utils.TimeUtil;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -63,31 +63,31 @@ public abstract class BrokerNode {
         // 节点注册 用于集群感知
         registry.register(config.getHost(), config.getPort());
         // 节点变更通知
-        registry.subscribe(new NodeListener() {
-            @Override
-            public void event(NodeEvent event) {
-                switch (event.getType()) {
-                    case ONLINE:
-                        BrokerNodeManger.online(event.getHost(), event.getPort());
-                        break;
-                    case OFFLINE:
-                        BrokerNodeManger.offline(event.getHost(), event.getPort());
-                        break;
-                    default:
-                        log.warn("[BrokerNodeListener] unknown evnet {}", event);
-                        break;
-                }
+        registry.subscribe(event -> {
+            switch (event.getType()) {
+                case ONLINE:
+                    BrokerNodeManger.online(event.getHost(), event.getPort());
+                    break;
+                case OFFLINE:
+                    BrokerNodeManger.offline(event.getHost(), event.getPort());
+                    break;
+                default:
+                    log.warn("[BrokerNodeListener] unknown evnet {}", event);
+                    break;
             }
         });
 
 
-        // 开启定时任务 reload plan
+        // 下发任务task
         new Timer().schedule(new PlanScheduleTask(), 0, config.getRebalanceInterval());
+
+        // 状态检查task
+        new Timer().schedule(new TaskStatusCheckTask(), 0, config.getStatusCheckInterval());
     }
 
     private class PlanScheduleTask extends TimerTask {
 
-        private final String taskName = "[PlanScheduleTask]";
+        private static final String TASK_NAME = "[PlanScheduleTask]";
 
         @Override
         public void run() {
@@ -96,41 +96,54 @@ public abstract class BrokerNode {
                 if (!BrokerNodeManger.alive(config.getHost(), config.getPort())) {
                     return;
                 }
-                LocalDateTime now = TimeUtil.nowLocalDateTime();
-                List<Plan> plans = planRepository.schedulePlans(now.plusMinutes(-10), now);
-                if (CollectionUtils.isEmpty(plans)) {
-                    return;
-                }
-
-                for (Plan plan : plans) {
-                    PlanInfo planInfo = plan.getInfo();
-                    if (planInfo.getScheduleOption().getScheduleType() == null) {
-                        log.error("{} scheduleType is null info={}", taskName, planInfo);
-                        continue;
-                    }
-                    if (ScheduleType.NONE == planInfo.getScheduleOption().getScheduleType()) {
-                        continue;
+                for (;;) {
+                    LocalDateTime now = TimeUtil.nowLocalDateTime();
+                    List<Plan> plans = planRepository.schedulePlans(now, now.plusMinutes(10)); // 调度当前时间以及未来10分钟的任务
+                    if (CollectionUtils.isEmpty(plans)) {
+                        return;
                     }
 
-                    PlanInstance planInstance = planInstanceRepository.get(plan.getPlanId(), plan.getNextTriggerAt());
-                    if (planInstance == null) {
-                        planInstance = planInfo.newInstance(PlanScheduleStatus.SCHEDULING, PlanTriggerType.SCHEDULE);
+                    for (Plan plan : plans) {
+                        PlanInfo planInfo = plan.getInfo();
+                        if (planInfo.getScheduleOption().getScheduleType() == null) {
+                            log.error("{} scheduleType is null info={}", TASK_NAME, planInfo);
+                            continue;
+                        }
+                        if (ScheduleType.NONE == planInfo.getScheduleOption().getScheduleType()) {
+                            continue;
+                        }
+                        PlanInstance planInstance = planInstanceRepository.get(plan.getPlanId(), plan.getNextTriggerAt());
+                        if (planInstance != null) {
+                            // 已经下发过任务
+                            continue;
+                        }
+                        planInstance = planInfo.newInstance(PlanScheduleStatus.SCHEDULING, TriggerType.SCHEDULE);
                         String planInstanceId = planInstanceRepository.add(planInstance);
                         if (StringUtils.isBlank(planInstanceId)) {
                             // 并发情况可能导致
-                            return;
+                            continue;
                         }
-                    }
-                    // 调度
-                    if (!scheduler.isScheduling(planInstance.scheduleId())) {
-                        scheduler.schedule(planInstance);
+                        // 是否调度中
+                        if (!scheduler.isScheduling(planInstance.scheduleId())) {
+                            // 调度
+                            scheduler.schedule(planInstance);
+                        }
                     }
                 }
             } catch (Exception e) {
-                log.error("{} load and schedule plan fail", taskName, e);
+                log.error("{} load and schedule plan fail", TASK_NAME, e);
             }
         }
 
+    }
+
+
+    private static class TaskStatusCheckTask extends TimerTask {
+
+        @Override
+        public void run() {
+            // todo 将worker下线的任务改为执行失败
+        }
     }
 
 }

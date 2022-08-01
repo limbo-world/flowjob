@@ -17,65 +17,70 @@
 package org.limbo.flowjob.broker.api.constants.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import lombok.Getter;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * 触发类型：
- * <ul>
- *     <li>{@linkplain PlanTriggerType#API api触发}</li>
- *     <li>{@linkplain PlanTriggerType#SCHEDULE 调度触发}</li>
- * </ul>
- *
  * @author Brozen
- * @since 2021-05-16
+ * @since 2021-05-19
  */
-public enum PlanTriggerType implements DescribableEnum<Byte> {
+public enum JobType {
     /**
-     * 调用api触发
+     * 下发一个任务
      */
-    API(1, "api触发"),
+    NORMAL(1, "普通任务"),
     /**
-     * 到达调度时间点触发
+     * 给每个可选中节点下发任务
      */
-    SCHEDULE(2, "调度触发"),
-
+    BROADCAST(2, "广播任务"),
+    /**
+     * 将任务切分
+     */
+    SHARDING(3, "分片任务"),
     ;
 
-    public static final String DESCRIPTION = DescribableEnum.describe(PlanTriggerType.class);
-
+    @JsonValue
     public final byte type;
 
-    @Getter
     public final String desc;
 
-
-    PlanTriggerType(int type, String desc) {
+    @JsonCreator
+    JobType(int type, String desc) {
         this(((byte) type), desc);
     }
 
-    PlanTriggerType(byte type, String desc) {
+    JobType(byte type, String desc) {
         this.type = type;
         this.desc = desc;
     }
 
     /**
-     * {@inheritDoc}
-     * @return
+     * 校验是否是当前状态
+     * @param type 待校验值
      */
-    @Override
-    public Byte getValue() {
-        return type;
+    public boolean is(JobType type) {
+        return equals(type);
     }
 
+    /**
+     * 校验是否是当前状态
+     * @param type 待校验状态值
+     */
+    public boolean is(Number type) {
+        return type != null && type.byteValue() == this.type;
+    }
+
+    /**
+     * 解析上下文状态值
+     */
     @JsonCreator
-    public static PlanTriggerType parse(Number type) {
+    public static JobType parse(Number type) {
         if (type == null) {
             return null;
         }
 
-        for (PlanTriggerType triggerType : values()) {
-            if (type.byteValue() == triggerType.type) {
-                return triggerType;
+        for (JobType jobType : values()) {
+            if (jobType.is(type)) {
+                return jobType;
             }
         }
 

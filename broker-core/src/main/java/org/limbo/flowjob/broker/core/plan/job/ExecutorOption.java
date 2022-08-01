@@ -23,6 +23,8 @@ import lombok.Data;
 import lombok.Setter;
 import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 
+import java.io.Serializable;
+
 /**
  * 执行器配置，值对象
  *
@@ -31,8 +33,9 @@ import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
  */
 @Data
 @Setter(AccessLevel.NONE)
-public class ExecutorOption {
+public class ExecutorOption implements Serializable {
 
+    private static final long serialVersionUID = -3482276336902996311L;
     /**
      * 执行器名称
      */

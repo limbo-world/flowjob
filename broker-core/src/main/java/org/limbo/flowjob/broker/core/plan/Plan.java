@@ -19,15 +19,14 @@ package org.limbo.flowjob.broker.core.plan;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.limbo.flowjob.broker.core.plan.job.Job;
-import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
-import org.limbo.flowjob.broker.core.utils.TimeUtil;
+import org.limbo.flowjob.broker.core.plan.job.JobInfo;
+import org.limbo.flowjob.broker.core.repository.PlanRepository;
 
+import javax.inject.Inject;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
- * 执行计划。一个计划{@link Plan}对应至少一个作业{@link Job}
+ * 执行计划。一个计划{@link Plan}对应至少一个作业{@link JobInfo}
  * 主要是对plan的管理
  *
  * @author Brozen
@@ -69,5 +68,51 @@ public class Plan implements Serializable {
      * 是否已启用
      */
     private boolean enabled;
+
+    // --------需注入
+    @ToString.Exclude
+    @Setter(onMethod_ = @Inject)
+    private transient PlanRepository planRepository;
+
+
+    /**
+     * 启用当前计划
+     */
+    public boolean enable() {
+        boolean succeed = planRepository.enablePlan(this);
+        if (succeed) {
+            this.enabled = true;
+        }
+        return succeed;
+    }
+
+
+    /**
+     * 停用当前计划
+     */
+    public boolean disable() {
+        boolean succeed = planRepository.disablePlan(this);
+        if (succeed) {
+            this.enabled = false;
+        }
+        return succeed;
+    }
+
+    /**
+     * 更新执行计划信息，版本号递增
+     * @param planInfo 执行计划信息
+     * @return 新增的版本号
+     */
+    public String newVersion(PlanInfo planInfo) {
+        info = planInfo;
+
+        // 更新当前使用版本信息
+        String newVersion = planRepository.updateVersion(this);
+
+        // 更新领域对象中的版本号
+        currentVersion = newVersion;
+        recentlyVersion = newVersion;
+        return newVersion;
+    }
 
 }

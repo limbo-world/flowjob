@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +32,9 @@ import java.util.Map;
  * @author Brozen
  * @since 2021-05-21
  */
-public class Attributes {
+public class Attributes implements Serializable {
+
+    private static final long serialVersionUID = -8346798332193684079L;
 
     /**
      * 内部数据结构

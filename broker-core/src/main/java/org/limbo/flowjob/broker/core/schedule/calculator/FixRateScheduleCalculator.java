@@ -21,8 +21,7 @@ import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
 import org.limbo.flowjob.broker.core.schedule.Schedulable;
 import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
-import org.limbo.flowjob.broker.core.utils.TimeUtil;
-import org.limbo.flowjob.broker.core.utils.strategies.Strategy;
+import org.limbo.flowjob.common.utils.TimeUtil;
 
 import java.time.Duration;
 
@@ -33,7 +32,7 @@ import java.time.Duration;
  * @since 2021-05-21
  */
 @Slf4j
-public class FixRateScheduleCalculator extends ScheduleCalculator implements Strategy<Schedulable, Long> {
+public class FixRateScheduleCalculator extends ScheduleCalculator {
 
     protected FixRateScheduleCalculator() {
         super(ScheduleType.FIXED_RATE);
@@ -47,7 +46,7 @@ public class FixRateScheduleCalculator extends ScheduleCalculator implements Str
      * @return 下次触发调度的时间戳，当返回非正数时，表示作业不会有触发时间。
      */
     @Override
-    public Long apply(Schedulable schedulable) {
+    public Long calculate(Schedulable schedulable) {
 
         ScheduleOption scheduleOption = schedulable.scheduleOption();
         long now = TimeUtil.nowInstant().getEpochSecond();

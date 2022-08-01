@@ -17,11 +17,13 @@
 package org.limbo.flowjob.broker.core.plan.job;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
 import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * 作业分发配置，值对象
@@ -31,8 +33,9 @@ import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
  */
 @Data
 @Setter(AccessLevel.NONE)
-public class DispatchOption {
+public class DispatchOption implements Serializable {
 
+    private static final long serialVersionUID = 7742829408764721529L;
     /**
      * 作业分发方式
      */
@@ -46,21 +49,21 @@ public class DispatchOption {
     /**
      * 所需的CPU核心数，小于等于0表示此作业未定义CPU需求。在分发作业时，会根据此方法返回的CPU核心需求数量来检测一个worker是否有能力执行此作业。
      */
-    private float cpuRequirement;
+    private BigDecimal cpuRequirement;
 
     /**
      * 所需的内存GB数，小于等于0表示此作业未定义内存需求。在分发作业时，会根据此方法返回的内存需求数量来检测一个worker是否有能力执行此作业。
      */
-    private float ramRequirement;
+    private BigDecimal ramRequirement;
 
     @JsonCreator // @JsonProperty("scheduleType") 不去掉mapstruct会用set方式，比较奇怪
     public DispatchOption(LoadBalanceType loadBalanceType,
-                          Float cpuRequirement,
-                          Float ramRequirement,
+                          BigDecimal cpuRequirement,
+                          BigDecimal ramRequirement,
                           Integer retry) {
         this.loadBalanceType = loadBalanceType;
-        this.cpuRequirement = cpuRequirement == null ? 0 : cpuRequirement;
-        this.ramRequirement = ramRequirement == null ? 0 : ramRequirement;
+        this.cpuRequirement = cpuRequirement == null ? BigDecimal.ZERO : cpuRequirement;
+        this.ramRequirement = ramRequirement == null ? BigDecimal.ZERO : ramRequirement;
         this.retry = retry == null ? 0 : retry;
     }
 
@@ -75,7 +78,7 @@ public class DispatchOption {
     /**
      * 设置所需cpu核心数
      */
-    public DispatchOption setCpuRequirement(float cpuRequirement) {
+    public DispatchOption setCpuRequirement(BigDecimal cpuRequirement) {
         return new DispatchOption(loadBalanceType, cpuRequirement, ramRequirement, retry);
     }
 
@@ -83,7 +86,7 @@ public class DispatchOption {
     /**
      * 设置所需的内存GB数
      */
-    public DispatchOption setRamRequirement(float ramRequirement) {
+    public DispatchOption setRamRequirement(BigDecimal ramRequirement) {
         return new DispatchOption(loadBalanceType, cpuRequirement, ramRequirement, retry);
     }
 

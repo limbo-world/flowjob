@@ -22,9 +22,11 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.limbo.flowjob.broker.api.constants.enums.JobType;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.math.BigDecimal;
 
 /**
  * plan 中 每个流程节点的具体信息
@@ -58,14 +60,22 @@ public class JobInfoEntity extends BaseEntity {
      */
     private String childrenIds;
 
-    // todo
-//    /**
-//     * 作业分发配置参数
-//     */
-//    private DispatchOptionParam dispatchOption;
-//
-//    /**
-//     * 执行器配置参数
-//     */
-//    private ExecutorOptionParam executorOption;
+    private Byte dispatchType;
+
+    private Byte loadBalanceType;
+
+    private Integer retry;
+
+    private BigDecimal cpuRequirement;
+
+    private BigDecimal ramRequirement;
+
+    private String executorName;
+
+    private Byte executorType;
+
+    /**
+     * sharding normal
+     */
+    protected JobType type;
 }

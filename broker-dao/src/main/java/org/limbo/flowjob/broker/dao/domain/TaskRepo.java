@@ -21,7 +21,7 @@ package org.limbo.flowjob.broker.dao.domain;
 import lombok.Setter;
 import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
-import org.limbo.flowjob.broker.core.repositories.TaskRepository;
+import org.limbo.flowjob.broker.core.repository.TaskRepository;
 import org.limbo.flowjob.broker.dao.converter.TaskPoConverter;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
@@ -92,8 +92,7 @@ public class TaskRepo implements TaskRepository {
     public boolean dispatchFailed(Task task) {
         return taskEntityRepo.updateStatus(Long.valueOf(task.getTaskId()),
                 TaskStatus.DISPATCHING.status,
-                TaskStatus.DISPATCH_FAILED.status,
-                task.getWorkerId()
+                TaskStatus.DISPATCH_FAILED.status
         ) > 0;
     }
 

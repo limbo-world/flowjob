@@ -26,6 +26,7 @@ import javax.persistence.Table;
 import java.time.LocalDateTime;
 
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
+import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 
 /**
  * plan 的信息存档 历史版本
@@ -58,6 +59,12 @@ public class PlanInfoEntity extends BaseEntity {
      * @see ScheduleType
      */
     private Byte scheduleType;
+
+    /**
+     * 计划作业调度方式
+     * @see TriggerType
+     */
+    private Byte triggerType;
 
     /**
      * 从何时开始调度作业
