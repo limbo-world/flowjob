@@ -83,6 +83,9 @@ public abstract class BrokerNode {
 
         // 状态检查task
         new Timer().schedule(new TaskStatusCheckTask(), 0, config.getStatusCheckInterval());
+
+        // 状态检查task
+        new Timer().schedule(new JobStatusCheckTask(), 0, config.getStatusCheckInterval());
     }
 
     private class PlanScheduleTask extends TimerTask {
@@ -118,16 +121,13 @@ public abstract class BrokerNode {
                             continue;
                         }
                         planInstance = planInfo.newInstance(PlanStatus.SCHEDULING, TriggerType.SCHEDULE);
-                        String planInstanceId = planInstanceRepository.add(planInstance);
+                        String planInstanceId = planInstanceRepository.save(planInstance);
                         if (StringUtils.isBlank(planInstanceId)) {
                             // 并发情况可能导致
                             continue;
                         }
-                        // 是否调度中
-                        if (!scheduler.isScheduling(planInstance.scheduleId())) {
-                            // 调度
-                            scheduler.schedule(planInstance);
-                        }
+                        // 调度
+                        scheduler.schedule(planInstance);
                     }
                 }
             } catch (Exception e) {
@@ -143,6 +143,14 @@ public abstract class BrokerNode {
         @Override
         public void run() {
             // todo 将worker下线的任务改为执行失败
+        }
+    }
+
+    private static class JobStatusCheckTask extends TimerTask {
+
+        @Override
+        public void run() {
+            // todo 处理没有生成的job
         }
     }
 

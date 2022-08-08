@@ -19,16 +19,19 @@
 package org.limbo.flowjob.broker.application.plan.component;
 
 import lombok.Setter;
-import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
+import org.limbo.flowjob.broker.api.constants.enums.PlanStatus;
+import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
+import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.application.plan.support.EventListener;
 import org.limbo.flowjob.broker.core.events.Event;
 import org.limbo.flowjob.broker.core.events.EventTopic;
+import org.limbo.flowjob.broker.core.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.plan.ScheduleEventTopic;
 import org.limbo.flowjob.broker.core.plan.job.JobInstance;
-import org.limbo.flowjob.broker.core.plan.job.context.Task;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
-import org.limbo.flowjob.broker.dao.entity.TaskEntity;
-import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
+import org.limbo.flowjob.broker.core.repository.PlanRepository;
+import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
+import org.limbo.flowjob.common.utils.TimeUtil;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -40,50 +43,42 @@ import java.util.List;
  * @since 2022/8/5
  */
 @Component
-public class TaskSuccessListener implements EventListener {
+public class PlanExecutingListener implements EventListener {
 
     @Setter(onMethod_ = @Inject)
-    private TaskEntityRepo taskEntityRepo;
-
+    private PlanRepository planRepository;
+    @Setter(onMethod_ = @Inject)
+    private PlanInstanceEntityRepo planInstanceEntityRepo;
     @Setter(onMethod_ = @Inject)
     private JobInstanceRepository jobInstanceRepository;
 
     @Override
     public EventTopic topic() {
-        return ScheduleEventTopic.TASK_SUCCESS;
+        return ScheduleEventTopic.PLAN_EXECUTING;
     }
 
     @Override
     @Transactional
     public void accept(Event event) {
-        Task task = (Task) event.getSource();
+        PlanInstance planInstance = (PlanInstance) event.getSource();
 
-        int num = taskEntityRepo.updateStatus(Long.valueOf(task.getTaskId()),
-                TaskStatus.EXECUTING.status,
-                TaskStatus.SUCCEED.status
+        // planInstance 状态
+        planInstanceEntityRepo.start(
+                Long.valueOf(planInstance.getPlanInstanceId()),
+                PlanStatus.SCHEDULING.status,
+                PlanStatus.EXECUTING.status,
+                TimeUtil.currentLocalDateTime()
         );
-
-        if (num != 1) {
-            return;
+        // 批量保存数据
+        List<JobInstance> jobInstances = planInstance.scheduleJobInstances();
+        for (JobInstance jobInstance : jobInstances) {
+            jobInstanceRepository.add(jobInstance);
         }
 
-        // 检查job下task是否都成功
-        List<TaskEntity> taskEntities = taskEntityRepo.findByJobInstanceId(Long.valueOf(task.getJobInstanceId()));
-        boolean success = true;
-        for (TaskEntity taskEntity : taskEntities) {
-            if (TaskStatus.SUCCEED != TaskStatus.parse(taskEntity.getStatus())) {
-                success = false;
-                break;
-            }
+        // 更新plan的下次触发时间
+        if (ScheduleType.FIXED_DELAY != planInstance.getScheduleOption().getScheduleType() && TriggerType.SCHEDULE == planInstance.getScheduleOption().getTriggerType()) {
+            planRepository.nextTriggerAt(planInstance.getPlanId(), planInstance.nextTriggerAt());
         }
-
-        // 如果有不是success状态的，可能还在下发或者处理中，或者fail（交由fail监听处理）
-
-        if (success) {
-            JobInstance jobInstance = jobInstanceRepository.get(task.getJobInstanceId());
-            jobInstance.executeSucceed();
-        }
-
     }
 
 }

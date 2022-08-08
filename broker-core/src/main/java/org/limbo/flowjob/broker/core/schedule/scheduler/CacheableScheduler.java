@@ -18,7 +18,7 @@
 
 package org.limbo.flowjob.broker.core.schedule.scheduler;
 
-import org.limbo.flowjob.broker.core.schedule.Schedulable;
+import org.limbo.flowjob.broker.core.schedule.Scheduled;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,16 +32,16 @@ public class CacheableScheduler implements Scheduler {
     /**
      * 所有正在被调度中的对象
      */
-    private final Map<String, Schedulable> scheduling;
+    private final Map<String, Scheduled> scheduling;
 
     public CacheableScheduler() {
         this.scheduling = new ConcurrentHashMap<>();
     }
 
     @Override
-    public void schedule(Schedulable schedulable) {
-        if (checkAndPut(schedulable)) {
-            schedulable.schedule();
+    public void schedule(Scheduled scheduled) {
+        if (checkAndPut(scheduled)) {
+            scheduled.schedule();
         }
     }
 
@@ -49,11 +49,11 @@ public class CacheableScheduler implements Scheduler {
      * 是否进行了缓存
      * @return 放入返回true 否则返回false
      */
-    public boolean checkAndPut(Schedulable schedulable) {
-        String id = schedulable.scheduleId();
+    public boolean checkAndPut(Scheduled scheduled) {
+        String id = scheduled.scheduleId();
 
         if (scheduling.containsKey(id)) {
-            scheduling.put(id, schedulable);
+            scheduling.put(id, scheduled);
             return true;
         }
         return false;

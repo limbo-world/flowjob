@@ -3,26 +3,15 @@ package org.limbo.flowjob.broker.application.plan.service;
 import lombok.Setter;
 import org.limbo.flowjob.broker.api.console.param.PlanAddParam;
 import org.limbo.flowjob.broker.api.console.param.PlanReplaceParam;
-import org.limbo.flowjob.broker.api.constants.enums.PlanStatus;
-import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
-import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
 import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
-import org.limbo.flowjob.broker.core.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.plan.job.JobInstance;
-import org.limbo.flowjob.broker.core.plan.job.context.Task;
-import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
-import org.limbo.flowjob.broker.core.repository.TaskRepository;
-import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
-import org.limbo.flowjob.common.utils.TimeUtil;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
-import java.util.List;
+import javax.transaction.Transactional;
 
 /**
  * @author Brozen
@@ -36,15 +25,6 @@ public class PlanService {
 
     @Setter(onMethod_ = @Inject)
     private PlanConverter converter;
-
-    @Setter(onMethod_ = @Inject)
-    private TaskRepository taskRepository;
-
-    @Setter(onMethod_ = @Inject)
-    private PlanInstanceEntityRepo planInstanceEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private JobInstanceRepository jobInstanceRepository;
 
     /**
      * 新增执行计划
@@ -110,32 +90,6 @@ public class PlanService {
 
         // 停用计划
         return planRepository.disablePlan(plan);
-    }
-
-    // todo 批量保存 没有重复利用价值就放到linstener
-    @Transactional
-    public void saveScheduleInfo(PlanInstance planInstance) {
-        // planInstance 状态
-        planInstanceEntityRepo.start(
-                Long.valueOf(planInstance.getPlanInstanceId()),
-                PlanStatus.SCHEDULING.status,
-                PlanStatus.EXECUTING.status,
-                TimeUtil.currentLocalDateTime()
-        );
-        // 批量保存数据
-        List<JobInstance> jobInstances = planInstance.scheduleJobInstances();
-        for (JobInstance jobInstance : jobInstances) {
-            jobInstanceRepository.add(jobInstance);
-            List<Task> tasks = jobInstance.createTasks();
-            for (Task task : tasks) {
-                taskRepository.save(task);
-            }
-        }
-
-        // 更新plan的下次触发时间
-        if (ScheduleType.FIXED_DELAY != planInstance.getScheduleOption().getScheduleType() && TriggerType.SCHEDULE == planInstance.getScheduleOption().getTriggerType()) {
-            planRepository.nextTriggerAt(planInstance.getPlanId(), planInstance.nextTriggerAt());
-        }
     }
 
 }

@@ -42,22 +42,22 @@ public class DelegatedScheduleCalculator extends ScheduleCalculator {
 
     /**
      * {@inheritDoc}
-     * @param schedulable 可调度的对象
+     * @param calculated 可调度的对象
      * @return
      */
     @Override
-    public Boolean canCalculate(Schedulable schedulable) {
-        return Objects.requireNonNull(delegated, "delegated target").canCalculate(schedulable);
+    public Boolean canCalculate(Calculated calculated) {
+        return Objects.requireNonNull(delegated, "delegated target").canCalculate(calculated);
     }
 
 
     /**
      * {@inheritDoc}
-     * @param schedulable 待调度对象
+     * @param calculated 待调度对象
      * @return
      */
     @Override
-    public Long calculate(Schedulable schedulable) {
-        return Objects.requireNonNull(delegated, "delegated target").calculate(schedulable);
+    public Long calculate(Calculated calculated) {
+        return Objects.requireNonNull(delegated, "delegated target").calculate(calculated);
     }
 }

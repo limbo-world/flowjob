@@ -29,9 +29,9 @@ import org.limbo.flowjob.broker.core.plan.job.context.Task;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 
 /**
  * @author Devil
@@ -66,7 +66,7 @@ public class TaskExecutingListener implements EventListener {
         );
 
         jobInstanceEntityRepo.updateStatus(Long.valueOf(task.getJobInstanceId()),
-                JobStatus.DISPATCHING.status,
+                JobStatus.SCHEDULING.status,
                 JobStatus.EXECUTING.status
         );
     }

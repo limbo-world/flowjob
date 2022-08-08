@@ -19,20 +19,18 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
-import org.limbo.flowjob.broker.api.constants.enums.PlanStatus;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
 import org.limbo.flowjob.broker.core.repository.TaskRepository;
-import org.limbo.flowjob.common.utils.TimeUtil;
-import org.limbo.flowjob.broker.dao.converter.PlanRecordPoConverter;
+import org.limbo.flowjob.broker.dao.converter.PlanInstanceConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 
 /**
  * @author Devil
@@ -43,7 +41,7 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
 
 
     @Setter(onMethod_ = @Inject)
-    private PlanRecordPoConverter converter;
+    private PlanInstanceConverter converter;
 
     @Setter(onMethod_ = @Inject)
     private PlanInstanceEntityRepo planInstanceEntityRepo;
@@ -63,7 +61,7 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
 
     @Override
     @Transactional
-    public String add(PlanInstance instance) {
+    public String save(PlanInstance instance) {
         PlanInstanceEntity entity = converter.convert(instance);
         planInstanceEntityRepo.saveAndFlush(entity);
         return String.valueOf(entity.getId());
@@ -81,39 +79,6 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
             return null;
         }
         return converter.reverse().convert(planInstanceEntity);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param instance
-     */
-    @Override
-    @Transactional
-    public void executeSucceed(PlanInstance instance) {
-        planInstanceEntityRepo.end(
-                Long.valueOf(instance.getPlanInstanceId()),
-                PlanStatus.EXECUTING.status,
-                instance.getStatus().status,
-                TimeUtil.currentLocalDateTime()
-        );
-    }
-
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param instance
-     */
-    @Override
-    @Transactional
-    public void executeFailed(PlanInstance instance) {
-        planInstanceEntityRepo.end(
-                Long.valueOf(instance.getPlanInstanceId()),
-                PlanStatus.EXECUTING.status,
-                instance.getStatus().status,
-                TimeUtil.currentLocalDateTime()
-        );
     }
 
 

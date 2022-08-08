@@ -28,14 +28,16 @@ import org.limbo.flowjob.broker.core.exceptions.JobExecuteException;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.plan.ScheduleEventTopic;
 import org.limbo.flowjob.broker.core.plan.job.JobInstance;
+import org.limbo.flowjob.broker.core.plan.job.context.TaskCreatorFactory;
 import org.limbo.flowjob.broker.core.plan.job.handler.JobFailHandler;
 import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
+import org.limbo.flowjob.broker.core.schedule.scheduler.Scheduler;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
+import org.limbo.flowjob.common.utils.TimeUtil;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 
 /**
  * @author Devil
@@ -50,6 +52,12 @@ public class JobFailListener implements EventListener {
 
     @Setter(onMethod_ = @Inject)
     private PlanInstanceRepository planInstanceRepository;
+
+    @Setter(onMethod_ = @Inject)
+    private Scheduler scheduler;
+
+    @Setter(onMethod_ = @Inject)
+    private TaskCreatorFactory taskCreatorFactory;
 
     @Override
     public EventTopic topic() {
@@ -75,10 +83,13 @@ public class JobFailListener implements EventListener {
         PlanInstance planInstance = planInstanceRepository.get(jobInstance.getPlanInstanceId());
         planInstance.dispatchNext(jobInstance.getJobId());
 
-        if (planInstance.needRetryJob(jobInstance)) {
+        if (planInstance.needRetryJob(jobInstance.getJobId())) {
             // 重试处理
-            jobInstance = jobInfo.newInstance(planId, planInstanceId);
-            jobInstance.dispatch();// todo 放入重试池
+            jobInstance = planInstance.getJobInfo(jobInstance.getJobId()).newInstance(planInstance.getPlanId(),
+                    planInstance.getPlanInstanceId(),
+                    taskCreatorFactory,
+                    TimeUtil.currentLocalDateTime()); // todo 根据重试间隔决定触发时间
+            scheduler.schedule(jobInstance);
         } else {
             // 执行失败处理
             JobFailHandler failHandler = jobInstance.getFailHandler();

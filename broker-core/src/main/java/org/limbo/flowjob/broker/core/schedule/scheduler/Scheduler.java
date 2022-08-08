@@ -17,7 +17,7 @@
 package org.limbo.flowjob.broker.core.schedule.scheduler;
 
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
-import org.limbo.flowjob.broker.core.schedule.Schedulable;
+import org.limbo.flowjob.broker.core.schedule.Scheduled;
 
 /**
  * 调度器，封装了调度流程，根据{@link ScheduleType}有不同实现。
@@ -29,9 +29,9 @@ public interface Scheduler {
 
     /**
      * 开始调度
-     * @param schedulable 待调度的对象
+     * @param scheduled 待调度的对象
      */
-    void schedule(Schedulable schedulable);
+    void schedule(Scheduled scheduled);
 
     /**
      * 停止调度

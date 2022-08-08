@@ -47,20 +47,20 @@ public abstract class ScheduleCalculator {
 
     /**
      * 此策略是否适用于待调度对象
-     * @param schedulable 可调度的对象
+     * @param calculated 可调度的对象
      * @return 是否可用此策略计算作业的触发时间
      */
-    public Boolean canCalculate(Schedulable schedulable) {
-        return schedulable.scheduleOption().getScheduleType() == this.scheduleType;
+    public Boolean canCalculate(Calculated calculated) {
+        return calculated.scheduleOption().getScheduleType() == this.scheduleType;
     }
 
 
     /**
      * 通过此策略计算下一次触发调度的时间戳。如果不应该被触发，返回0或负数。
-     * @param schedulable 待调度对象
+     * @param calculated 待调度对象
      * @return 下次触发调度的时间戳，当返回非正数时，表示作业不会有触发时间。
      */
-    public abstract Long calculate(Schedulable schedulable);
+    public abstract Long calculate(Calculated calculated);
 
 
     public ScheduleType getScheduleType() {

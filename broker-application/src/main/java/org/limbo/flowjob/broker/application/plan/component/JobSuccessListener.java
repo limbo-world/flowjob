@@ -20,23 +20,19 @@ package org.limbo.flowjob.broker.application.plan.component;
 
 import lombok.Setter;
 import org.limbo.flowjob.broker.api.constants.enums.JobStatus;
-import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
 import org.limbo.flowjob.broker.application.plan.support.EventListener;
 import org.limbo.flowjob.broker.core.events.Event;
 import org.limbo.flowjob.broker.core.events.EventTopic;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.plan.ScheduleEventTopic;
 import org.limbo.flowjob.broker.core.plan.job.JobInstance;
-import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
-import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
-import java.util.List;
+import javax.transaction.Transactional;
 
 /**
  * @author Devil

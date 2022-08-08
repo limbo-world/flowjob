@@ -18,29 +18,45 @@
 
 package org.limbo.flowjob.broker.application.plan.component;
 
-import org.limbo.flowjob.broker.core.events.EventTopic;
-import org.limbo.flowjob.broker.api.constants.enums.JobStatus;
+import lombok.Setter;
 import org.limbo.flowjob.broker.application.plan.support.EventListener;
 import org.limbo.flowjob.broker.core.events.Event;
+import org.limbo.flowjob.broker.core.events.EventTopic;
+import org.limbo.flowjob.broker.core.plan.ScheduleEventTopic;
 import org.limbo.flowjob.broker.core.plan.job.JobInstance;
+import org.limbo.flowjob.broker.core.plan.job.context.Task;
+import org.limbo.flowjob.broker.core.repository.TaskRepository;
 import org.springframework.stereotype.Component;
+
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+import java.util.List;
 
 /**
  * @author Devil
  * @since 2022/8/5
  */
 @Component
-public class JobDispatchingListener implements EventListener {
+public class JobExecutingListener implements EventListener {
+
+    @Setter(onMethod_ = @Inject)
+    private TaskRepository taskRepository;
 
     @Override
     public EventTopic topic() {
-        return JobStatus.DISPATCHING;
+        return ScheduleEventTopic.JOB_EXECUTING;
     }
 
     @Override
+    @Transactional
     public void accept(Event event) {
         JobInstance jobInstance = (JobInstance) event.getSource();
-        // todo 进行check 是否有job已经失败并需要终止plan 如果是则无需下发，修改状态为失败 原因为---由别的job失败导致无需下发
+
+        List<Task> tasks = jobInstance.createTasks();
+        for (Task task : tasks) {
+            taskRepository.save(task);
+        }
+
     }
 
 }

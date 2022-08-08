@@ -21,9 +21,6 @@ import java.util.Optional;
 public class PlanConverter {
 
     @Setter(onMethod_ = @Inject)
-    private ApplicationContext ac;
-
-    @Setter(onMethod_ = @Inject)
     private PlanInfoEntityRepo planInfoEntityRepo;
 
     @Setter(onMethod_ = @Inject)
@@ -50,9 +47,6 @@ public class PlanConverter {
         Verifies.verify(planInfoEntityOptional.isPresent(), "does not find info by version--" +plan.getCurrentVersion()+ "");
         PlanInfo currentVersion = planInfoConverter.toDO(planInfoEntityOptional.get());
         plan.setInfo(currentVersion);
-
-        // 注入依赖
-        ac.getAutowireCapableBeanFactory().autowireBean(plan);
         return plan;
 
     }

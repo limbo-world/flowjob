@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
  * @author Brozen
  * @since 2021-07-12
  */
-public interface Schedulable {
+public interface Scheduled {
 
     /**
      * 获取调度对象ID
@@ -32,35 +32,13 @@ public interface Schedulable {
     String scheduleId();
 
     /**
-     * 获取调度配置
-     */
-    ScheduleOption scheduleOption();
-
-    /**
-     * 获取上次被调度时间
-     */
-    LocalDateTime lastScheduleAt();
-
-    /**
-     * 获取上次调度反馈的时间
-     */
-    LocalDateTime lastFeedbackAt();
-
-    /**
      * 执行业务
      */
     void schedule();
 
     /**
-     * 这次触发时间
+     * 触发时间
      */
-    default LocalDateTime triggerAt() {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * 下次触发时间
-     */
-    LocalDateTime nextTriggerAt();
+    LocalDateTime triggerAt();
 
 }

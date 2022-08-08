@@ -1,7 +1,7 @@
 package org.limbo.flowjob.broker.cluster.election.rpc.request;
 
 import org.limbo.flowjob.broker.api.dto.ResponseDTO;
-import org.limbo.flowjob.broker.core.schedule.Schedulable;
+import org.limbo.flowjob.broker.core.schedule.Scheduled;
 
 import java.io.Serializable;
 
@@ -13,13 +13,13 @@ public class ScheduleRequest extends RpcRequest<ResponseDTO<Void>> implements Se
 
     private static final long serialVersionUID = 6009220462586505649L;
 
-    private Schedulable schedulable;
+    private Scheduled scheduled;
 
-    public Schedulable getSchedulable() {
-        return schedulable;
+    public Scheduled getSchedulable() {
+        return scheduled;
     }
 
-    public void setSchedulable(Schedulable schedulable) {
-        this.schedulable = schedulable;
+    public void setSchedulable(Scheduled scheduled) {
+        this.scheduled = scheduled;
     }
 }

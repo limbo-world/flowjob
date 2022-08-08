@@ -21,7 +21,7 @@ package org.limbo.flowjob.broker.core.schedule.scheduler;
 import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timer;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.core.schedule.Schedulable;
+import org.limbo.flowjob.broker.core.schedule.Scheduled;
 import org.limbo.flowjob.common.utils.TimeUtil;
 
 import java.time.Duration;
@@ -67,27 +67,27 @@ public class HashedWheelTimerScheduler extends CacheableScheduler {
     /**
      * {@inheritDoc}
      *
-     * @param schedulable 待调度的对象
+     * @param scheduled 待调度的对象
      */
     @Override
-    public void schedule(Schedulable schedulable) {
-        if (checkAndPut(schedulable)) {
+    public void schedule(Scheduled scheduled) {
+        if (checkAndPut(scheduled)) {
             // 计算延迟时间
-            long delay = Duration.between(TimeUtil.currentLocalDateTime(), schedulable.triggerAt()).toMillis();
+            long delay = Duration.between(TimeUtil.currentLocalDateTime(), scheduled.triggerAt()).toMillis();
             delay = delay < 0 ? 0 : delay;
 
             // 在timer上调度作业执行
             this.timer.newTimeout(timeout -> {
                 try {
                     // 已经取消调度了，则不再重新调度作业
-                    if (!isScheduling(schedulable.scheduleId())) {
+                    if (!isScheduling(scheduled.scheduleId())) {
                         return;
                     }
 
                     // 执行调度逻辑
-                    schedulePool.submit(schedulable::schedule);
+                    schedulePool.submit(scheduled::schedule);
                 } catch (Exception e) {
-                    log.error("[HashedWheelTimerScheduler] schedule fail id:{}", schedulable.scheduleId(), e);
+                    log.error("[HashedWheelTimerScheduler] schedule fail id:{}", scheduled.scheduleId(), e);
                 }
             }, delay, TimeUnit.MILLISECONDS);
         }

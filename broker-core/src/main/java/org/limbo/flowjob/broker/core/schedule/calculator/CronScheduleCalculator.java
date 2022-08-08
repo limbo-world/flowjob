@@ -23,7 +23,7 @@ import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
-import org.limbo.flowjob.broker.core.schedule.Schedulable;
+import org.limbo.flowjob.broker.core.schedule.Calculated;
 import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.utils.TimeUtil;
@@ -47,18 +47,18 @@ public class CronScheduleCalculator extends ScheduleCalculator {
 
     /**
      * 通过此策略计算下一次触发调度的时间戳。如果不应该被触发，返回0或负数。
-     * @param schedulable 待调度对象
+     * @param calculated 待调度对象
      * @return 下次触发调度的时间戳，当返回非正数时，表示作业不会有触发时间。
      */
     @Override
-    public Long calculate(Schedulable schedulable) {
+    public Long calculate(Calculated calculated) {
 
-        ScheduleOption scheduleOption = schedulable.scheduleOption();
+        ScheduleOption scheduleOption = calculated.scheduleOption();
         Instant nowInstant = TimeUtil.currentInstant();
         long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
 
         // 计算第一次调度
-        if (schedulable.lastScheduleAt() == null) {
+        if (calculated.lastScheduleAt() == null) {
             return Math.max(startScheduleAt, nowInstant.getEpochSecond());
         }
 

@@ -230,4 +230,5 @@ public class DAG<T extends DAGNode> implements Serializable {
     public List<T> nodes() {
         return new ArrayList<>(nodes.values());
     }
+
 }

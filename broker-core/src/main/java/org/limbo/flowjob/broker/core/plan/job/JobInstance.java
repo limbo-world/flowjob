@@ -33,8 +33,11 @@ import org.limbo.flowjob.broker.core.plan.ScheduleEventTopic;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
 import org.limbo.flowjob.broker.core.plan.job.context.TaskCreatorFactory;
 import org.limbo.flowjob.broker.core.plan.job.handler.JobFailHandler;
+import org.limbo.flowjob.broker.core.schedule.Scheduled;
 
+import java.io.Serializable;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -43,7 +46,9 @@ import java.util.List;
  */
 @Slf4j
 @Data
-public class JobInstance {
+public class JobInstance implements Scheduled, Serializable {
+
+    private static final long serialVersionUID = -7913375595969578408L;
 
     private String jobInstanceId;
 
@@ -84,34 +89,14 @@ public class JobInstance {
      */
     private JobFailHandler failHandler;
 
-    private List<Task> tasks;
+    /**
+     * 触发时间
+     */
+    private LocalDateTime triggerAt;
 
     @Getter(AccessLevel.NONE)
     @ToString.Exclude
     private TaskCreatorFactory taskCreatorFactory;
-
-    /**
-     * 作业下发，会先持久化任务，然后执行下发
-     */
-    public void dispatch() {
-        if (JobStatus.DISPATCHING != status) {
-            return;
-        }
-
-        setStatus(JobStatus.EXECUTING);
-        EventCenter.publish(new Event(this, ScheduleEventTopic.JOB_EXECUTING));
-
-        // todo 这块逻辑有问题 广播和分片的处理逻辑没有包含
-        this.tasks = createTasks();
-        for (Task task : tasks) {
-            // 选择worker
-            WorkerSelector workerSelector = WorkerSelectorFactory.newSelector(dispatchOption.getLoadBalanceType());
-
-            // 执行下发
-            task.dispatch(workerSelector);
-        }
-
-    }
 
     public List<Task> createTasks() {
         TaskCreatorFactory.TaskCreator taskCreator = taskCreatorFactory.get(type);
@@ -141,6 +126,37 @@ public class JobInstance {
         setStatus(JobStatus.FAILED);
 
         EventCenter.publish(new Event(this, ScheduleEventTopic.JOB_FAIL));
+    }
+
+
+    @Override
+    public String scheduleId() {
+        return jobId;
+    }
+
+    @Override
+    public void schedule() {
+        if (JobStatus.SCHEDULING != status) {
+            return;
+        }
+        setStatus(JobStatus.EXECUTING);
+
+        EventCenter.publish(new Event(this, ScheduleEventTopic.JOB_EXECUTING));
+
+        // todo 这块逻辑有问题 广播和分片的处理逻辑没有包含
+        List<Task> tasks = createTasks();
+        for (Task task : tasks) {
+            // 选择worker
+            WorkerSelector workerSelector = WorkerSelectorFactory.newSelector(dispatchOption.getLoadBalanceType());
+
+            // 执行下发
+            task.dispatch(workerSelector);
+        }
+    }
+
+    @Override
+    public LocalDateTime triggerAt() {
+        return triggerAt;
     }
 
 

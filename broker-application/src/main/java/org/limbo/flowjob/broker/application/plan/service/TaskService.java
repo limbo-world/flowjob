@@ -8,9 +8,9 @@ import org.limbo.flowjob.broker.core.plan.job.context.Task;
 import org.limbo.flowjob.broker.core.repository.TaskRepository;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 
 /**
  * @author Brozen

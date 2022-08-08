@@ -18,7 +18,8 @@ package org.limbo.flowjob.broker.core.schedule.calculator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
-import org.limbo.flowjob.broker.core.schedule.Schedulable;
+import org.limbo.flowjob.broker.core.schedule.Calculated;
+import org.limbo.flowjob.broker.core.schedule.Scheduled;
 import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.utils.TimeUtil;
@@ -42,29 +43,29 @@ public class FixRateScheduleCalculator extends ScheduleCalculator {
     /**
      * 通过此策略计算下一次触发调度的时间戳。如果不应该被触发，返回0或负数。
      *
-     * @param schedulable 待调度对象
+     * @param calculated 待调度对象
      * @return 下次触发调度的时间戳，当返回非正数时，表示作业不会有触发时间。
      */
     @Override
-    public Long calculate(Schedulable schedulable) {
+    public Long calculate(Calculated calculated) {
 
-        ScheduleOption scheduleOption = schedulable.scheduleOption();
+        ScheduleOption scheduleOption = calculated.scheduleOption();
         long now = TimeUtil.currentInstant().getEpochSecond();
         long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
 
         // 计算第一次调度
-        if (schedulable.lastScheduleAt() == null) {
+        if (calculated.lastScheduleAt() == null) {
             return Math.max(startScheduleAt, now);
         }
 
         // 上次调度一定间隔后调度
         Duration interval = scheduleOption.getScheduleInterval();
         if (interval == null) {
-            log.error("cannot calculate next trigger timestamp of {} because interval is not assigned!", schedulable);
+            log.error("cannot calculate next trigger timestamp of {} because interval is not assigned!", calculated);
             return ScheduleCalculator.NO_TRIGGER;
         }
 
-        long scheduleAt = TimeUtil.toInstant(schedulable.lastScheduleAt()).toEpochMilli() + interval.toMillis();
+        long scheduleAt = TimeUtil.toInstant(calculated.lastScheduleAt()).toEpochMilli() + interval.toMillis();
         return Math.max(scheduleAt, now);
     }
 

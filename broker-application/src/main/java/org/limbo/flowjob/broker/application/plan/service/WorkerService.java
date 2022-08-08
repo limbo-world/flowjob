@@ -35,10 +35,10 @@ import org.limbo.flowjob.broker.core.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatisticsRepository;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -87,7 +87,7 @@ public class WorkerService {
      * @param options 注册参数
      * @return 返回所有tracker节点信息
      */
-    @Transactional(rollbackFor = Throwable.class)
+    @Transactional(rollbackOn = Throwable.class)
     public WorkerRegisterDTO register(WorkerRegisterParam options) {
 
         // TODO 租户鉴权

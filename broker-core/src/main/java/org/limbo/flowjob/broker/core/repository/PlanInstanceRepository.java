@@ -11,7 +11,7 @@ public interface PlanInstanceRepository {
     /**
      * 持久化
      */
-    String add(PlanInstance instance);
+    String save(PlanInstance instance);
 
 
     /**
@@ -23,15 +23,5 @@ public interface PlanInstanceRepository {
      * 获取
      */
     PlanInstance get(String planId, long expectTriggerTime);
-
-    /**
-     * 计划执行成功
-     */
-    void executeSucceed(PlanInstance instance);
-
-    /**
-     * 计划执行失败
-     */
-    void executeFailed(PlanInstance instance);
 
 }

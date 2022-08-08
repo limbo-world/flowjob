@@ -21,8 +21,10 @@ import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.broker.api.constants.enums.JobStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
+import org.limbo.flowjob.broker.core.plan.job.context.TaskCreatorFactory;
 import org.limbo.flowjob.broker.core.plan.job.dag.DAGNode;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 /**
@@ -75,16 +77,17 @@ public class JobInfo extends DAGNode {
 
 
     /**
-     * 生成作业实例，新生成的作业状态是 {@link JobStatus#DISPATCHING}
+     * 生成作业实例，新生成的作业状态是 {@link JobStatus#SCHEDULING}
      */
-    public JobInstance newInstance(String planId, String planInstanceId) {
+    public JobInstance newInstance(String planId, String planInstanceId, TaskCreatorFactory taskCreatorFactory, LocalDateTime triggerAt) {
         JobInstance jobInstance = new JobInstance();
         jobInstance.setPlanId(planId);
         jobInstance.setPlanInstanceId(planInstanceId);
         jobInstance.setJobId(jobId);
-        jobInstance.setStatus(JobStatus.DISPATCHING);
+        jobInstance.setStatus(JobStatus.SCHEDULING);
+        jobInstance.setTaskCreatorFactory(taskCreatorFactory);
+        jobInstance.setTriggerAt(triggerAt);
         jobInstance.setAttributes(null); // todo
-        jobInstance.setTaskCreatorFactory(null); // todo
         return jobInstance;
     }
 

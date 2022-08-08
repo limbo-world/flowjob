@@ -29,12 +29,15 @@ import org.limbo.flowjob.broker.core.events.Event;
 import org.limbo.flowjob.broker.core.events.EventCenter;
 import org.limbo.flowjob.broker.core.plan.job.JobInfo;
 import org.limbo.flowjob.broker.core.plan.job.JobInstance;
+import org.limbo.flowjob.broker.core.plan.job.context.TaskCreatorFactory;
 import org.limbo.flowjob.broker.core.plan.job.dag.DAG;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
-import org.limbo.flowjob.broker.core.schedule.Schedulable;
+import org.limbo.flowjob.broker.core.schedule.Calculated;
 import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
+import org.limbo.flowjob.broker.core.schedule.Scheduled;
 import org.limbo.flowjob.broker.core.schedule.calculator.ScheduleCalculatorFactory;
+import org.limbo.flowjob.broker.core.schedule.scheduler.Scheduler;
 import org.limbo.flowjob.common.utils.TimeUtil;
 
 import javax.inject.Inject;
@@ -51,7 +54,7 @@ import java.util.List;
  */
 @Slf4j
 @Data
-public class PlanInstance implements Schedulable, Serializable {
+public class PlanInstance implements Scheduled, Calculated, Serializable {
 
     private static final long serialVersionUID = 1837382860200548371L;
 
@@ -114,25 +117,16 @@ public class PlanInstance implements Schedulable, Serializable {
     @ToString.Exclude
     private transient ScheduleCalculatorFactory strategyFactory;
 
+    @Getter(AccessLevel.NONE)
+    @ToString.Exclude
+    private transient Scheduler scheduler;
+
+    @Getter(AccessLevel.NONE)
+    @ToString.Exclude
+    private TaskCreatorFactory taskCreatorFactory;
 
     /**
-     * 检测 Plan 实例是否已经执行完成
-     */
-    public boolean isFinished() {
-        return checkFinished(dag.nodes());
-    }
-
-
-    /**
-     * todo 判断作业是否可以被触发。检测作业在 DAG 中的前置作业节点是否均可触发子节点。
-     */
-    public boolean isJobTriggered(JobInfo jobInfo) {
-        return checkFinished(dag.preNodes(jobInfo.getJobId()));
-    }
-
-
-    /**
-     * 判断某一计划实例中，一批作业是否全部可以触发下一步
+     * 判断某一计划实例中，一批作业是否全部可以触发下一步 todo 根据jobid获取实例判断是否完成
      */
     private boolean checkFinished(List<JobInfo> jobInfos) {
         // 有实例还未创建直接返回
@@ -203,14 +197,11 @@ public class PlanInstance implements Schedulable, Serializable {
             return;
         }
         setStatus(PlanStatus.EXECUTING);
+
         EventCenter.publish(new Event(this, ScheduleEventTopic.PLAN_EXECUTING));
-        try {
-            for (JobInstance jobInstance : scheduleJobInstances()) {
-                // todo 多线程 -- 需要考虑并发下状态变更问题
-                jobInstance.dispatch();
-            }
-        } catch (Exception e) {
-            log.error("[PlanInstance] schedule fail planInstance:{}", this, e);
+
+        for (JobInstance jobInstance : scheduleJobInstances()) {
+            scheduler.schedule(jobInstance);
         }
     }
 
@@ -230,7 +221,10 @@ public class PlanInstance implements Schedulable, Serializable {
         }
         for (JobInfo jobInfo : jobInfos) {
             // 下发task
-            JobInstance jobInstance = jobInfo.newInstance(planId, planInstanceId);
+            JobInstance jobInstance = jobInfo.newInstance(planId,
+                    planInstanceId,
+                    taskCreatorFactory,
+                    TimeUtil.currentLocalDateTime());
             if (TriggerType.SCHEDULE != jobInfo.getTriggerType()) {
                 continue;
             }
@@ -271,21 +265,23 @@ public class PlanInstance implements Schedulable, Serializable {
         List<JobInfo> subJobInfos = dag.subNodes(jobId);
 
         if (CollectionUtils.isEmpty(subJobInfos)) {
-
-            // 后续作业不存在，需检测是否 Plan 执行完成
-            if (isFinished()) {
+            // 检测 Plan 实例是否已经执行完成
+            if (checkFinished(dag.getLeafNodes())) {
                 executeSucceed();
             }
-
         } else {
 
             // todo 发送事件，保存数据
 
-            // 后续作业存在，则检测是否可触发，并继续下发作业
+            // 后续作业存在，则检测是否可触发，并继续下发作业 todo 判断作业是否可以被触发。检测作业在 DAG 中的前置作业节点是否均可触发子节点。
+            // todo 判断是否已经下发过 防止重复下发
             for (JobInfo subJobInfo : subJobInfos) {
-                if (isJobTriggered(subJobInfo)) {
-                    JobInstance subJobInstance = subJobInfo.newInstance(planId, planInstanceId);
-                    subJobInstance.dispatch();
+                if (checkFinished(dag.preNodes(subJobInfo.getJobId()))) {
+                    JobInstance subJobInstance = subJobInfo.newInstance(planId,
+                            planInstanceId,
+                            taskCreatorFactory,
+                            TimeUtil.currentLocalDateTime());
+                    scheduler.schedule(subJobInstance);
                 }
             }
 
@@ -293,11 +289,15 @@ public class PlanInstance implements Schedulable, Serializable {
     }
 
     /**
-     * 重试job
+     * 是否需要重试job
      */
-    public boolean needRetryJob(JobInstance jobInstance) {
+    public boolean needRetryJob(String jobId) {
         // todo
         return false;
+    }
+
+    public JobInfo getJobInfo(String jobId) {
+        return dag.getJob(jobId);
     }
 
 }

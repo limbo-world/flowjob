@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
  * @since 2021/7/24
  */
 @Component
-public class PlanRecordPoConverter extends Converter<PlanInstance, PlanInstanceEntity> {
+public class PlanInstanceConverter extends Converter<PlanInstance, PlanInstanceEntity> {
 
     /**
      * {@link PlanInstance} -> {@link PlanInstanceEntity}
