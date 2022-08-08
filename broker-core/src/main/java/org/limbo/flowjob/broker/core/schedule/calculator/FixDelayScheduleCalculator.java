@@ -49,7 +49,7 @@ public class FixDelayScheduleCalculator extends ScheduleCalculator {
     public Long calculate(Schedulable schedulable) {
 
         ScheduleOption scheduleOption = schedulable.scheduleOption();
-        long now = TimeUtil.nowInstant().getEpochSecond();
+        long now = TimeUtil.currentInstant().getEpochSecond();
         long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
 
         // 计算第一次调度

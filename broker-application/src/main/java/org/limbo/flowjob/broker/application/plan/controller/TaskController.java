@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 
 /**
@@ -38,7 +39,7 @@ import javax.validation.Valid;
 @RequestMapping("/api/v1/task")
 public class TaskController {
 
-    @Autowired
+    @Inject
     private TaskService taskService;
 
 

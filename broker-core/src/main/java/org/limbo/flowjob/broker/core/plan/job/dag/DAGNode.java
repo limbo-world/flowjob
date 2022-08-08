@@ -20,11 +20,14 @@ package org.limbo.flowjob.broker.core.plan.job.dag;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
 @Data
-public class DAGNode {
+public class DAGNode implements Serializable {
+
+    private static final long serialVersionUID = 8572090796475782411L;
 
     private String id;
 

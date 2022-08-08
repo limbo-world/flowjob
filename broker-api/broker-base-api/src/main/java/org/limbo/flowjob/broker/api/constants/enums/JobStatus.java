@@ -20,16 +20,17 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * 计划调度状态
+ * 作业调度状态
+ *
  * @author Brozen
  * @since 2021-05-19
  */
-public enum PlanScheduleStatus {
+public enum JobStatus {
 
-    SCHEDULING(1, "调度中"), // 还没有任务在执行状态
-    EXECUTING(2, "执行中"), // 第一个任务切换为执行中的时候
-    SUCCEED(3, "执行成功"), // 所有节点都执行成功
-    FAILED(4, "执行异常"), // 有一个节点执行失败，并触发plan的失败场景
+    DISPATCHING(1, "调度中"),
+    EXECUTING(2, "执行中"),
+    SUCCEED(3, "执行成功"),
+    FAILED(4, "执行异常"), // worker拒绝，进入容错策略 失败次数不增加 TERMINATED 作业被手动终止 不再增加一个状态 而是写入 errMsg
     ;
 
     @JsonValue
@@ -38,25 +39,27 @@ public enum PlanScheduleStatus {
     public final String desc;
 
     @JsonCreator
-    PlanScheduleStatus(int status, String desc) {
+    JobStatus(int status, String desc) {
         this(((byte) status), desc);
     }
 
-    PlanScheduleStatus(byte status, String desc) {
+    JobStatus(byte status, String desc) {
         this.status = status;
         this.desc = desc;
     }
 
     /**
      * 校验是否是当前状态
+     *
      * @param status 待校验状态值
      */
-    public boolean is(PlanScheduleStatus status) {
+    public boolean is(JobStatus status) {
         return equals(status);
     }
 
     /**
      * 校验是否是当前状态
+     *
      * @param status 待校验状态值
      */
     public boolean is(Number status) {
@@ -67,18 +70,25 @@ public enum PlanScheduleStatus {
      * 解析上下文状态值
      */
     @JsonCreator
-    public static PlanScheduleStatus parse(Number status) {
+    public static JobStatus parse(Number status) {
         if (status == null) {
             return null;
         }
 
-        for (PlanScheduleStatus statusEnum : values()) {
+        for (JobStatus statusEnum : values()) {
             if (statusEnum.is(status)) {
                 return statusEnum;
             }
         }
 
         return null;
+    }
+
+    /**
+     * 是否已完成
+     */
+    public boolean isCompleted() {
+        return this == JobStatus.SUCCEED || this == JobStatus.FAILED;
     }
 
 }

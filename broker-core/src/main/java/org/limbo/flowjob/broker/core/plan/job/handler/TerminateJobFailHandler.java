@@ -1,10 +1,13 @@
 package org.limbo.flowjob.broker.core.plan.job.handler;
 
 /**
+ * default
+ *
  * @author Devil
  * @since 2021/8/24
  */
 public class TerminateJobFailHandler implements JobFailHandler {
+
     @Override
     public void handle() {
     }
@@ -13,4 +16,5 @@ public class TerminateJobFailHandler implements JobFailHandler {
     public boolean terminate() {
         return true;
     }
+
 }

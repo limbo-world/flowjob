@@ -13,11 +13,6 @@ public interface PlanInstanceRepository {
      */
     String add(PlanInstance instance);
 
-    /**
-     * 保存调度信息
-     */
-    void savePlanInstanceScheduleInfo(PlanInstance planInstance);
-
 
     /**
      * 获取
@@ -38,10 +33,5 @@ public interface PlanInstanceRepository {
      * 计划执行失败
      */
     void executeFailed(PlanInstance instance);
-
-    /**
-     * 计划执行中
-     */
-    void executing(PlanInstance instance);
 
 }

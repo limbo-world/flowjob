@@ -48,6 +48,11 @@ public enum DispatchType implements DescribableEnum<Byte> {
      */
     SHARDING(3, "分片"),
 
+    /**
+     * todo 考虑是否可以用分片替代 一个分片节点一个后续节点，主要考虑如何获取汇总数据
+     */
+//    MAP_REDUCE(4, "MapReduce"),
+
     ;
 
     /**

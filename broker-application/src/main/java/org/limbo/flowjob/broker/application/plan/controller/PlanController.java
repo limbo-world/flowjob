@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.inject.Inject;
 import javax.validation.constraints.NotBlank;
 
 /**
@@ -25,7 +26,7 @@ import javax.validation.constraints.NotBlank;
 @RequestMapping("/api/v1/plan")
 public class PlanController {
 
-    @Autowired
+    @Inject
     private PlanService planService;
 
     /**

@@ -25,13 +25,12 @@ import org.limbo.flowjob.broker.api.clent.dto.TaskReceiveDTO;
 import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
 import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
+import org.limbo.flowjob.broker.core.events.Event;
+import org.limbo.flowjob.broker.core.events.EventCenter;
 import org.limbo.flowjob.broker.core.exceptions.JobDispatchException;
-import org.limbo.flowjob.broker.core.plan.PlanInstance;
+import org.limbo.flowjob.broker.core.plan.ScheduleEventTopic;
 import org.limbo.flowjob.broker.core.plan.job.DispatchOption;
 import org.limbo.flowjob.broker.core.plan.job.ExecutorOption;
-import org.limbo.flowjob.broker.core.plan.job.JobInfo;
-import org.limbo.flowjob.broker.core.plan.job.JobInstance;
-import org.limbo.flowjob.broker.core.plan.job.dag.DAG;
 import org.limbo.flowjob.broker.core.worker.Worker;
 
 import java.io.Serializable;
@@ -102,8 +101,6 @@ public class Task implements Serializable {
      */
     private Integer retry = 3;
 
-    // -------- 非 po 属性
-
     /**
      * 作业分发配置参数
      */
@@ -122,34 +119,37 @@ public class Task implements Serializable {
      * 将此任务下发给worker。
      *
      * @param workerSelector 会将此上下文分发去执行的worker
-     * @return 任务下发是否成功
      * @throws JobDispatchException 状态检测失败时，即此上下文的状态不是INIT或FAILED时抛出异常。
      */
-    public boolean dispatch(WorkerSelector workerSelector) throws JobDispatchException {
+    public void dispatch(WorkerSelector workerSelector) throws JobDispatchException {
         if (getStatus() != TaskStatus.DISPATCHING) {
             throw new JobDispatchException(jobId, taskId, "Cannot startup context due to current status: " + status);
         }
 
         List<Worker> availableWorkers = workerManager.availableWorkers();
         if (CollectionUtils.isEmpty(availableWorkers)) {
-            return false;
+            return;
         }
         for (int i = 0; i < retry; i++) {
             Worker worker = workerSelector.select(this, availableWorkers);
             if (worker == null) {
-                return false;
+                return;
             }
 
             boolean dispatched = doDispatch(worker);
             if (dispatched) {
-                dispatched(worker);
-                return true;
+
+                // 更新状态
+                setStatus(TaskStatus.EXECUTING);
+                setWorkerId(worker.getWorkerId());
+
+                EventCenter.publish(new Event(this, ScheduleEventTopic.TASK_EXECUTING));
+                return;
             }
 
             availableWorkers = availableWorkers.stream().filter(w -> !Objects.equals(w.getWorkerId(), worker.getWorkerId())).collect(Collectors.toList());
         }
-        dispatchFailed();
-        return false;
+        // 本次下发失败 交由task处理任务保证task继续下发
     }
 
 
@@ -168,103 +168,35 @@ public class Task implements Serializable {
 
 
     /**
-     * worker确认接收此作业上下文，表示开始执行作业
-     *
-     * @param worker 确认接收此上下文的worker
-     * @throws JobDispatchException 接受上下文的worker和上下文记录的worker不同时，抛出异常。
-     */
-    public void dispatched(Worker worker) throws JobDispatchException {
-        // 不为此状态 无需更新
-        if (this.getStatus() != TaskStatus.DISPATCHING) {
-            return;
-        }
-
-        // 更新状态
-        setStatus(TaskStatus.EXECUTING);
-        setWorkerId(worker.getWorkerId());
-    }
-
-
-    /**
-     * 任务下发失败
-     *
-     * @throws JobDispatchException 拒绝任务的worker和任务记录的worker不同时，抛出异常。
-     */
-    public void dispatchFailed() throws JobDispatchException {
-        // 不为此状态 无需更新
-        if (this.getStatus() != TaskStatus.DISPATCHING) {
-            return;
-        }
-
-        // 更新状态
-        setStatus(TaskStatus.DISPATCH_FAILED);
-    }
-
-
-    /**
      * 任务执行成功，worker反馈任务执行完成后，才会调用此方法。
      */
-    public void succeed() {
-        // 当前状态无需变更
+    public void executeSucceed() {
         if (getStatus().isCompleted()) {
             return;
         }
 
-        // 更新任务状态，更新失败说明已经处理过，CAS保证幂等
         setStatus(TaskStatus.SUCCEED);
-    }
 
-
-    /**
-     * 下发后续任务
-     *
-     * @param planInstance 计划实例
-     */
-    protected void dispatchNextTask(PlanInstance planInstance) {
-
-        // 从作业 DAG 中读取后续的作业节点
-        DAG<JobInfo> dag = planInstance.getDag();
-        List<JobInfo> subJobInfos = dag.subNodes(this.jobId);
-
-        if (CollectionUtils.isEmpty(subJobInfos)) {
-
-            // 后续作业不存在，需检测是否 Plan 执行完成
-            if (planInstance.isAllJobFinished()) {
-                planInstance.executeSucceed();
-            }
-
-        } else {
-
-            // 后续作业存在，则检测是否可触发，并继续下发作业
-            for (JobInfo subJobInfo : subJobInfos) {
-                if (planInstance.isJobTriggerable(subJobInfo)) {
-                    JobInstance subJobInstance = subJobInfo.newInstance(planInstance);
-                    subJobInstance.dispatch();
-                }
-            }
-
-        }
+        EventCenter.publish(new Event(this, ScheduleEventTopic.TASK_SUCCESS));
     }
 
 
     /**
      * 任务执行失败，worker反馈任务失败时，执行此方法。
      *
-     * @param planInstance    执行计划实例
-     * @param jobInstance     作业实例
      * @param errorMsg        执行失败的异常信息
      * @param errorStackTrace 执行失败的异常堆栈
      */
-    public void failed(PlanInstance planInstance, JobInstance jobInstance, String errorMsg, String errorStackTrace) {
-        // 当前状态无需变更
+    public void executeFail(String errorMsg, String errorStackTrace) {
         if (getStatus().isCompleted()) {
             return;
         }
 
-        // 更新任务状态，更新失败说明已经处理过，CAS保证幂等
         setStatus(TaskStatus.FAILED);
         setErrorMsg(errorMsg);
         setErrorStackTrace(errorStackTrace);
+
+        EventCenter.publish(new Event(this, ScheduleEventTopic.TASK_FAIL));
     }
 
 }

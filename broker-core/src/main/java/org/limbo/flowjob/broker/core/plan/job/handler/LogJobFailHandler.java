@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class LogJobFailHandler implements JobFailHandler {
+
     @Override
     public void handle() {
 
@@ -17,4 +18,5 @@ public class LogJobFailHandler implements JobFailHandler {
     public boolean terminate() {
         return false;
     }
+
 }

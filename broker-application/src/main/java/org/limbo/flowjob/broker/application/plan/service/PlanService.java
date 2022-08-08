@@ -3,19 +3,26 @@ package org.limbo.flowjob.broker.application.plan.service;
 import lombok.Setter;
 import org.limbo.flowjob.broker.api.console.param.PlanAddParam;
 import org.limbo.flowjob.broker.api.console.param.PlanReplaceParam;
+import org.limbo.flowjob.broker.api.constants.enums.PlanStatus;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
 import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
+import org.limbo.flowjob.broker.core.plan.job.JobInstance;
+import org.limbo.flowjob.broker.core.plan.job.context.Task;
+import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
+import org.limbo.flowjob.broker.core.repository.TaskRepository;
+import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
+import org.limbo.flowjob.common.utils.TimeUtil;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
+import java.util.List;
 
 /**
  * @author Brozen
@@ -31,10 +38,17 @@ public class PlanService {
     private PlanConverter converter;
 
     @Setter(onMethod_ = @Inject)
-    private PlanInstanceRepository planInstanceRepository;
+    private TaskRepository taskRepository;
+
+    @Setter(onMethod_ = @Inject)
+    private PlanInstanceEntityRepo planInstanceEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private JobInstanceRepository jobInstanceRepository;
 
     /**
      * 新增执行计划
+     *
      * @param param 新增计划参数
      * @return planId
      */
@@ -55,12 +69,15 @@ public class PlanService {
         Verifies.notNull(plan, String.format("Cannot find Plan %s", planId));
 
         PlanInfo planInfo = converter.convertPlanInfo(param);
-        return plan.newVersion(planInfo);
+        plan.setInfo(planInfo);
+
+        return planRepository.updateVersion(plan);
     }
 
 
     /**
      * 启动计划，开始调度
+     *
      * @param planId 计划ID
      */
     @Transactional
@@ -73,7 +90,7 @@ public class PlanService {
             return true;
         }
 
-        return plan.enable();
+        return planRepository.enablePlan(plan);
     }
 
 
@@ -92,31 +109,33 @@ public class PlanService {
         }
 
         // 停用计划
-        return plan.disable();
+        return planRepository.disablePlan(plan);
     }
 
-    // todo 交由调度器执行
+    // todo 批量保存 没有重复利用价值就放到linstener
     @Transactional
-    public void schedule(PlanInstance planInstance) {
-        // 持久化数据
-        planInstanceRepository.savePlanInstanceScheduleInfo(planInstance);
+    public void saveScheduleInfo(PlanInstance planInstance) {
+        // planInstance 状态
+        planInstanceEntityRepo.start(
+                Long.valueOf(planInstance.getPlanInstanceId()),
+                PlanStatus.SCHEDULING.status,
+                PlanStatus.EXECUTING.status,
+                TimeUtil.currentLocalDateTime()
+        );
+        // 批量保存数据
+        List<JobInstance> jobInstances = planInstance.scheduleJobInstances();
+        for (JobInstance jobInstance : jobInstances) {
+            jobInstanceRepository.add(jobInstance);
+            List<Task> tasks = jobInstance.createTasks();
+            for (Task task : tasks) {
+                taskRepository.save(task);
+            }
+        }
+
         // 更新plan的下次触发时间
         if (ScheduleType.FIXED_DELAY != planInstance.getScheduleOption().getScheduleType() && TriggerType.SCHEDULE == planInstance.getScheduleOption().getTriggerType()) {
             planRepository.nextTriggerAt(planInstance.getPlanId(), planInstance.nextTriggerAt());
         }
-        // todo 上面两个在事务中 先执行提交事务
-        planInstance.schedule();
-        // todo 下发后需要将任务下发情况更新
-        // if (dispatched) {
-        //      taskRepo.dispatched(task);
-        //            } else {
-        //                taskRepo.dispatchFailed(task);
-        //            }
-
-        // jobInstanceRepo.dispatched(this);
-
-        // jobInstanceRepo.dispatchFailed(this);
-        // todo 判断是否有重试次数 放入重试队列
     }
 
 }

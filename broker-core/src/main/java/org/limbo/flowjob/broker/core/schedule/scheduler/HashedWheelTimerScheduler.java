@@ -73,7 +73,7 @@ public class HashedWheelTimerScheduler extends CacheableScheduler {
     public void schedule(Schedulable schedulable) {
         if (checkAndPut(schedulable)) {
             // 计算延迟时间
-            long delay = Duration.between(TimeUtil.nowLocalDateTime(), schedulable.triggerAt()).toMillis();
+            long delay = Duration.between(TimeUtil.currentLocalDateTime(), schedulable.triggerAt()).toMillis();
             delay = delay < 0 ? 0 : delay;
 
             // 在timer上调度作业执行

@@ -39,7 +39,6 @@ public class TaskCreatorFactory {
 
     /**
      * Task 创建策略接口，在这里对 Task 进行多种代理（装饰），实现下发重试策略。
-     * @see RetryTask
      */
     public abstract class TaskCreator implements Function<JobInstance, List<Task>> {
 
@@ -90,7 +89,7 @@ public class TaskCreatorFactory {
          */
         @Override
         public List<Task> apply(JobInstance job) {
-            Task task = new RetryTask();
+            Task task = new Task();
             task.setTaskId(UUIDUtils.randomID()); // TODO taskId如何生成？
             task.setPlanId(job.getPlanId());
             task.setPlanInstanceId(job.getPlanInstanceId());

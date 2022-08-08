@@ -19,7 +19,7 @@ package org.limbo.flowjob.broker.core.plan;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
+import org.limbo.flowjob.broker.api.constants.enums.PlanStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.core.plan.job.JobInfo;
 import org.limbo.flowjob.broker.core.plan.job.dag.DAG;
@@ -84,14 +84,14 @@ public class PlanInfo implements Serializable {
      * @param triggerType 触发类型
      * @return 调度记录状态
      */
-    public PlanInstance newInstance(PlanScheduleStatus status, TriggerType triggerType) {
+    public PlanInstance newInstance(PlanStatus status, TriggerType triggerType) {
         PlanInstance instance = new PlanInstance();
         instance.setPlanId(planId);
         instance.setVersion(version);
         instance.setDag(dag);
         instance.setStatus(status);
         instance.setTriggerType(triggerType);
-        instance.setScheduleAt(TimeUtil.nowLocalDateTime());
+        instance.setScheduleAt(TimeUtil.currentLocalDateTime());
         return instance;
     }
 

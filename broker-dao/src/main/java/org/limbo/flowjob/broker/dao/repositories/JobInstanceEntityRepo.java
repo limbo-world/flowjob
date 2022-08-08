@@ -33,6 +33,8 @@ import java.util.List;
  */
 public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, Long> {
 
+    long countByPlanInstanceIdAndStatusIn(Long planInstanceId, List<Byte> statuses);
+
     List<JobInstanceEntity> findByPlanInstanceIdAndJobInfoIdIn(Long planInstanceId, Collection<Long> jobInfoIds);
 
     @Modifying(clearAutomatically = true)

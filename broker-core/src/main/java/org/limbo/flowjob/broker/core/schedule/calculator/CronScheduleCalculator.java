@@ -54,7 +54,7 @@ public class CronScheduleCalculator extends ScheduleCalculator {
     public Long calculate(Schedulable schedulable) {
 
         ScheduleOption scheduleOption = schedulable.scheduleOption();
-        Instant nowInstant = TimeUtil.nowInstant();
+        Instant nowInstant = TimeUtil.currentInstant();
         long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
 
         // 计算第一次调度

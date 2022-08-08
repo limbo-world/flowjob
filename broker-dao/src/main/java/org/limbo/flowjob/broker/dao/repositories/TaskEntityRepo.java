@@ -32,9 +32,8 @@ import java.util.List;
  */
 public interface TaskEntityRepo extends JpaRepository<TaskEntity, Long> {
 
-    long countByJobInstanceIdAndStatusIn(Long jobInstanceId, List<Byte> statuses);
+    List<TaskEntity> findByJobInstanceId(Long jobInstanceId);
 
-    // todo @B 为啥需要每次都设置workerId 不应该下发了就确定了么 而且没必要每次有result为none的条件吧，只需要执行后有就行 和下面方法可以合并？？
     @Modifying(clearAutomatically = true)
     @Query(value = "update TaskEntity set status = :newStatus, workerId = :workerId where id = :id and status = :oldStatus")
     int updateStatus(@Param("id") Long id, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus, @Param("workerId") String workerId);

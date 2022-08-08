@@ -36,12 +36,12 @@ public class TimeUtil {
 
     public static ZoneOffset zoneOffset() {
         if (zoneOffset == null) {
-            zoneOffset = ZoneOffset.systemDefault().getRules().getOffset(Instant.now(CLOCK));
+            zoneOffset = ZoneId.systemDefault().getRules().getOffset(Instant.now(CLOCK));
         }
         return zoneOffset;
     }
 
-    public static Instant nowInstant() {
+    public static Instant currentInstant() {
         return Instant.now(CLOCK);
     }
 
@@ -49,7 +49,7 @@ public class TimeUtil {
         return localDateTime == null ? null : localDateTime.toInstant(zoneOffset());
     }
 
-    public static LocalDateTime nowLocalDateTime() {
+    public static LocalDateTime currentLocalDateTime() {
         return LocalDateTime.now(CLOCK);
     }
 

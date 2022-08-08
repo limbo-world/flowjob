@@ -16,35 +16,51 @@
  *
  */
 
-package org.limbo.flowjob.common.utils.tuple;
+package org.limbo.flowjob.broker.core.plan;
 
-import java.io.Serializable;
-import java.util.List;
+import org.limbo.flowjob.broker.core.events.EventTopic;
 
 /**
- * @author brozen
- * @since 1.0
+ * @author Devil
+ * @since 2022/8/5
  */
-public interface Tuple extends Iterable<Object>, Serializable {
-
+public enum ScheduleEventTopic implements EventTopic {
     /**
-     * 返回元组中元素个数
+     * plan 开始执行
      */
-    int size();
-
+    PLAN_EXECUTING,
     /**
-     * 获取元组中指定下标处的元素
+     * plan 执行成功
      */
-    Object get(int index);
-
+    PLAN_SUCCESS,
     /**
-     * 转数组
+     * plan 执行失败
      */
-    Object[] toArray();
-
+    PLAN_FAIL,
     /**
-     * 转列表
+     * job 开始执行
      */
-    List<Object> toList();
+    JOB_EXECUTING,
+    /**
+     * job 执行成功
+     */
+    JOB_SUCCESS,
+    /**
+     * job 执行失败
+     */
+    JOB_FAIL,
+    /**
+     * task 开始执行
+     */
+    TASK_EXECUTING,
+    /**
+     * task 执行成功
+     */
+    TASK_SUCCESS,
+    /**
+     * task 执行失败
+     */
+    TASK_FAIL,
+    ;
 
 }

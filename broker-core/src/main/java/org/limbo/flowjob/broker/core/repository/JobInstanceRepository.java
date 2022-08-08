@@ -1,6 +1,6 @@
 package org.limbo.flowjob.broker.core.repository;
 
-import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
+import org.limbo.flowjob.broker.api.constants.enums.JobStatus;
 import org.limbo.flowjob.broker.core.plan.job.JobInstance;
 
 import java.util.Collection;
@@ -20,25 +20,7 @@ public interface JobInstanceRepository {
 
 
     /**
-     * 作业实例下发成功，CAS 将此作业实例状态从 {@link JobScheduleStatus#SCHEDULING} 修改为 {@link JobScheduleStatus#EXECUTING}
-     *
-     * @param instance 作业实例
-     * @return 更新是否成功
-     */
-    boolean dispatched(JobInstance instance);
-
-
-    /**
-     * 作业实例下发失败，CAS 将此作业实例状态从 {@link JobScheduleStatus#SCHEDULING} 修改为 {@link JobScheduleStatus#FAILED}
-     *
-     * @param instance 作业实例
-     * @return 更新是否成功
-     */
-    boolean dispatchFailed(JobInstance instance);
-
-
-    /**
-     * 作业执行成功，CAS 将此作业实例状态从 {@link JobScheduleStatus#EXECUTING} 修改为 {@link JobScheduleStatus#SUCCEED}
+     * 作业执行成功，CAS 将此作业实例状态从 {@link JobStatus#EXECUTING} 修改为 {@link JobStatus#SUCCEED}
      *
      * @param instance 作业实例
      * @return 更新是否成功
@@ -47,7 +29,7 @@ public interface JobInstanceRepository {
 
 
     /**
-     * 作业执行失败，CAS 将此作业实例状态从 {@link JobScheduleStatus#EXECUTING} 修改为 {@link JobScheduleStatus#FAILED}
+     * 作业执行失败，CAS 将此作业实例状态从 {@link JobStatus#EXECUTING} 修改为 {@link JobStatus#FAILED}
      *
      * @param instance 作业实例
      * @return 更新是否成功

@@ -19,9 +19,8 @@ package org.limbo.flowjob.broker.core.plan.job;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
+import org.limbo.flowjob.broker.api.constants.enums.JobStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
-import org.limbo.flowjob.broker.core.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.plan.job.dag.DAGNode;
 
 import java.util.Set;
@@ -40,6 +39,8 @@ import java.util.Set;
 @Setter
 @ToString
 public class JobInfo extends DAGNode {
+
+    private static final long serialVersionUID = 5340755318570959476L;
 
     /**
      * 作业ID
@@ -74,15 +75,14 @@ public class JobInfo extends DAGNode {
 
 
     /**
-     * 生成作业实例，新生成的作业状态是 {@link JobScheduleStatus#SCHEDULING}
-     * @param planInstance 作业实例所属计划实例
+     * 生成作业实例，新生成的作业状态是 {@link JobStatus#DISPATCHING}
      */
-    public JobInstance newInstance(PlanInstance planInstance) {
+    public JobInstance newInstance(String planId, String planInstanceId) {
         JobInstance jobInstance = new JobInstance();
-        jobInstance.setPlanId(planInstance.getPlanId());
-        jobInstance.setPlanInstanceId(planInstance.getPlanInstanceId());
+        jobInstance.setPlanId(planId);
+        jobInstance.setPlanInstanceId(planInstanceId);
         jobInstance.setJobId(jobId);
-        jobInstance.setStatus(JobScheduleStatus.SCHEDULING);
+        jobInstance.setStatus(JobStatus.DISPATCHING);
         jobInstance.setAttributes(null); // todo
         jobInstance.setTaskCreatorFactory(null); // todo
         return jobInstance;

@@ -5,6 +5,7 @@ package org.limbo.flowjob.broker.core.plan.job.handler;
  * @since 2021/8/24
  */
 public class IgnoreJobFailHandler implements JobFailHandler {
+
     @Override
     public void handle() {
 

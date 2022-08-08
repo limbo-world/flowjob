@@ -19,23 +19,20 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
-import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
+import org.limbo.flowjob.broker.api.constants.enums.PlanStatus;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.plan.job.JobInstance;
-import org.limbo.flowjob.broker.core.plan.job.context.Task;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
+import org.limbo.flowjob.broker.core.repository.PlanRepository;
 import org.limbo.flowjob.broker.core.repository.TaskRepository;
 import org.limbo.flowjob.common.utils.TimeUtil;
 import org.limbo.flowjob.broker.dao.converter.PlanRecordPoConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
-import java.util.List;
 
 /**
  * @author Devil
@@ -45,17 +42,23 @@ import java.util.List;
 public class PlanInstanceRepo implements PlanInstanceRepository {
 
 
-    @Autowired
+    @Setter(onMethod_ = @Inject)
     private PlanRecordPoConverter converter;
 
     @Setter(onMethod_ = @Inject)
     private PlanInstanceEntityRepo planInstanceEntityRepo;
 
+    // todo 移除
     @Setter(onMethod_ = @Inject)
     private JobInstanceRepository jobInstanceRepository;
 
+    // todo 移除
     @Setter(onMethod_ = @Inject)
     private TaskRepository taskRepository;
+
+    // todo 移除
+    @Setter(onMethod_ = @Inject)
+    private PlanRepository planRepository;
 
 
     @Override
@@ -65,22 +68,6 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
         planInstanceEntityRepo.saveAndFlush(entity);
         return String.valueOf(entity.getId());
     }
-
-    // todo 批量保存
-    @Override
-    @Transactional
-    public void savePlanInstanceScheduleInfo(PlanInstance planInstance) {
-        executing(planInstance);
-        List<JobInstance> jobInstances = planInstance.scheduleJobInstances();
-        for (JobInstance jobInstance : jobInstances) {
-            jobInstanceRepository.add(jobInstance);
-            List<Task> tasks = jobInstance.createTasks();
-            for (Task task : tasks) {
-                taskRepository.add(task);
-            }
-        }
-    }
-
 
     @Override
     public PlanInstance get(String planInstanceId) {
@@ -106,9 +93,9 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
     public void executeSucceed(PlanInstance instance) {
         planInstanceEntityRepo.end(
                 Long.valueOf(instance.getPlanInstanceId()),
-                PlanScheduleStatus.EXECUTING.status,
+                PlanStatus.EXECUTING.status,
                 instance.getStatus().status,
-                TimeUtil.nowLocalDateTime()
+                TimeUtil.currentLocalDateTime()
         );
     }
 
@@ -123,20 +110,9 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
     public void executeFailed(PlanInstance instance) {
         planInstanceEntityRepo.end(
                 Long.valueOf(instance.getPlanInstanceId()),
-                PlanScheduleStatus.EXECUTING.status,
+                PlanStatus.EXECUTING.status,
                 instance.getStatus().status,
-                TimeUtil.nowLocalDateTime()
-        );
-    }
-
-    @Override
-    @Transactional
-    public void executing(PlanInstance instance) {
-        planInstanceEntityRepo.end(
-                Long.valueOf(instance.getPlanInstanceId()),
-                PlanScheduleStatus.SCHEDULING.status,
-                PlanScheduleStatus.EXECUTING.status,
-                TimeUtil.nowLocalDateTime()
+                TimeUtil.currentLocalDateTime()
         );
     }
 

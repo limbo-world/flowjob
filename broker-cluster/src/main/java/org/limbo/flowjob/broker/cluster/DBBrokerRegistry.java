@@ -68,7 +68,7 @@ public class DBBrokerRegistry implements BrokerRegistry {
                     BrokerEntity broker = new BrokerEntity();
                     broker.setHost(host);
                     broker.setPort(port);
-                    broker.setLastHeartbeat(TimeUtil.nowLocalDateTime());
+                    broker.setLastHeartbeat(TimeUtil.currentLocalDateTime());
                     brokerEntityRepo.saveAndFlush(broker);
                 } catch (Exception e) {
                     log.error("[HeartbeatTask] send heartbeat fail", e);
@@ -90,8 +90,8 @@ public class DBBrokerRegistry implements BrokerRegistry {
 
     private class HeartbeatCheckTask extends TimerTask {
         private final String taskName = "[HeartbeatCheckTask]";
-        LocalDateTime lastOnlineCheckTime = TimeUtil.nowLocalDateTime().plusNanos(config.getHeartbeatTimeout());
-        LocalDateTime lastOfflineCheckTime = TimeUtil.nowLocalDateTime().plusNanos(config.getHeartbeatTimeout());
+        LocalDateTime lastOnlineCheckTime = TimeUtil.currentLocalDateTime().plusNanos(config.getHeartbeatTimeout());
+        LocalDateTime lastOfflineCheckTime = TimeUtil.currentLocalDateTime().plusNanos(config.getHeartbeatTimeout());
 
         @Override
         public void run() {
@@ -105,7 +105,7 @@ public class DBBrokerRegistry implements BrokerRegistry {
 
         private void checkOnline() {
             LocalDateTime startTime = lastOfflineCheckTime;
-            LocalDateTime endTime = TimeUtil.nowLocalDateTime();
+            LocalDateTime endTime = TimeUtil.currentLocalDateTime();
             log.info("{} checkOnline start:{} end:{}", taskName, startTime, endTime);
             List<BrokerEntity> onlineBrokers = brokerEntityRepo.findByLastHeartbeatBetween(startTime, endTime);
             if (CollectionUtils.isNotEmpty(onlineBrokers)) {
@@ -115,12 +115,12 @@ public class DBBrokerRegistry implements BrokerRegistry {
                     }
                 }
             }
-            lastOnlineCheckTime = TimeUtil.nowLocalDateTime();
+            lastOnlineCheckTime = TimeUtil.currentLocalDateTime();
         }
 
         private void checkOffline() {
             LocalDateTime startTime = lastOfflineCheckTime;
-            LocalDateTime endTime = TimeUtil.nowLocalDateTime().plusNanos(config.getHeartbeatTimeout());
+            LocalDateTime endTime = TimeUtil.currentLocalDateTime().plusNanos(config.getHeartbeatTimeout());
             log.info("{} checkOnline start:{} end:{}", taskName, startTime, endTime);
             List<BrokerEntity> offlineBrokers = brokerEntityRepo.findByLastHeartbeatBetween(startTime, endTime);
             if (CollectionUtils.isNotEmpty(offlineBrokers)) {
@@ -130,7 +130,7 @@ public class DBBrokerRegistry implements BrokerRegistry {
                     }
                 }
             }
-            lastOnlineCheckTime = TimeUtil.nowLocalDateTime();
+            lastOnlineCheckTime = TimeUtil.currentLocalDateTime();
         }
 
     }

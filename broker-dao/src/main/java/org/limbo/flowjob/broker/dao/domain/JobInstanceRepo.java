@@ -20,13 +20,12 @@ package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.api.constants.enums.JobScheduleStatus;
+import org.limbo.flowjob.broker.api.constants.enums.JobStatus;
 import org.limbo.flowjob.broker.core.plan.job.JobInstance;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.dao.converter.JobInstanceConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
@@ -42,12 +41,15 @@ import java.util.stream.Collectors;
 @Repository
 public class JobInstanceRepo implements JobInstanceRepository {
 
-    @Autowired
+    @Inject
     private JobInstanceConverter convert;
 
     @Setter(onMethod_ = @Inject)
     private JobInstanceEntityRepo jobInstanceEntityRepo;
 
+    // todo 移除
+    @Setter(onMethod_ = @Inject)
+    private TaskRepo taskRepo;
 
     @Override
     public String add(JobInstance jobInstance) {
@@ -62,37 +64,6 @@ public class JobInstanceRepo implements JobInstanceRepository {
         return jobInstanceEntityRepo.findById(Long.valueOf(jobInstanceId)).map(entity -> convert.reverse().convert(entity)).orElse(null);
     }
 
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param instance 作业实例
-     * @return
-     */
-    @Override
-    public boolean dispatched(JobInstance instance) {
-        return jobInstanceEntityRepo.updateStatus(Long.valueOf(instance.getJobInstanceId()),
-                JobScheduleStatus.SCHEDULING.status,
-                JobScheduleStatus.EXECUTING.status
-        ) > 0;
-    }
-
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param instance 作业实例
-     * @return
-     */
-    @Override
-    public boolean dispatchFailed(JobInstance instance) {
-        return jobInstanceEntityRepo.updateStatus(Long.valueOf(instance.getJobInstanceId()),
-                JobScheduleStatus.SCHEDULING.status,
-                JobScheduleStatus.FAILED.status
-        ) > 0;
-    }
-
-
     /**
      * {@inheritDoc}
      *
@@ -103,8 +74,8 @@ public class JobInstanceRepo implements JobInstanceRepository {
     public boolean executeSucceed(JobInstance instance) {
         return jobInstanceEntityRepo.updateStatus(
                 Long.valueOf(instance.getJobInstanceId()),
-                JobScheduleStatus.EXECUTING.status,
-                JobScheduleStatus.SUCCEED.status
+                JobStatus.EXECUTING.status,
+                JobStatus.SUCCEED.status
         ) > 0;
     }
 
@@ -119,8 +90,8 @@ public class JobInstanceRepo implements JobInstanceRepository {
     public boolean executeFailed(JobInstance instance) {
         return jobInstanceEntityRepo.updateStatus(
                 Long.valueOf(instance.getJobInstanceId()),
-                JobScheduleStatus.EXECUTING.status,
-                JobScheduleStatus.FAILED.status
+                JobStatus.EXECUTING.status,
+                JobStatus.FAILED.status
         ) > 0;
     }
 
@@ -136,4 +107,5 @@ public class JobInstanceRepo implements JobInstanceRepository {
                 .map(po -> convert.reverse().convert(po))
                 .collect(Collectors.toList());
     }
+
 }

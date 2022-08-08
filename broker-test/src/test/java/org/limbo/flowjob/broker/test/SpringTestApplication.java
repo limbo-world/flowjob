@@ -29,7 +29,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  * @since 2022/6/22
  */
 @SpringBootApplication
-@ComponentScan(basePackages = "org.limbo.flowjob")
+//@ComponentScan(basePackages = "org.limbo.flowjob")
 @EntityScan(basePackages = "org.limbo.flowjob.broker.dao.entity")
 @EnableJpaRepositories(value = "org.limbo.flowjob.broker.dao.repositories")
 public class SpringTestApplication {

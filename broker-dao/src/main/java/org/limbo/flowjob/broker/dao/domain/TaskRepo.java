@@ -19,20 +19,16 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
-import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
 import org.limbo.flowjob.broker.core.repository.TaskRepository;
 import org.limbo.flowjob.broker.dao.converter.TaskPoConverter;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.limbo.flowjob.common.utils.Verifies;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Brozen
@@ -44,7 +40,7 @@ public class TaskRepo implements TaskRepository {
     @Setter(onMethod_ = @Inject)
     private TaskEntityRepo taskEntityRepo;
 
-    @Autowired
+    @Setter(onMethod_ = @Inject)
     private TaskPoConverter converter;
 
 
@@ -56,83 +52,11 @@ public class TaskRepo implements TaskRepository {
      */
     @Override
     @Transactional
-    public String add(Task task) {
+    public String save(Task task) {
         Verifies.notNull(task, "task can't be null");
         TaskEntity entity = converter.convert(task);
         taskEntityRepo.saveAndFlush(entity);
         return String.valueOf(entity.getId());
-    }
-
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param task 任务
-     * @return
-     */
-    @Override
-    @Transactional
-    public boolean dispatched(Task task) {
-        return taskEntityRepo.updateStatus(Long.valueOf(task.getTaskId()),
-                TaskStatus.DISPATCHING.status,
-                TaskStatus.EXECUTING.status,
-                task.getWorkerId()
-        ) > 0;
-    }
-
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param task 任务
-     * @return
-     */
-    @Override
-    @Transactional
-    public boolean dispatchFailed(Task task) {
-        return taskEntityRepo.updateStatus(Long.valueOf(task.getTaskId()),
-                TaskStatus.DISPATCHING.status,
-                TaskStatus.DISPATCH_FAILED.status
-        ) > 0;
-    }
-
-
-    /**
-     * {@inheritDoc}
-     * @param task
-     * @return
-     */
-    @Override
-    @Transactional
-    public boolean executeSucceed(Task task) {
-        return taskEntityRepo.updateStatus(Long.valueOf(task.getTaskId()),
-                TaskStatus.EXECUTING.status,
-                TaskStatus.SUCCEED.status
-        ) > 0;
-    }
-
-
-    /**
-     * {@inheritDoc}
-     * @param task
-     * @return
-     */
-    @Override
-    @Transactional
-    public boolean executeFailed(Task task) {
-        return taskEntityRepo.updateStatusWithError(
-                Long.valueOf(task.getTaskId()),
-                TaskStatus.EXECUTING.status,
-                TaskStatus.FAILED.status,
-                task.getErrorMsg(), task.getErrorStackTrace()
-        ) > 0;
-    }
-
-    @Override
-    public Long countByStatuses(String jobInstanceId, List<TaskStatus> statuses) {
-        return taskEntityRepo.countByJobInstanceIdAndStatusIn(Long.valueOf(jobInstanceId),
-                statuses.stream().map(s -> s.status).collect(Collectors.toList())
-        );
     }
 
     @Override

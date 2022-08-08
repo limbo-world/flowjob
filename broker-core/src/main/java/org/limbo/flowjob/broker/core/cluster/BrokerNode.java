@@ -21,7 +21,7 @@ package org.limbo.flowjob.broker.core.cluster;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.broker.api.constants.enums.PlanScheduleStatus;
+import org.limbo.flowjob.broker.api.constants.enums.PlanStatus;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.core.plan.Plan;
@@ -97,7 +97,7 @@ public abstract class BrokerNode {
                     return;
                 }
                 for (;;) {
-                    LocalDateTime now = TimeUtil.nowLocalDateTime();
+                    LocalDateTime now = TimeUtil.currentLocalDateTime();
                     List<Plan> plans = planRepository.schedulePlans(now, now.plusMinutes(10)); // 调度当前时间以及未来10分钟的任务
                     if (CollectionUtils.isEmpty(plans)) {
                         return;
@@ -117,7 +117,7 @@ public abstract class BrokerNode {
                             // 已经下发过任务
                             continue;
                         }
-                        planInstance = planInfo.newInstance(PlanScheduleStatus.SCHEDULING, TriggerType.SCHEDULE);
+                        planInstance = planInfo.newInstance(PlanStatus.SCHEDULING, TriggerType.SCHEDULE);
                         String planInstanceId = planInstanceRepository.add(planInstance);
                         if (StringUtils.isBlank(planInstanceId)) {
                             // 并发情况可能导致

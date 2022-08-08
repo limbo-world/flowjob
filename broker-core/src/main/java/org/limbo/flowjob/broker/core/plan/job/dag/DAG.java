@@ -21,6 +21,7 @@ package org.limbo.flowjob.broker.core.plan.job.dag;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.common.utils.Verifies;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,7 +36,9 @@ import java.util.stream.Collectors;
  * @author Devil
  * @since 2022/8/1
  */
-public class DAG<T extends DAGNode> {
+public class DAG<T extends DAGNode> implements Serializable {
+
+    private static final long serialVersionUID = 4746630152041623943L;
 
     private static final int STATUS_INIT = 0;
 
