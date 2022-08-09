@@ -125,11 +125,6 @@ public class PlanRepo implements PlanRepository {
     }
 
     @Override
-    public boolean nextTriggerAt(String planId, LocalDateTime nextTriggerAt) {
-        return false; // todo
-    }
-
-    @Override
     public List<Plan> schedulePlans(LocalDateTime startTime, LocalDateTime endTime) {
         List<PlanEntity> plans = planEntityRepo.findBySlotInAndIsEnabled(slots(), true); // todo 获取最近要触发的
         return null;
@@ -137,30 +132,6 @@ public class PlanRepo implements PlanRepository {
 
     private List<Integer> slots() {
         return null;
-    }
-
-
-    /**
-     * {@inheritDoc}
-     * @param plan 作业执行计划
-     * @return
-     */
-    @Override
-    public boolean enablePlan(Plan plan) {
-        // update where 乐观锁
-        return planEntityRepo.updateEnable(Long.valueOf(plan.getPlanId()), false, true) == 1;
-    }
-
-
-    /**
-     * {@inheritDoc}
-     * @param plan 作业执行计划
-     * @return
-     */
-    @Override
-    public boolean disablePlan(Plan plan) {
-        // update where 乐观锁
-        return planEntityRepo.updateEnable(Long.valueOf(plan.getPlanId()), true, false) == 1;
     }
 
 }

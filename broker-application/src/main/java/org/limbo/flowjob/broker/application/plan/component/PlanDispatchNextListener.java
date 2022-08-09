@@ -19,16 +19,13 @@
 package org.limbo.flowjob.broker.application.plan.component;
 
 import lombok.Setter;
-import org.limbo.flowjob.broker.api.constants.enums.JobStatus;
 import org.limbo.flowjob.broker.application.plan.support.EventListener;
 import org.limbo.flowjob.broker.core.events.Event;
 import org.limbo.flowjob.broker.core.events.EventTopic;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.plan.ScheduleEventTopic;
 import org.limbo.flowjob.broker.core.plan.job.JobInstance;
-import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
-import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
+import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -39,39 +36,24 @@ import javax.transaction.Transactional;
  * @since 2022/8/5
  */
 @Component
-public class JobSuccessListener implements EventListener {
+public class PlanDispatchNextListener implements EventListener {
 
     @Setter(onMethod_ = @Inject)
-    private TaskEntityRepo taskEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private JobInstanceEntityRepo jobInstanceEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private PlanInstanceRepository planInstanceRepository;
+    private JobInstanceRepository jobInstanceRepository;
 
     @Override
     public EventTopic topic() {
-        return ScheduleEventTopic.JOB_SUCCESS;
+        return ScheduleEventTopic.PLAN_DISPATCH_NEXT;
     }
 
     @Override
     @Transactional
     public void accept(Event event) {
-        JobInstance jobInstance = (JobInstance) event.getSource();
-
-        int num = jobInstanceEntityRepo.updateStatus(
-                Long.valueOf(jobInstance.getJobInstanceId()),
-                JobStatus.EXECUTING.status,
-                JobStatus.SUCCEED.status
-        );
-
-        if (num != 1) {
-            return;
+        PlanInstance planInstance = (PlanInstance) event.getSource();
+        // 批量保存数据
+        for (JobInstance jobInstance : planInstance.getUnScheduledJobInstances()) {
+            jobInstanceRepository.save(jobInstance);
         }
-
-        PlanInstance planInstance = planInstanceRepository.get(jobInstance.getPlanInstanceId());
-        planInstance.dispatchNext(jobInstance.getJobId());
 
     }
 

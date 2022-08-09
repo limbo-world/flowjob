@@ -19,8 +19,6 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
-import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.api.constants.enums.JobStatus;
 import org.limbo.flowjob.broker.core.plan.job.JobInstance;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.dao.converter.JobInstanceConverter;
@@ -29,10 +27,6 @@ import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Brozen
@@ -52,7 +46,7 @@ public class JobInstanceRepo implements JobInstanceRepository {
     private TaskRepo taskRepo;
 
     @Override
-    public String add(JobInstance jobInstance) {
+    public String save(JobInstance jobInstance) {
         JobInstanceEntity entity = this.convert.convert(jobInstance);
         jobInstanceEntityRepo.saveAndFlush(entity);
         return String.valueOf(entity.getId());
@@ -62,50 +56,6 @@ public class JobInstanceRepo implements JobInstanceRepository {
     @Override
     public JobInstance get(String jobInstanceId) {
         return jobInstanceEntityRepo.findById(Long.valueOf(jobInstanceId)).map(entity -> convert.reverse().convert(entity)).orElse(null);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param instance 作业实例
-     * @return
-     */
-    @Override
-    public boolean executeSucceed(JobInstance instance) {
-        return jobInstanceEntityRepo.updateStatus(
-                Long.valueOf(instance.getJobInstanceId()),
-                JobStatus.EXECUTING.status,
-                JobStatus.SUCCEED.status
-        ) > 0;
-    }
-
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param instance 作业实例
-     * @return
-     */
-    @Override
-    public boolean executeFailed(JobInstance instance) {
-        return jobInstanceEntityRepo.updateStatus(
-                Long.valueOf(instance.getJobInstanceId()),
-                JobStatus.EXECUTING.status,
-                JobStatus.FAILED.status
-        ) > 0;
-    }
-
-    @Override
-    public List<JobInstance> listInstances(String planInstanceId, Collection<String> jobIds) {
-        if (CollectionUtils.isEmpty(jobIds)) {
-            return Collections.emptyList();
-        }
-        return jobInstanceEntityRepo.findByPlanInstanceIdAndJobInfoIdIn(
-                        Long.valueOf(planInstanceId),
-                        jobIds.stream().map(Long::valueOf).collect(Collectors.toList())
-                ).stream()
-                .map(po -> convert.reverse().convert(po))
-                .collect(Collectors.toList());
     }
 
 }

@@ -46,7 +46,7 @@ public class WorkerRepo implements WorkerRepository {
     @Setter(onMethod_ = @Inject)
     private WorkerEntityRepo workerEntityRepo;
 
-    @Autowired
+    @Setter(onMethod_ = @Inject)
     private WorkerPoConverter converter;
 
     /**

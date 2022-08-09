@@ -32,11 +32,6 @@ public enum TaskStatus {
     DISPATCHING(1, "下发中"),
 
     /**
-     * 任务已经创建且持久化，下发给worker失败，
-     */
-    DISPATCH_FAILED(2, "下发失败"),
-
-    /**
      * 任务已经创建且持久化，下发给worker成功，正在执行中
      */
     EXECUTING(3, "执行中"),
@@ -99,13 +94,6 @@ public enum TaskStatus {
         }
 
         return null;
-    }
-
-    /**
-     * 是否已完成
-     */
-    public boolean isCompleted() {
-        return this == TaskStatus.SUCCEED || this == TaskStatus.FAILED;
     }
 
 }

@@ -94,18 +94,14 @@ public class JobInstance implements Scheduled, Serializable {
      */
     private LocalDateTime triggerAt;
 
+    private List<Task> unDispatchedTasks;
+
     @Getter(AccessLevel.NONE)
     @ToString.Exclude
-    private TaskCreatorFactory taskCreatorFactory;
-
-    public List<Task> createTasks() {
-        TaskCreatorFactory.TaskCreator taskCreator = taskCreatorFactory.get(type);
-        return taskCreator.apply(this);
-    }
+    private transient TaskCreatorFactory taskCreatorFactory;
 
     /**
      * 作业执行成功
-     * @return 状态更新是否成功
      */
     public void executeSucceed() {
         if (status != JobStatus.EXECUTING) {
@@ -141,11 +137,14 @@ public class JobInstance implements Scheduled, Serializable {
         }
         setStatus(JobStatus.EXECUTING);
 
+        TaskCreatorFactory.TaskCreator taskCreator = taskCreatorFactory.get(type);
+        unDispatchedTasks = taskCreator.apply(this);
+
         EventCenter.publish(new Event(this, ScheduleEventTopic.JOB_EXECUTING));
 
         // todo 这块逻辑有问题 广播和分片的处理逻辑没有包含
-        List<Task> tasks = createTasks();
-        for (Task task : tasks) {
+
+        for (Task task : unDispatchedTasks) {
             // 选择worker
             WorkerSelector workerSelector = WorkerSelectorFactory.newSelector(dispatchOption.getLoadBalanceType());
 
@@ -159,5 +158,17 @@ public class JobInstance implements Scheduled, Serializable {
         return triggerAt;
     }
 
+    /**
+     * 是否已完成 可以触发下一个
+     */
+    public boolean isCompleted() {
+        if (status == JobStatus.SUCCEED) {
+            return true;
+        }
+        if (status == JobStatus.FAILED) {
+            return failHandler == null || !failHandler.terminate();
+        }
+        return false;
+    }
 
 }

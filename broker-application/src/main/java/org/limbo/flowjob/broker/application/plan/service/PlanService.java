@@ -7,11 +7,14 @@ import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
 import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
+import org.limbo.flowjob.broker.dao.entity.PlanEntity;
+import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.Optional;
 
 /**
  * @author Brozen
@@ -22,6 +25,9 @@ public class PlanService {
 
     @Setter(onMethod_ = @Inject)
     private PlanRepository planRepository;
+
+    @Setter(onMethod_ = @Inject)
+    private PlanEntityRepo planEntityRepo;
 
     @Setter(onMethod_ = @Inject)
     private PlanConverter converter;
@@ -62,15 +68,16 @@ public class PlanService {
      */
     @Transactional
     public boolean start(String planId) {
-        Plan plan = planRepository.get(planId);
-        Verifies.notNull(plan, String.format("Cannot find Plan %s", planId));
+        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(Long.valueOf(planId));
+        Verifies.verify(planEntityOptional.isPresent(), String.format("Cannot find Plan %s", planId));
 
+        PlanEntity planEntity = planEntityOptional.get();
         // 已经停止不重复处理
-        if (plan.isEnabled()) {
+        if (Boolean.TRUE.equals(planEntity.getIsEnabled())) {
             return true;
         }
 
-        return planRepository.enablePlan(plan);
+        return planEntityRepo.updateEnable(planEntity.getId(), false, true) == 1;
     }
 
 
@@ -80,16 +87,18 @@ public class PlanService {
     @Transactional
     public boolean stop(String planId) {
         // 获取当前的plan数据
-        Plan plan = planRepository.get(planId);
-        Verifies.notNull(plan, String.format("Cannot find Plan %s", planId));
+        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(Long.valueOf(planId));
+        Verifies.verify(planEntityOptional.isPresent(), String.format("Cannot find Plan %s", planId));
 
         // 已经停止不重复处理
-        if (!plan.isEnabled()) {
+        PlanEntity planEntity = planEntityOptional.get();
+        // 已经停止不重复处理
+        if (Boolean.FALSE.equals(planEntity.getIsEnabled())) {
             return true;
         }
 
         // 停用计划
-        return planRepository.disablePlan(plan);
+        return planEntityRepo.updateEnable(planEntity.getId(), true, false) == 1;
     }
 
 }

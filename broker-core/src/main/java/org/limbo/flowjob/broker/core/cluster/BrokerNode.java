@@ -115,17 +115,7 @@ public abstract class BrokerNode {
                         if (ScheduleType.NONE == planInfo.getScheduleOption().getScheduleType()) {
                             continue;
                         }
-                        PlanInstance planInstance = planInstanceRepository.get(plan.getPlanId(), plan.getNextTriggerAt());
-                        if (planInstance != null) {
-                            // 已经下发过任务
-                            continue;
-                        }
-                        planInstance = planInfo.newInstance(PlanStatus.SCHEDULING, TriggerType.SCHEDULE);
-                        String planInstanceId = planInstanceRepository.save(planInstance);
-                        if (StringUtils.isBlank(planInstanceId)) {
-                            // 并发情况可能导致
-                            continue;
-                        }
+                        PlanInstance planInstance = planInfo.newInstance(TriggerType.SCHEDULE, plan.getNextTriggerAt());
                         // 调度
                         scheduler.schedule(planInstance);
                     }

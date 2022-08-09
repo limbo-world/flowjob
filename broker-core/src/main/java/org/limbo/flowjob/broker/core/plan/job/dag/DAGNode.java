@@ -29,15 +29,15 @@ public class DAGNode implements Serializable {
 
     private static final long serialVersionUID = 8572090796475782411L;
 
-    private String id;
+    protected String id;
 
-    private Set<String> parentIds;
+    protected Set<String> parentIds;
 
-    private Set<String> childrenIds;
+    protected Set<String> childrenIds;
     /**
      * 状态 0 初始-未访问 1 已访问
      */
-    private int status;
+    protected int status;
 
     public DAGNode(String id, Set<String> childrenIds) {
         this.id = id;

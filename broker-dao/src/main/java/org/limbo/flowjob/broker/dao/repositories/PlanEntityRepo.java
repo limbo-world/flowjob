@@ -20,10 +20,13 @@ package org.limbo.flowjob.broker.dao.repositories;
 
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import javax.persistence.LockModeType;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -32,6 +35,10 @@ import java.util.List;
  * @since 2022/6/22
  */
 public interface PlanEntityRepo extends JpaRepository<PlanEntity, Long> {
+
+    @Lock(LockModeType.PESSIMISTIC_READ)
+    @Query(value = "select * from PlanEntity where id = :id")
+    PlanEntity selectForUpdate(@Param("id") Long id);
 
     List<PlanEntity> findBySlotInAndIsEnabled(List<Integer> slots, boolean isEnabled);
 
@@ -47,4 +54,8 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, Long> {
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanEntity set isEnabled = :newValue where id = :id and isEnabled = :oldValue")
     int updateEnable(@Param("id") Long id, @Param("oldValue") Boolean oldValue, @Param("newValue") Boolean newValue);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "update PlanEntity set nextTriggerAt = :nextTriggerAt where id = :id")
+    int nextTriggerAt(@Param("id") Long id, @Param("nextTriggerAt") LocalDateTime nextTriggerAt);
 }

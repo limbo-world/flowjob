@@ -19,9 +19,4 @@ public interface PlanInstanceRepository {
      */
     PlanInstance get(String planInstanceId);
 
-    /**
-     * 获取
-     */
-    PlanInstance get(String planId, long expectTriggerTime);
-
 }

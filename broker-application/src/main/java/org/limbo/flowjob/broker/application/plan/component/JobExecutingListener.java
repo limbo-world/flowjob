@@ -30,7 +30,6 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.List;
 
 /**
  * @author Devil
@@ -51,12 +50,9 @@ public class JobExecutingListener implements EventListener {
     @Transactional
     public void accept(Event event) {
         JobInstance jobInstance = (JobInstance) event.getSource();
-
-        List<Task> tasks = jobInstance.createTasks();
-        for (Task task : tasks) {
+        for (Task task : jobInstance.getUnDispatchedTasks()) {
             taskRepository.save(task);
         }
-
     }
 
 }

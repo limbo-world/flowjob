@@ -44,7 +44,9 @@ import javax.inject.Inject;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 一个调度的plan实例
@@ -102,9 +104,15 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
      */
     private DAG<JobInfo> dag;
 
-    @Setter(AccessLevel.NONE)
-    @ToString.Exclude
-    private transient List<JobInstance> jobInstances;
+    /**
+     * 数据映射
+     */
+    private Map<String, List<JobInstance>> jobInstanceMap = new HashMap<>();
+
+    /**
+     * 未下发的job
+     */
+    private List<JobInstance> unScheduledJobInstances = new ArrayList<>();
 
     @Setter(onMethod_ = @Inject)
     private transient JobInstanceRepository jobInstanceRepo;
@@ -123,20 +131,22 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
 
     @Getter(AccessLevel.NONE)
     @ToString.Exclude
-    private TaskCreatorFactory taskCreatorFactory;
+    private transient TaskCreatorFactory taskCreatorFactory;
 
     /**
-     * 判断某一计划实例中，一批作业是否全部可以触发下一步 todo 根据jobid获取实例判断是否完成
+     * 判断某一计划实例中，一批作业是否全部可以触发下一步
      */
     private boolean checkFinished(List<JobInfo> jobInfos) {
-        // 有实例还未创建直接返回
-        if (jobInfos.size() > jobInstances.size()) {
-            return false;
+        if (CollectionUtils.isEmpty(jobInfos)) {
+            return true;
         }
 
-        // 判断是否所有实例都可以触发下个任务
-        for (JobInstance jobInstance : jobInstances) {
-            if (!jobInstance.getStatus().isCompleted()) {
+        for (JobInfo jobInfo : jobInfos) {
+            List<JobInstance> jobInstanceList = jobInstanceMap.get(jobInfo.getId());
+            if (CollectionUtils.isEmpty(jobInstanceList)) {
+                return false;
+            }
+            if (!jobInstanceList.get(0).isCompleted()) {
                 return false;
             }
         }
@@ -197,40 +207,32 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
             return;
         }
         setStatus(PlanStatus.EXECUTING);
+        setScheduleAt(TimeUtil.currentLocalDateTime());
+
+        // 获取 DAG 中最执行的作业，如不存在说明 Plan 无需下发
+        List<JobInfo> jobInfos = dag.roots();
+        for (JobInfo jobInfo : jobInfos) {
+            createScheduleJob(jobInfo);
+        }
 
         EventCenter.publish(new Event(this, ScheduleEventTopic.PLAN_EXECUTING));
 
-        for (JobInstance jobInstance : scheduleJobInstances()) {
+        for (JobInstance jobInstance : unScheduledJobInstances) {
             scheduler.schedule(jobInstance);
         }
+        unScheduledJobInstances.clear();
     }
 
-    // todo 移除？？？
-    public List<JobInstance> scheduleJobInstances() {
-        if (jobInstances == null) {
-            jobInstances = new ArrayList<>();
-        }
-        // todo 获取
-        if (CollectionUtils.isNotEmpty(jobInstances)) {
-            return null;
-        }
-        // 获取 DAG 中最执行的作业，如不存在说明 Plan 无需下发
-        List<JobInfo> jobInfos = dag.roots();
-        if (CollectionUtils.isEmpty(jobInfos)) {
-            return jobInstances;
-        }
-        for (JobInfo jobInfo : jobInfos) {
-            // 下发task
+    private void createScheduleJob(JobInfo jobInfo) {
+        if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
             JobInstance jobInstance = jobInfo.newInstance(planId,
                     planInstanceId,
                     taskCreatorFactory,
                     TimeUtil.currentLocalDateTime());
-            if (TriggerType.SCHEDULE != jobInfo.getTriggerType()) {
-                continue;
-            }
-            jobInstances.add(jobInstance);
+            jobInstanceMap.putIfAbsent(jobInfo.getId(), new ArrayList<>());
+            jobInstanceMap.get(jobInfo.getId()).add(jobInstance);
+            unScheduledJobInstances.add(jobInstance);
         }
-        return jobInstances;
     }
 
     @Override
@@ -271,19 +273,19 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
             }
         } else {
 
-            // todo 发送事件，保存数据
-
-            // 后续作业存在，则检测是否可触发，并继续下发作业 todo 判断作业是否可以被触发。检测作业在 DAG 中的前置作业节点是否均可触发子节点。
-            // todo 判断是否已经下发过 防止重复下发
+            // 后续作业存在，则检测是否可触发，并继续下发作业
             for (JobInfo subJobInfo : subJobInfos) {
-                if (checkFinished(dag.preNodes(subJobInfo.getJobId()))) {
-                    JobInstance subJobInstance = subJobInfo.newInstance(planId,
-                            planInstanceId,
-                            taskCreatorFactory,
-                            TimeUtil.currentLocalDateTime());
-                    scheduler.schedule(subJobInstance);
+                if (checkFinished(dag.preNodes(subJobInfo.getId()))) {
+                    createScheduleJob(subJobInfo);
                 }
             }
+
+            EventCenter.publish(new Event(this, ScheduleEventTopic.PLAN_DISPATCH_NEXT));
+
+            for (JobInstance subJobInstance : unScheduledJobInstances) {
+                scheduler.schedule(subJobInstance);
+            }
+            unScheduledJobInstances.clear();
 
         }
     }
@@ -292,8 +294,12 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
      * 是否需要重试job
      */
     public boolean needRetryJob(String jobId) {
-        // todo
-        return false;
+        JobInfo jobInfo = dag.getJob(jobId);
+        List<JobInstance> jobInstances = jobInstanceMap.get(jobId);
+        if (CollectionUtils.isEmpty(jobInstances)) {
+            return true;
+        }
+        return jobInfo.getDispatchOption().getRetry() > jobInstances.size();
     }
 
     public JobInfo getJobInfo(String jobId) {

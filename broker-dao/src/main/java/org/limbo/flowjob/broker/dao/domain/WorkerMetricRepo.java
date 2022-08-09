@@ -38,7 +38,7 @@ import java.util.Optional;
 @Repository
 public class WorkerMetricRepo implements WorkerMetricRepository {
 
-    @Autowired
+    @Setter(onMethod_ = @Inject)
     private WorkerMetricPoConverter converter;
 
     @Setter(onMethod_ = @Inject)

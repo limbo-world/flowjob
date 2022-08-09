@@ -23,6 +23,7 @@ import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
 import org.limbo.flowjob.broker.application.plan.support.EventListener;
 import org.limbo.flowjob.broker.core.events.Event;
 import org.limbo.flowjob.broker.core.events.EventTopic;
+import org.limbo.flowjob.broker.core.plan.ScheduleEventTopic;
 import org.limbo.flowjob.broker.core.plan.job.JobInstance;
 import org.limbo.flowjob.broker.core.plan.job.context.Task;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
@@ -47,7 +48,7 @@ public class TaskFailListener implements EventListener {
 
     @Override
     public EventTopic topic() {
-        return null;
+        return ScheduleEventTopic.TASK_FAIL;
     }
 
     @Override
@@ -55,9 +56,11 @@ public class TaskFailListener implements EventListener {
     public void accept(Event event) {
         Task task = (Task) event.getSource();
 
-        int num = taskEntityRepo.updateStatus(Long.valueOf(task.getTaskId()),
-                TaskStatus.DISPATCHING.status,
-                TaskStatus.DISPATCH_FAILED.status
+        int num = taskEntityRepo.updateStatusWithError(Long.valueOf(task.getTaskId()),
+                TaskStatus.EXECUTING.status,
+                TaskStatus.FAILED.status,
+                task.getErrorMsg(),
+                task.getErrorStackTrace()
         );
 
         if (num != 1) {

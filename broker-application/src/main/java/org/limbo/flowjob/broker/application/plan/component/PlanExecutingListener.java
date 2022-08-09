@@ -19,7 +19,6 @@
 package org.limbo.flowjob.broker.application.plan.component;
 
 import lombok.Setter;
-import org.limbo.flowjob.broker.api.constants.enums.PlanStatus;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.application.plan.support.EventListener;
@@ -29,9 +28,10 @@ import org.limbo.flowjob.broker.core.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.plan.ScheduleEventTopic;
 import org.limbo.flowjob.broker.core.plan.job.JobInstance;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
-import org.limbo.flowjob.broker.core.repository.PlanRepository;
+import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
+import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
+import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
-import org.limbo.flowjob.common.utils.TimeUtil;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -46,11 +46,13 @@ import java.util.List;
 public class PlanExecutingListener implements EventListener {
 
     @Setter(onMethod_ = @Inject)
-    private PlanRepository planRepository;
+    private PlanEntityRepo planEntityRepo;
     @Setter(onMethod_ = @Inject)
     private PlanInstanceEntityRepo planInstanceEntityRepo;
     @Setter(onMethod_ = @Inject)
     private JobInstanceRepository jobInstanceRepository;
+    @Setter(onMethod_ = @Inject)
+    private PlanInstanceRepository planInstanceRepository;
 
     @Override
     public EventTopic topic() {
@@ -62,22 +64,27 @@ public class PlanExecutingListener implements EventListener {
     public void accept(Event event) {
         PlanInstance planInstance = (PlanInstance) event.getSource();
 
-        // planInstance 状态
-        planInstanceEntityRepo.start(
-                Long.valueOf(planInstance.getPlanInstanceId()),
-                PlanStatus.SCHEDULING.status,
-                PlanStatus.EXECUTING.status,
-                TimeUtil.currentLocalDateTime()
-        );
+        Long planId = Long.valueOf(planInstance.getPlanId());
+
+        // 加锁
+        planEntityRepo.selectForUpdate(planId);
+
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findByPlanIdAndExpectTriggerAt(planId, planInstance.getTriggerAt());
+        if (planInstanceEntity != null) {
+            return; // 并发情况下，已经有人创建了，无需处理
+        }
+
+        planInstanceRepository.save(planInstance);
+
         // 批量保存数据
-        List<JobInstance> jobInstances = planInstance.scheduleJobInstances();
+        List<JobInstance> jobInstances = planInstance.getUnScheduledJobInstances();
         for (JobInstance jobInstance : jobInstances) {
-            jobInstanceRepository.add(jobInstance);
+            jobInstanceRepository.save(jobInstance);
         }
 
         // 更新plan的下次触发时间
         if (ScheduleType.FIXED_DELAY != planInstance.getScheduleOption().getScheduleType() && TriggerType.SCHEDULE == planInstance.getScheduleOption().getTriggerType()) {
-            planRepository.nextTriggerAt(planInstance.getPlanId(), planInstance.nextTriggerAt());
+            planEntityRepo.nextTriggerAt(planId, planInstance.nextTriggerAt());
         }
     }
 

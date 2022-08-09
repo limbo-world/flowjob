@@ -30,6 +30,10 @@ public enum ScheduleEventTopic implements EventTopic {
      */
     PLAN_EXECUTING,
     /**
+     * plan 下发后续任务
+     */
+    PLAN_DISPATCH_NEXT,
+    /**
      * plan 执行成功
      */
     PLAN_SUCCESS,

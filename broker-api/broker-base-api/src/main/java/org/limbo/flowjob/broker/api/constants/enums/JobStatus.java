@@ -84,11 +84,4 @@ public enum JobStatus {
         return null;
     }
 
-    /**
-     * 是否已完成
-     */
-    public boolean isCompleted() {
-        return this == JobStatus.SUCCEED || this == JobStatus.FAILED;
-    }
-
 }

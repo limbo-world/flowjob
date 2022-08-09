@@ -22,9 +22,9 @@ import lombok.ToString;
 import org.limbo.flowjob.broker.core.plan.job.JobInfo;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
- * todo 是否可以废弃
  *
  * 执行计划。一个计划{@link Plan}对应至少一个作业{@link JobInfo}
  * 主要是对plan的管理
@@ -57,7 +57,7 @@ public class Plan implements Serializable {
     /**
      * 下次触发时间
      */
-    private long nextTriggerAt;
+    private LocalDateTime nextTriggerAt;
 
     /**
      * 当前版本的Plan数据

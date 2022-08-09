@@ -24,9 +24,9 @@ import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.core.plan.job.JobInfo;
 import org.limbo.flowjob.broker.core.plan.job.dag.DAG;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
-import org.limbo.flowjob.common.utils.TimeUtil;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
  * 计划在具体版本时的数据(值对象)，至少对应一个{@link JobInfo}
@@ -80,18 +80,18 @@ public class PlanInfo implements Serializable {
     /**
      * 生成新的计划调度记录
      *
-     * @param status       初始化调度记录状态
      * @param triggerType 触发类型
      * @return 调度记录状态
      */
-    public PlanInstance newInstance(PlanStatus status, TriggerType triggerType) {
+    public PlanInstance newInstance(TriggerType triggerType, LocalDateTime nextTriggerAt) {
         PlanInstance instance = new PlanInstance();
         instance.setPlanId(planId);
         instance.setVersion(version);
         instance.setDag(dag);
-        instance.setStatus(status);
+        instance.setStatus(PlanStatus.SCHEDULING);
         instance.setTriggerType(triggerType);
-        instance.setScheduleAt(TimeUtil.currentLocalDateTime());
+        instance.setScheduleAt(nextTriggerAt); // todo 这两个时间关系
+        instance.setTriggerAt(nextTriggerAt);
         return instance;
     }
 

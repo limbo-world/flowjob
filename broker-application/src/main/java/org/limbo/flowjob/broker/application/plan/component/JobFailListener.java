@@ -81,7 +81,6 @@ public class JobFailListener implements EventListener {
 
         // todo 这里获取到的 里面应该包含所有JobInstance
         PlanInstance planInstance = planInstanceRepository.get(jobInstance.getPlanInstanceId());
-        planInstance.dispatchNext(jobInstance.getJobId());
 
         if (planInstance.needRetryJob(jobInstance.getJobId())) {
             // 重试处理

@@ -72,14 +72,5 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
         return planInstanceEntityRepo.findById(Long.valueOf(planInstanceId)).map(entity -> converter.reverse().convert(entity)).orElse(null);
     }
 
-    @Override
-    public PlanInstance get(String planId, long expectTriggerTime) {
-        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findByPlanIdAndExpectTriggerAt(Long.valueOf(planId), expectTriggerTime);
-        if (planInstanceEntity == null) {
-            return null;
-        }
-        return converter.reverse().convert(planInstanceEntity);
-    }
-
 
 }

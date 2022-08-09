@@ -19,16 +19,14 @@
 package org.limbo.flowjob.broker.application.plan.component;
 
 import lombok.Setter;
-import org.limbo.flowjob.broker.api.constants.enums.JobStatus;
+import org.limbo.flowjob.broker.api.constants.enums.PlanStatus;
 import org.limbo.flowjob.broker.application.plan.support.EventListener;
 import org.limbo.flowjob.broker.core.events.Event;
 import org.limbo.flowjob.broker.core.events.EventTopic;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.plan.ScheduleEventTopic;
-import org.limbo.flowjob.broker.core.plan.job.JobInstance;
-import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
-import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
+import org.limbo.flowjob.common.utils.TimeUtil;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -39,40 +37,27 @@ import javax.transaction.Transactional;
  * @since 2022/8/5
  */
 @Component
-public class JobSuccessListener implements EventListener {
+public class PlanFailListener implements EventListener {
 
     @Setter(onMethod_ = @Inject)
-    private TaskEntityRepo taskEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private JobInstanceEntityRepo jobInstanceEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private PlanInstanceRepository planInstanceRepository;
+    private PlanInstanceEntityRepo planInstanceEntityRepo;
 
     @Override
     public EventTopic topic() {
-        return ScheduleEventTopic.JOB_SUCCESS;
+        return ScheduleEventTopic.PLAN_FAIL;
     }
 
     @Override
     @Transactional
     public void accept(Event event) {
-        JobInstance jobInstance = (JobInstance) event.getSource();
+        PlanInstance planInstance = (PlanInstance) event.getSource();
 
-        int num = jobInstanceEntityRepo.updateStatus(
-                Long.valueOf(jobInstance.getJobInstanceId()),
-                JobStatus.EXECUTING.status,
-                JobStatus.SUCCEED.status
+        planInstanceEntityRepo.end(
+                Long.valueOf(planInstance.getPlanInstanceId()),
+                PlanStatus.EXECUTING.status,
+                PlanStatus.FAILED.status,
+                TimeUtil.currentLocalDateTime()
         );
-
-        if (num != 1) {
-            return;
-        }
-
-        PlanInstance planInstance = planInstanceRepository.get(jobInstance.getPlanInstanceId());
-        planInstance.dispatchNext(jobInstance.getJobId());
-
     }
 
 }

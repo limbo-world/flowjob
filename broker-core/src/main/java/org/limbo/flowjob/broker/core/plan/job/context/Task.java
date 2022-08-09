@@ -171,7 +171,7 @@ public class Task implements Serializable {
      * 任务执行成功，worker反馈任务执行完成后，才会调用此方法。
      */
     public void executeSucceed() {
-        if (getStatus().isCompleted()) {
+        if (isCompleted()) {
             return;
         }
 
@@ -188,7 +188,7 @@ public class Task implements Serializable {
      * @param errorStackTrace 执行失败的异常堆栈
      */
     public void executeFail(String errorMsg, String errorStackTrace) {
-        if (getStatus().isCompleted()) {
+        if (isCompleted()) {
             return;
         }
 
@@ -199,4 +199,10 @@ public class Task implements Serializable {
         EventCenter.publish(new Event(this, ScheduleEventTopic.TASK_FAIL));
     }
 
+    /**
+     * 是否已完成
+     */
+    public boolean isCompleted() {
+        return status == TaskStatus.SUCCEED || status == TaskStatus.FAILED;
+    }
 }

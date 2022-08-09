@@ -44,11 +44,6 @@ public class JobInfo extends DAGNode {
 
     private static final long serialVersionUID = 5340755318570959476L;
 
-    /**
-     * 作业ID
-     */
-    private String jobId;
-
     private String name;
 
     /**
@@ -83,7 +78,7 @@ public class JobInfo extends DAGNode {
         JobInstance jobInstance = new JobInstance();
         jobInstance.setPlanId(planId);
         jobInstance.setPlanInstanceId(planInstanceId);
-        jobInstance.setJobId(jobId);
+        jobInstance.setJobId(id);
         jobInstance.setStatus(JobStatus.SCHEDULING);
         jobInstance.setTaskCreatorFactory(taskCreatorFactory);
         jobInstance.setTriggerAt(triggerAt);

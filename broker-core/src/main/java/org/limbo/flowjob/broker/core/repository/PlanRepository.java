@@ -56,11 +56,6 @@ public interface PlanRepository {
     Plan get(String planId);
 
     /**
-     * 更新下次触发时间
-     */
-    boolean nextTriggerAt(String planId, LocalDateTime nextTriggerAt);
-
-    /**
      * 查询需要被调度的计划。
      *
      * @param startTime 需要触发哪个时间段的任务
@@ -68,23 +63,5 @@ public interface PlanRepository {
      * @return 需要被调度的作业计划
      */
     List<Plan> schedulePlans(LocalDateTime startTime, LocalDateTime endTime);
-
-
-    /**
-     * 启用指定计划
-     *
-     * @param plan 作业执行计划
-     * @return 是否成功
-     */
-    boolean enablePlan(Plan plan);
-
-
-    /**
-     * 停用指定计划
-     *
-     * @param plan 作业执行计划
-     * @return 是否成功
-     */
-    boolean disablePlan(Plan plan);
 
 }
