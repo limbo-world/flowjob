@@ -16,34 +16,15 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.cluster;
+package org.limbo.flowjob.broker.dao.repositories;
 
-import lombok.Getter;
+import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
  * @author Devil
  * @since 2022/7/18
  */
-@Getter
-public class NodeEvent {
+public interface JobInfoEntityRepo extends JpaRepository<JobInfoEntity, Long> {
 
-    private final String nodeId;
-
-    private final String host;
-
-    private final int port;
-
-    private final Type type;
-
-    public enum Type {
-        ONLINE,
-        OFFLINE
-    }
-
-    public NodeEvent(String nodeId, Type type, String host, int port) {
-        this.nodeId = nodeId;
-        this.type = type;
-        this.host = host;
-        this.port = port;
-    }
 }

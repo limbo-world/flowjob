@@ -75,7 +75,7 @@ public class JobInfoEntity extends BaseEntity {
     private Byte executorType;
 
     /**
-     * sharding normal
+     * @see JobType
      */
-    protected JobType type;
+    protected Byte type;
 }

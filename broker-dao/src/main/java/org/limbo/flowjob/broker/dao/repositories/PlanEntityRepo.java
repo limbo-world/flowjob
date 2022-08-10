@@ -37,10 +37,10 @@ import java.util.List;
 public interface PlanEntityRepo extends JpaRepository<PlanEntity, Long> {
 
     @Lock(LockModeType.PESSIMISTIC_READ)
-    @Query(value = "select * from PlanEntity where id = :id")
+    @Query(value = "select PlanEntity from PlanEntity where id = :id")
     PlanEntity selectForUpdate(@Param("id") Long id);
 
-    List<PlanEntity> findBySlotInAndIsEnabled(List<Integer> slots, boolean isEnabled);
+    List<PlanEntity> findBySlotInAndIsEnabledAndNextTriggerAtBefore(List<Integer> slots, boolean isEnabled, LocalDateTime nextTriggerAt);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanEntity set currentVersion = :newCurrentVersion, recentlyVersion = :newRecentlyVersion " +

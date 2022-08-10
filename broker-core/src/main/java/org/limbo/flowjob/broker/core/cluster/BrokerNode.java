@@ -20,8 +20,6 @@ package org.limbo.flowjob.broker.core.cluster;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.broker.api.constants.enums.PlanStatus;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.core.plan.Plan;
@@ -32,7 +30,6 @@ import org.limbo.flowjob.broker.core.repository.PlanRepository;
 import org.limbo.flowjob.broker.core.schedule.scheduler.Scheduler;
 import org.limbo.flowjob.common.utils.TimeUtil;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -66,7 +63,7 @@ public abstract class BrokerNode {
         registry.subscribe(event -> {
             switch (event.getType()) {
                 case ONLINE:
-                    BrokerNodeManger.online(event.getHost(), event.getPort());
+                    BrokerNodeManger.online(event.getNodeId(), event.getHost(), event.getPort());
                     break;
                 case OFFLINE:
                     BrokerNodeManger.offline(event.getHost(), event.getPort());
@@ -100,8 +97,8 @@ public abstract class BrokerNode {
                     return;
                 }
                 for (;;) {
-                    LocalDateTime now = TimeUtil.currentLocalDateTime();
-                    List<Plan> plans = planRepository.schedulePlans(now, now.plusMinutes(10)); // 调度当前时间以及未来10分钟的任务
+                    // 调度当前时间以及未来10分钟的任务
+                    List<Plan> plans = planRepository.schedulePlans(TimeUtil.currentLocalDateTime().plusMinutes(10));
                     if (CollectionUtils.isEmpty(plans)) {
                         return;
                     }

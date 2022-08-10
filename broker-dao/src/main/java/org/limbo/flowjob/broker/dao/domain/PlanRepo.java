@@ -19,8 +19,13 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
-import org.limbo.flowjob.broker.core.repository.PlanRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
+import org.limbo.flowjob.broker.core.cluster.BrokerNodeManger;
 import org.limbo.flowjob.broker.core.plan.Plan;
+import org.limbo.flowjob.broker.core.repository.PlanRepository;
 import org.limbo.flowjob.broker.dao.converter.PlanConverter;
 import org.limbo.flowjob.broker.dao.converter.PlanInfoConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
@@ -33,32 +38,34 @@ import org.springframework.stereotype.Repository;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author Brozen
  * @since 2021-07-13
  */
+@Slf4j
 @Repository
 public class PlanRepo implements PlanRepository {
 
     @Setter(onMethod_ = @Inject)
     private PlanEntityRepo planEntityRepo;
-
     @Setter(onMethod_ = @Inject)
     private PlanInfoEntityRepo planInfoEntityRepo;
-
     @Setter(onMethod_ = @Inject)
     private PlanConverter planConverter;
-
     @Setter(onMethod_ = @Inject)
     private PlanInfoConverter planInfoConverter;
+    @Setter(onMethod_ = @Inject)
+    private BrokerConfig config;
 
+    private static final int SLOT_SIZE = 64;
 
     /**
-     * todo 事务 plan 删除处理 硬/软删除
-     * TODO 是否存在校验与插入是多个操作，需保证执行前对planId加锁
      * {@inheritDoc}
      *
      * @param plan 计划plan
@@ -71,6 +78,11 @@ public class PlanRepo implements PlanRepository {
 
         // 新增 Plan
         PlanEntity planEntity = planConverter.toEntity(plan);
+        planEntityRepo.saveAndFlush(planEntity);
+
+        // 槽位保存
+        int slot = (int) (planEntity.getId() % SLOT_SIZE);
+        planEntity.setSlot(slot);
         planEntityRepo.saveAndFlush(planEntity);
 
         // 设置版本
@@ -125,13 +137,52 @@ public class PlanRepo implements PlanRepository {
     }
 
     @Override
-    public List<Plan> schedulePlans(LocalDateTime startTime, LocalDateTime endTime) {
-        List<PlanEntity> plans = planEntityRepo.findBySlotInAndIsEnabled(slots(), true); // todo 获取最近要触发的
-        return null;
+    public List<Plan> schedulePlans(LocalDateTime nextTriggerAt) {
+        List<Integer> slots = slots();
+        if (CollectionUtils.isEmpty(slots)) {
+            return Collections.emptyList();
+        }
+        List<PlanEntity> planEntities = planEntityRepo.findBySlotInAndIsEnabledAndNextTriggerAtBefore(slots(), true, nextTriggerAt);
+        if (CollectionUtils.isEmpty(planEntities)) {
+            return Collections.emptyList();
+        }
+        List<Plan> plans = new ArrayList<>();
+        for (PlanEntity planEntity : planEntities) {
+            plans.add(planConverter.toDO(planEntity));
+        }
+        return plans;
     }
 
+    /**
+     * 获取槽位的算法
+     * @return 当前机器对应的所有槽位
+     */
     private List<Integer> slots() {
-        return null;
+        List<Pair<String, Integer>> aliveNodes = BrokerNodeManger.alive();
+        List<Pair<String, Integer>> sortedNodes = aliveNodes.stream().sorted(Pair::compareTo).collect(Collectors.toList());
+
+        // 判断自己所在的id位置
+        int mark = -1;
+        for (int i = 0; i < sortedNodes.size(); i++) {
+            Pair<String, Integer> node = sortedNodes.get(i);
+            if (config.getHost().equals(node.getLeft()) && config.getPort() == node.getRight()) {
+                mark = i;
+                break;
+            }
+        }
+
+        if (mark < 0) {
+            log.warn("can't find in alive nodes host:{} port:{}", config.getHost(), config.getPort());
+            return Collections.emptyList();
+        }
+
+        List<Integer> slots = new ArrayList<>();
+        while (mark < SLOT_SIZE) {
+            slots.add(mark);
+            mark += sortedNodes.size();
+        }
+        log.info("find slots:{}", slots);
+        return slots;
     }
 
 }

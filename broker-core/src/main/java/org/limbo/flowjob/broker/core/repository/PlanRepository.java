@@ -58,10 +58,9 @@ public interface PlanRepository {
     /**
      * 查询需要被调度的计划。
      *
-     * @param startTime 需要触发哪个时间段的任务
-     * @param endTime   需要触发哪个时间段的任务
+     * @param nextTriggerAt 需要触发哪个时间段的任务
      * @return 需要被调度的作业计划
      */
-    List<Plan> schedulePlans(LocalDateTime startTime, LocalDateTime endTime);
+    List<Plan> schedulePlans(LocalDateTime nextTriggerAt);
 
 }

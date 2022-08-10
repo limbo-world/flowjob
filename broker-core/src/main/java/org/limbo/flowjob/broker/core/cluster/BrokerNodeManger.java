@@ -18,7 +18,13 @@
 
 package org.limbo.flowjob.broker.core.cluster;
 
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -26,28 +32,59 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Devil
  * @since 2022/7/20
  */
-class BrokerNodeManger {
-
+public class BrokerNodeManger {
+    // key: host:port  ----   id
     private static final Map<String, String> map = new ConcurrentHashMap<>();
 
-    public static void online(String host, int port) {
+    /**
+     * 节点上线
+     */
+    public static void online(String id, String host, int port) {
         String key = key(host, port);
-        map.put(key, key);
+        map.put(key, id);
     }
 
+    /**
+     * 节点下线
+     * @param host
+     * @param port
+     */
     public static void offline(String host, int port) {
         String key = key(host, port);
         map.remove(key);
     }
 
+    /**
+     * 检查节点是否存活
+     * @param host
+     * @param port
+     * @return
+     */
     public static boolean alive(String host, int port) {
         String key = key(host, port);
         return map.containsKey(key);
     }
 
+    public static Collection<String> ids() {
+        return map.values();
+    }
+
+    public static List<Pair<String, Integer>> alive() {
+        List<Pair<String, Integer>> result = new ArrayList<>();
+        Set<String> keys = map.keySet();
+        for (String key : keys) {
+            result.add(pair(key));
+        }
+        return result;
+    }
 
     private static String key(String host, int port) {
         return host + ":" + port;
+    }
+
+    private static Pair<String, Integer> pair(String key) {
+        String[] split = key.split(":");
+        return Pair.of(split[0], Integer.valueOf(split[1]));
     }
 
 }

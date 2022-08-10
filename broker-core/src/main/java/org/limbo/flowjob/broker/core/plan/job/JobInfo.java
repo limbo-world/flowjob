@@ -16,6 +16,7 @@
 
 package org.limbo.flowjob.broker.core.plan.job;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -30,16 +31,13 @@ import java.util.Set;
 /**
  * 作业的抽象。主要定义了作业领域的的行为方法，属性的访问操作在{@link JobInfo}轻量级领域对象中。
  *
- * todo
- * 允许失败的任务，失败后继续执行下面节点
- * 任务失败后处理情况，1. 整个plan失败 2. 执行另一个A分支（成功的话执行B分支）
- *
  * @author Brozen
  * @since 2021-05-14
  */
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode(callSuper = true)
 public class JobInfo extends DAGNode {
 
     private static final long serialVersionUID = 5340755318570959476L;
@@ -74,15 +72,14 @@ public class JobInfo extends DAGNode {
     /**
      * 生成作业实例，新生成的作业状态是 {@link JobStatus#SCHEDULING}
      */
-    public JobInstance newInstance(String planId, String planInstanceId, TaskCreatorFactory taskCreatorFactory, LocalDateTime triggerAt) {
+    public JobInstance newInstance(String planInstanceId, TaskCreatorFactory taskCreatorFactory, LocalDateTime triggerAt) {
         JobInstance jobInstance = new JobInstance();
-        jobInstance.setPlanId(planId);
         jobInstance.setPlanInstanceId(planInstanceId);
         jobInstance.setJobId(id);
         jobInstance.setStatus(JobStatus.SCHEDULING);
         jobInstance.setTaskCreatorFactory(taskCreatorFactory);
         jobInstance.setTriggerAt(triggerAt);
-        jobInstance.setAttributes(null); // todo
+        jobInstance.setAttributes(null); // todo 传递界面定义好的参数 传递上个节点传递的参数
         return jobInstance;
     }
 

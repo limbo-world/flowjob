@@ -3,11 +3,10 @@ package org.limbo.flowjob.broker.dao.converter;
 import lombok.Setter;
 import org.limbo.flowjob.broker.core.plan.Plan;
 import org.limbo.flowjob.broker.core.plan.PlanInfo;
-import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
-import org.springframework.context.ApplicationContext;
+import org.limbo.flowjob.common.utils.Verifies;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;

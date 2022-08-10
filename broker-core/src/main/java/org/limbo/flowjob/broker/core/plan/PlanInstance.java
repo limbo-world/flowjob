@@ -225,8 +225,7 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
 
     private void createScheduleJob(JobInfo jobInfo) {
         if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
-            JobInstance jobInstance = jobInfo.newInstance(planId,
-                    planInstanceId,
+            JobInstance jobInstance = jobInfo.newInstance(planInstanceId,
                     taskCreatorFactory,
                     TimeUtil.currentLocalDateTime());
             jobInstanceMap.putIfAbsent(jobInfo.getId(), new ArrayList<>());

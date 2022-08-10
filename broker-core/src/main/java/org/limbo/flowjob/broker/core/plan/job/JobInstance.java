@@ -36,7 +36,6 @@ import org.limbo.flowjob.broker.core.plan.job.handler.JobFailHandler;
 import org.limbo.flowjob.broker.core.schedule.Scheduled;
 
 import java.io.Serializable;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -51,8 +50,6 @@ public class JobInstance implements Scheduled, Serializable {
     private static final long serialVersionUID = -7913375595969578408L;
 
     private String jobInstanceId;
-
-    private String planId;
 
     private String planInstanceId;
 
@@ -72,12 +69,12 @@ public class JobInstance implements Scheduled, Serializable {
     /**
      * 开始时间
      */
-    private Instant startAt;
+    private LocalDateTime startAt;
 
     /**
      * 结束时间
      */
-    private Instant endAt;
+    private LocalDateTime endAt;
 
     /**
      * 此次执行的参数

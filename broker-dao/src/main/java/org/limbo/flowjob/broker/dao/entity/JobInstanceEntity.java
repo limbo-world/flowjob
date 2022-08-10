@@ -39,12 +39,17 @@ public class JobInstanceEntity extends BaseEntity {
     private String attributes;
 
     /**
-     * 开始时间
+     * 执行开始时间
      */
     private LocalDateTime startAt;
 
     /**
-     * 结束时间
+     * 执行结束时间
      */
     private LocalDateTime endAt;
+
+    /**
+     * 调度触发时间
+     */
+    private LocalDateTime triggerAt;
 }

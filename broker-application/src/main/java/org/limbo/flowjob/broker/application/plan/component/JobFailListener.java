@@ -84,7 +84,7 @@ public class JobFailListener implements EventListener {
 
         if (planInstance.needRetryJob(jobInstance.getJobId())) {
             // 重试处理
-            jobInstance = planInstance.getJobInfo(jobInstance.getJobId()).newInstance(planInstance.getPlanId(),
+            jobInstance = planInstance.getJobInfo(jobInstance.getJobId()).newInstance(
                     planInstance.getPlanInstanceId(),
                     taskCreatorFactory,
                     TimeUtil.currentLocalDateTime()); // todo 根据重试间隔决定触发时间

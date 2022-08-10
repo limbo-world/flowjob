@@ -90,8 +90,6 @@ public class TaskCreatorFactory {
         @Override
         public List<Task> apply(JobInstance job) {
             Task task = new Task();
-            task.setTaskId(UUIDUtils.randomID()); // TODO taskId如何生成？
-            task.setPlanId(job.getPlanId());
             task.setPlanInstanceId(job.getPlanInstanceId());
             task.setJobId(job.getJobId());
             task.setJobInstanceId(job.getJobInstanceId());
