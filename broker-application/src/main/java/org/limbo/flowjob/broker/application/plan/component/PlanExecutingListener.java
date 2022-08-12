@@ -69,9 +69,10 @@ public class PlanExecutingListener implements EventListener {
         // 加锁
         planEntityRepo.selectForUpdate(planId);
 
-        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findByPlanIdAndExpectTriggerAt(planId, planInstance.getTriggerAt());
+        // 判断并发情况下 是否已经有人提交调度任务 如有则无需处理
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findByPlanIdAndExpectTriggerAtAndTriggerType(planId, planInstance.getExpectTriggerAt(), TriggerType.SCHEDULE.type);
         if (planInstanceEntity != null) {
-            return; // 并发情况下，已经有人创建了，无需处理
+            return;
         }
 
         planInstanceRepository.save(planInstance);

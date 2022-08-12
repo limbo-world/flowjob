@@ -19,18 +19,26 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.broker.api.constants.enums.PlanStatus;
+import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.core.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
+import org.limbo.flowjob.broker.core.plan.job.context.TaskCreatorFactory;
 import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
-import org.limbo.flowjob.broker.core.repository.PlanRepository;
-import org.limbo.flowjob.broker.core.repository.TaskRepository;
-import org.limbo.flowjob.broker.dao.converter.PlanInstanceConverter;
+import org.limbo.flowjob.broker.core.schedule.calculator.ScheduleCalculatorFactory;
+import org.limbo.flowjob.broker.core.schedule.scheduler.Scheduler;
+import org.limbo.flowjob.broker.dao.converter.DomainConverter;
+import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
+import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.List;
 
 /**
  * @author Devil
@@ -39,38 +47,76 @@ import javax.transaction.Transactional;
 @Repository
 public class PlanInstanceRepo implements PlanInstanceRepository {
 
-
-    @Setter(onMethod_ = @Inject)
-    private PlanInstanceConverter converter;
-
     @Setter(onMethod_ = @Inject)
     private PlanInstanceEntityRepo planInstanceEntityRepo;
-
-    // todo 移除
     @Setter(onMethod_ = @Inject)
-    private JobInstanceRepository jobInstanceRepository;
-
-    // todo 移除
+    private PlanInfoEntityRepo planInfoEntityRepo;
     @Setter(onMethod_ = @Inject)
-    private TaskRepository taskRepository;
-
-    // todo 移除
+    private Scheduler scheduler;
     @Setter(onMethod_ = @Inject)
-    private PlanRepository planRepository;
+    private ScheduleCalculatorFactory scheduleCalculatorFactory;
+    @Setter(onMethod_ = @Inject)
+    private TaskCreatorFactory taskCreatorFactory;
+    @Setter(onMethod_ = @Inject)
+    private JobInstanceEntityRepo jobInstanceEntityRepo;
 
 
     @Override
     @Transactional
     public String save(PlanInstance instance) {
-        PlanInstanceEntity entity = converter.convert(instance);
+        PlanInstanceEntity entity = toEntity(instance);
         planInstanceEntityRepo.saveAndFlush(entity);
         return String.valueOf(entity.getId());
     }
 
     @Override
     public PlanInstance get(String planInstanceId) {
-        return planInstanceEntityRepo.findById(Long.valueOf(planInstanceId)).map(entity -> converter.reverse().convert(entity)).orElse(null);
+        return planInstanceEntityRepo.findById(Long.valueOf(planInstanceId)).map(this::toPlanInstance).orElse(null);
     }
 
+
+    private PlanInstanceEntity toEntity(PlanInstance instance) {
+        PlanInstanceEntity planInstanceEntity = new PlanInstanceEntity();
+        planInstanceEntity.setId(Long.valueOf(instance.getPlanInstanceId()));
+        planInstanceEntity.setPlanId(Long.valueOf(instance.getPlanId()));
+        planInstanceEntity.setPlanInfoId(Long.valueOf(instance.getVersion()));
+        planInstanceEntity.setStatus(instance.getStatus().status);
+        planInstanceEntity.setTriggerType(instance.getTriggerType().type);
+        planInstanceEntity.setExpectTriggerAt(instance.getExpectTriggerAt());
+        planInstanceEntity.setTriggerAt(instance.getTriggerAt());
+        planInstanceEntity.setFeedbackAt(instance.getFeedbackAt());
+        return planInstanceEntity;
+    }
+
+    private PlanInstance toPlanInstance(PlanInstanceEntity entity) {
+        PlanInstance planInstance = new PlanInstance();
+        planInstance.setPlanInstanceId(entity.getId().toString());
+        planInstance.setPlanId(String.valueOf(entity.getPlanId()));
+        planInstance.setVersion(entity.getPlanInfoId().toString());
+        planInstance.setStatus(PlanStatus.parse(entity.getStatus()));
+        planInstance.setExpectTriggerAt(entity.getExpectTriggerAt());
+        planInstance.setTriggerType(TriggerType.parse(entity.getTriggerType()));
+        planInstance.setTriggerAt(entity.getTriggerAt());
+        planInstance.setFeedbackAt(entity.getFeedbackAt());
+
+        planInstance.setStrategyFactory(scheduleCalculatorFactory);
+        planInstance.setScheduler(scheduler);
+        planInstance.setTaskCreatorFactory(taskCreatorFactory);
+
+        // 基础信息
+        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getPlanInfoId()).get();
+        planInstance.setScheduleOption(DomainConverter.toScheduleOption(planInfoEntity));
+        planInstance.setDag(DomainConverter.toJobDag(planInfoEntity.getJobs()));
+
+        // 处理 JobInstance
+        List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findByPlanInstanceId(entity.getId());
+        if (CollectionUtils.isNotEmpty(jobInstanceEntities)) {
+            for (JobInstanceEntity jobInstanceEntity : jobInstanceEntities) {
+                planInstance.putJobInstance(DomainConverter.toJobInstance(jobInstanceEntity, taskCreatorFactory, planInfoEntity));
+            }
+        }
+
+        return planInstance;
+    }
 
 }

@@ -39,15 +39,6 @@ public interface PlanRepository {
 
 
     /**
-     * 新增执行计划版本号
-     *
-     * @param plan 执行计划领域对象
-     * @return 更新成功则返回新的版本号
-     */
-    String updateVersion(Plan plan);
-
-
-    /**
      * 根据计划ID查询计划
      *
      * @param planId 计划ID

@@ -27,6 +27,8 @@ public class TaskEntity extends BaseEntity {
 
     private Long jobInstanceId;
 
+    private String jobId;
+
     /**
      * 状态
      * @see TaskStatus
@@ -37,11 +39,6 @@ public class TaskEntity extends BaseEntity {
      * 执行作业的worker ID
      */
     private Long workerId;
-
-    /**
-     * sharding normal
-     */
-    private Byte type;
 
     /**
      * 此次执行的参数

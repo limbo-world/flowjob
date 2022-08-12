@@ -35,22 +35,22 @@ public class PlanInstanceEntity extends BaseEntity {
     private Byte status;
 
     /**
-     * 是否手动下发
+     * 触发类型
      */
-    private Boolean manual;
+    private Byte triggerType;
 
     /**
-     * 预计触发时间 如果是手动下发 则应该为0或默认值
+     * 预计触发时间
      */
     private LocalDateTime expectTriggerAt;
 
     /**
-     * 开始时间
+     * 真实触发时间
      */
-    private LocalDateTime scheduleAt;
+    private LocalDateTime triggerAt;
 
     /**
-     * 结束时间
+     * 执行完成反馈时间
      */
     private LocalDateTime feedbackAt;
 }

@@ -25,9 +25,7 @@ import org.limbo.flowjob.broker.core.schedule.Scheduled;
 import org.limbo.flowjob.common.utils.TimeUtil;
 
 import java.time.Duration;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -53,15 +51,9 @@ public class HashedWheelTimerScheduler extends CacheableScheduler {
     /**
      * 使用指定执行器构造一个调度器，该调度器基于哈希时间轮算法。
      */
-    public HashedWheelTimerScheduler() {
+    public HashedWheelTimerScheduler(ExecutorService schedulePool) {
         this.timer = new HashedWheelTimer(NamedThreadFactory.newInstance(this.getClass().getSimpleName() + "-timer-"));
-        this.schedulePool = new ThreadPoolExecutor(
-                Runtime.getRuntime().availableProcessors() * 4,
-                Runtime.getRuntime().availableProcessors() * 8,
-                60,
-                TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(256),
-                new ThreadPoolExecutor.CallerRunsPolicy());
+        this.schedulePool = schedulePool;
     }
 
     /**
@@ -71,7 +63,7 @@ public class HashedWheelTimerScheduler extends CacheableScheduler {
      */
     @Override
     public void schedule(Scheduled scheduled) {
-        if (checkAndPut(scheduled)) {
+        if (put(scheduled)) {
             // 计算延迟时间
             long delay = Duration.between(TimeUtil.currentLocalDateTime(), scheduled.triggerAt()).toMillis();
             delay = delay < 0 ? 0 : delay;

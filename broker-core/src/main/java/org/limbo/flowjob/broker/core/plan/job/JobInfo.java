@@ -21,6 +21,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.broker.api.constants.enums.JobStatus;
+import org.limbo.flowjob.broker.api.constants.enums.JobType;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.core.plan.job.context.TaskCreatorFactory;
 import org.limbo.flowjob.broker.core.plan.job.dag.DAGNode;
@@ -53,6 +54,8 @@ public class JobInfo extends DAGNode {
      * 触发类型
      */
     private TriggerType triggerType;
+
+    private JobType type;
 
     /**
      * 作业分发配置参数

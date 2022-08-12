@@ -26,7 +26,9 @@ public class JobInstanceEntity extends BaseEntity {
 
     private Long planInstanceId;
 
-    private Long jobInfoId;
+    private Long planInfoId;
+
+    private String jobId;
 
     /**
      * 状态

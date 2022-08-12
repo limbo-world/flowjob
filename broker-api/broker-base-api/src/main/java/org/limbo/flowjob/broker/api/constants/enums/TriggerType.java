@@ -41,7 +41,7 @@ public enum TriggerType implements DescribableEnum<Byte> {
 
     ;
 
-    public static final String DESCRIPTION = "todo";
+    public static final String DESCRIPTION = "1-api触发; 2-调度触发;";
 
     public final byte type;
 

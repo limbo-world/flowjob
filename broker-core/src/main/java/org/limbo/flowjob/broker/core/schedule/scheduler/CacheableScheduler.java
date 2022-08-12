@@ -40,7 +40,7 @@ public class CacheableScheduler implements Scheduler {
 
     @Override
     public void schedule(Scheduled scheduled) {
-        if (checkAndPut(scheduled)) {
+        if (put(scheduled)) {
             scheduled.schedule();
         }
     }
@@ -49,9 +49,8 @@ public class CacheableScheduler implements Scheduler {
      * 是否进行了缓存
      * @return 放入返回true 否则返回false
      */
-    public boolean checkAndPut(Scheduled scheduled) {
+    public boolean put(Scheduled scheduled) {
         String id = scheduled.scheduleId();
-
         if (scheduling.containsKey(id)) {
             scheduling.put(id, scheduled);
             return true;

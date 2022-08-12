@@ -16,40 +16,22 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.cluster;
+package org.limbo.flowjob.broker.test;
 
-import lombok.Data;
+import org.junit.Test;
+import org.limbo.flowjob.broker.api.constants.enums.DescribableEnum;
+import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
+import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
+import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 
 /**
  * @author Devil
- * @since 2022/7/21
+ * @since 2022/8/10
  */
-@Data
-public class BrokerConfig {
+public class EnumTest {
 
-    /**
-     * 提供给worker的服务的 host
-     */
-    private String host;
-
-    /**
-     * 提供给worker的服务port
-     */
-    private int port;
-    /**
-     * 心跳时间间隔
-     */
-    private long heartbeatInterval = 2000;
-    /**
-     * 心跳超时时间
-     */
-    private long heartbeatTimeout = 10000;
-    /**
-     * 重分配间隔
-     */
-    private long rebalanceInterval = 10000;
-    /**
-     * 状态检查间隔
-     */
-    private long statusCheckInterval = 10000;
+    @Test
+    public void test() {
+        System.out.println(DescribableEnum.describe(ScheduleType.class));
+    }
 }

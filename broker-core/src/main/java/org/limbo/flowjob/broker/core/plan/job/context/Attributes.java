@@ -16,8 +16,8 @@
 
 package org.limbo.flowjob.broker.core.plan.job.context;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
@@ -45,7 +45,11 @@ public class Attributes implements Serializable {
         this.attributes = new HashMap<>();
     }
 
-    @JsonCreator
+    public Attributes(String attr) {
+        this.attributes = JacksonUtils.parseObject(attr, new TypeReference<Map<String, List<String>>>() {
+        });
+    }
+
     public Attributes(Map<String, List<String>> attributes) {
         this.attributes = attributes == null ? new HashMap<>() : new HashMap<>(attributes);
     }

@@ -2,12 +2,9 @@ package org.limbo.flowjob.broker.core.plan.job.context;
 
 import org.limbo.flowjob.broker.api.constants.enums.JobType;
 import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
-import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.plan.job.JobInstance;
-import org.limbo.flowjob.common.utils.UUIDUtils;
 
-import java.time.Instant;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
@@ -90,8 +87,6 @@ public class TaskCreatorFactory {
         @Override
         public List<Task> apply(JobInstance job) {
             Task task = new Task();
-            task.setPlanInstanceId(job.getPlanInstanceId());
-            task.setJobId(job.getJobId());
             task.setJobInstanceId(job.getJobInstanceId());
             task.setStatus(TaskStatus.DISPATCHING);
             task.setWorkerId("");
@@ -101,8 +96,6 @@ public class TaskCreatorFactory {
             task.setWorkerManager(workerManager);
             task.setErrorMsg("");
             task.setErrorStackTrace("");
-            task.setStartAt(Instant.EPOCH);
-            task.setEndAt(Instant.EPOCH);
             return Collections.singletonList(task);
         }
     }

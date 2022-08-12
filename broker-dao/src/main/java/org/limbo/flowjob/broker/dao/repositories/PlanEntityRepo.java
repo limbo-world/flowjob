@@ -36,8 +36,7 @@ import java.util.List;
  */
 public interface PlanEntityRepo extends JpaRepository<PlanEntity, Long> {
 
-    @Lock(LockModeType.PESSIMISTIC_READ)
-    @Query(value = "select PlanEntity from PlanEntity where id = :id")
+    @Query(value = "select * from flowjob_plan where id = ?1 for update", nativeQuery = true)
     PlanEntity selectForUpdate(@Param("id") Long id);
 
     List<PlanEntity> findBySlotInAndIsEnabledAndNextTriggerAtBefore(List<Integer> slots, boolean isEnabled, LocalDateTime nextTriggerAt);

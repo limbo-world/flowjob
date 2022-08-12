@@ -18,26 +18,25 @@ package org.limbo.flowjob.broker.application.plan.config;
 
 import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.cluster.WorkerManagerImpl;
-import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.dispatcher.strategies.RoundRobinWorkerSelector;
 import org.limbo.flowjob.broker.core.plan.job.context.TaskCreatorFactory;
 import org.limbo.flowjob.broker.core.schedule.calculator.SimpleScheduleCalculatorFactory;
+import org.limbo.flowjob.broker.core.schedule.scheduler.HashedWheelTimerScheduler;
+import org.limbo.flowjob.broker.core.schedule.scheduler.Scheduler;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
+
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Brozen
  * @since 2021-06-01
  */
-@ComponentScan({
-        "org.limbo.flowjob.tracker.infrastructure.plan",
-        "org.limbo.flowjob.tracker.infrastructure.job",
-        "org.limbo.flowjob.tracker.infrastructure.worker",
-})
 @EnableConfigurationProperties({BrokerProperties.class})
 public class BrokerConfiguration {
 
@@ -56,21 +55,13 @@ public class BrokerConfiguration {
         return new WorkerManagerImpl(workerRepository);
     }
 
+
     /**
      * 调度时间计算器
      */
     @Bean
     public SimpleScheduleCalculatorFactory scheduleCalculatorFactory() {
         return new SimpleScheduleCalculatorFactory();
-    }
-
-
-    /**
-     * 作业分发器工厂
-     */
-    @Bean
-    public WorkerSelectorFactory workerSelectorFactory() {
-        return new WorkerSelectorFactory();
     }
 
 
@@ -89,6 +80,20 @@ public class BrokerConfiguration {
     @Bean
     public TaskCreatorFactory taskCreateStrategyFactory(WorkerManager workerManager) {
         return new TaskCreatorFactory(workerManager);
+    }
+
+    /**
+     * 调度器
+     */
+    @Bean
+    public Scheduler scheduler() {
+        return new HashedWheelTimerScheduler(new ThreadPoolExecutor(
+                Runtime.getRuntime().availableProcessors() * 4,
+                Runtime.getRuntime().availableProcessors() * 8,
+                60,
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(256),
+                new ThreadPoolExecutor.CallerRunsPolicy()));
     }
 
 }

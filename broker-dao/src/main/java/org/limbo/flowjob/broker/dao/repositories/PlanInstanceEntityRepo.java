@@ -32,7 +32,7 @@ import java.time.LocalDateTime;
  */
 public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity, Long> {
 
-    PlanInstanceEntity findByPlanIdAndExpectTriggerAt(Long planId, LocalDateTime expectTriggerTime);
+    PlanInstanceEntity findByPlanIdAndExpectTriggerAtAndTriggerType(Long planId, LocalDateTime expectTriggerTime, Byte triggerType);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanInstanceEntity set status = :newStatus, feedbackAt = :feedbackAt where id = :id and status = :oldStatus")

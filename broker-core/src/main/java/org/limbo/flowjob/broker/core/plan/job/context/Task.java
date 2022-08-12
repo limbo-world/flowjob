@@ -34,7 +34,7 @@ import org.limbo.flowjob.broker.core.plan.job.ExecutorOption;
 import org.limbo.flowjob.broker.core.worker.Worker;
 
 import java.io.Serializable;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -53,11 +53,9 @@ public class Task implements Serializable {
 
     private String taskId;
 
-    private String planId;
-
-    private String planInstanceId;
-
     private String jobId;
+
+    private String planVersion;
 
     private String jobInstanceId;
 
@@ -89,16 +87,17 @@ public class Task implements Serializable {
     /**
      * 开始时间
      */
-    private Instant startAt;
+    private LocalDateTime startAt;
 
     /**
      * 结束时间
      */
-    private Instant endAt;
+    private LocalDateTime endAt;
 
     /**
      * 重试次数
      */
+    @Setter(AccessLevel.NONE)
     private Integer retry = 3;
 
     /**

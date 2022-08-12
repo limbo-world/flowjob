@@ -19,8 +19,11 @@ package org.limbo.flowjob.broker.application.plan;
 import org.limbo.flowjob.broker.application.plan.config.BrokerConfiguration;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
  * @author Brozen
@@ -30,11 +33,14 @@ import org.springframework.context.annotation.Import;
 @Import({
         BrokerConfiguration.class
 })
+@ComponentScan(basePackages = "org.limbo.flowjob.broker")
+@EntityScan(basePackages = "org.limbo.flowjob.broker.dao.entity")
+@EnableJpaRepositories(value = "org.limbo.flowjob.broker.dao.repositories")
 public class WebApplication {
 
     public static void main(String[] args) {
         new SpringApplicationBuilder()
-                .web(WebApplicationType.REACTIVE)
+                .web(WebApplicationType.SERVLET)
                 .sources(WebApplication.class)
                 .build()
                 .run(args);

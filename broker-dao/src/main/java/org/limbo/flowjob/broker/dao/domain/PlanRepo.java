@@ -21,18 +21,21 @@ package org.limbo.flowjob.broker.dao.domain;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.BrokerNodeManger;
 import org.limbo.flowjob.broker.core.plan.Plan;
+import org.limbo.flowjob.broker.core.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
-import org.limbo.flowjob.broker.dao.converter.PlanConverter;
-import org.limbo.flowjob.broker.dao.converter.PlanInfoConverter;
+import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
+import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.common.utils.Verifies;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
@@ -57,10 +60,6 @@ public class PlanRepo implements PlanRepository {
     @Setter(onMethod_ = @Inject)
     private PlanInfoEntityRepo planInfoEntityRepo;
     @Setter(onMethod_ = @Inject)
-    private PlanConverter planConverter;
-    @Setter(onMethod_ = @Inject)
-    private PlanInfoConverter planInfoConverter;
-    @Setter(onMethod_ = @Inject)
     private BrokerConfig config;
 
     private static final int SLOT_SIZE = 64;
@@ -75,9 +74,18 @@ public class PlanRepo implements PlanRepository {
     @Transactional
     public String save(Plan plan) {
         Verifies.notNull(plan.getInfo(), "plan info is null");
+        Verifies.verify(plan.getInfo().check(), "plan info has error");
 
+        if (StringUtils.isBlank(plan.getPlanId())) {
+            return add(plan);
+        } else {
+            return replace(plan);
+        }
+    }
+
+    private String add(Plan plan) {
         // 新增 Plan
-        PlanEntity planEntity = planConverter.toEntity(plan);
+        PlanEntity planEntity = toEntity(plan);
         planEntityRepo.saveAndFlush(planEntity);
 
         // 槽位保存
@@ -86,7 +94,7 @@ public class PlanRepo implements PlanRepository {
         planEntityRepo.saveAndFlush(planEntity);
 
         // 设置版本
-        PlanInfoEntity planInfo = planInfoConverter.toEntity(plan.getInfo());
+        PlanInfoEntity planInfo = toEntity(plan.getInfo());
         planInfo.setPlanId(planEntity.getId());
         planInfoEntityRepo.saveAndFlush(planInfo);
 
@@ -98,25 +106,14 @@ public class PlanRepo implements PlanRepository {
         return String.valueOf(planEntity.getId());
     }
 
-    /**
-     * {@inheritDoc}
-     * @param plan 执行计划领域对象
-     * @return newVersion 新版本号
-     */
-    @Override
-    @Transactional
-    public String updateVersion(Plan plan) {
-        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(Long.valueOf(plan.getPlanId()));
-        Verifies.verify(planEntityOptional.isPresent(), "plan is not exist");
-
+    private String replace(Plan plan) {
         // 新增 PlanInfo
-        PlanInfoEntity planInfo = planInfoConverter.toEntity(plan.getInfo());
+        PlanInfoEntity planInfo = toEntity(plan.getInfo());
         planInfoEntityRepo.saveAndFlush(planInfo);
 
         // 更新 Plan 版本信息
         Long newVersion = planInfo.getId();
-        PlanEntity planEntity = planEntityOptional.get();
-        int effected = planEntityRepo.updateVersion(newVersion, newVersion, planEntity.getId(), planEntity.getCurrentVersion(), planEntity.getRecentlyVersion());
+        int effected = planEntityRepo.updateVersion(newVersion, newVersion, Long.valueOf(plan.getPlanId()), Long.valueOf(plan.getCurrentVersion()), Long.valueOf(plan.getRecentlyVersion()));
         if (effected > 0) {
             return String.valueOf(newVersion);
         } else {
@@ -133,7 +130,7 @@ public class PlanRepo implements PlanRepository {
     public Plan get(String planId) {
         Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(Long.valueOf(planId));
         Verifies.verify(planEntityOptional.isPresent(), "plan is not exist");
-        return planConverter.toDO(planEntityOptional.get());
+        return toPlan(planEntityOptional.get());
     }
 
     @Override
@@ -148,7 +145,7 @@ public class PlanRepo implements PlanRepository {
         }
         List<Plan> plans = new ArrayList<>();
         for (PlanEntity planEntity : planEntities) {
-            plans.add(planConverter.toDO(planEntity));
+            plans.add(toPlan(planEntity));
         }
         return plans;
     }
@@ -183,6 +180,51 @@ public class PlanRepo implements PlanRepository {
         }
         log.info("find slots:{}", slots);
         return slots;
+    }
+
+    public PlanInfoEntity toEntity(PlanInfo planInfo) {
+        PlanInfoEntity entity = new PlanInfoEntity();
+
+        entity.setPlanId(Long.valueOf(planInfo.getPlanId()));
+        entity.setDescription(planInfo.getDescription());
+
+        ScheduleOption scheduleOption = planInfo.getScheduleOption();
+        entity.setScheduleType(scheduleOption.getScheduleType().type);
+        entity.setScheduleStartAt(scheduleOption.getScheduleStartAt());
+        entity.setScheduleDelay(scheduleOption.getScheduleDelay().toMillis());
+        entity.setScheduleInterval(scheduleOption.getScheduleInterval().toMillis());
+        entity.setScheduleCron(scheduleOption.getScheduleCron());
+        entity.setJobs(JacksonUtils.toJSONString(planInfo.getDag().nodes()));
+
+        // 能够查询到info信息，说明未删除
+        entity.setIsDeleted(false);
+
+        return entity;
+    }
+
+    public PlanEntity toEntity(Plan plan) {
+        PlanEntity planEntity = new PlanEntity();
+        planEntity.setCurrentVersion(Long.valueOf(plan.getCurrentVersion()));
+        planEntity.setRecentlyVersion(Long.valueOf(plan.getRecentlyVersion()));
+        planEntity.setIsEnabled(plan.isEnabled());
+        planEntity.setId(Long.valueOf(plan.getPlanId()));
+        return planEntity;
+    }
+
+    public Plan toPlan(PlanEntity entity) {
+        Plan plan = new Plan();
+        plan.setPlanId(String.valueOf(entity.getId()));
+        plan.setCurrentVersion(String.valueOf(entity.getCurrentVersion()));
+        plan.setRecentlyVersion(String.valueOf(entity.getRecentlyVersion()));
+        plan.setEnabled(entity.getIsEnabled());
+
+        // 获取plan 的当前版本
+        Optional<PlanInfoEntity> planInfoEntityOptional = planInfoEntityRepo.findById(Long.valueOf(plan.getCurrentVersion()));
+        Verifies.verify(planInfoEntityOptional.isPresent(), "does not find info by version--" +plan.getCurrentVersion()+ "");
+        PlanInfo currentVersion = DomainConverter.toPlanInfo(planInfoEntityOptional.get());
+        plan.setInfo(currentVersion);
+        return plan;
+
     }
 
 }

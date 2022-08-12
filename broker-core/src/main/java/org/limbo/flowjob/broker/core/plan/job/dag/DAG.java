@@ -125,9 +125,9 @@ public class DAG<T extends DAGNode> implements Serializable {
 
 
     /**
-     * 从 DAG 中查找是否存在指定作业ID的节点，存在则返回作业信息，不存在返回null。
+     * 从 DAG 中查找是否存在指定的节点，存在则返回作业信息，不存在返回null。
      */
-    public T getJob(String id) {
+    public T getNode(String id) {
         return nodes.get(id);
     }
 

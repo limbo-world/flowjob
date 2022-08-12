@@ -10,7 +10,6 @@ import org.limbo.flowjob.broker.api.console.param.PlanAddParam;
 import org.limbo.flowjob.broker.api.console.param.PlanReplaceParam;
 import org.limbo.flowjob.broker.api.dto.ResponseDTO;
 import org.limbo.flowjob.broker.application.plan.service.PlanService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,7 +35,7 @@ public class PlanController {
     @PostMapping
     public ResponseDTO<String> add(@Validated @RequestBody PlanAddParam options) {
         return ResponseDTO.<String>builder()
-                .ok(planService.addPlan(options))
+                .ok(planService.add(options))
                 .build();
     }
 

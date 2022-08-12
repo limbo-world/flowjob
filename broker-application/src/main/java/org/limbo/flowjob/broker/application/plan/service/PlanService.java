@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * @author Brozen
@@ -29,9 +30,6 @@ public class PlanService {
     @Setter(onMethod_ = @Inject)
     private PlanEntityRepo planEntityRepo;
 
-    @Setter(onMethod_ = @Inject)
-    private PlanConverter converter;
-
     /**
      * 新增执行计划
      *
@@ -39,8 +37,8 @@ public class PlanService {
      * @return planId
      */
     @Transactional
-    public String addPlan(PlanAddParam param) {
-        Plan plan = converter.convertPlan(param);
+    public String add(PlanAddParam param) {
+        Plan plan = PlanConverter.convertPlan(param);
         return planRepository.save(plan);
     }
 
@@ -54,10 +52,10 @@ public class PlanService {
         Plan plan = planRepository.get(planId);
         Verifies.notNull(plan, String.format("Cannot find Plan %s", planId));
 
-        PlanInfo planInfo = converter.convertPlanInfo(param);
+        PlanInfo planInfo = PlanConverter.convertPlanInfo(param);
         plan.setInfo(planInfo);
 
-        return planRepository.updateVersion(plan);
+        return planRepository.save(plan);
     }
 
 
@@ -79,7 +77,6 @@ public class PlanService {
 
         return planEntityRepo.updateEnable(planEntity.getId(), false, true) == 1;
     }
-
 
     /**
      * 取消计划 停止调度

@@ -58,7 +58,7 @@ public enum DispatchType implements DescribableEnum<Byte> {
     /**
      * 可通过{@link #describe(Class)}方法生成，用于在swagger3为枚举添加说明
      */
-    public static final String DESCRIPTION = "todo";
+    public static final String DESCRIPTION = "1-单点; 2-广播; 3-分片;";
 
     /**
      * 分发类型值

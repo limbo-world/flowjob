@@ -31,7 +31,6 @@ import org.limbo.flowjob.broker.core.plan.job.JobInfo;
 import org.limbo.flowjob.broker.core.plan.job.JobInstance;
 import org.limbo.flowjob.broker.core.plan.job.context.TaskCreatorFactory;
 import org.limbo.flowjob.broker.core.plan.job.dag.DAG;
-import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.schedule.Calculated;
 import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
@@ -40,7 +39,6 @@ import org.limbo.flowjob.broker.core.schedule.calculator.ScheduleCalculatorFacto
 import org.limbo.flowjob.broker.core.schedule.scheduler.Scheduler;
 import org.limbo.flowjob.common.utils.TimeUtil;
 
-import javax.inject.Inject;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -82,7 +80,7 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
     /**
      * 触发时间
      */
-    private LocalDateTime triggerAt;
+    private LocalDateTime expectTriggerAt;
 
     /**
      * 触发类型
@@ -92,7 +90,7 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
     /**
      * 开始时间
      */
-    private LocalDateTime scheduleAt;
+    private LocalDateTime triggerAt;
 
     /**
      * 结束时间
@@ -107,19 +105,19 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
     /**
      * 数据映射
      */
+    @Setter(AccessLevel.NONE)
     private Map<String, List<JobInstance>> jobInstanceMap = new HashMap<>();
 
     /**
      * 未下发的job
      */
+    @Setter(AccessLevel.NONE)
     private List<JobInstance> unScheduledJobInstances = new ArrayList<>();
 
-    @Setter(onMethod_ = @Inject)
-    private transient JobInstanceRepository jobInstanceRepo;
-
     @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @ToString.Exclude
-    private transient ScheduleCalculator triggerCalculator;
+    private transient ScheduleCalculator scheduleCalculator;
 
     @Getter(AccessLevel.NONE)
     @ToString.Exclude
@@ -183,7 +181,7 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
 
     @Override
     public String scheduleId() {
-        return planId + ":" + triggerAt;
+        return planId + ":" + expectTriggerAt;
     }
 
     @Override
@@ -193,7 +191,7 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
 
     @Override
     public LocalDateTime lastScheduleAt() {
-        return scheduleAt;
+        return triggerAt;
     }
 
     @Override
@@ -207,7 +205,7 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
             return;
         }
         setStatus(PlanStatus.EXECUTING);
-        setScheduleAt(TimeUtil.currentLocalDateTime());
+        setTriggerAt(TimeUtil.currentLocalDateTime());
 
         // 获取 DAG 中最执行的作业，如不存在说明 Plan 无需下发
         List<JobInfo> jobInfos = dag.roots();
@@ -225,18 +223,23 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
 
     private void createScheduleJob(JobInfo jobInfo) {
         if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
-            JobInstance jobInstance = jobInfo.newInstance(planInstanceId,
-                    taskCreatorFactory,
-                    TimeUtil.currentLocalDateTime());
-            jobInstanceMap.putIfAbsent(jobInfo.getId(), new ArrayList<>());
-            jobInstanceMap.get(jobInfo.getId()).add(jobInstance);
+            JobInstance jobInstance = jobInfo.newInstance(planInstanceId, taskCreatorFactory, TimeUtil.currentLocalDateTime());
+            putJobInstance(jobInstance);
             unScheduledJobInstances.add(jobInstance);
         }
     }
 
+    public void putJobInstance(JobInstance jobInstance) {
+        String jobId = jobInstance.getJobId();
+        jobInstanceMap.putIfAbsent(jobId, new ArrayList<>());
+        jobInstanceMap.get(jobId).add(jobInstance);
+
+        // todo 根据创建时间排序
+    }
+
     @Override
     public LocalDateTime triggerAt() {
-        return triggerAt;
+        return expectTriggerAt;
     }
 
     /**
@@ -252,11 +255,11 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
      * 延迟加载作业触发计算器
      */
     protected ScheduleCalculator lazyInitTriggerCalculator() {
-        if (triggerCalculator == null) {
-            triggerCalculator = strategyFactory.apply(scheduleOption.getScheduleType());
+        if (scheduleCalculator == null) {
+            scheduleCalculator = strategyFactory.apply(scheduleOption.getScheduleType());
         }
 
-        return triggerCalculator;
+        return scheduleCalculator;
     }
 
     /**
@@ -293,7 +296,7 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
      * 是否需要重试job
      */
     public boolean needRetryJob(String jobId) {
-        JobInfo jobInfo = dag.getJob(jobId);
+        JobInfo jobInfo = dag.getNode(jobId);
         List<JobInstance> jobInstances = jobInstanceMap.get(jobId);
         if (CollectionUtils.isEmpty(jobInstances)) {
             return true;
@@ -302,7 +305,7 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
     }
 
     public JobInfo getJobInfo(String jobId) {
-        return dag.getJob(jobId);
+        return dag.getNode(jobId);
     }
 
 }

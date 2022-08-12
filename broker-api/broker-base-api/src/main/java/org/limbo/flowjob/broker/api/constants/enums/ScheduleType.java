@@ -55,7 +55,7 @@ public enum ScheduleType implements DescribableEnum<Byte> {
 
     ;
 
-    public static final String DESCRIPTION = "todo";
+    public static final String DESCRIPTION = "0-无需调度; 1-固定速度; 2-固定延迟; 3-CRON表达式;";
 
     public final byte type;
 

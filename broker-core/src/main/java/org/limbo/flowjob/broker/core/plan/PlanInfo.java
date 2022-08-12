@@ -90,16 +90,16 @@ public class PlanInfo implements Serializable {
         instance.setDag(dag);
         instance.setStatus(PlanStatus.SCHEDULING);
         instance.setTriggerType(triggerType);
-        instance.setScheduleAt(nextTriggerAt); // todo 这两个时间关系
-        instance.setTriggerAt(nextTriggerAt);
+        instance.setExpectTriggerAt(nextTriggerAt);
         return instance;
     }
 
     /**
      * 校验info的正确性
      */
-    public void check() {
+    public boolean check() {
         // todo
+        return true;
     }
 
 }

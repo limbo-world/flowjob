@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
+import org.limbo.flowjob.common.utils.TimeUtil;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -45,13 +46,39 @@ public class PlanTest {
     @Test
     public void insert() {
         PlanEntity plan = new PlanEntity();
-        Long planId = System.currentTimeMillis();
-        plan.setId(planId);
-
+        plan.setSlot(1);
         PlanEntity planEntity = planEntityRepo.saveAndFlush(plan);
         System.out.println(planEntity.getId());
-        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(planId);
+        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(planEntity.getId());
         System.out.println(planEntityOptional.get());
+    }
+
+    @Test
+    @Transactional
+    @Rollback(false)
+    public void lock() throws InterruptedException {
+        PlanEntity planEntity = planEntityRepo.selectForUpdate(1L);
+        System.out.println("lock " + TimeUtil.currentLocalDateTime());
+        planEntity.setIsEnabled(true);
+        planEntity.setCreatedAt(TimeUtil.currentLocalDateTime());
+        planEntityRepo.saveAndFlush(planEntity);
+
+        Thread.sleep(5000);
+        System.out.println("lock end" + TimeUtil.currentLocalDateTime());
+    }
+
+    @Test
+    @Transactional
+    @Rollback(false)
+    public void lock2() throws InterruptedException {
+        PlanEntity planEntity = planEntityRepo.selectForUpdate(1L);
+        System.out.println("lock2 " + TimeUtil.currentLocalDateTime());
+        planEntity.setIsEnabled(false);
+        planEntity.setCreatedAt(TimeUtil.currentLocalDateTime());
+        planEntityRepo.saveAndFlush(planEntity);
+
+        Thread.sleep(2000);
+        System.out.println("lock2 end" + TimeUtil.currentLocalDateTime());
     }
 
     @Test

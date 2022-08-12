@@ -51,6 +51,8 @@ public class JobInstance implements Scheduled, Serializable {
 
     private String jobInstanceId;
 
+    private String planVersion;
+
     private String planInstanceId;
 
     private String jobId;

@@ -10,7 +10,7 @@ spring:
     password: root
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true  # 日志中显示sql语句
 
 
