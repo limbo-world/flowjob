@@ -78,6 +78,9 @@ public class HashedWheelTimerScheduler extends CacheableScheduler {
 
                     // 执行调度逻辑
                     schedulePool.submit(scheduled::schedule);
+
+                    // 调度执行后，移除作业
+                    unschedule(scheduled.scheduleId());
                 } catch (Exception e) {
                     log.error("[HashedWheelTimerScheduler] schedule fail id:{}", scheduled.scheduleId(), e);
                 }

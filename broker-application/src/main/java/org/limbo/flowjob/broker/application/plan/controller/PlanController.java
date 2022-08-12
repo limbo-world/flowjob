@@ -49,7 +49,6 @@ public class PlanController {
     @PutMapping("/{planId}")
     public ResponseDTO<String> replace(@NotBlank(message = "ID不能为空") @PathVariable("planId") String planId,
                                            @Validated @RequestBody PlanReplaceParam dto) {
-        ;
         return ResponseDTO.<String>builder().ok(planService.replace(planId, dto)).build();
     }
 

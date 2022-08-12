@@ -18,6 +18,7 @@
 
 package org.limbo.flowjob.broker.core.cluster;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
@@ -49,6 +50,7 @@ public abstract class BrokerNode {
 
     private PlanInstanceRepository planInstanceRepository;
 
+    @Setter
     private Scheduler scheduler;
 
     public BrokerNode(BrokerConfig config, BrokerRegistry registry) {
@@ -59,6 +61,7 @@ public abstract class BrokerNode {
     public void start() {
         // 节点注册 用于集群感知
         registry.register(config.getHost(), config.getPort());
+
         // 节点变更通知
         registry.subscribe(event -> {
             switch (event.getType()) {
@@ -76,13 +79,13 @@ public abstract class BrokerNode {
 
 
         // 下发任务task
-        new Timer().schedule(new PlanScheduleTask(), 0, config.getRebalanceInterval());
+        new Timer("Task-Dispatcher").schedule(new PlanScheduleTask(), 0, config.getRebalanceInterval());
 
         // 状态检查task
-        new Timer().schedule(new TaskStatusCheckTask(), 0, config.getStatusCheckInterval());
+        new Timer("Task-Status-Checker").schedule(new TaskStatusCheckTask(), 0, config.getStatusCheckInterval());
 
         // 状态检查task
-        new Timer().schedule(new JobStatusCheckTask(), 0, config.getStatusCheckInterval());
+        new Timer("Job-Status-Checker").schedule(new JobStatusCheckTask(), 0, config.getStatusCheckInterval());
     }
 
     private class PlanScheduleTask extends TimerTask {
@@ -96,6 +99,7 @@ public abstract class BrokerNode {
                 if (!BrokerNodeManger.alive(config.getHost(), config.getPort())) {
                     return;
                 }
+
                 for (;;) {
                     // 调度当前时间以及未来10分钟的任务
                     List<Plan> plans = planRepository.schedulePlans(TimeUtil.currentLocalDateTime().plusMinutes(10));

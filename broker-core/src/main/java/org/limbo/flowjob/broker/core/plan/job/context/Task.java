@@ -37,7 +37,6 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * 作业执行上下文
@@ -146,7 +145,7 @@ public class Task implements Serializable {
                 return;
             }
 
-            availableWorkers = availableWorkers.stream().filter(w -> !Objects.equals(w.getWorkerId(), worker.getWorkerId())).collect(Collectors.toList());
+            availableWorkers.removeIf(w -> Objects.equals(w.getWorkerId(), worker.getWorkerId()));
         }
         // 本次下发失败 交由task处理任务保证task继续下发
     }

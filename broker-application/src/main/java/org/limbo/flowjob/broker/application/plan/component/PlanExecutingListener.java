@@ -29,6 +29,7 @@ import org.limbo.flowjob.broker.core.plan.ScheduleEventTopic;
 import org.limbo.flowjob.broker.core.plan.job.JobInstance;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
+import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
@@ -84,7 +85,9 @@ public class PlanExecutingListener implements EventListener {
         }
 
         // 更新plan的下次触发时间
-        if (ScheduleType.FIXED_DELAY != planInstance.getScheduleOption().getScheduleType() && TriggerType.SCHEDULE == planInstance.getScheduleOption().getTriggerType()) {
+        ScheduleOption scheduleOption = planInstance.getScheduleOption();
+        if (ScheduleType.FIXED_DELAY != scheduleOption.getScheduleType()
+                && TriggerType.SCHEDULE == scheduleOption.getTriggerType()) {
             planEntityRepo.nextTriggerAt(planId, planInstance.nextTriggerAt());
         }
     }

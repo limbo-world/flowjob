@@ -41,7 +41,11 @@ public class CacheableScheduler implements Scheduler {
     @Override
     public void schedule(Scheduled scheduled) {
         if (put(scheduled)) {
+            // 直接执行
             scheduled.schedule();
+
+            // 执行后，移除作业
+            unschedule(scheduled.scheduleId());
         }
     }
 
@@ -51,7 +55,7 @@ public class CacheableScheduler implements Scheduler {
      */
     public boolean put(Scheduled scheduled) {
         String id = scheduled.scheduleId();
-        if (scheduling.containsKey(id)) {
+        if (!scheduling.containsKey(id)) {
             scheduling.put(id, scheduled);
             return true;
         }

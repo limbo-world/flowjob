@@ -70,7 +70,7 @@ public class PlanService {
         Verifies.verify(planEntityOptional.isPresent(), String.format("Cannot find Plan %s", planId));
 
         PlanEntity planEntity = planEntityOptional.get();
-        // 已经停止不重复处理
+        // 已经启动不重复处理
         if (Boolean.TRUE.equals(planEntity.getIsEnabled())) {
             return true;
         }

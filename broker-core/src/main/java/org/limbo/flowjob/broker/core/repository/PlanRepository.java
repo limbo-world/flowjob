@@ -47,7 +47,7 @@ public interface PlanRepository {
     Plan get(String planId);
 
     /**
-     * 查询需要被调度的计划。
+     * 查询需要被调度的计划。会根据当前节点分配的 slot 查询。
      *
      * @param nextTriggerAt 需要触发哪个时间段的任务
      * @return 需要被调度的作业计划

@@ -23,12 +23,15 @@ package org.limbo.flowjob.broker.core.cluster;
  * @since 2022/7/15
  */
 public interface BrokerRegistry {
+
     /**
      * 注册broker
      */
     void register(String host, int port);
+
     /**
      * 订阅监听
      */
     void subscribe(NodeListener listener);
+
 }
