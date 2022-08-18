@@ -20,13 +20,12 @@ package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
-import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.converter.WorkerPoConverter;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.limbo.flowjob.common.utils.Verifies;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
@@ -91,6 +90,11 @@ public class WorkerRepo implements WorkerRepository {
         Verifies.verify(workerEntityOptional.isPresent(), "worker is not exist");
 
         return converter.reverse().convert(workerEntityOptional.get());
+    }
+
+    @Override
+    public boolean alive(String workerId) {
+        return false; //todo
     }
 
     /**

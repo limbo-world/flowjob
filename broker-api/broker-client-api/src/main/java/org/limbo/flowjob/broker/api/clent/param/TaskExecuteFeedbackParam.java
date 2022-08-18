@@ -38,41 +38,6 @@ import java.util.Map;
 public class TaskExecuteFeedbackParam {
 
     /**
-     * 计划ID
-     */
-    @NotBlank(message = "planId can't be null")
-    @Schema(description = "计划ID")
-    private String planId;
-
-    /**
-     * 计划记录ID
-     */
-    @NotNull(message = "planRecordId can't be null")
-    @Schema(description = "计划记录ID")
-    private String planRecordId;
-
-    /**
-     * 计划实例ID
-     */
-    @NotNull(message = "planInstanceId can't be null")
-    @Schema(description = "计划实例ID")
-    private String planInstanceId;
-
-    /**
-     * 作业ID
-     */
-    @NotBlank(message = "jobId can't be null")
-    @Schema(description = "作业ID")
-    private String jobId;
-
-    /**
-     * 作业实例ID
-     */
-    @NotBlank(message = "jobInstanceId can't be null")
-    @Schema(description = "作业实例ID")
-    private String jobInstanceId;
-
-    /**
      * 任务ID
      */
     @NotBlank(message = "taskId can't be null")
@@ -109,5 +74,11 @@ public class TaskExecuteFeedbackParam {
      */
     @Schema(description = "更新的作业上下文元数据")
     private Map<String, List<String>> attributes;
+
+    /**
+     * 生成的子任务
+     */
+    @Schema(description = "子任务")
+    private List<SubTaskParam> subTasks;
 
 }

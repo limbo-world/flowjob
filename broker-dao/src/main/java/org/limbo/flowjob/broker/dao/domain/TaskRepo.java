@@ -21,10 +21,10 @@ package org.limbo.flowjob.broker.dao.domain;
 import lombok.Setter;
 import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
 import org.limbo.flowjob.broker.core.cluster.WorkerManager;
-import org.limbo.flowjob.broker.core.plan.job.JobInfo;
-import org.limbo.flowjob.broker.core.plan.job.context.Attributes;
-import org.limbo.flowjob.broker.core.plan.job.context.Task;
-import org.limbo.flowjob.broker.core.plan.job.dag.DAG;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
+import org.limbo.flowjob.broker.core.domain.task.Task;
+import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.broker.core.repository.TaskRepository;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
@@ -36,6 +36,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.List;
 
 /**
  * @author Brozen

@@ -19,8 +19,7 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
-import org.limbo.flowjob.broker.core.plan.job.JobInstance;
-import org.limbo.flowjob.broker.core.plan.job.context.TaskCreatorFactory;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
@@ -41,8 +40,6 @@ public class JobInstanceRepo implements JobInstanceRepository {
     @Setter(onMethod_ = @Inject)
     private JobInstanceEntityRepo jobInstanceEntityRepo;
     @Setter(onMethod_ = @Inject)
-    private TaskCreatorFactory taskCreatorFactory;
-    @Setter(onMethod_ = @Inject)
     private PlanInfoEntityRepo planInfoEntityRepo;
 
     @Override
@@ -57,7 +54,7 @@ public class JobInstanceRepo implements JobInstanceRepository {
         return jobInstanceEntityRepo.findById(Long.valueOf(jobInstanceId)).map(entity -> {
 
             PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getPlanInfoId()).get();
-            return DomainConverter.toJobInstance(entity, taskCreatorFactory, planInfoEntity);
+            return DomainConverter.toJobInstance(entity, planInfoEntity);
 
         }).orElse(null);
     }
@@ -68,7 +65,7 @@ public class JobInstanceRepo implements JobInstanceRepository {
         jobInstanceEntity.setPlanInfoId(Long.valueOf(jobInstance.getPlanVersion()));
         jobInstanceEntity.setJobId(jobInstance.getJobId());
         jobInstanceEntity.setStatus(jobInstance.getStatus().status);
-        jobInstanceEntity.setAttributes(jobInstance.getAttributes());
+        jobInstanceEntity.setAttributes(jobInstance.getAttributes().toString());
         jobInstanceEntity.setStartAt(jobInstance.getStartAt());
         jobInstanceEntity.setEndAt(jobInstance.getEndAt());
         jobInstanceEntity.setId(Long.valueOf(jobInstance.getJobInstanceId()));

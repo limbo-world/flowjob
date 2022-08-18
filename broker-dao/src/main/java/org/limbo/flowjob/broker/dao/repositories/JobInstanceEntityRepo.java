@@ -37,6 +37,8 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
 
     List<JobInstanceEntity> findByPlanInstanceId(Long planInstanceId);
 
+    List<JobInstanceEntity> findByPlanInstanceIdaAndJobId(Long planInstanceId, Long jobId);
+
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity set status = :newStatus where id = :id and status = :oldStatus")
     int updateStatus(@Param("id") Long id, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus);

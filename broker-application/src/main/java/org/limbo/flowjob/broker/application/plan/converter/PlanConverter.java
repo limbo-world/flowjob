@@ -7,12 +7,12 @@ import org.limbo.flowjob.broker.api.console.param.JobAddParam;
 import org.limbo.flowjob.broker.api.console.param.PlanAddParam;
 import org.limbo.flowjob.broker.api.console.param.PlanReplaceParam;
 import org.limbo.flowjob.broker.api.console.param.ScheduleOptionParam;
-import org.limbo.flowjob.broker.core.plan.Plan;
-import org.limbo.flowjob.broker.core.plan.PlanInfo;
-import org.limbo.flowjob.broker.core.plan.job.DispatchOption;
-import org.limbo.flowjob.broker.core.plan.job.ExecutorOption;
-import org.limbo.flowjob.broker.core.plan.job.JobInfo;
-import org.limbo.flowjob.broker.core.plan.job.dag.DAG;
+import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
+import org.limbo.flowjob.broker.core.domain.DispatchOption;
+import org.limbo.flowjob.broker.core.domain.ExecutorOption;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 
 import java.util.List;

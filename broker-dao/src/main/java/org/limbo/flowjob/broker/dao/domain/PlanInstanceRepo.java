@@ -22,8 +22,9 @@ import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.api.constants.enums.PlanStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
-import org.limbo.flowjob.broker.core.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.plan.job.context.TaskCreatorFactory;
+import org.limbo.flowjob.broker.core.domain.factory.JobInstanceFactory;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.schedule.calculator.ScheduleCalculatorFactory;
 import org.limbo.flowjob.broker.core.schedule.scheduler.Scheduler;
@@ -56,7 +57,7 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
     @Setter(onMethod_ = @Inject)
     private ScheduleCalculatorFactory scheduleCalculatorFactory;
     @Setter(onMethod_ = @Inject)
-    private TaskCreatorFactory taskCreatorFactory;
+    private JobInstanceFactory jobInstanceFactory;
     @Setter(onMethod_ = @Inject)
     private JobInstanceEntityRepo jobInstanceEntityRepo;
 
@@ -101,20 +102,21 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
 
         planInstance.setStrategyFactory(scheduleCalculatorFactory);
         planInstance.setScheduler(scheduler);
-        planInstance.setTaskCreatorFactory(taskCreatorFactory);
+        planInstance.setJobInstanceFactory(jobInstanceFactory);
 
         // 基础信息
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getPlanInfoId()).get();
         planInstance.setScheduleOption(DomainConverter.toScheduleOption(planInfoEntity));
         planInstance.setDag(DomainConverter.toJobDag(planInfoEntity.getJobs()));
 
-        // 处理 JobInstance
-        List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findByPlanInstanceId(entity.getId());
-        if (CollectionUtils.isNotEmpty(jobInstanceEntities)) {
-            for (JobInstanceEntity jobInstanceEntity : jobInstanceEntities) {
-                planInstance.putJobInstance(DomainConverter.toJobInstance(jobInstanceEntity, taskCreatorFactory, planInfoEntity));
-            }
-        }
+//        // 处理 JobInstance
+//        List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findByPlanInstanceId(entity.getId());
+//        if (CollectionUtils.isNotEmpty(jobInstanceEntities)) {
+//            for (JobInstanceEntity jobInstanceEntity : jobInstanceEntities) {
+//                JobInstance jobInstance = DomainConverter.toJobInstance(jobInstanceEntity, planInfoEntity);
+//                planInstance.putJobInstance(jobInstance.getJobId(), jobInstance.isCompleted());
+//            }
+//        }
 
         return planInstance;
     }

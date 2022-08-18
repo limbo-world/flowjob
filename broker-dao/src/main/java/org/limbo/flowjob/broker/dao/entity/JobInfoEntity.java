@@ -56,7 +56,7 @@
 //    private String description;
 //
 //    /**
-//     * 此作业相连的下级作业ID todo 是否需要再加个关联表查询
+//     * 此作业相连的下级作业ID 需要再加个关联表查询
 //     */
 //    private String childrenIds;
 //

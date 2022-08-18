@@ -51,9 +51,9 @@ public class JobExecutorRunner {
             @Override
             public void run() {
                 TaskExecuteFeedbackParam dto = new TaskExecuteFeedbackParam();
-                dto.setPlanId(job.getPlanId());
-                dto.setPlanInstanceId(job.getPlanInstanceId());
-                dto.setJobId(job.getJobId());
+//                dto.setPlanId(job.getPlanId());
+//                dto.setPlanInstanceId(job.getPlanInstanceId());
+//                dto.setJobId(job.getJobId());
                 try {
                     dto.setParams(executor.run(job));
                     dto.setResult(ExecuteResult.SUCCEED);

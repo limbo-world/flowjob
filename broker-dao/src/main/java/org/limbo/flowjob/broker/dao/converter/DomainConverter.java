@@ -22,14 +22,14 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import org.limbo.flowjob.broker.api.constants.enums.JobStatus;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
-import org.limbo.flowjob.broker.core.plan.PlanInfo;
-import org.limbo.flowjob.broker.core.plan.job.JobInfo;
-import org.limbo.flowjob.broker.core.plan.job.JobInstance;
-import org.limbo.flowjob.broker.core.plan.job.context.TaskCreatorFactory;
-import org.limbo.flowjob.broker.core.plan.job.dag.DAG;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
+import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.time.Duration;
@@ -70,7 +70,7 @@ public class DomainConverter {
         }));
     }
 
-    public static JobInstance toJobInstance(JobInstanceEntity entity, TaskCreatorFactory taskCreatorFactory, PlanInfoEntity planInfoEntity) {
+    public static JobInstance toJobInstance(JobInstanceEntity entity, PlanInfoEntity planInfoEntity) {
         JobInstance jobInstance = new JobInstance();
         jobInstance.setJobInstanceId(entity.getId().toString());
         jobInstance.setPlanInstanceId(entity.getPlanInstanceId().toString());
@@ -79,8 +79,7 @@ public class DomainConverter {
         jobInstance.setStatus(JobStatus.parse(entity.getStatus()));
         jobInstance.setStartAt(entity.getStartAt());
         jobInstance.setEndAt(entity.getEndAt());
-        jobInstance.setAttributes(entity.getAttributes());
-        jobInstance.setTaskCreatorFactory(taskCreatorFactory);
+        jobInstance.setAttributes(new Attributes(entity.getAttributes()));
         jobInstance.setTriggerAt(entity.getTriggerAt());
 
         DAG<JobInfo> dag = toJobDag(planInfoEntity.getJobs());
@@ -89,6 +88,7 @@ public class DomainConverter {
         jobInstance.setExecutorOption(jobInfo.getExecutorOption());
         jobInstance.setType(jobInfo.getType());
         jobInstance.setFailHandler(null); // todo
+        jobInstance.setTasks(null); // todo
         return jobInstance;
     }
 }

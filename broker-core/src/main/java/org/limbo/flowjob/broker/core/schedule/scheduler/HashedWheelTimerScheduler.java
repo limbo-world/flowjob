@@ -25,7 +25,6 @@ import org.limbo.flowjob.broker.core.schedule.Scheduled;
 import org.limbo.flowjob.common.utils.TimeUtil;
 
 import java.time.Duration;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -36,7 +35,7 @@ import java.util.concurrent.TimeUnit;
  * @since 2021-05-18
  */
 @Slf4j
-public class HashedWheelTimerScheduler extends CacheableScheduler {
+public abstract class HashedWheelTimerScheduler<T extends Scheduled> extends CacheableScheduler<T> {
 
     /**
      * 依赖netty的时间轮算法进行作业调度
@@ -44,16 +43,10 @@ public class HashedWheelTimerScheduler extends CacheableScheduler {
     private final Timer timer;
 
     /**
-     * 调度线程池
-     */
-    private final ExecutorService schedulePool;
-
-    /**
      * 使用指定执行器构造一个调度器，该调度器基于哈希时间轮算法。
      */
-    public HashedWheelTimerScheduler(ExecutorService schedulePool) {
+    public HashedWheelTimerScheduler() {
         this.timer = new HashedWheelTimer(NamedThreadFactory.newInstance(this.getClass().getSimpleName() + "-timer-"));
-        this.schedulePool = schedulePool;
     }
 
     /**
@@ -62,7 +55,7 @@ public class HashedWheelTimerScheduler extends CacheableScheduler {
      * @param scheduled 待调度的对象
      */
     @Override
-    public void schedule(Scheduled scheduled) {
+    public void schedule(T scheduled) {
         if (put(scheduled)) {
             // 计算延迟时间
             long delay = Duration.between(TimeUtil.currentLocalDateTime(), scheduled.triggerAt()).toMillis();
@@ -76,13 +69,15 @@ public class HashedWheelTimerScheduler extends CacheableScheduler {
                         return;
                     }
 
-                    // 执行调度逻辑
-                    schedulePool.submit(scheduled::schedule);
+                    doSchedule(scheduled);
+
                 } catch (Exception e) {
                     log.error("[HashedWheelTimerScheduler] schedule fail id:{}", scheduled.scheduleId(), e);
                 }
             }, delay, TimeUnit.MILLISECONDS);
         }
     }
+
+    protected abstract void doSchedule(T scheduled);
 
 }

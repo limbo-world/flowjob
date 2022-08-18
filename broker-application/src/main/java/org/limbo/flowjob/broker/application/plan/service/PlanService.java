@@ -3,25 +3,32 @@ package org.limbo.flowjob.broker.application.plan.service;
 import lombok.Setter;
 import org.limbo.flowjob.broker.api.console.param.PlanAddParam;
 import org.limbo.flowjob.broker.api.console.param.PlanReplaceParam;
+import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
+import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
-import org.limbo.flowjob.broker.core.plan.Plan;
-import org.limbo.flowjob.broker.core.plan.PlanInfo;
+import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
+import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
+import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
+import org.limbo.flowjob.broker.core.repository.JobInstancesRepository;
+import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.common.utils.Verifies;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 /**
  * @author Brozen
  * @since 2022-06-11
  */
-@Component
+@Service
 public class PlanService {
 
     @Setter(onMethod_ = @Inject)
@@ -29,6 +36,19 @@ public class PlanService {
 
     @Setter(onMethod_ = @Inject)
     private PlanEntityRepo planEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private PlanInstanceEntityRepo planInstanceEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private PlanInstanceRepository planInstanceRepository;
+
+    @Setter(onMethod_ = @Inject)
+    private JobInstanceRepository jobInstanceRepository;
+
+    @Setter(onMethod_ = @Inject)
+    private JobInstancesRepository jobInstancesRepository;
+
 
     /**
      * 新增执行计划
@@ -96,6 +116,30 @@ public class PlanService {
 
         // 停用计划
         return planEntityRepo.updateEnable(planEntity.getId(), true, false) == 1;
+    }
+
+    @Transactional
+    public void saveScheduleInfo(PlanInstance planInstance, PlanInstance.JobInstances jobInstances) {
+        Long planId = Long.valueOf(planInstance.getPlanId());
+
+        // 加锁
+        planEntityRepo.selectForUpdate(planId);
+
+        // 判断并发情况下 是否已经有人提交调度任务 如有则无需处理
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findByPlanIdAndExpectTriggerAtAndTriggerType(planId, planInstance.getExpectTriggerAt(), TriggerType.SCHEDULE.type);
+        if (planInstanceEntity != null) {
+            return;
+        }
+
+        planInstanceRepository.save(planInstance);
+
+        // 批量保存数据
+        jobInstancesRepository.save(jobInstances);
+
+        // 更新plan的下次触发时间
+        if (ScheduleType.FIXED_DELAY != planInstance.getScheduleOption().getScheduleType() && TriggerType.SCHEDULE == planInstance.getScheduleOption().getTriggerType()) {
+            planEntityRepo.nextTriggerAt(planId, planInstance.nextTriggerAt());
+        }
     }
 
 }

@@ -14,4 +14,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "flowjob.broker")
 public class BrokerProperties extends BrokerConfig {
 
+    /**
+     * 重分配间隔
+     */
+    private long rebalanceInterval = 10000;
+    /**
+     * 状态检查间隔
+     */
+    private long statusCheckInterval = 10000;
 }

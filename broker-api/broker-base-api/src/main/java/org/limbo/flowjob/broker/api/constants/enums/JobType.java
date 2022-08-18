@@ -27,15 +27,19 @@ public enum JobType {
     /**
      * 下发一个任务
      */
-    NORMAL(1, "普通任务"),
+    NORMAL(1, "普通类型"),
     /**
      * 给每个可选中节点下发任务
      */
-    BROADCAST(2, "广播任务"),
+    BROADCAST(2, "广播类型"),
     /**
      * 将任务切分
      */
-    SHARDING(3, "分片任务"),
+    MAP(3, "Map分片类型"),
+    /**
+     * 将任务切分 归纳
+     */
+    MAP_REDUCE(4, "MapReduce类型"),
     ;
 
     @JsonValue

@@ -25,8 +25,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.BrokerNodeManger;
-import org.limbo.flowjob.broker.core.plan.Plan;
-import org.limbo.flowjob.broker.core.plan.PlanInfo;
+import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
@@ -131,55 +131,6 @@ public class PlanRepo implements PlanRepository {
         Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(Long.valueOf(planId));
         Verifies.verify(planEntityOptional.isPresent(), "plan is not exist");
         return toPlan(planEntityOptional.get());
-    }
-
-    @Override
-    public List<Plan> schedulePlans(LocalDateTime nextTriggerAt) {
-        List<Integer> slots = slots();
-        if (CollectionUtils.isEmpty(slots)) {
-            return Collections.emptyList();
-        }
-        List<PlanEntity> planEntities = planEntityRepo.findBySlotInAndIsEnabledAndNextTriggerAtBefore(slots(), true, nextTriggerAt);
-        if (CollectionUtils.isEmpty(planEntities)) {
-            return Collections.emptyList();
-        }
-        List<Plan> plans = new ArrayList<>();
-        for (PlanEntity planEntity : planEntities) {
-            plans.add(toPlan(planEntity));
-        }
-        return plans;
-    }
-
-    /**
-     * 获取槽位的算法
-     * @return 当前机器对应的所有槽位
-     */
-    private List<Integer> slots() {
-        List<Pair<String, Integer>> aliveNodes = BrokerNodeManger.alive();
-        List<Pair<String, Integer>> sortedNodes = aliveNodes.stream().sorted(Pair::compareTo).collect(Collectors.toList());
-
-        // 判断自己所在的id位置
-        int mark = -1;
-        for (int i = 0; i < sortedNodes.size(); i++) {
-            Pair<String, Integer> node = sortedNodes.get(i);
-            if (config.getHost().equals(node.getLeft()) && config.getPort() == node.getRight()) {
-                mark = i;
-                break;
-            }
-        }
-
-        if (mark < 0) {
-            log.warn("can't find in alive nodes host:{} port:{}", config.getHost(), config.getPort());
-            return Collections.emptyList();
-        }
-
-        List<Integer> slots = new ArrayList<>();
-        while (mark < SLOT_SIZE) {
-            slots.add(mark);
-            mark += sortedNodes.size();
-        }
-        log.info("find slots:{}", slots);
-        return slots;
     }
 
     public PlanInfoEntity toEntity(PlanInfo planInfo) {

@@ -32,11 +32,6 @@ public interface Scheduled {
     String scheduleId();
 
     /**
-     * 执行业务
-     */
-    void schedule();
-
-    /**
      * 触发时间
      */
     LocalDateTime triggerAt();

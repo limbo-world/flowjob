@@ -27,23 +27,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Devil
  * @since 2022/7/25
  */
-public class CacheableScheduler implements Scheduler {
+public abstract class CacheableScheduler<T extends Scheduled> implements Scheduler<T> {
 
     /**
      * 所有正在被调度中的对象
      */
-    private final Map<String, Scheduled> scheduling;
-
-    public CacheableScheduler() {
-        this.scheduling = new ConcurrentHashMap<>();
-    }
-
-    @Override
-    public void schedule(Scheduled scheduled) {
-        if (put(scheduled)) {
-            scheduled.schedule();
-        }
-    }
+    private final Map<String, Scheduled> scheduling = new ConcurrentHashMap<>();
 
     /**
      * 是否进行了缓存
