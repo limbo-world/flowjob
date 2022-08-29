@@ -22,6 +22,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.api.clent.dto.TaskReceiveDTO;
 import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
@@ -46,6 +47,7 @@ import java.util.stream.Collectors;
  * @author Brozen
  * @since 2021-05-14
  */
+@Slf4j
 @Getter
 @Setter
 @ToString
@@ -73,9 +75,17 @@ public class Task implements Serializable {
     private String workerId;
 
     /**
+     * 上下文
+     */
+    private Attributes context;
+    /**
      * 作业属性，不可变。作业属性可用于分片作业、MapReduce作业、DAG工作流进行传参
      */
     private Attributes attributes;
+    /**
+     * reduce作业属性
+     */
+    private List<Attributes> reduceAttributes;
 
     /**
      * 执行失败时的异常信息
@@ -121,9 +131,8 @@ public class Task implements Serializable {
      * 将此任务下发给worker。
      *
      * @param workerSelector 会将此上下文分发去执行的worker
-     * @throws JobDispatchException 状态检测失败时，即此上下文的状态不是INIT或FAILED时抛出异常。
      */
-    public void dispatch(WorkerSelector workerSelector) throws JobDispatchException {
+    public void dispatch(WorkerSelector workerSelector) {
         if (getStatus() != TaskStatus.DISPATCHING) {
             throw new JobDispatchException(jobId, taskId, "Cannot startup context due to current status: " + status);
         }
@@ -133,40 +142,32 @@ public class Task implements Serializable {
             return;
         }
         for (int i = 0; i < retry; i++) {
-            Worker worker = workerSelector.select(this, availableWorkers);
-            if (worker == null) {
-                return;
+            try {
+                Worker worker = workerSelector.select(this, availableWorkers);
+                if (worker == null) {
+                    return;
+                }
+
+                // 发送任务到worker，根据worker返回结果，更新状态
+                TaskReceiveDTO result = worker.sendTask(this);
+                boolean dispatched = result != null && result.getAccepted();
+                if (dispatched) {
+
+                    // 更新状态
+                    setStatus(TaskStatus.EXECUTING);
+                    setWorkerId(worker.getWorkerId());
+
+                    return;
+                }
+
+                availableWorkers = availableWorkers.stream().filter(w -> !Objects.equals(w.getWorkerId(), worker.getWorkerId())).collect(Collectors.toList());
+            } catch (Exception e) {
+                log.error("Task dispatch fail task={}", this, e);
             }
-
-            boolean dispatched = doDispatch(worker);
-            if (dispatched) {
-
-                // 更新状态
-                setStatus(TaskStatus.EXECUTING);
-                setWorkerId(worker.getWorkerId());
-
-                return;
-            }
-
-            availableWorkers = availableWorkers.stream().filter(w -> !Objects.equals(w.getWorkerId(), worker.getWorkerId())).collect(Collectors.toList());
         }
 
         // 下发失败
         setStatus(TaskStatus.FAILED);
-    }
-
-
-    /**
-     * 执行任务下发
-     */
-    protected boolean doDispatch(Worker worker) {
-        try {
-            // 发送任务到worker，根据worker返回结果，更新状态
-            TaskReceiveDTO result = worker.sendTask(this);
-            return result != null && result.getAccepted();
-        } catch (Exception e) {
-            throw new JobDispatchException(jobId, worker.getWorkerId(), "Context startup failed due to send job to worker error!", e);
-        }
     }
 
 }

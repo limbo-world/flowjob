@@ -33,15 +33,15 @@ public enum TaskType {
      */
     BROADCAST(2, "广播任务"),
     /**
-     * 用于拆分任务到子任务
+     * 拆分的任务
      */
-    MAP(3, "map任务"),
+    SPLIT(3, "split任务"),
     /**
-     * 子任务
+     * map任务
      */
-    SUB(4, "子任务"),
+    MAP(4, "Map任务"),
     /**
-     * 子任务归纳合并的任务
+     * map子任务归纳合并的任务
      */
     REDUCE(5, "Reduce任务"),
     ;

@@ -16,19 +16,35 @@
  *
  */
 
-package org.limbo.flowjob.broker.api.clent.param;
+package org.limbo.flowjob.broker.core.cluster;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
+import java.util.Collection;
 
 /**
+ *
  * @author Devil
- * @since 2022/8/17
+ * @since 2022/7/20
  */
-@Data
-@Schema(title = "子任务参数")
-public class SubTaskParam {
+public interface NodeManger {
 
+    /**
+     * 节点上线
+     */
+    void online(Node node);
 
+    /**
+     * 节点下线
+     */
+    void offline(Node node);
+
+    /**
+     * 检查节点是否存活
+     */
+    boolean alive(Node node);
+
+    /**
+     * 所有存活节点
+     */
+    Collection<Node> allAlive();
 
 }

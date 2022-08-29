@@ -112,7 +112,7 @@ public class DBBrokerRegistry implements BrokerRegistry {
             if (CollectionUtils.isNotEmpty(onlineBrokers)) {
                 for (BrokerEntity broker : onlineBrokers) {
                     for (NodeListener listener : listeners) {
-                        listener.event(new NodeEvent(String.valueOf(broker.getId()), NodeEvent.Type.ONLINE, broker.getHost(), broker.getPort()));
+                        listener.event(new NodeEvent(NodeEvent.Type.ONLINE, broker.getHost(), broker.getPort()));
                     }
                 }
             }
@@ -127,7 +127,7 @@ public class DBBrokerRegistry implements BrokerRegistry {
             if (CollectionUtils.isNotEmpty(offlineBrokers)) {
                 for (BrokerEntity broker : offlineBrokers) {
                     for (NodeListener listener : listeners) {
-                        listener.event(new NodeEvent(String.valueOf(broker.getId()), NodeEvent.Type.OFFLINE, broker.getHost(), broker.getPort()));
+                        listener.event(new NodeEvent(NodeEvent.Type.OFFLINE, broker.getHost(), broker.getPort()));
                     }
                 }
             }

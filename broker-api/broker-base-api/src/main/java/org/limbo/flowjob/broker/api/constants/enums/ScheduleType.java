@@ -34,7 +34,7 @@ import lombok.Getter;
 public enum ScheduleType implements DescribableEnum<Byte> {
 
     /**
-     * 无需调度 由其它方式触发 // todo 此类型需要检查有 api方式的最初节点 非此类型要检查有 schedule 的最初节点
+     * 无需调度 由其它方式触发
      */
     NONE(0, "无需调度"),
 

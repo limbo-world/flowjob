@@ -21,17 +21,20 @@ package org.limbo.flowjob.broker.application.plan.component;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
-import org.limbo.flowjob.broker.core.cluster.BrokerNodeManger;
+import org.limbo.flowjob.broker.core.cluster.Node;
+import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
+import org.limbo.flowjob.broker.dao.domain.SlotManager;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.common.utils.TimeUtil;
 import org.springframework.stereotype.Component;
 
@@ -62,15 +65,19 @@ public class PlanScheduleTask extends TimerTask {
     @Setter(onMethod_ = @Inject)
     private PlanRepository planRepository;
 
-    private static final String TASK_NAME = "[PlanScheduleTask]";
+    @Setter(onMethod_ = @Inject)
+    private NodeManger nodeManger;
 
-    private static final int SLOT_SIZE = 64;
+    @Setter(onMethod_ = @Inject)
+    private PlanSlotEntityRepo planSlotEntityRepo;
+
+    private static final String TASK_NAME = "[PlanScheduleTask]";
 
     @Override
     public void run() {
         try {
             // 判断自己是否存在 --- 可能由于心跳异常导致不存活
-            if (!BrokerNodeManger.alive(config.getHost(), config.getPort())) {
+            if (!nodeManger.alive(new Node(config.getHost(), config.getPort()))) {
                 return;
             }
             // 调度当前时间以及未来的任务
@@ -98,11 +105,16 @@ public class PlanScheduleTask extends TimerTask {
     }
 
     public List<Plan> schedulePlans(LocalDateTime nextTriggerAt) {
-        List<Integer> slots = slots();
+        List<Integer> slots = SlotManager.slots(nodeManger.allAlive(), config.getHost(), config.getPort());
         if (CollectionUtils.isEmpty(slots)) {
             return Collections.emptyList();
         }
-        List<PlanEntity> planEntities = planEntityRepo.findBySlotInAndIsEnabledAndNextTriggerAtBefore(slots(), true, nextTriggerAt);
+        List<PlanSlotEntity> slotEntities = planSlotEntityRepo.findBySlotIn(slots);
+        if (CollectionUtils.isEmpty(slotEntities)) {
+            return Collections.emptyList();
+        }
+        List<Long> planIds = slotEntities.stream().map(PlanSlotEntity::getPlanId).collect(Collectors.toList());
+        List<PlanEntity> planEntities = planEntityRepo.findByIdInAndIsEnabledAndNextTriggerAtBefore(planIds, true, nextTriggerAt);
         if (CollectionUtils.isEmpty(planEntities)) {
             return Collections.emptyList();
         }
@@ -113,37 +125,5 @@ public class PlanScheduleTask extends TimerTask {
         return plans;
     }
 
-    /**
-     * 获取槽位的算法
-     *
-     * @return 当前机器对应的所有槽位
-     */
-    private List<Integer> slots() {
-        List<Pair<String, Integer>> aliveNodes = BrokerNodeManger.alive();
-        List<Pair<String, Integer>> sortedNodes = aliveNodes.stream().sorted(Pair::compareTo).collect(Collectors.toList());
-
-        // 判断自己所在的id位置
-        int mark = -1;
-        for (int i = 0; i < sortedNodes.size(); i++) {
-            Pair<String, Integer> node = sortedNodes.get(i);
-            if (config.getHost().equals(node.getLeft()) && config.getPort() == node.getRight()) {
-                mark = i;
-                break;
-            }
-        }
-
-        if (mark < 0) {
-            log.warn("can't find in alive nodes host:{} port:{}", config.getHost(), config.getPort());
-            return Collections.emptyList();
-        }
-
-        List<Integer> slots = new ArrayList<>();
-        while (mark < SLOT_SIZE) {
-            slots.add(mark);
-            mark += sortedNodes.size();
-        }
-        log.info("find slots:{}", slots);
-        return slots;
-    }
 
 }

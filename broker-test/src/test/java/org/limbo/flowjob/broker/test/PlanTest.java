@@ -44,16 +44,6 @@ public class PlanTest {
     private PlanEntityRepo planEntityRepo;
 
     @Test
-    public void insert() {
-        PlanEntity plan = new PlanEntity();
-        plan.setSlot(1);
-        PlanEntity planEntity = planEntityRepo.saveAndFlush(plan);
-        System.out.println(planEntity.getId());
-        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(planEntity.getId());
-        System.out.println(planEntityOptional.get());
-    }
-
-    @Test
     @Transactional
     @Rollback(false)
     public void lock() throws InterruptedException {

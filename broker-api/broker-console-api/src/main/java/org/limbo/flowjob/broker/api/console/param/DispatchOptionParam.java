@@ -20,7 +20,6 @@ package org.limbo.flowjob.broker.api.console.param;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.limbo.flowjob.broker.api.constants.enums.DispatchType;
 import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
 
 import java.math.BigDecimal;
@@ -34,12 +33,6 @@ import java.math.BigDecimal;
 public class DispatchOptionParam {
 
     /**
-     * 作业分发方式
-     */
-    @Schema(title = "作业分发方式", implementation = Integer.class, description = DispatchType.DESCRIPTION)
-    private DispatchType dispatchType;
-
-    /**
      * 负载方式
      */
     @Schema(title = "负载方式", implementation = Integer.class, description = LoadBalanceType.DESCRIPTION)
@@ -50,6 +43,12 @@ public class DispatchOptionParam {
      */
     @Schema(title = "重试次数")
     private Integer retry;
+
+    /**
+     * 重试间隔
+     */
+    @Schema(title = "重试间隔-秒")
+    private Integer retryInterval;
 
     /**
      * 所需的CPU核心数，小于等于0表示此作业未定义CPU需求。在分发作业时，会根据此方法返回的CPU核心需求数量来检测一个worker是否有能力执行此作业。

@@ -20,12 +20,10 @@ package org.limbo.flowjob.common.utils.attribute;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,18 +39,18 @@ public class Attributes implements Serializable {
     /**
      * 内部数据结构
      */
-    private final Map<String, List<String>> attributes;
+    protected Map<String, Object> attributes;
 
     public Attributes() {
         this.attributes = new HashMap<>();
     }
 
     public Attributes(String attr) {
-        this.attributes = JacksonUtils.parseObject(attr, new TypeReference<Map<String, List<String>>>() {
+        this.attributes = JacksonUtils.parseObject(attr, new TypeReference<Map<String, Object>>() {
         });
     }
 
-    public Attributes(Map<String, List<String>> attributes) {
+    public Attributes(Map<String, Object> attributes) {
         this.attributes = attributes == null ? new HashMap<>() : new HashMap<>(attributes);
     }
 
@@ -61,7 +59,7 @@ public class Attributes implements Serializable {
      * @param key 属性key
      * @return 所有属性values
      */
-    public List<String> get(String key) {
+    public Object get(String key) {
         return attributes.get(key);
     }
 
@@ -70,9 +68,8 @@ public class Attributes implements Serializable {
      * @param key 属性key
      * @return 属性values中的第一个
      */
-    public String getFirst(String key) {
-        List<String> values = attributes.getOrDefault(key, null);
-        return CollectionUtils.isEmpty(values) ? null : values.get(0);
+    public Object getFirst(String key) {
+        return attributes.getOrDefault(key, null);
     }
 
     /**
@@ -80,8 +77,17 @@ public class Attributes implements Serializable {
      * @return 属性k-v Map。
      */
     @JsonValue
-    public Map<String, List<String>> toMap() {
+    public Map<String, Object> toMap() {
         return new HashMap<>(attributes);
+    }
+
+    /**
+     * 设置属性
+     * @param key 属性key
+     * @param value 属性value
+     */
+    public void put(String key, Object value) {
+        attributes.putIfAbsent(key, value);
     }
 
     @Override

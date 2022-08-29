@@ -18,12 +18,6 @@
 
 package org.limbo.flowjob.common.utils.attribute;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.common.utils.json.JacksonUtils;
-
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,73 +28,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2021-05-19
  */
 public class MutableAttribute extends Attributes {
-
-    /**
-     * 内部数据结构
-     */
-    private final Map<String, List<String>> attributes;
+    private static final long serialVersionUID = 2246780973857365561L;
 
     public MutableAttribute(Attributes attributes) {
         this(attributes.toMap());
     }
 
-    public MutableAttribute(Map<String, List<String>> attributes) {
-        super(attributes);
+    public MutableAttribute(Map<String, Object> attributes) {
         this.attributes = new ConcurrentHashMap<>(attributes);
-    }
-
-    /**
-     * {@inheritDoc}
-     * @param key 属性key
-     * @return
-     */
-    @Override
-    public List<String> get(String key) {
-        return attributes.get(key);
-    }
-
-    /**
-     * {@inheritDoc}
-     * @param key 属性key
-     * @return
-     */
-    @Override
-    public String getFirst(String key) {
-        List<String> values = attributes.getOrDefault(key, null);
-        return CollectionUtils.isEmpty(values) ? null : values.get(0);
-    }
-
-    /**
-     * {@inheritDoc}
-     * @return
-     */
-    @Override
-    public Map<String, List<String>> toMap() {
-        return new HashMap<>(attributes);
-    }
-
-    /**
-     * 设置属性
-     * @param key 属性key
-     * @param value 属性value
-     */
-    public void put(String key, String value) {
-        attributes.computeIfAbsent(key, _k -> new LinkedList<>()).add(value);
-    }
-
-
-    /**
-     * 移除属性，并返回属性key关联的values。
-     * @param key 属性key。
-     * @return 被删除属性key关联的values。
-     */
-    public List<String> remove(String key) {
-        return attributes.remove(key);
-    }
-
-    @Override
-    public String toString() {
-        return JacksonUtils.toJSONString(attributes);
     }
 
 }

@@ -19,14 +19,28 @@
 package org.limbo.flowjob.broker.application.plan.component;
 
 import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
+import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
+import org.limbo.flowjob.broker.core.cluster.NodeManger;
+import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
+import org.limbo.flowjob.broker.dao.converter.DomainConverter;
+import org.limbo.flowjob.broker.dao.domain.SlotManager;
+import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
+import org.limbo.flowjob.broker.dao.entity.TaskEntity;
+import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.util.List;
 import java.util.TimerTask;
+import java.util.stream.Collectors;
 
 /**
  * task 如果长时间执行中没有进行反馈 需要对其进行状态检查
@@ -44,24 +58,47 @@ public class TaskStatusCheckTask extends TimerTask {
     @Setter(onMethod_ = @Inject)
     private WorkerSelector workerSelector;
 
+    @Setter(onMethod_ = @Inject)
+    private NodeManger nodeManger;
+
+    @Setter(onMethod_ = @Inject)
+    private BrokerConfig config;
+
+    @Setter(onMethod_ = @Inject)
+    private PlanEntityRepo planEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private PlanInfoEntityRepo planInfoEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private TaskEntityRepo taskEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private WorkerManager workerManager;
+
+    @Setter(onMethod_ = @Inject)
+    private PlanSlotEntityRepo planSlotEntityRepo;
+
     @Override
     public void run() {
-        // todo 根据自己plan去查找
-        List<Task> tasks = unCompleted();
-        for (Task task : tasks) {
-            if (!workerRepository.alive(task.getWorkerId())) {
+        List<Integer> slots = SlotManager.slots(nodeManger.allAlive(), config.getHost(), config.getPort());
+        if (CollectionUtils.isEmpty(slots)) {
+            return;
+        }
+        List<PlanSlotEntity> slotEntities = planSlotEntityRepo.findBySlotIn(slots);
+        if (CollectionUtils.isEmpty(slotEntities)) {
+            return;
+        }
+
+        List<TaskEntity> tasks = taskEntityRepo.findByPlanIdInAncStatus(slotEntities.stream().map(PlanSlotEntity::getPlanId).collect(Collectors.toList()), TaskStatus.EXECUTING.status);
+        for (TaskEntity taskEntity : tasks) {
+            // 获取长时间为执行中的task 判断worker是否已经宕机
+            if (!workerRepository.alive(taskEntity.getWorkerId().toString())) {
+                Task task = DomainConverter.toTask(taskEntity, workerManager, planInfoEntityRepo);
                 task.dispatch(workerSelector);
             }
         }
 
-    }
-
-    /**
-     * 未完成的task
-     */
-    public List<Task> unCompleted() {
-        // task在执行中 并且work是已下线状态的 --- 如果worker
-        return null;
     }
 
 }

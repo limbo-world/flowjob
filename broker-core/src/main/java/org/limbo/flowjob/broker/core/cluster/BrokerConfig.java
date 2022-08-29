@@ -35,7 +35,7 @@ public class BrokerConfig {
     /**
      * 提供给worker的服务port
      */
-    private int port;
+    private Integer port;
     /**
      * 心跳时间间隔
      */

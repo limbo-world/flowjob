@@ -100,7 +100,7 @@ public class PlanInfo implements Serializable {
      * 校验info的正确性
      */
     public boolean check() {
-        // todo
+        // todo none 类型 检查有 api方式的最初节点 非此类型要检查有 schedule 的最初节点 感觉好像也没必要，用户自己保证
         return true;
     }
 

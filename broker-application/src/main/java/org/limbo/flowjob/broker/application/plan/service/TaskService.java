@@ -1,42 +1,48 @@
 package org.limbo.flowjob.broker.application.plan.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.api.clent.param.SubTaskParam;
-import org.limbo.flowjob.broker.api.clent.param.TaskExecuteFeedbackParam;
+import org.limbo.flowjob.broker.api.clent.param.TaskFeedbackParam;
 import org.limbo.flowjob.broker.api.constants.enums.ExecuteResult;
 import org.limbo.flowjob.broker.api.constants.enums.JobStatus;
 import org.limbo.flowjob.broker.api.constants.enums.PlanStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskType;
 import org.limbo.flowjob.broker.application.plan.component.JobScheduler;
+import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.broker.core.domain.factory.JobInstanceFactory;
-import org.limbo.flowjob.broker.core.domain.factory.TaskFactory22;
-import org.limbo.flowjob.broker.core.domain.handler.JobFailHandler;
+import org.limbo.flowjob.broker.core.domain.factory.TaskFactory;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.domain.task.Task;
-import org.limbo.flowjob.broker.core.exceptions.JobExecuteException;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.repository.TaskRepository;
+import org.limbo.flowjob.broker.core.repository.TasksRepository;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.limbo.flowjob.common.utils.TimeUtil;
 import org.limbo.flowjob.common.utils.Verifies;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Brozen
@@ -48,6 +54,8 @@ public class TaskService {
 
     @Setter(onMethod_ = @Inject)
     private TaskRepository taskRepository;
+    @Setter(onMethod_ = @Inject)
+    private TasksRepository tasksRepository;
     @Setter(onMethod_ = @Inject)
     private TaskEntityRepo taskEntityRepo;
     @Setter(onMethod_ = @Inject)
@@ -61,9 +69,13 @@ public class TaskService {
     @Setter(onMethod_ = @Inject)
     private PlanInstanceEntityRepo planInstanceEntityRepo;
     @Setter(onMethod_ = @Inject)
+    private PlanInfoEntityRepo planInfoEntityRepo;
+    @Setter(onMethod_ = @Inject)
     private WorkerSelector workerSelector;
     @Setter(onMethod_ = @Inject)
     private JobInstanceFactory jobInstanceFactory;
+    @Setter(onMethod_ = @Inject)
+    private WorkerManager workerManager;
 
 
     /**
@@ -72,7 +84,7 @@ public class TaskService {
      * @param param 反馈参数
      */
     @Transactional
-    public void feedback(TaskExecuteFeedbackParam param) {
+    public void feedback(TaskFeedbackParam param) {
         // 获取实例
         Task task = taskRepository.get(param.getTaskId());
         Verifies.notNull(task, "Task not exist!");
@@ -94,18 +106,7 @@ public class TaskService {
 
     @Transactional
     public void taskFail(Task task, String errorMsg, String errorStackTrace) {
-        int num = taskEntityRepo.updateStatusWithError(Long.valueOf(task.getTaskId()),
-                TaskStatus.EXECUTING.status,
-                TaskStatus.FAILED.status,
-                errorMsg,
-                errorStackTrace
-        );
-
-        if (num != 1) {
-            return; // 并发更新过了
-        }
-
-        num = jobInstanceEntityRepo.updateStatus(
+        int num = jobInstanceEntityRepo.updateStatus(
                 Long.valueOf(task.getJobInstanceId()),
                 JobStatus.EXECUTING.status,
                 JobStatus.FAILED.status
@@ -115,22 +116,24 @@ public class TaskService {
             return; // 其它task已经更新job为失败 并已经执行了后续操作
         }
 
+        num = taskEntityRepo.updateStatusWithError(Long.valueOf(task.getTaskId()),
+                TaskStatus.EXECUTING.status,
+                TaskStatus.FAILED.status,
+                errorMsg,
+                errorStackTrace
+        );
+
+        if (num != 1) {
+            return; // 并发更新过了 正常来说前面job更新成功 这个不可能会进来
+        }
+
         JobInstance jobInstance = jobInstanceRepository.get(task.getJobInstanceId());
         if (jobInstance.retry()) {
-            jobInstance.setJobInstanceId(null);
-            jobInstance.setStatus(JobStatus.SCHEDULING);
             jobInstanceRepository.save(jobInstance);
             scheduler.schedule(jobInstance);
         } else {
-            // 执行失败处理
-            JobFailHandler failHandler = jobInstance.getFailHandler();
-            try {
-                failHandler.handle();
-            } catch (JobExecuteException e) {
-                log.error("[JobFailHandler]execute error jobInstance:{}", jobInstance, e);
-            }
             PlanInstance planInstance = planInstanceRepository.get(jobInstance.getPlanInstanceId());
-            if (failHandler.terminate()) {
+            if (jobInstance.isTerminateWithFail()) {
                 planInstanceEntityRepo.end(
                         Long.valueOf(planInstance.getPlanInstanceId()),
                         PlanStatus.EXECUTING.status,
@@ -144,10 +147,13 @@ public class TaskService {
     }
 
     @Transactional
-    public void taskSuccess(Task task, TaskExecuteFeedbackParam param) {
-        int num = taskEntityRepo.updateStatus(Long.valueOf(task.getTaskId()),
+    public void taskSuccess(Task task, TaskFeedbackParam param) {
+        // todo 更新plan上下文
+
+        int num = taskEntityRepo.updateSuccessStatus(Long.valueOf(task.getTaskId()),
                 TaskStatus.EXECUTING.status,
-                TaskStatus.SUCCEED.status
+                TaskStatus.SUCCEED.status,
+                JacksonUtils.toJSONString(param.getResultAttributes())
         );
 
         if (num != 1) {
@@ -156,48 +162,68 @@ public class TaskService {
 
         JobInstance jobInstance = jobInstanceRepository.get(task.getJobInstanceId());
 
-
         switch (task.getType()) {
             case NORMAL:
             case BROADCAST:
             case REDUCE:
-                checkAndFinishJobSuccess(jobInstance);
+                boolean success = isFinished(jobInstance, task.getType());
+                // 如果有不是success状态的，可能还在下发或者处理中，或者fail（交由fail回调处理）
+                if (!success) {
+                    break;
+                }
+                jobSuccess(jobInstance);
+                break;
+            case SPLIT:
+                dispatchSubTasks(jobInstance, param.getMapTaskAttributes().stream().map(Attributes::new).collect(Collectors.toList()));
                 break;
             case MAP:
-                dispatchSubTasks(jobInstance, param);
-                break;
-            case SUB:
-                dispatchReduceTask(jobInstance, param);
+                checkAndDispatchReduceTask(jobInstance);
                 break;
         }
 
     }
 
 
-    public void dispatchSubTasks(JobInstance instance, TaskExecuteFeedbackParam param) {
-        for (SubTaskParam subTaskParam : param.getSubTasks()) {
-            Task task = TaskFactory22.create(instance, TaskType.SUB);
-            task.setAttributes(null); // todo 从返回值里面获取
+    @Transactional
+    public void dispatchSubTasks(JobInstance instance, List<Attributes> mapTaskAttributes) {
+        List<Task> subTasks = new ArrayList<>();
+        for (Attributes mapTaskAttribute : mapTaskAttributes) {
+            Task task = TaskFactory.create(instance, TaskType.MAP);
+            task.setAttributes(mapTaskAttribute);
 
-            taskRepository.save(task);
-
-            dispatchTask(task);
+            subTasks.add(task);
         }
+        JobInstance.Tasks tasks = new JobInstance.Tasks(instance.getJobInstanceId(), subTasks);
+        dispatch(instance, tasks);
     }
 
-    public void dispatchReduceTask(JobInstance instance, TaskExecuteFeedbackParam param) {
-        Task reduceTask = TaskFactory22.create(instance, TaskType.REDUCE);
-        reduceTask.setAttributes(null); // todo 从返回值里面获取
+    @Transactional
+    public void checkAndDispatchReduceTask(JobInstance instance) {
+        // 判断 sub task 是否都执行完
+        boolean finished = isFinished(instance, TaskType.MAP);
+        if (!finished) {
+            return;
+        }
 
-        taskRepository.save(reduceTask);
+        // 获取所有的splitTask
+        List<TaskEntity> taskEntities = taskEntityRepo.findByJobInstanceIdAndType(Long.valueOf(instance.getJobInstanceId()), TaskType.SPLIT.type);
+        List<Attributes> reduceAttributes = new ArrayList<>();
+        for (TaskEntity taskEntity : taskEntities) {
+            reduceAttributes.add(new Attributes(JacksonUtils.parseObject(taskEntity.getResult(), new TypeReference<Map<String, Object>>() {
+            })));
+        }
 
-        dispatchTask(reduceTask);
+        Task reduceTask = TaskFactory.create(instance, TaskType.REDUCE);
+        reduceTask.setReduceAttributes(reduceAttributes);
+
+        JobInstance.Tasks tasks = new JobInstance.Tasks(instance.getJobInstanceId(), Collections.singletonList(reduceTask));
+        dispatch(instance, tasks);
 
     }
 
-    public void checkAndFinishJobSuccess(JobInstance jobInstance) {
+    public boolean isFinished(JobInstance jobInstance, TaskType type) {
         // 检查job下task是否都成功
-        List<TaskEntity> taskEntities = taskEntityRepo.findByJobInstanceId(Long.valueOf(jobInstance.getJobInstanceId()));
+        List<TaskEntity> taskEntities = taskEntityRepo.findByJobInstanceIdAndType(Long.valueOf(jobInstance.getJobInstanceId()), type.type);
         boolean success = true;
         for (TaskEntity taskEntity : taskEntities) {
             if (TaskStatus.SUCCEED != TaskStatus.parse(taskEntity.getStatus())) {
@@ -205,13 +231,11 @@ public class TaskService {
                 break;
             }
         }
+        return success;
+    }
 
-        // 如果有不是success状态的，可能还在下发或者处理中，或者fail（交由fail监听处理）
-
-        if (!success) {
-            return;
-        }
-
+    @Transactional
+    public void jobSuccess(JobInstance jobInstance) {
         int num = jobInstanceEntityRepo.updateStatus(
                 Long.valueOf(jobInstance.getJobInstanceId()),
                 JobStatus.EXECUTING.status,
@@ -226,12 +250,27 @@ public class TaskService {
         dispatchNext(planInstance, jobInstance.getJobId());
     }
 
-    private void dispatchTask(Task task) {
-        try {
-            // dispatch task don't close transaction
-            task.dispatch(workerSelector);
-        } catch (Exception e) {
-            log.error("TaskFeedback dispatchTask Fail task:{}", task, e);
+    @Transactional
+    public void dispatch(JobInstance jobInstance, JobInstance.Tasks tasks) {
+
+        tasksRepository.save(tasks);
+
+        // 下发
+        for (Task task : tasks.getTasks()) {
+
+            // 防止重复下发
+            jobInstance.dispatch(task);
+
+            // 保存数据
+            if (TaskStatus.EXECUTING == task.getStatus()) { // 成功
+                taskEntityRepo.updateStatus(Long.valueOf(task.getTaskId()),
+                        TaskStatus.DISPATCHING.status,
+                        TaskStatus.EXECUTING.status,
+                        task.getWorkerId()
+                );
+            } else { // 失败
+                taskFail(task, "task dispatch fail", "");
+            }
         }
     }
 
@@ -245,7 +284,7 @@ public class TaskService {
 
         if (CollectionUtils.isEmpty(subJobInfos)) {
             // 检测 Plan 实例是否已经执行完成
-            if (checkFinished(planInstance.getPlanInstanceId(), dag.getLeafNodes())) {
+            if (checkFinished(planInstance.getPlanInstanceId(), dag.lasts())) {
                 planInstanceEntityRepo.end(
                         Long.valueOf(planInstance.getPlanInstanceId()),
                         PlanStatus.EXECUTING.status,
@@ -279,15 +318,14 @@ public class TaskService {
             return true;
         }
         for (JobInfo jobInfo : jobInfos) {
-            List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findByPlanInstanceIdaAndJobId(Long.valueOf(planInstanceId), Long.valueOf(jobInfo.getId()));
+            List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findByPlanInstanceIdAndJobId(Long.valueOf(planInstanceId), Long.valueOf(jobInfo.getId()));
             // todo 获取 JobInstance
             JobInstanceEntity entity = new JobInstanceEntity();
             if (entity.getStatus() == JobStatus.SUCCEED.status) {
                 return true;
             }
             if (entity.getStatus() == JobStatus.FAILED.status) {
-                JobFailHandler failHandler = null;
-                return failHandler == null || !failHandler.terminate();
+                return !jobInfo.isTerminateWithFail();
             }
             return false;
         }

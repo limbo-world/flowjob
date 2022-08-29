@@ -25,15 +25,18 @@ import lombok.extern.slf4j.Slf4j;
  * @since 2022/7/20
  */
 @Slf4j
-public abstract class BrokerNode {
+public abstract class Broker {
 
-    protected BrokerConfig config;
+    protected final BrokerConfig config;
 
     protected final BrokerRegistry registry;
 
-    public BrokerNode(BrokerConfig config, BrokerRegistry registry) {
+    protected final NodeManger manger;
+
+    public Broker(BrokerConfig config, BrokerRegistry registry, NodeManger manger) {
         this.config = config;
         this.registry = registry;
+        this.manger = manger;
     }
 
     /**
@@ -46,10 +49,10 @@ public abstract class BrokerNode {
         registry.subscribe(event -> {
             switch (event.getType()) {
                 case ONLINE:
-                    BrokerNodeManger.online(event.getNodeId(), event.getHost(), event.getPort());
+                    manger.online(new Node(event.getHost(), event.getPort()));
                     break;
                 case OFFLINE:
-                    BrokerNodeManger.offline(event.getHost(), event.getPort());
+                    manger.offline(new Node(event.getHost(), event.getPort()));
                     break;
                 default:
                     log.warn("[BrokerNodeListener] unknown evnet {}", event);

@@ -56,7 +56,6 @@ public class WorkerManagerImpl implements WorkerManager {
      */
     @Override
     public List<Worker> availableWorkers() {
-        // todo 缓存
         return workerRepository.availableWorkers();
     }
 

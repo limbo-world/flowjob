@@ -12,9 +12,11 @@ import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.domain.DispatchOption;
 import org.limbo.flowjob.broker.core.domain.ExecutorOption;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.common.utils.TimeUtil;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -102,10 +104,9 @@ public class PlanConverter {
      * 生成作业分发参数
      */
     public static DispatchOption convertJobDispatchOption(DispatchOptionParam param) {
-        return new DispatchOption(param.getLoadBalanceType(), param.getCpuRequirement(), param.getRamRequirement(), param.getRetry());
+        return new DispatchOption(param.getLoadBalanceType(), param.getCpuRequirement(), param.getRamRequirement(), param.getRetry(), param.getRetryInterval());
 
     }
-
 
     /**
      * 生成作业调度参数

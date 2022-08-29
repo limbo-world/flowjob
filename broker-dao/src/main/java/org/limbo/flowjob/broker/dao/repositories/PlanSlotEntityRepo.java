@@ -16,22 +16,19 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.domain.handler;
+package org.limbo.flowjob.broker.dao.repositories;
+
+import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
 
 /**
  * @author Devil
- * @since 2021/8/24
+ * @since 2022/8/23
  */
-public interface JobFailHandler {
+public interface PlanSlotEntityRepo extends JpaRepository<PlanSlotEntity, Long> {
 
-    /**
-     * 失败处理
-     */
-    void handle();
-
-    /**
-     * 是否终止计划。
-     */
-    boolean terminate();
+    List<PlanSlotEntity> findBySlotIn(List<Integer> slots);
 
 }

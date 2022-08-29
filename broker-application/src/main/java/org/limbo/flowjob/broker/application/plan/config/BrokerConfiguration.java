@@ -20,15 +20,15 @@ import lombok.Setter;
 import org.limbo.flowjob.broker.application.plan.component.JobStatusCheckTask;
 import org.limbo.flowjob.broker.application.plan.component.PlanScheduleTask;
 import org.limbo.flowjob.broker.application.plan.component.TaskStatusCheckTask;
-import org.limbo.flowjob.broker.core.cluster.BrokerNode;
+import org.limbo.flowjob.broker.application.plan.support.NodeMangerImpl;
+import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.BrokerRegistry;
-import org.limbo.flowjob.broker.core.cluster.WorkerManager;
-import org.limbo.flowjob.broker.core.cluster.WorkerManagerImpl;
 import org.limbo.flowjob.broker.core.dispatcher.strategies.RoundRobinWorkerSelector;
 import org.limbo.flowjob.broker.core.domain.factory.JobInstanceFactory;
+import org.limbo.flowjob.broker.core.cluster.NodeManger;
+import org.limbo.flowjob.broker.core.cluster.WorkerManager;
+import org.limbo.flowjob.broker.core.cluster.WorkerManagerImpl;
 import org.limbo.flowjob.broker.core.schedule.calculator.SimpleScheduleCalculatorFactory;
-import org.limbo.flowjob.broker.core.schedule.scheduler.HashedWheelTimerScheduler;
-import org.limbo.flowjob.broker.core.schedule.scheduler.Scheduler;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -36,9 +36,6 @@ import org.springframework.context.annotation.Bean;
 
 import javax.inject.Inject;
 import java.util.Timer;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Brozen
@@ -65,12 +62,17 @@ public class BrokerConfiguration {
     @Setter(onMethod_ = @Inject)
     private BrokerRegistry brokerRegistry;
 
+    @Bean
+    public NodeManger brokerManger() {
+        return new NodeMangerImpl();
+    }
+
     /**
      * worker 管理，持久化等
      */
     @Bean
-    public BrokerNode brokerNode() {
-        return new BrokerNode(brokerProperties, brokerRegistry) {
+    public Broker brokerNode(NodeManger nodeManger) {
+        return new Broker(brokerProperties, brokerRegistry, nodeManger) {
             @Override
             public void stop() {
 
@@ -135,20 +137,6 @@ public class BrokerConfiguration {
     @Bean
     public JobInstanceFactory jobInstanceFactory(WorkerManager workerManager) {
         return new JobInstanceFactory(workerManager);
-    }
-
-    /**
-     * 调度器
-     */
-    @Bean
-    public Scheduler scheduler() {
-        return new HashedWheelTimerScheduler(new ThreadPoolExecutor(
-                Runtime.getRuntime().availableProcessors() * 4,
-                Runtime.getRuntime().availableProcessors() * 8,
-                60,
-                TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(256),
-                new ThreadPoolExecutor.CallerRunsPolicy()));
     }
 
 }

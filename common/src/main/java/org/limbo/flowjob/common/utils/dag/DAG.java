@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * todo @D 简单描述下 DAG 内存的存储结构？看起来是颗树。
  *
  * @author Devil
  * @since 2022/8/1
@@ -56,14 +55,14 @@ public class DAG<T extends DAGNode> implements Serializable {
     private static final int STATUS_FILTER = 2;
 
     /**
-     * 根
+     * 起始节点
      */
-    private Set<String> roots;
+    private Set<String> origins;
 
     /**
-     * 叶子
+     * 末尾节点
      */
-    private Set<String> leaf;
+    private Set<String> lasts;
 
     /**
      * 节点映射关系
@@ -76,8 +75,8 @@ public class DAG<T extends DAGNode> implements Serializable {
         }
 
         this.nodes = new HashMap<>();
-        this.roots = new HashSet<>();
-        this.leaf = new HashSet<>();
+        this.origins = new HashSet<>();
+        this.lasts = new HashSet<>();
 
         init(nodeList);
     }
@@ -88,9 +87,7 @@ public class DAG<T extends DAGNode> implements Serializable {
      */
     private void init(List<T> nodeList) {
         // 数据初始化
-        nodeList.forEach(node -> {
-            nodes.put(node.getId(), node);
-        });
+        nodeList.forEach(node -> nodes.put(node.getId(), node));
         nodeList.forEach(node -> {
             if (CollectionUtils.isEmpty(node.getChildrenIds())) {
                 return;
@@ -104,21 +101,21 @@ public class DAG<T extends DAGNode> implements Serializable {
         });
 
         // 获取 根节点（没有其它节点指向的节点）叶子节点（没有子节点的）
-        roots = nodeList.stream().map(T::getId).collect(Collectors.toSet());
+        origins = nodeList.stream().map(T::getId).collect(Collectors.toSet());
         nodeList.forEach(node -> {
             if (CollectionUtils.isEmpty(node.getChildrenIds())) {
-                leaf.add(node.getId());
+                lasts.add(node.getId());
             } else {
                 for (String childrenId : node.getChildrenIds()) {
-                    roots.remove(childrenId);
+                    origins.remove(childrenId);
                 }
             }
         });
-        Verifies.notEmpty(roots, "root nodes ie empty");
-        Verifies.notEmpty(leaf, "leaf nodes ie empty");
+        Verifies.notEmpty(origins, "root nodes ie empty");
+        Verifies.notEmpty(lasts, "leaf nodes ie empty");
 
         // 是否有环
-        for (String root : roots) {
+        for (String root : origins) {
             Verifies.verify(!hasCyclic(nodes.get(root)), "jobs has cyclic");
         }
     }
@@ -135,12 +132,12 @@ public class DAG<T extends DAGNode> implements Serializable {
     /**
      * 获取叶子节点 也就是最后执行的节点
      */
-    public List<T> getLeafNodes() {
+    public List<T> lasts() {
         List<T> result = new ArrayList<>();
-        if (CollectionUtils.isEmpty(leaf)) {
+        if (CollectionUtils.isEmpty(lasts)) {
             return result;
         }
-        for (String id : leaf) {
+        for (String id : lasts) {
             result.add(nodes.get(id));
         }
         return result;
@@ -150,12 +147,12 @@ public class DAG<T extends DAGNode> implements Serializable {
     /**
      * 获取所有根节点
      */
-    public List<T> roots() {
+    public List<T> origins() {
         List<T> result = new ArrayList<>();
-        if (CollectionUtils.isEmpty(roots)) {
+        if (CollectionUtils.isEmpty(origins)) {
             return result;
         }
-        for (String root : roots) {
+        for (String root : origins) {
             result.add(nodes.get(root));
         }
         return result;

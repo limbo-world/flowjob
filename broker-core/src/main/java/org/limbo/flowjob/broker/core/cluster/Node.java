@@ -16,23 +16,21 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.domain.handler;
+package org.limbo.flowjob.broker.core.cluster;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
- * default
- *
  * @author Devil
- * @since 2021/8/24
+ * @since 2022/8/23
  */
-public class TerminateJobFailHandler implements JobFailHandler {
+@Getter
+@AllArgsConstructor
+public class Node {
 
-    @Override
-    public void handle() {
-    }
+    private final String host;
 
-    @Override
-    public boolean terminate() {
-        return true;
-    }
+    private final Integer port;
 
 }

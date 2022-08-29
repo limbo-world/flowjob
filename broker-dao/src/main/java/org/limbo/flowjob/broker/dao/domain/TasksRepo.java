@@ -16,40 +16,43 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.plan.service;
+package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
-import org.limbo.flowjob.broker.api.constants.enums.JobStatus;
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.task.Task;
-import org.limbo.flowjob.broker.core.repository.TaskRepository;
-import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
-import org.springframework.stereotype.Service;
+import org.limbo.flowjob.broker.core.repository.TasksRepository;
+import org.limbo.flowjob.broker.dao.converter.DomainConverter;
+import org.limbo.flowjob.broker.dao.entity.TaskEntity;
+import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
+import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Devil
- * @since 2022/8/18
+ * @since 2022/8/19
  */
-@Service
-public class JobService {
+@Repository
+public class TasksRepo implements TasksRepository {
 
     @Setter(onMethod_ = @Inject)
-    private JobInstanceEntityRepo jobInstanceEntityRepo;
-    @Setter(onMethod_ = @Inject)
-    private TaskRepository taskRepository;
+    private TaskEntityRepo taskEntityRepo;
 
-    @Transactional
-    public void saveDispatchInfo(JobInstance jobInstance, JobInstance.Tasks tasks) {
-        if (jobInstanceEntityRepo.updateStatus(Long.valueOf(jobInstance.getJobId()), JobStatus.SCHEDULING.status, JobStatus.EXECUTING.status) != 1) {
+    @Override
+    public void save(JobInstance.Tasks tasks) {
+        if (tasks == null || CollectionUtils.isEmpty(tasks.getTasks())) {
             return;
         }
-
+        List<TaskEntity> entities = new ArrayList<>();
         for (Task task : tasks.getTasks()) {
-            taskRepository.save(task);
+            entities.add(DomainConverter.toTaskEntity(task));
         }
 
+        taskEntityRepo.saveAll(entities);
+        taskEntityRepo.flush();
     }
 }

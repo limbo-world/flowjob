@@ -35,7 +35,7 @@ import java.util.Map;
  */
 @Data
 @Schema(title = "作业执行反馈参数")
-public class TaskExecuteFeedbackParam {
+public class TaskFeedbackParam {
 
     /**
      * 任务ID
@@ -50,12 +50,6 @@ public class TaskExecuteFeedbackParam {
     @NotNull(message = "result can't be null")
     @Schema(description = "执行结果")
     private ExecuteResult result;
-
-    /**
-     * 返回的用于下个计算的参数
-     */
-    @Schema(description = "返回的用于下个计算的参数")
-    private String params;
 
     /**
      * 执行失败时候返回的信息
@@ -73,12 +67,18 @@ public class TaskExecuteFeedbackParam {
      * 更新的作业上下文元数据
      */
     @Schema(description = "更新的作业上下文元数据")
-    private Map<String, List<String>> attributes;
+    private Map<String, Object> context;
 
     /**
-     * 生成的子任务
+     * 生成的map任务
      */
-    @Schema(description = "子任务")
-    private List<SubTaskParam> subTasks;
+    @Schema(description = "map任务属性")
+    private List<Map<String, Object>> mapTaskAttributes;
+
+    /**
+     * 返回的数据
+     */
+    @Schema(description = "返回的数据")
+    private Map<String, Object> resultAttributes;
 
 }

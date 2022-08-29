@@ -19,6 +19,7 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
@@ -26,6 +27,7 @@ import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
+import org.limbo.flowjob.common.utils.dag.DAG;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
@@ -54,7 +56,8 @@ public class JobInstanceRepo implements JobInstanceRepository {
         return jobInstanceEntityRepo.findById(Long.valueOf(jobInstanceId)).map(entity -> {
 
             PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getPlanInfoId()).get();
-            return DomainConverter.toJobInstance(entity, planInfoEntity);
+            DAG<JobInfo> dag = DomainConverter.toJobDag(planInfoEntity.getJobs());
+            return DomainConverter.toJobInstance(entity, dag);
 
         }).orElse(null);
     }

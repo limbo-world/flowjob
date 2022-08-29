@@ -141,5 +141,4 @@ public class PlanService {
             planEntityRepo.nextTriggerAt(planId, planInstance.nextTriggerAt());
         }
     }
-
 }

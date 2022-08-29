@@ -45,10 +45,6 @@ public class Task {
      * 执行器的名称
      */
     private String executorName;
-    /**
-     * 执行时候的参数
-     */
-    private String executorParam;
 
     public String getId() {
         return planId + "-" + planRecordId + "-" + planInstanceId + "-" + jobId + "-" + jobInstanceId + "-" + taskId;

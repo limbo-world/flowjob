@@ -68,6 +68,11 @@ public class JobInfo extends DAGNode {
      */
     private ExecutorOption executorOption;
 
+    /**
+     * 执行失败是否终止 false 会继续执行后续作业
+     */
+    private boolean terminateWithFail;
+
     public JobInfo(String id, Set<String> childrenIds) {
         super(id, childrenIds);
     }

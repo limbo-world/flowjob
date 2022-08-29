@@ -32,15 +32,17 @@ import java.util.List;
  */
 public interface TaskEntityRepo extends JpaRepository<TaskEntity, Long> {
 
-    List<TaskEntity> findByJobInstanceId(Long jobInstanceId);
+    List<TaskEntity> findByJobInstanceIdAndType(Long jobInstanceId, Byte type);
+
+    List<TaskEntity> findByPlanIdInAncStatus(List<Long> planIds, Byte status);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update TaskEntity set status = :newStatus, workerId = :workerId where id = :id and status = :oldStatus")
     int updateStatus(@Param("id") Long id, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus, @Param("workerId") String workerId);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update TaskEntity set status = :newStatus where id = :id and status = :oldStatus")
-    int updateStatus(@Param("id") Long id, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus);
+    @Query(value = "update TaskEntity set status = :newStatus, result = :result where id = :id and status = :oldStatus")
+    int updateSuccessStatus(@Param("id") Long id, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus, @Param("result") String result);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update TaskEntity set status = :newStatus, errorMsg = :errorMsg, errorStackTrace = :errorStack where id = :id and status = :oldStatus")

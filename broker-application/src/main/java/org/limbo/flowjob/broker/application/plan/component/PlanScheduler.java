@@ -18,40 +18,49 @@
 
 package org.limbo.flowjob.broker.application.plan.component;
 
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.application.plan.service.PlanService;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.schedule.scheduler.HashedWheelTimerScheduler;
+import org.springframework.stereotype.Component;
 
+import javax.inject.Inject;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Devil
  * @since 2022/8/18
  */
+@Slf4j
+@Component
 public class PlanScheduler extends HashedWheelTimerScheduler<PlanInstance> {
+
+    @Setter(onMethod_ = @Inject)
+    private PlanService planService;
+    @Setter(onMethod_ = @Inject)
+    private JobScheduler jobScheduler;
 
     /**
      * 调度线程池
      */
-    private final ExecutorService schedulePool;
-
-    private PlanService planService;
-
-    private JobScheduler jobScheduler;
-
-    public PlanScheduler(ExecutorService schedulePool) {
-        super();
-        this.schedulePool = schedulePool;
-    }
-
+    private final ExecutorService schedulePool = new ThreadPoolExecutor(
+            Runtime.getRuntime().availableProcessors() * 4,
+            Runtime.getRuntime().availableProcessors() * 4,
+            60,
+            TimeUnit.SECONDS,
+            new ArrayBlockingQueue<>(256),
+            new ThreadPoolExecutor.CallerRunsPolicy());
 
     @Override
     protected void doSchedule(PlanInstance planInstance) {
         // 执行调度逻辑
-        schedulePool.submit(new Runnable() {
-            @Override
-            public void run() {
+        schedulePool.submit(() -> {
+            try {
                 PlanInstance.JobInstances jobInstances = new PlanInstance.JobInstances(planInstance.getPlanInstanceId(), planInstance.getRootJobs());
 
                 // 保存数据
@@ -61,10 +70,13 @@ public class PlanScheduler extends HashedWheelTimerScheduler<PlanInstance> {
                 for (JobInstance instance : jobInstances.getInstances()) {
                     jobScheduler.schedule(instance);
                 }
-
+            } catch (Exception e) {
+                log.error("PlanScheduler schedule error planInstance:{}", planInstance, e);
+            } finally {
                 // 完成后移除
                 unschedule(planInstance.scheduleId());
             }
         });
     }
+
 }

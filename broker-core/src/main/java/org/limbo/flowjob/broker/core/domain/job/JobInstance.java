@@ -28,7 +28,6 @@ import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.domain.DispatchOption;
 import org.limbo.flowjob.broker.core.domain.ExecutorOption;
-import org.limbo.flowjob.broker.core.domain.handler.JobFailHandler;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.schedule.Scheduled;
 import org.limbo.flowjob.common.utils.TimeUtil;
@@ -88,14 +87,14 @@ public class JobInstance implements Scheduled, Serializable {
     protected LocalDateTime endAt;
 
     /**
-     * 此次执行的参数
+     * 此次执行的参数 界面配置
      */
     protected Attributes attributes;
 
     /**
-     * 执行失败时候的处理
+     * 执行失败是否终止 false 会继续执行后续作业
      */
-    protected JobFailHandler failHandler;
+    private boolean terminateWithFail;
 
     /**
      * 是否已完成 可以触发下一个
@@ -105,7 +104,7 @@ public class JobInstance implements Scheduled, Serializable {
             return true;
         }
         if (status == JobStatus.FAILED) {
-            return failHandler == null || !failHandler.terminate();
+            return !terminateWithFail;
         }
         return false;
     }
@@ -123,8 +122,9 @@ public class JobInstance implements Scheduled, Serializable {
      */
     public boolean retry() {
         if (dispatchOption.getRetry() > retry) {
-            // todo 根据重试间隔决定触发时间
-            setTriggerAt(TimeUtil.currentLocalDateTime());
+            setTriggerAt(TimeUtil.currentLocalDateTime().plusSeconds(dispatchOption.getRetryInterval()));
+            setJobInstanceId(null);
+            setStatus(JobStatus.SCHEDULING);
             return true;
         } else {
             return false;

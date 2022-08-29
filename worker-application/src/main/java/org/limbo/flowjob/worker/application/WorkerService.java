@@ -46,7 +46,7 @@ public class WorkerService {
         job.setTaskId(param.getTaskId());
         job.setType(param.getType());
         job.setExecutorName(param.getExecutorName());
-        job.setExecutorParam(param.getExecutorParam());
+//        job.setExecutorParam(param.getExecutorParam()); // todo
         worker.receive(job);
     }
 

@@ -20,6 +20,7 @@ package org.limbo.flowjob.broker.api.console.param;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.limbo.flowjob.broker.api.constants.enums.JobType;
 
 import java.util.Set;
 
@@ -48,6 +49,12 @@ public class JobAddParam {
      */
     @Schema(title = "此作业相连的下级作业ID")
     private Set<String> childrenIds;
+
+    /**
+     * 作业类型
+     */
+    @Schema(title = "作业类型", description = JobType.DESCRIPTION)
+    private JobType type;
 
     /**
      * 作业分发配置参数

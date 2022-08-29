@@ -16,25 +16,14 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.domain.handler;
-
-import lombok.extern.slf4j.Slf4j;
+package org.limbo.flowjob.broker.core.domain.factory;
 
 /**
  * @author Devil
- * @since 2021/8/24
+ * @since 2022/8/19
  */
-@Slf4j
-public class LogJobFailHandler implements JobFailHandler {
+public class FailHandlerFactory {
 
-    @Override
-    public void handle() {
 
-    }
-
-    @Override
-    public boolean terminate() {
-        return false;
-    }
 
 }

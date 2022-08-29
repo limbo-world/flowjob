@@ -36,6 +36,7 @@ import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.core.schedule.Scheduled;
 import org.limbo.flowjob.broker.core.schedule.calculator.ScheduleCalculatorFactory;
 import org.limbo.flowjob.common.utils.TimeUtil;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 
 import java.io.Serializable;
@@ -99,6 +100,11 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
      */
     private DAG<JobInfo> dag;
 
+    /**
+     * 全局上下文 配置 --- 或者job执行中变更 整个plan生命周期内传递
+     */
+    private Attributes context;
+
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ToString.Exclude
@@ -134,7 +140,7 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
 
     public List<JobInstance> getRootJobs() {
         List<JobInstance> jobInstances = new ArrayList<>();
-        for (JobInfo jobInfo : dag.roots()) {
+        for (JobInfo jobInfo : dag.origins()) {
             if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
                 jobInstances.add(jobInstanceFactory.create(planInstanceId, jobInfo, TimeUtil.currentLocalDateTime()));
             }

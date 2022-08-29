@@ -19,15 +19,10 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
-import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
 import org.limbo.flowjob.broker.core.cluster.WorkerManager;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.broker.core.domain.task.Task;
-import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.broker.core.repository.TaskRepository;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
-import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
@@ -36,7 +31,6 @@ import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.List;
 
 /**
  * @author Brozen
@@ -63,52 +57,14 @@ public class TaskRepo implements TaskRepository {
     @Transactional
     public String save(Task task) {
         Verifies.notNull(task, "task can't be null");
-        TaskEntity entity = toEntity(task);
+        TaskEntity entity = DomainConverter.toTaskEntity(task);
         taskEntityRepo.saveAndFlush(entity);
         return String.valueOf(entity.getId());
     }
 
     @Override
     public Task get(String taskId) {
-        return taskEntityRepo.findById(Long.valueOf(taskId)).map(this::toDO).orElse(null);
-    }
-
-    private TaskEntity toEntity(Task task) {
-        TaskEntity taskEntity = new TaskEntity();
-        taskEntity.setJobInstanceId(Long.valueOf(task.getJobInstanceId()));
-        taskEntity.setJobId(task.getJobId());
-        taskEntity.setStatus(task.getStatus().status);
-        taskEntity.setWorkerId(Long.valueOf(task.getWorkerId()));
-        taskEntity.setAttributes(task.getAttributes() == null ? "" : task.getAttributes().toString());
-        taskEntity.setErrorMsg(task.getErrorMsg());
-        taskEntity.setErrorStackTrace(task.getErrorStackTrace());
-        taskEntity.setStartAt(task.getStartAt());
-        taskEntity.setEndAt(task.getEndAt());
-        taskEntity.setId(Long.valueOf(task.getTaskId()));
-        return taskEntity;
-    }
-
-    private Task toDO(TaskEntity entity) {
-        Task task = new Task();
-        task.setTaskId(entity.getId().toString());
-        task.setJobInstanceId(entity.getJobInstanceId().toString());
-        task.setJobId(entity.getJobId());
-        task.setStatus(TaskStatus.parse(entity.getStatus()));
-        task.setWorkerId(String.valueOf(entity.getWorkerId()));
-        task.setAttributes(new Attributes(entity.getAttributes()));
-        task.setErrorMsg(entity.getErrorMsg());
-        task.setErrorStackTrace(entity.getErrorStackTrace());
-        task.setStartAt(entity.getStartAt());
-        task.setEndAt(entity.getEndAt());
-        task.setWorkerManager(workerManager);
-
-        // job
-        PlanInfoEntity planInfo = planInfoEntityRepo.findById(Long.valueOf(task.getPlanVersion())).get();
-        DAG<JobInfo> jobInfoDAG = DomainConverter.toJobDag(planInfo.getJobs());
-        JobInfo jobInfo = jobInfoDAG.getNode(entity.getJobId());
-        task.setDispatchOption(jobInfo.getDispatchOption());
-        task.setExecutorOption(jobInfo.getExecutorOption());
-        return task;
+        return taskEntityRepo.findById(Long.valueOf(taskId)).map(entity -> DomainConverter.toTask(entity, workerManager, planInfoEntityRepo)).orElse(null);
     }
 
 }

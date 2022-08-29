@@ -25,7 +25,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.limbo.flowjob.broker.api.clent.dto.WorkerRegisterDTO;
-import org.limbo.flowjob.broker.api.clent.param.TaskExecuteFeedbackParam;
+import org.limbo.flowjob.broker.api.clent.param.TaskFeedbackParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerHeartbeatParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
 import org.limbo.flowjob.broker.api.constants.HttpStatus;
@@ -85,7 +85,7 @@ public class HttpRemoteClient extends AbstractRemoteClient {
     }
 
     @Override
-    public void taskExecuted(TaskExecuteFeedbackParam param) {
+    public void taskExecuted(TaskFeedbackParam param) {
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), JacksonUtils.toJSONString(param));
 
         Request request = new Request.Builder()
