@@ -19,7 +19,7 @@ package org.limbo.flowjob.broker.core.dispatcher.strategies;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.broker.core.exceptions.TaskReceiveException;
-import org.limbo.flowjob.broker.core.plan.job.context.Task;
+import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerExecutor;
 

@@ -97,7 +97,7 @@ public class PlanInfoEntity extends BaseEntity {
     private Integer retry;
 
     /**
-     * 任务 json string todo 迁移到表
+     * 任务 json string
      */
     private String jobs;
 

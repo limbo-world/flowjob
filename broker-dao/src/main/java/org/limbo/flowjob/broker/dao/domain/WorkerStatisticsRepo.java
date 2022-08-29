@@ -62,15 +62,4 @@ public class WorkerStatisticsRepo implements WorkerStatisticsRepository {
         return workerStatisticsEntityRepo.findById(Long.valueOf(workerId)).map(WorkerStatisticsPoConverter::toDO).orElse(null);
     }
 
-    /**
-     * {@inheritDoc}
-     * @param workerId
-     * @param dispatchAt
-     * @return
-     */
-    @Override
-    public boolean updateWorkerDispatchTimes(String workerId, LocalDateTime dispatchAt) {
-        // TODO
-        return false;
-    }
 }

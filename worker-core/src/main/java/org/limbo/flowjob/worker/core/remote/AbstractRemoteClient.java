@@ -18,7 +18,7 @@ package org.limbo.flowjob.worker.core.remote;
 
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.api.clent.dto.WorkerRegisterDTO;
-import org.limbo.flowjob.broker.api.clent.param.TaskExecuteFeedbackParam;
+import org.limbo.flowjob.broker.api.clent.param.TaskFeedbackParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerHeartbeatParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
@@ -56,7 +56,7 @@ public abstract class AbstractRemoteClient {
     /**
      * 任务执行完成 将结果反馈给tracker
      */
-    public abstract void taskExecuted(TaskExecuteFeedbackParam param);
+    public abstract void taskExecuted(TaskFeedbackParam param);
 
     /**
      * 协议类型

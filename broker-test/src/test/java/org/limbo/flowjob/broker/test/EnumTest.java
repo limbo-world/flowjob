@@ -20,6 +20,7 @@ package org.limbo.flowjob.broker.test;
 
 import org.junit.Test;
 import org.limbo.flowjob.broker.api.constants.enums.DescribableEnum;
+import org.limbo.flowjob.broker.api.constants.enums.JobType;
 import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
@@ -32,6 +33,6 @@ public class EnumTest {
 
     @Test
     public void test() {
-        System.out.println(DescribableEnum.describe(ScheduleType.class));
+        System.out.println(DescribableEnum.describe(JobType.class));
     }
 }

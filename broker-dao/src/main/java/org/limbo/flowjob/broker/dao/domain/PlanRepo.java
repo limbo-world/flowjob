@@ -20,32 +20,25 @@ package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
-import org.limbo.flowjob.broker.core.cluster.BrokerNodeManger;
-import org.limbo.flowjob.broker.core.plan.Plan;
-import org.limbo.flowjob.broker.core.plan.PlanInfo;
+import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Brozen
@@ -60,9 +53,7 @@ public class PlanRepo implements PlanRepository {
     @Setter(onMethod_ = @Inject)
     private PlanInfoEntityRepo planInfoEntityRepo;
     @Setter(onMethod_ = @Inject)
-    private BrokerConfig config;
-
-    private static final int SLOT_SIZE = 64;
+    private PlanSlotEntityRepo planSlotEntityRepo;
 
     /**
      * {@inheritDoc}
@@ -89,9 +80,10 @@ public class PlanRepo implements PlanRepository {
         planEntityRepo.saveAndFlush(planEntity);
 
         // 槽位保存
-        int slot = (int) (planEntity.getId() % SLOT_SIZE);
-        planEntity.setSlot(slot);
-        planEntityRepo.saveAndFlush(planEntity);
+        PlanSlotEntity planSlotEntity = new PlanSlotEntity();
+        planSlotEntity.setSlot(SlotManager.slot(planEntity.getId()));
+        planSlotEntity.setPlanId(planEntity.getId());
+        planSlotEntityRepo.saveAndFlush(planSlotEntity);
 
         // 设置版本
         PlanInfoEntity planInfo = toEntity(plan.getInfo());
@@ -131,55 +123,6 @@ public class PlanRepo implements PlanRepository {
         Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(Long.valueOf(planId));
         Verifies.verify(planEntityOptional.isPresent(), "plan is not exist");
         return toPlan(planEntityOptional.get());
-    }
-
-    @Override
-    public List<Plan> schedulePlans(LocalDateTime nextTriggerAt) {
-        List<Integer> slots = slots();
-        if (CollectionUtils.isEmpty(slots)) {
-            return Collections.emptyList();
-        }
-        List<PlanEntity> planEntities = planEntityRepo.findBySlotInAndIsEnabledAndNextTriggerAtBefore(slots(), true, nextTriggerAt);
-        if (CollectionUtils.isEmpty(planEntities)) {
-            return Collections.emptyList();
-        }
-        List<Plan> plans = new ArrayList<>();
-        for (PlanEntity planEntity : planEntities) {
-            plans.add(toPlan(planEntity));
-        }
-        return plans;
-    }
-
-    /**
-     * 获取槽位的算法
-     * @return 当前机器对应的所有槽位
-     */
-    private List<Integer> slots() {
-        List<Pair<String, Integer>> aliveNodes = BrokerNodeManger.alive();
-        List<Pair<String, Integer>> sortedNodes = aliveNodes.stream().sorted(Pair::compareTo).collect(Collectors.toList());
-
-        // 判断自己所在的id位置
-        int mark = -1;
-        for (int i = 0; i < sortedNodes.size(); i++) {
-            Pair<String, Integer> node = sortedNodes.get(i);
-            if (config.getHost().equals(node.getLeft()) && config.getPort() == node.getRight()) {
-                mark = i;
-                break;
-            }
-        }
-
-        if (mark < 0) {
-            log.warn("can't find in alive nodes host:{} port:{}", config.getHost(), config.getPort());
-            return Collections.emptyList();
-        }
-
-        List<Integer> slots = new ArrayList<>();
-        while (mark < SLOT_SIZE) {
-            slots.add(mark);
-            mark += sortedNodes.size();
-        }
-        log.info("find slots:{}", slots);
-        return slots;
     }
 
     public PlanInfoEntity toEntity(PlanInfo planInfo) {

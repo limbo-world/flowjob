@@ -18,6 +18,7 @@
 
 package org.limbo.flowjob.broker.cluster;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
@@ -27,7 +28,9 @@ import org.limbo.flowjob.broker.core.cluster.NodeListener;
 import org.limbo.flowjob.broker.dao.entity.BrokerEntity;
 import org.limbo.flowjob.broker.dao.repositories.BrokerEntityRepo;
 import org.limbo.flowjob.common.utils.TimeUtil;
+import org.springframework.stereotype.Component;
 
+import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,20 +44,18 @@ import java.util.TimerTask;
  * @since 2022/7/15
  */
 @Slf4j
+@Component
 public class DBBrokerRegistry implements BrokerRegistry {
 
-    private final BrokerEntityRepo brokerEntityRepo;
+    @Setter(onMethod_ = @Inject)
+    private BrokerEntityRepo brokerEntityRepo;
 
+    @Setter(onMethod_ = @Inject)
     private BrokerConfig config;
 
     private long nodeStatusCheckInterval = 400;
 
     private final List<NodeListener> listeners = new ArrayList<>();
-
-    public DBBrokerRegistry(BrokerConfig config, BrokerEntityRepo brokerEntityRepo) {
-        this.config = config;
-        this.brokerEntityRepo = brokerEntityRepo;
-    }
 
     @Override
     public void register(String host, int port) {
@@ -111,7 +112,7 @@ public class DBBrokerRegistry implements BrokerRegistry {
             if (CollectionUtils.isNotEmpty(onlineBrokers)) {
                 for (BrokerEntity broker : onlineBrokers) {
                     for (NodeListener listener : listeners) {
-                        listener.event(new NodeEvent(String.valueOf(broker.getId()), NodeEvent.Type.ONLINE, broker.getHost(), broker.getPort()));
+                        listener.event(new NodeEvent(NodeEvent.Type.ONLINE, broker.getHost(), broker.getPort()));
                     }
                 }
             }
@@ -121,12 +122,12 @@ public class DBBrokerRegistry implements BrokerRegistry {
         private void checkOffline() {
             LocalDateTime startTime = lastOfflineCheckTime;
             LocalDateTime endTime = TimeUtil.currentLocalDateTime().plusNanos(config.getHeartbeatTimeout());
-            log.info("{} checkOnline start:{} end:{}", TASK_NAME, startTime, endTime);
+            log.info("{} checkOffline start:{} end:{}", TASK_NAME, startTime, endTime);
             List<BrokerEntity> offlineBrokers = brokerEntityRepo.findByLastHeartbeatBetween(startTime, endTime);
             if (CollectionUtils.isNotEmpty(offlineBrokers)) {
                 for (BrokerEntity broker : offlineBrokers) {
                     for (NodeListener listener : listeners) {
-                        listener.event(new NodeEvent(String.valueOf(broker.getId()), NodeEvent.Type.OFFLINE, broker.getHost(), broker.getPort()));
+                        listener.event(new NodeEvent(NodeEvent.Type.OFFLINE, broker.getHost(), broker.getPort()));
                     }
                 }
             }

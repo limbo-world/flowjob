@@ -18,7 +18,7 @@ package org.limbo.flowjob.worker.core.executor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.limbo.flowjob.broker.api.clent.param.TaskExecuteFeedbackParam;
+import org.limbo.flowjob.broker.api.clent.param.TaskFeedbackParam;
 import org.limbo.flowjob.broker.api.constants.enums.ExecuteResult;
 import org.limbo.flowjob.worker.core.domain.Task;
 import org.limbo.flowjob.worker.core.remote.AbstractRemoteClient;
@@ -50,12 +50,12 @@ public class JobExecutorRunner {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                TaskExecuteFeedbackParam dto = new TaskExecuteFeedbackParam();
-                dto.setPlanId(job.getPlanId());
-                dto.setPlanInstanceId(job.getPlanInstanceId());
-                dto.setJobId(job.getJobId());
+                TaskFeedbackParam dto = new TaskFeedbackParam();
+//                dto.setPlanId(job.getPlanId());
+//                dto.setPlanInstanceId(job.getPlanInstanceId());
+//                dto.setJobId(job.getJobId());
                 try {
-                    dto.setParams(executor.run(job));
+//                    dto.setParams(executor.run(job)); // todo
                     dto.setResult(ExecuteResult.SUCCEED);
                 } catch (Exception e) {
                     log.error("job run error", e);

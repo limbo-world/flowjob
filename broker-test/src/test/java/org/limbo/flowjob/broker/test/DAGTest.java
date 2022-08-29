@@ -19,8 +19,8 @@
 package org.limbo.flowjob.broker.test;
 
 import org.junit.Test;
-import org.limbo.flowjob.broker.core.plan.job.JobInfo;
-import org.limbo.flowjob.broker.core.plan.job.dag.DAG;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.common.utils.dag.DAG;
 
 import java.util.ArrayList;
 import java.util.Collections;

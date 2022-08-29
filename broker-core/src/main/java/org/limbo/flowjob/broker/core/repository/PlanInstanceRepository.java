@@ -1,6 +1,6 @@
 package org.limbo.flowjob.broker.core.repository;
 
-import org.limbo.flowjob.broker.core.plan.PlanInstance;
+import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 
 /**
  * @author Devil

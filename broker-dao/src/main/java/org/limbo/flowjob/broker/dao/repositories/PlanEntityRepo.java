@@ -39,7 +39,7 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, Long> {
     @Query(value = "select * from flowjob_plan where id = ?1 for update", nativeQuery = true)
     PlanEntity selectForUpdate(@Param("id") Long id);
 
-    List<PlanEntity> findBySlotInAndIsEnabledAndNextTriggerAtBefore(List<Integer> slots, boolean isEnabled, LocalDateTime nextTriggerAt);
+    List<PlanEntity> findByIdInAndIsEnabledAndNextTriggerAtBefore(List<Long> ids, boolean isEnabled, LocalDateTime nextTriggerAt);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanEntity set currentVersion = :newCurrentVersion, recentlyVersion = :newRecentlyVersion " +

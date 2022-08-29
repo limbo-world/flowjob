@@ -41,9 +41,6 @@ public class TaskSubmitParam {
 
     private String jobInstanceId;
 
-    /**
-     * sharding normal
-     */
     private Byte type;
 
     /**
@@ -52,13 +49,21 @@ public class TaskSubmitParam {
     private String executorName;
 
     /**
-     * 执行时候的参数
+     * 上下文元数据
      */
-    private String executorParam;
+    private Map<String, Object> context;
 
     /**
-     * 作业上下文元数据
+     * job配置的属性
      */
-    private Map<String, List<String>> attributes;
+    private Map<String, Object> attributes;
+    /**
+     * 每个map task单独的属性
+     */
+    private Map<String, Object> mapAttributes;
+    /**
+     * reduce时候使用的
+     */
+    private List<Map<String, Object>> reduceAttributes;
 
 }

@@ -35,7 +35,7 @@ public class BrokerConfig {
     /**
      * 提供给worker的服务port
      */
-    private int port;
+    private Integer port;
     /**
      * 心跳时间间隔
      */
@@ -44,12 +44,4 @@ public class BrokerConfig {
      * 心跳超时时间
      */
     private long heartbeatTimeout = 10000;
-    /**
-     * 重分配间隔
-     */
-    private long rebalanceInterval = 10000;
-    /**
-     * 状态检查间隔
-     */
-    private long statusCheckInterval = 10000;
 }

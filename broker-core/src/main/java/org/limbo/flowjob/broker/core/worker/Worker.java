@@ -24,7 +24,7 @@ import org.limbo.flowjob.broker.api.clent.dto.TaskReceiveDTO;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
 import org.limbo.flowjob.broker.core.exceptions.TaskReceiveException;
-import org.limbo.flowjob.broker.core.plan.job.context.Task;
+import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetricRepository;

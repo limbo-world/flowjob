@@ -16,22 +16,26 @@
 
 package org.limbo.flowjob.broker.application.plan.config;
 
+import lombok.Setter;
+import org.limbo.flowjob.broker.application.plan.component.JobStatusCheckTask;
+import org.limbo.flowjob.broker.application.plan.component.PlanScheduleTask;
+import org.limbo.flowjob.broker.application.plan.component.TaskStatusCheckTask;
+import org.limbo.flowjob.broker.application.plan.support.NodeMangerImpl;
+import org.limbo.flowjob.broker.core.cluster.Broker;
+import org.limbo.flowjob.broker.core.cluster.BrokerRegistry;
+import org.limbo.flowjob.broker.core.dispatcher.strategies.RoundRobinWorkerSelector;
+import org.limbo.flowjob.broker.core.domain.factory.JobInstanceFactory;
+import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.cluster.WorkerManagerImpl;
-import org.limbo.flowjob.broker.core.dispatcher.strategies.RoundRobinWorkerSelector;
-import org.limbo.flowjob.broker.core.plan.job.context.TaskCreatorFactory;
 import org.limbo.flowjob.broker.core.schedule.calculator.SimpleScheduleCalculatorFactory;
-import org.limbo.flowjob.broker.core.schedule.scheduler.HashedWheelTimerScheduler;
-import org.limbo.flowjob.broker.core.schedule.scheduler.Scheduler;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
+import java.util.Timer;
 
 /**
  * @author Brozen
@@ -43,9 +47,62 @@ public class BrokerConfiguration {
     @Value("${server.port}")
     private int port;
 
-    @Autowired
+    @Setter(onMethod_ = @Inject)
     private BrokerProperties brokerProperties;
 
+    @Setter(onMethod_ = @Inject)
+    private PlanScheduleTask planScheduleTask;
+
+    @Setter(onMethod_ = @Inject)
+    private TaskStatusCheckTask taskStatusCheckTask;
+
+    @Setter(onMethod_ = @Inject)
+    private JobStatusCheckTask jobStatusCheckTask;
+
+    @Setter(onMethod_ = @Inject)
+    private BrokerRegistry brokerRegistry;
+
+    @Bean
+    public NodeManger brokerManger() {
+        return new NodeMangerImpl();
+    }
+
+    /**
+     * worker 管理，持久化等
+     */
+    @Bean
+    public Broker brokerNode(NodeManger nodeManger) {
+        return new Broker(brokerProperties, brokerRegistry, nodeManger) {
+            @Override
+            public void stop() {
+
+            }
+
+            @Override
+            public boolean isRunning() {
+                return false;
+            }
+
+            @Override
+            public boolean isStopped() {
+                return false;
+            }
+
+            @Override
+            public void start() {
+                super.start();
+
+                // 下发任务task
+                new Timer().schedule(planScheduleTask, 3000, brokerProperties.getRebalanceInterval());
+
+                // 状态检查task
+                new Timer().schedule(taskStatusCheckTask, 3000, brokerProperties.getStatusCheckInterval());
+
+                // 状态检查task
+                new Timer().schedule(jobStatusCheckTask, 3000, brokerProperties.getStatusCheckInterval());
+            }
+        };
+    }
 
     /**
      * worker 管理，持久化等
@@ -78,22 +135,8 @@ public class BrokerConfiguration {
      * 任务生成策略工厂
      */
     @Bean
-    public TaskCreatorFactory taskCreateStrategyFactory(WorkerManager workerManager) {
-        return new TaskCreatorFactory(workerManager);
-    }
-
-    /**
-     * 调度器
-     */
-    @Bean
-    public Scheduler scheduler() {
-        return new HashedWheelTimerScheduler(new ThreadPoolExecutor(
-                Runtime.getRuntime().availableProcessors() * 4,
-                Runtime.getRuntime().availableProcessors() * 8,
-                60,
-                TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(256),
-                new ThreadPoolExecutor.CallerRunsPolicy()));
+    public JobInstanceFactory jobInstanceFactory(WorkerManager workerManager) {
+        return new JobInstanceFactory(workerManager);
     }
 
 }

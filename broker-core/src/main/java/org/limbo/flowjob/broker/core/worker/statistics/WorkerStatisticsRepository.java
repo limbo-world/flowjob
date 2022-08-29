@@ -37,10 +37,4 @@ public interface WorkerStatisticsRepository {
      */
     WorkerStatistics getWorkerStatistics(String workerId);
 
-    /**
-     * 更新worker的最近作业下发时间
-     * @return 是否更新成功
-     */
-    boolean updateWorkerDispatchTimes(String workerId, LocalDateTime dispatchAt);
-
 }

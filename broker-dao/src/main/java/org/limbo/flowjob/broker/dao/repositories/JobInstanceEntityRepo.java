@@ -24,6 +24,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -35,7 +36,9 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
 
     long countByPlanInstanceIdAndStatusIn(Long planInstanceId, List<Byte> statuses);
 
-    List<JobInstanceEntity> findByPlanInstanceId(Long planInstanceId);
+    List<JobInstanceEntity> findByPlanInstanceIdInAndStatusAndTriggerAtLessThan(Collection<Long> planIds, Byte status, LocalDateTime triggerAt);
+
+    List<JobInstanceEntity> findByPlanInstanceIdAndJobId(Long planInstanceId, Long jobId);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity set status = :newStatus where id = :id and status = :oldStatus")

@@ -19,26 +19,21 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
-import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.api.constants.enums.PlanStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
-import org.limbo.flowjob.broker.core.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.plan.job.context.TaskCreatorFactory;
+import org.limbo.flowjob.broker.core.domain.factory.JobInstanceFactory;
+import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.schedule.calculator.ScheduleCalculatorFactory;
-import org.limbo.flowjob.broker.core.schedule.scheduler.Scheduler;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
-import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
-import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.List;
 
 /**
  * @author Devil
@@ -52,13 +47,9 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
     @Setter(onMethod_ = @Inject)
     private PlanInfoEntityRepo planInfoEntityRepo;
     @Setter(onMethod_ = @Inject)
-    private Scheduler scheduler;
-    @Setter(onMethod_ = @Inject)
     private ScheduleCalculatorFactory scheduleCalculatorFactory;
     @Setter(onMethod_ = @Inject)
-    private TaskCreatorFactory taskCreatorFactory;
-    @Setter(onMethod_ = @Inject)
-    private JobInstanceEntityRepo jobInstanceEntityRepo;
+    private JobInstanceFactory jobInstanceFactory;
 
 
     @Override
@@ -100,21 +91,21 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
         planInstance.setFeedbackAt(entity.getFeedbackAt());
 
         planInstance.setStrategyFactory(scheduleCalculatorFactory);
-        planInstance.setScheduler(scheduler);
-        planInstance.setTaskCreatorFactory(taskCreatorFactory);
+        planInstance.setJobInstanceFactory(jobInstanceFactory);
 
         // 基础信息
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getPlanInfoId()).get();
         planInstance.setScheduleOption(DomainConverter.toScheduleOption(planInfoEntity));
         planInstance.setDag(DomainConverter.toJobDag(planInfoEntity.getJobs()));
 
-        // 处理 JobInstance
-        List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findByPlanInstanceId(entity.getId());
-        if (CollectionUtils.isNotEmpty(jobInstanceEntities)) {
-            for (JobInstanceEntity jobInstanceEntity : jobInstanceEntities) {
-                planInstance.putJobInstance(DomainConverter.toJobInstance(jobInstanceEntity, taskCreatorFactory, planInfoEntity));
-            }
-        }
+//        // 处理 JobInstance
+//        List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findByPlanInstanceId(entity.getId());
+//        if (CollectionUtils.isNotEmpty(jobInstanceEntities)) {
+//            for (JobInstanceEntity jobInstanceEntity : jobInstanceEntities) {
+//                JobInstance jobInstance = DomainConverter.toJobInstance(jobInstanceEntity, planInfoEntity);
+//                planInstance.putJobInstance(jobInstance.getJobId(), jobInstance.isCompleted());
+//            }
+//        }
 
         return planInstance;
     }

@@ -46,6 +46,13 @@ public interface WorkerRepository {
     Worker getWorker(String workerId);
 
     /**
+     * 根据id查询worker是否存活
+     * @param workerId workerId
+     * @return worker节点
+     */
+    boolean alive(String workerId);
+
+    /**
      * 获取所有可用的worker。可用指{@link WorkerStatus#RUNNING}状态的worker。
      * @return 可用的worker。
      */

@@ -16,7 +16,9 @@
 
 package org.limbo.flowjob.broker.core.repository;
 
-import org.limbo.flowjob.broker.core.plan.job.context.Task;
+import org.limbo.flowjob.broker.core.domain.task.Task;
+
+import java.util.List;
 
 /**
  * @author Brozen

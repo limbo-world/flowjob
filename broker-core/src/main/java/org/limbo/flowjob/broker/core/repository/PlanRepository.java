@@ -18,7 +18,7 @@
 
 package org.limbo.flowjob.broker.core.repository;
 
-import org.limbo.flowjob.broker.core.plan.Plan;
+import org.limbo.flowjob.broker.core.domain.plan.Plan;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -45,13 +45,5 @@ public interface PlanRepository {
      * @return 计划plan
      */
     Plan get(String planId);
-
-    /**
-     * 查询需要被调度的计划。会根据当前节点分配的 slot 查询。
-     *
-     * @param nextTriggerAt 需要触发哪个时间段的任务
-     * @return 需要被调度的作业计划
-     */
-    List<Plan> schedulePlans(LocalDateTime nextTriggerAt);
 
 }

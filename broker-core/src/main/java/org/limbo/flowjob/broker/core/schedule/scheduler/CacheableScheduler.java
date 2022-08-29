@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Devil
  * @since 2022/7/25
  */
-public class CacheableScheduler implements Scheduler {
+public abstract class CacheableScheduler<T extends Scheduled> implements Scheduler<T> {
 
     /**
      * 所有正在被调度中的对象

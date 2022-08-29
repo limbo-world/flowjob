@@ -7,14 +7,16 @@ import org.limbo.flowjob.broker.api.console.param.JobAddParam;
 import org.limbo.flowjob.broker.api.console.param.PlanAddParam;
 import org.limbo.flowjob.broker.api.console.param.PlanReplaceParam;
 import org.limbo.flowjob.broker.api.console.param.ScheduleOptionParam;
-import org.limbo.flowjob.broker.core.plan.Plan;
-import org.limbo.flowjob.broker.core.plan.PlanInfo;
-import org.limbo.flowjob.broker.core.plan.job.DispatchOption;
-import org.limbo.flowjob.broker.core.plan.job.ExecutorOption;
-import org.limbo.flowjob.broker.core.plan.job.JobInfo;
-import org.limbo.flowjob.broker.core.plan.job.dag.DAG;
+import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
+import org.limbo.flowjob.broker.core.domain.DispatchOption;
+import org.limbo.flowjob.broker.core.domain.ExecutorOption;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.common.utils.TimeUtil;
+import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -102,10 +104,9 @@ public class PlanConverter {
      * 生成作业分发参数
      */
     public static DispatchOption convertJobDispatchOption(DispatchOptionParam param) {
-        return new DispatchOption(param.getLoadBalanceType(), param.getCpuRequirement(), param.getRamRequirement(), param.getRetry());
+        return new DispatchOption(param.getLoadBalanceType(), param.getCpuRequirement(), param.getRamRequirement(), param.getRetry(), param.getRetryInterval());
 
     }
-
 
     /**
      * 生成作业调度参数

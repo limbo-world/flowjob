@@ -28,10 +28,6 @@ public class PlanEntity extends BaseEntity {
      */
     private Long appId;
     /**
-     * 槽位
-     */
-    private Integer slot;
-    /**
      * 下次触发时间
      */
     private LocalDateTime nextTriggerAt;

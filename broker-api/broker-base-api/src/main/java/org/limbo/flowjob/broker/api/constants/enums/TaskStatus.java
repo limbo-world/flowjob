@@ -96,4 +96,11 @@ public enum TaskStatus {
         return null;
     }
 
+    /**
+     * 是否已完成
+     */
+    public boolean isCompleted() {
+        return this == TaskStatus.SUCCEED || this == TaskStatus.FAILED;
+    }
+
 }

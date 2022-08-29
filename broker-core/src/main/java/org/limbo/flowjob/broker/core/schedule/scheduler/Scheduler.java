@@ -25,13 +25,13 @@ import org.limbo.flowjob.broker.core.schedule.Scheduled;
  * @author Brozen
  * @since 2021-05-18
  */
-public interface Scheduler {
+public interface Scheduler<T extends Scheduled> {
 
     /**
      * 开始调度
      * @param scheduled 待调度的对象
      */
-    void schedule(Scheduled scheduled);
+    void schedule(T scheduled);
 
     /**
      * 停止调度

@@ -18,29 +18,47 @@ package org.limbo.flowjob.broker.api.constants.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
 
 /**
+ * <ul>
+ *     <li>{@linkplain JobType#NORMAL 普通}</li>
+ *     <li>{@linkplain JobType#BROADCAST 广播}</li>
+ *     <li>{@linkplain JobType#MAP Map分片}</li>
+ *     <li>{@linkplain JobType#MAP_REDUCE MapReduce}</li>
+ * </ul>
+ *
  * @author Brozen
  * @since 2021-05-19
  */
-public enum JobType {
+public enum JobType implements DescribableEnum<Byte> {
     /**
      * 下发一个任务
      */
-    NORMAL(1, "普通任务"),
+    NORMAL(1, "普通类型"),
     /**
      * 给每个可选中节点下发任务
      */
-    BROADCAST(2, "广播任务"),
+    BROADCAST(2, "广播类型"),
     /**
      * 将任务切分
      */
-    SHARDING(3, "分片任务"),
+    MAP(3, "Map分片类型"),
+    /**
+     * 将任务切分 归纳
+     */
+    MAP_REDUCE(4, "MapReduce类型"),
     ;
+
+    /**
+     * 可通过{@link #describe(Class)}方法生成，用于在swagger3为枚举添加说明
+     */
+    public static final String DESCRIPTION = "1-普通类型; 2-广播类型; 3-Map分片类型; 4-MapReduce类型;";
 
     @JsonValue
     public final byte type;
 
+    @Getter
     public final String desc;
 
     @JsonCreator
@@ -55,6 +73,7 @@ public enum JobType {
 
     /**
      * 校验是否是当前状态
+     *
      * @param type 待校验值
      */
     public boolean is(JobType type) {
@@ -63,6 +82,7 @@ public enum JobType {
 
     /**
      * 校验是否是当前状态
+     *
      * @param type 待校验状态值
      */
     public boolean is(Number type) {
@@ -87,4 +107,8 @@ public enum JobType {
         return null;
     }
 
+    @Override
+    public Byte getValue() {
+        return type;
+    }
 }

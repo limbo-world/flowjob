@@ -26,6 +26,8 @@ public class JobInstanceEntity extends BaseEntity {
 
     private Long planInstanceId;
 
+    private Long planId;
+
     private Long planInfoId;
 
     private String jobId;
