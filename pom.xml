@@ -73,6 +73,7 @@
         <swagger>2.1.7</swagger>
         <netty>4.1.59.Final</netty>
         <okhttp>3.14.9</okhttp>
+        <retrofit2>2.9.0</retrofit2>
         <jackson>2.12.1</jackson>
         <lombok>1.18.16</lombok>
         <slf4j>1.7.30</slf4j>
@@ -189,6 +190,11 @@
                 <groupId>com.squareup.okhttp3</groupId>
                 <artifactId>okhttp</artifactId>
                 <version>${okhttp}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.retrofit2</groupId>
+                <artifactId>retrofit</artifactId>
+                <version>${retrofit2}</version>
             </dependency>
 
             <!-- SpringDoc接口文档 & SwaggerV3 -->

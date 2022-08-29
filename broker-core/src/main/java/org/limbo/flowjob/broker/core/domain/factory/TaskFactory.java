@@ -18,6 +18,7 @@
 
 package org.limbo.flowjob.broker.core.domain.factory;
 
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TaskType;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
@@ -34,12 +35,12 @@ public class TaskFactory {
         task.setJobInstanceId(instance.getJobInstanceId());
         task.setStatus(TaskStatus.DISPATCHING);
         task.setType(type);
-        task.setWorkerId("");
+        task.setWorkerId(StringUtils.EMPTY);
         task.setDispatchOption(instance.getDispatchOption());
         task.setExecutorOption(instance.getExecutorOption());
         task.setWorkerManager(null); // todo
-        task.setErrorMsg("");
-        task.setErrorStackTrace("");
+        task.setErrorMsg(StringUtils.EMPTY);
+        task.setErrorStackTrace(StringUtils.EMPTY);
         return task;
     }
 }

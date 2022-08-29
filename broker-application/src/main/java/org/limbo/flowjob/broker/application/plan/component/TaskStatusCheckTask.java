@@ -93,7 +93,7 @@ public class TaskStatusCheckTask extends TimerTask {
         List<TaskEntity> tasks = taskEntityRepo.findByPlanIdInAncStatus(slotEntities.stream().map(PlanSlotEntity::getPlanId).collect(Collectors.toList()), TaskStatus.EXECUTING.status);
         for (TaskEntity taskEntity : tasks) {
             // 获取长时间为执行中的task 判断worker是否已经宕机
-            if (!workerRepository.alive(taskEntity.getWorkerId().toString())) {
+            if (!workerRepository.get(taskEntity.getWorkerId()).isAlive()) {
                 Task task = DomainConverter.toTask(taskEntity, workerManager, planInfoEntityRepo);
                 task.dispatch(workerSelector);
             }

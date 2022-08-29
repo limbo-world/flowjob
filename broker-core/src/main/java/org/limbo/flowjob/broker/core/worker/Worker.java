@@ -17,20 +17,21 @@
 package org.limbo.flowjob.broker.core.worker;
 
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.limbo.flowjob.broker.api.clent.dto.TaskReceiveDTO;
-import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
+import lombok.experimental.Delegate;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
-import org.limbo.flowjob.broker.core.exceptions.TaskReceiveException;
-import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetricRepository;
+import org.limbo.flowjob.broker.core.worker.rpc.WorkerRpc;
+import org.limbo.flowjob.broker.core.worker.rpc.WorkerRpcFactory;
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatistics;
 import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatisticsRepository;
 
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -40,24 +41,20 @@ import java.util.List;
  * @since 2021-05-14
  */
 @Getter
-@Setter
+@Setter(AccessLevel.PROTECTED)
 @ToString
-public abstract class Worker {
+@Builder(builderClassName = "Builder")
+public class Worker implements WorkerRpc {
 
     /**
-     * worker服务使用的通信协议，默认为Http协议。
+     * Worker ID
      */
-    private WorkerProtocol protocol;
+    private String workerId;
 
     /**
-     * worker服务的通信host
+     * worker 通信的基础 URL
      */
-    private String host;
-
-    /**
-     * worker服务的通信端口
-     */
-    private Integer port;
+    private URL rpcBaseUrl;
 
     /**
      * 执行器
@@ -73,6 +70,11 @@ public abstract class Worker {
      * 是否启用 不启用则无法下发任务
      */
     private Boolean isEnabled;
+
+    /**
+     * Worker 的 RPC 通信协议
+     */
+    private volatile WorkerRpc rpc;
 
     // ------------------------ 分隔
     /**
@@ -99,20 +101,23 @@ public abstract class Worker {
     @ToString.Exclude
     private WorkerStatisticsRepository statisticsRepository;
 
-    public Worker(WorkerRepository workerRepository,
-                  WorkerMetricRepository metricRepository,
-                  WorkerStatisticsRepository statisticsRepository) {
-        this.workerRepository = workerRepository;
-        this.metricRepository = metricRepository;
-        this.statisticsRepository = statisticsRepository;
+
+    /**
+     * 当前 worker 是否处在存活状态。熔断状态不算存活状态
+     */
+    public boolean isAlive() {
+        return this.status == WorkerStatus.RUNNING;
     }
 
 
     /**
-     * 更新worker
+     * 更新 worker 的注册信息
+     * @return 自身，链式调用
      */
-    protected void updateWorker() {
-        workerRepository.updateWorker(this);
+    public Worker updateRegisterInfo(URL rpcBaseUrl) {
+        this.rpcBaseUrl = rpcBaseUrl;
+        this.status = WorkerStatus.RUNNING;
+        return this;
     }
 
 
@@ -134,6 +139,7 @@ public abstract class Worker {
         metricRepository.updateMetric(metric);
     }
 
+
     /**
      * 获取此worker对应的统计记录
      * @return 此worker对应的统计记录
@@ -142,24 +148,18 @@ public abstract class Worker {
         return statisticsRepository.getWorkerStatistics(getWorkerId());
     }
 
-    public abstract String getWorkerId();
 
     /**
-     * worker节点心跳检测。
-     * @return 返回worker节点的指标信息。
+     * 懒加载 Worker RPC 模块
      */
-    public abstract WorkerMetric ping();
+    @Delegate(types = WorkerRpc.class)
+    private synchronized WorkerRpc getRPC() {
+        if (this.rpc == null) {
+            WorkerRpcFactory factory = WorkerRpcFactory.getInstance();
+            this.rpc = factory.createRPC(this);
+        }
 
-    /**
-     * 发送一个作业到worker执行。当worker接受此task后，将触发返回
-     * @param task 作业实例
-     * @return worker接受task后触发
-     */
-    public abstract TaskReceiveDTO sendTask(Task task) throws TaskReceiveException;
-
-    /**
-     * 解注册此worker，worker的状态将被标记为{@link WorkerStatus#TERMINATED}
-     */
-    public abstract void unregister();
+        return this.rpc;
+    }
 
 }

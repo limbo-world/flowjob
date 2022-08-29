@@ -38,16 +38,6 @@ public abstract class CacheableScheduler<T extends Scheduled> implements Schedul
         this.scheduling = new ConcurrentHashMap<>();
     }
 
-    @Override
-    public void schedule(Scheduled scheduled) {
-        if (put(scheduled)) {
-            // 直接执行
-            scheduled.schedule();
-
-            // 执行后，移除作业
-            unschedule(scheduled.scheduleId());
-        }
-    }
 
     /**
      * 是否进行了缓存

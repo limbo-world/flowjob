@@ -32,7 +32,6 @@ import org.limbo.flowjob.broker.core.schedule.scheduler.HashedWheelTimerSchedule
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerExecutor;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;

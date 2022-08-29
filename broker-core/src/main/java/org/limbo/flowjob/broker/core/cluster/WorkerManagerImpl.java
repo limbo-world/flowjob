@@ -45,7 +45,7 @@ public class WorkerManagerImpl implements WorkerManager {
      */
     @Override
     public Worker registerWorker(Worker worker) {
-        workerRepository.addWorker(worker);
+        workerRepository.save(worker);
         return worker;
     }
 
@@ -56,7 +56,7 @@ public class WorkerManagerImpl implements WorkerManager {
      */
     @Override
     public List<Worker> availableWorkers() {
-        return workerRepository.availableWorkers();
+        return workerRepository.listAvailableWorkers();
     }
 
     /**
@@ -67,8 +67,8 @@ public class WorkerManagerImpl implements WorkerManager {
      */
     @Override
     public Worker unregisterWorker(String workerId) {
-        Worker worker = workerRepository.getWorker(workerId);
-        workerRepository.removeWorker(workerId);
+        Worker worker = workerRepository.get(workerId);
+        workerRepository.delete(workerId);
         return worker;
     }
 }

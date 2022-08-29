@@ -41,10 +41,17 @@ public class WorkerRegisterParam implements Serializable {
     private static final long serialVersionUID = 4234037520144789567L;
 
     /**
+     * 注册时指定的 worker id
+     */
+    @Schema(description = "注册时指定的 worker id", implementation = String.class)
+    private String id;
+
+    /**
      * worker服务使用的通信协议，默认为Http协议。
+     * @see WorkerProtocol
      */
     @Schema(description = "worker服务使用的通信协议，默认为Http协议", implementation = Integer.class)
-    private WorkerProtocol protocol;
+    private String protocol;
 
     /**
      * worker服务的通信IP

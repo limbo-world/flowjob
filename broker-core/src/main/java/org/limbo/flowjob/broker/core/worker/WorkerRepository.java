@@ -18,6 +18,7 @@ package org.limbo.flowjob.broker.core.worker;
 
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -30,38 +31,29 @@ public interface WorkerRepository {
      * 新增一个worker
      * @param worker worker节点
      */
-    void addWorker(Worker worker);
+    void save(Worker worker);
 
-    /**
-     * 更新worker数据
-     * @param worker 更新worker
-     */
-    void updateWorker(Worker worker);
 
     /**
      * 根据id查询worker
      * @param workerId workerId
      * @return worker节点
      */
-    Worker getWorker(String workerId);
+    @Nullable
+    Worker get(String workerId);
 
-    /**
-     * 根据id查询worker是否存活
-     * @param workerId workerId
-     * @return worker节点
-     */
-    boolean alive(String workerId);
 
     /**
      * 获取所有可用的worker。可用指{@link WorkerStatus#RUNNING}状态的worker。
      * @return 可用的worker。
      */
-    List<Worker> availableWorkers();
+    List<Worker> listAvailableWorkers();
+
 
     /**
-     * 移除一个worker
+     * 删除一个worker，软删除
      * @param workerId 需要被移除的workerId
      */
-    void removeWorker(String workerId);
+    void delete(String workerId);
 
 }

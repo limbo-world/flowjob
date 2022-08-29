@@ -18,6 +18,7 @@ package org.limbo.flowjob.broker.dao.converter;
 
 import com.google.common.base.Converter;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
+import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetricRepository;
@@ -26,6 +27,9 @@ import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * @author Brozen
@@ -51,9 +55,10 @@ public class WorkerPoConverter extends Converter<Worker, WorkerEntity> {
      * @return {@link WorkerEntity}持久化对象
      */
     @Override
-    protected WorkerEntity doForward(Worker _do) {
+    @Nonnull
+    protected WorkerEntity doForward(@Nonnull Worker _do) {
         WorkerEntity po = new WorkerEntity();
-        po.setId(Long.valueOf(_do.getWorkerId()));
+        po.setId(_do.getWorkerId());
         po.setProtocol(_do.getProtocol().protocol);
         po.setHost(_do.getHost());
         po.setPort(_do.getPort());
@@ -62,40 +67,30 @@ public class WorkerPoConverter extends Converter<Worker, WorkerEntity> {
         return po;
     }
 
+
     /**
      * 将持久化对象{@link WorkerEntity}转换为领域对象{@link Worker}
      * @param po {@link WorkerEntity}持久化对象
      * @return {@link Worker}领域对象
      */
     @Override
-    protected Worker doBackward(WorkerEntity po) {
+    @Nullable
+    protected Worker doBackward(@Nonnull WorkerEntity po) {
         // 已删除则不返回
         if (po.getDeleted()) {
             return null;
         }
 
-        // 目前只支持一种protocol
-        WorkerProtocol protocol = WorkerProtocol.parse(po.getProtocol());
-        if (protocol == WorkerProtocol.HTTP) {
-            return convertToHttpWorker(po);
-        }
-
-        throw new IllegalArgumentException("Cannot determine worker protocol: " + po.getProtocol());
+        return Worker.builder()
+                .workerRepository(workerRepository)
+                .metricRepository(metricRepository)
+                .statisticsRepository(workerStatisticsRepository)
+                .workerId(po.getId())
+                .protocol(WorkerProtocol.parse(po.getProtocol()))
+                .host(po.getHost())
+                .port(po.getPort())
+                .status(WorkerStatus.parse(po.getStatus()))
+                .build();
     }
 
-    /**
-     * 将持久化对象{@link WorkerEntity}转换为领域对象
-     * @param po {@link WorkerEntity}持久化对象
-     * @return 领域对象
-     */
-    private Worker convertToHttpWorker(WorkerEntity po) {
-        return null;
-//        HttpWorker worker = new HttpWorker(httpClient, workerRepository, metricRepository, workerStatisticsRepository);
-//        worker.setProtocol(WorkerProtocol.parse(po.getProtocol()));
-//        worker.setHost(po.getHost());
-//        worker.setPort(po.getPort());
-//        worker.setStatus(WorkerStatus.parse(po.getStatus()));
-//        return worker;
-
-    }
 }

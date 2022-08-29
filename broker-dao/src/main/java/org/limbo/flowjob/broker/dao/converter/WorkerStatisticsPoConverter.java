@@ -27,7 +27,7 @@ public class WorkerStatisticsPoConverter {
 
     public static WorkerStatistics toDO(WorkerStatisticsEntity po) {
         WorkerStatistics workerStatistics = new WorkerStatistics();
-        workerStatistics.setWorkerId(String.valueOf(po.getWorkerId()));
+        workerStatistics.setWorkerId(po.getWorkerId());
         workerStatistics.setJobDispatchCount(po.getJobDispatchCount());
         workerStatistics.setLatestDispatchTime(po.getLatestDispatchTime());
         return workerStatistics;
@@ -36,7 +36,7 @@ public class WorkerStatisticsPoConverter {
 
     public static WorkerStatisticsEntity toEntity(WorkerStatistics domain) {
         WorkerStatisticsEntity workerStatisticsEntity = new WorkerStatisticsEntity();
-        workerStatisticsEntity.setWorkerId(Long.valueOf(domain.getWorkerId()));
+        workerStatisticsEntity.setWorkerId(domain.getWorkerId());
         workerStatisticsEntity.setJobDispatchCount(domain.getJobDispatchCount());
         workerStatisticsEntity.setLatestDispatchTime(domain.getLatestDispatchTime());
         return workerStatisticsEntity;

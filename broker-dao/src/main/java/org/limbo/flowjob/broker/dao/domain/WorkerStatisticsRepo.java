@@ -59,7 +59,7 @@ public class WorkerStatisticsRepo implements WorkerStatisticsRepository {
      */
     @Override
     public WorkerStatistics getWorkerStatistics(String workerId) {
-        return workerStatisticsEntityRepo.findById(Long.valueOf(workerId)).map(WorkerStatisticsPoConverter::toDO).orElse(null);
+        return workerStatisticsEntityRepo.findById(workerId).map(WorkerStatisticsPoConverter::toDO).orElse(null);
     }
 
 }

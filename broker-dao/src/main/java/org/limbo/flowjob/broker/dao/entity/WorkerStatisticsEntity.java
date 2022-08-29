@@ -42,7 +42,7 @@ public class WorkerStatisticsEntity extends BaseEntity {
     /**
      * worker节点ID
      */
-    private Long workerId;
+    private String workerId;
 
     /**
      * 作业下发到此worker的次数

@@ -25,7 +25,6 @@ import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.converter.WorkerPoConverter;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
-import org.limbo.flowjob.common.utils.Verifies;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
@@ -55,28 +54,12 @@ public class WorkerRepo implements WorkerRepository {
      */
     @Override
     @Transactional
-    public void addWorker(Worker worker) {
+    public void save(Worker worker) {
         WorkerEntity entity = converter.convert(worker);
         Objects.requireNonNull(entity);
-
-        Optional<WorkerEntity> workerEntityOptional = workerEntityRepo.findById(entity.getId());
-        Verifies.verify(workerEntityOptional.isPresent(), "worker is already exist");
-
         workerEntityRepo.saveAndFlush(entity);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @param worker 更新worker
-     */
-    @Override
-    public void updateWorker(Worker worker) {
-        WorkerEntity entity = converter.convert(worker);
-        Objects.requireNonNull(entity);
-
-        workerEntityRepo.saveAndFlush(entity);
-    }
 
     /**
      * {@inheritDoc}
@@ -85,17 +68,16 @@ public class WorkerRepo implements WorkerRepository {
      * @return
      */
     @Override
-    public Worker getWorker(String workerId) {
-        Optional<WorkerEntity> workerEntityOptional = workerEntityRepo.findById(Long.valueOf(workerId));
-        Verifies.verify(workerEntityOptional.isPresent(), "worker is not exist");
+    public Worker get(String workerId) {
+        if (workerId == null) {
+            return null;
+        }
 
-        return converter.reverse().convert(workerEntityOptional.get());
+        return workerEntityRepo.findById(workerId)
+                .map(w -> converter.reverse().convert(w))
+                .orElse(null);
     }
 
-    @Override
-    public boolean alive(String workerId) {
-        return false; //todo
-    }
 
     /**
      * {@inheritDoc}
@@ -103,7 +85,7 @@ public class WorkerRepo implements WorkerRepository {
      * @return
      */
     @Override
-    public List<Worker> availableWorkers() {
+    public List<Worker> listAvailableWorkers() {
         return workerEntityRepo.findByStatusAndDeleted(WorkerStatus.RUNNING.status, Boolean.FALSE)
                 .stream()
                 .map(po -> converter.reverse().convert(po))
@@ -116,8 +98,8 @@ public class WorkerRepo implements WorkerRepository {
      * @param workerId 需要被移除的workerId
      */
     @Override
-    public void removeWorker(String workerId) {
-        Optional<WorkerEntity> workerEntityOptional = workerEntityRepo.findById(Long.valueOf(workerId));
+    public void delete(String workerId) {
+        Optional<WorkerEntity> workerEntityOptional = workerEntityRepo.findById(workerId);
         if (workerEntityOptional.isPresent()) {
             WorkerEntity workerEntity = workerEntityOptional.get();
             workerEntity.setDeleted(true);

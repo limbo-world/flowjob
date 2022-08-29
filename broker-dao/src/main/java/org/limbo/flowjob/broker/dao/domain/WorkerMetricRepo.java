@@ -24,7 +24,6 @@ import org.limbo.flowjob.broker.core.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.broker.dao.converter.WorkerMetricPoConverter;
 import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.repositories.WorkerMetricEntityRepo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
@@ -67,7 +66,7 @@ public class WorkerMetricRepo implements WorkerMetricRepository {
     @Override
     public WorkerMetric getMetric(String workerId) {
         // 查询metric
-        Optional<WorkerMetricEntity> workerMetricEntityOptional = workerMetricEntityRepo.findById(Long.valueOf(workerId));
+        Optional<WorkerMetricEntity> workerMetricEntityOptional = workerMetricEntityRepo.findById(workerId);
         return workerMetricEntityOptional.map(workerMetricEntity -> converter.reverse().convert(workerMetricEntity)).orElse(null);
 
     }

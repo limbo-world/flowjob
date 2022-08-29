@@ -42,7 +42,7 @@ public class WorkerMetricPoConverter extends Converter<WorkerMetric, WorkerMetri
     @Override
     protected WorkerMetricEntity doForward(WorkerMetric vo) {
         WorkerMetricEntity po = new WorkerMetricEntity();
-        po.setWorkerId(Long.valueOf(vo.getWorkerId()));
+        po.setWorkerId(vo.getWorkerId());
 
         WorkerAvailableResource availableResource = vo.getAvailableResource();
         po.setAvailableCpu(availableResource.getAvailableCpu());

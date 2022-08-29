@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * 	http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,34 +14,34 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.broker.core.worker.statistics;
+package org.limbo.flowjob.broker.core.worker.rpc;
 
-import lombok.Data;
-
-import java.time.LocalDateTime;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
 
 /**
- * worker执行作业统计信息
- *
  * @author Brozen
- * @since 2021-05-28
+ * @since 2022-08-29
  */
-@Data
-public class WorkerStatistics {
+@Builder
+@EqualsAndHashCode
+public final class WorkerRpcUrl {
 
     /**
-     * 对应worker的ID
+     * worker服务使用的通信协议，默认为Http协议。
+     * @see WorkerProtocol
      */
-    private String workerId;
+    public final WorkerProtocol protocol;
 
     /**
-     * 作业下发到此worker的次数
+     * worker服务的通信host
      */
-    private Long jobDispatchCount;
+    public final String host;
 
     /**
-     * 最后一次向此worker下发作业成功的时间
+     * worker服务的通信端口
      */
-    private LocalDateTime latestDispatchTime;
+    public final Integer port;
 
 }

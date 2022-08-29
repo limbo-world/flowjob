@@ -150,7 +150,7 @@ public class Worker {
         }
         registerOptionDto.setExecutors(workerExecutors);
         registerOptionDto.setAvailableResource(resourceDto);
-        registerOptionDto.setProtocol(remoteClient.getProtocol());
+        registerOptionDto.setProtocol(remoteClient.getProtocol().protocol);
 
         ResponseDTO<WorkerRegisterDTO> register = remoteClient.register(registerOptionDto);
         if (!register.isOk()) {

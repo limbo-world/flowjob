@@ -25,5 +25,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author Devil
  * @since 2022/6/24
  */
-public interface WorkerStatisticsEntityRepo extends JpaRepository<WorkerStatisticsEntity, Long> {
+public interface WorkerStatisticsEntityRepo extends JpaRepository<WorkerStatisticsEntity, String> {
 }
