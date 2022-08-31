@@ -37,17 +37,17 @@ public class WorkerService {
     }
 
     public void receive(TaskSubmitParam param) {
-        Task job = new Task();
-        job.setPlanId(param.getPlanId());
-        job.setPlanRecordId(""); // todo
-        job.setPlanInstanceId(param.getPlanInstanceId());
-        job.setJobId(param.getJobId());
-        job.setJobInstanceId(param.getJobInstanceId());
-        job.setTaskId(param.getTaskId());
-        job.setType(param.getType());
-        job.setExecutorName(param.getExecutorName());
+        Task task = new Task();
+        task.setPlanId(param.getPlanId());
+        task.setPlanRecordId(""); // todo
+        task.setPlanInstanceId(param.getPlanInstanceId());
+        task.setJobId(param.getJobId());
+        task.setJobInstanceId(param.getJobInstanceId());
+        task.setTaskId(param.getTaskId());
+        task.setType(param.getType());
+        task.setExecutorName(param.getExecutorName());
 //        job.setExecutorParam(param.getExecutorParam()); // todo
-        worker.receive(job);
+        worker.receiveTask(task);
     }
 
 }

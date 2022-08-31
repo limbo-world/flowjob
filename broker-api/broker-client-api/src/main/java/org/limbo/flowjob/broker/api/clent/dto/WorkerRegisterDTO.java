@@ -20,9 +20,7 @@ package org.limbo.flowjob.broker.api.clent.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.limbo.flowjob.broker.api.dto.BrokerDTO;
-
-import java.util.List;
+import org.limbo.flowjob.broker.api.dto.BrokerTopologyDTO;
 
 /**
  * worker注册结果
@@ -34,10 +32,16 @@ import java.util.List;
 @Schema(title = "worker注册结果")
 public class WorkerRegisterDTO {
 
-    @Schema(description = "workerId的字符串形式，由protocol、ip、port决定")
+    /**
+     * 工作节点 ID
+     */
+    @Schema(description = "workerId的字符串形式")
     private String workerId;
 
-    @Schema(description = "broker节点列表，主从模式下，列表中仅包括一个主节点")
-    private List<BrokerDTO> brokers;
+    /**
+     * Broker 的拓扑结构
+     */
+    @Schema(description = "broker 的拓扑结构")
+    private BrokerTopologyDTO brokerTopology;
 
 }

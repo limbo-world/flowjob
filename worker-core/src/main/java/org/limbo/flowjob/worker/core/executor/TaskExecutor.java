@@ -21,18 +21,33 @@ import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 import org.limbo.flowjob.worker.core.domain.Task;
 
 /**
- * job执行器 不支持并发
+ * 任务执行器
  *
  * @author Devil
  * @since 2021/7/24
  */
-public interface JobExecutor {
+public interface TaskExecutor {
 
-    String run(Task job);
+    /**
+     * 运行执行器
+     * @param task Broker 下发的任务
+     * @return TODO 这是返回啥？
+     */
+    String run(Task task);
 
+    /**
+     * 执行器名称
+     */
     String getName();
 
+    /**
+     * 执行器描述
+     */
     String getDescription();
 
+    /**
+     * 执行器类型
+     */
     JobExecuteType getType();
+
 }

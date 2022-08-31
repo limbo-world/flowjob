@@ -16,15 +16,13 @@
 
 package org.limbo.flowjob.worker.core.domain;
 
-import com.sun.management.OperatingSystemMXBean;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import oshi.SystemInfo;
-import oshi.hardware.CentralProcessor;
+import org.limbo.flowjob.worker.core.executor.TaskRepository;
 
-import java.lang.management.ManagementFactory;
+import java.time.Duration;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 
 /**
  * worker自身资源情况
@@ -34,96 +32,100 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class WorkerResource {
+
     /**
      * 可分配任务总数
      */
     private int queueSize;
+
     /**
      * 剩余可分配任务数
      */
+    @Getter
     private int availableQueueSize;
 
-    private Float availableCpu;
+    /**
+     * 可用 CPU 核数
+     */
+    @Getter
+    private volatile float availableCpu;
 
-    private OperatingSystemMXBean osmxb;
+    /**
+     * 可用的 RAM 内存数量
+     */
+    @Getter
+    private volatile long availableRam;
 
-    private CentralProcessor processor;
+    /**
+     * Worker 资源计算器
+     */
+    private WorkerResourcesCalculator calculator;
+
+    /**
+     * 定时计算任务
+     */
+    private TimerTask calculateTask;
+
+    /**
+     * 任务仓库
+     */
+    private TaskRepository taskRepository;
 
     private WorkerResource() {
     }
 
-    public static WorkerResource create(int queueSize) throws Exception {
+
+    /**
+     * 静态工厂
+     *
+     * @param queueSize 初始化任务队列大小
+     */
+    public static WorkerResource create(int queueSize, TaskRepository taskRepository) {
         WorkerResource resource = new WorkerResource();
         resource.queueSize = queueSize;
         resource.availableQueueSize = queueSize;
-        resource.osmxb = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-        SystemInfo systemInfo = new SystemInfo();
-        resource.processor = systemInfo.getHardware().getProcessor();
-        // 计算一次cpu
-        resource.calAvailableCpu();
-
-        // 定时刷新 cpu 信息
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                try {
-                    resource.calAvailableCpu();
-                } catch (InterruptedException e) {
-                    log.error("calculate available cpu error", e);
-                }
-            }
-        }, 1000, 1000);
-
+        resource.calculator = new WorkerResourcesCalculator();
+        resource.availableCpu = resource.calculator.calculateAvailableCpu(Duration.ofSeconds(1));
+        resource.taskRepository = taskRepository;
+        resource.startCalculateTask();
         return resource;
     }
 
-    public long getAvailableRAM() {
-        return osmxb.getFreePhysicalMemorySize();
-    }
 
-    public float getAvailableCpu() {
-        return availableCpu; // 可能会有并发问题
-    }
-
-    private void calAvailableCpu() throws InterruptedException {
-        long[] prevTicks = processor.getSystemCpuLoadTicks();
-        // 睡眠1s
-        TimeUnit.SECONDS.sleep(1);
-        long[] ticks = processor.getSystemCpuLoadTicks();
-        long nice = ticks[CentralProcessor.TickType.NICE.getIndex()]
-                - prevTicks[CentralProcessor.TickType.NICE.getIndex()];
-        long irq = ticks[CentralProcessor.TickType.IRQ.getIndex()]
-                - prevTicks[CentralProcessor.TickType.IRQ.getIndex()];
-        long softirq = ticks[CentralProcessor.TickType.SOFTIRQ.getIndex()]
-                - prevTicks[CentralProcessor.TickType.SOFTIRQ.getIndex()];
-        long steal = ticks[CentralProcessor.TickType.STEAL.getIndex()]
-                - prevTicks[CentralProcessor.TickType.STEAL.getIndex()];
-        long cSys = ticks[CentralProcessor.TickType.SYSTEM.getIndex()]
-                - prevTicks[CentralProcessor.TickType.SYSTEM.getIndex()];
-        long user = ticks[CentralProcessor.TickType.USER.getIndex()]
-                - prevTicks[CentralProcessor.TickType.USER.getIndex()];
-        long iowait = ticks[CentralProcessor.TickType.IOWAIT.getIndex()]
-                - prevTicks[CentralProcessor.TickType.IOWAIT.getIndex()];
-        long idle = ticks[CentralProcessor.TickType.IDLE.getIndex()]
-                - prevTicks[CentralProcessor.TickType.IDLE.getIndex()];
-        long totalCpu = user + nice + cSys + idle + iowait + irq + softirq + steal;
-//        System.out.println("cpu核数:" + processor.getLogicalProcessorCount());
-//        System.out.println("total cpu:" + totalCpu);
-
-        synchronized (this) {
-            availableCpu = (float) (cSys * 1.0 / totalCpu);
+    /**
+     * 启动 Worker 资源定时检测任务
+     */
+    private void startCalculateTask() {
+        // 定时刷新 cpu 信息
+        if (this.calculateTask != null) {
+            this.calculateTask.cancel();
         }
+
+        this.calculateTask = new TimerTask() {
+            @Override
+            public void run() {
+                availableCpu = calculator.calculateAvailableCpu(Duration.ofSeconds(1));
+                availableRam = calculator.calculateAvailableRam();
+                availableQueueSize = queueSize - taskRepository.count();
+            }
+        };
+
+        // 启动任务
+        Timer calculateScheduler = new Timer("WorkerResourceCalculateTimer");
+        calculateScheduler.schedule(this.calculateTask, 1000, 1000);
     }
 
-    public int getAvailableQueueSize() {
-        return availableQueueSize;
-    }
 
+    /**
+     * 重新调整任务队列大小
+     */
     public void resize(int queueSize) {
         if (this.queueSize == queueSize) {
             return;
         }
+
         this.availableQueueSize = this.availableQueueSize + (queueSize - this.queueSize);
         this.queueSize = queueSize;
     }
+
 }

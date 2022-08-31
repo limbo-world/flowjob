@@ -16,29 +16,31 @@
 
 package org.limbo.flowjob.worker.core.domain;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.broker.api.clent.dto.WorkerRegisterDTO;
 import org.limbo.flowjob.broker.api.clent.param.WorkerExecutorRegisterParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerHeartbeatParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerResourceParam;
-import org.limbo.flowjob.broker.api.dto.ResponseDTO;
 import org.limbo.flowjob.common.utils.UUIDUtils;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
-import org.limbo.flowjob.worker.core.executor.JobExecutor;
-import org.limbo.flowjob.worker.core.executor.JobExecutorRunner;
-import org.limbo.flowjob.worker.core.executor.JobManager;
-import org.limbo.flowjob.worker.core.remote.AbstractRemoteClient;
-import org.limbo.flowjob.worker.core.utils.NetUtils;
+import org.limbo.flowjob.worker.core.executor.TaskExecutor;
+import org.limbo.flowjob.worker.core.executor.TaskExecutorContext;
+import org.limbo.flowjob.worker.core.executor.TaskRepository;
+import org.limbo.flowjob.worker.core.rpc.BrokerRpc;
+import org.limbo.flowjob.worker.core.rpc.exceptions.BrokerRpcException;
+import org.limbo.flowjob.worker.core.rpc.exceptions.RegisterFailException;
 
-import java.util.ArrayList;
+import java.net.URL;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 /**
  * 工作节点实例
@@ -48,176 +50,179 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 public class Worker {
+
+    @Getter
+    private final String id;
+
     /**
-     * id
+     * Worker 通信基础 URL
      */
-    private String id;
+    private URL workerRpcBaseURL;
 
-    private String host;
-
-    private int port;
     /**
      * 工作节点资源
      */
     private WorkerResource resource;
+
     /**
      * 执行器名称 - 执行器 映射关系
      */
-    private final Map<String, JobExecutor> executors;
+    private final Map<String, TaskExecutor> executors;
+
     /**
      * job 管理中心
      */
-    private final JobManager jobManager;
+    private final TaskRepository taskRepository;
+
     /**
      * 远程调用
      */
-    private AbstractRemoteClient remoteClient;
+    private BrokerRpc brokerRpc;
+
     /**
      * 是否已经启动
      */
-    private volatile boolean started = false;
+    private AtomicReference<WorkerStatus> status;
 
-    public Worker(String host, int port, int queueSize, List<JobExecutor> executors, AbstractRemoteClient remoteClient) throws Exception {
+    /**
+     * 心跳起搏器
+     */
+    private WorkerHeartbeat pacemaker;
+
+    public Worker(String id, int queueSize, List<TaskExecutor> executors, BrokerRpc brokerRpc) {
         Verifies.notEmpty(executors, "empty executors");
-        Verifies.notNull(remoteClient, "remote client can't be null");
+        Verifies.notNull(brokerRpc, "remote client can't be null");
 
-        this.id = UUIDUtils.randomID();
-        this.host = StringUtils.isBlank(host) ? NetUtils.getLocalIp() : host;
-        this.port = port;
-        this.resource = WorkerResource.create(queueSize);
+        this.id = StringUtils.isBlank(id) ? UUIDUtils.randomID() : id;
+        this.taskRepository = new TaskRepository();
+        this.resource = WorkerResource.create(queueSize, this.taskRepository);
+        this.brokerRpc = brokerRpc;
+
         this.executors = new ConcurrentHashMap<>();
-        this.jobManager = new JobManager();
-        this.remoteClient = remoteClient;
-
-        for (JobExecutor executor : executors) {
+        for (TaskExecutor executor : executors) {
             Verifies.notBlank(executor.getName(), "has blank executor name");
             this.executors.put(executor.getName(), executor);
         }
+
+        this.status = new AtomicReference<>(WorkerStatus.IDLE);
     }
 
+
     /**
-     * 启动
-     * @param host server地址
-     * @param port server端口
+     * 启动当前 Worker
+     *
+     * @param baseURL Worker 启动的 RPC 服务的 baseUrl
      * @param heartbeatPeriod 心跳间隔
      */
-    public synchronized void start(String host, int port, int heartbeatPeriod) {
+    public void start(URL baseURL, Duration heartbeatPeriod) {
+        Objects.requireNonNull(baseURL);
+        Objects.requireNonNull(heartbeatPeriod);
+
         // 重复检测
-        if (started) {
+        if (!this.status.compareAndSet(WorkerStatus.IDLE, WorkerStatus.RUNNING)) {
             return;
         }
 
-        // 建立连接
-        remoteClient.start(host, port);
+        this.workerRpcBaseURL = baseURL;
+        if (this.pacemaker == null) {
+            this.pacemaker = new WorkerHeartbeat(this, Duration.ofSeconds(1));
+        }
 
         // 注册
-        register();
+        registerSelfToBroker();
 
-        // 心跳
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                heartbeat();
-            }
-        }, 200, heartbeatPeriod);
-
-        // 启动完成
-        started = true;
+        // 启动心跳
+        this.pacemaker.start();
     }
 
     /**
-     * 向tracker注册
+     * 向 Broker 注册当前 Worker
      */
-    public void register() {
-        // 注册数据
-        WorkerResourceParam resourceDto = new WorkerResourceParam();
-        resourceDto.setAvailableCpu(resource.getAvailableCpu());
-        resourceDto.setAvailableRAM(resource.getAvailableRAM());
-        resourceDto.setAvailableQueueLimit(resource.getAvailableQueueSize());
+    protected void registerSelfToBroker() {
 
-        WorkerRegisterParam registerOptionDto = new WorkerRegisterParam();
-//        registerOptionDto.setId(id);
-        registerOptionDto.setHost(host);
-        registerOptionDto.setPort(port);
         // 执行器
-        List<WorkerExecutorRegisterParam> workerExecutors = new ArrayList<>();
-        for (JobExecutor executor : executors.values()) {
-            WorkerExecutorRegisterParam workerExecutorRegisterDto = new WorkerExecutorRegisterParam();
-            workerExecutorRegisterDto.setName(executor.getName());
-            workerExecutorRegisterDto.setDescription(executor.getDescription());
-            workerExecutorRegisterDto.setType(executor.getType());
-            workerExecutors.add(workerExecutorRegisterDto);
-        }
-        registerOptionDto.setExecutors(workerExecutors);
-        registerOptionDto.setAvailableResource(resourceDto);
-        registerOptionDto.setProtocol(remoteClient.getProtocol().protocol);
+        List<WorkerExecutorRegisterParam> executors = this.executors.values().stream()
+                .map(executor -> {
+                    WorkerExecutorRegisterParam executorRegisterParam = new WorkerExecutorRegisterParam();
+                    executorRegisterParam.setName(executor.getName());
+                    executorRegisterParam.setDescription(executor.getDescription());
+                    executorRegisterParam.setType(executor.getType());
+                    return executorRegisterParam;
+                })
+                .collect(Collectors.toList());
 
-        ResponseDTO<WorkerRegisterDTO> register = remoteClient.register(registerOptionDto);
-        if (!register.isOk()) {
-            // todo 注册失败
-            log.error(JacksonUtils.toJSONString(register.getData()));
-        }
+        // 可用资源
+        WorkerResourceParam resourceParam = new WorkerResourceParam();
+        resourceParam.setAvailableCpu(resource.getAvailableCpu());
+        resourceParam.setAvailableRAM(resource.getAvailableRam());
+        resourceParam.setAvailableQueueLimit(resource.getAvailableQueueSize());
 
-        // todo 注册各个节点到client
+        // 组装注册参数
+        WorkerRegisterParam registerParam = new WorkerRegisterParam();
+        registerParam.setId(this.id);
+        registerParam.setProtocol(this.workerRpcBaseURL.getProtocol());
+        registerParam.setHost(this.workerRpcBaseURL.getHost());
+        registerParam.setPort(this.workerRpcBaseURL.getPort());
+        registerParam.setExecutors(executors);
+        registerParam.setAvailableResource(resourceParam);
+
+        try {
+            // 调用 Broker 远程接口，并更新 Broker 信息
+            brokerRpc.register(registerParam);
+        } catch (RegisterFailException e) {
+            log.error("Worker register failed, param={}, response={}",
+                    JacksonUtils.toJSONString(registerParam), e);
+            throw new IllegalStateException("Worker register failed");
+        }
 
         log.info("register success !");
     }
 
+
     /**
+     * Just beat it
      * 发送心跳
      */
-    public void heartbeat() {
-        // 数据
-        WorkerResourceParam resourceDto = new WorkerResourceParam();
-        resourceDto.setAvailableCpu(resource.getAvailableCpu());
-        resourceDto.setAvailableRAM(resource.getAvailableRAM());
-        resourceDto.setAvailableQueueLimit(resource.getAvailableQueueSize());
+    protected void sendHeartbeat() {
+        // 可用资源
+        WorkerResourceParam resource = new WorkerResourceParam();
+        resource.setAvailableCpu(this.resource.getAvailableCpu());
+        resource.setAvailableRAM(this.resource.getAvailableRam());
+        resource.setAvailableQueueLimit(this.resource.getAvailableQueueSize());
 
-        WorkerHeartbeatParam heartbeatOptionDto = new WorkerHeartbeatParam();
-        heartbeatOptionDto.setWorkerId(id);
-        heartbeatOptionDto.setAvailableResource(resourceDto);
+        // 组装心跳参数
+        WorkerHeartbeatParam heartbeatParam = new WorkerHeartbeatParam();
+        heartbeatParam.setWorkerId(id);
+        heartbeatParam.setAvailableResource(resource);
 
-        ResponseDTO<Void> heartbeat = remoteClient.heartbeat(heartbeatOptionDto);
-        // todo 心跳失败
-        if (log.isDebugEnabled()) {
-            log.debug("send heartbeat success");
-        }
-
-        // todo 注册各个节点到client
-    }
-
-    /**
-     * 提交任务
-     */
-    public synchronized void receive(Task job) {
-        Verifies.verify(executors.containsKey(job.getExecutorName()), "worker doesn't " + job.getExecutorName() + " executor");
-        Verifies.verify(jobManager.size() < resource.getAvailableQueueSize(), "worker's queue is full");
-
-        log.info("receive job " + job.getId());
-
-        // todo 是否超过cpu/ram/queue 失败
-
-        JobExecutor jobExecutor = executors.get(job.getExecutorName());
-
-        JobExecutorRunner runner = new JobExecutorRunner(jobManager, jobExecutor, remoteClient);
-
-        runner.run(job);
-    }
-
-    /**
-     * 查询任务状态
-     */
-    public void jobStatus(String jobId) {
-        if (jobManager.hasJob(jobId)) {
-
+        try {
+            brokerRpc.heartbeat(heartbeatParam);
+        } catch (BrokerRpcException e) {
+            log.warn("Worker send heartbeat failed");
+            throw new IllegalStateException("Worker send heartbeat failed", e);
         }
     }
 
+
     /**
-     * 扩缩容队列
+     * 接收 Broker 发送来的任务
+     * @param task 任务数据
      */
-    public void resize(int queueSize) {
-        resource.resize(queueSize);
+    public synchronized void receiveTask(Task task) {
+        // 找到执行器，校验是否存在
+        TaskExecutor executor = executors.get(task.getExecutorName());
+        Verifies.notNull(executor, "Unsupported executor: " + task.getExecutorName());
+
+        Verifies.verify(
+                this.taskRepository.count() < this.resource.getAvailableQueueSize(),
+                "Worker's queue is full, limit: " + this.resource.getAvailableQueueSize()
+        );
+
+        // todo 检测资源余量是否充足：cpu/ram/queue
+
+        TaskExecutorContext context = new TaskExecutorContext(taskRepository, executor, brokerRpc, task);
+        context.start();
     }
+
 
 }

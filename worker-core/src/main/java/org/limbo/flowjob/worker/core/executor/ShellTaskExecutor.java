@@ -16,35 +16,35 @@
 
 package org.limbo.flowjob.worker.core.executor;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
+import org.limbo.flowjob.worker.core.domain.Task;
 
 /**
- * job 中心
+ * shell 脚本执行器
+ *
  * @author Devil
  * @since 2021/7/24
  */
-public class JobManager {
+public class ShellTaskExecutor implements TaskExecutor {
 
-    private final Map<String, JobExecutorRunner> jobs = new ConcurrentHashMap<>();
-
-    public JobExecutorRunner put(String id, JobExecutorRunner runner) {
-        return jobs.putIfAbsent(id, runner);
+    @Override
+    public String run(Task job) {
+        // todo
+        return null;
     }
 
-    public void remove(String id) {
-        jobs.remove(id);
+    @Override
+    public String getName() {
+        return "shell";
     }
 
-    /**
-     * 运行中的任务数
-     */
-    public int size() {
-        return jobs.size();
+    @Override
+    public String getDescription() {
+        return "";
     }
 
-    public boolean hasJob(String id) {
-        return jobs.containsKey(id);
+    @Override
+    public JobExecuteType getType() {
+        return JobExecuteType.SHELL;
     }
-
 }

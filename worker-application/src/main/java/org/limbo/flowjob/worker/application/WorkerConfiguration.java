@@ -17,13 +17,15 @@
 package org.limbo.flowjob.worker.application;
 
 import org.limbo.flowjob.worker.core.domain.Worker;
-import org.limbo.flowjob.worker.core.executor.JobExecutor;
-import org.limbo.flowjob.worker.core.executor.ShellJobExecutor;
-import org.limbo.flowjob.worker.core.remote.HttpRemoteClient;
+import org.limbo.flowjob.worker.core.executor.TaskExecutor;
+import org.limbo.flowjob.worker.core.executor.ShellTaskExecutor;
+import org.limbo.flowjob.worker.core.rpc.BrokerRpc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.net.URL;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,12 +41,14 @@ public class WorkerConfiguration {
 
     @Bean
     public Worker worker() throws Exception {
-        List<JobExecutor> executors = new ArrayList<>();
-        executors.add(new ShellJobExecutor());
+        List<TaskExecutor> executors = new ArrayList<>();
+        executors.add(new ShellTaskExecutor());
         executors.add(new HelloExecutor());
-        Worker worker = new Worker(workerProperties.getLocalHost(), workerProperties.getLocalPort(),
-                workerProperties.getQueueSize(), executors, new HttpRemoteClient());
-        worker.start(workerProperties.getServerHost(), workerProperties.getServerPort(), 5000);
+
+        BrokerRpc rpc = null;
+        URL baseUrl = new URL("http", workerProperties.getLocalHost(), workerProperties.getLocalPort(), "");
+        Worker worker = new Worker("", workerProperties.getQueueSize(), executors, rpc);
+        worker.start(baseUrl, Duration.ofSeconds(5));
         return worker;
     }
 
