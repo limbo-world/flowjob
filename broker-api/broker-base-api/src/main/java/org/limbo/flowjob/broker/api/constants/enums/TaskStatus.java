@@ -27,6 +27,10 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum TaskStatus {
     /**
+     * unknown 不应该出现
+     */
+    UNKNOWN(0, "未知"),
+    /**
      * 任务刚创建，还在内存，未下发给worker
      */
     DISPATCHING(1, "下发中"),
@@ -84,7 +88,7 @@ public enum TaskStatus {
     @JsonCreator
     public static TaskStatus parse(Number status) {
         if (status == null) {
-            return null;
+            return UNKNOWN;
         }
 
         for (TaskStatus statusEnum : values()) {
@@ -93,7 +97,7 @@ public enum TaskStatus {
             }
         }
 
-        return null;
+        return UNKNOWN;
     }
 
     /**

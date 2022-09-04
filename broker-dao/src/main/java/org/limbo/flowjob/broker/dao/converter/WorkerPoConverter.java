@@ -17,7 +17,6 @@
 package org.limbo.flowjob.broker.dao.converter;
 
 import com.google.common.base.Converter;
-import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
@@ -59,9 +58,9 @@ public class WorkerPoConverter extends Converter<Worker, WorkerEntity> {
     protected WorkerEntity doForward(@Nonnull Worker _do) {
         WorkerEntity po = new WorkerEntity();
         po.setId(_do.getWorkerId());
-        po.setProtocol(_do.getProtocol().protocol);
-        po.setHost(_do.getHost());
-        po.setPort(_do.getPort());
+        po.setProtocol(_do.getRpcBaseUrl().getProtocol());
+        po.setHost(_do.getRpcBaseUrl().getHost());
+        po.setPort(_do.getRpcBaseUrl().getPort());
         po.setStatus(_do.getStatus().status);
         po.setDeleted(false);
         return po;
@@ -86,9 +85,8 @@ public class WorkerPoConverter extends Converter<Worker, WorkerEntity> {
                 .metricRepository(metricRepository)
                 .statisticsRepository(workerStatisticsRepository)
                 .workerId(po.getId())
-                .protocol(WorkerProtocol.parse(po.getProtocol()))
-                .host(po.getHost())
-                .port(po.getPort())
+                // todo
+//                .rpcBaseUrl(new URL(WorkerProtocol.parse(po.getProtocol()), po.getHost(), po.getPort(), null))
                 .status(WorkerStatus.parse(po.getStatus()))
                 .build();
     }

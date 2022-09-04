@@ -19,7 +19,10 @@
 package org.limbo.flowjob.broker.api.console.param;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 
 /**
@@ -28,6 +31,9 @@ import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
  */
 @Data
 @Schema(title = "执行器配置参数")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ExecutorOptionParam {
 
     /**

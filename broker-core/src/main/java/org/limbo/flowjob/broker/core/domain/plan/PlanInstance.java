@@ -19,7 +19,6 @@
 package org.limbo.flowjob.broker.core.domain.plan;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,7 +26,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.api.constants.enums.PlanStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
-import org.limbo.flowjob.broker.core.domain.factory.JobInstanceFactory;
+import org.limbo.flowjob.broker.core.domain.job.JobInstanceFactory;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.schedule.Calculated;
@@ -114,10 +113,6 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
     @ToString.Exclude
     private transient ScheduleCalculatorFactory strategyFactory;
 
-    @Getter(AccessLevel.NONE)
-    @ToString.Exclude
-    private transient JobInstanceFactory jobInstanceFactory;
-
     @Override
     public String scheduleId() {
         return planId + ":" + expectTriggerAt;
@@ -142,7 +137,7 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
         List<JobInstance> jobInstances = new ArrayList<>();
         for (JobInfo jobInfo : dag.origins()) {
             if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
-                jobInstances.add(jobInstanceFactory.create(planInstanceId, jobInfo, TimeUtil.currentLocalDateTime()));
+                jobInstances.add(JobInstanceFactory.create(planInstanceId, jobInfo, TimeUtil.currentLocalDateTime()));
             }
         }
         return jobInstances;
@@ -171,17 +166,6 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
         }
 
         return scheduleCalculator;
-    }
-
-    @Getter
-    @AllArgsConstructor
-    public static class JobInstances implements Serializable {
-        private static final long serialVersionUID = 2475726765959050169L;
-
-        private String planInstanceId;
-
-        private List<JobInstance> instances;
-
     }
 
 }

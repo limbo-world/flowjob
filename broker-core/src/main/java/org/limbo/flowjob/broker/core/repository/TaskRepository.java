@@ -33,6 +33,12 @@ public interface TaskRepository {
     String save(Task task);
 
     /**
+     * 持久化任务
+     * @param tasks 任务
+     */
+    void saveAll(List<Task> tasks);
+
+    /**
      * 获取作业执行实例
      */
     Task get(String taskId);

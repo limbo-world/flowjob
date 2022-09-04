@@ -23,7 +23,6 @@ import org.limbo.flowjob.broker.api.constants.enums.JobStatus;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
 import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
-import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
@@ -110,7 +109,7 @@ public class DomainConverter {
         return taskEntity;
     }
 
-    public static Task toTask(TaskEntity entity, WorkerManager workerManager, PlanInfoEntityRepo planInfoEntityRepo) {
+    public static Task toTask(TaskEntity entity, PlanInfoEntityRepo planInfoEntityRepo) {
         Task task = new Task();
         task.setTaskId(entity.getId().toString());
         task.setJobInstanceId(entity.getJobInstanceId().toString());
@@ -122,7 +121,6 @@ public class DomainConverter {
         task.setErrorStackTrace(entity.getErrorStackTrace());
         task.setStartAt(entity.getStartAt());
         task.setEndAt(entity.getEndAt());
-        task.setWorkerManager(workerManager);
 
         // job
         PlanInfoEntity planInfo = planInfoEntityRepo.findById(Long.valueOf(task.getPlanVersion())).get();
@@ -131,5 +129,18 @@ public class DomainConverter {
         task.setDispatchOption(jobInfo.getDispatchOption());
         task.setExecutorOption(jobInfo.getExecutorOption());
         return task;
+    }
+
+    public static JobInstanceEntity toJobInstanceEntity(JobInstance jobInstance) {
+        JobInstanceEntity jobInstanceEntity = new JobInstanceEntity();
+        jobInstanceEntity.setPlanInstanceId(Long.valueOf(jobInstance.getPlanInstanceId()));
+        jobInstanceEntity.setPlanInfoId(Long.valueOf(jobInstance.getPlanVersion()));
+        jobInstanceEntity.setJobId(jobInstance.getJobId());
+        jobInstanceEntity.setStatus(jobInstance.getStatus().status);
+        jobInstanceEntity.setAttributes(jobInstance.getAttributes().toString());
+        jobInstanceEntity.setStartAt(jobInstance.getStartAt());
+        jobInstanceEntity.setEndAt(jobInstance.getEndAt());
+        jobInstanceEntity.setId(Long.valueOf(jobInstance.getJobInstanceId()));
+        return jobInstanceEntity;
     }
 }

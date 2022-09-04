@@ -19,6 +19,7 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
@@ -31,6 +32,8 @@ import org.limbo.flowjob.common.utils.dag.DAG;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Brozen
@@ -46,9 +49,23 @@ public class JobInstanceRepo implements JobInstanceRepository {
 
     @Override
     public String save(JobInstance jobInstance) {
-        JobInstanceEntity entity = toEntity(jobInstance);
+        JobInstanceEntity entity = DomainConverter.toJobInstanceEntity(jobInstance);
         jobInstanceEntityRepo.saveAndFlush(entity);
         return String.valueOf(entity.getId());
+    }
+
+    @Override
+    public void saveAll(List<JobInstance> jobInstances) {
+        if (CollectionUtils.isEmpty(jobInstances)) {
+            return;
+        }
+        List<JobInstanceEntity> entities = new ArrayList<>();
+        for (JobInstance jobInstance : jobInstances) {
+            entities.add(DomainConverter.toJobInstanceEntity(jobInstance));
+        }
+
+        jobInstanceEntityRepo.saveAll(entities);
+        jobInstanceEntityRepo.flush();
     }
 
     @Override
@@ -60,19 +77,6 @@ public class JobInstanceRepo implements JobInstanceRepository {
             return DomainConverter.toJobInstance(entity, dag);
 
         }).orElse(null);
-    }
-
-    private JobInstanceEntity toEntity(JobInstance jobInstance) {
-        JobInstanceEntity jobInstanceEntity = new JobInstanceEntity();
-        jobInstanceEntity.setPlanInstanceId(Long.valueOf(jobInstance.getPlanInstanceId()));
-        jobInstanceEntity.setPlanInfoId(Long.valueOf(jobInstance.getPlanVersion()));
-        jobInstanceEntity.setJobId(jobInstance.getJobId());
-        jobInstanceEntity.setStatus(jobInstance.getStatus().status);
-        jobInstanceEntity.setAttributes(jobInstance.getAttributes().toString());
-        jobInstanceEntity.setStartAt(jobInstance.getStartAt());
-        jobInstanceEntity.setEndAt(jobInstance.getEndAt());
-        jobInstanceEntity.setId(Long.valueOf(jobInstance.getJobInstanceId()));
-        return jobInstanceEntity;
     }
 
 }

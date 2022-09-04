@@ -32,12 +32,11 @@ public class LFUWorkerSelector extends AbstractWorkerSelector implements WorkerS
 
     /**
      * {@inheritDoc}
-     * @param context 待下发的作业上下文
      * @param workers 待下发上下文可用的worker
      * @return
      */
     @Override
-    protected Worker selectWorker(Task context, Collection<Worker> workers) {
+    protected Worker selectWorker(Collection<Worker> workers) {
         // TODO
         return null;
     }

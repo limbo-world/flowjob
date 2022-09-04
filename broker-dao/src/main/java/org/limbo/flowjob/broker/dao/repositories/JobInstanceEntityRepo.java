@@ -36,6 +36,9 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
 
     long countByPlanInstanceIdAndStatusIn(Long planInstanceId, List<Byte> statuses);
 
+    @Query(value = "select * from flowjob_job_instance where id = :id for update", nativeQuery = true)
+    JobInstanceEntity selectForUpdate(@Param("id") Long id);
+
     List<JobInstanceEntity> findByPlanInstanceIdInAndStatusAndTriggerAtLessThan(Collection<Long> planIds, Byte status, LocalDateTime triggerAt);
 
     List<JobInstanceEntity> findByPlanInstanceIdAndJobId(Long planInstanceId, Long jobId);

@@ -23,15 +23,15 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
-import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.broker.core.domain.task.Task;
+import org.limbo.flowjob.broker.core.domain.task.TaskDispatcher;
+import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.domain.SlotManager;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
-import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
@@ -65,19 +65,16 @@ public class TaskStatusCheckTask extends TimerTask {
     private BrokerConfig config;
 
     @Setter(onMethod_ = @Inject)
-    private PlanEntityRepo planEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
     private PlanInfoEntityRepo planInfoEntityRepo;
 
     @Setter(onMethod_ = @Inject)
     private TaskEntityRepo taskEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private WorkerManager workerManager;
+    private PlanSlotEntityRepo planSlotEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private PlanSlotEntityRepo planSlotEntityRepo;
+    private TaskDispatcher taskDispatcher;
 
     @Override
     public void run() {
@@ -90,12 +87,13 @@ public class TaskStatusCheckTask extends TimerTask {
             return;
         }
 
-        List<TaskEntity> tasks = taskEntityRepo.findByPlanIdInAncStatus(slotEntities.stream().map(PlanSlotEntity::getPlanId).collect(Collectors.toList()), TaskStatus.EXECUTING.status);
+        List<TaskEntity> tasks = taskEntityRepo.findByPlanIdInAndStatus(slotEntities.stream().map(PlanSlotEntity::getPlanId).collect(Collectors.toList()), TaskStatus.EXECUTING.status);
         for (TaskEntity taskEntity : tasks) {
             // 获取长时间为执行中的task 判断worker是否已经宕机
-            if (!workerRepository.get(taskEntity.getWorkerId()).isAlive()) {
-                Task task = DomainConverter.toTask(taskEntity, workerManager, planInfoEntityRepo);
-                task.dispatch(workerSelector);
+            Worker worker = workerRepository.get(taskEntity.getWorkerId());
+            if (worker == null || !worker.isAlive()) {
+                Task task = DomainConverter.toTask(taskEntity, planInfoEntityRepo); // todo 没有worker
+                taskDispatcher.dispatch(task);
             }
         }
 

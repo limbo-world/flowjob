@@ -19,7 +19,7 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
-import org.limbo.flowjob.broker.core.cluster.WorkerManager;
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.repository.TaskRepository;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
@@ -31,6 +31,8 @@ import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Brozen
@@ -42,8 +44,6 @@ public class TaskRepo implements TaskRepository {
     @Setter(onMethod_ = @Inject)
     private TaskEntityRepo taskEntityRepo;
 
-    @Setter(onMethod_ = @Inject)
-    private WorkerManager workerManager;
     @Setter(onMethod_ = @Inject)
     private PlanInfoEntityRepo planInfoEntityRepo;
 
@@ -63,8 +63,22 @@ public class TaskRepo implements TaskRepository {
     }
 
     @Override
+    public void saveAll(List<Task> tasks) {
+        if (CollectionUtils.isEmpty(tasks)) {
+            return;
+        }
+        List<TaskEntity> entities = new ArrayList<>();
+        for (Task task : tasks) {
+            entities.add(DomainConverter.toTaskEntity(task));
+        }
+
+        taskEntityRepo.saveAll(entities);
+        taskEntityRepo.flush();
+    }
+
+    @Override
     public Task get(String taskId) {
-        return taskEntityRepo.findById(Long.valueOf(taskId)).map(entity -> DomainConverter.toTask(entity, workerManager, planInfoEntityRepo)).orElse(null);
+        return taskEntityRepo.findById(Long.valueOf(taskId)).map(entity -> DomainConverter.toTask(entity, planInfoEntityRepo)).orElse(null);
     }
 
 }
