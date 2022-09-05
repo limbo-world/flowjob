@@ -79,7 +79,23 @@ public abstract class OkHttpBrokerRpc implements BrokerRpc {
      */
     @Override
     public WorkerRegisterDTO register(WorkerRegisterParam param) throws RegisterFailException {
-        BrokerNode broker = this.loadBalancer.select(this.brokerNodes);
+        for (BrokerNode broker : brokerNodes) {
+            try {
+                return registerWith(broker, param);
+            } catch (RegisterFailException e) {
+                log.error("Register to {} failed，try next node", broker);
+            }
+        }
+
+        String msg = "Register failed after tried all broker, please check your configuration";
+        throw new RegisterFailException(msg);
+    }
+
+
+    /**
+     * 向指定 broker 节点发起注册请求
+     */
+    private WorkerRegisterDTO registerWith(BrokerNode broker, WorkerRegisterParam param) throws RegisterFailException {
         String json = JacksonUtils.toJSONString(param);
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), json);
 
