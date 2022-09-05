@@ -21,6 +21,7 @@ import org.limbo.flowjob.broker.api.clent.param.TaskFeedbackParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerHeartbeatParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
 import org.limbo.flowjob.broker.api.dto.BrokerDTO;
+import org.limbo.flowjob.worker.core.rpc.exceptions.RegisterFailException;
 
 import java.util.List;
 
@@ -31,17 +32,11 @@ import java.util.List;
 public interface BrokerRpc {
 
     /**
-     * 更新 Broker 节点信息
-     * @param brokers Broker 节点列表
-     */
-    void updateBrokerNodes(List<BrokerDTO> brokers);
-
-    /**
      * 向 Broker 注册 Worker
      * @param param 注册参数
      * @return 注册结果
      */
-    WorkerRegisterDTO register(WorkerRegisterParam param);
+    WorkerRegisterDTO register(WorkerRegisterParam param) throws RegisterFailException;
 
     /**
      * 向 Broker 发送心跳
@@ -54,4 +49,5 @@ public interface BrokerRpc {
      * @param param 执行结果
      */
     void feedbackTask(TaskFeedbackParam param);
+
 }
