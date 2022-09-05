@@ -53,7 +53,7 @@ public class WorkerResourcesCalculator {
      * @param sampleDuration CPU tick 采样时长，
      * @return 可用的 CPU 处理器数量。
      */
-    public float calculateAvailableCpu(Duration sampleDuration) {
+    public float getAvailableCpu(Duration sampleDuration) {
         long[] prevTicks = processor.getSystemCpuLoadTicks();
         LockSupport.parkNanos(sampleDuration.toNanos());
         long[] currTicks = processor.getSystemCpuLoadTicks();
@@ -89,7 +89,7 @@ public class WorkerResourcesCalculator {
     /**
      * 计算可用的 RAM，单位字节
      */
-    public long calculateAvailableRam() {
+    public long getAvailableRam() {
         return osMxBean.getFreePhysicalMemorySize();
     }
 

@@ -17,32 +17,22 @@
 package org.limbo.flowjob.worker.core.domain;
 
 import lombok.Getter;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.worker.core.executor.TaskRepository;
 
 import java.time.Duration;
 import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * worker自身资源情况
+ * 动态计算的 worker 资源
  *
  * @author Devil
  * @since 2021/7/24
  */
 @Slf4j
-public class WorkerResource {
-
-    /**
-     * 可分配任务总数
-     */
-    private int queueSize;
-
-    /**
-     * 剩余可分配任务数
-     */
-    @Getter
-    private int availableQueueSize;
+@Accessors(fluent = true)
+public class CalculatingWorkerResource extends AbstractWorkerResources {
 
     /**
      * 可用 CPU 核数
@@ -66,29 +56,14 @@ public class WorkerResource {
      */
     private TimerTask calculateTask;
 
-    /**
-     * 任务仓库
-     */
-    private TaskRepository taskRepository;
 
-    private WorkerResource() {
-    }
+    public CalculatingWorkerResource(int queueSize) {
+        super(queueSize);
+        this.calculator = new WorkerResourcesCalculator();
+        this.availableCpu = this.calculator.getAvailableCpu(Duration.ofSeconds(1));
+        this.availableRam = this.calculator.getAvailableRam();
 
-
-    /**
-     * 静态工厂
-     *
-     * @param queueSize 初始化任务队列大小
-     */
-    public static WorkerResource create(int queueSize, TaskRepository taskRepository) {
-        WorkerResource resource = new WorkerResource();
-        resource.queueSize = queueSize;
-        resource.availableQueueSize = queueSize;
-        resource.calculator = new WorkerResourcesCalculator();
-        resource.availableCpu = resource.calculator.calculateAvailableCpu(Duration.ofSeconds(1));
-        resource.taskRepository = taskRepository;
-        resource.startCalculateTask();
-        return resource;
+        startCalculateTask();
     }
 
 
@@ -101,31 +76,18 @@ public class WorkerResource {
             this.calculateTask.cancel();
         }
 
+        // 创建新的定时任务
         this.calculateTask = new TimerTask() {
             @Override
             public void run() {
-                availableCpu = calculator.calculateAvailableCpu(Duration.ofSeconds(1));
-                availableRam = calculator.calculateAvailableRam();
-                availableQueueSize = queueSize - taskRepository.count();
+                availableCpu = calculator.getAvailableCpu(Duration.ofSeconds(1));
+                availableRam = calculator.getAvailableRam();
             }
         };
 
         // 启动任务
         Timer calculateScheduler = new Timer("WorkerResourceCalculateTimer");
         calculateScheduler.schedule(this.calculateTask, 1000, 1000);
-    }
-
-
-    /**
-     * 重新调整任务队列大小
-     */
-    public void resize(int queueSize) {
-        if (this.queueSize == queueSize) {
-            return;
-        }
-
-        this.availableQueueSize = this.availableQueueSize + (queueSize - this.queueSize);
-        this.queueSize = queueSize;
     }
 
 }

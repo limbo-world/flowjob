@@ -14,18 +14,32 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.worker.core.rpc;
-
-import java.util.List;
+package org.limbo.flowjob.worker.core.domain;
 
 /**
  * @author Brozen
- * @since 2022-08-31
+ * @since 2022-09-05
  */
-public interface BrokerLoadBalancer {
+public interface WorkerResources {
 
+    /**
+     * 可分配任务总数
+     */
+    int queueSize();
 
-    BrokerNode select(List<BrokerNode> nodes);
+    /**
+     * 剩余可分配任务数
+     */
+    int availableQueueSize();
 
+    /**
+     * 可用 CPU 核数
+     */
+    float availableCpu();
+
+    /**
+     * 可用的 RAM 内存数量
+     */
+    long availableRam();
 
 }
