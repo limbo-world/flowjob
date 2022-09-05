@@ -21,7 +21,6 @@ package org.limbo.flowjob.broker.dao.domain;
 import lombok.Setter;
 import org.limbo.flowjob.broker.api.constants.enums.PlanStatus;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
-import org.limbo.flowjob.broker.core.domain.factory.JobInstanceFactory;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.schedule.calculator.ScheduleCalculatorFactory;
@@ -48,8 +47,6 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
     private PlanInfoEntityRepo planInfoEntityRepo;
     @Setter(onMethod_ = @Inject)
     private ScheduleCalculatorFactory scheduleCalculatorFactory;
-    @Setter(onMethod_ = @Inject)
-    private JobInstanceFactory jobInstanceFactory;
 
 
     @Override
@@ -64,7 +61,6 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
     public PlanInstance get(String planInstanceId) {
         return planInstanceEntityRepo.findById(Long.valueOf(planInstanceId)).map(this::toPlanInstance).orElse(null);
     }
-
 
     private PlanInstanceEntity toEntity(PlanInstance instance) {
         PlanInstanceEntity planInstanceEntity = new PlanInstanceEntity();
@@ -91,7 +87,6 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
         planInstance.setFeedbackAt(entity.getFeedbackAt());
 
         planInstance.setStrategyFactory(scheduleCalculatorFactory);
-        planInstance.setJobInstanceFactory(jobInstanceFactory);
 
         // 基础信息
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getPlanInfoId()).get();

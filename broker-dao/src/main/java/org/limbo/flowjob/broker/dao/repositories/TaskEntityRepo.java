@@ -32,9 +32,9 @@ import java.util.List;
  */
 public interface TaskEntityRepo extends JpaRepository<TaskEntity, Long> {
 
-    List<TaskEntity> findByJobInstanceIdAndType(Long jobInstanceId, Byte type);
+    List<TaskEntity> findByJobInstanceId(Long jobInstanceId);
 
-    List<TaskEntity> findByPlanIdInAncStatus(List<Long> planIds, Byte status);
+    List<TaskEntity> findByPlanIdInAndStatus(List<Long> planIds, Byte status);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update TaskEntity set status = :newStatus, workerId = :workerId where id = :id and status = :oldStatus")
@@ -45,7 +45,7 @@ public interface TaskEntityRepo extends JpaRepository<TaskEntity, Long> {
     int updateSuccessStatus(@Param("id") Long id, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus, @Param("result") String result);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update TaskEntity set status = :newStatus, errorMsg = :errorMsg, errorStackTrace = :errorStack where id = :id and status = :oldStatus")
-    int updateStatusWithError(@Param("id") Long id, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus,
+    @Query(value = "update TaskEntity set status = :newStatus, errorMsg = :errorMsg, errorStackTrace = :errorStack where id in (:ids) and status = :oldStatus")
+    int updateStatusWithError(@Param("ids") List<Long> ids, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus,
                               @Param("errorMsg") String errorMsg, @Param("errorStack") String errorStack);
 }

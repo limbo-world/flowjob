@@ -18,7 +18,6 @@ package org.limbo.flowjob.broker.core.dispatcher.strategies;
 
 import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
-import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.worker.Worker;
 
 import java.util.Collection;
@@ -39,12 +38,11 @@ public class RandomWorkerSelector extends AbstractWorkerSelector implements Work
 
     /**
      * {@inheritDoc}
-     * @param context 待下发的作业上下文
      * @param workers 待下发上下文可用的worker
      * @return
      */
     @Override
-    protected Worker selectWorker(Task context, Collection<Worker> workers) {
+    protected Worker selectWorker(Collection<Worker> workers) {
         int index = this.random.nextInt(workers.size());
 
         int i = 0;

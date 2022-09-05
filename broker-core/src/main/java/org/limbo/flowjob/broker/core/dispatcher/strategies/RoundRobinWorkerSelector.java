@@ -35,12 +35,11 @@ public class RoundRobinWorkerSelector extends AbstractWorkerSelector implements 
 
     /**
      * {@inheritDoc}
-     * @param context 待下发的作业上下文
      * @param workers 待下发上下文可用的worker
      * @return
      */
     @Override
-    protected Worker selectWorker(Task context, Collection<Worker> workers) {
+    protected Worker selectWorker(Collection<Worker> workers) {
         // TODO
         return workers.iterator().next();
     }

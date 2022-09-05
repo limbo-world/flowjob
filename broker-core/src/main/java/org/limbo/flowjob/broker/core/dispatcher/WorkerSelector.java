@@ -17,6 +17,8 @@
 package org.limbo.flowjob.broker.core.dispatcher;
 
 import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
+import org.limbo.flowjob.broker.core.domain.DispatchOption;
+import org.limbo.flowjob.broker.core.domain.ExecutorOption;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.worker.Worker;
 
@@ -40,9 +42,10 @@ public interface WorkerSelector {
 
     /**
      * 选择作业上下文应当下发给的worker。
-     * @param context 待下发的作业上下文
+     * @param dispatchOption 下发参数
+     * @param executorOption 执行器参数
      * @param workers 待下发上下文可用的worker
      */
-    Worker select(Task context, Collection<Worker> workers);
+    Worker select(DispatchOption dispatchOption, ExecutorOption executorOption, Collection<Worker> workers);
 
 }

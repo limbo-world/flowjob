@@ -21,12 +21,6 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 /**
- * <ul>
- *     <li>{@linkplain JobType#NORMAL 普通}</li>
- *     <li>{@linkplain JobType#BROADCAST 广播}</li>
- *     <li>{@linkplain JobType#MAP Map分片}</li>
- *     <li>{@linkplain JobType#MAP_REDUCE MapReduce}</li>
- * </ul>
  *
  * @author Brozen
  * @since 2021-05-19
@@ -41,13 +35,17 @@ public enum JobType implements DescribableEnum<Byte> {
      */
     BROADCAST(2, "广播类型"),
     /**
-     * 将任务切分
+     * 拆分子任务的任务
      */
-    MAP(3, "Map分片类型"),
+    SPLIT(3, "split任务"),
     /**
-     * 将任务切分 归纳
+     * map任务
      */
-    MAP_REDUCE(4, "MapReduce类型"),
+    MAP(4, "Map任务"),
+    /**
+     * map子任务归纳合并的任务
+     */
+    REDUCE(5, "Reduce任务"),
     ;
 
     /**

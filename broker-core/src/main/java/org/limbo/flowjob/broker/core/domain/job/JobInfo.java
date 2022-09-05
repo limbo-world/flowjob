@@ -26,6 +26,7 @@ import org.limbo.flowjob.broker.api.constants.enums.JobType;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.core.domain.DispatchOption;
 import org.limbo.flowjob.broker.core.domain.ExecutorOption;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAGNode;
 
 import java.util.Set;
@@ -57,6 +58,11 @@ public class JobInfo extends DAGNode {
     private TriggerType triggerType;
 
     private JobType type;
+
+    /**
+     * 属性参数
+     */
+    protected Attributes attributes;
 
     /**
      * 作业分发配置参数

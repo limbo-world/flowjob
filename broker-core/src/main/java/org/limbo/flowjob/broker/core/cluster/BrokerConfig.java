@@ -33,7 +33,7 @@ public class BrokerConfig {
     private String host;
 
     /**
-     * 提供给worker的服务port
+     * 提供给worker的服务 port
      */
     private Integer port;
     /**

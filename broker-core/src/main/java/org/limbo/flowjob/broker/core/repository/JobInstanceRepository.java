@@ -16,6 +16,11 @@ public interface JobInstanceRepository {
      */
     String save(JobInstance jobInstance);
 
+    /**
+     * 新增作业实例，持久化到DB。
+     */
+    void saveAll(List<JobInstance> jobInstances);
+
 
     /**
      * 根据ID获取指定作业实例

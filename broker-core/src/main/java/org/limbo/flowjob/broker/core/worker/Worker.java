@@ -33,6 +33,7 @@ import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatisticsRepositor
 
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 在Tracker端，作业执行节点的抽象。
@@ -65,6 +66,11 @@ public class Worker implements WorkerRpc {
      * worker节点状态
      */
     private WorkerStatus status;
+
+    /**
+     * worker标签
+     */
+    private Map<String, List<String>> tags;
 
     /**
      * 是否启用 不启用则无法下发任务
@@ -106,7 +112,7 @@ public class Worker implements WorkerRpc {
      * 当前 worker 是否处在存活状态。熔断状态不算存活状态
      */
     public boolean isAlive() {
-        return this.status == WorkerStatus.RUNNING;
+        return WorkerStatus.RUNNING == status;
     }
 
 

@@ -6,11 +6,11 @@ import org.limbo.flowjob.broker.api.console.param.PlanReplaceParam;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
-import org.limbo.flowjob.broker.core.repository.JobInstancesRepository;
 import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -45,9 +46,6 @@ public class PlanService {
 
     @Setter(onMethod_ = @Inject)
     private JobInstanceRepository jobInstanceRepository;
-
-    @Setter(onMethod_ = @Inject)
-    private JobInstancesRepository jobInstancesRepository;
 
 
     /**
@@ -119,7 +117,7 @@ public class PlanService {
     }
 
     @Transactional
-    public void saveScheduleInfo(PlanInstance planInstance, PlanInstance.JobInstances jobInstances) {
+    public void saveScheduleInfo(PlanInstance planInstance, List<JobInstance> jobInstances) {
         Long planId = Long.valueOf(planInstance.getPlanId());
 
         // 加锁
@@ -134,7 +132,7 @@ public class PlanService {
         planInstanceRepository.save(planInstance);
 
         // 批量保存数据
-        jobInstancesRepository.save(jobInstances);
+        jobInstanceRepository.saveAll(jobInstances);
 
         // 更新plan的下次触发时间
         if (ScheduleType.FIXED_DELAY != planInstance.getScheduleOption().getScheduleType() && TriggerType.SCHEDULE == planInstance.getScheduleOption().getTriggerType()) {

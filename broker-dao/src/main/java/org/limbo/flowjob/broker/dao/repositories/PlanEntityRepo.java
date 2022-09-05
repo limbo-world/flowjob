@@ -36,7 +36,7 @@ import java.util.List;
  */
 public interface PlanEntityRepo extends JpaRepository<PlanEntity, Long> {
 
-    @Query(value = "select * from flowjob_plan where id = ?1 for update", nativeQuery = true)
+    @Query(value = "select * from flowjob_plan where id = :id for update", nativeQuery = true)
     PlanEntity selectForUpdate(@Param("id") Long id);
 
     List<PlanEntity> findByIdInAndIsEnabledAndNextTriggerAtBefore(List<Long> ids, boolean isEnabled, LocalDateTime nextTriggerAt);

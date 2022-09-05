@@ -3,7 +3,7 @@ spring:
     active: dev
 
   application:
-    name: job-tracker-admin
+    name: flowjob-broker
 
   flyway:
     baseline-on-migrate: true

@@ -19,10 +19,14 @@
 package org.limbo.flowjob.broker.api.console.param;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 
+import javax.validation.constraints.NotNull;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -32,18 +36,23 @@ import java.time.LocalDateTime;
  */
 @Data
 @Schema(title = "作业调度配置参数")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ScheduleOptionParam {
 
     /**
      * 调度方式
      */
     @Schema(title = "调度方式", implementation = Integer.class, description = ScheduleType.DESCRIPTION)
+    @NotNull
     private ScheduleType scheduleType;
 
     /**
      * 触发方式
      */
     @Schema(title = "触发方式", implementation = Integer.class, description = TriggerType.DESCRIPTION)
+    @NotNull
     private TriggerType triggerType;
 
     /**

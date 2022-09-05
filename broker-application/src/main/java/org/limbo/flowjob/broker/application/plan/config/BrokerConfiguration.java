@@ -23,14 +23,14 @@ import org.limbo.flowjob.broker.application.plan.component.TaskStatusCheckTask;
 import org.limbo.flowjob.broker.application.plan.support.NodeMangerImpl;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.BrokerRegistry;
-import org.limbo.flowjob.broker.core.dispatcher.strategies.RoundRobinWorkerSelector;
-import org.limbo.flowjob.broker.core.domain.factory.JobInstanceFactory;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.cluster.WorkerManagerImpl;
+import org.limbo.flowjob.broker.core.dispatcher.strategies.RoundRobinWorkerSelector;
+import org.limbo.flowjob.broker.core.domain.task.TaskDispatcher;
+import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
 import org.limbo.flowjob.broker.core.schedule.calculator.SimpleScheduleCalculatorFactory;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
@@ -43,9 +43,6 @@ import java.util.Timer;
  */
 @EnableConfigurationProperties({BrokerProperties.class})
 public class BrokerConfiguration {
-
-    @Value("${server.port}")
-    private int port;
 
     @Setter(onMethod_ = @Inject)
     private BrokerProperties brokerProperties;
@@ -130,13 +127,14 @@ public class BrokerConfiguration {
         return new RoundRobinWorkerSelector();
     }
 
-
-    /**
-     * 任务生成策略工厂
-     */
     @Bean
-    public JobInstanceFactory jobInstanceFactory(WorkerManager workerManager) {
-        return new JobInstanceFactory(workerManager);
+    public TaskFactory taskFactory(WorkerManager workerManager) {
+        return new TaskFactory(workerManager);
+    }
+
+    @Bean
+    public TaskDispatcher taskDispatcher(WorkerManager workerManager) {
+        return new TaskDispatcher(workerManager);
     }
 
 }

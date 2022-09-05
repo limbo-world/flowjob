@@ -16,18 +16,14 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.repository;
-
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+package org.limbo.flowjob.broker.core.domain.job;
 
 /**
  * @author Devil
- * @since 2022/8/18
+ * @since 2022/8/19
  */
-public interface TasksRepository {
+public class FailHandlerFactory {
 
-    /**
-     * 持久化
-     */
-    void save(JobInstance.Tasks tasks);
+
+
 }

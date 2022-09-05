@@ -18,8 +18,8 @@ package org.limbo.flowjob.broker.core.dispatcher.strategies;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
-import org.limbo.flowjob.broker.core.exceptions.TaskReceiveException;
-import org.limbo.flowjob.broker.core.domain.task.Task;
+import org.limbo.flowjob.broker.core.domain.DispatchOption;
+import org.limbo.flowjob.broker.core.domain.ExecutorOption;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerExecutor;
 
@@ -35,14 +35,11 @@ public abstract class AbstractWorkerSelector implements WorkerSelector {
 
     /**
      * {@inheritDoc}
-     *
-     * @param task    待下发的作业实例
-     * @param workers 可用的worker
      */
     @Override
-    public Worker select(Task task, Collection<Worker> workers) {
+    public Worker select(DispatchOption dispatchOption, ExecutorOption executorOption, Collection<Worker> workers) {
         if (CollectionUtils.isEmpty(workers)) {
-            throw new TaskReceiveException(task.getJobId(), null, "No worker available!");
+            return null;
         }
 
         List<Worker> availableWorkers = new ArrayList<>();
@@ -55,8 +52,7 @@ public abstract class AbstractWorkerSelector implements WorkerSelector {
             }
             // 判断是否有对应的执行器
             for (WorkerExecutor executor : executors) {
-                if (executor.getType() == task.getExecutorOption().getType()
-                        && executor.getName().equals(task.getExecutorOption().getName())) {
+                if (executor.getType() == executorOption.getType() && executor.getName().equals(executorOption.getName())) {
                     availableWorkers.add(worker);
                     continue WORKER;
                 }
@@ -64,20 +60,19 @@ public abstract class AbstractWorkerSelector implements WorkerSelector {
         }
 
         if (CollectionUtils.isEmpty(availableWorkers)) {
-            throw new TaskReceiveException(task.getJobId(), null, "No worker available!");
+            return null;
         }
 
-        return selectWorker(task, workers);
+        return selectWorker(workers);
     }
 
 
     /**
      * 选择一个worker进行作业下发
      *
-     * @param task    待下发的作业上下文
      * @param workers 待下发上下文可用的worker
      * @return 需要下发作业上下文的worker
      */
-    protected abstract Worker selectWorker(Task task, Collection<Worker> workers);
+    protected abstract Worker selectWorker(Collection<Worker> workers);
 
 }
