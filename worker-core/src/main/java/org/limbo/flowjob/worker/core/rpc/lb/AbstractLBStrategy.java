@@ -16,9 +16,6 @@
 
 package org.limbo.flowjob.worker.core.rpc.lb;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
@@ -32,12 +29,26 @@ public abstract class AbstractLBStrategy<S extends LBServer> implements LBStrate
     /**
      * 当前负载均衡策略绑定的负载均衡器
      */
-    @Getter(AccessLevel.PROTECTED)
-    private final LoadBalancer<S> loadBalancer;
+    private LoadBalancer<S> loadBalancer;
 
 
-    public AbstractLBStrategy(LoadBalancer<S> loadBalancer) {
+    /**
+     * {@inheritDoc}
+     * @param loadBalancer
+     */
+    @Override
+    public void bindWithLoadBalancer(LoadBalancer<S> loadBalancer) {
         this.loadBalancer = Objects.requireNonNull(loadBalancer);
+    }
+
+
+    /**
+     * {@inheritDoc}
+     * @return
+     */
+    @Override
+    public LoadBalancer<S> getBoundLoadBalancer() {
+        return this.loadBalancer;
     }
 
 

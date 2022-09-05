@@ -27,6 +27,17 @@ import java.util.Optional;
 public interface LBStrategy<S extends LBServer> {
 
     /**
+     * 将当前策略绑定到指定的负载均衡器
+     */
+    void bindWithLoadBalancer(LoadBalancer<S> loadBalancer);
+
+    /**
+     * 获取当前策略绑定的负载均衡器
+     */
+    LoadBalancer<S> getBoundLoadBalancer();
+
+
+    /**
      * 选择一个服务
      * @return 选择的服务，可能为 null。当无可用服务时，返回 null。
      */

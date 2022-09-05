@@ -17,6 +17,7 @@
 package org.limbo.flowjob.worker.core.rpc.lb;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 负载均衡器
@@ -42,7 +43,7 @@ public interface LoadBalancer<S extends LBServer> {
     /**
      * 从当前负载均衡器中，选择服务
      */
-    S choose();
+    Optional<S> choose();
 
 
     /**

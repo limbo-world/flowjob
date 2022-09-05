@@ -45,8 +45,7 @@ public class WeightedStrategy<S extends LBServer> extends RoundRobinStrategy<S> 
     private final Random random;
 
 
-    public WeightedStrategy(LoadBalancer<S> loadBalancer, Function<List<String>, List<Double>> weightSupplier) {
-        super(loadBalancer);
+    public WeightedStrategy(Function<List<String>, List<Double>> weightSupplier) {
         this.weightSupplier = Objects.requireNonNull(weightSupplier);
         this.random = new Random();
     }
