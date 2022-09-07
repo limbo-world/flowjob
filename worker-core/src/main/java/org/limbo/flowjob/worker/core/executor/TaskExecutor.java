@@ -18,7 +18,6 @@ package org.limbo.flowjob.worker.core.executor;
 
 
 import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
-import org.limbo.flowjob.worker.core.domain.Task;
 
 /**
  * 任务执行器
@@ -34,19 +33,27 @@ public interface TaskExecutor {
      */
     void run(ExecuteContext context);
 
-    /**
-     * 执行器名称
-     */
-    String getName();
 
     /**
-     * 执行器描述
+     * 执行器名称，默认为执行器类的类名
      */
-    String getDescription();
+    default String getName() {
+        return this.getClass().getSimpleName();
+    }
+
 
     /**
-     * 执行器类型
+     * 执行器描述，默认为执行器类的类全名
      */
-    JobExecuteType getType();
+    default String getDescription() {
+        return this.getClass().getName();
+    }
+
+    /**
+     * 执行器类型，默认为方法执行器{@link JobExecuteType#FUNCTION}
+     */
+    default JobExecuteType getType() {
+        return JobExecuteType.FUNCTION;
+    }
 
 }

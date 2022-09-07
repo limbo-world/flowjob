@@ -46,30 +46,30 @@ public class WorkerProperties {
     private List<URL> brokers;
 
     /**
-     * worker 注册时，向 broker 提交的 RPC 通信协议类型
+     * worker 注册时，向 broker 提交的 RPC 通信协议类型。默认为 http。
      */
-    private String scheme;
+    private WorkerScheme scheme = WorkerScheme.http;
 
     /**
      * worker 注册时，向 broker 提交的 RPC 通信 host，可以是域名或 IP 地址，如不填写则自动发现本机非 127.0.0.1 的地址。
      * 多网卡场景下，建议显式配置 host。
      */
-    private String host;
+    private String host = "127.0.0.1";
 
     /**
-     * worker 注册时，向 broker 提交的 RPC 通信端口
+     * worker 注册时，向 broker 提交的 RPC 通信端口，默认为 8080。
      */
-    private int port;
+    private int port = 8080;
 
     /**
-     * 任务执行并发数量。worker 将允许同时执行的任务个数，同时执行的任务数量超出此限制后，后续接收的任务将放入积压队列中。
+     * 任务执行并发数量。worker 将允许同时执行的任务个数，同时执行的任务数量超出此限制后，后续接收的任务将放入积压队列中。默认为系统 CPU 核数。
      */
-    private int taskConcurrency;
+    private int taskConcurrency = Runtime.getRuntime().availableProcessors();
 
     /**
-     * 任务积压队列容量。如积压队列已满，则 worker 无法继续接收任务。
+     * 任务积压队列容量。如积压队列已满，则 worker 无法继续接收任务。默认积压队列为 0，即不启用积压队列。
      */
-    private int taskQueueSize;
+    private int taskQueueSize = 0;
 
     /**
      * worker 节点标签，可用于下发任务时进行过滤。

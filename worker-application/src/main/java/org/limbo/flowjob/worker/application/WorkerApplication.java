@@ -27,17 +27,14 @@ import org.springframework.context.annotation.Import;
  * @since 2021/7/24
  */
 @SpringBootApplication
-@EnableConfigurationProperties({WorkerProperties.class})
-@Import({
-        WorkerConfiguration.class,
-})
 public class WorkerApplication {
 
     public static void main(String[] args) {
         new SpringApplicationBuilder()
-                .web(WebApplicationType.REACTIVE)
+                .web(WebApplicationType.SERVLET)
                 .sources(WorkerApplication.class)
                 .build()
                 .run(args);
     }
+
 }

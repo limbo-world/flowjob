@@ -20,6 +20,7 @@ package org.limbo.flowjob.broker.api.clent.param;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +32,7 @@ import java.util.Map;
 @Data
 public class TaskSubmitParam {
 
+    @NotBlank
     private String taskId;
 
     private String planId;
@@ -57,10 +59,12 @@ public class TaskSubmitParam {
      * job配置的属性
      */
     private Map<String, Object> attributes;
+
     /**
      * 每个map task单独的属性
      */
     private Map<String, Object> mapAttributes;
+
     /**
      * reduce时候使用的
      */

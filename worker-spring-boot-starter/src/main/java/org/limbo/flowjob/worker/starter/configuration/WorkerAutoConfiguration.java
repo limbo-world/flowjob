@@ -24,7 +24,11 @@ import org.limbo.flowjob.worker.core.domain.WorkerResources;
 import org.limbo.flowjob.worker.core.rpc.BrokerNode;
 import org.limbo.flowjob.worker.core.rpc.BrokerRpc;
 import org.limbo.flowjob.worker.core.rpc.OkHttpBrokerRpc;
+import org.limbo.flowjob.worker.core.rpc.lb.BaseLoadBalancer;
+import org.limbo.flowjob.worker.core.rpc.lb.LBStrategy;
 import org.limbo.flowjob.worker.core.rpc.lb.LoadBalancer;
+import org.limbo.flowjob.worker.core.rpc.lb.RoundRobinStrategy;
+import org.limbo.flowjob.worker.starter.processor.ExecutorMethodProcessor;
 import org.limbo.flowjob.worker.starter.properties.WorkerProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -44,7 +48,7 @@ import java.util.stream.Collectors;
  * @since 2022-09-05
  */
 @Configuration
-@ConditionalOnProperty(prefix = "flowjob.worker", value = "enabled", havingValue = "true")
+@ConditionalOnProperty(prefix = "flowjob.worker", value = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(WorkerProperties.class)
 public class WorkerAutoConfiguration {
 
@@ -56,14 +60,23 @@ public class WorkerAutoConfiguration {
 
 
     /**
+     * 用于扫描 @Executor 注解标记的方法
+     */
+    @Bean
+    public ExecutorMethodProcessor executorMethodProcessor() {
+        return new ExecutorMethodProcessor();
+    }
+
+
+    /**
      * Worker 实例，
      * @param rpc broker rpc 通信模块
      */
     @Bean
     public Worker httpWorker(WorkerResources resources, BrokerRpc rpc) throws MalformedURLException {
         URL workerBaseUrl = workerProps.getPort() > 0
-                ? new URL(workerProps.getScheme(), workerProps.getHost(), workerProps.getPort(), "")
-                : new URL(workerProps.getScheme(), workerProps.getHost(), "");
+                ? new URL(workerProps.getScheme().name(), workerProps.getHost(), workerProps.getPort(), "")
+                : new URL(workerProps.getScheme().name(), workerProps.getHost(), "");
 
         return new Worker(workerProps.getId(), workerBaseUrl, resources, rpc);
     }
@@ -75,7 +88,7 @@ public class WorkerAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(WorkerResources.class)
     public WorkerResources calculatingWorkerResource() {
-        return new CalculatingWorkerResource(workerProps.getTaskQueueSize());
+        return new CalculatingWorkerResource(workerProps.getTaskConcurrency(), workerProps.getTaskQueueSize());
     }
 
 
@@ -109,5 +122,23 @@ public class WorkerAutoConfiguration {
     }
 
 
+    /**
+     * Broker 负载均衡器
+     */
+    @Bean("brokerLoadBalancer")
+    @ConditionalOnMissingBean(name = "brokerLoadBalancer")
+    public LoadBalancer<BrokerNode> brokerLoadBalancer(LBStrategy<BrokerNode> lbStrategy) {
+        return new BaseLoadBalancer<>("brokerLoadBalancer", lbStrategy);
+    }
+
+
+    /**
+     * Broker 负载均衡策略
+     */
+    @Bean("brokerLoadBalanceStrategy")
+    @ConditionalOnMissingBean(name = "brokerLoadBalanceStrategy")
+    public LBStrategy<BrokerNode> brokerLoadBalanceStrategy() {
+        return new RoundRobinStrategy<>();
+    }
 
 }

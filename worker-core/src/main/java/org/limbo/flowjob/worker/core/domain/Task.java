@@ -18,6 +18,9 @@ package org.limbo.flowjob.worker.core.domain;
 
 import lombok.Data;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author Devil
  * @since 2021/7/24
@@ -25,17 +28,15 @@ import lombok.Data;
 @Data
 public class Task {
 
-    private String planId;
+    private String taskId;
 
-    private String planRecordId;
+    private String planId;
 
     private String planInstanceId;
 
     private String jobId;
 
     private String jobInstanceId;
-
-    private String taskId;
 
     /**
      * sharding normal
@@ -46,7 +47,28 @@ public class Task {
      */
     private String executorName;
 
+    /**
+     * 上下文元数据
+     */
+    private Map<String, Object> context;
+
+    /**
+     * job配置的属性
+     */
+    private Map<String, Object> attributes;
+
+    /**
+     * 每个map task单独的属性
+     */
+    private Map<String, Object> mapAttributes;
+
+    /**
+     * reduce时候使用的
+     */
+    private List<Map<String, Object>> reduceAttributes;
+
     public String getId() {
-        return planId + "-" + planRecordId + "-" + planInstanceId + "-" + jobId + "-" + jobInstanceId + "-" + taskId;
+        return planId + "-" + planInstanceId + "-" + jobId + "-" + jobInstanceId + "-" + taskId;
     }
+
 }

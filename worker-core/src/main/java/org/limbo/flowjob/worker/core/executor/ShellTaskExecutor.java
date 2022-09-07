@@ -27,10 +27,10 @@ import org.limbo.flowjob.worker.core.domain.Task;
  */
 public class ShellTaskExecutor implements TaskExecutor {
 
+
     @Override
-    public String run(Task job) {
-        // todo
-        return null;
+    public void run(ExecuteContext context) {
+
     }
 
     @Override

@@ -57,8 +57,8 @@ public class CalculatingWorkerResource extends AbstractWorkerResources {
     private TimerTask calculateTask;
 
 
-    public CalculatingWorkerResource(int queueSize) {
-        super(queueSize);
+    public CalculatingWorkerResource(int concurrency, int queueSize) {
+        super(concurrency, queueSize);
         this.calculator = new WorkerResourcesCalculator();
         this.availableCpu = this.calculator.getAvailableCpu(Duration.ofSeconds(1));
         this.availableRam = this.calculator.getAvailableRam();

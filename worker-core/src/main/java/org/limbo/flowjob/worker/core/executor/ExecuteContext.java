@@ -102,7 +102,7 @@ public class ExecuteContext implements Runnable {
 
         } finally {
             // 最终都要移除任务
-            taskRepository.delete(task.getId());
+            taskRepository.delete(task.getTaskId());
         }
     }
 

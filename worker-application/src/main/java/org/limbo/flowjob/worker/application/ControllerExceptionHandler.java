@@ -49,6 +49,7 @@ public class ControllerExceptionHandler {
         return ResponseDTO.builder().badRequest(errMsg.toString()).build();
     }
 
+
     /**
      * 校验导致的异常
      */

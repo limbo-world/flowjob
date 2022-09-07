@@ -18,7 +18,9 @@
 
 package org.limbo.flowjob.broker.api.clent.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -29,6 +31,8 @@ import java.io.Serializable;
  * @since 2021-05-17
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class TaskReceiveDTO implements Serializable {
 
     private static final long serialVersionUID = 5938197072123607724L;

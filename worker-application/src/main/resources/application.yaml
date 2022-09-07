@@ -6,11 +6,11 @@ spring:
 
 flowjob:
   worker:
-    name: abc
-    serverHost: localhost
-    serverPort: 8081
-    localPort: 8082
-    queueSize: 8
+    id: abc
+    host: 127.0.0.1
+    port: 8084
+    brokers:
+      - http://localhost:8080/broker
     tags:
       - a=b
       - c=d
