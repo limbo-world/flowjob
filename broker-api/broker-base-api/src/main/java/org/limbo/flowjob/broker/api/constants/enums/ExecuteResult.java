@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum ExecuteResult {
 
+    UNKNOWN(0, "异常"),
 
     SUCCEED(1, "执行成功"),
 
@@ -78,7 +79,7 @@ public enum ExecuteResult {
                 return _result;
             }
         }
-        return null;
+        return UNKNOWN;
     }
 
 }

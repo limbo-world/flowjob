@@ -18,8 +18,8 @@ import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
+import org.limbo.flowjob.common.exception.VerifyException;
 import org.limbo.flowjob.common.utils.TimeUtil;
-import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +27,6 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author Brozen
@@ -63,12 +62,10 @@ public class TaskService {
     @Transactional
     public void feedback(TaskFeedbackParam param) {
         // 获取实例
-        Optional<TaskEntity> taskOptional = taskEntityRepo.findById(Long.valueOf(param.getTaskId()));
-        Verifies.notNull(taskOptional.isPresent(), "Task not exist!");
+        TaskEntity task = taskEntityRepo.findById(Long.valueOf(param.getTaskId()))
+                        .orElseThrow(() -> new VerifyException("Task not exist!"));
 
-        TaskEntity task = taskOptional.get();
-
-        ExecuteResult result = param.getResult();
+        ExecuteResult result = ExecuteResult.parse(param.getResult());
         switch (result) {
             case SUCCEED:
                 taskSuccess(task.getId(), task.getJobInstanceId(), param);
@@ -80,6 +77,9 @@ public class TaskService {
 
             case TERMINATED:
                 throw new UnsupportedOperationException("暂不支持手动终止任务");
+
+            default:
+                throw new IllegalStateException("Unexpect execute result: " + param.getResult());
         }
     }
 

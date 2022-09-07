@@ -30,10 +30,9 @@ public interface TaskExecutor {
 
     /**
      * 运行执行器
-     * @param task Broker 下发的任务
-     * @return TODO 这是返回啥？
+     * @param context 任务执行上下文
      */
-    String run(Task task);
+    void run(ExecuteContext context);
 
     /**
      * 执行器名称

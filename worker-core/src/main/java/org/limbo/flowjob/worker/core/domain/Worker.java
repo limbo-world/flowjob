@@ -26,8 +26,9 @@ import org.limbo.flowjob.broker.api.clent.param.WorkerResourceParam;
 import org.limbo.flowjob.common.utils.UUIDUtils;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
+import org.limbo.flowjob.worker.core.executor.NamedThreadFactory;
 import org.limbo.flowjob.worker.core.executor.TaskExecutor;
-import org.limbo.flowjob.worker.core.executor.TaskExecutorContext;
+import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.executor.TaskRepository;
 import org.limbo.flowjob.worker.core.rpc.BrokerRpc;
 import org.limbo.flowjob.worker.core.rpc.exceptions.BrokerRpcException;
@@ -39,7 +40,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -71,9 +78,9 @@ public class Worker {
     private final Map<String, TaskExecutor> executors;
 
     /**
-     * job 管理中心
+     * 任务执行线程池
      */
-    private final TaskRepository taskRepository;
+    private ExecutorService threadPool;
 
     /**
      * 远程调用
@@ -103,7 +110,6 @@ public class Worker {
 
         this.id = StringUtils.isBlank(id) ? UUIDUtils.randomID() : id;
         this.workerRpcBaseURL = baseURL;
-        this.taskRepository = new TaskRepository();
         this.resource = resource;
         this.brokerRpc = brokerRpc;
 
@@ -143,16 +149,33 @@ public class Worker {
             return;
         }
 
+        // 注册
+        try {
+            registerSelfToBroker();
+        } catch (RuntimeException e) {
+            this.status.set(WorkerStatus.TERMINATED);
+            throw e;
+        }
+
+        // 启动心跳
         if (this.pacemaker == null) {
             this.pacemaker = new WorkerHeartbeat(this, Duration.ofSeconds(1));
         }
-
-        // 注册
-        registerSelfToBroker();
-
-        // 启动心跳
         this.pacemaker.start();
+
+        // 初始化线程池
+        this.threadPool = new ThreadPoolExecutor(
+                this.resource.concurrency(),
+                this.resource.concurrency(),
+                5, TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(this.resource.queueSize()),
+                new NamedThreadFactory("FlowjobWorkerTaskExecutor"),
+                (r, e) -> {
+                    throw new RejectedExecutionException();
+                }
+        );
     }
+
 
     /**
      * 向 Broker 注册当前 Worker
@@ -228,20 +251,45 @@ public class Worker {
      * @param task 任务数据
      */
     public synchronized void receiveTask(Task task) {
+        assertWorkerRunning();
+
         // 找到执行器，校验是否存在
         TaskExecutor executor = executors.get(task.getExecutorName());
         Verifies.notNull(executor, "Unsupported executor: " + task.getExecutorName());
 
+        TaskRepository taskRepository = this.resource.taskRepository();
         int availableQueueSize = this.resource.availableQueueSize();
         Verifies.verify(
-                this.taskRepository.count() < availableQueueSize,
+                taskRepository.count() < availableQueueSize,
                 "Worker's queue is full, limit: " + availableQueueSize
         );
 
-        // todo 检测资源余量是否充足：cpu/ram/queue
+        // TODO 检测资源余量是否充足：cpu/ram/queue
 
-        TaskExecutorContext context = new TaskExecutorContext(taskRepository, executor, brokerRpc, task);
-        context.start();
+        // 存储任务，并判断是否重复接收任务
+        ExecuteContext context = new ExecuteContext(taskRepository, executor, brokerRpc, task);
+        if (!taskRepository.save(context)) {
+            log.warn("Receive task [{}], but already in repository", task.getTaskId());
+            return;
+        }
+
+        try {
+            // 提交执行
+            Future<?> future = this.threadPool.submit(context);
+            context.setScheduleFuture(future);
+        } catch (RejectedExecutionException e) {
+            throw new IllegalStateException("Schedule task in worker failed, maybe work thread exhausted");
+        }
+    }
+
+
+    /**
+     * 验证 worker 正在运行中
+     */
+    private void assertWorkerRunning() {
+        if (this.status.get() != WorkerStatus.RUNNING) {
+            throw new IllegalStateException("Worker is not running: " + this.status.get());
+        }
     }
 
 

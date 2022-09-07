@@ -29,6 +29,11 @@ import org.limbo.flowjob.worker.core.executor.TaskRepository;
 public abstract class AbstractWorkerResources implements WorkerResources {
 
     /**
+     * 并发执行任务数量
+     */
+    private int concurrency;
+
+    /**
      * 可分配任务总数
      */
     private int queueSize;
@@ -38,7 +43,8 @@ public abstract class AbstractWorkerResources implements WorkerResources {
      */
     private TaskRepository taskRepository;
 
-    public AbstractWorkerResources(int queueSize) {
+    public AbstractWorkerResources(int concurrency, int queueSize) {
+        this.concurrency = concurrency;
         this.queueSize = queueSize;
         this.taskRepository = new TaskRepository();
     }

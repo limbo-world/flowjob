@@ -14,44 +14,43 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.worker.core.domain;
+package org.limbo.flowjob.worker.core.executor;
 
-import org.limbo.flowjob.worker.core.executor.TaskRepository;
+import lombok.Getter;
+import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 
 /**
  * @author Brozen
- * @since 2022-09-05
+ * @since 2022-09-06
  */
-public interface WorkerResources {
+public abstract class AbstractTaskExecutor implements TaskExecutor {
 
     /**
-     * 并发执行任务数量
+     * 执行器名称
      */
-    int concurrency();
+    @Getter
+    private final String name;
 
     /**
-     * 任务积压队列大小
+     * 执行器描述
      */
-    int queueSize();
+    @Getter
+    private String description;
 
     /**
-     * 剩余可分配任务数
+     * 执行器类型
      */
-    int availableQueueSize();
+    @Getter
+    private JobExecuteType type;
+
 
     /**
-     * 可用 CPU 核数
+     * 初始化执行器参数，子类调用
      */
-    float availableCpu();
-
-    /**
-     * 可用的 RAM 内存数量
-     */
-    long availableRam();
-
-    /**
-     * 任务管理器
-     */
-    TaskRepository taskRepository();
+    protected AbstractTaskExecutor(String name, String description, JobExecuteType type) {
+        this.name = name;
+        this.description = description;
+        this.type = type;
+    }
 
 }

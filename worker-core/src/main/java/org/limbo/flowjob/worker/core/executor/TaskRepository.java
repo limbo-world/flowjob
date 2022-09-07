@@ -30,16 +30,15 @@ public class TaskRepository {
     /**
      * 当前 Worker 的所有任务存储在此 Map 中
      */
-    private final Map<String, TaskExecutorContext> tasks = new ConcurrentHashMap<>();
+    private final Map<String, ExecuteContext> tasks = new ConcurrentHashMap<>();
 
 
     /**
      * 尝试新增任务到仓库中：如果已存在相同 taskId 的任务，则不添加新的任务，返回 false；如不存在，则添加成功，返回 true。
-     * @param taskId 任务 ID
      * @param context 任务执行上下文
      */
-    public boolean save(String taskId, TaskExecutorContext context) {
-        return tasks.putIfAbsent(taskId, context) == null;
+    public boolean save(ExecuteContext context) {
+        return tasks.putIfAbsent(context.getTask().getTaskId(), context) == null;
     }
 
 
