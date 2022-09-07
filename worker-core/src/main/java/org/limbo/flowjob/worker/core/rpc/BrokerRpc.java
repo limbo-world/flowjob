@@ -16,14 +16,11 @@
 
 package org.limbo.flowjob.worker.core.rpc;
 
-import org.limbo.flowjob.broker.api.clent.dto.WorkerRegisterDTO;
-import org.limbo.flowjob.broker.api.clent.param.TaskFeedbackParam;
-import org.limbo.flowjob.broker.api.clent.param.WorkerHeartbeatParam;
-import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
-import org.limbo.flowjob.broker.api.dto.BrokerDTO;
+import org.limbo.flowjob.worker.core.domain.Worker;
+import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.rpc.exceptions.RegisterFailException;
 
-import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * @author Brozen
@@ -33,21 +30,30 @@ public interface BrokerRpc {
 
     /**
      * 向 Broker 注册 Worker
-     * @param param 注册参数
-     * @return 注册结果
+     * @param worker 需注册的 Worker
      */
-    WorkerRegisterDTO register(WorkerRegisterParam param) throws RegisterFailException;
+    void register(Worker worker) throws RegisterFailException;
+
 
     /**
      * 向 Broker 发送心跳
-     * @param param 心跳参数
+     * @param worker 发送心跳的 Worker
      */
-    void heartbeat(WorkerHeartbeatParam param);
+    void heartbeat(Worker worker);
+
 
     /**
-     * 向 Broker 反馈任务执行结果
-     * @param param 执行结果
+     * 向 Broker 反馈任务执行成功
+     * @param context 任务执行上下文
      */
-    void feedbackTask(TaskFeedbackParam param);
+    void feedbackTaskSucceed(ExecuteContext context);
+
+
+    /**
+     * 向 Broker 反馈任务执行失败
+     * @param context 任务执行上下文
+     * @param ex 导致任务失败的异常信息，可以为 null
+     */
+    void feedbackTaskFailed(ExecuteContext context, @Nullable Throwable ex);
 
 }

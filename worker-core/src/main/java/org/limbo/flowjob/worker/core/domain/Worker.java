@@ -19,16 +19,11 @@ package org.limbo.flowjob.worker.core.domain;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.broker.api.clent.param.WorkerExecutorRegisterParam;
-import org.limbo.flowjob.broker.api.clent.param.WorkerHeartbeatParam;
-import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
-import org.limbo.flowjob.broker.api.clent.param.WorkerResourceParam;
 import org.limbo.flowjob.common.utils.UUIDUtils;
 import org.limbo.flowjob.common.utils.Verifies;
-import org.limbo.flowjob.common.utils.json.JacksonUtils;
+import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.executor.NamedThreadFactory;
 import org.limbo.flowjob.worker.core.executor.TaskExecutor;
-import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.executor.TaskRepository;
 import org.limbo.flowjob.worker.core.rpc.BrokerRpc;
 import org.limbo.flowjob.worker.core.rpc.exceptions.BrokerRpcException;
@@ -37,7 +32,7 @@ import org.limbo.flowjob.worker.core.rpc.exceptions.RegisterFailException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -48,7 +43,6 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 /**
  * 工作节点实例
@@ -65,11 +59,13 @@ public class Worker {
     /**
      * Worker 通信基础 URL
      */
-    private URL workerRpcBaseURL;
+    @Getter
+    private URL rpcBaseURL;
 
     /**
      * 工作节点资源
      */
+    @Getter
     private WorkerResources resource;
 
     /**
@@ -109,7 +105,7 @@ public class Worker {
         Verifies.notNull(brokerRpc, "remote client can't be null");
 
         this.id = StringUtils.isBlank(id) ? UUIDUtils.randomID() : id;
-        this.workerRpcBaseURL = baseURL;
+        this.rpcBaseURL = baseURL;
         this.resource = resource;
         this.brokerRpc = brokerRpc;
 
@@ -133,6 +129,14 @@ public class Worker {
      */
     public void addExecutors(Collection<TaskExecutor> executors) {
         executors.forEach(this::addExecutor);
+    }
+
+
+    /**
+     * 获取当前 Worker 中的执行器，不可修改
+     */
+    public Map<String, TaskExecutor> getExecutors() {
+        return Collections.unmodifiableMap(this.executors);
     }
 
 
@@ -181,40 +185,12 @@ public class Worker {
      * 向 Broker 注册当前 Worker
      */
     protected void registerSelfToBroker() {
-
-        // 执行器
-        List<WorkerExecutorRegisterParam> executors = this.executors.values().stream()
-                .map(executor -> {
-                    WorkerExecutorRegisterParam executorRegisterParam = new WorkerExecutorRegisterParam();
-                    executorRegisterParam.setName(executor.getName());
-                    executorRegisterParam.setDescription(executor.getDescription());
-                    executorRegisterParam.setType(executor.getType());
-                    return executorRegisterParam;
-                })
-                .collect(Collectors.toList());
-
-        // 可用资源
-        WorkerResourceParam resourceParam = new WorkerResourceParam();
-        resourceParam.setAvailableCpu(resource.availableCpu());
-        resourceParam.setAvailableRAM(resource.availableRam());
-        resourceParam.setAvailableQueueLimit(resource.availableQueueSize());
-
-        // 组装注册参数
-        WorkerRegisterParam registerParam = new WorkerRegisterParam();
-        registerParam.setId(this.id);
-        registerParam.setProtocol(this.workerRpcBaseURL.getProtocol());
-        registerParam.setHost(this.workerRpcBaseURL.getHost());
-        registerParam.setPort(this.workerRpcBaseURL.getPort());
-        registerParam.setExecutors(executors);
-        registerParam.setAvailableResource(resourceParam);
-
         try {
             // 调用 Broker 远程接口，并更新 Broker 信息
-            brokerRpc.register(registerParam);
+            brokerRpc.register(this);
         } catch (RegisterFailException e) {
-            log.error("Worker register failed, param={}, response={}",
-                    JacksonUtils.toJSONString(registerParam), e);
-            throw new IllegalStateException("Worker register failed");
+            log.error("Worker register failed", e);
+            throw e;
         }
 
         log.info("register success !");
@@ -226,19 +202,8 @@ public class Worker {
      * 发送心跳
      */
     protected void sendHeartbeat() {
-        // 可用资源
-        WorkerResourceParam resource = new WorkerResourceParam();
-        resource.setAvailableCpu(this.resource.availableCpu());
-        resource.setAvailableRAM(this.resource.availableRam());
-        resource.setAvailableQueueLimit(this.resource.availableQueueSize());
-
-        // 组装心跳参数
-        WorkerHeartbeatParam heartbeatParam = new WorkerHeartbeatParam();
-        heartbeatParam.setWorkerId(id);
-        heartbeatParam.setAvailableResource(resource);
-
         try {
-            brokerRpc.heartbeat(heartbeatParam);
+            brokerRpc.heartbeat(this);
         } catch (BrokerRpcException e) {
             log.warn("Worker send heartbeat failed");
             throw new IllegalStateException("Worker send heartbeat failed", e);

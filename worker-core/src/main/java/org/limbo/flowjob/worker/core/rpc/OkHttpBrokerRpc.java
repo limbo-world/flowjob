@@ -25,22 +25,32 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.limbo.flowjob.broker.api.clent.dto.WorkerRegisterDTO;
 import org.limbo.flowjob.broker.api.clent.param.TaskFeedbackParam;
+import org.limbo.flowjob.broker.api.clent.param.WorkerExecutorRegisterParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerHeartbeatParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
+import org.limbo.flowjob.broker.api.clent.param.WorkerResourceParam;
+import org.limbo.flowjob.broker.api.constants.enums.ExecuteResult;
 import org.limbo.flowjob.broker.api.dto.BrokerTopologyDTO;
 import org.limbo.flowjob.broker.api.dto.ResponseDTO;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
+import org.limbo.flowjob.worker.core.domain.Worker;
+import org.limbo.flowjob.worker.core.domain.WorkerResources;
+import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.rpc.exceptions.BrokerRpcException;
 import org.limbo.flowjob.worker.core.rpc.exceptions.RegisterFailException;
 import org.limbo.flowjob.worker.core.rpc.lb.LoadBalancer;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -75,14 +85,16 @@ public class OkHttpBrokerRpc implements BrokerRpc {
 
     /**
      * {@inheritDoc}
-     * @param param 注册参数
+     * @param worker 需注册的 Worker
      * @return
+     * @throws RegisterFailException
      */
     @Override
-    public WorkerRegisterDTO register(WorkerRegisterParam param) throws RegisterFailException {
+    public void register(Worker worker) throws RegisterFailException {
         for (BrokerNode broker : brokerNodes) {
             try {
-                return registerWith(broker, param);
+                registerWith(broker, registerParam(worker));
+                return;
             } catch (RegisterFailException e) {
                 log.error("Register to {} failed，try next node", broker);
             }
@@ -90,6 +102,42 @@ public class OkHttpBrokerRpc implements BrokerRpc {
 
         String msg = "Register failed after tried all broker, please check your configuration";
         throw new RegisterFailException(msg);
+    }
+
+
+    /**
+     * 封装 Worker 注册参数
+     */
+    private WorkerRegisterParam registerParam(Worker worker) {
+        // 执行器
+        List<WorkerExecutorRegisterParam> executors = worker.getExecutors().values().stream()
+                .map(executor -> {
+                    WorkerExecutorRegisterParam executorRegisterParam = new WorkerExecutorRegisterParam();
+                    executorRegisterParam.setName(executor.getName());
+                    executorRegisterParam.setDescription(executor.getDescription());
+                    executorRegisterParam.setType(executor.getType());
+                    return executorRegisterParam;
+                })
+                .collect(Collectors.toList());
+
+        // 可用资源
+        WorkerResources resource = worker.getResource();
+        WorkerResourceParam resourceParam = new WorkerResourceParam();
+        resourceParam.setAvailableCpu(resource.availableCpu());
+        resourceParam.setAvailableRAM(resource.availableRam());
+        resourceParam.setAvailableQueueLimit(resource.availableQueueSize());
+
+        // 组装注册参数
+        URL workerRpcBaseURL = worker.getRpcBaseURL();
+        WorkerRegisterParam registerParam = new WorkerRegisterParam();
+        registerParam.setId(worker.getId());
+        registerParam.setProtocol(workerRpcBaseURL.getProtocol());
+        registerParam.setHost(workerRpcBaseURL.getHost());
+        registerParam.setPort(workerRpcBaseURL.getPort());
+        registerParam.setExecutors(executors);
+        registerParam.setAvailableResource(resourceParam);
+
+        return registerParam;
     }
 
 
@@ -159,12 +207,12 @@ public class OkHttpBrokerRpc implements BrokerRpc {
 
     /**
      * {@inheritDoc}
-     * @param param 心跳参数
+     * @param worker 发送心跳的 Worker
      */
     @Override
-    public void heartbeat(WorkerHeartbeatParam param) {
-        BrokerNode broker = this.loadBalancer.choose();
-        String json = JacksonUtils.toJSONString(param);
+    public void heartbeat(Worker worker) {
+        BrokerNode broker = choose();
+        String json = JacksonUtils.toJSONString(heartbeatParam(worker));
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), json);
 
         Request request = new Request.Builder()
@@ -186,13 +234,64 @@ public class OkHttpBrokerRpc implements BrokerRpc {
 
 
     /**
+     * 封装 Worker 心跳参数
+     */
+    private WorkerHeartbeatParam heartbeatParam(Worker worker) {
+        // 可用资源
+        WorkerResources workerResource = worker.getResource();
+        WorkerResourceParam resource = new WorkerResourceParam();
+        resource.setAvailableCpu(workerResource.availableCpu());
+        resource.setAvailableRAM(workerResource.availableRam());
+        resource.setAvailableQueueLimit(workerResource.availableQueueSize());
+
+        // 组装心跳参数
+        WorkerHeartbeatParam heartbeatParam = new WorkerHeartbeatParam();
+        heartbeatParam.setWorkerId(worker.getId());
+        heartbeatParam.setAvailableResource(resource);
+
+        return heartbeatParam;
+    }
+
+
+    /**
      * {@inheritDoc}
-     * @param param 执行结果
+     * @param context 任务执行上下文
      */
     @Override
-    public void feedbackTask(TaskFeedbackParam param) {
-        BrokerNode broker = this.loadBalancer.choose();
-        String json = JacksonUtils.toJSONString(param);
+    public void feedbackTaskSucceed(ExecuteContext context) {
+        TaskFeedbackParam feedbackParam = new TaskFeedbackParam();
+        feedbackParam.setTaskId(context.getTask().getTaskId());
+        feedbackParam.setResult((int) ExecuteResult.SUCCEED.result);
+
+        doFeedbackTask(feedbackParam);
+    }
+
+
+    /**
+     * {@inheritDoc}
+     * @param context 任务执行上下文
+     * @param ex 导致任务失败的异常信息，可以为 null
+     */
+    @Override
+    public void feedbackTaskFailed(ExecuteContext context, @Nullable Throwable ex) {
+        TaskFeedbackParam feedbackParam = new TaskFeedbackParam();
+        feedbackParam.setTaskId(context.getTask().getTaskId());
+        feedbackParam.setResult((int) ExecuteResult.FAILED.result);
+
+        if (ex != null) {
+            feedbackParam.setErrorStackTrace(ExceptionUtils.getStackTrace(ex));
+        }
+
+        doFeedbackTask(feedbackParam);
+    }
+
+
+    /**
+     * 反馈任务执行结果
+     */
+    private void doFeedbackTask(TaskFeedbackParam feedbackParam) {
+        BrokerNode broker = choose();
+        String json = JacksonUtils.toJSONString(feedbackParam);
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), json);
 
         Request request = new Request.Builder()
@@ -206,6 +305,22 @@ public class OkHttpBrokerRpc implements BrokerRpc {
             String msg = response == null ? "unknown" : (response.getCode() + ":" + response.getMessage());
             throw new RegisterFailException("Worker register failed: " + msg);
         }
+    }
+
+
+    /**
+     * {@inheritDoc}
+     * @return
+     */
+    private BrokerNode choose() {
+        while (CollectionUtils.isNotEmpty(this.loadBalancer.listAliveServers())) {
+            Optional<BrokerNode> optional = this.loadBalancer.choose();
+            if (optional.isPresent()) {
+                return optional.get();
+            }
+        }
+
+        throw new IllegalStateException("Can't get alive broker，LB=" + this.loadBalancer.name());
     }
 
 

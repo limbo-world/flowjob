@@ -19,13 +19,9 @@ package org.limbo.flowjob.worker.core.executor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.limbo.flowjob.broker.api.clent.param.TaskFeedbackParam;
-import org.limbo.flowjob.broker.api.constants.enums.ExecuteResult;
 import org.limbo.flowjob.worker.core.domain.Task;
 import org.limbo.flowjob.worker.core.rpc.BrokerRpc;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -95,47 +91,19 @@ public class ExecuteContext implements Runnable {
 
             // 执行成功
             this.status.set(Status.SUCCEED);
-            feedbackSucceed();
+            this.brokerRpc.feedbackTaskSucceed(this);
         } catch (Exception e) {
 
             // 执行异常
             log.error("Task execute error", e);
             this.status.set(Status.FAILED);
 
-            feedbackFailed(e);
+            this.brokerRpc.feedbackTaskFailed(this, e);
 
         } finally {
             // 最终都要移除任务
             taskRepository.delete(task.getId());
         }
-    }
-
-
-    /**
-     * 向 Broker 反馈任务执行成功
-     */
-    public void feedbackSucceed() {
-        TaskFeedbackParam feedbackParam = new TaskFeedbackParam();
-        feedbackParam.setTaskId(task.getTaskId());
-        feedbackParam.setResult((int) ExecuteResult.SUCCEED.result);
-        brokerRpc.feedbackTask(feedbackParam);
-    }
-
-
-    /**
-     * 向 Broker 反馈任务执行失败
-     * @param ex 导致任务执行失败的异常
-     */
-    public void feedbackFailed(@Nullable Exception ex) {
-        TaskFeedbackParam feedbackParam = new TaskFeedbackParam();
-        feedbackParam.setTaskId(task.getTaskId());
-        feedbackParam.setResult((int) ExecuteResult.FAILED.result);
-
-        if (ex != null) {
-            feedbackParam.setErrorStackTrace(ExceptionUtils.getStackTrace(ex));
-        }
-
-        brokerRpc.feedbackTask(feedbackParam);
     }
 
 
