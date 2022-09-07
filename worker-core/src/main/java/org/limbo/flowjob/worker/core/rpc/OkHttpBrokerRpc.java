@@ -34,6 +34,7 @@ import org.limbo.flowjob.broker.api.dto.ResponseDTO;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.limbo.flowjob.worker.core.rpc.exceptions.BrokerRpcException;
 import org.limbo.flowjob.worker.core.rpc.exceptions.RegisterFailException;
+import org.limbo.flowjob.worker.core.rpc.lb.LoadBalancer;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -48,7 +49,7 @@ import java.util.stream.Collectors;
  * @since 2022-08-31
  */
 @Slf4j
-public abstract class OkHttpBrokerRpc implements BrokerRpc {
+public class OkHttpBrokerRpc implements BrokerRpc {
 
     private static final OkHttpClient CLIENT;
     static {
@@ -63,10 +64,10 @@ public abstract class OkHttpBrokerRpc implements BrokerRpc {
     /**
      * Broker 负载均衡
      */
-    private BrokerLoadBalancer loadBalancer;
+    private LoadBalancer<BrokerNode> loadBalancer;
 
 
-    public OkHttpBrokerRpc(List<BrokerNode> brokerNodes, BrokerLoadBalancer loadBalancer) {
+    public OkHttpBrokerRpc(List<BrokerNode> brokerNodes, LoadBalancer<BrokerNode> loadBalancer) {
         this.brokerNodes = brokerNodes;
         this.loadBalancer = loadBalancer;
     }
@@ -151,6 +152,8 @@ public abstract class OkHttpBrokerRpc implements BrokerRpc {
 
             this.brokerNodes.add(new BrokerNode(url));
         }
+
+        this.loadBalancer.updateServers(this.brokerNodes);
     }
 
 
@@ -160,7 +163,7 @@ public abstract class OkHttpBrokerRpc implements BrokerRpc {
      */
     @Override
     public void heartbeat(WorkerHeartbeatParam param) {
-        BrokerNode broker = this.loadBalancer.select(this.brokerNodes);
+        BrokerNode broker = this.loadBalancer.choose();
         String json = JacksonUtils.toJSONString(param);
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), json);
 
@@ -188,7 +191,7 @@ public abstract class OkHttpBrokerRpc implements BrokerRpc {
      */
     @Override
     public void feedbackTask(TaskFeedbackParam param) {
-        BrokerNode broker = this.loadBalancer.select(this.brokerNodes);
+        BrokerNode broker = this.loadBalancer.choose();
         String json = JacksonUtils.toJSONString(param);
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), json);
 

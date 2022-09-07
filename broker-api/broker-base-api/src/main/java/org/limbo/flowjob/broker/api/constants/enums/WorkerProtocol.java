@@ -54,6 +54,12 @@ public enum WorkerProtocol {
         this.port = port;
     }
 
+
+    public boolean is(String protocol) {
+        return this.protocol.equalsIgnoreCase(protocol);
+    }
+
+
     /**
      * 解析worker支持的协议
      */

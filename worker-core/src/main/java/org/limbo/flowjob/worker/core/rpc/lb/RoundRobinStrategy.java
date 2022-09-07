@@ -36,8 +36,7 @@ public class RoundRobinStrategy<S extends LBServer> extends AbstractLBStrategy<S
     private final AtomicInteger index;
 
 
-    public RoundRobinStrategy(LoadBalancer<S> loadBalancer) {
-        super(loadBalancer);
+    public RoundRobinStrategy() {
         this.index = new AtomicInteger();
     }
 

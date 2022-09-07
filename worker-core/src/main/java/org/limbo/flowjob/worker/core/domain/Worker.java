@@ -35,6 +35,7 @@ import org.limbo.flowjob.worker.core.rpc.exceptions.RegisterFailException;
 
 import java.net.URL;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -62,7 +63,7 @@ public class Worker {
     /**
      * 工作节点资源
      */
-    private WorkerResource resource;
+    private WorkerResources resource;
 
     /**
      * 执行器名称 - 执行器 映射关系
@@ -89,33 +90,52 @@ public class Worker {
      */
     private WorkerHeartbeat pacemaker;
 
-    public Worker(String id, int queueSize, List<TaskExecutor> executors, BrokerRpc brokerRpc) {
-        Verifies.notEmpty(executors, "empty executors");
+    /**
+     * 创建一个 Worker 实例
+     * @param id worker 实例 ID，如未指定则会随机生成一个 ID
+     * @param baseURL worker 启动的 RPC 服务的 baseUrl
+     * @param resource worker 资源描述对象
+     * @param brokerRpc broker RPC 通信模块
+     */
+    public Worker(String id, URL baseURL, WorkerResources resource, BrokerRpc brokerRpc) {
+        Objects.requireNonNull(baseURL, "URL can't be null");
         Verifies.notNull(brokerRpc, "remote client can't be null");
 
         this.id = StringUtils.isBlank(id) ? UUIDUtils.randomID() : id;
+        this.workerRpcBaseURL = baseURL;
         this.taskRepository = new TaskRepository();
-        this.resource = WorkerResource.create(queueSize, this.taskRepository);
+        this.resource = resource;
         this.brokerRpc = brokerRpc;
 
         this.executors = new ConcurrentHashMap<>();
-        for (TaskExecutor executor : executors) {
-            Verifies.notBlank(executor.getName(), "has blank executor name");
-            this.executors.put(executor.getName(), executor);
-        }
-
         this.status = new AtomicReference<>(WorkerStatus.IDLE);
+    }
+
+
+    /**
+     * 添加任务执行器
+     */
+    public void addExecutor(TaskExecutor executor) {
+        Verifies.notNull(executor, "Executor can't be null");
+        Verifies.notBlank(executor.getName());
+        this.executors.put(executor.getName(), executor);
+    }
+
+
+    /**
+     * 添加任务执行器
+     */
+    public void addExecutors(Collection<TaskExecutor> executors) {
+        executors.forEach(this::addExecutor);
     }
 
 
     /**
      * 启动当前 Worker
      *
-     * @param baseURL Worker 启动的 RPC 服务的 baseUrl
      * @param heartbeatPeriod 心跳间隔
      */
-    public void start(URL baseURL, Duration heartbeatPeriod) {
-        Objects.requireNonNull(baseURL);
+    public void start(Duration heartbeatPeriod) {
         Objects.requireNonNull(heartbeatPeriod);
 
         // 重复检测
@@ -123,7 +143,6 @@ public class Worker {
             return;
         }
 
-        this.workerRpcBaseURL = baseURL;
         if (this.pacemaker == null) {
             this.pacemaker = new WorkerHeartbeat(this, Duration.ofSeconds(1));
         }
@@ -153,9 +172,9 @@ public class Worker {
 
         // 可用资源
         WorkerResourceParam resourceParam = new WorkerResourceParam();
-        resourceParam.setAvailableCpu(resource.getAvailableCpu());
-        resourceParam.setAvailableRAM(resource.getAvailableRam());
-        resourceParam.setAvailableQueueLimit(resource.getAvailableQueueSize());
+        resourceParam.setAvailableCpu(resource.availableCpu());
+        resourceParam.setAvailableRAM(resource.availableRam());
+        resourceParam.setAvailableQueueLimit(resource.availableQueueSize());
 
         // 组装注册参数
         WorkerRegisterParam registerParam = new WorkerRegisterParam();
@@ -186,9 +205,9 @@ public class Worker {
     protected void sendHeartbeat() {
         // 可用资源
         WorkerResourceParam resource = new WorkerResourceParam();
-        resource.setAvailableCpu(this.resource.getAvailableCpu());
-        resource.setAvailableRAM(this.resource.getAvailableRam());
-        resource.setAvailableQueueLimit(this.resource.getAvailableQueueSize());
+        resource.setAvailableCpu(this.resource.availableCpu());
+        resource.setAvailableRAM(this.resource.availableRam());
+        resource.setAvailableQueueLimit(this.resource.availableQueueSize());
 
         // 组装心跳参数
         WorkerHeartbeatParam heartbeatParam = new WorkerHeartbeatParam();
@@ -213,9 +232,10 @@ public class Worker {
         TaskExecutor executor = executors.get(task.getExecutorName());
         Verifies.notNull(executor, "Unsupported executor: " + task.getExecutorName());
 
+        int availableQueueSize = this.resource.availableQueueSize();
         Verifies.verify(
-                this.taskRepository.count() < this.resource.getAvailableQueueSize(),
-                "Worker's queue is full, limit: " + this.resource.getAvailableQueueSize()
+                this.taskRepository.count() < availableQueueSize,
+                "Worker's queue is full, limit: " + availableQueueSize
         );
 
         // todo 检测资源余量是否充足：cpu/ram/queue

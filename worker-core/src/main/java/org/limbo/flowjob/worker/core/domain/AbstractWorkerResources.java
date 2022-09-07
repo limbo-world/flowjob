@@ -14,33 +14,43 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.worker.core.rpc.lb;
+package org.limbo.flowjob.worker.core.domain;
 
-import java.util.Optional;
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import org.limbo.flowjob.worker.core.executor.TaskRepository;
 
 /**
- * 负载均衡策略
- *
  * @author Brozen
- * @since 2022-09-02
+ * @since 2022-09-05
  */
-public interface LBStrategy<S extends LBServer> {
+@Getter
+@Accessors(fluent = true)
+public abstract class AbstractWorkerResources implements WorkerResources {
 
     /**
-     * 将当前策略绑定到指定的负载均衡器
+     * 可分配任务总数
      */
-    void bindWithLoadBalancer(LoadBalancer<S> loadBalancer);
+    private int queueSize;
 
     /**
-     * 获取当前策略绑定的负载均衡器
+     * 任务仓库
      */
-    LoadBalancer<S> getBoundLoadBalancer();
+    private TaskRepository taskRepository;
+
+    public AbstractWorkerResources(int queueSize) {
+        this.queueSize = queueSize;
+        this.taskRepository = new TaskRepository();
+    }
 
 
     /**
-     * 选择一个服务
-     * @return 选择的服务，可能为 null。当无可用服务时，返回 null。
+     * {@inheritDoc}
+     * @return
      */
-    Optional<S> choose();
+    public int availableQueueSize() {
+        return queueSize - taskRepository.count();
+    }
+
 
 }
