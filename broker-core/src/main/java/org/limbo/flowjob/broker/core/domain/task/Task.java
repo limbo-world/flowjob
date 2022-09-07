@@ -86,16 +86,6 @@ public class Task implements Serializable {
     private List<Attributes> reduceAttributes;
 
     /**
-     * 执行失败时的异常信息
-     */
-    private String errorMsg;
-
-    /**
-     * 执行失败时的异常堆栈
-     */
-    private String errorStackTrace;
-
-    /**
      * 开始时间
      */
     private LocalDateTime startAt;
@@ -114,7 +104,5 @@ public class Task implements Serializable {
      * 执行器参数
      */
     private ExecutorOption executorOption;
-
-    private String result;
 
 }

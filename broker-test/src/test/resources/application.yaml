@@ -1,11 +1,11 @@
 spring:
   application:
-    name: flowjob-dao-test
+    name: flowjob-test
   # DB
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/flow_job?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
+    url: jdbc:mysql://localhost:3306/flow_job_test?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
     username: root
     password: root
   jpa:
@@ -13,5 +13,9 @@ spring:
       ddl-auto: none
     show-sql: true  # 日志中显示sql语句
 
+flowjob:
+  broker:
+    host: 127.0.0.1
+    port: 8080
 
 

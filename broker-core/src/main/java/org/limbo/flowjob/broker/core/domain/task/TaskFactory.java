@@ -21,7 +21,6 @@ package org.limbo.flowjob.broker.core.domain.task;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.broker.api.clent.param.TaskFeedbackParam;
 import org.limbo.flowjob.broker.api.constants.enums.JobType;
 import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
 import org.limbo.flowjob.broker.core.cluster.WorkerManager;
@@ -30,7 +29,6 @@ import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerExecutor;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
-import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -88,8 +86,12 @@ public class TaskFactory {
     }
 
     // todo
-    private List<Task> preJobTasks(String jobInstanceId) {
+    /**
+     * 获取上个任务
+     */
+    private List<TaskResult> preJobTaskResults(JobInstance instance) {
         // 获取上个节点
+        instance.getJobId()
 
         // 获取所有task
         return null;
@@ -111,8 +113,6 @@ public class TaskFactory {
             task.setWorkerId(StringUtils.EMPTY);
             task.setDispatchOption(instance.getDispatchOption());
             task.setExecutorOption(instance.getExecutorOption());
-            task.setErrorMsg(StringUtils.EMPTY);
-            task.setErrorStackTrace(StringUtils.EMPTY);
             return task;
         }
 
@@ -202,14 +202,13 @@ public class TaskFactory {
 
         @Override
         public List<Task> tasks(JobInstance instance) {
-            Task preTask = preJobTasks(instance.getJobInstanceId()).get(0);
-            TaskFeedbackParam result = JacksonUtils.parseObject(preTask.getResult(), TaskFeedbackParam.class); // todo
+            TaskResult taskResult = preJobTaskResults(instance).get(0);
             List<Worker> workers = availableWorkers(instance.getExecutorOption());
             List<Task> tasks = new ArrayList<>();
-            for (Map<String, Object> mapTaskAttribute : result.getMapTaskAttributes()) {
+            for (Map<String, Object> attribute : taskResult.getSubTaskAttributes()) {
                 Task task = task(instance);
                 task.setAttributes(instance.getAttributes());
-                task.setMapAttributes(new Attributes(mapTaskAttribute));
+                task.setMapAttributes(new Attributes(attribute));
                 task.setAvailableWorkers(workers);
 
                 tasks.add(task);
@@ -234,11 +233,10 @@ public class TaskFactory {
 
         @Override
         public List<Task> tasks(JobInstance instance) {
-            List<Task> preTasks = preJobTasks(instance.getJobInstanceId());
+            List<TaskResult> taskResults = preJobTaskResults(instance);
             List<Attributes> reduceAttributes = new ArrayList<>();
-            for (Task preTask : preTasks) {
-                TaskFeedbackParam result = JacksonUtils.parseObject(preTask.getResult(), TaskFeedbackParam.class);
-                reduceAttributes.add(new Attributes(result.getResultAttributes()));
+            for (TaskResult taskResult : taskResults) {
+                reduceAttributes.add(new Attributes(taskResult.getResultAttributes()));
             }
 
             Task task = task(instance);

@@ -19,6 +19,10 @@
         <!-- 内部依赖 -->
         <dependency>
             <groupId>org.limbo.flowjob</groupId>
+            <artifactId>broker-console-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.limbo.flowjob</groupId>
             <artifactId>broker-cluster</artifactId>
         </dependency>
         <dependency>

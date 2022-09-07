@@ -71,10 +71,10 @@ public class TaskFeedbackParam {
     private Map<String, Object> context;
 
     /**
-     * 生成的map任务
+     * 子任务属性
      */
-    @Schema(description = "map任务属性")
-    private List<Map<String, Object>> mapTaskAttributes;
+    @Schema(description = "子任务属性")
+    private List<Map<String, Object>> subTaskAttributes;
 
     /**
      * 返回的数据
