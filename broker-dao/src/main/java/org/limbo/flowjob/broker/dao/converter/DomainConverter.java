@@ -101,8 +101,6 @@ public class DomainConverter {
         taskEntity.setStatus(task.getStatus().status);
         taskEntity.setWorkerId(task.getWorkerId());
         taskEntity.setAttributes(task.getAttributes() == null ? "" : task.getAttributes().toString());
-        taskEntity.setErrorMsg(task.getErrorMsg());
-        taskEntity.setErrorStackTrace(task.getErrorStackTrace());
         taskEntity.setStartAt(task.getStartAt());
         taskEntity.setEndAt(task.getEndAt());
         taskEntity.setId(Long.valueOf(task.getTaskId()));
@@ -117,8 +115,6 @@ public class DomainConverter {
         task.setStatus(TaskStatus.parse(entity.getStatus()));
         task.setWorkerId(entity.getWorkerId());
         task.setAttributes(new Attributes(entity.getAttributes()));
-        task.setErrorMsg(entity.getErrorMsg());
-        task.setErrorStackTrace(entity.getErrorStackTrace());
         task.setStartAt(entity.getStartAt());
         task.setEndAt(entity.getEndAt());
 

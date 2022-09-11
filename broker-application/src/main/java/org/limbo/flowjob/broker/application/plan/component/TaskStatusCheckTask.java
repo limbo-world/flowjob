@@ -21,14 +21,12 @@ package org.limbo.flowjob.broker.application.plan.component;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
+import org.limbo.flowjob.broker.application.plan.service.TaskService;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
-import org.limbo.flowjob.broker.core.domain.task.Task;
-import org.limbo.flowjob.broker.core.domain.task.TaskDispatcher;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
-import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.domain.SlotManager;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
@@ -74,7 +72,7 @@ public class TaskStatusCheckTask extends TimerTask {
     private PlanSlotEntityRepo planSlotEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private TaskDispatcher taskDispatcher;
+    private TaskService taskService;
 
     @Override
     public void run() {
@@ -88,12 +86,11 @@ public class TaskStatusCheckTask extends TimerTask {
         }
 
         List<TaskEntity> tasks = taskEntityRepo.findByPlanIdInAndStatus(slotEntities.stream().map(PlanSlotEntity::getPlanId).collect(Collectors.toList()), TaskStatus.EXECUTING.status);
-        for (TaskEntity taskEntity : tasks) {
+        for (TaskEntity task : tasks) {
             // 获取长时间为执行中的task 判断worker是否已经宕机
-            Worker worker = workerRepository.get(taskEntity.getWorkerId());
+            Worker worker = workerRepository.get(task.getWorkerId());
             if (worker == null || !worker.isAlive()) {
-                Task task = DomainConverter.toTask(taskEntity, planInfoEntityRepo); // todo 没有worker
-                taskDispatcher.dispatch(task);
+                taskService.taskFail(task.getId(), task.getJobInstanceId(), String.format("worker %s is offline", task.getWorkerId()), "");
             }
         }
 
