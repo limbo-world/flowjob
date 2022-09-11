@@ -68,7 +68,7 @@ public class TaskService {
 
         TaskEntity task = taskOptional.get();
 
-        ExecuteResult result = param.getResult();
+        ExecuteResult result = ExecuteResult.parse(param.getResult());
         switch (result) {
             case SUCCEED:
                 taskSuccess(task.getId(), task.getJobInstanceId(), param);

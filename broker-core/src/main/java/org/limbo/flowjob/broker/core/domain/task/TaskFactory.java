@@ -91,7 +91,7 @@ public class TaskFactory {
      */
     private List<TaskResult> preJobTaskResults(JobInstance instance) {
         // 获取上个节点
-        instance.getJobId()
+        instance.getJobId();
 
         // 获取所有task
         return null;
