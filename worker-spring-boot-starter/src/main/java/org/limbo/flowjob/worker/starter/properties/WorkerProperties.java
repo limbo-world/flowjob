@@ -20,6 +20,7 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.net.URL;
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -60,6 +61,11 @@ public class WorkerProperties {
      * worker 注册时，向 broker 提交的 RPC 通信端口，默认为 8080。
      */
     private int port = 8080;
+
+    /**
+     * Worker 向 Broker 发送心跳请求的间隔，默认 5 秒。
+     */
+    private Duration heartbeat = Duration.ofSeconds(5);
 
     /**
      * 任务执行并发数量。worker 将允许同时执行的任务个数，同时执行的任务数量超出此限制后，后续接收的任务将放入积压队列中。默认为系统 CPU 核数。

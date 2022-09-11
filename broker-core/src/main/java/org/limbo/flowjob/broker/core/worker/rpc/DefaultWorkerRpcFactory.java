@@ -41,6 +41,7 @@ public class DefaultWorkerRpcFactory implements WorkerRpcFactory {
         WorkerProtocol protocol = WorkerProtocol.parse(rpcBaseUrl.getProtocol());
         switch (protocol) {
             case HTTP:
+            case HTTPS:
                 return new RetrofitHttpWorkerRpc(worker);
             default:
                 throw new IllegalArgumentException("不支持 Worker 通信协议：" + rpcBaseUrl.getProtocol());

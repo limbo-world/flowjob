@@ -18,6 +18,7 @@ package org.limbo.flowjob.worker.starter.configuration;
 
 import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.common.utils.Verifies;
+import org.limbo.flowjob.worker.core.domain.BaseWorker;
 import org.limbo.flowjob.worker.core.domain.CalculatingWorkerResource;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.domain.WorkerResources;
@@ -28,6 +29,7 @@ import org.limbo.flowjob.worker.core.rpc.lb.BaseLoadBalancer;
 import org.limbo.flowjob.worker.core.rpc.lb.LBStrategy;
 import org.limbo.flowjob.worker.core.rpc.lb.LoadBalancer;
 import org.limbo.flowjob.worker.core.rpc.lb.RoundRobinStrategy;
+import org.limbo.flowjob.worker.starter.SpringDelegatedWorker;
 import org.limbo.flowjob.worker.starter.processor.ExecutorMethodProcessor;
 import org.limbo.flowjob.worker.starter.properties.WorkerProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -74,11 +76,13 @@ public class WorkerAutoConfiguration {
      */
     @Bean
     public Worker httpWorker(WorkerResources resources, BrokerRpc rpc) throws MalformedURLException {
+        // TODO 优先使用 Spring MVC 设置的端口号
+
         URL workerBaseUrl = workerProps.getPort() > 0
                 ? new URL(workerProps.getScheme().name(), workerProps.getHost(), workerProps.getPort(), "")
                 : new URL(workerProps.getScheme().name(), workerProps.getHost(), "");
 
-        return new Worker(workerProps.getId(), workerBaseUrl, resources, rpc);
+        return new SpringDelegatedWorker(new BaseWorker(workerProps.getId(), workerBaseUrl, resources, rpc));
     }
 
 

@@ -19,7 +19,7 @@ package org.limbo.flowjob.worker.starter.processor;
 import lombok.Setter;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.worker.core.domain.Worker;
+import org.limbo.flowjob.worker.core.domain.BaseWorker;
 import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.executor.TaskExecutor;
 import org.springframework.aop.framework.autoproxy.AutoProxyUtils;
@@ -51,6 +51,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 参考：EventListenerMethodProcessor
+ * 用户处理 Spring 中注册的 TaskExecutor 类型 Bean，或者使用 @Executor 注解标记的方法，放入全局的 Worker 单例中去。
  *
  * @author Brozen
  * @since 2022-09-07
@@ -70,8 +71,11 @@ public class ExecutorMethodProcessor implements SmartInitializingSingleton, Appl
         }
     }
 
+    /**
+     * Worker 实例，由 Spring 注入，在 WorkerAutoConfiguration 中声明。
+     */
     @Setter(onMethod_ = @Autowired)
-    private Worker worker;
+    private BaseWorker worker;
 
     private ConfigurableApplicationContext applicationContext;
 
@@ -127,7 +131,7 @@ public class ExecutorMethodProcessor implements SmartInitializingSingleton, Appl
                 continue;
             }
 
-            // 是否指定作用域下的 Bean，防止作用域下的代理 Bean 名称未安装 scoped 格式声明
+            // 是否指定作用域下的 Bean，防止作用域下的代理 Bean 名称未按照 scoped 格式声明
             if (ScopedObject.class.isAssignableFrom(beanType)) {
                 Class<?> targetClass = AutoProxyUtils.determineTargetClass(
                         beanFactory, ScopedProxyUtils.getTargetBeanName(beanName));
@@ -145,8 +149,11 @@ public class ExecutorMethodProcessor implements SmartInitializingSingleton, Appl
         }
     }
 
-    private void parseExecutor(String beanName, Class<?> beanType) {
 
+    /**
+     * 执行将 Bean 解析为 TaskExecutor 的过程
+     */
+    private void parseExecutor(String beanName, Class<?> beanType) {
         if (this.ignoredClasses.contains(beanType) || isSpringContainerClass(beanType)) {
             return;
         }
@@ -162,9 +169,9 @@ public class ExecutorMethodProcessor implements SmartInitializingSingleton, Appl
         // 解析 @Executor 注解的方法
         Map<Method, Executor> annotatedMethods = Collections.emptyMap();
         try {
-            annotatedMethods = MethodIntrospector.selectMethods(beanType,
-                    (MethodIntrospector.MetadataLookup<Executor>) method ->
-                            AnnotatedElementUtils.findMergedAnnotation(method, Executor.class));
+            MethodIntrospector.MetadataLookup<Executor> lookup = method ->
+                    AnnotatedElementUtils.findMergedAnnotation(method, Executor.class);
+            annotatedMethods = MethodIntrospector.selectMethods(beanType, lookup);
         } catch (Exception ignore) { }
 
         // 根据 Bean 类型、@Executor 方法判断是否忽略 Bean
