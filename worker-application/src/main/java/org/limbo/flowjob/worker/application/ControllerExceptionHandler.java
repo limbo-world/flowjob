@@ -31,7 +31,7 @@ import org.springframework.web.bind.support.WebExchangeBindException;
  * @since 2021/7/24
  */
 @Slf4j
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "org.limbo.flowjob.worker.application.controllers")
 public class ControllerExceptionHandler {
 
     /**
@@ -41,10 +41,10 @@ public class ControllerExceptionHandler {
     public ResponseDTO<?> handleValidateFailedException(WebExchangeBindException e) {
         // 拼装错误信息
         StringBuilder errMsg = new StringBuilder();
-        e.getFieldErrors().forEach(fe -> {
-            errMsg.append(fe.getField()).append(" ")
-                    .append(fe.getDefaultMessage()).append("; ");
-        });
+        e.getFieldErrors().forEach(fe -> errMsg
+                .append(fe.getField()).append(" ")
+                .append(fe.getDefaultMessage()).append("; ")
+        );
 
         return ResponseDTO.builder().badRequest(errMsg.toString()).build();
     }

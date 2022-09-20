@@ -1,2 +1,3 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.limbo.flowjob.worker.starter.configuration.WorkerAutoConfiguration
+org.limbo.flowjob.worker.starter.configuration.WorkerAutoConfiguration,\
+org.limbo.flowjob.worker.starter.configuration.WorkerApplicationAutoConfiguration

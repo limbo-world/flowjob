@@ -21,9 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.api.clent.dto.TaskReceiveDTO;
 import org.limbo.flowjob.broker.api.clent.param.TaskSubmitParam;
 import org.limbo.flowjob.broker.api.dto.ResponseDTO;
-import org.limbo.flowjob.common.exception.VerifyException;
 import org.limbo.flowjob.worker.application.services.WorkerService;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -55,9 +53,5 @@ public class WorkerController {
                 .data(workerService.receive(param)).build();
     }
 
-    @GetMapping("/ping")
-    public ResponseDTO<Void> ping() {
-        throw new VerifyException("xxx");
-    }
 
 }

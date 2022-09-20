@@ -43,7 +43,7 @@
         <!-- Worker 依赖 -->
         <dependency>
             <groupId>org.limbo.flowjob</groupId>
-            <artifactId>worker-core</artifactId>
+            <artifactId>worker-application</artifactId>
             <version>${flowjob.version}</version>
         </dependency>
 
@@ -60,6 +60,18 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+
+        <!-- SpringBoot 测试 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
     </dependencies>
