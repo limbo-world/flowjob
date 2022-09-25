@@ -16,10 +16,8 @@
 
 package org.limbo.flowjob.worker.starter.processor;
 
-import lombok.Setter;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.worker.core.domain.BaseWorker;
 import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.executor.TaskExecutor;
 import org.springframework.aop.framework.autoproxy.AutoProxyUtils;
@@ -30,10 +28,11 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.MethodIntrospector;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -42,8 +41,10 @@ import org.springframework.util.Assert;
 import javax.annotation.Nonnull;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -56,7 +57,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Brozen
  * @since 2022-09-07
  */
-public class ExecutorMethodProcessor implements SmartInitializingSingleton, ApplicationContextAware, BeanFactoryAware {
+public class ExecutorMethodProcessor implements SmartInitializingSingleton,
+        ApplicationContextAware, BeanFactoryAware, ApplicationEventPublisherAware {
 
     private static final Method M_RUN;
     static {
@@ -71,15 +73,11 @@ public class ExecutorMethodProcessor implements SmartInitializingSingleton, Appl
         }
     }
 
-    /**
-     * Worker 实例，由 Spring 注入，在 WorkerAutoConfiguration 中声明。
-     */
-    @Setter(onMethod_ = @Autowired)
-    private BaseWorker worker;
-
     private ConfigurableApplicationContext applicationContext;
 
     private ConfigurableListableBeanFactory beanFactory;
+
+    private ApplicationEventPublisher eventPublisher;
 
     /**
      * 记录忽略处理的 Class，用于加速初始化的 Bean 扫描阶段
@@ -109,12 +107,23 @@ public class ExecutorMethodProcessor implements SmartInitializingSingleton, Appl
 
 
     /**
+     * 注入事件发布器，用于通知 Worker 的 Executor 扫描完成，可以进行 Worker 初始化。
+     * 会通过发出 {@link WorkerReadyEvent} 事件来通知。
+     */
+    @Override
+    public void setApplicationEventPublisher(@Nonnull ApplicationEventPublisher applicationEventPublisher) {
+        this.eventPublisher = applicationEventPublisher;
+    }
+
+    /**
      * 扫描所有声明的 Bean，解析为 TaskExecutor
      */
     @Override
     public void afterSingletonsInstantiated() {
         Assert.state(this.applicationContext != null, "No ApplicationContext set");
         String[] beanNames = this.applicationContext.getBeanNamesForType(Object.class);
+        List<TaskExecutor> executors = new ArrayList<>();
+
         for (String beanName : beanNames) {
             // 忽略指定作用域下的代理 Bean
             if (ScopedProxyUtils.isScopedTarget(beanName)) {
@@ -140,22 +149,25 @@ public class ExecutorMethodProcessor implements SmartInitializingSingleton, Appl
 
             // 解析 Executor
             try {
-                parseExecutor(beanName, beanType);
+                executors.addAll(parseExecutor(beanName, beanType));
             } catch (Exception e) {
                 throw new BeanInitializationException("Failed to process @Executor annotation " +
                         "or TaskExecutor implementation bean with name '" + beanName + "'", e);
             }
-
         }
+
+        eventPublisher.publishEvent(new WorkerReadyEvent(executors));
     }
 
 
     /**
      * 执行将 Bean 解析为 TaskExecutor 的过程
+     * @return 解析出的 TaskExecutor
      */
-    private void parseExecutor(String beanName, Class<?> beanType) {
+    private List<TaskExecutor> parseExecutor(String beanName, Class<?> beanType) {
+        List<TaskExecutor> executors = new ArrayList<>();
         if (this.ignoredClasses.contains(beanType) || isSpringContainerClass(beanType)) {
-            return;
+            return executors;
         }
 
         Object bean = this.applicationContext.getBean(beanName);
@@ -163,7 +175,7 @@ public class ExecutorMethodProcessor implements SmartInitializingSingleton, Appl
         // 判断 Bean 是否是一个 TaskExecutor
         boolean beanIsTaskExecutor = bean instanceof TaskExecutor;
         if (beanIsTaskExecutor) {
-            worker.addExecutor((TaskExecutor) bean);
+            executors.add((TaskExecutor) bean);
         }
 
         // 解析 @Executor 注解的方法
@@ -177,7 +189,7 @@ public class ExecutorMethodProcessor implements SmartInitializingSingleton, Appl
         // 根据 Bean 类型、@Executor 方法判断是否忽略 Bean
         if (!beanIsTaskExecutor && MapUtils.isEmpty(annotatedMethods)) {
             this.ignoredClasses.add(beanType);
-            return;
+            return executors;
         }
 
         annotatedMethods.forEach((method, annotation) -> {
@@ -186,8 +198,10 @@ public class ExecutorMethodProcessor implements SmartInitializingSingleton, Appl
                 return;
             }
 
-            worker.addExecutor(parseBeanMethodExecutor(bean, method, annotation));
+            executors.add(parseBeanMethodExecutor(bean, method, annotation));
         });
+
+        return executors;
     }
 
 

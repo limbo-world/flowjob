@@ -19,6 +19,7 @@ package org.limbo.flowjob.broker.api.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,6 +39,6 @@ public class BrokerTopologyDTO {
      * broker节点列表，主从模式下，列表中仅包括一个主节点
      */
     @Schema(description = "broker节点列表，主从模式下，列表中仅包括一个主节点")
-    private List<BrokerDTO> brokers;
+    private List<BrokerDTO> brokers = new ArrayList<>();
 
 }

@@ -17,10 +17,10 @@
         <module>broker-api/broker-console-api</module>
         <module>broker-api/broker-client-api</module>
         <module>broker-test</module>
-        <module>worker-core</module>
         <module>common</module>
+        <module>worker-core</module>
         <module>worker-spring-boot-starter</module>
-        <module>worker-application</module>
+        <module>worker-spring-boot-demo</module>
     </modules>
     <packaging>pom</packaging>
 

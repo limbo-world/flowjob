@@ -49,4 +49,40 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <profiles.active>dev</profiles.active>
+            </properties>
+        </profile>
+    </profiles>
+
+    <build>
+        <finalName>flowjob-broker</finalName>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>src/main/resources-${profiles.active}</directory>
+            </resource>
+        </resources>
+
+        <plugins>
+            <!-- SpringBoot 打包 -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <executable>true</executable>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

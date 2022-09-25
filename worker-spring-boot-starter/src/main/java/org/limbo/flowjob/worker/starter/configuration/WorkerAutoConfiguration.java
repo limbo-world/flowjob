@@ -16,6 +16,9 @@
 
 package org.limbo.flowjob.worker.starter.configuration;
 
+import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.worker.core.domain.BaseWorker;
@@ -29,14 +32,18 @@ import org.limbo.flowjob.worker.core.rpc.lb.BaseLoadBalancer;
 import org.limbo.flowjob.worker.core.rpc.lb.LBStrategy;
 import org.limbo.flowjob.worker.core.rpc.lb.LoadBalancer;
 import org.limbo.flowjob.worker.core.rpc.lb.RoundRobinStrategy;
+import org.limbo.flowjob.worker.core.utils.NetUtils;
 import org.limbo.flowjob.worker.starter.SpringDelegatedWorker;
 import org.limbo.flowjob.worker.starter.processor.ExecutorMethodProcessor;
 import org.limbo.flowjob.worker.starter.properties.WorkerProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.Assert;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -50,11 +57,17 @@ import java.util.stream.Collectors;
  * @since 2022-09-05
  */
 @Configuration
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.ANY)
 @ConditionalOnProperty(prefix = "flowjob.worker", value = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(WorkerProperties.class)
 public class WorkerAutoConfiguration {
 
+    private static final int DEFAULT_HTTP_SERVER_PORT = 8080;
+
     private final WorkerProperties workerProps;
+
+    @Setter(onMethod_ = @Value("${server.port}"))
+    private Integer httpServerPort = null;
 
     public WorkerAutoConfiguration(WorkerProperties workerProps) {
         this.workerProps = workerProps;
@@ -76,13 +89,27 @@ public class WorkerAutoConfiguration {
      */
     @Bean
     public Worker httpWorker(WorkerResources resources, BrokerRpc rpc) throws MalformedURLException {
-        // TODO 优先使用 Spring MVC 设置的端口号
+        // 优先使用 SpringMVC 或 SpringWebflux 设置的端口号
+        Integer port = httpServerPort != null ? httpServerPort : workerProps.getPort();
+        port = port == null ? DEFAULT_HTTP_SERVER_PORT : port;
 
-        URL workerBaseUrl = workerProps.getPort() > 0
-                ? new URL(workerProps.getScheme().name(), workerProps.getHost(), workerProps.getPort(), "")
-                : new URL(workerProps.getScheme().name(), workerProps.getHost(), "");
+        // 优先使用指定的 host，如未指定则自动寻找本机 IP
+        String host = workerProps.getHost();
+        if (StringUtils.isEmpty(host)) {
+            host = NetUtils.getLocalIp();
+        }
 
-        return new SpringDelegatedWorker(new BaseWorker(workerProps.getId(), workerBaseUrl, resources, rpc));
+        Assert.isTrue(port > 0, "Worker port must be a positive integer in range 1 ~ 65534");
+        URL workerBaseUrl = new URL(workerProps.getScheme().name(), host, port, "");
+        BaseWorker worker = new BaseWorker(workerProps.getId(), workerBaseUrl, resources, rpc);
+
+        // 解析 tag，添加到 Worker
+        CollectionUtils.emptyIfNull(workerProps.getTags())
+                .stream().map(tag -> tag.split("="))
+                .filter(tuple -> tuple.length > 1 && StringUtils.isNoneBlank(tuple))
+                .forEach(tuple -> worker.addTag(tuple[0], tuple[1]));
+
+        return new SpringDelegatedWorker(worker);
     }
 
 

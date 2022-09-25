@@ -19,7 +19,6 @@ package org.limbo.flowjob.worker.core.domain;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.common.utils.UUIDUtils;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.executor.NamedThreadFactory;
@@ -28,6 +27,9 @@ import org.limbo.flowjob.worker.core.executor.TaskRepository;
 import org.limbo.flowjob.worker.core.rpc.BrokerRpc;
 import org.limbo.flowjob.worker.core.rpc.exceptions.BrokerRpcException;
 import org.limbo.flowjob.worker.core.rpc.exceptions.RegisterFailException;
+import org.limbo.flowjob.worker.core.utils.SHAUtils;
+import org.limbo.flowjob.worker.core.utils.collections.MultiValueMap;
+import org.limbo.flowjob.worker.core.utils.collections.MutableMultiValueMap;
 
 import java.net.URL;
 import java.time.Duration;
@@ -35,6 +37,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -43,6 +46,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 /**
  * 工作节点实例
@@ -67,6 +71,11 @@ public class BaseWorker implements Worker {
      */
     @Getter
     private WorkerResources resource;
+
+    /**
+     * Worker 标签
+     */
+    private MultiValueMap<String, String, Set<String>> tags;
 
     /**
      * 执行器名称 - 执行器 映射关系
@@ -104,13 +113,36 @@ public class BaseWorker implements Worker {
         Objects.requireNonNull(baseURL, "URL can't be null");
         Verifies.notNull(brokerRpc, "remote client can't be null");
 
-        this.id = StringUtils.isBlank(id) ? UUIDUtils.randomID() : id;
+        this.id = StringUtils.isBlank(id) ? SHAUtils.sha1AndHex(baseURL.toString()).toUpperCase() : id;
         this.rpcBaseURL = baseURL;
         this.resource = resource;
         this.brokerRpc = brokerRpc;
 
+        Supplier<Set<String>> valueFactory = () -> Collections.newSetFromMap(new ConcurrentHashMap<>());
+        this.tags = new MutableMultiValueMap<>(new ConcurrentHashMap<>(), valueFactory);
         this.executors = new ConcurrentHashMap<>();
         this.status = new AtomicReference<>(WorkerStatus.IDLE);
+    }
+
+
+    /**
+     * {@inheritDoc}
+     * @return
+     */
+    @Override
+    public WorkerTag getTags() {
+        return new WorkerTag(this.tags);
+    }
+
+
+    /**
+     * {@inheritDoc}
+     * @param key 标签 key
+     * @param value 标签 value
+     */
+    @Override
+    public void addTag(String key, String value) {
+        this.tags.add(key, value);
     }
 
 

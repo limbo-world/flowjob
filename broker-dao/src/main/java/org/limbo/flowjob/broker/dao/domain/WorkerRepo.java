@@ -19,12 +19,20 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
-import org.limbo.flowjob.broker.dao.converter.WorkerPoConverter;
+import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
+import org.limbo.flowjob.broker.dao.converter.WorkerEntityConverter;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
 import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.WorkerExecutorEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.WorkerMetricEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.WorkerTagEntityRepo;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
@@ -45,7 +53,16 @@ public class WorkerRepo implements WorkerRepository {
     private WorkerEntityRepo workerEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private WorkerPoConverter converter;
+    private WorkerMetricEntityRepo metricEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private WorkerExecutorEntityRepo executorEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private WorkerTagEntityRepo tagEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private WorkerEntityConverter converter;
 
     /**
      * {@inheritDoc}
@@ -55,9 +72,30 @@ public class WorkerRepo implements WorkerRepository {
     @Override
     @Transactional
     public void save(Worker worker) {
-        WorkerEntity entity = converter.convert(worker);
+        WorkerEntity entity = converter.toWorkerEntity(worker);
         Objects.requireNonNull(entity);
         workerEntityRepo.saveAndFlush(entity);
+
+        // Metric 存储
+        WorkerMetric metric = worker.getMetric();
+        WorkerMetricEntity metricPo = converter.toMetricEntity(metric);
+        metricEntityRepo.saveAndFlush(Objects.requireNonNull(metricPo));
+
+        // Executors 存储
+        executorEntityRepo.deleteByWorkerId(worker.getWorkerId());
+        List<WorkerExecutorEntity> executorPos = converter.toExecutorEntities(worker);
+        if (CollectionUtils.isNotEmpty(executorPos)) {
+            executorEntityRepo.saveAll(executorPos);
+            executorEntityRepo.flush();
+        }
+
+        // Tags 存储
+        tagEntityRepo.deleteByWorkerId(worker.getWorkerId());
+        List<WorkerTagEntity> tagPos = converter.toTagEntities(worker);
+        if (CollectionUtils.isNotEmpty(tagPos)) {
+            tagEntityRepo.saveAll(tagPos);
+            tagEntityRepo.flush();
+        }
     }
 
 
@@ -74,7 +112,7 @@ public class WorkerRepo implements WorkerRepository {
         }
 
         return workerEntityRepo.findById(workerId)
-                .map(w -> converter.reverse().convert(w))
+                .map(this::toWorkerWithLazyInit)
                 .orElse(null);
     }
 
@@ -88,9 +126,23 @@ public class WorkerRepo implements WorkerRepository {
     public List<Worker> listAvailableWorkers() {
         return workerEntityRepo.findByStatusAndDeleted(WorkerStatus.RUNNING.status, Boolean.FALSE)
                 .stream()
-                .map(po -> converter.reverse().convert(po))
+                .map(this::toWorkerWithLazyInit)
                 .collect(Collectors.toList());
     }
+
+
+    /**
+     * 将 Worker 持久化对象转为领域模型，并为其中的属性设置为懒加载。
+     */
+    private Worker toWorkerWithLazyInit(WorkerEntity worker) {
+        String workerId = worker.getId();
+        return converter.toWorker(worker,
+                converter.toTags(tagEntityRepo.findByWorkerId(workerId)),
+                converter.toExecutors(executorEntityRepo.findByWorkerId(workerId)),
+                converter.toMetric(metricEntityRepo.getOne(workerId))
+        );
+    }
+
 
     /**
      * {@inheritDoc}
@@ -106,4 +158,5 @@ public class WorkerRepo implements WorkerRepository {
             workerEntityRepo.saveAndFlush(workerEntity);
         }
     }
+
 }

@@ -23,6 +23,7 @@ import org.limbo.flowjob.broker.dao.entity.WorkerStatisticsEntity;
  * @author Brozen
  * @since 2021-06-03
  */
+@Deprecated
 public class WorkerStatisticsPoConverter {
 
     public static WorkerStatistics toDO(WorkerStatisticsEntity po) {

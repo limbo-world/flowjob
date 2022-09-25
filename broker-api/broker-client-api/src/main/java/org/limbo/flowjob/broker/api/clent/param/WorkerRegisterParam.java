@@ -19,14 +19,17 @@
 package org.limbo.flowjob.broker.api.clent.param;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.net.URL;
 import java.util.List;
+import java.util.Set;
 
 /**
  * worker注册时的参数
@@ -35,7 +38,7 @@ import java.util.List;
  * @since 2021-06-10
  */
 @Data
-@Schema(title = "worker注册参数")
+@Schema(title = "worker 注册参数")
 public class WorkerRegisterParam implements Serializable {
 
     private static final long serialVersionUID = 4234037520144789567L;
@@ -43,35 +46,28 @@ public class WorkerRegisterParam implements Serializable {
     /**
      * 注册时指定的 worker id
      */
-    @Schema(description = "注册时指定的 worker id", implementation = String.class)
+    @Schema(description = "注册时指定的 worker id")
     private String id;
 
     /**
-     * worker服务使用的通信协议，默认为Http协议。
-     * @see WorkerProtocol
+     * worker 通信使用的 URL。
+     * @see WorkerProtocol 需要使用指定类型的协议
      */
-    @Schema(description = "worker服务使用的通信协议，默认为Http协议", implementation = Integer.class)
-    private String protocol;
+    @NotNull(message = "worker 通信 URL 不可为空")
+    @Schema(description = "worker 通信使用的 URL", implementation = String.class)
+    private URL url;
 
     /**
-     * worker服务的通信IP
+     * worker 可用的资源
      */
-    @NotBlank(message = "worker host can't be blank")
-    @Schema(description = "worker服务的通信主机名")
-    private String host;
-
-    /**
-     * worker服务的通信端口
-     */
-    @NotNull(message = "worker port can't be blank")
-    @Schema(description = "worker服务的通信端口")
-    private Integer port;
-
-    /**
-     * worker可用的资源
-     */
-    @Schema(description = "worker可用的资源")
+    @Schema(description = "worker 可用的资源")
     private WorkerResourceParam availableResource;
+
+    /**
+     * worker 的标签
+     */
+    @Schema(description = "worker 的标签")
+    private Set<Tag> tags;
 
     /**
      * 执行器
@@ -85,5 +81,26 @@ public class WorkerRegisterParam implements Serializable {
      */
     @Schema(description = "worker所属租户信息")
     private WorkerTenantParam tenant;
+
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(title = "worker 标签")
+    public static class Tag {
+
+        /**
+         * 标签 key
+         */
+        @Schema(description = "标签 key")
+        private String key;
+
+        /**
+         * 标签 value
+         */
+        @Schema(description = "标签 value")
+        private String value;
+
+    }
 
 }

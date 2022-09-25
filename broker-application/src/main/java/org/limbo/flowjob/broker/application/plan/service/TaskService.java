@@ -38,18 +38,25 @@ public class TaskService {
 
     @Setter(onMethod_ = @Inject)
     private TaskRepository taskRepository;
+
     @Setter(onMethod_ = @Inject)
     private TaskEntityRepo taskEntityRepo;
+
     @Setter(onMethod_ = @Inject)
     private JobInstanceRepository jobInstanceRepository;
+
     @Setter(onMethod_ = @Inject)
     private JobInstanceEntityRepo jobInstanceEntityRepo;
+
     @Setter(onMethod_ = @Inject)
     private JobScheduler scheduler;
+
     @Setter(onMethod_ = @Inject)
     private PlanInstanceRepository planInstanceRepository;
+
     @Setter(onMethod_ = @Inject)
     private PlanInstanceEntityRepo planInstanceEntityRepo;
+
     @Setter(onMethod_ = @Inject)
     private PlanManager planManager;
 

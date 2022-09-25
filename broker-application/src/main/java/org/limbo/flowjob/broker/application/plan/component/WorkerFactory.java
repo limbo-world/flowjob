@@ -18,17 +18,15 @@
 
 package org.limbo.flowjob.broker.application.plan.component;
 
-import lombok.Setter;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
 import org.limbo.flowjob.broker.core.worker.Worker;
-import org.limbo.flowjob.broker.core.worker.WorkerRepository;
-import org.limbo.flowjob.broker.core.worker.metric.WorkerMetricRepository;
-import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatisticsRepository;
+import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.common.utils.UUIDUtils;
 import org.springframework.stereotype.Component;
-
-import javax.inject.Inject;
-import java.net.URL;
 
 /**
  * @author Brozen
@@ -37,28 +35,20 @@ import java.net.URL;
 @Component
 public class WorkerFactory {
 
-    @Setter(onMethod_ = @Inject)
-    private WorkerRepository workerRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private WorkerMetricRepository workerMetricRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private WorkerStatisticsRepository workerStatisticsRepo;
-
     /**
      * 生成新的worker，根据注册参数创建
-     * @param rpcBaseUrl RPC 通信的基础 URL
+     * @param options worker 注册参数
      * @return worker领域对象
      */
-    public Worker newWorker(URL rpcBaseUrl) {
+    public Worker newWorker(WorkerRegisterParam options) {
+        String workerId = StringUtils.isNotBlank(options.getId()) ? options.getId() : UUIDUtils.randomID();
         return Worker.builder()
-                .workerRepository(workerRepo)
-                .metricRepository(workerMetricRepo)
-                .statisticsRepository(workerStatisticsRepo)
-                .workerId(UUIDUtils.randomID()) // FIXME 这里要不要考虑 worker 注册时指定 ID 的情况？
-                .rpcBaseUrl(rpcBaseUrl)
-                .status(WorkerStatus.RUNNING)
+                .workerId(workerId)
+                .rpcBaseUrl(options.getUrl())
+                .executors(Lists.newArrayList())
+                .tags(Maps.newHashMap())
+                .metric(new WorkerMetric(workerId))
+                .status(WorkerStatus.TERMINATED)
                 .build();
     }
 

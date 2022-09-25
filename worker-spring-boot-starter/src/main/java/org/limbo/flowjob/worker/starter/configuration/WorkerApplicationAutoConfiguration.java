@@ -16,6 +16,7 @@
 
 package org.limbo.flowjob.worker.starter.configuration;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
@@ -24,7 +25,8 @@ import org.springframework.context.annotation.Configuration;
  * @since 2022-09-11
  */
 @Configuration
-@ComponentScan(basePackages = "org.limbo.flowjob.worker.application")
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.ANY)
+@ComponentScan(basePackages = "org.limbo.flowjob.worker.starter.application")
 public class WorkerApplicationAutoConfiguration {
 
 

@@ -29,7 +29,7 @@ import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -38,13 +38,15 @@ import javax.transaction.Transactional;
  * @author Devil
  * @since 2021/7/24
  */
-@Repository
+@Component
 public class PlanInstanceRepo implements PlanInstanceRepository {
 
     @Setter(onMethod_ = @Inject)
     private PlanInstanceEntityRepo planInstanceEntityRepo;
+
     @Setter(onMethod_ = @Inject)
     private PlanInfoEntityRepo planInfoEntityRepo;
+
     @Setter(onMethod_ = @Inject)
     private ScheduleCalculatorFactory scheduleCalculatorFactory;
 

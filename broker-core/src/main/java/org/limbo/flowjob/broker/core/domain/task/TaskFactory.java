@@ -27,7 +27,7 @@ import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.domain.ExecutorOption;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.worker.Worker;
-import org.limbo.flowjob.broker.core.worker.metric.WorkerExecutor;
+import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
 import java.util.ArrayList;

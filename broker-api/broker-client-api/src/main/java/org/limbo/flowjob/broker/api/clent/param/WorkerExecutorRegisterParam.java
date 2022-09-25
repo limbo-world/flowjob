@@ -37,6 +37,6 @@ public class WorkerExecutorRegisterParam {
 
     private String description;
 
-    private JobExecuteType type;
+    private Integer type;
 
 }

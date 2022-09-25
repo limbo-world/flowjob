@@ -18,8 +18,6 @@ package org.limbo.flowjob.broker.core.worker.rpc;
 
 import org.limbo.flowjob.broker.core.worker.Worker;
 
-import java.util.ServiceLoader;
-
 /**
  * @author Brozen
  * @since 2022-08-12
@@ -31,15 +29,7 @@ public interface WorkerRpcFactory {
      * 获取 Worker RPC 协议工厂，使用 SPI 加载。
      */
     static WorkerRpcFactory getInstance() {
-        ServiceLoader<WorkerRpcFactory> loader = ServiceLoader.load(WorkerRpcFactory.class);
-        for (WorkerRpcFactory factory : loader) {
-            return factory;
-        }
-
-        String factoryClassRef = WorkerRpcFactory.class.getName();
-        throw new IllegalStateException("无可用的 Worker RPC 协议工厂，请声明类继承["
-                + factoryClassRef + "]，并在 classpath:META-INF/"
-                + factoryClassRef + " 文件中声明实现类全路径");
+        return WorkerRpcFactoryHolder.INSTANCE;
     }
 
 

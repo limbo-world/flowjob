@@ -21,18 +21,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.api.clent.dto.WorkerRegisterDTO;
 import org.limbo.flowjob.broker.api.clent.param.WorkerHeartbeatParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
+import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
+import org.limbo.flowjob.broker.application.plan.component.WorkerFactory;
 import org.limbo.flowjob.broker.application.plan.converter.WorkerConverter;
 import org.limbo.flowjob.broker.core.worker.Worker;
-import org.limbo.flowjob.broker.application.plan.component.WorkerFactory;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
-import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
-import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.net.URL;
 import java.util.Optional;
 
 /**
@@ -51,28 +49,23 @@ public class WorkerService {
     @Setter(onMethod_ = @Inject)
     private WorkerFactory workerFactory;
 
-    @Setter(onMethod_ = @Inject)
-    private WorkerConverter converter;
-
 
     /**
      * worker心跳
-     * @param heartbeatOption 心跳参数，上报部分指标数据
+     * @param option 心跳参数，上报部分指标数据
      */
-    public void heartbeat(WorkerHeartbeatParam heartbeatOption) {
+    public void heartbeat(WorkerHeartbeatParam option) {
         // 查询worker并校验
-        Worker worker = workerRepository.get(heartbeatOption.getWorkerId());
+        Worker worker = workerRepository.get(option.getWorkerId());
         Verifies.requireNotNull(worker, "worker不存在！");
 
         // 更新metric
-        WorkerMetric metric = worker.getMetric();
-        metric.setAvailableResource(WorkerAvailableResource.from(heartbeatOption.getAvailableResource()));
-        worker.updateMetric(metric);
+        worker.heartbeat(WorkerConverter.toWorkerMetric(option, worker));
+        workerRepository.save(worker);
 
         if (log.isDebugEnabled()) {
             log.debug("receive heartbeat from " + worker.getWorkerId());
         }
-
     }
 
     /**
@@ -84,26 +77,33 @@ public class WorkerService {
     public WorkerRegisterDTO register(WorkerRegisterParam options) {
         // TODO 租户鉴权
 
+        // 校验 protocol
+        String protocolName = options.getUrl().getProtocol();
+        WorkerProtocol protocol = WorkerProtocol.parse(protocolName);
+        Verifies.verify(
+                protocol != WorkerProtocol.UNKNOWN,
+                "Unknown worker rpc protocol:" + protocolName
+        );
+
         // 新增 or 更新 worker
-        URL rpcBaseUrl = converter.toWorkerRpcBaseURL(options);
         Worker worker = Optional
                 .ofNullable(workerRepository.get(options.getId()))
-                .map(w -> w.updateRegisterInfo(rpcBaseUrl))
-                .orElseGet(() -> this.workerFactory.newWorker(rpcBaseUrl));
+                .orElseGet(() -> this.workerFactory.newWorker(options));
 
-        // 更新metric
-        WorkerMetric metric = WorkerConverter.convertMetric(options);
-        worker.updateMetric(metric);
+        // 更新注册信息
+        worker.register(
+                options.getUrl(),
+                WorkerConverter.toWorkerTags(options),
+                WorkerConverter.toWorkerExecutors(options, worker),
+                WorkerConverter.toWorkerMetric(options, worker)
+        );
 
         // 保存 worker
         workerRepository.save(worker);
         log.info("worker registered " + worker);
 
         // 返回tracker
-        WorkerRegisterDTO registerResult = new WorkerRegisterDTO();
-        registerResult.setWorkerId(worker.getWorkerId());
-        // registerResult.setBrokers(trackerNode.getNodes()); FIXME 怎样得到所有的 Broker 节点信息？
-        return registerResult;
+        return WorkerConverter.toRegisterDTO(worker);
     }
 
 }

@@ -19,16 +19,17 @@ package org.limbo.flowjob.worker.starter;
 import lombok.Setter;
 import lombok.experimental.Delegate;
 import org.limbo.flowjob.worker.core.domain.Worker;
+import org.limbo.flowjob.worker.starter.processor.WorkerReadyEvent;
 import org.limbo.flowjob.worker.starter.properties.WorkerProperties;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 
 /**
  * @author Brozen
  * @since 2022-09-11
  */
-public class SpringDelegatedWorker implements Worker, InitializingBean, DisposableBean {
+public class SpringDelegatedWorker implements Worker, DisposableBean {
 
     @Delegate(types = Worker.class)
     private final Worker delegated;
@@ -43,10 +44,11 @@ public class SpringDelegatedWorker implements Worker, InitializingBean, Disposab
 
 
     /**
-     * Bean 初始化完成后，注册当前 Worker
+     * Spring 初始化完成后，注册当前 Worker
      */
-    @Override
-    public void afterPropertiesSet() {
+    @EventListener(WorkerReadyEvent.class)
+    public void onApplicationStart(WorkerReadyEvent event) {
+        event.getExecutors().forEach(delegated::addExecutor);
         delegated.start(properties.getHeartbeat());
     }
 

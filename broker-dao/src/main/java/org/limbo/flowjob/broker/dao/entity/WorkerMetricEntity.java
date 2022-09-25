@@ -22,6 +22,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
@@ -34,14 +35,15 @@ import javax.persistence.Table;
 @Entity
 @DynamicInsert
 @DynamicUpdate
-public class WorkerMetricEntity extends BaseEntity {
+public class WorkerMetricEntity extends AnonymousBaseEntity<String> {
 
     private static final long serialVersionUID = -3009642474389520555L;
 
     /**
      * worker节点ID
      */
-    private String workerId;
+    @Id
+    private String id;
 
     /**
      * worker节点上正在执行中的作业

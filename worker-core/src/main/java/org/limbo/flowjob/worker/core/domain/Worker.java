@@ -17,10 +17,13 @@
 package org.limbo.flowjob.worker.core.domain;
 
 import org.limbo.flowjob.worker.core.executor.TaskExecutor;
+import org.limbo.flowjob.worker.core.utils.collections.ImmutableMultiValueMap;
+import org.limbo.flowjob.worker.core.utils.collections.MultiValueMap;
 
 import java.net.URL;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Worker 行为方法定义
@@ -44,6 +47,18 @@ public interface Worker {
      * 获取 Worker RPC 通信用到的 URL
      */
     URL getRpcBaseURL();
+
+    /**
+     * 获取此 Worker 标记的标签，返回的标签不可修改。
+     */
+    WorkerTag getTags();
+
+    /**
+     * 为此 Worker 添加标签
+     * @param key 标签 key
+     * @param value 标签 value
+     */
+    void addTag(String key, String value);
 
     /**
      * 添加任务执行器
@@ -78,5 +93,17 @@ public interface Worker {
      * 停止当前 Worker
      */
     void stop();
+
+
+    /**
+     * Worker 标签
+     */
+    class WorkerTag extends ImmutableMultiValueMap<String, String, Set<String>> {
+
+        public WorkerTag(MultiValueMap<String, String, Set<String>> tags) {
+            super(tags);
+        }
+
+    }
 
 }

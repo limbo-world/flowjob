@@ -55,12 +55,13 @@ public class WorkerProperties {
      * worker 注册时，向 broker 提交的 RPC 通信 host，可以是域名或 IP 地址，如不填写则自动发现本机非 127.0.0.1 的地址。
      * 多网卡场景下，建议显式配置 host。
      */
-    private String host = "127.0.0.1";
+    private String host = "";
 
     /**
-     * worker 注册时，向 broker 提交的 RPC 通信端口，默认为 8080。
+     * worker 注册时，向 broker 提交的 RPC 通信端口，默认为 null。
+     * 如果未指定此配置，则尝试使用 ${server.port} 配置；如 ${server.port} 配置也不存在，则使用 8080，
      */
-    private int port = 8080;
+    private Integer port = null;
 
     /**
      * Worker 向 Broker 发送心跳请求的间隔，默认 5 秒。

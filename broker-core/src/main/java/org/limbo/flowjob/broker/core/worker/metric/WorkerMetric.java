@@ -16,7 +16,12 @@
 
 package org.limbo.flowjob.broker.core.worker.metric;
 
+import com.google.common.collect.Lists;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -27,6 +32,9 @@ import java.util.List;
  * @since 2021-05-17
  */
 @Data
+@Setter(AccessLevel.NONE)
+@AllArgsConstructor
+@Builder(builderClassName = "Builder")
 public class WorkerMetric {
 
     /**
@@ -43,5 +51,11 @@ public class WorkerMetric {
      * worker可用的资源
      */
     private WorkerAvailableResource availableResource;
+
+    public WorkerMetric(String workerId) {
+        this.workerId = workerId;
+        this.executingJobs = Lists.newArrayList();
+        this.availableResource = new WorkerAvailableResource(0, 0, 0);
+    }
 
 }

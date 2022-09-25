@@ -41,7 +41,7 @@ public class WorkerExecutorEntity extends BaseEntity {
     /**
      * worker节点ID
      */
-    private Long workerId;
+    private String workerId;
 
     /**
      * 执行器名称

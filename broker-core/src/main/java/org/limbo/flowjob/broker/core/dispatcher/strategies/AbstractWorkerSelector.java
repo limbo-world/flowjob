@@ -21,7 +21,7 @@ import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.broker.core.domain.DispatchOption;
 import org.limbo.flowjob.broker.core.domain.ExecutorOption;
 import org.limbo.flowjob.broker.core.worker.Worker;
-import org.limbo.flowjob.broker.core.worker.metric.WorkerExecutor;
+import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 
 import java.util.ArrayList;
 import java.util.Collection;

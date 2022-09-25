@@ -23,17 +23,17 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Delegate;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
-import org.limbo.flowjob.broker.core.worker.metric.WorkerExecutor;
+import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
-import org.limbo.flowjob.broker.core.worker.metric.WorkerMetricRepository;
 import org.limbo.flowjob.broker.core.worker.rpc.WorkerRpc;
 import org.limbo.flowjob.broker.core.worker.rpc.WorkerRpcFactory;
-import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatistics;
-import org.limbo.flowjob.broker.core.worker.statistics.WorkerStatisticsRepository;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 在Tracker端，作业执行节点的抽象。
@@ -42,7 +42,7 @@ import java.util.Map;
  * @since 2021-05-14
  */
 @Getter
-@Setter(AccessLevel.PROTECTED)
+@Setter(AccessLevel.NONE)
 @ToString
 @Builder(builderClassName = "Builder")
 public class Worker implements WorkerRpc {
@@ -58,19 +58,9 @@ public class Worker implements WorkerRpc {
     private URL rpcBaseUrl;
 
     /**
-     * 执行器
-     */
-    private List<WorkerExecutor> executors;
-
-    /**
      * worker节点状态
      */
     private WorkerStatus status;
-
-    /**
-     * worker标签
-     */
-    private Map<String, List<String>> tags;
 
     /**
      * 是否启用 不启用则无法下发任务
@@ -82,30 +72,20 @@ public class Worker implements WorkerRpc {
      */
     private volatile WorkerRpc rpc;
 
-    // ------------------------ 分隔
     /**
-     * 用户更新worker
+     * Worker 执行器
      */
-    @Getter(AccessLevel.PROTECTED)
-    @Setter(AccessLevel.NONE)
-    @ToString.Exclude
-    private WorkerRepository workerRepository;
+    private List<WorkerExecutor> executors;
 
     /**
-     * worker节点指标信息repo
+     * Worker 标签
      */
-    @Getter(AccessLevel.PROTECTED)
-    @Setter(AccessLevel.NONE)
-    @ToString.Exclude
-    private WorkerMetricRepository metricRepository;
+    private Map<String, List<String>> tags;
 
     /**
-     * worker统计信息repo
+     * Worker 状态指标
      */
-    @Getter(AccessLevel.PROTECTED)
-    @Setter(AccessLevel.NONE)
-    @ToString.Exclude
-    private WorkerStatisticsRepository statisticsRepository;
+    private WorkerMetric metric;
 
 
     /**
@@ -118,21 +98,31 @@ public class Worker implements WorkerRpc {
 
     /**
      * 更新 worker 的注册信息
-     * @return 自身，链式调用
      */
-    public Worker updateRegisterInfo(URL rpcBaseUrl) {
-        this.rpcBaseUrl = rpcBaseUrl;
+    public void register(URL rpcBaseUrl, Map<String, List<String>> tags,
+                         List<WorkerExecutor> executors, WorkerMetric metric) {
+        this.rpcBaseUrl = Objects.requireNonNull(rpcBaseUrl, "rpcBaseUrl");
+        setTags(tags);
+        setExecutors(executors);
+        setMetric(metric);
+
         this.status = WorkerStatus.RUNNING;
-        return this;
+    }
+
+
+    public void heartbeat(WorkerMetric metric) {
+
     }
 
 
     /**
-     * 获取本worker节点最近一次上报的指标信息
-     * @return worker节点指标信息
+     * 更新 worker tag 信息
      */
-    public WorkerMetric getMetric() {
-        return metricRepository.getMetric(getWorkerId());
+    protected void setTags(Map<String, List<String>> tags) {
+        // 复制数据，防止入参变化影响 Worker 的 tags 数据（防止副作用）
+        HashMap<String, List<String>> tempTags = new HashMap<>();
+        tags.forEach((k, v) -> tempTags.put(k, new ArrayList<>(v)));
+        this.tags = tempTags;
     }
 
 
@@ -140,18 +130,27 @@ public class Worker implements WorkerRpc {
      * 更新worker节点指标信息
      * @param metric worker节点指标
      */
-    public void updateMetric(WorkerMetric metric) {
-        metric.setWorkerId(getWorkerId());
-        metricRepository.updateMetric(metric);
+    protected void setMetric(WorkerMetric metric) {
+        if (!this.workerId.equals(metric.getWorkerId())) {
+            throw new IllegalArgumentException("worker id mismatch");
+        }
+
+        this.metric = metric;
     }
 
 
     /**
-     * 获取此worker对应的统计记录
-     * @return 此worker对应的统计记录
+     * 更新 worker 的执行器信息
+     * @param executors 新的执行器数据
      */
-    public WorkerStatistics getStatistics() {
-        return statisticsRepository.getWorkerStatistics(getWorkerId());
+    protected void setExecutors(List<WorkerExecutor> executors) {
+        boolean anyExecutorMismatch = executors.stream()
+                .anyMatch(e -> !this.workerId.equals(e.getWorkerId()));
+        if (anyExecutorMismatch) {
+            throw new IllegalArgumentException("worker id mismatch");
+        }
+
+        this.executors = executors;
     }
 
 

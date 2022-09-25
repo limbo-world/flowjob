@@ -48,6 +48,8 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -91,17 +93,24 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      */
     @Override
     public void register(Worker worker) throws RegisterFailException {
+        WorkerRegisterDTO result = null;
         for (BrokerNode broker : brokerNodes) {
             try {
-                registerWith(broker, registerParam(worker));
-                return;
+                result = registerWith(broker, registerParam(worker));
+                break;
             } catch (RegisterFailException e) {
                 log.error("Register to {} failed，try next node", broker);
             }
         }
 
-        String msg = "Register failed after tried all broker, please check your configuration";
-        throw new RegisterFailException(msg);
+        // 注册成功，更新 broker 节点拓扑
+        if (result != null) {
+            // FIXME 临时注释掉拓扑更新，broker 还没返回拓扑结构
+            // updateBrokerTopology(result.getBrokerTopology());
+        } else {
+            String msg = "Register failed after tried all broker, please check your configuration";
+            throw new RegisterFailException(msg);
+        }
     }
 
 
@@ -115,7 +124,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
                     WorkerExecutorRegisterParam executorRegisterParam = new WorkerExecutorRegisterParam();
                     executorRegisterParam.setName(executor.getName());
                     executorRegisterParam.setDescription(executor.getDescription());
-                    executorRegisterParam.setType(executor.getType());
+                    executorRegisterParam.setType((int) executor.getType().type);
                     return executorRegisterParam;
                 })
                 .collect(Collectors.toList());
@@ -127,15 +136,27 @@ public class OkHttpBrokerRpc implements BrokerRpc {
         resourceParam.setAvailableRAM(resource.availableRam());
         resourceParam.setAvailableQueueLimit(resource.availableQueueSize());
 
+        // Tags
+        Set<WorkerRegisterParam.Tag> tags;
+        Worker.WorkerTag workerTag = worker.getTags();
+        if (workerTag == null || workerTag.isEmpty()) {
+            tags = new HashSet<>();
+        } else {
+            tags = workerTag.keySet().stream()
+                    .flatMap(key -> workerTag.getOrDefault(key, Collections.emptySet())
+                            .stream().map(value -> new WorkerRegisterParam.Tag(key, value))
+                    )
+                    .collect(Collectors.toSet());
+        }
+
         // 组装注册参数
         URL workerRpcBaseURL = worker.getRpcBaseURL();
         WorkerRegisterParam registerParam = new WorkerRegisterParam();
         registerParam.setId(worker.getId());
-        registerParam.setProtocol(workerRpcBaseURL.getProtocol());
-        registerParam.setHost(workerRpcBaseURL.getHost());
-        registerParam.setPort(workerRpcBaseURL.getPort());
+        registerParam.setUrl(workerRpcBaseURL);
         registerParam.setExecutors(executors);
         registerParam.setAvailableResource(resourceParam);
+        registerParam.setTags(tags);
 
         return registerParam;
     }
@@ -149,7 +170,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), json);
 
         Request request = new Request.Builder()
-                .url(broker.baseUrl.toString() + "/api/worker/v1")
+                .url(broker.baseUrl.toString() + "/api/worker/v1/worker")
                 .header(HttpHeaders.CONTENT_TYPE, com.google.common.net.MediaType.JSON_UTF_8.toString())
                 .post(body).build();
         Call call = CLIENT.newCall(request);
@@ -161,11 +182,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
             throw new RegisterFailException("Worker register failed: " + msg);
         }
 
-        // 更新 broker 节点拓扑
-        WorkerRegisterDTO result = response.getData();
-        updateBrokerTopology(result.getBrokerTopology());
-
-        return result;
+        return response.getData();
     }
 
 
@@ -173,6 +190,9 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      * 更新 broker 拓扑结构
      */
     private synchronized void updateBrokerTopology(BrokerTopologyDTO topo) {
+        if (topo == null || CollectionUtils.isEmpty(topo.getBrokers())) {
+            throw new IllegalStateException("Broker topology error: " + topo);
+        }
 
         Set<URL> saved = brokerNodes.stream()
                 .map(b -> b.baseUrl)
@@ -180,6 +200,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
         Set<URL> realtime = topo.getBrokers().stream()
                 .map(b -> {
                     try {
+                        // FIXME 先写死 http 协议通信，后面需协商得出
                         return new URL("http", b.getHost(), b.getPort(), "");
                     } catch (MalformedURLException e) {
                         log.error("Invalid broker URL: {}", b);

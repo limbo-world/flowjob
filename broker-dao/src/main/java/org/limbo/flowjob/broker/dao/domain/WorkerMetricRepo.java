@@ -21,14 +21,13 @@ package org.limbo.flowjob.broker.dao.domain;
 import lombok.Setter;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetricRepository;
-import org.limbo.flowjob.broker.dao.converter.WorkerMetricPoConverter;
+import org.limbo.flowjob.broker.dao.converter.WorkerEntityConverter;
 import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.repositories.WorkerMetricEntityRepo;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * @author Brozen
@@ -38,10 +37,10 @@ import java.util.Optional;
 public class WorkerMetricRepo implements WorkerMetricRepository {
 
     @Setter(onMethod_ = @Inject)
-    private WorkerMetricPoConverter converter;
+    private WorkerMetricEntityRepo workerMetricEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private WorkerMetricEntityRepo workerMetricEntityRepo;
+    private WorkerEntityConverter converter;
 
     /**
      * {@inheritDoc}
@@ -50,7 +49,7 @@ public class WorkerMetricRepo implements WorkerMetricRepository {
      */
     @Override
     public void updateMetric(WorkerMetric metric) {
-        WorkerMetricEntity po = converter.convert(metric);
+        WorkerMetricEntity po = converter.toMetricEntity(metric);
         Objects.requireNonNull(po);
 
         // 新增或插入worker指标
@@ -66,9 +65,9 @@ public class WorkerMetricRepo implements WorkerMetricRepository {
     @Override
     public WorkerMetric getMetric(String workerId) {
         // 查询metric
-        Optional<WorkerMetricEntity> workerMetricEntityOptional = workerMetricEntityRepo.findById(workerId);
-        return workerMetricEntityOptional.map(workerMetricEntity -> converter.reverse().convert(workerMetricEntity)).orElse(null);
-
+        return workerMetricEntityRepo.findById(workerId)
+                .map(converter::toMetric)
+                .orElse(null);
     }
 
 }

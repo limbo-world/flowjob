@@ -1,0 +1,13 @@
+server:
+  port: 8084
+spring:
+  application:
+    name: job-worker
+
+flowjob:
+  worker:
+    brokers:
+      - http://localhost:8081
+    tags:
+      - a=b
+      - c=d
