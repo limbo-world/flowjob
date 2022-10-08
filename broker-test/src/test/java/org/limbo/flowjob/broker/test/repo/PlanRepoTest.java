@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.test;
+package org.limbo.flowjob.broker.test.repo;
 
 import lombok.Setter;
 import org.junit.Test;
@@ -38,7 +38,7 @@ import java.util.Optional;
  */
 @SpringBootTest
 @RunWith(SpringRunner.class)
-public class PlanTest {
+public class PlanRepoTest {
 
     @Setter(onMethod_ = @Inject)
     private PlanEntityRepo planEntityRepo;

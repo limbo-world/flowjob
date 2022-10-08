@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.test;
+package org.limbo.flowjob.broker.test.repo;
 
 import lombok.Setter;
 import org.junit.Test;
@@ -28,7 +28,6 @@ import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerExecutorEntityRepo;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.inject.Inject;
@@ -41,7 +40,7 @@ import java.util.List;
  */
 @SpringBootTest
 @RunWith(SpringRunner.class)
-public class WorkerTest {
+public class WorkerRepoTest {
 
     @Setter(onMethod_ = @Inject)
     private WorkerExecutorEntityRepo workerExecutorEntityRepo;

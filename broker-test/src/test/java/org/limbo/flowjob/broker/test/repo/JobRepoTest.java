@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.test;
+package org.limbo.flowjob.broker.test.repo;
 
 import lombok.Setter;
 import org.junit.Test;
@@ -38,7 +38,7 @@ import java.util.List;
  */
 @SpringBootTest
 @RunWith(SpringRunner.class)
-public class JobTest {
+public class JobRepoTest {
 
     @Setter(onMethod_ = @Inject)
     private JobInstanceEntityRepo jobInstanceEntityRepo;

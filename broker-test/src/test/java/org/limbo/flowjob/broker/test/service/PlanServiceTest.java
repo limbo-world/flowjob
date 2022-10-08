@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.test;
+package org.limbo.flowjob.broker.test.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;

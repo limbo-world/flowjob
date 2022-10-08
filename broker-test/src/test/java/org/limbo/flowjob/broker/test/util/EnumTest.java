@@ -16,30 +16,23 @@
  *
  */
 
-package org.limbo.flowjob.broker.test;
-import io.netty.util.HashedWheelTimer;
-import io.netty.util.Timeout;
-import io.netty.util.TimerTask;
-import org.junit.Test;
-import org.limbo.flowjob.broker.core.schedule.scheduler.NamedThreadFactory;
+package org.limbo.flowjob.broker.test.util;
 
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
+import org.junit.Test;
+import org.limbo.flowjob.broker.api.constants.enums.DescribableEnum;
+import org.limbo.flowjob.broker.api.constants.enums.JobType;
+import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
+import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
+import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 
 /**
  * @author Devil
- * @since 2022/6/21
+ * @since 2022/8/10
  */
-public class TimeTest {
+public class EnumTest {
 
     @Test
     public void test() {
-        HashedWheelTimer hashedWheelTimer = new HashedWheelTimer(NamedThreadFactory.newInstance(this.getClass().getSimpleName() + "-timer-"));
-        hashedWheelTimer.newTimeout(new TimerTask() {
-            @Override
-            public void run(Timeout timeout) throws Exception {
-                System.out.println(new Date());
-            }
-        }, 1, TimeUnit.SECONDS);
+        System.out.println(DescribableEnum.describe(JobType.class));
     }
 }
