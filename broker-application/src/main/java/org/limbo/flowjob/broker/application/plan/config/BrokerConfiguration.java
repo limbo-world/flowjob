@@ -17,6 +17,7 @@
 package org.limbo.flowjob.broker.application.plan.config;
 
 import lombok.Setter;
+import org.flywaydb.core.Flyway;
 import org.limbo.flowjob.broker.application.plan.component.JobStatusCheckTask;
 import org.limbo.flowjob.broker.application.plan.component.PlanScheduleTask;
 import org.limbo.flowjob.broker.application.plan.component.TaskStatusCheckTask;
@@ -31,6 +32,7 @@ import org.limbo.flowjob.broker.core.domain.task.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
 import org.limbo.flowjob.broker.core.schedule.calculator.SimpleScheduleCalculatorFactory;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 

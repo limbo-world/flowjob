@@ -28,6 +28,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,6 +44,7 @@ public class JobTest {
     private JobInstanceEntityRepo jobInstanceEntityRepo;
 
     @Test
+    @Transactional
     public void insert() {
         List<JobInstanceEntity> jobInstances = new ArrayList<>();
 

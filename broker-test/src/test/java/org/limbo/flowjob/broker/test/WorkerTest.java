@@ -51,7 +51,7 @@ public class WorkerTest {
 
     @Test
     public void findExecutor() {
-        List<WorkerExecutorEntity> workerExecutorEntities = workerExecutorEntityRepo.listByWorker(1234566L);
+        List<WorkerExecutorEntity> workerExecutorEntities = workerExecutorEntityRepo.findByWorkerId("1234566");
         System.out.println(JacksonUtils.toJSONString(workerExecutorEntities));
     }
 
@@ -65,7 +65,6 @@ public class WorkerTest {
 
     @Test
     @Transactional
-    @Rollback(false)
     public void delete() {
         int d = workerExecutorEntityRepo.deleteByWorkerId("1234566");
         System.out.println(d);

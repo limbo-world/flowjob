@@ -21,6 +21,7 @@ package org.limbo.flowjob.broker.dao.domain;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
@@ -68,6 +69,8 @@ public class PlanRepo implements PlanRepository {
         Verifies.verify(plan.getInfo().check(), "plan info has error");
 
         if (StringUtils.isBlank(plan.getPlanId())) {
+            plan.setCurrentVersion("1");
+            plan.setRecentlyVersion("1");
             return add(plan);
         } else {
             return replace(plan);
@@ -128,7 +131,7 @@ public class PlanRepo implements PlanRepository {
     public PlanInfoEntity toEntity(PlanInfo planInfo) {
         PlanInfoEntity entity = new PlanInfoEntity();
 
-        entity.setPlanId(Long.valueOf(planInfo.getPlanId()));
+        entity.setPlanId(NumberUtils.toLong(planInfo.getPlanId()));
         entity.setDescription(planInfo.getDescription());
 
         ScheduleOption scheduleOption = planInfo.getScheduleOption();
@@ -147,10 +150,10 @@ public class PlanRepo implements PlanRepository {
 
     public PlanEntity toEntity(Plan plan) {
         PlanEntity planEntity = new PlanEntity();
-        planEntity.setCurrentVersion(Long.valueOf(plan.getCurrentVersion()));
-        planEntity.setRecentlyVersion(Long.valueOf(plan.getRecentlyVersion()));
+        planEntity.setCurrentVersion(NumberUtils.toLong(plan.getCurrentVersion()));
+        planEntity.setRecentlyVersion(NumberUtils.toLong(plan.getRecentlyVersion()));
         planEntity.setIsEnabled(plan.isEnabled());
-        planEntity.setId(Long.valueOf(plan.getPlanId()));
+        planEntity.setId(NumberUtils.toLong(plan.getPlanId()));
         return planEntity;
     }
 

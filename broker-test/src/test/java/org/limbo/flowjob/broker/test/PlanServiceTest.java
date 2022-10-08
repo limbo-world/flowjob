@@ -18,28 +18,29 @@
 
 package org.limbo.flowjob.broker.test;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import lombok.Setter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.limbo.flowjob.broker.api.console.param.DispatchOptionParam;
+import org.limbo.flowjob.broker.api.console.param.ExecutorOptionParam;
 import org.limbo.flowjob.broker.api.console.param.JobAddParam;
 import org.limbo.flowjob.broker.api.console.param.PlanAddParam;
 import org.limbo.flowjob.broker.api.console.param.PlanReplaceParam;
 import org.limbo.flowjob.broker.api.console.param.ScheduleOptionParam;
+import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 import org.limbo.flowjob.broker.api.constants.enums.JobType;
 import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
 import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.application.plan.service.PlanService;
-import org.limbo.flowjob.common.utils.UUIDUtils;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Devil
@@ -54,9 +55,9 @@ public class PlanServiceTest {
 
     @Test
     @Transactional
-    public void add() {
+    public void addFixedRate() {
         PlanAddParam param = new PlanAddParam();
-        param.setDescription("测试");
+        param.setDescription("测试-固定速率");
 
         ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
         scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE);
@@ -64,8 +65,11 @@ public class PlanServiceTest {
         scheduleOptionParam.setTriggerType(TriggerType.SCHEDULE);
         param.setScheduleOption(scheduleOptionParam);
 
-        param.setJobs(jobs());
+        JobAddParam n1 = normalJob("1");
+        n1.setChildrenIds(Sets.newHashSet("2"));
+        JobAddParam n2 = normalJob("2");
 
+        param.setJobs(Lists.newArrayList(n1, n2));
 
         planService.add(param);
     }
@@ -79,22 +83,86 @@ public class PlanServiceTest {
     }
 
 
-    public List<JobAddParam> jobs() {
-        List<JobAddParam> jobs = new ArrayList<>();
-
-        JobAddParam normalJob = new JobAddParam();
-        normalJob.setJobId(UUIDUtils.shortRandomID());
-        normalJob.setDescription("test normal");
-        normalJob.setType(JobType.NORMAL);
-        // normalJob.setChildrenIds(Lists.newArrayList()); // todo
-        normalJob.setDispatchOption(DispatchOptionParam.builder()
+    public JobAddParam normalJob(String id) {
+        JobAddParam job = new JobAddParam();
+        job.setJobId(id);
+        job.setDescription("test normal");
+        job.setType(JobType.NORMAL);
+        job.setDispatchOption(DispatchOptionParam.builder()
                 .retry(2)
                 .retryInterval(3)
                 .loadBalanceType(LoadBalanceType.RANDOM)
                 .build()
         );
+        job.setExecutorOption(executorOptionParam());
+        return job;
+    }
 
-        return jobs;
+    public JobAddParam broadcastJob(String id) {
+        JobAddParam job = new JobAddParam();
+        job.setJobId(id);
+        job.setDescription("test broadcast");
+        job.setType(JobType.BROADCAST);
+        job.setDispatchOption(DispatchOptionParam.builder()
+                .retry(2)
+                .retryInterval(3)
+                .loadBalanceType(LoadBalanceType.ROUND_ROBIN)
+                .build()
+        );
+        job.setExecutorOption(executorOptionParam());
+        return job;
+    }
+
+    public JobAddParam splitJob(String id) {
+        JobAddParam job = new JobAddParam();
+        job.setJobId(id);
+        job.setDescription("test split");
+        job.setType(JobType.SPLIT);
+        job.setDispatchOption(DispatchOptionParam.builder()
+                .retry(2)
+                .retryInterval(3)
+                .loadBalanceType(LoadBalanceType.LEAST_FREQUENTLY_USED)
+                .build()
+        );
+        job.setExecutorOption(executorOptionParam());
+        return job;
+    }
+
+    public JobAddParam mapJob(String id) {
+        JobAddParam job = new JobAddParam();
+        job.setJobId(id);
+        job.setDescription("test map");
+        job.setType(JobType.MAP);
+        job.setDispatchOption(DispatchOptionParam.builder()
+                .retry(2)
+                .retryInterval(3)
+                .loadBalanceType(LoadBalanceType.LEAST_RECENTLY_USED)
+                .build()
+        );
+        job.setExecutorOption(executorOptionParam());
+        return job;
+    }
+
+    public JobAddParam reduceJob(String id) {
+        JobAddParam job = new JobAddParam();
+        job.setJobId(id);
+        job.setDescription("test reduce");
+        job.setType(JobType.REDUCE);
+        job.setDispatchOption(DispatchOptionParam.builder()
+                .retry(2)
+                .retryInterval(3)
+                .loadBalanceType(LoadBalanceType.LEAST_RECENTLY_USED)
+                .build()
+        );
+        job.setExecutorOption(executorOptionParam());
+        return job;
+    }
+
+    public ExecutorOptionParam executorOptionParam() {
+        return ExecutorOptionParam.builder()
+                .type(JobExecuteType.FUNCTION)
+                .name("hello")
+                .build();
     }
 
 }

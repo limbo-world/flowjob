@@ -45,7 +45,6 @@ public class PlanTest {
 
     @Test
     @Transactional
-    @Rollback(false)
     public void lock() throws InterruptedException {
         PlanEntity planEntity = planEntityRepo.selectForUpdate(1L);
         System.out.println("lock " + TimeUtil.currentLocalDateTime());
@@ -59,7 +58,6 @@ public class PlanTest {
 
     @Test
     @Transactional
-    @Rollback(false)
     public void lock2() throws InterruptedException {
         PlanEntity planEntity = planEntityRepo.selectForUpdate(1L);
         System.out.println("lock2 " + TimeUtil.currentLocalDateTime());

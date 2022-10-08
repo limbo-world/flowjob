@@ -35,11 +35,11 @@ public enum JobType implements DescribableEnum<Byte> {
      */
     BROADCAST(2, "广播类型"),
     /**
-     * 拆分子任务的任务
+     * 拆分子任务的任务 --- 分割任务 产生多个子任务
      */
     SPLIT(3, "split任务"),
     /**
-     * map任务
+     * map任务 ---
      */
     MAP(4, "Map任务"),
     /**
@@ -53,7 +53,6 @@ public enum JobType implements DescribableEnum<Byte> {
      */
     public static final String DESCRIPTION = "1-普通类型; 2-广播类型; 3-Map分片类型; 4-MapReduce类型;";
 
-    @JsonValue
     public final byte type;
 
     @Getter
@@ -90,7 +89,6 @@ public enum JobType implements DescribableEnum<Byte> {
     /**
      * 解析上下文状态值
      */
-    @JsonCreator
     public static JobType parse(Number type) {
         if (type == null) {
             return null;
