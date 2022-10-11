@@ -26,6 +26,7 @@ import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixIntervalMetaTask;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.domain.SlotManager;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
@@ -33,40 +34,49 @@ import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.common.utils.TimeUtil;
-import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TimerTask;
 
 /**
  * 需要将调度中的 job 进行下发
  */
-@Component
-public class JobStatusCheckTask extends TimerTask {
+public class JobStatusCheckTask extends FixIntervalMetaTask {
 
     @Setter(onMethod_ = @Inject)
     private JobScheduler scheduler;
+
     @Setter(onMethod_ = @Inject)
     private JobInstanceEntityRepo jobInstanceEntityRepo;
+
     @Setter(onMethod_ = @Inject)
     private PlanSlotEntityRepo planSlotEntityRepo;
+
     @Setter(onMethod_ = @Inject)
     private NodeManger nodeManger;
+
     @Setter(onMethod_ = @Inject)
     private BrokerConfig config;
+
     @Setter(onMethod_ = @Inject)
     private PlanRepository planRepository;
+
+
+    public JobStatusCheckTask(Duration interval) {
+        super("Meta[JobStatusCheckTask]", interval);
+    }
+
 
     /**
      * 由于job也可能是在内存中等待下发，由于宕机等原因可能导致内存中job为调度中 但是已经没法下发了
      * 查询超时未下发的job
      */
     @Override
-    public void run() {
+    protected void executeTask() {
         List<Integer> slots = SlotManager.slots(nodeManger.allAlive(), config.getHost(), config.getPort());
         if (CollectionUtils.isEmpty(slots)) {
             return;

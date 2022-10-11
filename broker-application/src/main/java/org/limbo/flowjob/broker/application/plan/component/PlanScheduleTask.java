@@ -21,37 +21,31 @@ package org.limbo.flowjob.broker.application.plan.component;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
-import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
-import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanScheduleMetaTask;
 import org.limbo.flowjob.broker.dao.domain.SlotManager;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
-import org.limbo.flowjob.common.utils.TimeUtil;
-import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.TimerTask;
 import java.util.stream.Collectors;
 
 /**
  * todo 这类task 是否可以直接交由调度系统调度
  */
 @Slf4j
-@Component
-public class PlanScheduleTask extends TimerTask {
+public class PlanScheduleTask extends PlanScheduleMetaTask {
 
     @Setter(onMethod_ = @Inject)
     private BrokerConfig config;
@@ -71,40 +65,18 @@ public class PlanScheduleTask extends TimerTask {
     @Setter(onMethod_ = @Inject)
     private PlanSlotEntityRepo planSlotEntityRepo;
 
-    private static final String TASK_NAME = "[PlanScheduleTask]";
 
-    @Override
-    public void run() {
-        try {
-            // 判断自己是否存在 --- 可能由于心跳异常导致不存活
-            if (!nodeManger.alive(new Node(config.getHost(), config.getPort()))) {
-                return;
-            }
-            // 调度当前时间以及未来的任务
-            List<Plan> plans = schedulePlans(TimeUtil.currentLocalDateTime().plusSeconds(30));
-            if (CollectionUtils.isEmpty(plans)) {
-                return;
-            }
-
-            for (Plan plan : plans) {
-                PlanInfo planInfo = plan.getInfo();
-                if (planInfo.getScheduleOption().getScheduleType() == null) {
-                    log.error("{} scheduleType is null info={}", TASK_NAME, planInfo);
-                    continue;
-                }
-                if (ScheduleType.NONE == planInfo.getScheduleOption().getScheduleType()) {
-                    continue;
-                }
-                PlanInstance planInstance = planInfo.newInstance(TriggerType.SCHEDULE, plan.getNextTriggerAt());
-                // 调度
-                scheduler.schedule(planInstance);
-            }
-        } catch (Exception e) {
-            log.error("{} load and schedule plan fail", TASK_NAME, e);
-        }
+    public PlanScheduleTask(Duration interval) {
+        super(interval);
     }
 
-    public List<Plan> schedulePlans(LocalDateTime nextTriggerAt) {
+
+    /**
+     * {@inheritDoc}
+     * @param nextTriggerAt 指定的触发时间
+     * @return
+     */
+    protected List<Plan> loadSchedulablePlans(LocalDateTime nextTriggerAt) {
         List<Integer> slots = SlotManager.slots(nodeManger.allAlive(), config.getHost(), config.getPort());
         if (CollectionUtils.isEmpty(slots)) {
             return Collections.emptyList();
@@ -125,5 +97,14 @@ public class PlanScheduleTask extends TimerTask {
         return plans;
     }
 
+
+    /**
+     * {@inheritDoc}
+     * @param plan
+     */
+    @Override
+    protected void schedulePlan(PlanInstance plan) {
+        scheduler.schedule(plan);
+    }
 
 }

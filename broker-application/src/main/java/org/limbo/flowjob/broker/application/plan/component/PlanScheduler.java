@@ -43,6 +43,7 @@ public class PlanScheduler extends HashedWheelTimerScheduler<PlanInstance> {
 
     @Setter(onMethod_ = @Inject)
     private PlanService planService;
+
     @Setter(onMethod_ = @Inject)
     private JobScheduler jobScheduler;
 

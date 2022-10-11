@@ -36,12 +36,15 @@ public class BrokerConfig {
      * 提供给worker的服务 port
      */
     private Integer port;
+
     /**
      * 心跳时间间隔
      */
     private long heartbeatInterval = 2000;
+
     /**
      * 心跳超时时间
      */
     private long heartbeatTimeout = 10000;
+
 }

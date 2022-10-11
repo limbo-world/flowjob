@@ -136,6 +136,20 @@ public class BaseWorker implements Worker {
 
 
     /**
+     * 添加 k=v 格式的 tag 表达式，如果 k 或 v 为空，则 tag 不会被添加。
+     */
+    public void addTag(String tag) {
+        String[] tuple = tag.split("=");
+        if (tuple.length < 2 || StringUtils.isAnyBlank(tuple)) {
+            log.warn("Invalid tag form: {}", tag);
+            return;
+        }
+
+        addTag(tuple[0], tuple[1]);
+    }
+
+
+    /**
      * {@inheritDoc}
      * @param key 标签 key
      * @param value 标签 value

@@ -25,6 +25,7 @@ import org.limbo.flowjob.broker.application.plan.service.TaskService;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixIntervalMetaTask;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.domain.SlotManager;
@@ -36,6 +37,7 @@ import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.time.Duration;
 import java.util.List;
 import java.util.TimerTask;
 import java.util.stream.Collectors;
@@ -47,8 +49,7 @@ import java.util.stream.Collectors;
  * 2. worker服务假死
  * 3. worker完成task调用broker的接口失败
  */
-@Component
-public class TaskStatusCheckTask extends TimerTask {
+public class TaskStatusCheckTask extends FixIntervalMetaTask {
 
     @Setter(onMethod_ = @Inject)
     private WorkerRepository workerRepository;
@@ -74,8 +75,13 @@ public class TaskStatusCheckTask extends TimerTask {
     @Setter(onMethod_ = @Inject)
     private TaskService taskService;
 
+    public TaskStatusCheckTask(Duration interval) {
+        super("Meta[TaskStatusCheckTask]", interval);
+    }
+
+
     @Override
-    public void run() {
+    protected void executeTask() {
         List<Integer> slots = SlotManager.slots(nodeManger.allAlive(), config.getHost(), config.getPort());
         if (CollectionUtils.isEmpty(slots)) {
             return;
@@ -85,7 +91,11 @@ public class TaskStatusCheckTask extends TimerTask {
             return;
         }
 
-        List<TaskEntity> tasks = taskEntityRepo.findByPlanIdInAndStatus(slotEntities.stream().map(PlanSlotEntity::getPlanId).collect(Collectors.toList()), TaskStatus.EXECUTING.status);
+        List<Long> planIds = slotEntities.stream()
+                .map(PlanSlotEntity::getPlanId)
+                .collect(Collectors.toList());
+        List<TaskEntity> tasks = taskEntityRepo.findByPlanIdInAndStatus(planIds, TaskStatus.EXECUTING.status);
+
         for (TaskEntity task : tasks) {
             // 获取长时间为执行中的task 判断worker是否已经宕机
             Worker worker = workerRepository.get(task.getWorkerId());
@@ -93,7 +103,6 @@ public class TaskStatusCheckTask extends TimerTask {
                 taskService.taskFail(task.getId(), task.getJobInstanceId(), String.format("worker %s is offline", task.getWorkerId()), "");
             }
         }
-
     }
 
 }

@@ -17,6 +17,7 @@
 package org.limbo.flowjob.worker.starter.configuration;
 
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
@@ -49,6 +50,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -56,6 +58,7 @@ import java.util.stream.Collectors;
  * @author Brozen
  * @since 2022-09-05
  */
+@Slf4j
 @Configuration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.ANY)
 @ConditionalOnProperty(prefix = "flowjob.worker", value = "enabled", havingValue = "true", matchIfMissing = true)
@@ -103,11 +106,10 @@ public class WorkerAutoConfiguration {
         URL workerBaseUrl = new URL(workerProps.getScheme().name(), host, port, "");
         BaseWorker worker = new BaseWorker(workerProps.getId(), workerBaseUrl, resources, rpc);
 
-        // 解析 tag，添加到 Worker
-        CollectionUtils.emptyIfNull(workerProps.getTags())
-                .stream().map(tag -> tag.split("="))
-                .filter(tuple -> tuple.length > 1 && StringUtils.isNoneBlank(tuple))
-                .forEach(tuple -> worker.addTag(tuple[0], tuple[1]));
+        // 将 tag 添加到 Worker
+        if (CollectionUtils.isNotEmpty(workerProps.getTags())) {
+            workerProps.getTags().forEach(worker::addTag);
+        }
 
         return new SpringDelegatedWorker(worker);
     }

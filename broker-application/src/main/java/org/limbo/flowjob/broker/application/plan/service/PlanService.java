@@ -124,7 +124,10 @@ public class PlanService {
         planEntityRepo.selectForUpdate(planId);
 
         // 判断并发情况下 是否已经有人提交调度任务 如有则无需处理
-        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findByPlanIdAndExpectTriggerAtAndTriggerType(planId, planInstance.getExpectTriggerAt(), TriggerType.SCHEDULE.type);
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo
+                .findByPlanIdAndExpectTriggerAtAndTriggerType(
+                        planId, planInstance.getExpectTriggerAt(), TriggerType.SCHEDULE.type
+                );
         if (planInstanceEntity != null) {
             return;
         }

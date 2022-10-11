@@ -17,7 +17,6 @@
 package org.limbo.flowjob.broker.application.plan.config;
 
 import lombok.Setter;
-import org.flywaydb.core.Flyway;
 import org.limbo.flowjob.broker.application.plan.component.JobStatusCheckTask;
 import org.limbo.flowjob.broker.application.plan.component.PlanScheduleTask;
 import org.limbo.flowjob.broker.application.plan.component.TaskStatusCheckTask;
@@ -31,13 +30,15 @@ import org.limbo.flowjob.broker.core.dispatcher.strategies.RoundRobinWorkerSelec
 import org.limbo.flowjob.broker.core.domain.task.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
 import org.limbo.flowjob.broker.core.schedule.calculator.SimpleScheduleCalculatorFactory;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
 import javax.inject.Inject;
-import java.util.Timer;
+import java.time.Duration;
+import java.util.List;
 
 /**
  * @author Brozen
@@ -48,15 +49,6 @@ public class BrokerConfiguration {
 
     @Setter(onMethod_ = @Inject)
     private BrokerProperties brokerProperties;
-
-    @Setter(onMethod_ = @Inject)
-    private PlanScheduleTask planScheduleTask;
-
-    @Setter(onMethod_ = @Inject)
-    private TaskStatusCheckTask taskStatusCheckTask;
-
-    @Setter(onMethod_ = @Inject)
-    private JobStatusCheckTask jobStatusCheckTask;
 
     @Setter(onMethod_ = @Inject)
     private BrokerRegistry brokerRegistry;
@@ -70,7 +62,7 @@ public class BrokerConfiguration {
      * worker 管理，持久化等
      */
     @Bean
-    public Broker brokerNode(NodeManger nodeManger) {
+    public Broker brokerNode(NodeManger nodeManger, MetaTaskScheduler metaTaskScheduler, List<MetaTask> metaTasks) {
         return new Broker(brokerProperties, brokerRegistry, nodeManger) {
             @Override
             public void stop() {
@@ -91,14 +83,8 @@ public class BrokerConfiguration {
             public void start() {
                 super.start();
 
-                // 下发任务task
-                new Timer().schedule(planScheduleTask, 3000, brokerProperties.getRebalanceInterval());
-
-                // 状态检查task
-                new Timer().schedule(taskStatusCheckTask, 3000, brokerProperties.getStatusCheckInterval());
-
-                // 状态检查task
-                new Timer().schedule(jobStatusCheckTask, 3000, brokerProperties.getStatusCheckInterval());
+                // 启动所有元任务调度
+                metaTasks.forEach(metaTaskScheduler::schedule);
             }
         };
     }
@@ -137,6 +123,42 @@ public class BrokerConfiguration {
     @Bean
     public TaskDispatcher taskDispatcher(WorkerManager workerManager) {
         return new TaskDispatcher(workerManager);
+    }
+
+
+    /**
+     * 元任务调度器
+     */
+    @Bean
+    public MetaTaskScheduler metaTaskScheduler() {
+        return new MetaTaskScheduler();
+    }
+
+
+    /**
+     * 元任务：Plan 加载与调度
+     */
+    @Bean
+    public MetaTask planScheduleMetaTask() {
+        return new PlanScheduleTask(Duration.ofMillis(brokerProperties.getRebalanceInterval()));
+    }
+
+
+    /**
+     * 元任务：Task 状态检查，判断任务是否失败
+     */
+    @Bean
+    public MetaTask taskStatusCheckTask() {
+        return new TaskStatusCheckTask(Duration.ofMillis(brokerProperties.getStatusCheckInterval()));
+    }
+
+
+    /**
+     * 元任务：Job 状态检查
+     */
+    @Bean
+    public MetaTask jobStatusCheckTask() {
+        return new JobStatusCheckTask(Duration.ofMillis(brokerProperties.getStatusCheckInterval()));
     }
 
 }

@@ -25,6 +25,7 @@ package org.limbo.flowjob.broker.core.cluster;
  * @since 2022/7/18
  */
 public interface NodeListener {
+
     /**
      * 监听事件
      */
