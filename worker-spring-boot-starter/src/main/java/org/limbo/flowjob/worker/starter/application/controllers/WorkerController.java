@@ -31,9 +31,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2021/7/24
  */
 @Slf4j
-@RestController
+@RestController("fjwWorkerController")
 @RequestMapping("/api/worker/v1")
-public class WorkerController {
+public class WorkerController extends BaseController {
 
     private final WorkerService workerService;
 

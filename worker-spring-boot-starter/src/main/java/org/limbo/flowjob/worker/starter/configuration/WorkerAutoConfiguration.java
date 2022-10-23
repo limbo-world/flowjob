@@ -48,10 +48,8 @@ import org.springframework.util.Assert;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -136,22 +134,26 @@ public class WorkerAutoConfiguration {
 
         // HTTP、HTTPS 协议
         String brokerProtocol = brokers.get(0).getProtocol();
-        if (WorkerProtocol.HTTP.is(brokerProtocol) || WorkerProtocol.HTTPS.is(brokerProtocol)) {
-            return httpBrokerRpc(new HashSet<>(brokers), brokerLoadBalancer);
+        if (WorkerProtocol.parse(brokerProtocol) == WorkerProtocol.UNKNOWN) {
+            throw new IllegalArgumentException("Unsupported broker protocol [" + brokerProtocol + "]");
         }
 
-        throw new IllegalArgumentException("Unsupported broker protocol [" + brokerProtocol + "]");
+        return httpBrokerRpc(brokerLoadBalancer);
     }
 
 
     /**
      * HTTP 协议的 broker 通信
      */
-    private OkHttpBrokerRpc httpBrokerRpc(Set<URL> brokers, LoadBalancer<BrokerNode> loadBalancer) {
-        List<BrokerNode> brokerNodes = brokers.stream()
+    private OkHttpBrokerRpc httpBrokerRpc(LoadBalancer<BrokerNode> loadBalancer) {
+        return new OkHttpBrokerRpc(brokerNodes(), loadBalancer);
+    }
+
+    private List<BrokerNode> brokerNodes() {
+        List<URL> brokerUrls = workerProps.getBrokers() == null ? Collections.emptyList() : workerProps.getBrokers();
+        return brokerUrls.stream()
                 .map(BrokerNode::new)
                 .collect(Collectors.toList());
-        return new OkHttpBrokerRpc(brokerNodes, loadBalancer);
     }
 
 
@@ -161,7 +163,7 @@ public class WorkerAutoConfiguration {
     @Bean("brokerLoadBalancer")
     @ConditionalOnMissingBean(name = "brokerLoadBalancer")
     public LoadBalancer<BrokerNode> brokerLoadBalancer(LBStrategy<BrokerNode> lbStrategy) {
-        return new BaseLoadBalancer<>("brokerLoadBalancer", lbStrategy);
+        return new BaseLoadBalancer<>("brokerLoadBalancer", brokerNodes(), lbStrategy);
     }
 
 

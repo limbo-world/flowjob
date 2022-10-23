@@ -18,6 +18,7 @@ package org.limbo.flowjob.worker.core.rpc.lb;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import org.limbo.flowjob.worker.core.rpc.BrokerNode;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,8 +50,9 @@ public class BaseLoadBalancer<S extends LBServer> implements LoadBalancer<S> {
     private volatile LBStrategy<S> strategy;
 
 
-    public BaseLoadBalancer(String name, LBStrategy<S> strategy) {
+    public BaseLoadBalancer(String name, List<S> servers, LBStrategy<S> strategy) {
         this.name = name;
+        updateServers(servers);
         updateLBStrategy(strategy);
     }
 

@@ -25,6 +25,7 @@ import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.starter.application.converter.TaskConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
 
@@ -33,7 +34,7 @@ import javax.inject.Inject;
  * @since 2021/7/24
  */
 @Slf4j
-@Service
+@Service("fjwWorkerService")
 @AllArgsConstructor
 public class WorkerService {
 

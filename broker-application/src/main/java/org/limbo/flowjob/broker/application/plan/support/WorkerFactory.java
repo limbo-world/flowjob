@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.plan.component;
+package org.limbo.flowjob.broker.application.plan.support;
 
 import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;

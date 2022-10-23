@@ -31,6 +31,7 @@ public class BrokerTopologyDTO {
 
     /**
      * Broker 当前的部署拓扑形式：单节点、主从、集群、主从+集群
+     * todo
      */
     @Schema(description = "Broker 当前的部署拓扑形式：单节点、主从、集群、主从+集群")
     private Integer mode;

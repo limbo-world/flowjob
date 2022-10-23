@@ -22,7 +22,7 @@ import org.limbo.flowjob.broker.api.clent.dto.WorkerRegisterDTO;
 import org.limbo.flowjob.broker.api.clent.param.WorkerHeartbeatParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
-import org.limbo.flowjob.broker.application.plan.component.WorkerFactory;
+import org.limbo.flowjob.broker.application.plan.support.WorkerFactory;
 import org.limbo.flowjob.broker.application.plan.converter.WorkerConverter;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
