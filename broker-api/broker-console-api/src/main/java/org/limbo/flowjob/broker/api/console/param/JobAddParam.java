@@ -63,8 +63,8 @@ public class JobAddParam {
     private DispatchOptionParam dispatchOption;
 
     /**
-     * 执行器配置参数
+     * 执行器名称
      */
-    @Schema(title = "执行器配置参数")
-    private ExecutorOptionParam executorOption;
+    @Schema(title = "执行器名称")
+    private String executorName;
 }

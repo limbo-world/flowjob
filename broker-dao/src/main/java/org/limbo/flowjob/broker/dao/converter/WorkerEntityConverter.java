@@ -21,11 +21,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
-import org.limbo.flowjob.broker.core.worker.metric.JobDescription;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
@@ -116,7 +114,7 @@ public class WorkerEntityConverter {
                 .availableResource(new WorkerAvailableResource(
                         metric.getAvailableCpu(), metric.getAvailableRam(), metric.getAvailableQueueLimit()
                 ))
-                .executingJobs(JacksonUtils.parseObject(metric.getExecutingJobs(), new TypeReference<List<JobDescription>>() {
+                .executingJobs(JacksonUtils.parseObject(metric.getExecutingJobs(), new TypeReference<List<String>>() {
                 }))
                 .build();
     }
@@ -157,7 +155,6 @@ public class WorkerEntityConverter {
                         .workerId(entity.getWorkerId())
                         .name(entity.getName())
                         .description(entity.getDescription())
-                        .type(JobExecuteType.parse(entity.getType()))
                         .build())
                 .collect(Collectors.toList());
     }
@@ -178,7 +175,6 @@ public class WorkerEntityConverter {
                     executor.setWorkerId(worker.getWorkerId());
                     executor.setName(exe.getName());
                     executor.setDescription(exe.getDescription());
-                    executor.setType(exe.getType().type);
                     return executor;
                 })
                 .collect(Collectors.toList());

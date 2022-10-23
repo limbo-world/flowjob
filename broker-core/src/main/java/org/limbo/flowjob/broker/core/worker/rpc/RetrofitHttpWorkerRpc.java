@@ -16,10 +16,10 @@
 
 package org.limbo.flowjob.broker.core.worker.rpc;
 
-import org.limbo.flowjob.broker.api.clent.dto.TaskReceiveDTO;
+import org.limbo.flowjob.broker.api.clent.dto.WorkerMetricDTO;
 import org.limbo.flowjob.broker.api.dto.ResponseDTO;
 import org.limbo.flowjob.broker.core.domain.task.Task;
-import org.limbo.flowjob.broker.core.exceptions.TaskReceiveException;
+import org.limbo.flowjob.broker.core.exceptions.WorkerException;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import retrofit2.Call;
@@ -27,8 +27,6 @@ import retrofit2.Retrofit;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
-
-import java.io.IOException;
 
 /**
  * @author Brozen
@@ -52,30 +50,28 @@ public class RetrofitHttpWorkerRpc extends HttpWorkerRpc {
      */
     @Override
     public WorkerMetric ping() {
-        // TODO ???
-        return null;
+        return WorkerConverter.toDO(send(api.ping()));
     }
-
 
     /**
      * {@inheritDoc}
      *
      * @param task 作业实例
      * @return
-     * @throws TaskReceiveException
      */
     @Override
-    public TaskReceiveDTO sendTask(Task task) throws TaskReceiveException {
-        try {
-            ResponseDTO<TaskReceiveDTO> response = this.api.sendTask(task).execute().body();
-            if (response == null || !response.isOk()) {
-                String msg = response == null ? "Unknown error" : response.getMessage();
-                throw new TaskReceiveException(task.getJobId(), getWorkerId(), msg);
+    public Boolean sendTask(Task task) {
+        return send(api.sendTask(task));
+    }
+
+    private <T> T send(Call<ResponseDTO<T>> call) {
+        return getResponseData(() -> {
+            try {
+                return call.execute().body();
+            } catch (Exception e) {
+                throw new WorkerException(workerId(), "http api execute error", e);
             }
-            return response.getData();
-        } catch (IOException e) {
-            throw new TaskReceiveException(task.getJobId(), getWorkerId(), "", e);
-        }
+        });
     }
 
 
@@ -94,10 +90,10 @@ public class RetrofitHttpWorkerRpc extends HttpWorkerRpc {
     interface RetrofitWorkerApi {
 
         @GET(API_PING)
-        Call<ResponseDTO<Void>> ping();
+        Call<ResponseDTO<WorkerMetricDTO>> ping();
 
         @POST(API_SEND_TASK)
-        Call<ResponseDTO<TaskReceiveDTO>> sendTask(@Body Task task);
+        Call<ResponseDTO<Boolean>> sendTask(@Body Task task);
 
     }
 

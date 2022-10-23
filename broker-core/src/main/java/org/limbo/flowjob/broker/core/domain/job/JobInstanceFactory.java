@@ -35,7 +35,7 @@ public class JobInstanceFactory {
         instance.setPlanInstanceId(planInstanceId);
         instance.setJobId(jobInfo.getId());
         instance.setDispatchOption(jobInfo.getDispatchOption());
-        instance.setExecutorOption(jobInfo.getExecutorOption());
+        instance.setExecutorName(jobInfo.getExecutorName());
         instance.setStatus(JobStatus.SCHEDULING);
         instance.setTriggerAt(triggerAt);
         instance.setAttributes(jobInfo.getAttributes());

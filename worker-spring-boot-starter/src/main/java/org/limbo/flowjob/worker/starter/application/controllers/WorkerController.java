@@ -18,7 +18,6 @@ package org.limbo.flowjob.worker.starter.application.controllers;
 
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.api.clent.dto.TaskReceiveDTO;
 import org.limbo.flowjob.broker.api.clent.param.TaskSubmitParam;
 import org.limbo.flowjob.broker.api.dto.ResponseDTO;
 import org.limbo.flowjob.worker.starter.application.services.WorkerService;
@@ -48,9 +47,8 @@ public class WorkerController {
      * Worker 中如有空闲工作线程，则会立即执行任务；如果工作线程已满，则会将任务提交到积压队列，等候执行；如果积压队列已满，则接受任务失败。
      */
     @PostMapping("/task")
-    public ResponseDTO<TaskReceiveDTO> receiveJob(@RequestBody TaskSubmitParam param) {
-        return ResponseDTO.<TaskReceiveDTO>builder()
-                .data(workerService.receive(param)).build();
+    public ResponseDTO<Boolean> receiveJob(@RequestBody TaskSubmitParam param) {
+        return ResponseDTO.<Boolean>builder().data(workerService.receive(param)).build();
     }
 
 

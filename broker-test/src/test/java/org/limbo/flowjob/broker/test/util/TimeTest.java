@@ -17,10 +17,11 @@
  */
 
 package org.limbo.flowjob.broker.test.util;
+
 import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timeout;
 import io.netty.util.TimerTask;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.limbo.flowjob.broker.core.schedule.scheduler.NamedThreadFactory;
 
 import java.util.Date;

@@ -18,7 +18,6 @@ package org.limbo.flowjob.worker.starter.processor;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 import org.limbo.flowjob.worker.core.domain.Task;
 import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.executor.TaskExecutor;
@@ -43,15 +42,11 @@ public class BeanMethodExecutor implements TaskExecutor {
     @Setter
     private String description;
 
-    @Setter
-    private JobExecuteType type;
-
     public BeanMethodExecutor(Object bean, Method method) {
         this.bean = Objects.requireNonNull(bean);
         this.method = Objects.requireNonNull(method);
         this.name = method.getName();
         this.description = bean.getClass().getName() + "#" + method.getName();
-        this.type = JobExecuteType.FUNCTION;
     }
 
     @Override
@@ -62,11 +57,6 @@ public class BeanMethodExecutor implements TaskExecutor {
     @Override
     public String getDescription() {
         return description;
-    }
-
-    @Override
-    public JobExecuteType getType() {
-        return type;
     }
 
 

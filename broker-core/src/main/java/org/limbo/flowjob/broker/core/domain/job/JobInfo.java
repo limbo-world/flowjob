@@ -18,6 +18,8 @@
 
 package org.limbo.flowjob.broker.core.domain.job;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,7 +27,6 @@ import lombok.ToString;
 import org.limbo.flowjob.broker.api.constants.enums.JobType;
 import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 import org.limbo.flowjob.broker.core.domain.DispatchOption;
-import org.limbo.flowjob.broker.core.domain.ExecutorOption;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAGNode;
 
@@ -72,14 +73,15 @@ public class JobInfo extends DAGNode {
     /**
      * 作业执行器配置参数
      */
-    private ExecutorOption executorOption;
+    private String executorName;
 
     /**
      * 执行失败是否终止 false 会继续执行后续作业
      */
     private boolean terminateWithFail;
 
-    public JobInfo(String id, Set<String> childrenIds) {
+    @JsonCreator
+    public JobInfo(@JsonProperty("id") String id, @JsonProperty("childrenIds") Set<String> childrenIds) {
         super(id, childrenIds);
     }
 

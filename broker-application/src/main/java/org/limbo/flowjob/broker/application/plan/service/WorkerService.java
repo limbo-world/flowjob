@@ -46,9 +46,6 @@ public class WorkerService {
     @Setter(onMethod_ = @Inject)
     private WorkerRepository workerRepository;
 
-    @Setter(onMethod_ = @Inject)
-    private WorkerFactory workerFactory;
-
 
     /**
      * worker心跳
@@ -88,7 +85,7 @@ public class WorkerService {
         // 新增 or 更新 worker
         Worker worker = Optional
                 .ofNullable(workerRepository.get(options.getId()))
-                .orElseGet(() -> this.workerFactory.newWorker(options));
+                .orElseGet(() -> WorkerFactory.newWorker(options));
 
         // 更新注册信息
         worker.register(

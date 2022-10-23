@@ -23,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.api.constants.enums.JobStatus;
 import org.limbo.flowjob.broker.api.constants.enums.JobType;
 import org.limbo.flowjob.broker.core.domain.DispatchOption;
-import org.limbo.flowjob.broker.core.domain.ExecutorOption;
 import org.limbo.flowjob.broker.core.schedule.Scheduled;
 import org.limbo.flowjob.common.utils.TimeUtil;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
@@ -51,7 +50,7 @@ public class JobInstance implements Scheduled, Serializable {
 
     protected DispatchOption dispatchOption;
 
-    protected ExecutorOption executorOption;
+    protected String executorName;
 
     protected JobType type;
 

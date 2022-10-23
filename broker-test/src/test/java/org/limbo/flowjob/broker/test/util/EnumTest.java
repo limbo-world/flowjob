@@ -18,12 +18,9 @@
 
 package org.limbo.flowjob.broker.test.util;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.limbo.flowjob.broker.api.constants.enums.DescribableEnum;
 import org.limbo.flowjob.broker.api.constants.enums.JobType;
-import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
-import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
-import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
 
 /**
  * @author Devil

@@ -2,13 +2,11 @@ package org.limbo.flowjob.broker.application.plan.converter;
 
 import com.google.common.collect.Lists;
 import org.limbo.flowjob.broker.api.console.param.DispatchOptionParam;
-import org.limbo.flowjob.broker.api.console.param.ExecutorOptionParam;
 import org.limbo.flowjob.broker.api.console.param.JobAddParam;
 import org.limbo.flowjob.broker.api.console.param.PlanAddParam;
 import org.limbo.flowjob.broker.api.console.param.PlanReplaceParam;
 import org.limbo.flowjob.broker.api.console.param.ScheduleOptionParam;
 import org.limbo.flowjob.broker.core.domain.DispatchOption;
-import org.limbo.flowjob.broker.core.domain.ExecutorOption;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
@@ -76,7 +74,7 @@ public class PlanConverter {
         JobInfo jobInfo = new JobInfo(param.getJobId(), param.getChildrenIds());
         jobInfo.setDescription(param.getDescription());
         jobInfo.setDispatchOption(convertJobDispatchOption(param.getDispatchOption()));
-        jobInfo.setExecutorOption(convertJobExecutorOption(param.getExecutorOption()));
+        jobInfo.setExecutorName(param.getExecutorName());
         return jobInfo;
 
     }
@@ -102,15 +100,12 @@ public class PlanConverter {
      * 生成作业分发参数
      */
     public static DispatchOption convertJobDispatchOption(DispatchOptionParam param) {
-        return new DispatchOption(param.getLoadBalanceType(), param.getCpuRequirement(), param.getRamRequirement(), param.getRetry(), param.getRetryInterval());
-
-    }
-
-    /**
-     * 生成作业调度参数
-     */
-    public static ExecutorOption convertJobExecutorOption(ExecutorOptionParam param) {
-        return new ExecutorOption(param.getName(), param.getType());
+        return new DispatchOption(param.getLoadBalanceType(),
+                param.getCpuRequirement(),
+                param.getRamRequirement(),
+                param.getRetry(),
+                param.getRetryInterval()
+        );
     }
 
 }

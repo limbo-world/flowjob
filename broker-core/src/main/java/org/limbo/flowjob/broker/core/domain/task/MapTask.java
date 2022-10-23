@@ -16,35 +16,27 @@
  *
  */
 
-package org.limbo.flowjob.common.utils.dag;
+package org.limbo.flowjob.broker.core.domain.task;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
 
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
+/**
+ * @author Devil
+ * @since 2022/10/12
+ */
+@Slf4j
+@Getter
+@Setter
+@ToString
+public class MapTask extends Task {
+    private static final long serialVersionUID = 8601971686992694407L;
 
-@Data
-public class DAGNode implements Serializable {
-
-    private static final long serialVersionUID = 8572090796475782411L;
-
-    protected String id;
-
-    protected Set<String> parentIds;
-
-    protected Set<String> childrenIds;
-
-    protected int status = DAG.STATUS_INIT;
-
-    public DAGNode(String id, Set<String> childrenIds) {
-        this.id = id;
-        this.childrenIds = childrenIds;
-        this.parentIds = new HashSet<>();
-    }
-
-    public void addParent(String childrenId) {
-        parentIds.add(childrenId);
-    }
-
+    /**
+     * map属性
+     */
+    private Attributes mapAttributes;
 }

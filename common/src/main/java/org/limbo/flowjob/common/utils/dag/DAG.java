@@ -18,8 +18,12 @@
 
 package org.limbo.flowjob.common.utils.dag;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.common.utils.Verifies;
+import org.limbo.flowjob.common.utils.json.DagDeserializer;
+import org.limbo.flowjob.common.utils.json.DagSerializer;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -35,16 +39,18 @@ import java.util.stream.Collectors;
  * @author Devil
  * @since 2022/8/1
  */
+@JsonSerialize(using = DagSerializer.class)
+@JsonDeserialize(using = DagDeserializer.class)
 public class DAG<T extends DAGNode> implements Serializable {
 
     private static final long serialVersionUID = 4746630152041623943L;
 
-    private static final int STATUS_INIT = 0;
+    public static final int STATUS_INIT = 0;
 
     /**
      * 当遍历的时候第二次进入某个节点，表示成环
      */
-    private static final int STATUS_VISITED = 1;
+    public static final int STATUS_VISITED = 1;
 
     /**
      * 当一个节点 所有子节点都已经被遍历 而且没有环
@@ -52,7 +58,7 @@ public class DAG<T extends DAGNode> implements Serializable {
      * 因为如果要形成环，必定是会访问之前已访问的节点
      * 最简单的例子：有环列表
      */
-    private static final int STATUS_FILTER = 2;
+    public static final int STATUS_FILTER = 2;
 
     /**
      * 起始节点

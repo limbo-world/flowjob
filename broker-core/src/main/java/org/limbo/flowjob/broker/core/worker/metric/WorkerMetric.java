@@ -45,17 +45,11 @@ public class WorkerMetric {
     /**
      * worker节点上正在执行中的作业，瞬时态数据，可能并发不安全
      */
-    private List<JobDescription> executingJobs;
+    private List<String> executingJobs;
 
     /**
      * worker可用的资源
      */
     private WorkerAvailableResource availableResource;
-
-    public WorkerMetric(String workerId) {
-        this.workerId = workerId;
-        this.executingJobs = Lists.newArrayList();
-        this.availableResource = new WorkerAvailableResource(0, 0, 0);
-    }
 
 }

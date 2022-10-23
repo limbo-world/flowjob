@@ -33,6 +33,7 @@ import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
+import org.limbo.flowjob.broker.dao.support.SlotManager;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Repository;
@@ -80,7 +81,7 @@ public class PlanRepo implements PlanRepository {
     private String add(Plan plan) {
         // 新增 Plan
         PlanEntity planEntity = toEntity(plan);
-        planEntityRepo.saveAndFlush(planEntity);
+        planEntity = planEntityRepo.saveAndFlush(planEntity);
 
         // 槽位保存
         PlanSlotEntity planSlotEntity = new PlanSlotEntity();
@@ -110,7 +111,7 @@ public class PlanRepo implements PlanRepository {
         Long newVersion = planInfo.getId();
         int effected = planEntityRepo.updateVersion(newVersion, newVersion, Long.valueOf(plan.getPlanId()), Long.valueOf(plan.getCurrentVersion()), Long.valueOf(plan.getRecentlyVersion()));
         if (effected > 0) {
-            return String.valueOf(newVersion);
+            return String.valueOf(plan.getPlanId());
         } else {
             throw new IllegalStateException("更新Plan版本失败");
         }

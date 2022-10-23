@@ -19,7 +19,6 @@ package org.limbo.flowjob.broker.core.dispatcher.strategies;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.broker.core.domain.DispatchOption;
-import org.limbo.flowjob.broker.core.domain.ExecutorOption;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 
@@ -37,7 +36,7 @@ public abstract class AbstractWorkerSelector implements WorkerSelector {
      * {@inheritDoc}
      */
     @Override
-    public Worker select(DispatchOption dispatchOption, ExecutorOption executorOption, Collection<Worker> workers) {
+    public Worker select(DispatchOption dispatchOption, String executorName, Collection<Worker> workers) {
         if (CollectionUtils.isEmpty(workers)) {
             return null;
         }
@@ -52,7 +51,7 @@ public abstract class AbstractWorkerSelector implements WorkerSelector {
             }
             // 判断是否有对应的执行器
             for (WorkerExecutor executor : executors) {
-                if (executor.getType() == executorOption.getType() && executor.getName().equals(executorOption.getName())) {
+                if (executor.getName().equals(executorName)) {
                     availableWorkers.add(worker);
                     continue WORKER;
                 }

@@ -19,7 +19,6 @@
 package org.limbo.flowjob.broker.api.clent.param;
 
 import lombok.Data;
-import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 
 /**
  * worker支持的执行器
@@ -36,7 +35,5 @@ public class WorkerExecutorRegisterParam {
     private String name;
 
     private String description;
-
-    private Integer type;
 
 }

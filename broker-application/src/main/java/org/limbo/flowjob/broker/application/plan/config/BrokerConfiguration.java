@@ -120,11 +120,6 @@ public class BrokerConfiguration {
         return new TaskFactory(workerManager);
     }
 
-    @Bean
-    public TaskDispatcher taskDispatcher(WorkerManager workerManager) {
-        return new TaskDispatcher(workerManager);
-    }
-
 
     /**
      * 元任务调度器

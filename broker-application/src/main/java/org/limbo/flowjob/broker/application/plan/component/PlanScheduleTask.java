@@ -27,11 +27,11 @@ import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanScheduleMetaTask;
-import org.limbo.flowjob.broker.dao.domain.SlotManager;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
+import org.limbo.flowjob.broker.dao.support.SlotManager;
 
 import javax.inject.Inject;
 import java.time.Duration;
@@ -51,6 +51,9 @@ public class PlanScheduleTask extends PlanScheduleMetaTask {
     private BrokerConfig config;
 
     @Setter(onMethod_ = @Inject)
+    private NodeManger nodeManger;
+
+    @Setter(onMethod_ = @Inject)
     private PlanScheduler scheduler;
 
     @Setter(onMethod_ = @Inject)
@@ -60,14 +63,11 @@ public class PlanScheduleTask extends PlanScheduleMetaTask {
     private PlanRepository planRepository;
 
     @Setter(onMethod_ = @Inject)
-    private NodeManger nodeManger;
-
-    @Setter(onMethod_ = @Inject)
     private PlanSlotEntityRepo planSlotEntityRepo;
 
 
     public PlanScheduleTask(Duration interval) {
-        super(interval);
+        super("Meta[PlanScheduleTask]", interval);
     }
 
 

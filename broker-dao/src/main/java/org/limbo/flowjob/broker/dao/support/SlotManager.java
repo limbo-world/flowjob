@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.dao.domain;
+package org.limbo.flowjob.broker.dao.support;
 
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.cluster.Node;

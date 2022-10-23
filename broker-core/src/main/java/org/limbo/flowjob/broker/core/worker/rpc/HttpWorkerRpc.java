@@ -19,7 +19,6 @@ package org.limbo.flowjob.broker.core.worker.rpc;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.broker.core.worker.Worker;
 
 import java.net.MalformedURLException;
@@ -32,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2022-08-12
  */
 @Slf4j
-public abstract class HttpWorkerRpc implements WorkerRpc {
+public abstract class HttpWorkerRpc extends AbstractWorkerRpc {
 
 
     public static final String API_PING = "/api/worker/v1/ping";
@@ -44,28 +43,6 @@ public abstract class HttpWorkerRpc implements WorkerRpc {
     private static final Map<String, URL> URL_CACHE = new ConcurrentHashMap<>();
 
     /**
-     * 此 RPC 绑定到的 Worker ID
-     */
-    @Getter(AccessLevel.PROTECTED)
-    private String workerId;
-
-    /**
-     * worker服务使用的通信协议，默认为Http协议。
-     * @see WorkerProtocol
-     */
-    private WorkerProtocol protocol;
-
-    /**
-     * worker服务的通信host
-     */
-    private String host;
-
-    /**
-     * worker服务的通信端口
-     */
-    private Integer port;
-
-    /**
      * protocol、host、port 组合成的基础 URL
      */
     @Getter(AccessLevel.PROTECTED)
@@ -73,7 +50,7 @@ public abstract class HttpWorkerRpc implements WorkerRpc {
 
 
     public HttpWorkerRpc(Worker worker) {
-        this.workerId = worker.getWorkerId();
+        super(worker);
         this.baseUrl = worker.getRpcBaseUrl();
     }
 
@@ -83,11 +60,11 @@ public abstract class HttpWorkerRpc implements WorkerRpc {
      */
     private URL baseUrl() {
         try {
-            return new URL(this.protocol.protocol, this.host, this.port, "");
+            return new URL(protocol().protocol, host(), port(), "");
         } catch (MalformedURLException ignore) {
-            log.error("wrong RPC param：protocol={} host={} port={}", this.protocol, this.host, this.port);
+            log.error("wrong RPC param：protocol={} host={} port={}", protocol().protocol, host(), port());
             throw new IllegalArgumentException("wrong RPC param：protocol="
-                    + this.protocol + " host=" + this.host + " port=" + this.port);
+                    + protocol().protocol + " host=" + host() + " port=" + port());
         }
     }
 
@@ -96,12 +73,12 @@ public abstract class HttpWorkerRpc implements WorkerRpc {
      * 将接口转换为 URL 格式，拼接 worker 的通信协议
      */
     private URL toURL(String api) {
-        return URL_CACHE.computeIfAbsent(api, _api -> {
+        return URL_CACHE.computeIfAbsent(api, newApi -> {
             try {
-                return new URL(this.protocol.protocol, this.host, this.port, _api);
+                return new URL(protocol().protocol, host(), port(), newApi);
             } catch (MalformedURLException ignore) {
-                log.error("unexpected URL form while worker RPC：{}", _api);
-                throw new IllegalArgumentException("unexpected URL form while worker RPC：" + _api);
+                log.error("unexpected URL form while worker RPC：{}", newApi);
+                throw new IllegalArgumentException("unexpected URL form while worker RPC：" + newApi);
             }
         });
     }

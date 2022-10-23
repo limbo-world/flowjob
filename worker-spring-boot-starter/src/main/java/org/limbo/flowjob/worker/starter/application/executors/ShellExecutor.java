@@ -16,7 +16,6 @@
 
 package org.limbo.flowjob.worker.starter.application.executors;
 
-import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 import org.limbo.flowjob.common.exception.VerifyException;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.worker.core.domain.Task;
@@ -78,15 +77,6 @@ public class ShellExecutor implements TaskExecutor {
     @Override
     public String getDescription() {
         return "Executing shell script with bash";
-    }
-
-    /**
-     * {@inheritDoc}
-     * @return
-     */
-    @Override
-    public JobExecuteType getType() {
-        return JobExecuteType.SHELL;
     }
 
 }

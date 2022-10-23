@@ -17,10 +17,11 @@
 package org.limbo.flowjob.broker.core.worker.executor;
 
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 
 /**
  * worker可用的执行器
@@ -31,6 +32,8 @@ import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 @Data
 @Setter(AccessLevel.NONE)
 @Builder(builderClassName = "Builder")
+@NoArgsConstructor
+@AllArgsConstructor
 public class WorkerExecutor {
 
     /**
@@ -47,10 +50,5 @@ public class WorkerExecutor {
      * 执行器描述信息
      */
     private String description;
-
-    /**
-     * 执行器类型
-     */
-    private JobExecuteType type;
 
 }

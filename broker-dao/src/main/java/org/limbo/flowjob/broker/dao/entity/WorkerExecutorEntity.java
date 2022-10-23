@@ -53,9 +53,4 @@ public class WorkerExecutorEntity extends BaseEntity {
      */
     private String description;
 
-    /**
-     * 执行器类型
-     */
-    private Byte type;
-
 }

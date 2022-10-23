@@ -16,36 +16,41 @@
  *
  */
 
-package org.limbo.flowjob.broker.api.console.param;
+package org.limbo.flowjob.broker.api.clent.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
+import lombok.Setter;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * @author Devil
- * @since 2021/7/28
+ * @since 2022/10/20
  */
 @Data
-@Schema(title = "执行器配置参数")
-@Builder
-@NoArgsConstructor
+@Setter(AccessLevel.NONE)
 @AllArgsConstructor
-public class ExecutorOptionParam {
+@Builder(builderClassName = "Builder")
+public class WorkerMetricDTO implements Serializable {
+
+    private static final long serialVersionUID = 1772420318252073416L;
 
     /**
-     * 执行器名称
+     * worker节点ID
      */
-    @Schema(title = "执行器名称", description = "执行器名称")
-    private String name;
+    private String workerId;
 
     /**
-     * 执行器类型
+     * worker节点上正在执行中的作业Id
      */
-    @Schema(title = "执行器类型", description = "执行器类型")
-    private JobExecuteType type;
+    private List<String> executingJobs;
 
+    /**
+     * worker可用的资源
+     */
+    private WorkerAvailableResourceDTO availableResource;
 }

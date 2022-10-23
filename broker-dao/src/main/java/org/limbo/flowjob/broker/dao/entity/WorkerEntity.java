@@ -77,4 +77,7 @@ public class WorkerEntity extends AnonymousBaseEntity<String> {
      */
     private Boolean deleted;
 
+    public Boolean isDeleted() {
+        return deleted;
+    }
 }

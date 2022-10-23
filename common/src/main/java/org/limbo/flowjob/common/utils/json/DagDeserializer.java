@@ -19,35 +19,27 @@
 package org.limbo.flowjob.common.utils.json;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import org.limbo.flowjob.common.utils.time.DateTimeUtils;
+import org.limbo.flowjob.common.utils.dag.DAG;
+import org.limbo.flowjob.common.utils.dag.DAGNode;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author Brozen
  * @since 2022-01-05
  */
-public class LocalDateTimeDeserializer extends JsonDeserializer<LocalDateTime> {
-
-    /**
-     * 反序列化时，从JSON字符串中读取到的日期格式
-     */
-    private final String pattern;
-
-    public LocalDateTimeDeserializer(String pattern) {
-        this.pattern = pattern;
-    }
-
+public class DagDeserializer extends JsonDeserializer<DAG> {
 
     @Override
-    public LocalDateTime deserialize(JsonParser jsonParser, DeserializationContext deserializationContext)
-            throws IOException, JsonProcessingException {
+    public DAG deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
 
-        return DateTimeUtils.parse(jsonParser.getValueAsString(), pattern);
+        List<DAGNode> nodes = JacksonUtils.parseObject(jsonParser.getValueAsString(), new TypeReference<List<DAGNode>>() {
+        });
+        return new DAG(nodes);
     }
 
 }

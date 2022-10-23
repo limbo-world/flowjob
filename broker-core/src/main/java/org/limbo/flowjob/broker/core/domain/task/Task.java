@@ -24,7 +24,6 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
 import org.limbo.flowjob.broker.core.domain.DispatchOption;
-import org.limbo.flowjob.broker.core.domain.ExecutorOption;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
@@ -69,21 +68,14 @@ public class Task implements Serializable {
     private List<Worker> availableWorkers;
 
     /**
-     * 上下文
+     * 全局上下文
      */
     private Attributes context;
+
     /**
-     * job配置的属性
+     * 对应job配置的属性
      */
-    private Attributes attributes;
-    /**
-     * map属性
-     */
-    private Attributes mapAttributes;
-    /**
-     * reduce属性
-     */
-    private List<Attributes> reduceAttributes;
+    private Attributes jobAttributes;
 
     /**
      * 开始时间
@@ -103,6 +95,6 @@ public class Task implements Serializable {
     /**
      * 执行器参数
      */
-    private ExecutorOption executorOption;
+    private String executorName;
 
 }

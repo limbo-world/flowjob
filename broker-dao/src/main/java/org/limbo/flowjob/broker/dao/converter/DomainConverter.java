@@ -88,7 +88,7 @@ public class DomainConverter {
 
         JobInfo jobInfo = dag.getNode(entity.getJobId());
         jobInstance.setDispatchOption(jobInfo.getDispatchOption());
-        jobInstance.setExecutorOption(jobInfo.getExecutorOption());
+        jobInstance.setExecutorName(jobInfo.getExecutorName());
         jobInstance.setType(jobInfo.getType());
         jobInstance.setTerminateWithFail(jobInfo.isTerminateWithFail());
         return jobInstance;
@@ -100,7 +100,7 @@ public class DomainConverter {
         taskEntity.setJobId(task.getJobId());
         taskEntity.setStatus(task.getStatus().status);
         taskEntity.setWorkerId(task.getWorkerId());
-        taskEntity.setAttributes(task.getAttributes() == null ? "" : task.getAttributes().toString());
+        taskEntity.setAttributes(task.getJobAttributes() == null ? "" : task.getJobAttributes().toString());
         taskEntity.setStartAt(task.getStartAt());
         taskEntity.setEndAt(task.getEndAt());
         taskEntity.setId(Long.valueOf(task.getTaskId()));
@@ -114,7 +114,7 @@ public class DomainConverter {
         task.setJobId(entity.getJobId());
         task.setStatus(TaskStatus.parse(entity.getStatus()));
         task.setWorkerId(entity.getWorkerId());
-        task.setAttributes(new Attributes(entity.getAttributes()));
+        task.setJobAttributes(new Attributes(entity.getAttributes()));
         task.setStartAt(entity.getStartAt());
         task.setEndAt(entity.getEndAt());
 
@@ -123,7 +123,7 @@ public class DomainConverter {
         DAG<JobInfo> jobInfoDAG = DomainConverter.toJobDag(planInfo.getJobs());
         JobInfo jobInfo = jobInfoDAG.getNode(entity.getJobId());
         task.setDispatchOption(jobInfo.getDispatchOption());
-        task.setExecutorOption(jobInfo.getExecutorOption());
+        task.setExecutorName(jobInfo.getExecutorName());
         return task;
     }
 

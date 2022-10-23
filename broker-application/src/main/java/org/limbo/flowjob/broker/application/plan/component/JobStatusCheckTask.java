@@ -28,11 +28,11 @@ import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixIntervalMetaTask;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
-import org.limbo.flowjob.broker.dao.domain.SlotManager;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
+import org.limbo.flowjob.broker.dao.support.SlotManager;
 import org.limbo.flowjob.common.utils.TimeUtil;
 
 import javax.inject.Inject;
@@ -64,7 +64,6 @@ public class JobStatusCheckTask extends FixIntervalMetaTask {
 
     @Setter(onMethod_ = @Inject)
     private PlanRepository planRepository;
-
 
     public JobStatusCheckTask(Duration interval) {
         super("Meta[JobStatusCheckTask]", interval);

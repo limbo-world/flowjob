@@ -20,9 +20,7 @@ package org.limbo.flowjob.broker.core.domain.task;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.api.clent.dto.TaskReceiveDTO;
 import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
-import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.exceptions.JobDispatchException;
@@ -39,16 +37,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TaskDispatcher {
 
-    private WorkerManager workerManager;
-
-    public TaskDispatcher(WorkerManager workerManager) {
-        this.workerManager = workerManager;
-    }
-
     /**
      * 将任务下发给worker。
      */
-    public void dispatch(Task task) {
+    public static void dispatch(Task task) {
         if (task.getStatus() != TaskStatus.DISPATCHING) {
             throw new JobDispatchException(task.getJobId(), task.getTaskId(), "Cannot startup context due to current status: " + task.getStatus());
         }
@@ -60,15 +52,14 @@ public class TaskDispatcher {
         WorkerSelector workerSelector = WorkerSelectorFactory.newSelector(task.getDispatchOption().getLoadBalanceType());
         for (int i = 0; i < 3; i++) {
             try {
-                Worker worker = workerSelector.select(task.getDispatchOption(), task.getExecutorOption(), availableWorkers);
+                Worker worker = workerSelector.select(task.getDispatchOption(), task.getExecutorName(), availableWorkers);
                 if (worker == null) {
                     return;
                 }
 
                 // 发送任务到worker，根据worker返回结果，更新状态
-                TaskReceiveDTO result = worker.sendTask(task);
-                boolean dispatched = result.getAccepted();
-                if (dispatched) {
+                Boolean dispatched = worker.sendTask(task);
+                if (Boolean.TRUE.equals(dispatched)) {
 
                     // 更新状态
                     task.setStatus(TaskStatus.EXECUTING);
@@ -79,7 +70,7 @@ public class TaskDispatcher {
 
                 availableWorkers = availableWorkers.stream().filter(w -> !Objects.equals(w.getWorkerId(), worker.getWorkerId())).collect(Collectors.toList());
             } catch (Exception e) {
-                log.error("Task dispatch fail task={}", this, e);
+                log.error("Task dispatch fail task={}", task, e);
             }
         }
 

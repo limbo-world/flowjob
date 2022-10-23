@@ -60,6 +60,10 @@ public class PlanService {
         return planRepository.save(plan);
     }
 
+    public Plan get(String id) {
+        return planRepository.get(id);
+    }
+
 
     /**
      * 覆盖计划 可能会触发 内存时间轮改动

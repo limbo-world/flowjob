@@ -36,7 +36,6 @@ public abstract class MetaTask implements Scheduled {
 
     protected MetaTask(String taskId) {
         this.taskId = taskId;
-        this.triggerAt = calculateNextTriggerTime(true);
     }
 
 

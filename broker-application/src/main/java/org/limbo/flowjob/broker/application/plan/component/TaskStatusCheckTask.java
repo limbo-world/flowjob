@@ -24,22 +24,18 @@ import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
 import org.limbo.flowjob.broker.application.plan.service.TaskService;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
-import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixIntervalMetaTask;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
-import org.limbo.flowjob.broker.dao.domain.SlotManager;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
-import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
-import org.springframework.stereotype.Component;
+import org.limbo.flowjob.broker.dao.support.SlotManager;
 
 import javax.inject.Inject;
 import java.time.Duration;
 import java.util.List;
-import java.util.TimerTask;
 import java.util.stream.Collectors;
 
 /**
@@ -55,16 +51,10 @@ public class TaskStatusCheckTask extends FixIntervalMetaTask {
     private WorkerRepository workerRepository;
 
     @Setter(onMethod_ = @Inject)
-    private WorkerSelector workerSelector;
-
-    @Setter(onMethod_ = @Inject)
     private NodeManger nodeManger;
 
     @Setter(onMethod_ = @Inject)
     private BrokerConfig config;
-
-    @Setter(onMethod_ = @Inject)
-    private PlanInfoEntityRepo planInfoEntityRepo;
 
     @Setter(onMethod_ = @Inject)
     private TaskEntityRepo taskEntityRepo;

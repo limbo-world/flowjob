@@ -17,7 +17,6 @@
 package org.limbo.flowjob.worker.core.executor;
 
 import lombok.Getter;
-import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 
 /**
  * @author Brozen
@@ -35,22 +34,15 @@ public abstract class AbstractTaskExecutor implements TaskExecutor {
      * 执行器描述
      */
     @Getter
-    private String description;
-
-    /**
-     * 执行器类型
-     */
-    @Getter
-    private JobExecuteType type;
+    private final String description;
 
 
     /**
      * 初始化执行器参数，子类调用
      */
-    protected AbstractTaskExecutor(String name, String description, JobExecuteType type) {
+    protected AbstractTaskExecutor(String name, String description) {
         this.name = name;
         this.description = description;
-        this.type = type;
     }
 
 }

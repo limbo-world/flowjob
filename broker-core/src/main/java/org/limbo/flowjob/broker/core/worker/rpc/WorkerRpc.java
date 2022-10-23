@@ -16,10 +16,9 @@
 
 package org.limbo.flowjob.broker.core.worker.rpc;
 
-import org.limbo.flowjob.broker.api.clent.dto.TaskReceiveDTO;
+import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
 import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
 import org.limbo.flowjob.broker.core.domain.task.Task;
-import org.limbo.flowjob.broker.core.exceptions.TaskReceiveException;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 
 /**
@@ -32,7 +31,6 @@ public interface WorkerRpc {
 
     /**
      * worker节点心跳检测。
-     * TODO 是否需要返回 WorkerMetric
      *
      * @return 返回worker节点的指标信息。
      */
@@ -43,11 +41,19 @@ public interface WorkerRpc {
      * @param task 作业实例
      * @return worker接受task后触发
      */
-    TaskReceiveDTO sendTask(Task task) throws TaskReceiveException;
+    Boolean sendTask(Task task);
 
     /**
      * 解注册此worker，worker的状态将被标记为{@link WorkerStatus#TERMINATED}
      */
     void unregister();
+
+    String workerId();
+
+    WorkerProtocol protocol();
+
+    String host();
+
+    Integer port();
 
 }

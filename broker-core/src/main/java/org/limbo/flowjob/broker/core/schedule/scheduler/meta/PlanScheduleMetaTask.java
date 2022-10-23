@@ -47,9 +47,8 @@ public abstract class PlanScheduleMetaTask extends FixIntervalMetaTask {
     @Setter
     private NodeManger nodeManger;
 
-
-    protected PlanScheduleMetaTask(Duration interval) {
-        super("Meta[PlanScheduleTask]", interval);
+    protected PlanScheduleMetaTask(String taskId, Duration interval) {
+        super(taskId, interval);
     }
 
 

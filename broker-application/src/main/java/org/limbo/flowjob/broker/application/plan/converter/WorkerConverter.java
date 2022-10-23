@@ -24,7 +24,6 @@ import org.limbo.flowjob.broker.api.clent.param.WorkerExecutorRegisterParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerHeartbeatParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerResourceParam;
-import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
 import org.limbo.flowjob.broker.api.dto.BrokerTopologyDTO;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
@@ -130,7 +129,6 @@ public class WorkerConverter {
                 .workerId(worker.getWorkerId())
                 .name(dto.getName())
                 .description(dto.getDescription())
-                .type(JobExecuteType.parse(dto.getType()))
                 .build();
     }
 

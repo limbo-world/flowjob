@@ -124,7 +124,6 @@ public class OkHttpBrokerRpc implements BrokerRpc {
                     WorkerExecutorRegisterParam executorRegisterParam = new WorkerExecutorRegisterParam();
                     executorRegisterParam.setName(executor.getName());
                     executorRegisterParam.setDescription(executor.getDescription());
-                    executorRegisterParam.setType((int) executor.getType().type);
                     return executorRegisterParam;
                 })
                 .collect(Collectors.toList());

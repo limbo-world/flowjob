@@ -18,7 +18,7 @@
 
 package org.limbo.flowjob.broker.test.util;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.common.utils.dag.DAG;
 

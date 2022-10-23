@@ -63,8 +63,6 @@ public class JobService {
     private PlanInstanceEntityRepo planInstanceEntityRepo;
     @Setter(onMethod_ = @Inject)
     private PlanManager planManager;
-    @Setter(onMethod_ = @Inject)
-    private TaskDispatcher taskDispatcher;
 
     @Transactional
     public void dispatch(JobInstance instance) {
@@ -96,7 +94,7 @@ public class JobService {
         // 下发
         for (Task task : tasks) {
 
-            taskDispatcher.dispatch(task);
+            TaskDispatcher.dispatch(task);
 
             if (TaskStatus.FAILED == task.getStatus()) {
                 break;
@@ -106,43 +104,27 @@ public class JobService {
         List<Task> dispatched = tasks.stream().filter(t -> TaskStatus.EXECUTING == t.getStatus()).collect(Collectors.toList());
         List<Task> dispatchFail = tasks.stream().filter(t -> TaskStatus.FAILED == t.getStatus() || TaskStatus.DISPATCHING == t.getStatus()).collect(Collectors.toList());
 
-        if (tasks.size() == dispatched.size()) {
-            for (Task task : dispatched) {
-                taskEntityRepo.updateStatus(Long.valueOf(task.getTaskId()),
-                        TaskStatus.DISPATCHING.status,
-                        TaskStatus.EXECUTING.status,
-                        task.getWorkerId()
-                );
-            }
-        } else if (tasks.size() == dispatchFail.size()) {
-            List<Long> dispatchFailIds = dispatchFail.stream().map(t -> Long.valueOf(t.getTaskId())).collect(Collectors.toList());
-
-            taskEntityRepo.updateStatusWithError(dispatchFailIds,
+        // 下发成功的 根据执行完成回调处理
+        for (Task task : dispatched) {
+            taskEntityRepo.updateStatus(Long.valueOf(task.getTaskId()),
+                    TaskStatus.DISPATCHING.status,
                     TaskStatus.EXECUTING.status,
-                    TaskStatus.FAILED.status,
-                    "dispatch fail",
-                    ""
+                    task.getWorkerId()
             );
+        }
 
+        // 下发失败的
+        List<Long> dispatchFailIds = dispatchFail.stream().map(t -> Long.valueOf(t.getTaskId())).collect(Collectors.toList());
+        taskEntityRepo.updateStatusWithError(dispatchFailIds,
+                TaskStatus.EXECUTING.status,
+                TaskStatus.FAILED.status,
+                "dispatch fail",
+                ""
+        );
+
+        // 如果全部失败，根据策略来
+        if (tasks.size() == dispatchFail.size()) {
             handlerJobFail(instance);
-
-        } else {
-            for (Task task : dispatched) {
-                taskEntityRepo.updateStatus(Long.valueOf(task.getTaskId()),
-                        TaskStatus.DISPATCHING.status,
-                        TaskStatus.EXECUTING.status,
-                        task.getWorkerId()
-                );
-            }
-
-            List<Long> dispatchFailIds = dispatchFail.stream().map(t -> Long.valueOf(t.getTaskId())).collect(Collectors.toList());
-
-            taskEntityRepo.updateStatusWithError(dispatchFailIds,
-                    TaskStatus.EXECUTING.status,
-                    TaskStatus.FAILED.status,
-                    "dispatch fail",
-                    ""
-            );
         }
 
     }

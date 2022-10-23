@@ -28,12 +28,12 @@ public abstract class FixIntervalMetaTask extends MetaTask {
     /**
      * 首次触发任务时的延迟时间，默认 0s。
      */
-    private Duration delay;
+    private final Duration delay;
 
     /**
      * 两次任务触发的间隔。
      */
-    private Duration interval;
+    private final Duration interval;
 
 
     protected FixIntervalMetaTask(String taskId, Duration interval) {
@@ -46,7 +46,6 @@ public abstract class FixIntervalMetaTask extends MetaTask {
         this.delay = delay;
         this.interval = interval;
     }
-
 
     /**
      * {@inheritDoc}

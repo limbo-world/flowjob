@@ -16,9 +16,6 @@
 
 package org.limbo.flowjob.worker.core.executor;
 
-import org.limbo.flowjob.broker.api.constants.enums.JobExecuteType;
-import org.limbo.flowjob.worker.core.domain.Task;
-
 /**
  * shell 脚本执行器
  *
@@ -43,8 +40,4 @@ public class ShellTaskExecutor implements TaskExecutor {
         return "";
     }
 
-    @Override
-    public JobExecuteType getType() {
-        return JobExecuteType.SHELL;
-    }
 }

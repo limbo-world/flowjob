@@ -18,33 +18,38 @@
 
 package org.limbo.flowjob.broker.api.clent.dto;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.io.Serializable;
 
 /**
- * 向worker发送作业后，worker的返回数据
- *
- * @author Brozen
- * @since 2021-05-17
+ * @author Devil
+ * @since 2022/10/20
  */
 @Data
+@Setter(AccessLevel.NONE)
 @AllArgsConstructor
-@NoArgsConstructor
-public class TaskReceiveDTO implements Serializable {
+@Builder(builderClassName = "Builder")
+public class WorkerAvailableResourceDTO implements Serializable {
 
-    private static final long serialVersionUID = 5938197072123607724L;
-
-    /**
-     * 作业ID
-     */
-    private String taskId;
+    private static final long serialVersionUID = 8484230977450133552L;
 
     /**
-     * worker是否成功接收作业，返回true表明worker接下来会开始执行此作业
+     * 可用的CPU核心数。
      */
-    private Boolean accepted;
+    private float availableCpu;
 
+    /**
+     * 可用的内存空间，单位GB。
+     */
+    private float availableRam;
+
+    /**
+     * 任务队列剩余可排队数
+     */
+    private int availableQueueLimit;
 }

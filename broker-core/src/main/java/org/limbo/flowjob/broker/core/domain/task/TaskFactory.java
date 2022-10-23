@@ -24,10 +24,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.api.constants.enums.JobType;
 import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
 import org.limbo.flowjob.broker.core.cluster.WorkerManager;
-import org.limbo.flowjob.broker.core.domain.ExecutorOption;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.worker.Worker;
-import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
 import java.util.ArrayList;
@@ -35,7 +33,6 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author Devil
@@ -46,9 +43,9 @@ public class TaskFactory {
     /**
      * 策略类型和策略生成器直接的映射
      */
-    private Map<JobType, TaskCreator> creators;
+    private final Map<JobType, TaskCreator> creators;
 
-    private WorkerManager workerManager;
+    private final WorkerManager workerManager;
 
     public TaskFactory(WorkerManager workerManager) {
         this.workerManager = workerManager;
@@ -70,21 +67,6 @@ public class TaskFactory {
         return creator.tasks(instance);
     }
 
-    private List<Worker> availableWorkers(ExecutorOption executorOption) {
-        List<Worker> availableWorkers = workerManager.availableWorkers();
-        if (CollectionUtils.isEmpty(availableWorkers)) {
-            return Collections.emptyList();
-        }
-        return availableWorkers.stream().filter(worker -> {
-            for (WorkerExecutor executor : worker.getExecutors()) {
-                if (executorOption.getName().equals(executor.getName()) && executorOption.getType() == executor.getType()) {
-                    return true;
-                }
-            }
-            return false;
-        }).collect(Collectors.toList());
-    }
-
     // todo
     /**
      * 获取上个任务
@@ -100,20 +82,20 @@ public class TaskFactory {
     /**
      * Task 创建策略接口，在这里对 Task 进行多种代理（装饰），实现下发重试策略。
      */
-    public abstract class TaskCreator {
+    abstract static class TaskCreator {
 
         public abstract JobType getType();
 
         public abstract List<Task> tasks(JobInstance instance);
 
-        protected Task task(JobInstance instance) {
-            Task task = new Task();
+        protected void initTask(Task task, JobInstance instance, List<Worker> availableWorkers) {
             task.setJobInstanceId(instance.getJobInstanceId());
             task.setStatus(TaskStatus.DISPATCHING);
             task.setWorkerId(StringUtils.EMPTY);
             task.setDispatchOption(instance.getDispatchOption());
-            task.setExecutorOption(instance.getExecutorOption());
-            return task;
+            task.setExecutorName(instance.getExecutorName());
+            task.setJobAttributes(instance.getAttributes());
+            task.setAvailableWorkers(availableWorkers);
         }
 
     }
@@ -125,9 +107,8 @@ public class TaskFactory {
 
         @Override
         public List<Task> tasks(JobInstance instance) {
-            Task task = task(instance);
-            task.setAttributes(instance.getAttributes());
-            task.setAvailableWorkers(availableWorkers(task.getExecutorOption()));
+            Task task = new Task();
+            initTask(task, instance, workerManager.availableWorkers());
             return Collections.singletonList(task);
         }
 
@@ -153,9 +134,8 @@ public class TaskFactory {
             }
             List<Task> tasks = new ArrayList<>();
             for (Worker worker : workers) {
-                Task task = task(instance);
-                task.setAttributes(instance.getAttributes());
-                task.setAvailableWorkers(Lists.newArrayList(worker));
+                Task task = new Task();
+                initTask(task, instance, Lists.newArrayList(worker));
                 tasks.add(task);
             }
             return tasks;
@@ -178,9 +158,8 @@ public class TaskFactory {
 
         @Override
         public List<Task> tasks(JobInstance instance) {
-            Task task = task(instance);
-            task.setAttributes(instance.getAttributes());
-            task.setAvailableWorkers(availableWorkers(task.getExecutorOption()));
+            Task task = new Task();
+            initTask(task, instance, workerManager.availableWorkers());
             return Collections.singletonList(task);
         }
 
@@ -203,14 +182,12 @@ public class TaskFactory {
         @Override
         public List<Task> tasks(JobInstance instance) {
             TaskResult taskResult = preJobTaskResults(instance).get(0);
-            List<Worker> workers = availableWorkers(instance.getExecutorOption());
+            List<Worker> workers = workerManager.availableWorkers();
             List<Task> tasks = new ArrayList<>();
             for (Map<String, Object> attribute : taskResult.getSubTaskAttributes()) {
-                Task task = task(instance);
-                task.setAttributes(instance.getAttributes());
+                MapTask task = new MapTask();
+                initTask(task, instance, workers);
                 task.setMapAttributes(new Attributes(attribute));
-                task.setAvailableWorkers(workers);
-
                 tasks.add(task);
             }
             return tasks;
@@ -239,10 +216,9 @@ public class TaskFactory {
                 reduceAttributes.add(new Attributes(taskResult.getResultAttributes()));
             }
 
-            Task task = task(instance);
-            task.setAttributes(instance.getAttributes());
+            ReduceTask task = new ReduceTask();
+            initTask(task, instance, workerManager.availableWorkers());
             task.setReduceAttributes(reduceAttributes);
-            task.setAvailableWorkers(availableWorkers(task.getExecutorOption()));
             return Collections.singletonList(task);
         }
 
