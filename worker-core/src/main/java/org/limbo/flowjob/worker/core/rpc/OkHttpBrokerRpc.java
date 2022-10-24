@@ -249,7 +249,9 @@ public class OkHttpBrokerRpc implements BrokerRpc {
         }
 
         // 更新 broker 节点拓扑
-        updateBrokerTopology(response.getData());
+        if (response.getData() != null) {
+            updateBrokerTopology(response.getData());
+        }
     }
 
 

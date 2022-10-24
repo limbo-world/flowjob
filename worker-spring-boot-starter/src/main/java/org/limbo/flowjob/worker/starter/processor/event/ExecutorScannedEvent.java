@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.worker.starter.processor;
+package org.limbo.flowjob.worker.starter.processor.event;
 
 import lombok.Getter;
 import org.limbo.flowjob.worker.core.executor.TaskExecutor;
@@ -24,21 +24,22 @@ import java.util.List;
 
 /**
  * @author Brozen
- * @since 2022-09-22
+ * @since 2022-10-24
  */
-public class WorkerReadyEvent extends ApplicationEvent {
+public class ExecutorScannedEvent extends ApplicationEvent {
 
-    private static final long serialVersionUID = -3142336688682707775L;
+    private static final long serialVersionUID = 3254405231151798763L;
 
     @Getter
     private final List<TaskExecutor> executors;
 
     /**
-     * 生成 Worker ready 事件
+     * 生成 Executor 扫描完成事件
      */
-    public WorkerReadyEvent(List<TaskExecutor> executors) {
+    public ExecutorScannedEvent(List<TaskExecutor> executors) {
         super(executors);
         this.executors = executors;
     }
+
 
 }

@@ -19,7 +19,8 @@ package org.limbo.flowjob.worker.starter;
 import lombok.Setter;
 import lombok.experimental.Delegate;
 import org.limbo.flowjob.worker.core.domain.Worker;
-import org.limbo.flowjob.worker.starter.processor.WorkerReadyEvent;
+import org.limbo.flowjob.worker.starter.processor.event.ExecutorScannedEvent;
+import org.limbo.flowjob.worker.starter.processor.event.WorkerReadyEvent;
 import org.limbo.flowjob.worker.starter.properties.WorkerProperties;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,11 +45,19 @@ public class SpringDelegatedWorker implements Worker, DisposableBean {
 
 
     /**
-     * Spring 初始化完成后，注册当前 Worker
+     * 监听到 ExecutorScannedEvent 事件后，将 TaskExecutor 添加到 Worker
+     */
+    @EventListener(ExecutorScannedEvent.class)
+    public void onExecutorScanned(ExecutorScannedEvent event) {
+        event.getExecutors().forEach(delegated::addExecutor);
+    }
+
+
+    /**
+     * 监听到 WorkerReadyEvent 事件后，注册并启动当前 Worker
      */
     @EventListener(WorkerReadyEvent.class)
-    public void onApplicationStart(WorkerReadyEvent event) {
-        event.getExecutors().forEach(delegated::addExecutor);
+    public void onWorkerReady(WorkerReadyEvent event) {
         delegated.start(properties.getHeartbeat());
     }
 
