@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Tag(name = "worker相关接口")
 @RestController
-@RequestMapping("/api/worker/v1/worker")
+@RequestMapping("/api/v1/worker")
 public class WorkerController {
 
     @Autowired

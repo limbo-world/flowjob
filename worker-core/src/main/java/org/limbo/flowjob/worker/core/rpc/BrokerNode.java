@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.worker.core.rpc;
 
-import org.limbo.flowjob.worker.core.rpc.lb.LBServer;
+import org.limbo.flowjob.common.lb.LBServer;
 
 import java.net.URL;
 

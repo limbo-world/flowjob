@@ -42,7 +42,7 @@ import org.limbo.flowjob.worker.core.domain.WorkerResources;
 import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.rpc.exceptions.BrokerRpcException;
 import org.limbo.flowjob.worker.core.rpc.exceptions.RegisterFailException;
-import org.limbo.flowjob.worker.core.rpc.lb.LoadBalancer;
+import org.limbo.flowjob.common.lb.LoadBalancer;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -236,7 +236,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), json);
 
         Request request = new Request.Builder()
-                .url(broker.baseUrl.toString() + "/api/worker/v1/heartbeat")
+                .url(broker.baseUrl.toString() + "/api/v1/worker/heartbeat")
                 .header(HttpHeaders.CONTENT_TYPE, com.google.common.net.MediaType.JSON_UTF_8.toString())
                 .post(body).build();
         Call call = CLIENT.newCall(request);

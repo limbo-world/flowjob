@@ -35,7 +35,7 @@ import javax.validation.Valid;
  */
 @Tag(name = "任务执行相关接口")
 @RestController
-@RequestMapping("/api/worker/v1/task")
+@RequestMapping("/api/v1/task")
 public class TaskController {
 
     @Inject
