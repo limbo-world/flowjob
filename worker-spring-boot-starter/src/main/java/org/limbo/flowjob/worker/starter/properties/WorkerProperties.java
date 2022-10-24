@@ -17,6 +17,7 @@
 package org.limbo.flowjob.worker.starter.properties;
 
 import lombok.Data;
+import org.limbo.flowjob.worker.starter.processor.event.WorkerReadyEvent;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.net.URL;
@@ -82,6 +83,29 @@ public class WorkerProperties {
      * worker 节点标签，可用于下发任务时进行过滤。
      */
     private List<String> tags;
+
+    /**
+     * 是否在扫描完成所有 Executor 后自动执行注册，默认 true。
+     * 如设置为 false，则需主动触发 {@link WorkerReadyEvent} 时间后，worker 才会执行注册动作，才可能接收到任务并执行。
+     *
+     * 注意：由于 Worker 使用 {@link WorkerReadyEvent} 事件中的 executors 字段作为执行器，
+     * 所以触发事件时，请自行将所有执行器设置给 executors 字段。当然可以使用 Spring 的依赖注入
+     * 来获取 flowjob 扫描到并生成的所有执行器，使用如下方式注入即可：
+     * <pre>
+     * &#64;Autowired
+     * private List&lt;TaskExecutor> executors;
+     *
+     * &#64;Autowired
+     * private ApplicationEventPublisher eventPublisher;
+     *
+     * private void afterSomeBusiness() {
+     *     .....
+     *
+     *     eventPublisher.publishEvent(new WorkerReadyEvent(executors));
+     * }
+     * </pre>
+     */
+    private boolean autoRegister = true;
 
 
 }

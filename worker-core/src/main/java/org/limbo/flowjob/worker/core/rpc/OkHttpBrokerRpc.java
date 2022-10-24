@@ -236,7 +236,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"), json);
 
         Request request = new Request.Builder()
-                .url(broker.baseUrl.toString() + "/api/worker/v1/heartbeat")
+                .url(broker.baseUrl.toString() + "/api/worker/v1/worker/heartbeat")
                 .header(HttpHeaders.CONTENT_TYPE, com.google.common.net.MediaType.JSON_UTF_8.toString())
                 .post(body).build();
         Call call = CLIENT.newCall(request);
@@ -249,7 +249,9 @@ public class OkHttpBrokerRpc implements BrokerRpc {
         }
 
         // 更新 broker 节点拓扑
-        updateBrokerTopology(response.getData());
+        if (response.getData() != null) {
+            updateBrokerTopology(response.getData());
+        }
     }
 
 

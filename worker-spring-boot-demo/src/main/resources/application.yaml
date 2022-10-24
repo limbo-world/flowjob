@@ -11,3 +11,4 @@ flowjob:
     tags:
       - a=b
       - c=d
+    auto-register: false

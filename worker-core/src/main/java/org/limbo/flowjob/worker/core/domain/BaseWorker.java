@@ -39,10 +39,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -217,11 +219,15 @@ public class BaseWorker implements Worker {
         this.pacemaker.start();
 
         // 初始化线程池
+        BlockingQueue<Runnable> queue;
+        if (this.resource.queueSize() == 0) {
+            queue = new SynchronousQueue<>();
+        } else {
+            queue = new ArrayBlockingQueue<>(this.resource.queueSize());
+        }
         this.threadPool = new ThreadPoolExecutor(
-                this.resource.concurrency(),
-                this.resource.concurrency(),
-                5, TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(this.resource.queueSize()),
+                this.resource.concurrency(), this.resource.concurrency(),
+                5, TimeUnit.SECONDS, queue,
                 new NamedThreadFactory("FlowjobWorkerTaskExecutor"),
                 (r, e) -> {
                     throw new RejectedExecutionException();

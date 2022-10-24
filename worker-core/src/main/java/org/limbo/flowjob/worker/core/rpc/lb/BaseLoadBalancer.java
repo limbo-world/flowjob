@@ -18,7 +18,6 @@ package org.limbo.flowjob.worker.core.rpc.lb;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import org.limbo.flowjob.worker.core.rpc.BrokerNode;
 
 import java.util.ArrayList;
 import java.util.Collections;
