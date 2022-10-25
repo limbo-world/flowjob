@@ -19,7 +19,7 @@
 package org.limbo.flowjob.broker.core.worker.rpc;
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
+import org.limbo.flowjob.broker.api.constants.enums.Protocol;
 import org.limbo.flowjob.broker.api.dto.ResponseDTO;
 import org.limbo.flowjob.broker.core.exceptions.WorkerException;
 import org.limbo.flowjob.broker.core.worker.Worker;
@@ -40,9 +40,9 @@ public abstract class AbstractWorkerRpc implements WorkerRpc {
 
     /**
      * worker服务使用的通信协议，默认为Http协议。
-     * @see WorkerProtocol
+     * @see Protocol
      */
-    private final WorkerProtocol protocol;
+    private final Protocol protocol;
 
     /**
      * worker服务的通信host
@@ -77,7 +77,7 @@ public abstract class AbstractWorkerRpc implements WorkerRpc {
     }
 
     @Override
-    public WorkerProtocol protocol() {
+    public Protocol protocol() {
         return protocol;
     }
 

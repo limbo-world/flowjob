@@ -16,10 +16,14 @@
  *
  */
 
-package org.limbo.flowjob.common.lb;
+package org.limbo.flowjob.worker.core.rpc;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.common.lb.LBServer;
+import org.limbo.flowjob.common.lb.LBStrategy;
+import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,6 +35,7 @@ import java.util.stream.Collectors;
  * @author Brozen
  * @since 2022-09-05
  */
+@Slf4j
 @Accessors(fluent = true)
 public class BaseLoadBalancer<S extends LBServer> implements LoadBalancer<S> {
 
@@ -50,6 +55,11 @@ public class BaseLoadBalancer<S extends LBServer> implements LoadBalancer<S> {
      */
     private volatile LBStrategy<S> strategy;
 
+    /**
+     * 重试次数
+     */
+    private volatile int retryCount = 10;
+
 
     public BaseLoadBalancer(String name, List<S> servers, LBStrategy<S> strategy) {
         this.name = name;
@@ -57,6 +67,10 @@ public class BaseLoadBalancer<S extends LBServer> implements LoadBalancer<S> {
         updateLBStrategy(strategy);
     }
 
+    public BaseLoadBalancer(String name, int retryCount, List<S> servers, LBStrategy<S> strategy) {
+        this(name, servers, strategy);
+        this.retryCount = retryCount;
+    }
 
     /**
      * 更新负载均衡策略
@@ -64,12 +78,7 @@ public class BaseLoadBalancer<S extends LBServer> implements LoadBalancer<S> {
     public void updateLBStrategy(LBStrategy<S> strategy) {
         // 默认使用轮询
         if (strategy == null) {
-            strategy = new RoundRobinStrategy<>();
-        }
-
-        // 绑定策略与负载均衡器
-        if (strategy.getBoundLoadBalancer() != this) {
-            strategy.bindWithLoadBalancer(this);
+            strategy = new RoundRobinLBStrategy<>();
         }
 
         this.strategy = strategy;
@@ -91,8 +100,18 @@ public class BaseLoadBalancer<S extends LBServer> implements LoadBalancer<S> {
      * @return
      */
     @Override
-    public Optional<S> choose() {
-        return this.strategy.choose();
+    public Optional<S> select() {
+        for (int i = 0; i < retryCount; i++) {
+            Optional<S> selected = this.strategy.select(servers);
+            if (selected.isPresent()) {
+                // todo
+            } else {
+
+            }
+        }
+
+        log.warn("No available alive servers after 10 tries from load balancer [{}] ", name);
+        return Optional.empty();
     }
 
 

@@ -20,6 +20,7 @@ package org.limbo.flowjob.broker.api.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.limbo.flowjob.broker.api.constants.enums.Protocol;
 
 /**
  * broker节点描述
@@ -32,13 +33,20 @@ import lombok.Data;
 public class BrokerDTO {
 
     /**
-     * tracker节点IP地址
+     * broker节点协议
+     * @see Protocol
+     */
+    @Schema(description = "broker节点协议")
+    private String protocol;
+
+    /**
+     * broker节点主机名
      */
     @Schema(description = "broker节点主机名")
     private String host;
 
     /**
-     * tracker节点服务端口
+     * broker节点服务端口
      */
     @Schema(description = "broker节点服务端口")
     private Integer port;

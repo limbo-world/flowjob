@@ -17,12 +17,15 @@
 package org.limbo.flowjob.broker.core.dispatcher;
 
 import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
-import org.limbo.flowjob.broker.core.dispatcher.strategies.AppointWorkerSelector;
-import org.limbo.flowjob.broker.core.dispatcher.strategies.ConsistentHashWorkerSelector;
-import org.limbo.flowjob.broker.core.dispatcher.strategies.LFUWorkerSelector;
-import org.limbo.flowjob.broker.core.dispatcher.strategies.LRUWorkerSelector;
-import org.limbo.flowjob.broker.core.dispatcher.strategies.RandomWorkerSelector;
-import org.limbo.flowjob.broker.core.dispatcher.strategies.RoundRobinWorkerSelector;
+import org.limbo.flowjob.common.lb.strategies.AppointLBStrategy;
+import org.limbo.flowjob.common.lb.strategies.ConsistentHashLBStrategy;
+import org.limbo.flowjob.common.lb.strategies.LFULBStrategy;
+import org.limbo.flowjob.common.lb.strategies.LRULBStrategy;
+import org.limbo.flowjob.common.lb.strategies.RandomLBStrategy;
+import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
+
+import java.util.EnumMap;
+import java.util.Map;
 
 /**
  * {@link WorkerSelector} 工厂
@@ -32,6 +35,17 @@ import org.limbo.flowjob.broker.core.dispatcher.strategies.RoundRobinWorkerSelec
  */
 public class WorkerSelectorFactory {
 
+    private static final Map<LoadBalanceType, WorkerSelector> selectors = new EnumMap<>(LoadBalanceType.class);
+
+    static {
+        selectors.put(LoadBalanceType.ROUND_ROBIN, new CalculatingWorkerSelector(new RoundRobinLBStrategy<>()));
+        selectors.put(LoadBalanceType.RANDOM, new CalculatingWorkerSelector(new RandomLBStrategy<>()));
+        selectors.put(LoadBalanceType.LEAST_FREQUENTLY_USED, new CalculatingWorkerSelector(new LFULBStrategy<>()));
+        selectors.put(LoadBalanceType.LEAST_RECENTLY_USED, new CalculatingWorkerSelector(new LRULBStrategy<>()));
+        selectors.put(LoadBalanceType.APPOINT, new CalculatingWorkerSelector(new AppointLBStrategy<>()));
+        selectors.put(LoadBalanceType.CONSISTENT_HASH, new CalculatingWorkerSelector(new ConsistentHashLBStrategy<>()));
+    }
+
     /**
      * Double Selector (￣▽￣)~* <br/>
      * 根据作业的分发方式，创建一个分发器实例。委托给{@link LoadBalanceType}执行。
@@ -40,28 +54,11 @@ public class WorkerSelectorFactory {
      * @return 作业分发器
      */
     public static WorkerSelector newSelector(LoadBalanceType loadBalanceType) {
-        switch (loadBalanceType) {
-            case ROUND_ROBIN:
-                return new RoundRobinWorkerSelector();
-
-            case RANDOM:
-                return new RandomWorkerSelector();
-
-            case LEAST_FREQUENTLY_USED:
-                return new LFUWorkerSelector();
-
-            case LEAST_RECENTLY_USED:
-                return new LRUWorkerSelector();
-
-            case APPOINT:
-                return new AppointWorkerSelector();
-
-            case CONSISTENT_HASH:
-                return new ConsistentHashWorkerSelector();
-
-            default:
-                throw new IllegalArgumentException("Unknown load balance type: " + loadBalanceType);
+        WorkerSelector workerSelector = selectors.get(loadBalanceType);
+        if (workerSelector == null) {
+            throw new IllegalArgumentException("Unknown load balance type: " + loadBalanceType);
         }
+        return workerSelector;
     }
 
 }

@@ -22,7 +22,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
+import org.limbo.flowjob.broker.api.constants.enums.Protocol;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -51,7 +51,7 @@ public class WorkerRegisterParam implements Serializable {
 
     /**
      * worker 通信使用的 URL。
-     * @see WorkerProtocol 需要使用指定类型的协议
+     * @see Protocol 需要使用指定类型的协议
      */
     @NotNull(message = "worker 通信 URL 不可为空")
     @Schema(description = "worker 通信使用的 URL", implementation = String.class)

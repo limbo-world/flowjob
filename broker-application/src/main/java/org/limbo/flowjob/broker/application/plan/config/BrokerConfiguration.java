@@ -26,14 +26,14 @@ import org.limbo.flowjob.broker.core.cluster.BrokerRegistry;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.cluster.WorkerManagerImpl;
-import org.limbo.flowjob.broker.core.dispatcher.strategies.RoundRobinWorkerSelector;
-import org.limbo.flowjob.broker.core.domain.task.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
 import org.limbo.flowjob.broker.core.schedule.calculator.SimpleScheduleCalculatorFactory;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
+import org.limbo.flowjob.worker.starter.processor.event.WorkerReadyEvent;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 
 import javax.inject.Inject;
@@ -52,6 +52,9 @@ public class BrokerConfiguration {
 
     @Setter(onMethod_ = @Inject)
     private BrokerRegistry brokerRegistry;
+
+    @Setter(onMethod_ = @Inject)
+    private ApplicationEventPublisher eventPublisher;
 
     @Bean
     public NodeManger brokerManger() {
@@ -85,6 +88,9 @@ public class BrokerConfiguration {
 
                 // 启动所有元任务调度
                 metaTasks.forEach(metaTaskScheduler::schedule);
+
+                // 将自己注册为worker
+                eventPublisher.publishEvent(new WorkerReadyEvent());
             }
         };
     }
@@ -106,14 +112,6 @@ public class BrokerConfiguration {
         return new SimpleScheduleCalculatorFactory();
     }
 
-
-    /**
-     * Worker负载均衡：轮询
-     */
-    @Bean
-    public RoundRobinWorkerSelector roundRobinWorkerSelector() {
-        return new RoundRobinWorkerSelector();
-    }
 
     @Bean
     public TaskFactory taskFactory(WorkerManager workerManager) {

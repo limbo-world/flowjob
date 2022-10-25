@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.api.clent.dto.WorkerRegisterDTO;
 import org.limbo.flowjob.broker.api.clent.param.WorkerHeartbeatParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
-import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
+import org.limbo.flowjob.broker.api.constants.enums.Protocol;
 import org.limbo.flowjob.broker.application.plan.support.WorkerFactory;
 import org.limbo.flowjob.broker.application.plan.converter.WorkerConverter;
 import org.limbo.flowjob.broker.core.worker.Worker;
@@ -51,6 +51,7 @@ public class WorkerService {
      * worker心跳
      * @param option 心跳参数，上报部分指标数据
      */
+    @Transactional(rollbackOn = Throwable.class)
     public void heartbeat(WorkerHeartbeatParam option) {
         // 查询worker并校验
         Worker worker = workerRepository.get(option.getWorkerId());
@@ -76,9 +77,9 @@ public class WorkerService {
 
         // 校验 protocol
         String protocolName = options.getUrl().getProtocol();
-        WorkerProtocol protocol = WorkerProtocol.parse(protocolName);
+        Protocol protocol = Protocol.parse(protocolName);
         Verifies.verify(
-                protocol != WorkerProtocol.UNKNOWN,
+                protocol != Protocol.UNKNOWN,
                 "Unknown worker rpc protocol:" + protocolName
         );
 

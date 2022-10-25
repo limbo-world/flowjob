@@ -18,55 +18,10 @@
 
 package org.limbo.flowjob.common.lb;
 
-import javax.annotation.Nullable;
-import java.util.Objects;
-import java.util.Optional;
-
 /**
  * @author Brozen
  * @since 2022-09-02
  */
 public abstract class AbstractLBStrategy<S extends LBServer> implements LBStrategy<S> {
-
-    /**
-     * 当前负载均衡策略绑定的负载均衡器
-     */
-    private LoadBalancer<S> loadBalancer;
-
-
-    /**
-     * {@inheritDoc}
-     * @param loadBalancer
-     */
-    @Override
-    public void bindWithLoadBalancer(LoadBalancer<S> loadBalancer) {
-        this.loadBalancer = Objects.requireNonNull(loadBalancer);
-    }
-
-
-    /**
-     * {@inheritDoc}
-     * @return
-     */
-    @Override
-    public LoadBalancer<S> getBoundLoadBalancer() {
-        return this.loadBalancer;
-    }
-
-
-    /**
-     * {@inheritDoc}
-     * @return
-     */
-    @Override
-    public Optional<S> choose() {
-        return choose(this.loadBalancer);
-    }
-
-
-    /**
-     * 结合负载均衡器信息，根据当前负载均衡策略，选择一个服务
-     */
-    @Nullable
-    protected abstract Optional<S> choose(LoadBalancer<S> loadBalancer);
+    
 }

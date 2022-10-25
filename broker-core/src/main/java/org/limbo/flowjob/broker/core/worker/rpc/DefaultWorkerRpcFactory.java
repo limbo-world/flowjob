@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.broker.core.worker.rpc;
 
-import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
+import org.limbo.flowjob.broker.api.constants.enums.Protocol;
 import org.limbo.flowjob.broker.core.worker.Worker;
 
 import java.net.URL;
@@ -38,7 +38,7 @@ public class DefaultWorkerRpcFactory implements WorkerRpcFactory {
     @Override
     public WorkerRpc createRPC(Worker worker) {
         URL rpcBaseUrl = worker.getRpcBaseUrl();
-        WorkerProtocol protocol = WorkerProtocol.parse(rpcBaseUrl.getProtocol());
+        Protocol protocol = Protocol.parse(rpcBaseUrl.getProtocol());
         switch (protocol) {
             case HTTP:
             case HTTPS:

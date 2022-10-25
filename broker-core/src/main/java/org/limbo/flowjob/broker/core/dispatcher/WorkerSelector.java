@@ -21,6 +21,7 @@ import org.limbo.flowjob.broker.core.domain.DispatchOption;
 import org.limbo.flowjob.broker.core.worker.Worker;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * worker选择器，封装了作业分发时的worker选择规则{@link LoadBalanceType}：
@@ -45,6 +46,6 @@ public interface WorkerSelector {
      * @param executorName   执行器名称
      * @param workers        待下发上下文可用的worker
      */
-    Worker select(DispatchOption dispatchOption, String executorName, Collection<Worker> workers);
+    Worker select(DispatchOption dispatchOption, String executorName, List<Worker> workers);
 
 }

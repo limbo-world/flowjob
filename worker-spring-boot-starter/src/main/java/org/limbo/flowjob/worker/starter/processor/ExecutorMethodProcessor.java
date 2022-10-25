@@ -84,8 +84,11 @@ public class ExecutorMethodProcessor implements SmartInitializingSingleton,
 
     private ApplicationEventPublisher eventPublisher;
 
-    @Setter(onMethod_ = @Autowired)
-    private WorkerProperties workerProperties;
+    private final boolean autoRegister;
+
+    public ExecutorMethodProcessor(boolean autoRegister) {
+        this.autoRegister = autoRegister;
+    }
 
     /**
      * 记录忽略处理的 Class，用于加速初始化的 Bean 扫描阶段
@@ -168,9 +171,10 @@ public class ExecutorMethodProcessor implements SmartInitializingSingleton,
         eventPublisher.publishEvent(new ExecutorScannedEvent(executors));
 
         // 根据配置决定是否自动注册
-        if (workerProperties.isAutoRegister()) {
+        if (autoRegister) {
             eventPublisher.publishEvent(new WorkerReadyEvent());
         }
+
     }
 
 

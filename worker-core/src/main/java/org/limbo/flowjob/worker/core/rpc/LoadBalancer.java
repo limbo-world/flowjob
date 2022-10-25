@@ -16,24 +16,49 @@
  *
  */
 
-package org.limbo.flowjob.common.lb;
+package org.limbo.flowjob.worker.core.rpc;
+
+import org.limbo.flowjob.common.lb.LBServer;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
- * 负载均衡策略
+ * 负载均衡器
  *
  * @author Brozen
  * @since 2022-09-02
  */
-public interface LBStrategy<S extends LBServer> {
+public interface LoadBalancer<S extends LBServer> {
+
+    /**
+     * 负载均衡器的名称
+     */
+    String name();
 
 
     /**
-     * 选择一个服务
-     * @return 选择的服务，可能为 null。当无可用服务时，返回 null。
+     * 更新被负载的服务列表
+     * @param servers 服务列表
      */
-    Optional<S> select(List<S> servers);
+    void updateServers(List<S> servers);
+
+
+    /**
+     * 从当前负载均衡器中，选择服务
+     */
+    Optional<S> select();
+
+
+    /**
+     * 列出负载均衡器中所有存活的服务
+     */
+    List<S> listAliveServers();
+
+
+    /**
+     * 列出负载均衡器中所有服务
+     */
+    List<S> listAllServers();
 
 }

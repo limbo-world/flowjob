@@ -27,6 +27,7 @@ import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.broker.core.worker.rpc.WorkerRpc;
 import org.limbo.flowjob.broker.core.worker.rpc.WorkerRpcFactory;
+import org.limbo.flowjob.common.lb.LBServer;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -45,7 +46,7 @@ import java.util.Objects;
 @Setter(AccessLevel.NONE)
 @ToString
 @Builder(builderClassName = "Builder")
-public class Worker implements WorkerRpc {
+public class Worker implements WorkerRpc, LBServer {
 
     /**
      * Worker ID
@@ -88,9 +89,15 @@ public class Worker implements WorkerRpc {
     private WorkerMetric metric;
 
 
+    @Override
+    public String getServerId() {
+        return workerId;
+    }
+
     /**
      * 当前 worker 是否处在存活状态。熔断状态不算存活状态
      */
+    @Override
     public boolean isAlive() {
         return WorkerStatus.RUNNING == status;
     }

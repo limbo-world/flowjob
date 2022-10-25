@@ -20,9 +20,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * worker服务的通信协议
+ * 服务的通信协议
  */
-public enum WorkerProtocol {
+public enum Protocol {
 
     UNKNOWN("", 0),
 
@@ -49,7 +49,7 @@ public enum WorkerProtocol {
      */
     public final int port;
 
-    WorkerProtocol(String protocol, int port) {
+    Protocol(String protocol, int port) {
         this.protocol = protocol;
         this.port = port;
     }
@@ -64,14 +64,14 @@ public enum WorkerProtocol {
      * 解析worker支持的协议
      */
     @JsonCreator
-    public static WorkerProtocol parse(String protocolName) {
+    public static Protocol parse(String protocolName) {
         if (protocolName == null) {
             return UNKNOWN;
         }
 
-        for (WorkerProtocol workerProtocol : values()) {
-            if (workerProtocol.protocol.equalsIgnoreCase(protocolName)) {
-                return workerProtocol;
+        for (Protocol protocol : values()) {
+            if (protocol.protocol.equalsIgnoreCase(protocolName)) {
+                return protocol;
             }
         }
 

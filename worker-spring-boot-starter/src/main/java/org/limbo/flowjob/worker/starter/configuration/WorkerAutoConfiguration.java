@@ -20,7 +20,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.broker.api.constants.enums.WorkerProtocol;
+import org.limbo.flowjob.broker.api.constants.enums.Protocol;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.worker.core.domain.BaseWorker;
 import org.limbo.flowjob.worker.core.domain.CalculatingWorkerResource;
@@ -28,11 +28,11 @@ import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.domain.WorkerResources;
 import org.limbo.flowjob.worker.core.rpc.BrokerNode;
 import org.limbo.flowjob.worker.core.rpc.BrokerRpc;
-import org.limbo.flowjob.worker.core.rpc.OkHttpBrokerRpc;
-import org.limbo.flowjob.common.lb.BaseLoadBalancer;
+import org.limbo.flowjob.worker.core.rpc.http.OkHttpBrokerRpc;
+import org.limbo.flowjob.worker.core.rpc.BaseLoadBalancer;
 import org.limbo.flowjob.common.lb.LBStrategy;
-import org.limbo.flowjob.common.lb.LoadBalancer;
-import org.limbo.flowjob.common.lb.RoundRobinStrategy;
+import org.limbo.flowjob.worker.core.rpc.LoadBalancer;
+import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
 import org.limbo.flowjob.worker.core.utils.NetUtils;
 import org.limbo.flowjob.worker.starter.SpringDelegatedWorker;
 import org.limbo.flowjob.worker.starter.processor.ExecutorMethodProcessor;
@@ -80,7 +80,7 @@ public class WorkerAutoConfiguration {
      */
     @Bean
     public ExecutorMethodProcessor executorMethodProcessor() {
-        return new ExecutorMethodProcessor();
+        return new ExecutorMethodProcessor(workerProps.isAutoRegister());
     }
 
 
@@ -134,7 +134,7 @@ public class WorkerAutoConfiguration {
 
         // HTTP、HTTPS 协议
         String brokerProtocol = brokers.get(0).getProtocol();
-        if (WorkerProtocol.parse(brokerProtocol) == WorkerProtocol.UNKNOWN) {
+        if (Protocol.parse(brokerProtocol) == Protocol.UNKNOWN) {
             throw new IllegalArgumentException("Unsupported broker protocol [" + brokerProtocol + "]");
         }
 
@@ -146,7 +146,7 @@ public class WorkerAutoConfiguration {
      * HTTP 协议的 broker 通信
      */
     private OkHttpBrokerRpc httpBrokerRpc(LoadBalancer<BrokerNode> loadBalancer) {
-        return new OkHttpBrokerRpc(brokerNodes(), loadBalancer);
+        return new OkHttpBrokerRpc(loadBalancer);
     }
 
     private List<BrokerNode> brokerNodes() {
@@ -173,7 +173,7 @@ public class WorkerAutoConfiguration {
     @Bean("brokerLoadBalanceStrategy")
     @ConditionalOnMissingBean(name = "brokerLoadBalanceStrategy")
     public LBStrategy<BrokerNode> brokerLoadBalanceStrategy() {
-        return new RoundRobinStrategy<>();
+        return new RoundRobinLBStrategy<>();
     }
 
 }
