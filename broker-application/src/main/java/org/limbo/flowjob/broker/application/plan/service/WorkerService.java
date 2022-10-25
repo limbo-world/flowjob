@@ -22,6 +22,7 @@ import org.limbo.flowjob.broker.api.clent.dto.WorkerRegisterDTO;
 import org.limbo.flowjob.broker.api.clent.param.WorkerHeartbeatParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
 import org.limbo.flowjob.broker.api.constants.enums.Protocol;
+import org.limbo.flowjob.broker.api.dto.BrokerTopologyDTO;
 import org.limbo.flowjob.broker.application.plan.support.WorkerFactory;
 import org.limbo.flowjob.broker.application.plan.converter.WorkerConverter;
 import org.limbo.flowjob.broker.core.worker.Worker;
@@ -52,7 +53,7 @@ public class WorkerService {
      * @param option 心跳参数，上报部分指标数据
      */
     @Transactional(rollbackOn = Throwable.class)
-    public void heartbeat(WorkerHeartbeatParam option) {
+    public BrokerTopologyDTO heartbeat(WorkerHeartbeatParam option) {
         // 查询worker并校验
         Worker worker = workerRepository.get(option.getWorkerId());
         Verifies.requireNotNull(worker, "worker不存在！");
@@ -64,6 +65,7 @@ public class WorkerService {
         if (log.isDebugEnabled()) {
             log.debug("receive heartbeat from " + worker.getWorkerId());
         }
+        return null; // todo
     }
 
     /**

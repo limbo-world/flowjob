@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 /**
  * @author Brozen
  * @since 2022-09-02
+ * todo 这个感觉应该和其他策略配合使用，如果根据权重找到相同的一批节点，如何对这一批做负载
  */
 @Slf4j
 public class WeightedLBStrategy<S extends LBServer> extends RoundRobinLBStrategy<S> {

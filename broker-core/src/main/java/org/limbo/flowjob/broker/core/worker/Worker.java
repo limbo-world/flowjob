@@ -102,6 +102,11 @@ public class Worker implements WorkerRpc, LBServer {
         return WorkerStatus.RUNNING == status;
     }
 
+    @Override
+    public URL getUrl() {
+        return rpcBaseUrl;
+    }
+
 
     /**
      * 更新 worker 的注册信息

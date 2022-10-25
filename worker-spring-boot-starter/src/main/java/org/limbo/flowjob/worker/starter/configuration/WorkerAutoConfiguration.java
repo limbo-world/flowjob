@@ -21,18 +21,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.api.constants.enums.Protocol;
+import org.limbo.flowjob.common.lb.LBServerRepository;
+import org.limbo.flowjob.common.lb.LBStrategy;
+import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.worker.core.domain.BaseWorker;
 import org.limbo.flowjob.worker.core.domain.CalculatingWorkerResource;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.domain.WorkerResources;
+import org.limbo.flowjob.worker.core.rpc.BaseLBServerRepository;
 import org.limbo.flowjob.worker.core.rpc.BrokerNode;
 import org.limbo.flowjob.worker.core.rpc.BrokerRpc;
 import org.limbo.flowjob.worker.core.rpc.http.OkHttpBrokerRpc;
-import org.limbo.flowjob.worker.core.rpc.BaseLoadBalancer;
-import org.limbo.flowjob.common.lb.LBStrategy;
-import org.limbo.flowjob.worker.core.rpc.LoadBalancer;
-import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
 import org.limbo.flowjob.worker.core.utils.NetUtils;
 import org.limbo.flowjob.worker.starter.SpringDelegatedWorker;
 import org.limbo.flowjob.worker.starter.processor.ExecutorMethodProcessor;
@@ -128,7 +128,7 @@ public class WorkerAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(BrokerRpc.class)
-    public BrokerRpc brokerRpc(LoadBalancer<BrokerNode> brokerLoadBalancer) {
+    public BrokerRpc brokerRpc(LBServerRepository<BrokerNode> brokerLoadBalancer, LBStrategy<BrokerNode> strategy) {
         List<URL> brokers = workerProps.getBrokers();
         Verifies.notEmpty(brokers, "No brokers configured");
 
@@ -138,15 +138,15 @@ public class WorkerAutoConfiguration {
             throw new IllegalArgumentException("Unsupported broker protocol [" + brokerProtocol + "]");
         }
 
-        return httpBrokerRpc(brokerLoadBalancer);
+        return httpBrokerRpc(brokerLoadBalancer, strategy);
     }
 
 
     /**
      * HTTP 协议的 broker 通信
      */
-    private OkHttpBrokerRpc httpBrokerRpc(LoadBalancer<BrokerNode> loadBalancer) {
-        return new OkHttpBrokerRpc(loadBalancer);
+    private OkHttpBrokerRpc httpBrokerRpc(LBServerRepository<BrokerNode> loadBalancer, LBStrategy<BrokerNode> strategy) {
+        return new OkHttpBrokerRpc(loadBalancer, strategy);
     }
 
     private List<BrokerNode> brokerNodes() {
@@ -158,12 +158,12 @@ public class WorkerAutoConfiguration {
 
 
     /**
-     * Broker 负载均衡器
+     * Broker 仓储
      */
-    @Bean("brokerLoadBalancer")
-    @ConditionalOnMissingBean(name = "brokerLoadBalancer")
-    public LoadBalancer<BrokerNode> brokerLoadBalancer(LBStrategy<BrokerNode> lbStrategy) {
-        return new BaseLoadBalancer<>("brokerLoadBalancer", brokerNodes(), lbStrategy);
+    @Bean("brokerLoadBalanceRepo")
+    @ConditionalOnMissingBean(name = "brokerLoadBalanceRepo")
+    public LBServerRepository<BrokerNode> brokerLoadBalanceRepo() {
+        return new BaseLBServerRepository<>(brokerNodes());
     }
 
 

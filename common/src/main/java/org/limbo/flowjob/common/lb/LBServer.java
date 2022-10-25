@@ -18,6 +18,8 @@
 
 package org.limbo.flowjob.common.lb;
 
+import java.net.URL;
+
 /**
  * 被负载均衡的服务
  *
@@ -36,4 +38,5 @@ public interface LBServer {
      */
     boolean isAlive();
 
+    URL getUrl();
 }

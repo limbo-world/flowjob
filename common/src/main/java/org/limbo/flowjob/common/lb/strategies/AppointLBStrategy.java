@@ -29,7 +29,7 @@ import java.util.Optional;
  * @author Brozen
  * @since 2022-09-02
  */
-// todo
+// todo 这个感觉应该和其他策略配合使用，如果指定节点找到一批，如何对这一批做负载
 @Slf4j
 public class AppointLBStrategy<S extends LBServer> extends AbstractLBStrategy<S> {
 

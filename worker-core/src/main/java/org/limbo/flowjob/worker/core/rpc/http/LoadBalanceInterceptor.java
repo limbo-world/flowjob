@@ -18,78 +18,96 @@
 
 package org.limbo.flowjob.worker.core.rpc.http;
 
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.worker.core.rpc.BrokerNode;
-import org.limbo.flowjob.worker.core.rpc.LoadBalancer;
+import org.limbo.flowjob.common.lb.LBServer;
+import org.limbo.flowjob.common.lb.LBServerRepository;
+import org.limbo.flowjob.common.lb.LBStrategy;
+import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author Devil
  * @since 2022/10/24
  */
 @Slf4j
-public class LoadBalanceInterceptor implements Interceptor {
+@Accessors(fluent = true)
+public class LoadBalanceInterceptor<S extends LBServer> implements Interceptor {
 
     /**
-     * Broker 负载均衡
+     * 被负载的服务列表
      */
-    private final LoadBalancer<BrokerNode> loadBalancer;
+    private LBServerRepository<S> repository;
+
+    /**
+     * 负载均衡策略
+     */
+    private LBStrategy<S> strategy;
 
     /**
      * 重试次数
      */
-    private final int retryCount;
+    private volatile int retryCount = 10;
 
-    public LoadBalanceInterceptor(LoadBalancer<BrokerNode> loadBalancer, int retryCount) {
-        this.loadBalancer = loadBalancer;
+    public LoadBalanceInterceptor(LBServerRepository<S> repository, LBStrategy<S> strategy) {
+        this.repository = repository;
+        updateLBStrategy(strategy);
+    }
+
+    public LoadBalanceInterceptor(int retryCount, LBServerRepository<S> repository, LBStrategy<S> strategy) {
+        this(repository, strategy);
         this.retryCount = retryCount;
     }
 
     @Override
-    public Response intercept(Chain chain) throws IOException {
+    public Response intercept(Chain chain) {
         Request originalRequest = chain.request();
         HttpUrl oldUrl = originalRequest.url();
 
+        List<S> servers = repository.listAliveServers();
         for (int i = 1; i <= retryCount; i++) {
-            HttpUrl newHttpUrl = getUrl(oldUrl);
+            Optional<S> optional = strategy.select(servers);
+            if (!optional.isPresent()) {
+                log.warn("No available alive servers after 10 tries from load balancer");
+                throw new IllegalStateException("Can't get alive broker");
+            }
+            S select = optional.get();
+            HttpUrl baseURL = HttpUrl.get(select.getUrl());
+            HttpUrl newHttpUrl = oldUrl.newBuilder()
+                    .scheme(baseURL.scheme())
+                    .host(baseURL.host())
+                    .port(baseURL.port())
+                    .build();
             try {
                 return chain.proceed(originalRequest.newBuilder().url(newHttpUrl).build());
             } catch (IOException e) {
                 log.warn("try {} times... address {} connect fail, try connect new node", i, newHttpUrl, e);
+                servers = servers.stream().filter(s -> !s.getServerId().equals(select.getServerId())).collect(Collectors.toList());
             }
+
         }
-        throw new IOException("try " + retryCount + " times... but also fail, throw to out");
+        throw new IllegalStateException("try " + retryCount + " times... but also fail, throw to out");
     }
 
     /**
-     * {@inheritDoc}
-     * @return
+     * 更新负载均衡策略
      */
-    private BrokerNode choose() {
-        while (CollectionUtils.isNotEmpty(this.loadBalancer.listAliveServers())) {
-            Optional<BrokerNode> optional = this.loadBalancer.select();
-            if (optional.isPresent()) {
-                return optional.get();
-            }
+    public void updateLBStrategy(LBStrategy<S> strategy) {
+        // 默认使用轮询
+        if (strategy == null) {
+            strategy = new RoundRobinLBStrategy<>();
         }
 
-        throw new IllegalStateException("Can't get alive broker，LB=" + this.loadBalancer.name());
+        this.strategy = strategy;
     }
 
-    public HttpUrl getUrl(HttpUrl oldUrl) {
-        BrokerNode server = choose();
-        HttpUrl baseURL = HttpUrl.get(server.baseUrl);
-        return oldUrl.newBuilder()
-                .scheme(baseURL.scheme())
-                .host(baseURL.host())
-                .port(baseURL.port())
-                .build();
-    }
+
 }

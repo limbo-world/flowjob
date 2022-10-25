@@ -34,12 +34,13 @@ import org.limbo.flowjob.broker.api.clent.param.TaskFeedbackParam;
 import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
 import org.limbo.flowjob.broker.api.dto.BrokerTopologyDTO;
 import org.limbo.flowjob.broker.api.dto.ResponseDTO;
+import org.limbo.flowjob.common.lb.LBServerRepository;
+import org.limbo.flowjob.common.lb.LBStrategy;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.rpc.BrokerNode;
 import org.limbo.flowjob.worker.core.rpc.BrokerRpc;
-import org.limbo.flowjob.worker.core.rpc.LoadBalancer;
 import org.limbo.flowjob.worker.core.rpc.RpcParamFactory;
 import org.limbo.flowjob.worker.core.rpc.exceptions.BrokerRpcException;
 import org.limbo.flowjob.worker.core.rpc.exceptions.RegisterFailException;
@@ -63,17 +64,19 @@ public class OkHttpBrokerRpc implements BrokerRpc {
     /**
      * Broker 负载均衡
      */
-    private final LoadBalancer<BrokerNode> loadBalancer;
+    private final LBServerRepository<BrokerNode> repository;
 
-    private static final MediaType MEDIA_TYPE = MediaType.parse("application/json;charset=utf-8");
+    // application/json; charset=utf-8
+    private static final String JSON_UTF_8 = com.google.common.net.MediaType.JSON_UTF_8.toString();
+
+    private static final MediaType MEDIA_TYPE = MediaType.parse(JSON_UTF_8);
 
     private static final String BASE_URL = "http://0.0.0.0:8080";
 
-    public OkHttpBrokerRpc(LoadBalancer<BrokerNode> loadBalancer) {
-        this.client = new OkHttpClient.Builder().addInterceptor(new LoadBalanceInterceptor(loadBalancer, 10)).build();
-        this.loadBalancer = loadBalancer;
+    public OkHttpBrokerRpc(LBServerRepository<BrokerNode> repository, LBStrategy<BrokerNode> strategy) {
+        this.repository = repository;
+        this.client = new OkHttpClient.Builder().addInterceptor(new LoadBalanceInterceptor<>(repository, strategy)).build();
     }
-
 
     /**
      * {@inheritDoc}
@@ -111,7 +114,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
 
         Request request = new Request.Builder()
                 .url(BASE_URL + "/api/worker/v1/worker")
-                .header(HttpHeaders.CONTENT_TYPE, com.google.common.net.MediaType.JSON_UTF_8.toString())
+                .header(HttpHeaders.CONTENT_TYPE, JSON_UTF_8)
                 .post(body).build();
         Call call = client.newCall(request);
         ResponseDTO<WorkerRegisterDTO> response = execute(call, new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
@@ -125,7 +128,6 @@ public class OkHttpBrokerRpc implements BrokerRpc {
         return response.getData();
     }
 
-
     /**
      * 更新 broker 拓扑结构
      */
@@ -138,11 +140,11 @@ public class OkHttpBrokerRpc implements BrokerRpc {
         Set<HttpUrl> realtime = topo.getBrokers().stream()
                 .map(b -> new HttpUrl.Builder().scheme(b.getProtocol()).host(b.getHost()).port(b.getPort()).build())
                 .collect(Collectors.toSet());
-        List<BrokerNode> brokerNodes = loadBalancer.listAliveServers().stream().filter(b -> realtime.contains(HttpUrl.get(b.baseUrl))).collect(Collectors.toList());
+        List<BrokerNode> brokerNodes = repository.listAliveServers().stream().filter(b -> realtime.contains(HttpUrl.get(b.getUrl()))).collect(Collectors.toList());
 
         // 新增添加的
         Set<HttpUrl> saved = brokerNodes.stream()
-                .map(b -> HttpUrl.get(b.baseUrl))
+                .map(b -> HttpUrl.get(b.getUrl()))
                 .collect(Collectors.toSet());
         for (HttpUrl url : realtime) {
             if (saved.contains(url)) {
@@ -152,7 +154,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
             brokerNodes.add(new BrokerNode(url.url()));
         }
 
-        this.loadBalancer.updateServers(brokerNodes);
+        repository.updateServers(brokerNodes);
     }
 
     /**
@@ -167,7 +169,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
 
         Request request = new Request.Builder()
                 .url(BASE_URL + "/api/v1/worker/heartbeat")
-                .header(HttpHeaders.CONTENT_TYPE, com.google.common.net.MediaType.JSON_UTF_8.toString())
+                .header(HttpHeaders.CONTENT_TYPE, JSON_UTF_8)
                 .post(body).build();
         Call call = client.newCall(request);
         ResponseDTO<BrokerTopologyDTO> response = execute(call, new TypeReference<ResponseDTO<BrokerTopologyDTO>>() {
@@ -217,7 +219,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
 
         Request request = new Request.Builder()
                 .url(BASE_URL + "/api/worker/v1/task/feedback")
-                .header(HttpHeaders.CONTENT_TYPE, com.google.common.net.MediaType.JSON_UTF_8.toString())
+                .header(HttpHeaders.CONTENT_TYPE, JSON_UTF_8)
                 .post(body).build();
         Call call = client.newCall(request);
         ResponseDTO<Void> response = execute(call);

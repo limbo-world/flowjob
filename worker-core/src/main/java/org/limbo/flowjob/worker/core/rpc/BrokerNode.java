@@ -29,7 +29,7 @@ public class BrokerNode implements LBServer {
     /**
      * broker 节点访问的 URL
      */
-    public final URL baseUrl;
+    private final URL baseUrl;
 
     public BrokerNode(URL baseUrl) {
         this.baseUrl = baseUrl;
@@ -54,6 +54,11 @@ public class BrokerNode implements LBServer {
     public boolean isAlive() {
         // TODO 这里先不考虑 broker 的熔断、失活检测
         return true;
+    }
+
+    @Override
+    public URL getUrl() {
+        return baseUrl;
     }
 
 }
