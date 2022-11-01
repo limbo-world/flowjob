@@ -18,6 +18,10 @@ flowjob:
       - c=d
     auto-register: false
 
+# log
+logging:
+  config: classpath:log4j2.xml
+
 # 配置 https://springdoc.org/#springdoc-openapi-core-properties
 # 注解 https://springdoc.org/#migrating-from-springfox
 # 访问 http://server:port/api-docs.html

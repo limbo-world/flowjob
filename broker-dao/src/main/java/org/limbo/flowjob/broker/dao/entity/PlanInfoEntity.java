@@ -20,8 +20,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
-import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
-import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
+import org.limbo.flowjob.common.constants.ScheduleType;
+import org.limbo.flowjob.common.constants.TriggerType;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;

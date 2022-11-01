@@ -16,6 +16,7 @@
 
 package org.limbo.flowjob.broker.core.schedule.scheduler.meta;
 
+import lombok.Getter;
 import org.limbo.flowjob.broker.core.schedule.Scheduled;
 
 import java.time.LocalDateTime;
@@ -26,6 +27,7 @@ import java.time.LocalDateTime;
  */
 public abstract class MetaTask implements Scheduled {
 
+    @Getter
     private final String taskId;
 
     /**
@@ -44,7 +46,7 @@ public abstract class MetaTask implements Scheduled {
      */
     public void execute() {
         executeTask();
-        this.triggerAt = calculateNextTriggerTime(false);
+        nextTriggerTime(false);
     }
 
 
@@ -53,6 +55,9 @@ public abstract class MetaTask implements Scheduled {
      */
     protected abstract void executeTask();
 
+    protected void nextTriggerTime(boolean firstTime) {
+        this.triggerAt = calculateNextTriggerTime(firstTime);
+    }
 
     /**
      * 计算当前元任务的下次触发时间。

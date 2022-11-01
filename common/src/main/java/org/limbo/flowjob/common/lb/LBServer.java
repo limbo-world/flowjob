@@ -38,5 +38,8 @@ public interface LBServer {
      */
     boolean isAlive();
 
+    /**
+     * 当前服务的资源路径
+     */
     URL getUrl();
 }

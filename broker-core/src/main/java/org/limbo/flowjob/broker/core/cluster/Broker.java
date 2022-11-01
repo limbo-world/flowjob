@@ -29,11 +29,11 @@ public abstract class Broker {
 
     protected final BrokerConfig config;
 
-    protected final BrokerRegistry registry;
+    protected final NodeRegistry registry;
 
     protected final NodeManger manger;
 
-    public Broker(BrokerConfig config, BrokerRegistry registry, NodeManger manger) {
+    public Broker(BrokerConfig config, NodeRegistry registry, NodeManger manger) {
         this.config = config;
         this.registry = registry;
         this.manger = manger;
@@ -44,21 +44,28 @@ public abstract class Broker {
      */
     public void start() {
         // 节点注册 用于集群感知
-        registry.register(config.getHost(), config.getPort());
+        registry.register(config.getName(), config.getHost(), config.getPort());
         // 节点变更通知
         registry.subscribe(event -> {
             switch (event.getType()) {
                 case ONLINE:
-                    manger.online(new Node(event.getHost(), event.getPort()));
+                    manger.online(new Node(event.getName(), event.getHost(), event.getPort()));
+                    if (log.isDebugEnabled()) {
+                        log.warn("[BrokerNodeListener] receive evnet {}", event);
+                    }
                     break;
                 case OFFLINE:
-                    manger.offline(new Node(event.getHost(), event.getPort()));
+                    manger.offline(new Node(event.getName(), event.getHost(), event.getPort()));
+                    if (log.isDebugEnabled()) {
+                        log.warn("[BrokerNodeListener] receive evnet {}", event);
+                    }
                     break;
                 default:
                     log.warn("[BrokerNodeListener] unknown evnet {}", event);
                     break;
             }
         });
+        log.info("broker start!!!~~~");
     }
 
     /**

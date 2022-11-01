@@ -19,18 +19,21 @@ package org.limbo.flowjob.broker.application.plan.converter;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.api.clent.dto.WorkerRegisterDTO;
-import org.limbo.flowjob.broker.api.clent.param.WorkerExecutorRegisterParam;
-import org.limbo.flowjob.broker.api.clent.param.WorkerHeartbeatParam;
-import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
-import org.limbo.flowjob.broker.api.clent.param.WorkerResourceParam;
-import org.limbo.flowjob.broker.api.dto.BrokerTopologyDTO;
+import org.limbo.flowjob.api.dto.WorkerRegisterDTO;
+import org.limbo.flowjob.api.param.WorkerExecutorRegisterParam;
+import org.limbo.flowjob.api.param.WorkerHeartbeatParam;
+import org.limbo.flowjob.api.param.WorkerRegisterParam;
+import org.limbo.flowjob.api.param.WorkerResourceParam;
+import org.limbo.flowjob.api.dto.BrokerDTO;
+import org.limbo.flowjob.api.dto.BrokerTopologyDTO;
+import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -53,7 +56,7 @@ public class WorkerConverter {
         return options.getTags().stream().reduce(
                 new ConcurrentHashMap<>(),
                 (map, tag) -> {
-                    List<String> values = map.computeIfAbsent(tag.getKey(), _k -> new ArrayList<>());
+                    List<String> values = map.computeIfAbsent(tag.getKey(), k -> new ArrayList<>());
                     values.add(tag.getValue());
                     return map;
                 },
@@ -68,12 +71,10 @@ public class WorkerConverter {
     /**
      * 根据注册参数，生成worker指标信息
      * @param options worker注册参数
-     * @return worker指标领域对象
      */
-    public static WorkerMetric toWorkerMetric(WorkerRegisterParam options, Worker worker) {
+    public static WorkerMetric toWorkerMetric(WorkerRegisterParam options) {
         WorkerResourceParam resource = options.getAvailableResource();
         return WorkerMetric.builder()
-                .workerId(worker.getWorkerId())
                 .executingJobs(Lists.newArrayList()) // TODO 是否需要记录执行中的作业？
                 .availableResource(new WorkerAvailableResource(
                         resource.getAvailableCpu(),
@@ -87,12 +88,10 @@ public class WorkerConverter {
     /**
      * 根据心跳参数，生成worker指标信息
      * @param options worker注册参数
-     * @return worker指标领域对象
      */
-    public static WorkerMetric toWorkerMetric(WorkerHeartbeatParam options, Worker worker) {
+    public static WorkerMetric toWorkerMetric(WorkerHeartbeatParam options) {
         WorkerResourceParam resource = options.getAvailableResource();
         return WorkerMetric.builder()
-                .workerId(worker.getWorkerId())
                 .executingJobs(Lists.newArrayList()) // TODO 是否需要记录？
                 .availableResource(new WorkerAvailableResource(
                         resource.getAvailableCpu(),
@@ -107,11 +106,11 @@ public class WorkerConverter {
      * Worker 执行器列表转换，根据注册参数中的 id 设置 workerId
      * {@link WorkerExecutorRegisterParam} => {@link WorkerExecutor}
      */
-    public static List<WorkerExecutor> toWorkerExecutors(WorkerRegisterParam options, Worker worker) {
+    public static List<WorkerExecutor> toWorkerExecutors(WorkerRegisterParam options) {
         List<WorkerExecutor> executors;
         if (CollectionUtils.isNotEmpty(options.getExecutors())) {
             executors = options.getExecutors().stream()
-                    .map(e -> toWorkerExecutor(e, worker))
+                    .map(WorkerConverter::toWorkerExecutor)
                     .collect(Collectors.toList());
         } else {
             executors = Lists.newArrayList();
@@ -124,9 +123,8 @@ public class WorkerConverter {
     /**
      * {@link WorkerExecutorRegisterParam} => {@link WorkerExecutor}
      */
-    public static WorkerExecutor toWorkerExecutor(WorkerExecutorRegisterParam dto, Worker worker) {
+    public static WorkerExecutor toWorkerExecutor(WorkerExecutorRegisterParam dto) {
         return WorkerExecutor.builder()
-                .workerId(worker.getWorkerId())
                 .name(dto.getName())
                 .description(dto.getDescription())
                 .build();
@@ -136,14 +134,21 @@ public class WorkerConverter {
     /**
      * Worker 注册结果
      */
-    public static WorkerRegisterDTO toRegisterDTO(Worker worker) {
+    public static WorkerRegisterDTO toRegisterDTO(Worker worker, Collection<Node> nodes) {
         WorkerRegisterDTO registerResult = new WorkerRegisterDTO();
-        registerResult.setWorkerId(worker.getWorkerId());
-        registerResult.setBrokerTopology(new BrokerTopologyDTO());
-//        registerResult.setBrokerTopology(new BrokerTopologyDTO()); FIXME 怎样得到所有的 Broker 节点信息？
+        registerResult.setWorkerId(worker.getId());
+        registerResult.setBrokerTopology(toBrokerTopologyDTO(nodes));
         return registerResult;
     }
 
-
+    public static BrokerTopologyDTO toBrokerTopologyDTO(Collection<Node> nodes) {
+        BrokerTopologyDTO brokerTopologyDTO = new BrokerTopologyDTO();
+        if (CollectionUtils.isNotEmpty(nodes)) {
+            for (Node node : nodes) {
+                brokerTopologyDTO.getBrokers().add(new BrokerDTO(node.getHost(), node.getPort()));
+            }
+        }
+        return brokerTopologyDTO;
+    }
 
 }

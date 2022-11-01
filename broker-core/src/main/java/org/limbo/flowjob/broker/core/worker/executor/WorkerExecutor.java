@@ -37,11 +37,6 @@ import lombok.Setter;
 public class WorkerExecutor {
 
     /**
-     * worker节点ID
-     */
-    private String workerId;
-
-    /**
      * 执行器名称
      */
     private String name;

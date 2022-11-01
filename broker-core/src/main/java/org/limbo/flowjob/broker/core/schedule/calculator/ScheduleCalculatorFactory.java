@@ -1,6 +1,6 @@
 package org.limbo.flowjob.broker.core.schedule.calculator;
 
-import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
+import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
 
 import java.util.function.Function;

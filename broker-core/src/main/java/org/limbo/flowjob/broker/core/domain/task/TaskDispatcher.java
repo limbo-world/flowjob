@@ -20,11 +20,11 @@ package org.limbo.flowjob.broker.core.domain.task;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.exceptions.JobDispatchException;
 import org.limbo.flowjob.broker.core.worker.Worker;
+import org.limbo.flowjob.common.constants.TaskStatus;
 
 import java.util.List;
 import java.util.Objects;
@@ -63,12 +63,12 @@ public class TaskDispatcher {
 
                     // 更新状态
                     task.setStatus(TaskStatus.EXECUTING);
-                    task.setWorkerId(worker.getWorkerId());
+                    task.setWorkerId(worker.getId());
 
                     return;
                 }
 
-                availableWorkers = availableWorkers.stream().filter(w -> !Objects.equals(w.getWorkerId(), worker.getWorkerId())).collect(Collectors.toList());
+                availableWorkers = availableWorkers.stream().filter(w -> !Objects.equals(w.getId(), worker.getId())).collect(Collectors.toList());
             } catch (Exception e) {
                 log.error("Task dispatch fail task={}", task, e);
             }

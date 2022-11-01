@@ -20,7 +20,7 @@ package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
@@ -33,6 +33,7 @@ import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerExecutorEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerMetricEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerTagEntityRepo;
+import org.limbo.flowjob.common.constants.WorkerStatus;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
@@ -76,22 +77,24 @@ public class WorkerRepo implements WorkerRepository {
         Objects.requireNonNull(entity);
         workerEntityRepo.saveAndFlush(entity);
 
+        Long workerId = entity.getId();
+
         // Metric 存储
         WorkerMetric metric = worker.getMetric();
-        WorkerMetricEntity metricPo = converter.toMetricEntity(metric);
+        WorkerMetricEntity metricPo = converter.toMetricEntity(workerId, metric);
         metricEntityRepo.saveAndFlush(Objects.requireNonNull(metricPo));
 
         // Executors 存储
-        executorEntityRepo.deleteByWorkerId(worker.getWorkerId());
-        List<WorkerExecutorEntity> executorPos = converter.toExecutorEntities(worker);
+        executorEntityRepo.deleteByWorkerId(workerId);
+        List<WorkerExecutorEntity> executorPos = converter.toExecutorEntities(workerId, worker);
         if (CollectionUtils.isNotEmpty(executorPos)) {
             executorEntityRepo.saveAll(executorPos);
             executorEntityRepo.flush();
         }
 
         // Tags 存储
-        tagEntityRepo.deleteByWorkerId(worker.getWorkerId());
-        List<WorkerTagEntity> tagPos = converter.toTagEntities(worker);
+        tagEntityRepo.deleteByWorkerId(workerId);
+        List<WorkerTagEntity> tagPos = converter.toTagEntities(workerId, worker);
         if (CollectionUtils.isNotEmpty(tagPos)) {
             tagEntityRepo.saveAll(tagPos);
             tagEntityRepo.flush();
@@ -102,16 +105,27 @@ public class WorkerRepo implements WorkerRepository {
     /**
      * {@inheritDoc}
      *
-     * @param workerId workerId
+     * @param id workerId
      * @return
      */
     @Override
-    public Worker get(String workerId) {
-        if (workerId == null) {
+    public Worker get(String id) {
+        if (StringUtils.isBlank(id)) {
+            return null;
+        }
+        Long workerId = Long.valueOf(id);
+        return workerEntityRepo.findById(workerId)
+                .map(this::toWorkerWithLazyInit)
+                .orElse(null);
+    }
+
+    @Override
+    public Worker getByName(String name) {
+        if (StringUtils.isBlank(name)) {
             return null;
         }
 
-        return workerEntityRepo.findById(workerId)
+        return workerEntityRepo.findByName(name)
                 .map(this::toWorkerWithLazyInit)
                 .orElse(null);
     }
@@ -135,7 +149,7 @@ public class WorkerRepo implements WorkerRepository {
      * 将 Worker 持久化对象转为领域模型，并为其中的属性设置为懒加载。
      */
     private Worker toWorkerWithLazyInit(WorkerEntity worker) {
-        String workerId = worker.getId();
+        Long workerId = worker.getId();
         return converter.toWorker(worker,
                 converter.toTags(tagEntityRepo.findByWorkerId(workerId)),
                 converter.toExecutors(executorEntityRepo.findByWorkerId(workerId)),
@@ -147,10 +161,11 @@ public class WorkerRepo implements WorkerRepository {
     /**
      * {@inheritDoc}
      *
-     * @param workerId 需要被移除的workerId
+     * @param id 需要被移除的workerId
      */
     @Override
-    public void delete(String workerId) {
+    public void delete(String id) {
+        Long workerId = Long.valueOf(id);
         Optional<WorkerEntity> workerEntityOptional = workerEntityRepo.findById(workerId);
         if (workerEntityOptional.isPresent()) {
             WorkerEntity workerEntity = workerEntityOptional.get();

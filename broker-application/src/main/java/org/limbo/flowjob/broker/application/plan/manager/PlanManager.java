@@ -20,8 +20,8 @@ package org.limbo.flowjob.broker.application.plan.manager;
 
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.api.constants.enums.JobStatus;
-import org.limbo.flowjob.broker.api.constants.enums.PlanStatus;
+import org.limbo.flowjob.common.constants.JobStatus;
+import org.limbo.flowjob.common.constants.PlanStatus;
 import org.limbo.flowjob.broker.application.plan.component.JobScheduler;
 import org.limbo.flowjob.broker.core.domain.job.JobInstanceFactory;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;

@@ -2,11 +2,11 @@ package org.limbo.flowjob.broker.application.plan.service;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.api.clent.param.TaskFeedbackParam;
-import org.limbo.flowjob.broker.api.constants.enums.ExecuteResult;
-import org.limbo.flowjob.broker.api.constants.enums.JobStatus;
-import org.limbo.flowjob.broker.api.constants.enums.PlanStatus;
-import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
+import org.limbo.flowjob.api.param.TaskFeedbackParam;
+import org.limbo.flowjob.common.constants.ExecuteResult;
+import org.limbo.flowjob.common.constants.JobStatus;
+import org.limbo.flowjob.common.constants.PlanStatus;
+import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.broker.application.plan.component.JobScheduler;
 import org.limbo.flowjob.broker.application.plan.manager.PlanManager;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;

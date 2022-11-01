@@ -22,12 +22,15 @@ import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Devil
  * @since 2022/6/24
  */
-public interface WorkerEntityRepo extends JpaRepository<WorkerEntity, String> {
+public interface WorkerEntityRepo extends JpaRepository<WorkerEntity, Long> {
 
     List<WorkerEntity> findByStatusAndDeleted(Byte status, Boolean deleted);
+
+    Optional<WorkerEntity> findByName(String name);
 }

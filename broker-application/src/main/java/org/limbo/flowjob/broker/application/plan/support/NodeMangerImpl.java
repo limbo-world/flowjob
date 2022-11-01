@@ -37,26 +37,22 @@ public class NodeMangerImpl implements NodeManger {
 
     @Override
     public void online(Node node) {
-        map.put(key(node), node);
+        map.putIfAbsent(node.getName(), node);
     }
 
     @Override
     public void offline(Node node) {
-        map.remove(key(node));
+        map.remove(node.getName());
     }
 
     @Override
-    public boolean alive(Node node) {
-        return map.containsKey(key(node));
+    public boolean alive(String name) {
+        return map.containsKey(name);
     }
 
     @Override
     public Collection<Node> allAlive() {
         return map.values();
-    }
-
-    private static String key(Node node) {
-        return node.getHost() + ":" + node.getPort();
     }
 
 }

@@ -33,8 +33,8 @@ public interface WorkerTagEntityRepo extends JpaRepository<WorkerTagEntity, Long
 
     @Modifying(clearAutomatically = true)
     @Query("delete from WorkerTagEntity where workerId = :workerId")
-    int deleteByWorkerId(@Param("workerId") String workerId);
+    int deleteByWorkerId(@Param("workerId") Long workerId);
 
-    List<WorkerTagEntity> findByWorkerId(String workerId);
+    List<WorkerTagEntity> findByWorkerId(Long workerId);
 
 }

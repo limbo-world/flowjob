@@ -18,15 +18,15 @@ package org.limbo.flowjob.broker.application.plan.service;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.api.clent.dto.WorkerRegisterDTO;
-import org.limbo.flowjob.broker.api.clent.param.WorkerHeartbeatParam;
-import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
-import org.limbo.flowjob.broker.api.constants.enums.Protocol;
-import org.limbo.flowjob.broker.api.dto.BrokerTopologyDTO;
-import org.limbo.flowjob.broker.application.plan.support.WorkerFactory;
+import org.limbo.flowjob.api.dto.WorkerRegisterDTO;
+import org.limbo.flowjob.api.param.WorkerHeartbeatParam;
+import org.limbo.flowjob.api.param.WorkerRegisterParam;
 import org.limbo.flowjob.broker.application.plan.converter.WorkerConverter;
+import org.limbo.flowjob.broker.application.plan.support.WorkerFactory;
+import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
+import org.limbo.flowjob.common.constants.Protocol;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +46,8 @@ public class WorkerService {
 
     @Setter(onMethod_ = @Inject)
     private WorkerRepository workerRepository;
+    @Setter(onMethod_ = @Inject)
+    private NodeManger nodeManger;
 
 
     /**
@@ -53,19 +55,21 @@ public class WorkerService {
      * @param option 心跳参数，上报部分指标数据
      */
     @Transactional(rollbackOn = Throwable.class)
-    public BrokerTopologyDTO heartbeat(WorkerHeartbeatParam option) {
+    public WorkerRegisterDTO heartbeat(WorkerHeartbeatParam option) {
+        String workerId = null; // todo 从会话获取
         // 查询worker并校验
-        Worker worker = workerRepository.get(option.getWorkerId());
+        Worker worker = workerRepository.get(workerId);
         Verifies.requireNotNull(worker, "worker不存在！");
 
         // 更新metric
-        worker.heartbeat(WorkerConverter.toWorkerMetric(option, worker));
+        worker.heartbeat(WorkerConverter.toWorkerMetric(option));
         workerRepository.save(worker);
 
         if (log.isDebugEnabled()) {
-            log.debug("receive heartbeat from " + worker.getWorkerId());
+            log.debug("receive heartbeat from " + workerId);
         }
-        return null; // todo
+
+        return WorkerConverter.toRegisterDTO(worker, nodeManger.allAlive());
     }
 
     /**
@@ -87,23 +91,23 @@ public class WorkerService {
 
         // 新增 or 更新 worker
         Worker worker = Optional
-                .ofNullable(workerRepository.get(options.getId()))
+                .ofNullable(workerRepository.getByName(options.getName()))
                 .orElseGet(() -> WorkerFactory.newWorker(options));
 
         // 更新注册信息
         worker.register(
                 options.getUrl(),
                 WorkerConverter.toWorkerTags(options),
-                WorkerConverter.toWorkerExecutors(options, worker),
-                WorkerConverter.toWorkerMetric(options, worker)
+                WorkerConverter.toWorkerExecutors(options),
+                WorkerConverter.toWorkerMetric(options)
         );
 
         // 保存 worker
         workerRepository.save(worker);
         log.info("worker registered " + worker);
 
-        // 返回tracker
-        return WorkerConverter.toRegisterDTO(worker);
+        // 返回 node
+        return WorkerConverter.toRegisterDTO(worker, nodeManger.allAlive());
     }
 
 }

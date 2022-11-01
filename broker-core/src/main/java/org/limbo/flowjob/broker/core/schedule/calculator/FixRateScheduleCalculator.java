@@ -17,7 +17,7 @@
 package org.limbo.flowjob.broker.core.schedule.calculator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
+import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.broker.core.schedule.Calculated;
 import org.limbo.flowjob.broker.core.schedule.Scheduled;
 import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;

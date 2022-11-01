@@ -20,7 +20,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.broker.api.constants.enums.Protocol;
+import org.limbo.flowjob.common.constants.Protocol;
 import org.limbo.flowjob.common.lb.LBServerRepository;
 import org.limbo.flowjob.common.lb.LBStrategy;
 import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
@@ -102,7 +102,7 @@ public class WorkerAutoConfiguration {
 
         Assert.isTrue(port > 0, "Worker port must be a positive integer in range 1 ~ 65534");
         URL workerBaseUrl = new URL(workerProps.getScheme().name(), host, port, "");
-        BaseWorker worker = new BaseWorker(workerProps.getId(), workerBaseUrl, resources, rpc);
+        BaseWorker worker = new BaseWorker(workerProps.getName(), workerBaseUrl, resources, rpc);
 
         // 将 tag 添加到 Worker
         if (CollectionUtils.isNotEmpty(workerProps.getTags())) {

@@ -40,6 +40,8 @@ import java.time.LocalDateTime;
 public class BrokerEntity extends BaseEntity {
     private static final long serialVersionUID = -4470612703071698168L;
 
+    private String name;
+
     private String host;
 
     private Integer port;

@@ -24,9 +24,10 @@ public interface WorkerMetricRepository {
 
     /**
      * 更新worker指标信息
+     * @param workerId workerId
      * @param metric worker指标信息
      */
-    void updateMetric(WorkerMetric metric);
+    void updateMetric(String workerId, WorkerMetric metric);
 
     /**
      * 根据worker节点ID查询节点的指标信息

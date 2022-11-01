@@ -60,7 +60,7 @@ import java.util.function.Supplier;
 public class BaseWorker implements Worker {
 
     @Getter
-    private final String id;
+    private final String name;
 
     /**
      * Worker 通信基础 URL
@@ -106,16 +106,16 @@ public class BaseWorker implements Worker {
 
     /**
      * 创建一个 Worker 实例
-     * @param id worker 实例 ID，如未指定则会随机生成一个 ID
+     * @param name worker 实例 名称，如未指定则会随机生成一个
      * @param baseURL worker 启动的 RPC 服务的 baseUrl
      * @param resource worker 资源描述对象
      * @param brokerRpc broker RPC 通信模块
      */
-    public BaseWorker(String id, URL baseURL, WorkerResources resource, BrokerRpc brokerRpc) {
+    public BaseWorker(String name, URL baseURL, WorkerResources resource, BrokerRpc brokerRpc) {
         Objects.requireNonNull(baseURL, "URL can't be null");
         Verifies.notNull(brokerRpc, "remote client can't be null");
 
-        this.id = StringUtils.isBlank(id) ? SHAUtils.sha1AndHex(baseURL.toString()).toUpperCase() : id;
+        this.name = StringUtils.isBlank(name) ? SHAUtils.sha1AndHex(baseURL.toString()).toUpperCase() : name;
         this.rpcBaseURL = baseURL;
         this.resource = resource;
         this.brokerRpc = brokerRpc;

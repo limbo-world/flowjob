@@ -22,11 +22,11 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Delegate;
-import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.broker.core.worker.rpc.WorkerRpc;
 import org.limbo.flowjob.broker.core.worker.rpc.WorkerRpcFactory;
+import org.limbo.flowjob.common.constants.WorkerStatus;
 import org.limbo.flowjob.common.lb.LBServer;
 
 import java.net.URL;
@@ -51,7 +51,12 @@ public class Worker implements WorkerRpc, LBServer {
     /**
      * Worker ID
      */
-    private String workerId;
+    private String id;
+
+    /**
+     * Worker 名称
+     */
+    private String name;
 
     /**
      * worker 通信的基础 URL
@@ -76,6 +81,7 @@ public class Worker implements WorkerRpc, LBServer {
     /**
      * Worker 执行器
      */
+    @Setter
     private List<WorkerExecutor> executors;
 
     /**
@@ -86,12 +92,13 @@ public class Worker implements WorkerRpc, LBServer {
     /**
      * Worker 状态指标
      */
+    @Setter
     private WorkerMetric metric;
 
 
     @Override
     public String getServerId() {
-        return workerId;
+        return id;
     }
 
     /**
@@ -135,34 +142,6 @@ public class Worker implements WorkerRpc, LBServer {
         HashMap<String, List<String>> tempTags = new HashMap<>();
         tags.forEach((k, v) -> tempTags.put(k, new ArrayList<>(v)));
         this.tags = tempTags;
-    }
-
-
-    /**
-     * 更新worker节点指标信息
-     * @param metric worker节点指标
-     */
-    protected void setMetric(WorkerMetric metric) {
-        if (!this.workerId.equals(metric.getWorkerId())) {
-            throw new IllegalArgumentException("worker id mismatch");
-        }
-
-        this.metric = metric;
-    }
-
-
-    /**
-     * 更新 worker 的执行器信息
-     * @param executors 新的执行器数据
-     */
-    protected void setExecutors(List<WorkerExecutor> executors) {
-        boolean anyExecutorMismatch = executors.stream()
-                .anyMatch(e -> !this.workerId.equals(e.getWorkerId()));
-        if (anyExecutorMismatch) {
-            throw new IllegalArgumentException("worker id mismatch");
-        }
-
-        this.executors = executors;
     }
 
 

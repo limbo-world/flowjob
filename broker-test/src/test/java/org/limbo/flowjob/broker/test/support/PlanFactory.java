@@ -20,15 +20,15 @@ package org.limbo.flowjob.broker.test.support;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.limbo.flowjob.broker.api.console.param.DispatchOptionParam;
-import org.limbo.flowjob.broker.api.console.param.JobAddParam;
-import org.limbo.flowjob.broker.api.console.param.PlanAddParam;
-import org.limbo.flowjob.broker.api.console.param.PlanReplaceParam;
-import org.limbo.flowjob.broker.api.console.param.ScheduleOptionParam;
-import org.limbo.flowjob.broker.api.constants.enums.JobType;
-import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
-import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
-import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
+import org.limbo.flowjob.api.param.DispatchOptionParam;
+import org.limbo.flowjob.api.param.JobAddParam;
+import org.limbo.flowjob.api.param.PlanAddParam;
+import org.limbo.flowjob.api.param.PlanReplaceParam;
+import org.limbo.flowjob.api.param.ScheduleOptionParam;
+import org.limbo.flowjob.common.constants.JobType;
+import org.limbo.flowjob.common.constants.LoadBalanceType;
+import org.limbo.flowjob.common.constants.ScheduleType;
+import org.limbo.flowjob.common.constants.TriggerType;
 
 import java.time.Duration;
 

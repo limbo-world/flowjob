@@ -20,8 +20,8 @@ package org.limbo.flowjob.broker.core.domain.job;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.api.constants.enums.JobStatus;
-import org.limbo.flowjob.broker.api.constants.enums.JobType;
+import org.limbo.flowjob.common.constants.JobStatus;
+import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.broker.core.domain.DispatchOption;
 import org.limbo.flowjob.broker.core.schedule.Scheduled;
 import org.limbo.flowjob.common.utils.TimeUtil;

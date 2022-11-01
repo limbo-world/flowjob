@@ -48,12 +48,6 @@ import java.util.stream.Collectors;
 public class PlanScheduleTask extends PlanScheduleMetaTask {
 
     @Setter(onMethod_ = @Inject)
-    private BrokerConfig config;
-
-    @Setter(onMethod_ = @Inject)
-    private NodeManger nodeManger;
-
-    @Setter(onMethod_ = @Inject)
     private PlanScheduler scheduler;
 
     @Setter(onMethod_ = @Inject)
@@ -66,8 +60,8 @@ public class PlanScheduleTask extends PlanScheduleMetaTask {
     private PlanSlotEntityRepo planSlotEntityRepo;
 
 
-    public PlanScheduleTask(Duration interval) {
-        super("Meta[PlanScheduleTask]", interval);
+    public PlanScheduleTask(Duration interval, BrokerConfig config, NodeManger nodeManger) {
+        super("Meta[PlanScheduleTask]", interval, config, nodeManger);
     }
 
 
@@ -77,7 +71,7 @@ public class PlanScheduleTask extends PlanScheduleMetaTask {
      * @return
      */
     protected List<Plan> loadSchedulablePlans(LocalDateTime nextTriggerAt) {
-        List<Integer> slots = SlotManager.slots(nodeManger.allAlive(), config.getHost(), config.getPort());
+        List<Integer> slots = SlotManager.slots(getNodeManger().allAlive(), getConfig().getHost(), getConfig().getPort());
         if (CollectionUtils.isEmpty(slots)) {
             return Collections.emptyList();
         }

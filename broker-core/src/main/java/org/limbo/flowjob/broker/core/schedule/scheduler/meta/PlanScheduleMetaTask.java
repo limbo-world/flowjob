@@ -18,11 +18,11 @@
 
 package org.limbo.flowjob.broker.core.schedule.scheduler.meta;
 
-import lombok.Setter;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
-import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
+import org.limbo.flowjob.common.constants.ScheduleType;
+import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
@@ -41,14 +41,16 @@ import java.util.List;
 @Slf4j
 public abstract class PlanScheduleMetaTask extends FixIntervalMetaTask {
 
-    @Setter
-    private BrokerConfig config;
+    @Getter
+    private final BrokerConfig config;
 
-    @Setter
-    private NodeManger nodeManger;
+    @Getter
+    private final NodeManger nodeManger;
 
-    protected PlanScheduleMetaTask(String taskId, Duration interval) {
+    protected PlanScheduleMetaTask(String taskId, Duration interval, BrokerConfig config, NodeManger nodeManger) {
         super(taskId, interval);
+        this.config = config;
+        this.nodeManger = nodeManger;
     }
 
 
@@ -59,7 +61,7 @@ public abstract class PlanScheduleMetaTask extends FixIntervalMetaTask {
     protected void executeTask() {
         try {
             // 判断自己是否存在 --- 可能由于心跳异常导致不存活
-            if (!nodeManger.alive(new Node(config.getHost(), config.getPort()))) {
+            if (!nodeManger.alive(config.getName())) {
                 return;
             }
 

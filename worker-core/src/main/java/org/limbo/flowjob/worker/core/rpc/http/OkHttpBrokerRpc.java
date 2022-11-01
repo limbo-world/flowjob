@@ -29,11 +29,12 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.api.clent.dto.WorkerRegisterDTO;
-import org.limbo.flowjob.broker.api.clent.param.TaskFeedbackParam;
-import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
-import org.limbo.flowjob.broker.api.dto.BrokerTopologyDTO;
-import org.limbo.flowjob.broker.api.dto.ResponseDTO;
+import org.limbo.flowjob.api.dto.WorkerRegisterDTO;
+import org.limbo.flowjob.api.param.TaskFeedbackParam;
+import org.limbo.flowjob.api.param.WorkerRegisterParam;
+import org.limbo.flowjob.common.constants.Protocol;
+import org.limbo.flowjob.api.dto.BrokerTopologyDTO;
+import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.common.lb.LBServerRepository;
 import org.limbo.flowjob.common.lb.LBStrategy;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -73,6 +74,8 @@ public class OkHttpBrokerRpc implements BrokerRpc {
 
     private static final String BASE_URL = "http://0.0.0.0:8080";
 
+    private static final Protocol DEFAULT_PROTOCOL = Protocol.HTTP;
+
     public OkHttpBrokerRpc(LBServerRepository<BrokerNode> repository, LBStrategy<BrokerNode> strategy) {
         this.repository = repository;
         this.client = new OkHttpClient.Builder().addInterceptor(new LoadBalanceInterceptor<>(repository, strategy)).build();
@@ -109,15 +112,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      * 向指定 broker 节点发起注册请求
      */
     private WorkerRegisterDTO registerWith(WorkerRegisterParam param) throws RegisterFailException {
-        String json = JacksonUtils.toJSONString(param);
-        RequestBody body = RequestBody.create(MEDIA_TYPE, json);
-
-        Request request = new Request.Builder()
-                .url(BASE_URL + "/api/worker/v1/worker")
-                .header(HttpHeaders.CONTENT_TYPE, JSON_UTF_8)
-                .post(body).build();
-        Call call = client.newCall(request);
-        ResponseDTO<WorkerRegisterDTO> response = execute(call, new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
+        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + "/api/v1/worker", param, new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
         });
 
         if (response == null || !response.isOk()) {
@@ -133,12 +128,12 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      */
     private synchronized void updateBrokerTopology(BrokerTopologyDTO topo) {
         if (topo == null || CollectionUtils.isEmpty(topo.getBrokers())) {
-            throw new IllegalStateException("Broker topology error: " + topo);
+            throw new IllegalStateException("Broker topology error: " + topo); // todo 由于broker还没注册完，worker就来心跳了，导致获取为空
         }
 
         // 移除接口返回中不存在的，这批节点已经下线
         Set<HttpUrl> realtime = topo.getBrokers().stream()
-                .map(b -> new HttpUrl.Builder().scheme(b.getProtocol()).host(b.getHost()).port(b.getPort()).build())
+                .map(b -> new HttpUrl.Builder().scheme(DEFAULT_PROTOCOL.protocol).host(b.getHost()).port(b.getPort()).build())
                 .collect(Collectors.toSet());
         List<BrokerNode> brokerNodes = repository.listAliveServers().stream().filter(b -> realtime.contains(HttpUrl.get(b.getUrl()))).collect(Collectors.toList());
 
@@ -164,15 +159,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      */
     @Override
     public void heartbeat(Worker worker) {
-        String json = JacksonUtils.toJSONString(RpcParamFactory.heartbeatParam(worker));
-        RequestBody body = RequestBody.create(MEDIA_TYPE, json);
-
-        Request request = new Request.Builder()
-                .url(BASE_URL + "/api/v1/worker/heartbeat")
-                .header(HttpHeaders.CONTENT_TYPE, JSON_UTF_8)
-                .post(body).build();
-        Call call = client.newCall(request);
-        ResponseDTO<BrokerTopologyDTO> response = execute(call, new TypeReference<ResponseDTO<BrokerTopologyDTO>>() {
+        ResponseDTO<BrokerTopologyDTO> response = executePost(BASE_URL + "/api/v1/worker/heartbeat", RpcParamFactory.heartbeatParam(worker), new TypeReference<ResponseDTO<BrokerTopologyDTO>>() {
         });
 
         if (response == null || !response.isOk()) {
@@ -214,15 +201,8 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      * 反馈任务执行结果
      */
     private void doFeedbackTask(TaskFeedbackParam feedbackParam) {
-        String json = JacksonUtils.toJSONString(feedbackParam);
-        RequestBody body = RequestBody.create(MEDIA_TYPE, json);
-
-        Request request = new Request.Builder()
-                .url(BASE_URL + "/api/worker/v1/task/feedback")
-                .header(HttpHeaders.CONTENT_TYPE, JSON_UTF_8)
-                .post(body).build();
-        Call call = client.newCall(request);
-        ResponseDTO<Void> response = execute(call);
+        ResponseDTO<Void> response = executePost(BASE_URL + "/api/v1/task/feedback", feedbackParam, new TypeReference<ResponseDTO<Void>>() {
+        });
 
         if (response == null || !response.isOk()) {
             String msg = response == null ? "unknown" : (response.getCode() + ":" + response.getMessage());
@@ -230,37 +210,44 @@ public class OkHttpBrokerRpc implements BrokerRpc {
         }
     }
 
-
     /**
      * 通过 OkHttp 执行请求，并获取响应
      */
-    private ResponseDTO<Void> execute(Call call) {
-        return execute(call, new TypeReference<ResponseDTO<Void>>() {
-        });
-    }
-
-
-    /**
-     * 通过 OkHttp 执行请求，并获取响应
-     */
-    private <T> ResponseDTO<T> execute(Call call, TypeReference<ResponseDTO<T>> reference) {
+    private <T> ResponseDTO<T> executePost(String url, Object param, TypeReference<ResponseDTO<T>> reference) {
         Objects.requireNonNull(reference);
+
+        String json = JacksonUtils.toJSONString(param);
+        RequestBody body = RequestBody.create(MEDIA_TYPE, json);
+
+        Request request = new Request.Builder()
+                .url(url)
+                .header(HttpHeaders.CONTENT_TYPE, JSON_UTF_8)
+                .post(body).build();
+        Call call = client.newCall(request);
+
+        if (log.isDebugEnabled()) {
+            log.debug("call broker {}", logRequest(url, json));
+        }
 
         try {
             // HTTP 响应状态异常
             Response response = call.execute();
             if (!response.isSuccessful()) {
-                throw new BrokerRpcException("Broker api access failed: code=" + response.code());
+                throw new BrokerRpcException("Broker api access failed; " + logRequest(url, json) + " code=" + response.code());
             }
 
             // 无响应 body 是异常
             if (response.body() == null) {
-                throw new BrokerRpcException("Broker api response empty body");
+                throw new BrokerRpcException("Broker api response empty body " + logRequest(url, json));
             }
             return JacksonUtils.parseObject(response.body().string(), reference);
         } catch (IOException e) {
-            throw new BrokerRpcException("Broker api access failed", e);
+            throw new BrokerRpcException("Broker api access failed " + logRequest(url, json), e);
         }
+    }
+
+    private String logRequest(String url, String param) {
+        return String.format("request[url=%s, param=%s]", url, param);
     }
 
 }

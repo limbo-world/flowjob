@@ -13,9 +13,6 @@
         <module>broker-cluster</module>
         <module>broker-dao</module>
         <module>broker-application</module>
-        <module>broker-api/broker-base-api</module>
-        <module>broker-api/broker-console-api</module>
-        <module>broker-api/broker-client-api</module>
         <module>broker-test</module>
         <module>common</module>
         <module>worker-core</module>
@@ -117,17 +114,7 @@
             </dependency>
             <dependency>
                 <groupId>org.limbo.flowjob</groupId>
-                <artifactId>broker-base-api</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.limbo.flowjob</groupId>
-                <artifactId>broker-client-api</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.limbo.flowjob</groupId>
-                <artifactId>broker-console-api</artifactId>
+                <artifactId>api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

@@ -38,11 +38,7 @@
     <dependencies>
         <dependency>
             <groupId>org.limbo.flowjob</groupId>
-            <artifactId>broker-client-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.limbo.flowjob</groupId>
-            <artifactId>common</artifactId>
+            <artifactId>api</artifactId>
         </dependency>
 
         <dependency>

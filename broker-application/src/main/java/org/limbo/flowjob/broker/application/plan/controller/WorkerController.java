@@ -20,11 +20,10 @@ package org.limbo.flowjob.broker.application.plan.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.limbo.flowjob.broker.api.clent.dto.WorkerRegisterDTO;
-import org.limbo.flowjob.broker.api.clent.param.WorkerHeartbeatParam;
-import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
-import org.limbo.flowjob.broker.api.dto.BrokerTopologyDTO;
-import org.limbo.flowjob.broker.api.dto.ResponseDTO;
+import org.limbo.flowjob.api.dto.WorkerRegisterDTO;
+import org.limbo.flowjob.api.param.WorkerHeartbeatParam;
+import org.limbo.flowjob.api.param.WorkerRegisterParam;
+import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.broker.application.plan.service.WorkerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -60,8 +59,8 @@ public class WorkerController {
      */
     @Operation(summary = "worker心跳")
     @PostMapping("/heartbeat")
-    public ResponseDTO<BrokerTopologyDTO> heartbeat(@RequestBody WorkerHeartbeatParam heartbeatOption) {
-        return ResponseDTO.<BrokerTopologyDTO>builder().ok(workerService.heartbeat(heartbeatOption)).build();
+    public ResponseDTO<WorkerRegisterDTO> heartbeat(@RequestBody WorkerHeartbeatParam heartbeatOption) {
+        return ResponseDTO.<WorkerRegisterDTO>builder().ok(workerService.heartbeat(heartbeatOption)).build();
     }
 
 

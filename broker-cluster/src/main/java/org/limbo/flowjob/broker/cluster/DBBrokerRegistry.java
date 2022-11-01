@@ -22,7 +22,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
-import org.limbo.flowjob.broker.core.cluster.BrokerRegistry;
+import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
 import org.limbo.flowjob.broker.core.cluster.NodeEvent;
 import org.limbo.flowjob.broker.core.cluster.NodeListener;
 import org.limbo.flowjob.broker.dao.entity.BrokerEntity;
@@ -45,11 +45,12 @@ import java.util.TimerTask;
  */
 @Slf4j
 @Component
-public class DBBrokerRegistry implements BrokerRegistry {
+public class DBBrokerRegistry implements NodeRegistry {
 
     @Setter(onMethod_ = @Inject)
     private BrokerEntityRepo brokerEntityRepo;
 
+    // todo 考虑移除
     @Setter(onMethod_ = @Inject)
     private BrokerConfig config;
 
@@ -58,7 +59,7 @@ public class DBBrokerRegistry implements BrokerRegistry {
     private final List<NodeListener> listeners = new ArrayList<>();
 
     @Override
-    public void register(String host, int port) {
+    public void register(String name, String host, int port) {
         // 开启定时任务 维持心跳
         Timer timer = new Timer();
         timer.cancel();
@@ -67,6 +68,7 @@ public class DBBrokerRegistry implements BrokerRegistry {
             public void run() {
                 try {
                     BrokerEntity broker = new BrokerEntity();
+                    broker.setName(name);
                     broker.setHost(host);
                     broker.setPort(port);
                     broker.setLastHeartbeat(TimeUtil.currentLocalDateTime());
@@ -104,6 +106,9 @@ public class DBBrokerRegistry implements BrokerRegistry {
             }
         }
 
+        /**
+         * 每隔一段时间，获取这段时间
+         */
         private void checkOnline() {
             LocalDateTime startTime = lastOfflineCheckTime;
             LocalDateTime endTime = TimeUtil.currentLocalDateTime();
@@ -112,7 +117,7 @@ public class DBBrokerRegistry implements BrokerRegistry {
             if (CollectionUtils.isNotEmpty(onlineBrokers)) {
                 for (BrokerEntity broker : onlineBrokers) {
                     for (NodeListener listener : listeners) {
-                        listener.event(new NodeEvent(NodeEvent.Type.ONLINE, broker.getHost(), broker.getPort()));
+                        listener.event(new NodeEvent(NodeEvent.Type.ONLINE, broker.getName(), broker.getHost(), broker.getPort()));
                     }
                 }
             }
@@ -127,7 +132,7 @@ public class DBBrokerRegistry implements BrokerRegistry {
             if (CollectionUtils.isNotEmpty(offlineBrokers)) {
                 for (BrokerEntity broker : offlineBrokers) {
                     for (NodeListener listener : listeners) {
-                        listener.event(new NodeEvent(NodeEvent.Type.OFFLINE, broker.getHost(), broker.getPort()));
+                        listener.event(new NodeEvent(NodeEvent.Type.OFFLINE, broker.getName(), broker.getHost(), broker.getPort()));
                     }
                 }
             }

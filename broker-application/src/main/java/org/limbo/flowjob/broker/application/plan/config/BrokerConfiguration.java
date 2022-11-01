@@ -20,9 +20,11 @@ import lombok.Setter;
 import org.limbo.flowjob.broker.application.plan.component.JobStatusCheckTask;
 import org.limbo.flowjob.broker.application.plan.component.PlanScheduleTask;
 import org.limbo.flowjob.broker.application.plan.component.TaskStatusCheckTask;
+import org.limbo.flowjob.broker.application.plan.support.BrokerStarter;
 import org.limbo.flowjob.broker.application.plan.support.NodeMangerImpl;
 import org.limbo.flowjob.broker.core.cluster.Broker;
-import org.limbo.flowjob.broker.core.cluster.BrokerRegistry;
+import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
+import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.cluster.WorkerManagerImpl;
@@ -31,9 +33,7 @@ import org.limbo.flowjob.broker.core.schedule.calculator.SimpleScheduleCalculato
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
-import org.limbo.flowjob.worker.starter.processor.event.WorkerReadyEvent;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 
 import javax.inject.Inject;
@@ -51,10 +51,7 @@ public class BrokerConfiguration {
     private BrokerProperties brokerProperties;
 
     @Setter(onMethod_ = @Inject)
-    private BrokerRegistry brokerRegistry;
-
-    @Setter(onMethod_ = @Inject)
-    private ApplicationEventPublisher eventPublisher;
+    private NodeRegistry brokerRegistry;
 
     @Bean
     public NodeManger brokerManger() {
@@ -63,36 +60,11 @@ public class BrokerConfiguration {
 
     /**
      * worker 管理，持久化等
+     * @param metaTasks 下面定义的MetaTask的bean
      */
     @Bean
     public Broker brokerNode(NodeManger nodeManger, MetaTaskScheduler metaTaskScheduler, List<MetaTask> metaTasks) {
-        return new Broker(brokerProperties, brokerRegistry, nodeManger) {
-            @Override
-            public void stop() {
-
-            }
-
-            @Override
-            public boolean isRunning() {
-                return false;
-            }
-
-            @Override
-            public boolean isStopped() {
-                return false;
-            }
-
-            @Override
-            public void start() {
-                super.start();
-
-                // 启动所有元任务调度
-                metaTasks.forEach(metaTaskScheduler::schedule);
-
-                // 将自己注册为worker
-                eventPublisher.publishEvent(new WorkerReadyEvent());
-            }
-        };
+        return new BrokerStarter(brokerProperties, brokerRegistry, nodeManger, metaTaskScheduler, metaTasks);
     }
 
     /**
@@ -132,8 +104,8 @@ public class BrokerConfiguration {
      * 元任务：Plan 加载与调度
      */
     @Bean
-    public MetaTask planScheduleMetaTask() {
-        return new PlanScheduleTask(Duration.ofMillis(brokerProperties.getRebalanceInterval()));
+    public MetaTask planScheduleMetaTask(BrokerConfig config, NodeManger nodeManger) {
+        return new PlanScheduleTask(Duration.ofMillis(brokerProperties.getRebalanceInterval()), config, nodeManger);
     }
 
 

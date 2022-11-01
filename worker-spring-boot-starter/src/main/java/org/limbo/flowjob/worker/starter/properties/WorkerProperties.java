@@ -38,9 +38,9 @@ public class WorkerProperties {
     private boolean enabled = true;
 
     /**
-     * worker 节点 id，如不指定，将在 worker 启动时随机生成一个 id
+     * worker 节点名称，如不指定，将在 worker 启动时随机生成一个
      */
-    private String id;
+    private String name;
 
     /**
      * broker 节点连接列表

@@ -35,15 +35,9 @@ import javax.persistence.Table;
 @Entity
 @DynamicInsert
 @DynamicUpdate
-public class WorkerMetricEntity extends AnonymousBaseEntity<String> {
+public class WorkerMetricEntity extends BaseEntity {
 
     private static final long serialVersionUID = -3009642474389520555L;
-
-    /**
-     * worker节点ID
-     */
-    @Id
-    private String id;
 
     /**
      * worker节点上正在执行中的作业

@@ -28,6 +28,11 @@ import lombok.Data;
 public class BrokerConfig {
 
     /**
+     * broker的唯一标识
+     */
+    private String name;
+
+    /**
      * 提供给worker的服务的 host
      */
     private String host;

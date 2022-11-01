@@ -18,8 +18,8 @@
 
 package org.limbo.flowjob.broker.core.worker.rpc;
 
-import org.limbo.flowjob.broker.api.clent.dto.WorkerAvailableResourceDTO;
-import org.limbo.flowjob.broker.api.clent.dto.WorkerMetricDTO;
+import org.limbo.flowjob.api.dto.WorkerAvailableResourceDTO;
+import org.limbo.flowjob.api.dto.WorkerMetricDTO;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 
@@ -30,7 +30,7 @@ import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 public class WorkerConverter {
 
     public static WorkerMetric toDO(WorkerMetricDTO dto) {
-        return new WorkerMetric(dto.getWorkerId(), dto.getExecutingJobs(), toDO(dto.getAvailableResource()));
+        return new WorkerMetric(dto.getExecutingJobs(), toDO(dto.getAvailableResource()));
     }
 
     public static WorkerAvailableResource toDO(WorkerAvailableResourceDTO dto) {

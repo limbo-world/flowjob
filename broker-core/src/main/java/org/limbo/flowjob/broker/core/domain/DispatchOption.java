@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
-import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
+import org.limbo.flowjob.common.constants.LoadBalanceType;
 
 import java.io.Serializable;
 import java.math.BigDecimal;

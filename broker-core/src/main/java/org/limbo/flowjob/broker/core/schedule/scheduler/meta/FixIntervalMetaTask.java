@@ -16,6 +16,8 @@
 
 package org.limbo.flowjob.broker.core.schedule.scheduler.meta;
 
+import lombok.Getter;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -28,11 +30,13 @@ public abstract class FixIntervalMetaTask extends MetaTask {
     /**
      * 首次触发任务时的延迟时间，默认 0s。
      */
+    @Getter
     private final Duration delay;
 
     /**
      * 两次任务触发的间隔。
      */
+    @Getter
     private final Duration interval;
 
 
@@ -45,6 +49,7 @@ public abstract class FixIntervalMetaTask extends MetaTask {
         super(taskId);
         this.delay = delay;
         this.interval = interval;
+        nextTriggerTime(true);
     }
 
     /**

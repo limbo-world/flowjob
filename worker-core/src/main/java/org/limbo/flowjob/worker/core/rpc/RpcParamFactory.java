@@ -19,12 +19,12 @@
 package org.limbo.flowjob.worker.core.rpc;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.limbo.flowjob.broker.api.clent.param.TaskFeedbackParam;
-import org.limbo.flowjob.broker.api.clent.param.WorkerExecutorRegisterParam;
-import org.limbo.flowjob.broker.api.clent.param.WorkerHeartbeatParam;
-import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
-import org.limbo.flowjob.broker.api.clent.param.WorkerResourceParam;
-import org.limbo.flowjob.broker.api.constants.enums.ExecuteResult;
+import org.limbo.flowjob.api.param.TaskFeedbackParam;
+import org.limbo.flowjob.api.param.WorkerExecutorRegisterParam;
+import org.limbo.flowjob.api.param.WorkerHeartbeatParam;
+import org.limbo.flowjob.api.param.WorkerRegisterParam;
+import org.limbo.flowjob.api.param.WorkerResourceParam;
+import org.limbo.flowjob.common.constants.ExecuteResult;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.domain.WorkerResources;
 
@@ -78,7 +78,7 @@ public class RpcParamFactory {
         // 组装注册参数
         URL workerRpcBaseURL = worker.getRpcBaseURL();
         WorkerRegisterParam registerParam = new WorkerRegisterParam();
-        registerParam.setId(worker.getId());
+        registerParam.setName(worker.getName());
         registerParam.setUrl(workerRpcBaseURL);
         registerParam.setExecutors(executors);
         registerParam.setAvailableResource(resourceParam);
@@ -100,7 +100,6 @@ public class RpcParamFactory {
 
         // 组装心跳参数
         WorkerHeartbeatParam heartbeatParam = new WorkerHeartbeatParam();
-        heartbeatParam.setWorkerId(worker.getId());
         heartbeatParam.setAvailableResource(resource);
 
         return heartbeatParam;

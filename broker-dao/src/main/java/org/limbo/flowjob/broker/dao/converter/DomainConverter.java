@@ -19,10 +19,10 @@
 package org.limbo.flowjob.broker.dao.converter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.limbo.flowjob.broker.api.constants.enums.JobStatus;
-import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
-import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
-import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
+import org.limbo.flowjob.common.constants.JobStatus;
+import org.limbo.flowjob.common.constants.ScheduleType;
+import org.limbo.flowjob.common.constants.TaskStatus;
+import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;

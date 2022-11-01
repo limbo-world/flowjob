@@ -1,11 +1,11 @@
 package org.limbo.flowjob.broker.application.plan.converter;
 
 import com.google.common.collect.Lists;
-import org.limbo.flowjob.broker.api.console.param.DispatchOptionParam;
-import org.limbo.flowjob.broker.api.console.param.JobAddParam;
-import org.limbo.flowjob.broker.api.console.param.PlanAddParam;
-import org.limbo.flowjob.broker.api.console.param.PlanReplaceParam;
-import org.limbo.flowjob.broker.api.console.param.ScheduleOptionParam;
+import org.limbo.flowjob.api.param.DispatchOptionParam;
+import org.limbo.flowjob.api.param.JobAddParam;
+import org.limbo.flowjob.api.param.PlanAddParam;
+import org.limbo.flowjob.api.param.PlanReplaceParam;
+import org.limbo.flowjob.api.param.ScheduleOptionParam;
 import org.limbo.flowjob.broker.core.domain.DispatchOption;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;

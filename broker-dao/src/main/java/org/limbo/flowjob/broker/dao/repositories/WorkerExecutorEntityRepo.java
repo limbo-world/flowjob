@@ -34,8 +34,8 @@ public interface WorkerExecutorEntityRepo extends JpaRepository<WorkerExecutorEn
 
     @Modifying(clearAutomatically = true)
     @Query("delete from WorkerExecutorEntity where workerId = :workerId")
-    int deleteByWorkerId(@Param("workerId") String workerId);
+    int deleteByWorkerId(@Param("workerId") Long workerId);
 
-    List<WorkerExecutorEntity> findByWorkerId(String workerId);
+    List<WorkerExecutorEntity> findByWorkerId(Long workerId);
 
 }

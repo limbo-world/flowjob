@@ -19,13 +19,11 @@ package org.limbo.flowjob.worker.starter.application.services;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.api.clent.param.TaskSubmitParam;
+import org.limbo.flowjob.api.param.TaskSubmitParam;
 import org.limbo.flowjob.worker.core.domain.Task;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.starter.application.converter.TaskConverter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
 

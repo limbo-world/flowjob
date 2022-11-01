@@ -21,10 +21,10 @@ package org.limbo.flowjob.broker.application.plan.support;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.broker.api.clent.param.WorkerExecutorRegisterParam;
-import org.limbo.flowjob.broker.api.clent.param.WorkerRegisterParam;
-import org.limbo.flowjob.broker.api.clent.param.WorkerResourceParam;
-import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
+import org.limbo.flowjob.api.param.WorkerExecutorRegisterParam;
+import org.limbo.flowjob.api.param.WorkerRegisterParam;
+import org.limbo.flowjob.api.param.WorkerResourceParam;
+import org.limbo.flowjob.common.constants.WorkerStatus;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
@@ -47,27 +47,27 @@ public class WorkerFactory {
      * @return worker领域对象
      */
     public static Worker newWorker(WorkerRegisterParam options) {
-        String workerId = StringUtils.isNotBlank(options.getId()) ? options.getId() : UUIDUtils.randomID();
+        String name = StringUtils.isNotBlank(options.getName()) ? options.getName() : UUIDUtils.randomID();
         return Worker.builder()
-                .workerId(workerId)
+                .name(name)
                 .rpcBaseUrl(options.getUrl())
-                .executors(executors(workerId, options.getExecutors()))
+                .executors(executors(options.getExecutors()))
                 .tags(Maps.newHashMap())
-                .metric(metric(workerId, Collections.emptyList(), options.getAvailableResource()))
+                .metric(metric(Collections.emptyList(), options.getAvailableResource()))
                 .status(WorkerStatus.TERMINATED)
                 .build();
     }
 
 
-    private static List<WorkerExecutor> executors(String workerId, List<WorkerExecutorRegisterParam> executorsParam) {
+    private static List<WorkerExecutor> executors(List<WorkerExecutorRegisterParam> executorsParam) {
         if (CollectionUtils.isEmpty(executorsParam)) {
             return Collections.emptyList();
         }
-        return executorsParam.stream().map(param -> new WorkerExecutor(workerId, param.getName(), param.getDescription())).collect(Collectors.toList());
+        return executorsParam.stream().map(param -> new WorkerExecutor(param.getName(), param.getDescription())).collect(Collectors.toList());
     }
 
-    private static WorkerMetric metric(String workerId, List<String> executingJobs, WorkerResourceParam availableResource) {
-        return new WorkerMetric(workerId, executingJobs, new WorkerAvailableResource(
+    private static WorkerMetric metric(List<String> executingJobs, WorkerResourceParam availableResource) {
+        return new WorkerMetric(executingJobs, new WorkerAvailableResource(
                 availableResource.getAvailableCpu(),
                 availableResource.getAvailableRAM(),
                 availableResource.getAvailableQueueLimit()

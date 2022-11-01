@@ -1,10 +1,10 @@
 package org.limbo.flowjob.broker.application.plan.service;
 
 import lombok.Setter;
-import org.limbo.flowjob.broker.api.console.param.PlanAddParam;
-import org.limbo.flowjob.broker.api.console.param.PlanReplaceParam;
-import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
-import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
+import org.limbo.flowjob.api.param.PlanAddParam;
+import org.limbo.flowjob.api.param.PlanReplaceParam;
+import org.limbo.flowjob.common.constants.ScheduleType;
+import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;

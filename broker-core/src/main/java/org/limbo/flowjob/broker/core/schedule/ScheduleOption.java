@@ -19,8 +19,8 @@ package org.limbo.flowjob.broker.core.schedule;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
-import org.limbo.flowjob.broker.api.constants.enums.TriggerType;
+import org.limbo.flowjob.common.constants.ScheduleType;
+import org.limbo.flowjob.common.constants.TriggerType;
 
 import java.io.Serializable;
 import java.time.Duration;

@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.broker.core.schedule.scheduler;
 
-import org.limbo.flowjob.broker.api.constants.enums.ScheduleType;
+import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.broker.core.schedule.Scheduled;
 
 /**

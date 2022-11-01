@@ -27,6 +27,8 @@ import lombok.Getter;
 @Getter
 public class NodeEvent {
 
+    private final String name;
+
     private final String host;
 
     private final int port;
@@ -38,8 +40,9 @@ public class NodeEvent {
         OFFLINE
     }
 
-    public NodeEvent(Type type, String host, int port) {
+    public NodeEvent(Type type, String name, String host, int port) {
         this.type = type;
+        this.name = name;
         this.host = host;
         this.port = port;
     }

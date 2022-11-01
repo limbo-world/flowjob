@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.broker.core.dispatcher;
 
-import org.limbo.flowjob.broker.api.constants.enums.LoadBalanceType;
+import org.limbo.flowjob.common.constants.LoadBalanceType;
 import org.limbo.flowjob.common.lb.strategies.AppointLBStrategy;
 import org.limbo.flowjob.common.lb.strategies.ConsistentHashLBStrategy;
 import org.limbo.flowjob.common.lb.strategies.LFULBStrategy;

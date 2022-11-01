@@ -40,7 +40,7 @@ public interface NodeManger {
     /**
      * 检查节点是否存活
      */
-    boolean alive(Node node);
+    boolean alive(String name);
 
     /**
      * 所有存活节点

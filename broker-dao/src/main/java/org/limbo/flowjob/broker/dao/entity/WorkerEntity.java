@@ -37,7 +37,7 @@ import javax.persistence.Table;
 @Entity
 @DynamicInsert
 @DynamicUpdate
-public class WorkerEntity extends AnonymousBaseEntity<String> {
+public class WorkerEntity extends BaseEntity {
 
     private static final long serialVersionUID = -3237766932023820195L;
 
@@ -47,10 +47,9 @@ public class WorkerEntity extends AnonymousBaseEntity<String> {
     private Long appId;
 
     /**
-     * uuid
+     * 名称 唯一
      */
-    @Id
-    private String id;
+    private String name;
 
     /**
      * worker服务使用的通信协议

@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
-import org.limbo.flowjob.broker.api.constants.enums.TaskStatus;
+import org.limbo.flowjob.common.constants.TaskStatus;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;

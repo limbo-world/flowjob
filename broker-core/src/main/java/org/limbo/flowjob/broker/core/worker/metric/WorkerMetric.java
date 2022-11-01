@@ -16,7 +16,6 @@
 
 package org.limbo.flowjob.broker.core.worker.metric;
 
-import com.google.common.collect.Lists;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,11 +35,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder(builderClassName = "Builder")
 public class WorkerMetric {
-
-    /**
-     * worker节点ID
-     */
-    private String workerId;
 
     /**
      * worker节点上正在执行中的作业，瞬时态数据，可能并发不安全

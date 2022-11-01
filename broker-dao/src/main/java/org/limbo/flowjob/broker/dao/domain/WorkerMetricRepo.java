@@ -48,8 +48,8 @@ public class WorkerMetricRepo implements WorkerMetricRepository {
      * @param metric worker指标信息
      */
     @Override
-    public void updateMetric(WorkerMetric metric) {
-        WorkerMetricEntity po = converter.toMetricEntity(metric);
+    public void updateMetric(String workerId, WorkerMetric metric) {
+        WorkerMetricEntity po = converter.toMetricEntity(Long.valueOf(workerId), metric);
         Objects.requireNonNull(po);
 
         // 新增或插入worker指标
@@ -65,7 +65,7 @@ public class WorkerMetricRepo implements WorkerMetricRepository {
     @Override
     public WorkerMetric getMetric(String workerId) {
         // 查询metric
-        return workerMetricEntityRepo.findById(workerId)
+        return workerMetricEntityRepo.findById(Long.valueOf(workerId))
                 .map(converter::toMetric)
                 .orElse(null);
     }

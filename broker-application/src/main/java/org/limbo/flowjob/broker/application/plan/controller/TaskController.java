@@ -18,8 +18,8 @@ package org.limbo.flowjob.broker.application.plan.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.limbo.flowjob.broker.api.clent.param.TaskFeedbackParam;
-import org.limbo.flowjob.broker.api.dto.ResponseDTO;
+import org.limbo.flowjob.api.param.TaskFeedbackParam;
+import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.broker.application.plan.service.TaskService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

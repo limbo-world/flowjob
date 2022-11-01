@@ -11,14 +11,16 @@
         </Console>
     </Appenders>
     <Loggers>
-        <logger name="com.alipay.sofa.jraft.core" level="INFO" />
+        <logger name="org.hibernate" level="INFO" />
+        <logger name="org.flywaydb.core" level="INFO" />
         <logger name="org.apache.commons" level="INFO" />
         <logger name="org.apache.http" level="INFO" />
         <logger name="org.springframework" level="INFO" />
         <logger name="org.springframework.web" level="INFO" />
         <logger name="com.netflix.discovery" level="INFO" />
         <logger name="org.springframework.cloud.client.discovery" level="INFO" />
-        <Root level="INFO">
+        <Root level="DEBUG">
+<!--        <Root level="INFO">-->
             <AppenderRef ref="Console" />
         </Root>
     </Loggers>

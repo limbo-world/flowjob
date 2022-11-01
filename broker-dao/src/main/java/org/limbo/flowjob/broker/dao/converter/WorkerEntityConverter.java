@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
@@ -30,6 +29,7 @@ import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
+import org.limbo.flowjob.common.constants.WorkerStatus;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Component;
 
@@ -63,7 +63,8 @@ public class WorkerEntityConverter {
         }
 
         return Worker.builder()
-                .workerId(po.getId())
+                .id(String.valueOf(po.getId()))
+                .name(po.getName())
                 .rpcBaseUrl(workerRpcBaseUrl(po))
                 .status(WorkerStatus.parse(po.getStatus()))
                 .tags(tags)
@@ -93,7 +94,8 @@ public class WorkerEntityConverter {
      */
     public WorkerEntity toWorkerEntity(Worker worker) {
         WorkerEntity po = new WorkerEntity();
-        po.setId(worker.getWorkerId());
+        po.setId(Long.valueOf(worker.getId()));
+        po.setName(worker.getName());
         po.setProtocol(worker.getRpcBaseUrl().getProtocol());
         po.setHost(worker.getRpcBaseUrl().getHost());
         po.setPort(worker.getRpcBaseUrl().getPort());
@@ -110,7 +112,6 @@ public class WorkerEntityConverter {
      */
     public WorkerMetric toMetric(WorkerMetricEntity metric) {
         return WorkerMetric.builder()
-                .workerId(metric.getId())
                 .availableResource(new WorkerAvailableResource(
                         metric.getAvailableCpu(), metric.getAvailableRam(), metric.getAvailableQueueLimit()
                 ))
@@ -126,9 +127,9 @@ public class WorkerEntityConverter {
      * @param vo {@link WorkerMetric}值对象
      * @return {@link WorkerMetricEntity}持久化对象
      */
-    public WorkerMetricEntity toMetricEntity(WorkerMetric vo) {
+    public WorkerMetricEntity toMetricEntity(Long workerId, WorkerMetric vo) {
         WorkerMetricEntity po = new WorkerMetricEntity();
-        po.setId(vo.getWorkerId());
+        po.setId(workerId);
 
         WorkerAvailableResource availableResource = vo.getAvailableResource();
         po.setAvailableCpu(availableResource.getAvailableCpu());
@@ -152,7 +153,6 @@ public class WorkerEntityConverter {
 
         return entities.stream()
                 .map(entity -> WorkerExecutor.builder()
-                        .workerId(entity.getWorkerId())
                         .name(entity.getName())
                         .description(entity.getDescription())
                         .build())
@@ -163,7 +163,7 @@ public class WorkerEntityConverter {
     /**
      * 提取 Worker 中的 executors，转为持久化对象列表
      */
-    public List<WorkerExecutorEntity> toExecutorEntities(Worker worker) {
+    public List<WorkerExecutorEntity> toExecutorEntities(Long workerId, Worker worker) {
         List<WorkerExecutor> executors = worker.getExecutors();
         if (CollectionUtils.isEmpty(executors)) {
             return Lists.newArrayList();
@@ -172,7 +172,7 @@ public class WorkerEntityConverter {
         return executors.stream()
                 .map(exe -> {
                     WorkerExecutorEntity executor = new WorkerExecutorEntity();
-                    executor.setWorkerId(worker.getWorkerId());
+                    executor.setWorkerId(workerId);
                     executor.setName(exe.getName());
                     executor.setDescription(exe.getDescription());
                     return executor;
@@ -191,7 +191,7 @@ public class WorkerEntityConverter {
 
         Map<String, List<String>> tagsMap = new HashMap<>();
         for (WorkerTagEntity tag : tags) {
-            List<String> values = tagsMap.computeIfAbsent(tag.getTagKey(), _k -> new ArrayList<>());
+            List<String> values = tagsMap.computeIfAbsent(tag.getTagKey(), k -> new ArrayList<>());
             values.add(tag.getTagValue());
         }
 
@@ -202,7 +202,7 @@ public class WorkerEntityConverter {
     /**
      * 提取 Worker 中的 tags，转为持久化对象列表
      */
-    public List<WorkerTagEntity> toTagEntities(Worker worker) {
+    public List<WorkerTagEntity> toTagEntities(Long workerId, Worker worker) {
         Map<String, List<String>> tags = worker.getTags();
         if (MapUtils.isEmpty(tags)) {
             return Lists.newArrayList();
@@ -217,7 +217,7 @@ public class WorkerEntityConverter {
 
                     return values.stream().map(value -> {
                         WorkerTagEntity tag = new WorkerTagEntity();
-                        tag.setWorkerId(worker.getWorkerId());
+                        tag.setWorkerId(workerId);
                         tag.setTagKey(entry.getKey());
                         tag.setTagValue(value);
                         return tag;

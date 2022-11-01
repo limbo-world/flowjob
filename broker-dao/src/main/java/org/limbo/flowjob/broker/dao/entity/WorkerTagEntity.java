@@ -42,7 +42,7 @@ public class WorkerTagEntity extends BaseEntity {
     /**
      * worker id
      */
-    private String workerId;
+    private Long workerId;
 
     /**
      * worker tag key

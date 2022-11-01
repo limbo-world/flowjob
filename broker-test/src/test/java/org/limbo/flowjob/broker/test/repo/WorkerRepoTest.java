@@ -21,7 +21,7 @@ package org.limbo.flowjob.broker.test.repo;
 import lombok.Setter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
+import org.limbo.flowjob.common.constants.WorkerStatus;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
 import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
@@ -50,7 +50,7 @@ public class WorkerRepoTest {
 
     @Test
     public void findExecutor() {
-        List<WorkerExecutorEntity> workerExecutorEntities = workerExecutorEntityRepo.findByWorkerId("1234566");
+        List<WorkerExecutorEntity> workerExecutorEntities = workerExecutorEntityRepo.findByWorkerId(1234566L);
         System.out.println(JacksonUtils.toJSONString(workerExecutorEntities));
     }
 
@@ -65,7 +65,7 @@ public class WorkerRepoTest {
     @Test
     @Transactional
     public void delete() {
-        int d = workerExecutorEntityRepo.deleteByWorkerId("1234566");
+        int d = workerExecutorEntityRepo.deleteByWorkerId(1234566L);
         System.out.println(d);
     }
 

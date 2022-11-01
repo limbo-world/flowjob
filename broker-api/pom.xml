@@ -8,6 +8,27 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>broker-api</artifactId>
+    <artifactId>api</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.limbo.flowjob</groupId>
+            <artifactId>common</artifactId>
+        </dependency>
+
+        <!-- validation -->
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- SwaggerV3 接口文档注解 -->
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 
 </project>

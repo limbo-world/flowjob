@@ -29,6 +29,14 @@ import lombok.Getter;
 @AllArgsConstructor
 public class Node {
 
+//    /**
+//     * 协议 如果加入多协议，需要有多个port，要改动整体结构
+//     * @see Protocol
+//     */
+//    private String protocol;
+
+    private final String name;
+
     private final String host;
 
     private final Integer port;

@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.broker.core.worker;
 
-import org.limbo.flowjob.broker.api.constants.enums.WorkerStatus;
+import org.limbo.flowjob.common.constants.WorkerStatus;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -36,11 +36,18 @@ public interface WorkerRepository {
 
     /**
      * 根据id查询worker
-     * @param workerId workerId
+     * @param id workerId
      * @return worker节点
      */
     @Nullable
-    Worker get(String workerId);
+    Worker get(String id);
+
+    /**
+     * 根据名称查询worker
+     * @param name 名称
+     * @return worker节点
+     */
+    Worker getByName(String name);
 
 
     /**
@@ -52,8 +59,8 @@ public interface WorkerRepository {
 
     /**
      * 删除一个worker，软删除
-     * @param workerId 需要被移除的workerId
+     * @param id 需要被移除的workerId
      */
-    void delete(String workerId);
+    void delete(String id);
 
 }
