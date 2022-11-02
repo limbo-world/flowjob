@@ -16,37 +16,22 @@
  *
  */
 
-package org.limbo.flowjob.api.dto;
+package org.limbo.flowjob.broker.application.plan.utils;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.JWTVerifier;
 
 /**
- * worker注册结果
- *
- * @author Brozen
- * @since 2021-06-16
+ * @author Devil
+ * @date 2021/1/15 7:43 下午
  */
-@Data
-@Schema(title = "worker注册结果")
-public class WorkerRegisterDTO {
+public class JWTUtil {
 
-    /**
-     * 会话token
-     */
-    @Schema(description = "会话token")
-    private String token;
-
-    /**
-     * 工作节点 ID
-     */
-    @Schema(description = "workerId的字符串形式")
-    private String workerId;
-
-    /**
-     * Broker 的拓扑结构
-     */
-    @Schema(description = "broker 的拓扑结构")
-    private BrokerTopologyDTO brokerTopology;
+    public static boolean verifyToken(String token, String secret) {
+        JWTVerifier jwtVerifier = JWT.require(Algorithm.HMAC256(secret)).build();
+        jwtVerifier.verify(token);
+        return true;
+    }
 
 }

@@ -19,6 +19,7 @@
 package org.limbo.flowjob.broker.core.worker.rpc;
 
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.constants.Protocol;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.broker.core.exceptions.WorkerException;
@@ -65,7 +66,7 @@ public abstract class AbstractWorkerRpc implements WorkerRpc {
     public <T> T getResponseData(Supplier<ResponseDTO<T>> supplier) {
         ResponseDTO<T> response = supplier.get();
         if (response == null || !response.isOk()) {
-            String msg = response == null ? "Unknown error" : response.getMessage();
+            String msg = response == null ? MsgConstants.UNKNOWN + " error" : response.getMessage();
             throw new WorkerException(workerId, msg);
         }
         return response.getData();

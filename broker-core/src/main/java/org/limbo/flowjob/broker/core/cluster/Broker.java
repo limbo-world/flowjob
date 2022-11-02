@@ -19,6 +19,7 @@
 package org.limbo.flowjob.broker.core.cluster;
 
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.common.constants.MsgConstants;
 
 /**
  * @author Devil
@@ -61,7 +62,7 @@ public abstract class Broker {
                     }
                     break;
                 default:
-                    log.warn("[BrokerNodeListener] unknown evnet {}", event);
+                    log.warn("[BrokerNodeListener] " + MsgConstants.UNKNOWN + " evnet {}", event);
                     break;
             }
         });

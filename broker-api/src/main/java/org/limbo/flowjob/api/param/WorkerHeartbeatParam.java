@@ -24,7 +24,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * worker 心跳
+ * worker 心跳 相比于注册时候，只返回更少的内容
  *
  * @author Brozen
  * @since 2021-06-10

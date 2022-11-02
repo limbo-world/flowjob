@@ -29,12 +29,14 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.api.constants.WorkerHeaders;
+import org.limbo.flowjob.api.dto.BrokerTopologyDTO;
+import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.WorkerRegisterDTO;
 import org.limbo.flowjob.api.param.TaskFeedbackParam;
 import org.limbo.flowjob.api.param.WorkerRegisterParam;
+import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.constants.Protocol;
-import org.limbo.flowjob.api.dto.BrokerTopologyDTO;
-import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.common.lb.LBServerRepository;
 import org.limbo.flowjob.common.lb.LBStrategy;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -76,6 +78,8 @@ public class OkHttpBrokerRpc implements BrokerRpc {
 
     private static final Protocol DEFAULT_PROTOCOL = Protocol.HTTP;
 
+    private static  String token = "";
+
     public OkHttpBrokerRpc(LBServerRepository<BrokerNode> repository, LBStrategy<BrokerNode> strategy) {
         this.repository = repository;
         this.client = new OkHttpClient.Builder().addInterceptor(new LoadBalanceInterceptor<>(repository, strategy)).build();
@@ -99,8 +103,8 @@ public class OkHttpBrokerRpc implements BrokerRpc {
 
         // 注册成功，更新 broker 节点拓扑
         if (result != null) {
-            // FIXME 临时注释掉拓扑更新，broker 还没返回拓扑结构
-            // updateBrokerTopology(result.getBrokerTopology());
+            token = result.getToken();
+            updateBrokerTopology(result.getBrokerTopology());
         } else {
             String msg = "Register failed after tried all broker, please check your configuration";
             throw new RegisterFailException(msg);
@@ -116,7 +120,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
         });
 
         if (response == null || !response.isOk()) {
-            String msg = response == null ? "unknown" : (response.getCode() + ":" + response.getMessage());
+            String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
             throw new RegisterFailException("Worker register failed: " + msg);
         }
 
@@ -159,17 +163,19 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      */
     @Override
     public void heartbeat(Worker worker) {
-        ResponseDTO<BrokerTopologyDTO> response = executePost(BASE_URL + "/api/v1/worker/heartbeat", RpcParamFactory.heartbeatParam(worker), new TypeReference<ResponseDTO<BrokerTopologyDTO>>() {
+        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + "/api/v1/worker/heartbeat", RpcParamFactory.heartbeatParam(worker), new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
         });
 
         if (response == null || !response.isOk()) {
-            String msg = response == null ? "unknown" : (response.getCode() + ":" + response.getMessage());
+            String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
             throw new RegisterFailException("Worker heartbeat failed: " + msg);
         }
 
         // 更新 broker 节点拓扑
         if (response.getData() != null) {
-            updateBrokerTopology(response.getData());
+            WorkerRegisterDTO data = response.getData();
+            token = data.getToken(); // todo 并发情况是否有问题？？？ 心跳是否应该返回token并更新？
+            updateBrokerTopology(data.getBrokerTopology());
         }
     }
 
@@ -205,7 +211,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
         });
 
         if (response == null || !response.isOk()) {
-            String msg = response == null ? "unknown" : (response.getCode() + ":" + response.getMessage());
+            String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
             throw new RegisterFailException("Worker register failed: " + msg);
         }
     }
@@ -222,6 +228,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
         Request request = new Request.Builder()
                 .url(url)
                 .header(HttpHeaders.CONTENT_TYPE, JSON_UTF_8)
+                .header(WorkerHeaders.TOKEN_HEADER, token)
                 .post(body).build();
         Call call = client.newCall(request);
 

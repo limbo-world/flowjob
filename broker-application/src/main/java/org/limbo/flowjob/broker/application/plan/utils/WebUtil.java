@@ -16,37 +16,24 @@
  *
  */
 
-package org.limbo.flowjob.api.dto;
+package org.limbo.flowjob.broker.application.plan.utils;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
-/**
- * worker注册结果
- *
- * @author Brozen
- * @since 2021-06-16
- */
-@Data
-@Schema(title = "worker注册结果")
-public class WorkerRegisterDTO {
+import javax.servlet.http.HttpServletResponse;
+import java.io.PrintWriter;
 
-    /**
-     * 会话token
-     */
-    @Schema(description = "会话token")
-    private String token;
+@Slf4j
+public class WebUtil {
 
-    /**
-     * 工作节点 ID
-     */
-    @Schema(description = "workerId的字符串形式")
-    private String workerId;
-
-    /**
-     * Broker 的拓扑结构
-     */
-    @Schema(description = "broker 的拓扑结构")
-    private BrokerTopologyDTO brokerTopology;
+    public static void writeToResponse(HttpServletResponse resp, String msg) {
+        resp.setContentType("application/json;charset=UTF-8"); // 放到getWriter之前 设置PrintWriter编码方式
+        try (PrintWriter pw = resp.getWriter()) {
+            pw.write(msg);
+            pw.flush();
+        } catch (Exception e) {
+            log.error("write to response exception: ", e);
+        }
+    }
 
 }

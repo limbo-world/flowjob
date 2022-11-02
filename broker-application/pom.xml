@@ -58,6 +58,12 @@
             <artifactId>validation-api</artifactId>
         </dependency>
 
+        <!-- jwt -->
+        <dependency>
+            <groupId>com.auth0</groupId>
+            <artifactId>java-jwt</artifactId>
+        </dependency>
+
         <!-- logger begin -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

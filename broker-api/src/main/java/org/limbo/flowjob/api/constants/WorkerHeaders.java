@@ -27,8 +27,9 @@ package org.limbo.flowjob.api.constants;
 public interface WorkerHeaders {
 
     /**
-     * 代表访问接口的workerId
+     * token
      */
-    String WORKER_ID = "x-flowjob-workerid";
+    String TOKEN_HEADER = "Authorization";
 
+    String TOKEN_KEY = "123";
 }

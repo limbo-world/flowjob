@@ -17,6 +17,7 @@
 package org.limbo.flowjob.broker.core.dispatcher;
 
 import org.limbo.flowjob.common.constants.LoadBalanceType;
+import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.lb.strategies.AppointLBStrategy;
 import org.limbo.flowjob.common.lb.strategies.ConsistentHashLBStrategy;
 import org.limbo.flowjob.common.lb.strategies.LFULBStrategy;
@@ -56,7 +57,7 @@ public class WorkerSelectorFactory {
     public static WorkerSelector newSelector(LoadBalanceType loadBalanceType) {
         WorkerSelector workerSelector = selectors.get(loadBalanceType);
         if (workerSelector == null) {
-            throw new IllegalArgumentException("Unknown load balance type: " + loadBalanceType);
+            throw new IllegalArgumentException(MsgConstants.UNKNOWN + " load balance type: " + loadBalanceType);
         }
         return workerSelector;
     }

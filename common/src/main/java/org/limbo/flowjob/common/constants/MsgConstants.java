@@ -16,37 +16,13 @@
  *
  */
 
-package org.limbo.flowjob.api.dto;
-
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
+package org.limbo.flowjob.common.constants;
 
 /**
- * worker注册结果
- *
- * @author Brozen
- * @since 2021-06-16
+ * @author Devil
+ * @since 2022/11/2
  */
-@Data
-@Schema(title = "worker注册结果")
-public class WorkerRegisterDTO {
+public interface MsgConstants {
 
-    /**
-     * 会话token
-     */
-    @Schema(description = "会话token")
-    private String token;
-
-    /**
-     * 工作节点 ID
-     */
-    @Schema(description = "workerId的字符串形式")
-    private String workerId;
-
-    /**
-     * Broker 的拓扑结构
-     */
-    @Schema(description = "broker 的拓扑结构")
-    private BrokerTopologyDTO brokerTopology;
-
+    String UNKNOWN = "Unknown";
 }

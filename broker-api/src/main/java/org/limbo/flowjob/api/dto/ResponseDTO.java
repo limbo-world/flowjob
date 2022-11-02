@@ -124,6 +124,26 @@ public class ResponseDTO<T> {
             return this;
         }
 
+        /**
+         * 设置响应状态码{@link HttpStatus#SC_UNAUTHORIZED} 未认证，未登录，并设置提示信息
+         * @return 链式调用
+         */
+        public Builder<T> unauthorized() {
+            this.code = HttpStatus.SC_UNAUTHORIZED;
+            return this;
+        }
+
+        /**
+         * 设置响应状态码{@link HttpStatus#SC_UNAUTHORIZED} 未认证，未登录，并设置提示信息
+         * @param message 错误提示信息
+         * @return 链式调用
+         */
+        public Builder<T> unauthorized(String message) {
+            this.code = HttpStatus.SC_UNAUTHORIZED;
+            this.message = message;
+            return this;
+        }
+
 
         /**
          * 设置响应状态码{@link HttpStatus#SC_FORBIDDEN}
@@ -134,9 +154,8 @@ public class ResponseDTO<T> {
             return this;
         }
 
-
         /**
-         * 设置响应状态码{@link HttpStatus#SC_FORBIDDEN}，并设置提示信息
+         * 设置响应状态码{@link HttpStatus#SC_FORBIDDEN} 未授权，无权限，并设置提示信息
          * @param message 错误提示信息
          * @return 链式调用
          */
