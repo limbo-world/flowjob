@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.limbo.flowjob.common.constants.WorkerStatus;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -68,6 +69,7 @@ public class WorkerEntity extends BaseEntity {
 
     /**
      * worker节点状态
+     * @see WorkerStatus
      */
     private Byte status;
 

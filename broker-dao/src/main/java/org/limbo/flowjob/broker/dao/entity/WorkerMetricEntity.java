@@ -39,6 +39,7 @@ public class WorkerMetricEntity extends BaseEntity {
 
     private static final long serialVersionUID = -3009642474389520555L;
 
+    private Long workerId;
     /**
      * worker节点上正在执行中的作业
      */

@@ -94,7 +94,8 @@ public class WorkerEntityConverter {
      */
     public WorkerEntity toWorkerEntity(Worker worker) {
         WorkerEntity po = new WorkerEntity();
-        po.setId(Long.valueOf(worker.getId()));
+        po.setAppId(0L); // todo 待增加
+        po.setId(worker.getId() == null ? null : Long.valueOf(worker.getId()));
         po.setName(worker.getName());
         po.setProtocol(worker.getRpcBaseUrl().getProtocol());
         po.setHost(worker.getRpcBaseUrl().getHost());
@@ -129,7 +130,7 @@ public class WorkerEntityConverter {
      */
     public WorkerMetricEntity toMetricEntity(Long workerId, WorkerMetric vo) {
         WorkerMetricEntity po = new WorkerMetricEntity();
-        po.setId(workerId);
+        po.setWorkerId(workerId);
 
         WorkerAvailableResource availableResource = vo.getAvailableResource();
         po.setAvailableCpu(availableResource.getAvailableCpu());

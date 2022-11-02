@@ -294,15 +294,16 @@ DROP TABLE IF EXISTS `flowjob_worker`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flowjob_worker` (
-                                  `id` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+                                  `id` bigint NOT NULL AUTO_INCREMENT,
+                                  `app_id` bigint NOT NULL,
+                                  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+                                  `host` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+                                  `port` int DEFAULT NULL,
+                                  `protocol` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+                                  `status` tinyint DEFAULT NULL,
+                                  `deleted` bit(1) DEFAULT NULL,
                                   `created_at` datetime(6) DEFAULT NULL,
                                   `updated_at` datetime(6) DEFAULT NULL,
-                                  `app_id` bigint DEFAULT NULL,
-                                  `deleted` bit(1) DEFAULT NULL,
-                                  `host` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
-                                  `port` int DEFAULT NULL,
-                                  `protocol` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
-                                  `status` tinyint DEFAULT NULL,
                                   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -325,12 +326,11 @@ DROP TABLE IF EXISTS `flowjob_worker_executor`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flowjob_worker_executor` (
                                            `id` bigint NOT NULL AUTO_INCREMENT,
+                                           `worker_id` bigint NOT NULL,
+                                           `name` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
+                                           `description` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
                                            `created_at` datetime(6) DEFAULT NULL,
                                            `updated_at` datetime(6) DEFAULT NULL,
-                                           `description` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
-                                           `name` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
-                                           `type` tinyint DEFAULT NULL,
-                                           `worker_id` bigint DEFAULT NULL,
                                            PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -353,13 +353,13 @@ DROP TABLE IF EXISTS `flowjob_worker_metric`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flowjob_worker_metric` (
                                          `id` bigint NOT NULL AUTO_INCREMENT,
-                                         `created_at` datetime(6) DEFAULT NULL,
-                                         `updated_at` datetime(6) DEFAULT NULL,
+                                         `worker_id` bigint NOT NULL,
                                          `available_cpu` float DEFAULT NULL,
                                          `available_queue_limit` int DEFAULT NULL,
                                          `available_ram` float DEFAULT NULL,
                                          `executing_jobs` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
-                                         `worker_id` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
+                                         `created_at` datetime(6) DEFAULT NULL,
+                                         `updated_at` datetime(6) DEFAULT NULL,
                                          PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -374,31 +374,33 @@ LOCK TABLES `flowjob_worker_metric` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `flowjob_worker_statistics`
+-- Table structure for table `flowjob_worker_tag`
 --
 
-DROP TABLE IF EXISTS `flowjob_worker_statistics`;
+DROP TABLE IF EXISTS `flowjob_worker_tag`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `flowjob_worker_statistics` (
-                                             `id` bigint NOT NULL AUTO_INCREMENT,
-                                             `created_at` datetime(6) DEFAULT NULL,
-                                             `updated_at` datetime(6) DEFAULT NULL,
-                                             `job_dispatch_count` bigint DEFAULT NULL,
-                                             `latest_dispatch_time` datetime(6) DEFAULT NULL,
-                                             `worker_id` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
-                                             PRIMARY KEY (`id`)
+CREATE TABLE `flowjob_worker_tag` (
+                                         `id` bigint NOT NULL AUTO_INCREMENT,
+                                         `worker_id` bigint NOT NULL,
+                                         `tag_key` varchar(255) COLLATE utf8mb4_bin DEFAULT '' NOT NULL,
+                                         `tag_value` varchar(255) COLLATE utf8mb4_bin DEFAULT '' NOT NULL,
+                                         `created_at` datetime(6) DEFAULT NULL,
+                                         `updated_at` datetime(6) DEFAULT NULL,
+                                         PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `flowjob_worker_statistics`
+-- Dumping data for table `flowjob_worker_tag`
 --
 
-LOCK TABLES `flowjob_worker_statistics` WRITE;
-/*!40000 ALTER TABLE `flowjob_worker_statistics` DISABLE KEYS */;
-/*!40000 ALTER TABLE `flowjob_worker_statistics` ENABLE KEYS */;
+LOCK TABLES `flowjob_worker_tag` WRITE;
+/*!40000 ALTER TABLE `flowjob_worker_tag` DISABLE KEYS */;
+/*!40000 ALTER TABLE `flowjob_worker_tag` ENABLE KEYS */;
 UNLOCK TABLES;
+
+
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
