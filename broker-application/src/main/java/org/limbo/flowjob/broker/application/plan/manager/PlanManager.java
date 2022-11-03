@@ -31,7 +31,7 @@ import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
-import org.limbo.flowjob.common.utils.TimeUtil;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.springframework.stereotype.Component;
 
@@ -72,7 +72,7 @@ public class PlanManager {
                         Long.valueOf(planInstance.getPlanInstanceId()),
                         PlanStatus.EXECUTING.status,
                         PlanStatus.SUCCEED.status,
-                        TimeUtil.currentLocalDateTime()
+                        TimeUtils.currentLocalDateTime()
                 );
             }
         } else {
@@ -81,7 +81,7 @@ public class PlanManager {
             List<JobInstance> subJobInstances = new ArrayList<>();
             for (JobInfo subJobInfo : subJobInfos) {
                 if (checkFinished(planInstance.getPlanInstanceId(), dag.preNodes(subJobInfo.getId()))) {
-                    subJobInstances.add(JobInstanceFactory.create(planInstance.getPlanInstanceId(), subJobInfo, TimeUtil.currentLocalDateTime()));
+                    subJobInstances.add(JobInstanceFactory.create(planInstance.getPlanInstanceId(), subJobInfo, TimeUtils.currentLocalDateTime()));
                 }
             }
 

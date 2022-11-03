@@ -95,6 +95,9 @@ public class Worker implements WorkerRpc, LBServer {
     @Setter
     private WorkerMetric metric;
 
+    public void setId(String id) {
+        this.id = id;
+    }
 
     @Override
     public String getServerId() {

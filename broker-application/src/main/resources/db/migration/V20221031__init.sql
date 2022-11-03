@@ -50,15 +50,16 @@ DROP TABLE IF EXISTS `flowjob_broker`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flowjob_broker` (
                                   `id` bigint NOT NULL AUTO_INCREMENT,
-                                  `name` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
-                                  `host` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
+                                  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+                                  `host` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
                                   `port` int DEFAULT NULL,
                                   `last_heartbeat` datetime(6) DEFAULT NULL,
                                   `created_at` datetime(6) DEFAULT NULL,
                                   `updated_at` datetime(6) DEFAULT NULL,
                                   PRIMARY KEY (`id`),
+                                  UNIQUE KEY `uq_name` (`name`),
                                   KEY `idx_last_heartbeat` (`last_heartbeat`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

@@ -33,7 +33,7 @@ import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.support.SlotManager;
-import org.limbo.flowjob.common.utils.TimeUtil;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import javax.inject.Inject;
 import java.time.Duration;
@@ -97,7 +97,7 @@ public class JobStatusCheckTask extends FixIntervalMetaTask {
         List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findByPlanInstanceIdInAndStatusAndTriggerAtLessThan(
                 planMap.keySet(),
                 JobStatus.SCHEDULING.status,
-                TimeUtil.currentLocalDateTime().plusSeconds(10)
+                TimeUtils.currentLocalDateTime().plusSeconds(10)
         );
 
         if (CollectionUtils.isEmpty(jobInstanceEntities)) {

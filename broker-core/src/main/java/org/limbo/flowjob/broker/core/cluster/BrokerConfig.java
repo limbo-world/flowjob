@@ -43,13 +43,13 @@ public class BrokerConfig {
     private Integer port;
 
     /**
-     * 心跳时间间隔
+     * 心跳时间间隔，毫秒
      */
     private long heartbeatInterval = 2000;
 
     /**
-     * 心跳超时时间
+     * 心跳超时时间，秒
      */
-    private long heartbeatTimeout = 10000;
+    private long heartbeatTimeout = 10;
 
 }

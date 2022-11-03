@@ -23,12 +23,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Devil
  * @since 2022/7/18
  */
 public interface BrokerEntityRepo extends JpaRepository<BrokerEntity, Long> {
+
+    Optional<BrokerEntity> findByName(String name);
 
     List<BrokerEntity> findByLastHeartbeatBetween(LocalDateTime startTime, LocalDateTime endTime);
 }

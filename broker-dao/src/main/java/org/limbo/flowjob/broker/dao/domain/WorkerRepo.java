@@ -78,6 +78,7 @@ public class WorkerRepo implements WorkerRepository {
         workerEntityRepo.saveAndFlush(entity);
 
         Long workerId = entity.getId();
+        worker.setId(workerId.toString());
 
         // Metric 存储
         WorkerMetric metric = worker.getMetric();
@@ -85,6 +86,7 @@ public class WorkerRepo implements WorkerRepository {
         metricEntityRepo.saveAndFlush(Objects.requireNonNull(metricPo));
 
         // Executors 存储
+        executorEntityRepo.deleteByWorkerId(workerId);
         List<WorkerExecutorEntity> executorPos = converter.toExecutorEntities(workerId, worker);
         if (CollectionUtils.isNotEmpty(executorPos)) {
             executorEntityRepo.saveAll(executorPos);
@@ -92,6 +94,7 @@ public class WorkerRepo implements WorkerRepository {
         }
 
         // Tags 存储
+        tagEntityRepo.deleteByWorkerId(workerId);
         List<WorkerTagEntity> tagPos = converter.toTagEntities(workerId, worker);
         if (CollectionUtils.isNotEmpty(tagPos)) {
             tagEntityRepo.saveAll(tagPos);

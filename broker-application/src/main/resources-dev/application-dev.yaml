@@ -27,6 +27,6 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
-    show-sql: true  # 日志中显示sql语句
+    show-sql: false  # 日志中显示sql语句
 
 

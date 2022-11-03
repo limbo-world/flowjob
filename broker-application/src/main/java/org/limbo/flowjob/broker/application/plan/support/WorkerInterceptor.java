@@ -48,7 +48,7 @@ public class WorkerInterceptor implements HandlerInterceptor {
         try {
             JWTUtil.verifyToken(token, WorkerHeaders.TOKEN_KEY);
         } catch (Exception e) {
-            WebUtil.writeToResponse(response, JacksonUtils.toJSONString(new ResponseDTO.Builder<Void>().unauthorized("authenticate fail!").build()));
+            WebUtil.writeToResponse(response, JacksonUtils.toJSONString(new ResponseDTO.Builder<Void>().forbidden("authenticate fail!").build()));
             return false;
         }
 

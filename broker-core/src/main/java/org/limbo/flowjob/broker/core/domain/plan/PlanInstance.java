@@ -34,7 +34,7 @@ import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.core.schedule.Scheduled;
 import org.limbo.flowjob.broker.core.schedule.calculator.ScheduleCalculatorFactory;
-import org.limbo.flowjob.common.utils.TimeUtil;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 
@@ -137,7 +137,7 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
         List<JobInstance> jobInstances = new ArrayList<>();
         for (JobInfo jobInfo : dag.origins()) {
             if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
-                jobInstances.add(JobInstanceFactory.create(planInstanceId, jobInfo, TimeUtil.currentLocalDateTime()));
+                jobInstances.add(JobInstanceFactory.create(planInstanceId, jobInfo, TimeUtils.currentLocalDateTime()));
             }
         }
         return jobInstances;
@@ -154,7 +154,7 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
     @Override
     public LocalDateTime nextTriggerAt() {
         Long nextTriggerAt = lazyInitTriggerCalculator().calculate(this);
-        return TimeUtil.toLocalDateTime(nextTriggerAt);
+        return TimeUtils.toLocalDateTime(nextTriggerAt);
     }
 
     /**

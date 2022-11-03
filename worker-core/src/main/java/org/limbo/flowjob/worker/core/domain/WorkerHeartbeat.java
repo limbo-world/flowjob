@@ -16,6 +16,8 @@
 
 package org.limbo.flowjob.worker.core.domain;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.time.Duration;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -24,6 +26,7 @@ import java.util.TimerTask;
  * @author Brozen
  * @since 2022-08-30
  */
+@Slf4j
 public class WorkerHeartbeat {
 
     /**
@@ -77,8 +80,12 @@ public class WorkerHeartbeat {
         this.heartbeatTask = new TimerTask() {
             @Override
             public void run() {
-                // So beat it
-                worker.sendHeartbeat();
+                try {
+                    // So beat it
+                    worker.sendHeartbeat();
+                } catch (Exception e) {
+                    log.error("[Worker-heartbeatTask] error", e);
+                }
             }
         };
 

@@ -99,8 +99,7 @@ public class WorkerService {
      * @param option 心跳参数，上报部分指标数据
      */
     @Transactional(rollbackOn = Throwable.class)
-    public WorkerRegisterDTO heartbeat(WorkerHeartbeatParam option) {
-        String workerId = null; // todo 从会话获取
+    public WorkerRegisterDTO heartbeat(String workerId, WorkerHeartbeatParam option) {
         // 查询worker并校验
         Worker worker = workerRepository.get(workerId);
         Verifies.requireNotNull(worker, "worker不存在！");

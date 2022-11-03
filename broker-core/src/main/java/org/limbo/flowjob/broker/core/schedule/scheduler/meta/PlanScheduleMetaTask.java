@@ -24,12 +24,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
-import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
-import org.limbo.flowjob.common.utils.TimeUtil;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -66,7 +65,7 @@ public abstract class PlanScheduleMetaTask extends FixIntervalMetaTask {
             }
 
             // 调度当前时间以及未来的任务
-            List<Plan> plans = loadSchedulablePlans(TimeUtil.currentLocalDateTime().plusSeconds(30));
+            List<Plan> plans = loadSchedulablePlans(TimeUtils.currentLocalDateTime().plusSeconds(30));
             if (CollectionUtils.isEmpty(plans)) {
                 return;
             }

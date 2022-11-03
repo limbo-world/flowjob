@@ -78,7 +78,9 @@ public class OkHttpBrokerRpc implements BrokerRpc {
 
     private static final Protocol DEFAULT_PROTOCOL = Protocol.HTTP;
 
-    private static  String token = "";
+    private static String workerId = "";
+
+    private static String token = "";
 
     public OkHttpBrokerRpc(LBServerRepository<BrokerNode> repository, LBStrategy<BrokerNode> strategy) {
         this.repository = repository;
@@ -104,6 +106,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
         // 注册成功，更新 broker 节点拓扑
         if (result != null) {
             token = result.getToken();
+            workerId = result.getWorkerId();
             updateBrokerTopology(result.getBrokerTopology());
         } else {
             String msg = "Register failed after tried all broker, please check your configuration";
@@ -132,7 +135,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      */
     private synchronized void updateBrokerTopology(BrokerTopologyDTO topo) {
         if (topo == null || CollectionUtils.isEmpty(topo.getBrokers())) {
-            throw new IllegalStateException("Broker topology error: " + topo); // todo 由于broker还没注册完，worker就来心跳了，导致获取为空
+            throw new IllegalStateException("Broker topology error: " + topo);
         }
 
         // 移除接口返回中不存在的，这批节点已经下线
@@ -163,7 +166,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      */
     @Override
     public void heartbeat(Worker worker) {
-        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + "/api/v1/worker/heartbeat", RpcParamFactory.heartbeatParam(worker), new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
+        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + "/api/v1/worker/" + workerId + "/heartbeat", RpcParamFactory.heartbeatParam(worker), new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
         });
 
         if (response == null || !response.isOk()) {
@@ -207,7 +210,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      * 反馈任务执行结果
      */
     private void doFeedbackTask(TaskFeedbackParam feedbackParam) {
-        ResponseDTO<Void> response = executePost(BASE_URL + "/api/v1/task/feedback", feedbackParam, new TypeReference<ResponseDTO<Void>>() {
+        ResponseDTO<Void> response = executePost(BASE_URL + "/api/v1/worker/task/feedback", feedbackParam, new TypeReference<ResponseDTO<Void>>() {
         });
 
         if (response == null || !response.isOk()) {

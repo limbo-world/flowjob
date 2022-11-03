@@ -17,7 +17,7 @@
 package org.limbo.flowjob.broker.core.schedule;
 
 import org.limbo.flowjob.common.constants.ScheduleType;
-import org.limbo.flowjob.common.utils.TimeUtil;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -75,7 +75,7 @@ public abstract class ScheduleCalculator {
     protected long calculateStartScheduleTimestamp(ScheduleOption scheduleOption) {
         LocalDateTime startAt = scheduleOption.getScheduleStartAt();
         Duration delay = scheduleOption.getScheduleDelay();
-        long startScheduleAt = startAt.toEpochSecond(TimeUtil.zoneOffset());
+        long startScheduleAt = startAt.toEpochSecond(TimeUtils.zoneOffset());
         return delay != null ? startScheduleAt + delay.toMillis() : startScheduleAt;
     }
 

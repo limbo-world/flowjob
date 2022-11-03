@@ -20,17 +20,24 @@ package org.limbo.flowjob.broker.application.plan.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.Setter;
+import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.WorkerRegisterDTO;
+import org.limbo.flowjob.api.param.TaskFeedbackParam;
 import org.limbo.flowjob.api.param.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.param.WorkerRegisterParam;
-import org.limbo.flowjob.api.dto.ResponseDTO;
+import org.limbo.flowjob.broker.application.plan.service.TaskService;
 import org.limbo.flowjob.broker.application.plan.service.WorkerService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author Brozen
@@ -41,8 +48,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/worker")
 public class WorkerController {
 
-    @Autowired
+    @Setter(onMethod_ = @Inject)
     private WorkerService workerService;
+
+    @Setter(onMethod_ = @Inject)
+    private TaskService taskService;
 
     /**
      * worker注册
@@ -58,10 +68,20 @@ public class WorkerController {
      * worker心跳
      */
     @Operation(summary = "worker心跳")
-    @PostMapping("/heartbeat")
-    public ResponseDTO<WorkerRegisterDTO> heartbeat(@RequestBody WorkerHeartbeatParam heartbeatOption) {
-        return ResponseDTO.<WorkerRegisterDTO>builder().ok(workerService.heartbeat(heartbeatOption)).build();
+    @PostMapping("/{workerId}/heartbeat")
+    public ResponseDTO<WorkerRegisterDTO> heartbeat(@Validated @NotNull(message = "no workerId") @PathVariable("workerId") String workerId,
+                                                    @RequestBody WorkerHeartbeatParam heartbeatOption) {
+        return ResponseDTO.<WorkerRegisterDTO>builder().ok(workerService.heartbeat(workerId, heartbeatOption)).build();
     }
 
+    /**
+     * 任务执行反馈接口
+     */
+    @Operation(summary = "任务执行反馈接口")
+    @PostMapping("/task/feedback")
+    public ResponseDTO<Void> feedback(@Valid @RequestBody TaskFeedbackParam feedback) {
+        taskService.feedback(feedback);
+        return ResponseDTO.<Void>builder().ok().build();
+    }
 
 }

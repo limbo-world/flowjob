@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
-import org.limbo.flowjob.common.utils.TimeUtil;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -47,26 +47,26 @@ public class PlanRepoTest {
     @Transactional
     public void lock() throws InterruptedException {
         PlanEntity planEntity = planEntityRepo.selectForUpdate(1L);
-        System.out.println("lock " + TimeUtil.currentLocalDateTime());
+        System.out.println("lock " + TimeUtils.currentLocalDateTime());
         planEntity.setIsEnabled(true);
-        planEntity.setCreatedAt(TimeUtil.currentLocalDateTime());
+        planEntity.setCreatedAt(TimeUtils.currentLocalDateTime());
         planEntityRepo.saveAndFlush(planEntity);
 
         Thread.sleep(5000);
-        System.out.println("lock end" + TimeUtil.currentLocalDateTime());
+        System.out.println("lock end" + TimeUtils.currentLocalDateTime());
     }
 
     @Test
     @Transactional
     public void lock2() throws InterruptedException {
         PlanEntity planEntity = planEntityRepo.selectForUpdate(1L);
-        System.out.println("lock2 " + TimeUtil.currentLocalDateTime());
+        System.out.println("lock2 " + TimeUtils.currentLocalDateTime());
         planEntity.setIsEnabled(false);
-        planEntity.setCreatedAt(TimeUtil.currentLocalDateTime());
+        planEntity.setCreatedAt(TimeUtils.currentLocalDateTime());
         planEntityRepo.saveAndFlush(planEntity);
 
         Thread.sleep(2000);
-        System.out.println("lock2 end" + TimeUtil.currentLocalDateTime());
+        System.out.println("lock2 end" + TimeUtils.currentLocalDateTime());
     }
 
     @Test

@@ -136,6 +136,7 @@ public class WorkerConverter {
      */
     public static WorkerRegisterDTO toRegisterDTO(String token, Worker worker, Collection<Node> nodes) {
         WorkerRegisterDTO registerResult = new WorkerRegisterDTO();
+        registerResult.setToken(token);
         registerResult.setWorkerId(worker.getId());
         registerResult.setBrokerTopology(toBrokerTopologyDTO(nodes));
         return registerResult;

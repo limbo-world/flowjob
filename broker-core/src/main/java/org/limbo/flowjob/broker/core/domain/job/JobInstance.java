@@ -24,7 +24,7 @@ import org.limbo.flowjob.common.constants.JobStatus;
 import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.broker.core.domain.DispatchOption;
 import org.limbo.flowjob.broker.core.schedule.Scheduled;
-import org.limbo.flowjob.common.utils.TimeUtil;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
 import java.io.Serializable;
@@ -94,7 +94,7 @@ public class JobInstance implements Scheduled, Serializable {
      */
     public boolean retry() {
         if (dispatchOption.getRetry() > retry) {
-            setTriggerAt(TimeUtil.currentLocalDateTime().plusSeconds(dispatchOption.getRetryInterval()));
+            setTriggerAt(TimeUtils.currentLocalDateTime().plusSeconds(dispatchOption.getRetryInterval()));
             setJobInstanceId(null);
             setStatus(JobStatus.SCHEDULING);
             return true;

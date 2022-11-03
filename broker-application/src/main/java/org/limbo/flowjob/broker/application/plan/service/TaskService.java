@@ -19,7 +19,7 @@ import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.limbo.flowjob.common.exception.VerifyException;
-import org.limbo.flowjob.common.utils.TimeUtil;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Service;
 
@@ -151,7 +151,7 @@ public class TaskService {
                         Long.valueOf(jobInstance.getPlanInstanceId()),
                         PlanStatus.EXECUTING.status,
                         PlanStatus.FAILED.status,
-                        TimeUtil.currentLocalDateTime()
+                        TimeUtils.currentLocalDateTime()
                 );
             }
         } else {

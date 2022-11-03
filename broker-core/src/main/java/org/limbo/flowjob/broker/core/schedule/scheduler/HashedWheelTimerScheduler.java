@@ -22,7 +22,7 @@ import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timer;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.schedule.Scheduled;
-import org.limbo.flowjob.common.utils.TimeUtil;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -58,7 +58,7 @@ public abstract class HashedWheelTimerScheduler<T extends Scheduled> extends Cac
     public void schedule(T scheduled) {
         if (put(scheduled)) {
             // 计算延迟时间
-            long delay = Duration.between(TimeUtil.currentLocalDateTime(), scheduled.triggerAt()).toMillis();
+            long delay = Duration.between(TimeUtils.currentLocalDateTime(), scheduled.triggerAt()).toMillis();
             delay = delay < 0 ? 0 : delay;
 
             // 在timer上调度作业执行

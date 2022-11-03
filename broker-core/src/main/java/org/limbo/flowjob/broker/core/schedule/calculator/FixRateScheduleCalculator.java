@@ -19,10 +19,9 @@ package org.limbo.flowjob.broker.core.schedule.calculator;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.broker.core.schedule.Calculated;
-import org.limbo.flowjob.broker.core.schedule.Scheduled;
 import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
-import org.limbo.flowjob.common.utils.TimeUtil;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
 
@@ -50,7 +49,7 @@ public class FixRateScheduleCalculator extends ScheduleCalculator {
     public Long calculate(Calculated calculated) {
 
         ScheduleOption scheduleOption = calculated.scheduleOption();
-        long now = TimeUtil.currentInstant().getEpochSecond();
+        long now = TimeUtils.currentInstant().getEpochSecond();
         long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
 
         // 计算第一次调度
@@ -65,7 +64,7 @@ public class FixRateScheduleCalculator extends ScheduleCalculator {
             return ScheduleCalculator.NO_TRIGGER;
         }
 
-        long scheduleAt = TimeUtil.toInstant(calculated.lastScheduleAt()).toEpochMilli() + interval.toMillis();
+        long scheduleAt = TimeUtils.toInstant(calculated.lastScheduleAt()).toEpochMilli() + interval.toMillis();
         return Math.max(scheduleAt, now);
     }
 

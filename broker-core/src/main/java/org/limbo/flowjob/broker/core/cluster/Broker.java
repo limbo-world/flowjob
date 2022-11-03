@@ -20,6 +20,7 @@ package org.limbo.flowjob.broker.core.cluster;
 
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.common.constants.MsgConstants;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 /**
  * @author Devil
@@ -44,6 +45,8 @@ public abstract class Broker {
      * 启动节点
      */
     public void start() {
+        // 将自己先注册上去
+        manger.online(new Node(config.getName(), config.getHost(), config.getPort()));
         // 节点注册 用于集群感知
         registry.register(config.getName(), config.getHost(), config.getPort());
         // 节点变更通知
@@ -52,17 +55,17 @@ public abstract class Broker {
                 case ONLINE:
                     manger.online(new Node(event.getName(), event.getHost(), event.getPort()));
                     if (log.isDebugEnabled()) {
-                        log.warn("[BrokerNodeListener] receive evnet {}", event);
+                        log.debug("[BrokerNodeListener] receive online evnet {}", JacksonUtils.toJSONString(event));
                     }
                     break;
                 case OFFLINE:
                     manger.offline(new Node(event.getName(), event.getHost(), event.getPort()));
                     if (log.isDebugEnabled()) {
-                        log.warn("[BrokerNodeListener] receive evnet {}", event);
+                        log.debug("[BrokerNodeListener] receive offline evnet {}", JacksonUtils.toJSONString(event));
                     }
                     break;
                 default:
-                    log.warn("[BrokerNodeListener] " + MsgConstants.UNKNOWN + " evnet {}", event);
+                    log.warn("[BrokerNodeListener] " + MsgConstants.UNKNOWN + " evnet {}", JacksonUtils.toJSONString(event));
                     break;
             }
         });

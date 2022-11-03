@@ -26,7 +26,7 @@ import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.broker.core.schedule.Calculated;
 import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
-import org.limbo.flowjob.common.utils.TimeUtil;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -54,7 +54,7 @@ public class CronScheduleCalculator extends ScheduleCalculator {
     public Long calculate(Calculated calculated) {
 
         ScheduleOption scheduleOption = calculated.scheduleOption();
-        Instant nowInstant = TimeUtil.currentInstant();
+        Instant nowInstant = TimeUtils.currentInstant();
         long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
 
         // 计算第一次调度
