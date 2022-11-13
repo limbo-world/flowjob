@@ -40,6 +40,7 @@ public class WorkerMetricEntity extends BaseEntity {
     private static final long serialVersionUID = -3009642474389520555L;
 
     private Long workerId;
+
     /**
      * worker节点上正在执行中的作业
      */
@@ -59,5 +60,10 @@ public class WorkerMetricEntity extends BaseEntity {
      * 任务队列剩余可排队数
      */
     private Integer availableQueueLimit;
+
+    /**
+     * 上次心跳上报时间戳，毫秒
+     */
+    private Long lastHeartbeatAt;
 
 }

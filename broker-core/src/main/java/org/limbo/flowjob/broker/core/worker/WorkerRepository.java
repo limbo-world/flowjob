@@ -35,6 +35,13 @@ public interface WorkerRepository {
 
 
     /**
+     * 仅更新worker指标相关数据
+     * @param worker worker节点
+     */
+    void saveMetric(Worker worker);
+
+
+    /**
      * 根据id查询worker
      * @param id workerId
      * @return worker节点

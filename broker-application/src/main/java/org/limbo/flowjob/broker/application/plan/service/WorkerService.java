@@ -16,8 +16,6 @@
 
 package org.limbo.flowjob.broker.application.plan.service;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
@@ -106,7 +104,7 @@ public class WorkerService {
 
         // 更新metric
         worker.heartbeat(WorkerConverter.toWorkerMetric(option));
-        workerRepository.save(worker);
+        workerRepository.saveMetric(worker);
 
         if (log.isDebugEnabled()) {
             log.debug("receive heartbeat from " + workerId);

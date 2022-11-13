@@ -359,6 +359,7 @@ CREATE TABLE `flowjob_worker_metric` (
                                          `available_queue_limit` int DEFAULT NULL,
                                          `available_ram` float DEFAULT NULL,
                                          `executing_jobs` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
+                                         `last_heartbeat_at` bigint DEFAULT NULL,
                                          `created_at` datetime(6) DEFAULT NULL,
                                          `updated_at` datetime(6) DEFAULT NULL,
                                          PRIMARY KEY (`id`)
