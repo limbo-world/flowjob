@@ -71,7 +71,7 @@ public class TaskService {
     public void feedback(String taskId, TaskFeedbackParam param) {
         // 获取实例
         TaskEntity task = taskEntityRepo.findById(Long.parseLong(taskId))
-                .orElseThrow(() -> new VerifyException("Task not exist!"));
+                .orElseThrow(() -> new VerifyException("Task not exist! id:" + taskId));
 
         ExecuteResult result = ExecuteResult.parse(param.getResult());
 

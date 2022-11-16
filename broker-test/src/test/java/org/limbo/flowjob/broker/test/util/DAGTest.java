@@ -18,7 +18,6 @@
 
 package org.limbo.flowjob.broker.test.util;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
