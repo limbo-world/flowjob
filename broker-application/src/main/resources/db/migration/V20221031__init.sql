@@ -360,8 +360,8 @@ CREATE TABLE `flowjob_worker_metric` (
                                          `available_ram` float DEFAULT NULL,
                                          `executing_jobs` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
                                          `last_heartbeat_at` bigint DEFAULT NULL,
-                                         `created_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                         `updated_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                                         `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                         `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                                          PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
