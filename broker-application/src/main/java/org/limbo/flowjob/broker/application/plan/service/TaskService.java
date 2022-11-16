@@ -74,6 +74,11 @@ public class TaskService {
                 .orElseThrow(() -> new VerifyException("Task not exist!"));
 
         ExecuteResult result = ExecuteResult.parse(param.getResult());
+
+        if (log.isDebugEnabled()) {
+            log.debug("receive task feedback id:{} result:{}", taskId, result);
+        }
+
         switch (result) {
             case SUCCEED:
                 handleTaskSuccess(task.getId(), task.getJobInstanceId(), param);
@@ -142,7 +147,7 @@ public class TaskService {
 
         // 如果所有task都是执行成功 则处理成功
         // 如果所有task都是执行失败 则处理失败
-        boolean success = taskEntities.stream().allMatch(entity -> JobStatus.SUCCEED == JobStatus.parse(entity.getStatus()));
+        boolean success = taskEntities.stream().allMatch(entity -> TaskStatus.SUCCEED == TaskStatus.parse(entity.getStatus()));
         if (success) {
             handleJobSuccess(jobInstance);
         } else {
