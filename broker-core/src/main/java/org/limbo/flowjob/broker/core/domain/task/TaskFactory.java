@@ -20,12 +20,11 @@ package org.limbo.flowjob.broker.core.domain.task;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.common.constants.JobType;
-import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.worker.Worker;
+import org.limbo.flowjob.common.constants.JobType;
+import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
 import java.util.ArrayList;
@@ -89,12 +88,14 @@ public class TaskFactory {
         public abstract List<Task> tasks(JobInstance instance);
 
         protected void initTask(Task task, JobInstance instance, List<Worker> availableWorkers) {
+            task.setJobId(instance.getJobId());
+            task.setPlanVersion(instance.getPlanVersion());
+            task.setPlanId(instance.getPlanId());
             task.setJobInstanceId(instance.getJobInstanceId());
             task.setStatus(TaskStatus.DISPATCHING);
-            task.setWorkerId(StringUtils.EMPTY);
             task.setDispatchOption(instance.getDispatchOption());
             task.setExecutorName(instance.getExecutorName());
-            task.setJobAttributes(instance.getAttributes());
+            task.setAttributes(instance.getAttributes());
             task.setAvailableWorkers(availableWorkers);
         }
 

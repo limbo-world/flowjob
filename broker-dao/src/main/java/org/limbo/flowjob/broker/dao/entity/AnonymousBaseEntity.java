@@ -19,8 +19,11 @@ package org.limbo.flowjob.broker.dao.entity;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.SQLInsert;
 
 import javax.persistence.MappedSuperclass;
+import javax.persistence.Transient;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -39,11 +42,13 @@ public abstract class AnonymousBaseEntity<T> implements Serializable {
     /**
      * 记录创建时间
      */
+    @Transient
     private LocalDateTime createdAt;
 
     /**
      * 记录更新时间
      */
+    @Transient
     private LocalDateTime updatedAt;
 
     /**

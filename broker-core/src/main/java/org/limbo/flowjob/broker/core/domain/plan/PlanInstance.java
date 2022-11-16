@@ -24,19 +24,19 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.common.constants.PlanStatus;
-import org.limbo.flowjob.common.constants.TriggerType;
-import org.limbo.flowjob.broker.core.domain.job.JobInstanceFactory;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.core.domain.job.JobInstanceFactory;
 import org.limbo.flowjob.broker.core.schedule.Calculated;
 import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.core.schedule.Scheduled;
 import org.limbo.flowjob.broker.core.schedule.calculator.ScheduleCalculatorFactory;
-import org.limbo.flowjob.common.utils.time.TimeUtils;
+import org.limbo.flowjob.common.constants.PlanStatus;
+import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -75,17 +75,17 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
     private ScheduleOption scheduleOption;
 
     /**
-     * 触发时间
+     * 期望的触发时间
      */
     private LocalDateTime expectTriggerAt;
 
     /**
-     * 触发类型
+     * 触发类型 todo 这个有啥用？ 和 job 上的触发类型一样的？
      */
     private TriggerType triggerType;
 
     /**
-     * 开始时间
+     * 真正的触发时间 -- 开始时间
      */
     private LocalDateTime triggerAt;
 
@@ -110,8 +110,9 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
     private transient ScheduleCalculator scheduleCalculator;
 
     @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @ToString.Exclude
-    private transient ScheduleCalculatorFactory strategyFactory;
+    private List<JobInstance> rootJobs;
 
     @Override
     public String scheduleId() {
@@ -133,16 +134,6 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
         return feedbackAt;
     }
 
-    public List<JobInstance> getRootJobs() {
-        List<JobInstance> jobInstances = new ArrayList<>();
-        for (JobInfo jobInfo : dag.origins()) {
-            if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
-                jobInstances.add(JobInstanceFactory.create(planInstanceId, jobInfo, TimeUtils.currentLocalDateTime()));
-            }
-        }
-        return jobInstances;
-    }
-
     @Override
     public LocalDateTime triggerAt() {
         return expectTriggerAt;
@@ -162,10 +153,23 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
      */
     protected ScheduleCalculator lazyInitTriggerCalculator() {
         if (scheduleCalculator == null) {
-            scheduleCalculator = strategyFactory.apply(scheduleOption.getScheduleType());
+            scheduleCalculator = ScheduleCalculatorFactory.create(scheduleOption.getScheduleType());
         }
 
         return scheduleCalculator;
+    }
+
+    public List<JobInstance> rootJobs() {
+        if (rootJobs != null) {
+            return rootJobs;
+        }
+        rootJobs = new ArrayList<>();
+        for (JobInfo jobInfo : dag.origins()) {
+            if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
+                rootJobs.add(JobInstanceFactory.create(this, jobInfo, TimeUtils.currentLocalDateTime()));
+            }
+        }
+        return rootJobs;
     }
 
 }

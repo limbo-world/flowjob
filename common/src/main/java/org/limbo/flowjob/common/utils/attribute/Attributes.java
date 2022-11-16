@@ -81,6 +81,10 @@ public class Attributes implements Serializable {
         return new HashMap<>(attributes);
     }
 
+    public boolean isEmpty() {
+        return attributes.isEmpty();
+    }
+
     /**
      * 设置属性
      * @param key 属性key

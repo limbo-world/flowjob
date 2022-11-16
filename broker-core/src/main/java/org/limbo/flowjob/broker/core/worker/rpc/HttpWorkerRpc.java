@@ -33,10 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public abstract class HttpWorkerRpc extends AbstractWorkerRpc {
 
-
-    public static final String API_PING = "/api/worker/v1/ping";
-    public static final String API_SEND_TASK = "/api/worker/v1/task";
-
     /**
      * URL 缓存
      */

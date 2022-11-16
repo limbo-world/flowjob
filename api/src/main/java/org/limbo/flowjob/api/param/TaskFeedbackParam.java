@@ -22,8 +22,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.limbo.flowjob.common.constants.ExecuteResult;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -36,13 +37,6 @@ import java.util.Map;
 @Data
 @Schema(title = "作业执行反馈参数")
 public class TaskFeedbackParam {
-
-    /**
-     * 任务ID
-     */
-    @NotBlank(message = "taskId can't be null")
-    @Schema(description = "任务ID")
-    private String taskId;
 
     /**
      * 执行结果
@@ -68,18 +62,18 @@ public class TaskFeedbackParam {
      * 更新的作业上下文元数据
      */
     @Schema(description = "更新的作业上下文元数据")
-    private Map<String, Object> context;
+    private Map<String, Object> context = new HashMap<>();
 
     /**
      * 子任务属性
      */
     @Schema(description = "子任务属性")
-    private List<Map<String, Object>> subTaskAttributes;
+    private List<Map<String, Object>> subTaskAttributes = new LinkedList<>();
 
     /**
      * 返回的数据
      */
     @Schema(description = "返回的数据")
-    private Map<String, Object> resultAttributes;
+    private Map<String, Object> resultAttributes = new HashMap<>();
 
 }

@@ -23,11 +23,11 @@ DROP TABLE IF EXISTS `flowjob_app`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flowjob_app` (
-                               `id` bigint NOT NULL AUTO_INCREMENT,
-                               `created_at` datetime(6) DEFAULT NULL,
-                               `updated_at` datetime(6) DEFAULT NULL,
+                               `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                `name` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
                                `tenant_id` bigint DEFAULT NULL,
+                               `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                               `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                                PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -49,13 +49,13 @@ DROP TABLE IF EXISTS `flowjob_broker`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flowjob_broker` (
-                                  `id` bigint NOT NULL AUTO_INCREMENT,
+                                  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
                                   `host` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
                                   `port` int DEFAULT NULL,
                                   `last_heartbeat` datetime(6) DEFAULT NULL,
-                                  `created_at` datetime(6) DEFAULT NULL,
-                                  `updated_at` datetime(6) DEFAULT NULL,
+                                  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                                   PRIMARY KEY (`id`),
                                   UNIQUE KEY `uq_name` (`name`),
                                   KEY `idx_last_heartbeat` (`last_heartbeat`)
@@ -79,18 +79,18 @@ DROP TABLE IF EXISTS `flowjob_job_instance`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flowjob_job_instance` (
-                                        `id` bigint NOT NULL AUTO_INCREMENT,
-                                        `created_at` datetime(6) DEFAULT NULL,
-                                        `updated_at` datetime(6) DEFAULT NULL,
-                                        `attributes` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
-                                        `end_at` datetime(6) DEFAULT NULL,
-                                        `job_id` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
-                                        `plan_id` bigint DEFAULT NULL,
-                                        `plan_info_id` bigint DEFAULT NULL,
-                                        `plan_instance_id` bigint DEFAULT NULL,
+                                        `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+                                        `job_id` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+                                        `plan_instance_id` bigint NOT NULL,
+                                        `plan_id` bigint NOT NULL,
+                                        `plan_info_id` bigint NOT NULL,
+                                        `trigger_at` datetime(6) NOT NULL,
                                         `start_at` datetime(6) DEFAULT NULL,
-                                        `status` tinyint DEFAULT NULL,
-                                        `trigger_at` datetime(6) DEFAULT NULL,
+                                        `end_at` datetime(6) DEFAULT NULL,
+                                        `attributes` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
+                                        `status` tinyint NOT NULL,
+                                        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                        `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                                         PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -112,15 +112,15 @@ DROP TABLE IF EXISTS `flowjob_plan`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flowjob_plan` (
-                                `id` bigint NOT NULL AUTO_INCREMENT,
+                                `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
                                 `app_id` bigint DEFAULT NULL,
                                 `current_version` bigint DEFAULT NULL,
                                 `recently_version` bigint DEFAULT NULL,
-                                `is_enabled` bit(1) DEFAULT NULL,
                                 `last_feedback_at` datetime(6) DEFAULT NULL,
                                 `next_trigger_at` datetime(6) DEFAULT NULL,
-                                `created_at` datetime(6) DEFAULT NULL,
-                                `updated_at` datetime(6) DEFAULT NULL,
+                                `is_enabled` bigint(20) NOT NULL DEFAULT '0',
+                                `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                                 PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -142,21 +142,21 @@ DROP TABLE IF EXISTS `flowjob_plan_info`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flowjob_plan_info` (
-                                     `id` bigint NOT NULL AUTO_INCREMENT,
-                                     `created_at` datetime(6) DEFAULT NULL,
-                                     `updated_at` datetime(6) DEFAULT NULL,
-                                     `description` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
-                                     `is_deleted` bit(1) DEFAULT NULL,
-                                     `jobs` text COLLATE utf8mb4_bin,
+                                     `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
                                      `plan_id` bigint DEFAULT NULL,
-                                     `retry` int DEFAULT NULL,
+                                     `trigger_type` tinyint DEFAULT NULL,
+                                     `schedule_type` tinyint DEFAULT NULL,
                                      `schedule_cron` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
                                      `schedule_cron_type` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
                                      `schedule_delay` bigint DEFAULT NULL,
                                      `schedule_interval` bigint DEFAULT NULL,
                                      `schedule_start_at` datetime(6) DEFAULT NULL,
-                                     `schedule_type` tinyint DEFAULT NULL,
-                                     `trigger_type` tinyint DEFAULT NULL,
+                                     `jobs` text COLLATE utf8mb4_bin,
+                                     `description` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
+                                     `retry` int DEFAULT NULL,
+                                     `is_deleted` bigint(20) NOT NULL DEFAULT '0',
+                                     `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                     `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                                      PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -178,16 +178,16 @@ DROP TABLE IF EXISTS `flowjob_plan_instance`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flowjob_plan_instance` (
-                                         `id` bigint NOT NULL AUTO_INCREMENT,
-                                         `created_at` datetime(6) DEFAULT NULL,
-                                         `updated_at` datetime(6) DEFAULT NULL,
-                                         `expect_trigger_at` datetime(6) DEFAULT NULL,
-                                         `feedback_at` datetime(6) DEFAULT NULL,
+                                         `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                          `plan_id` bigint DEFAULT NULL,
                                          `plan_info_id` bigint DEFAULT NULL,
-                                         `status` tinyint DEFAULT NULL,
-                                         `trigger_at` datetime(6) DEFAULT NULL,
                                          `trigger_type` tinyint DEFAULT NULL,
+                                         `status` tinyint DEFAULT NULL,
+                                         `expect_trigger_at` datetime(6) DEFAULT NULL,
+                                         `trigger_at` datetime(6) DEFAULT NULL,
+                                         `feedback_at` datetime(6) DEFAULT NULL,
+                                         `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                         `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                                          PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -209,11 +209,11 @@ DROP TABLE IF EXISTS `flowjob_plan_slot`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flowjob_plan_slot` (
-                                     `id` bigint NOT NULL AUTO_INCREMENT,
-                                     `created_at` datetime(6) DEFAULT NULL,
-                                     `updated_at` datetime(6) DEFAULT NULL,
+                                     `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                      `plan_id` bigint DEFAULT NULL,
                                      `slot` int DEFAULT NULL,
+                                     `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                     `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                                      PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -235,20 +235,20 @@ DROP TABLE IF EXISTS `flowjob_task`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flowjob_task` (
-                                `id` bigint NOT NULL AUTO_INCREMENT,
-                                `created_at` datetime(6) DEFAULT NULL,
-                                `updated_at` datetime(6) DEFAULT NULL,
+                                `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+                                `job_instance_id` bigint NOT NULL DEFAULT '0',
+                                `job_id` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+                                `plan_id` bigint NOT NULL DEFAULT '0',
+                                `worker_id` bigint NOT NULL DEFAULT '0',
                                 `attributes` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
+                                `status` tinyint DEFAULT NULL,
+                                `start_at` datetime(6) DEFAULT NULL,
                                 `end_at` datetime(6) DEFAULT NULL,
+                                `result` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
                                 `error_msg` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
                                 `error_stack_trace` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
-                                `job_id` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
-                                `job_instance_id` bigint DEFAULT NULL,
-                                `plan_id` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
-                                `result` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
-                                `start_at` datetime(6) DEFAULT NULL,
-                                `status` tinyint DEFAULT NULL,
-                                `worker_id` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
+                                `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                                 PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -270,10 +270,10 @@ DROP TABLE IF EXISTS `flowjob_tenant`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flowjob_tenant` (
-                                  `id` bigint NOT NULL AUTO_INCREMENT,
-                                  `created_at` datetime(6) DEFAULT NULL,
-                                  `updated_at` datetime(6) DEFAULT NULL,
+                                  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                   `name` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
+                                  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                                   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -295,16 +295,16 @@ DROP TABLE IF EXISTS `flowjob_worker`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flowjob_worker` (
-                                  `id` bigint NOT NULL AUTO_INCREMENT,
+                                  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
                                   `app_id` bigint NOT NULL,
                                   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
                                   `host` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
                                   `port` int DEFAULT NULL,
                                   `protocol` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
                                   `status` tinyint DEFAULT NULL,
-                                  `deleted` bit(1) DEFAULT NULL,
-                                  `created_at` datetime(6) DEFAULT NULL,
-                                  `updated_at` datetime(6) DEFAULT NULL,
+                                  `is_deleted` bigint(20) NOT NULL DEFAULT '0',
+                                  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                                   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -326,12 +326,12 @@ DROP TABLE IF EXISTS `flowjob_worker_executor`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flowjob_worker_executor` (
-                                           `id` bigint NOT NULL AUTO_INCREMENT,
+                                           `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                            `worker_id` bigint NOT NULL,
                                            `name` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
                                            `description` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
-                                           `created_at` datetime(6) DEFAULT NULL,
-                                           `updated_at` datetime(6) DEFAULT NULL,
+                                           `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                           `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                                            PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -353,14 +353,14 @@ DROP TABLE IF EXISTS `flowjob_worker_metric`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flowjob_worker_metric` (
-                                         `id` bigint NOT NULL AUTO_INCREMENT,
+                                         `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                          `worker_id` bigint NOT NULL,
                                          `available_cpu` float DEFAULT NULL,
                                          `available_queue_limit` int DEFAULT NULL,
                                          `available_ram` float DEFAULT NULL,
                                          `executing_jobs` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
-                                         `created_at` datetime(6) DEFAULT NULL,
-                                         `updated_at` datetime(6) DEFAULT NULL,
+                                         `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                         `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                                          PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -382,12 +382,12 @@ DROP TABLE IF EXISTS `flowjob_worker_tag`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flowjob_worker_tag` (
-                                         `id` bigint NOT NULL AUTO_INCREMENT,
+                                         `id` bigint unsigned NOT NULL AUTO_INCREMENT,
                                          `worker_id` bigint NOT NULL,
                                          `tag_key` varchar(255) COLLATE utf8mb4_bin DEFAULT '' NOT NULL,
                                          `tag_value` varchar(255) COLLATE utf8mb4_bin DEFAULT '' NOT NULL,
-                                         `created_at` datetime(6) DEFAULT NULL,
-                                         `updated_at` datetime(6) DEFAULT NULL,
+                                         `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                         `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                                          PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;

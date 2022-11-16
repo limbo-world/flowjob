@@ -103,7 +103,7 @@ public class DBBrokerRegistry implements NodeRegistry {
                 broker.setLastHeartbeat(TimeUtils.currentLocalDateTime());
                 brokerEntityRepo.saveAndFlush(broker);
                 if (log.isDebugEnabled()) {
-                    log.error("{} send heartbeat name: {}, host: {}, port: {} time:{}", TASK_NAME, name, host, port, TimeFormateUtils.format(TimeUtils.currentLocalDateTime(), Formatters.YMD_HMS));
+                    log.debug("{} send heartbeat name: {}, host: {}, port: {} time:{}", TASK_NAME, name, host, port, TimeFormateUtils.format(TimeUtils.currentLocalDateTime(), Formatters.YMD_HMS));
                 }
             } catch (Exception e) {
                 log.error("{} send heartbeat fail", TASK_NAME, e);

@@ -24,6 +24,7 @@ import org.limbo.flowjob.broker.application.plan.service.PlanService;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.schedule.scheduler.HashedWheelTimerScheduler;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -34,6 +35,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * 用于调度 PlanInstance
+ *
  * @author Devil
  * @since 2022/8/18
  */
@@ -60,13 +63,17 @@ public class PlanScheduler extends HashedWheelTimerScheduler<PlanInstance> {
 
     @Override
     protected void doSchedule(PlanInstance planInstance) {
+        if (log.isDebugEnabled()) {
+            log.debug("[PlanScheduler] submit planInstance: {}", planInstance);
+        }
         // 执行调度逻辑
         schedulePool.submit(() -> {
             try {
-                List<JobInstance> jobInstances = planInstance.getRootJobs();
-
                 // 保存数据
-                planService.saveScheduleInfo(planInstance, jobInstances);
+                planInstance.setTriggerAt(TimeUtils.currentLocalDateTime()); // 实际的调度时间，会相对晚于期望时间
+                planService.saveScheduleInfo(planInstance);
+
+                List<JobInstance> jobInstances = planInstance.rootJobs();
 
                 // 执行调度逻辑
                 for (JobInstance instance : jobInstances) {

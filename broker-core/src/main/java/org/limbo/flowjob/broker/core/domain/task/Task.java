@@ -50,6 +50,8 @@ public class Task implements Serializable {
 
     private String planVersion;
 
+    private String planId;
+
     private String jobInstanceId;
 
     /**
@@ -75,7 +77,7 @@ public class Task implements Serializable {
     /**
      * 对应job配置的属性
      */
-    private Attributes jobAttributes;
+    private Attributes attributes;
 
     /**
      * 开始时间

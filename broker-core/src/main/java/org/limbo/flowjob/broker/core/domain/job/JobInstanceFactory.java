@@ -18,6 +18,7 @@
 
 package org.limbo.flowjob.broker.core.domain.job;
 
+import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.common.constants.JobStatus;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
@@ -30,15 +31,20 @@ import java.time.LocalDateTime;
  */
 public class JobInstanceFactory {
 
-    public static JobInstance create(String planInstanceId, JobInfo jobInfo, LocalDateTime triggerAt) {
+    public static JobInstance create(PlanInstance planInstance, JobInfo jobInfo, LocalDateTime triggerAt) {
         JobInstance instance = new JobInstance();
-        instance.setPlanInstanceId(planInstanceId);
+        instance.setPlanInstanceId(planInstance.getPlanInstanceId());
+        instance.setPlanVersion(planInstance.getVersion());
+        instance.setPlanId(planInstance.getPlanId());
         instance.setJobId(jobInfo.getId());
         instance.setDispatchOption(jobInfo.getDispatchOption());
         instance.setExecutorName(jobInfo.getExecutorName());
+        instance.setType(jobInfo.getType());
+        instance.setTriggerType(jobInfo.getTriggerType());
         instance.setStatus(JobStatus.SCHEDULING);
         instance.setTriggerAt(triggerAt);
         instance.setAttributes(jobInfo.getAttributes());
+        instance.setTerminateWithFail(jobInfo.isTerminateWithFail());
         return instance;
     }
 

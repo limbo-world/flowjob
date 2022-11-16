@@ -73,14 +73,7 @@ public class WeightedLBStrategy<S extends LBServer> extends RoundRobinLBStrategy
     }
 
     @Override
-    public Optional<S> select(List<S> servers) {
-
-        // 有服务存在，但是如果所有服务都挂了的话，也返回空
-        if (CollectionUtils.isEmpty(servers)) {
-            log.warn("No alive server for load strategy [{}]", getClass().getName());
-            return Optional.empty();
-        }
-
+    protected Optional<S> selectNonEmpty(List<S> servers) {
         // 查询服务权重
         List<String> serverIds = servers.stream()
                 .map(LBServer::getServerId)
@@ -113,5 +106,4 @@ public class WeightedLBStrategy<S extends LBServer> extends RoundRobinLBStrategy
 
         return Optional.of(selected);
     }
-
 }

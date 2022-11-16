@@ -16,10 +16,12 @@
 
 package org.limbo.flowjob.broker.dao.entity;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.limbo.flowjob.broker.dao.support.DBFieldHelper;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TriggerType;
 
@@ -104,5 +106,10 @@ public class PlanInfoEntity extends BaseEntity {
     /**
      * 是否删除
      */
-    private Boolean isDeleted;
+    @Getter(AccessLevel.NONE)
+    private Long isDeleted;
+
+    public boolean isDeleted() {
+        return DBFieldHelper.greaterThanZero(isDeleted);
+    }
 }

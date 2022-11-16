@@ -47,7 +47,7 @@ public class PlanServiceTest {
     private PlanService planService;
 
     @Test
-    @Transactional
+//    @Transactional
     public void addFixedRate() {
         PlanAddParam param = PlanFactory.newFixedRateAddParam();
 
@@ -56,6 +56,15 @@ public class PlanServiceTest {
         log.debug(JacksonUtils.toJSONString(plan));
         log.info("plan>>>>>{}", JacksonUtils.toJSONString(plan));
         Assertions.assertNotNull(plan);
+    }
+
+    @Test
+    @Transactional
+    public void enablePlan() {
+        String planId = "2";
+
+        boolean start = planService.start(planId);
+        Assertions.assertTrue(start);
     }
 
     @Test
@@ -69,4 +78,10 @@ public class PlanServiceTest {
         Assertions.assertNotNull(plan, "");
     }
 
+    @Test
+    public void get() {
+        Plan plan = planService.get("2");
+        log.info("plan>>>>>{}", JacksonUtils.toJSONString(plan));
+        Assertions.assertNotNull(plan, "");
+    }
 }

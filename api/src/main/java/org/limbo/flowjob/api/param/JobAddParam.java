@@ -21,6 +21,7 @@ package org.limbo.flowjob.api.param;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.limbo.flowjob.common.constants.JobType;
+import org.limbo.flowjob.common.constants.TriggerType;
 
 import java.util.Set;
 
@@ -33,10 +34,16 @@ import java.util.Set;
 public class JobAddParam {
 
     /**
-     * 作业ID
+     * 作业ID，plan中唯一
      */
-    @Schema(title = "作业ID")
+    @Schema(title = "作业ID", description = "plan中唯一")
     private String jobId;
+
+    /**
+     * 作业名称
+     */
+    @Schema(title = "作业名称")
+    private String jobName;
 
     /**
      * 作业描述
@@ -57,6 +64,12 @@ public class JobAddParam {
     private JobType type;
 
     /**
+     * 触发类型
+     */
+    @Schema(title = "触发类型")
+    private TriggerType triggerType;
+
+    /**
      * 作业分发配置参数
      */
     @Schema(title = "作业分发配置参数")
@@ -67,4 +80,10 @@ public class JobAddParam {
      */
     @Schema(title = "执行器名称")
     private String executorName;
+
+    /**
+     * 执行失败是否终止 false 会继续执行后续作业
+     */
+    @Schema(title = "执行失败是否终止", description = "false 会继续执行后续作业")
+    private Boolean terminateWithFail;
 }

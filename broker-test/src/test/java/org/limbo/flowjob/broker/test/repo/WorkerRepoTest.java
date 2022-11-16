@@ -21,11 +21,12 @@ package org.limbo.flowjob.broker.test.repo;
 import lombok.Setter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.limbo.flowjob.common.constants.WorkerStatus;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
 import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerExecutorEntityRepo;
+import org.limbo.flowjob.broker.dao.support.DBFieldHelper;
+import org.limbo.flowjob.common.constants.WorkerStatus;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -56,9 +57,9 @@ public class WorkerRepoTest {
 
     @Test
     public void findWorker() {
-        List<WorkerEntity> byStatusAndDeleted = workerEntityRepo.findByStatusAndDeleted(WorkerStatus.RUNNING.status, Boolean.FALSE);
+        List<WorkerEntity> byStatusAndDeleted = workerEntityRepo.findByStatusAndIsDeleted(WorkerStatus.RUNNING.status, DBFieldHelper.FALSE_LONG);
         for (WorkerEntity workerEntity : byStatusAndDeleted) {
-            System.out.println(workerEntity.getId() + " " + workerEntity.getStatus() + workerEntity.getDeleted());
+            System.out.println(workerEntity.getId() + " " + workerEntity.getStatus() + workerEntity.isDeleted());
         }
     }
 

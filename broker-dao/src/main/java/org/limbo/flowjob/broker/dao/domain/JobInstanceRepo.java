@@ -32,8 +32,11 @@ import org.limbo.flowjob.common.utils.dag.DAG;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Brozen
@@ -48,6 +51,7 @@ public class JobInstanceRepo implements JobInstanceRepository {
     private PlanInfoEntityRepo planInfoEntityRepo;
 
     @Override
+    @Transactional
     public String save(JobInstance jobInstance) {
         JobInstanceEntity entity = DomainConverter.toJobInstanceEntity(jobInstance);
         jobInstanceEntityRepo.saveAndFlush(entity);
@@ -55,17 +59,22 @@ public class JobInstanceRepo implements JobInstanceRepository {
     }
 
     @Override
+    @Transactional
     public void saveAll(List<JobInstance> jobInstances) {
         if (CollectionUtils.isEmpty(jobInstances)) {
             return;
         }
-        List<JobInstanceEntity> entities = new ArrayList<>();
+        Map<JobInstance, JobInstanceEntity> map = new HashMap<>();
         for (JobInstance jobInstance : jobInstances) {
-            entities.add(DomainConverter.toJobInstanceEntity(jobInstance));
+            map.put(jobInstance, DomainConverter.toJobInstanceEntity(jobInstance));
         }
 
-        jobInstanceEntityRepo.saveAll(entities);
+        jobInstanceEntityRepo.saveAll(map.values());
         jobInstanceEntityRepo.flush();
+
+        for (Map.Entry<JobInstance, JobInstanceEntity> entry : map.entrySet()) {
+            entry.getKey().setJobInstanceId(String.valueOf(entry.getValue().getId()));
+        }
     }
 
     @Override

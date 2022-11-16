@@ -81,7 +81,6 @@ public abstract class PlanScheduleMetaTask extends FixIntervalMetaTask {
                     continue;
                 }
 
-
                 // 实例化 Plan 并调度
                 PlanInstance planInstance = planInfo.newInstance(TriggerType.SCHEDULE, plan.getNextTriggerAt());
                 schedulePlan(planInstance);

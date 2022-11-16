@@ -1,9 +1,11 @@
 package org.limbo.flowjob.broker.dao.entity;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.limbo.flowjob.broker.dao.support.DBFieldHelper;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -51,5 +53,10 @@ public class PlanEntity extends BaseEntity {
      * 是否启动 新建plan的时候 默认为不启动
      * 接口调用的时候会修改 leader 内存数据以及 db数据 需要保障一致性
      */
-    private Boolean isEnabled;
+    @Getter(AccessLevel.NONE)
+    private Long isEnabled;
+
+    public boolean isEnabled() {
+        return DBFieldHelper.greaterThanZero(isEnabled);
+    }
 }

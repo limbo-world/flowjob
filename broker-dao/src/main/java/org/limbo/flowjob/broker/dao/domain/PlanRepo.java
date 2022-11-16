@@ -33,6 +33,7 @@ import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
+import org.limbo.flowjob.broker.dao.support.DBFieldHelper;
 import org.limbo.flowjob.broker.dao.support.SlotManager;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -70,8 +71,6 @@ public class PlanRepo implements PlanRepository {
         Verifies.verify(plan.getInfo().check(), "plan info has error");
 
         if (StringUtils.isBlank(plan.getPlanId())) {
-            plan.setCurrentVersion("1");
-            plan.setRecentlyVersion("1");
             return add(plan);
         } else {
             return replace(plan);
@@ -125,7 +124,7 @@ public class PlanRepo implements PlanRepository {
     @Override
     public Plan get(String planId) {
         Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(Long.valueOf(planId));
-        Verifies.verify(planEntityOptional.isPresent(), "plan is not exist");
+        Verifies.verify(planEntityOptional.isPresent(), "plan is not exist " + planId);
         return toPlan(planEntityOptional.get());
     }
 
@@ -137,6 +136,7 @@ public class PlanRepo implements PlanRepository {
 
         ScheduleOption scheduleOption = planInfo.getScheduleOption();
         entity.setScheduleType(scheduleOption.getScheduleType().type);
+        entity.setTriggerType(scheduleOption.getTriggerType().type);
         entity.setScheduleStartAt(scheduleOption.getScheduleStartAt());
         entity.setScheduleDelay(scheduleOption.getScheduleDelay().toMillis());
         entity.setScheduleInterval(scheduleOption.getScheduleInterval().toMillis());
@@ -144,7 +144,7 @@ public class PlanRepo implements PlanRepository {
         entity.setJobs(JacksonUtils.toJSONString(planInfo.getDag().nodes()));
 
         // 能够查询到info信息，说明未删除
-        entity.setIsDeleted(false);
+        entity.setIsDeleted(DBFieldHelper.FALSE_LONG);
 
         return entity;
     }
@@ -153,8 +153,9 @@ public class PlanRepo implements PlanRepository {
         PlanEntity planEntity = new PlanEntity();
         planEntity.setCurrentVersion(NumberUtils.toLong(plan.getCurrentVersion()));
         planEntity.setRecentlyVersion(NumberUtils.toLong(plan.getRecentlyVersion()));
-        planEntity.setIsEnabled(plan.isEnabled());
+        planEntity.setIsEnabled(DBFieldHelper.boolToLong(plan.isEnabled(), StringUtils.isBlank(plan.getPlanId()) ? null : Long.valueOf(plan.getPlanId())));
         planEntity.setId(NumberUtils.toLong(plan.getPlanId()));
+        planEntity.setNextTriggerAt(plan.getNextTriggerAt());
         return planEntity;
     }
 
@@ -163,7 +164,8 @@ public class PlanRepo implements PlanRepository {
         plan.setPlanId(String.valueOf(entity.getId()));
         plan.setCurrentVersion(String.valueOf(entity.getCurrentVersion()));
         plan.setRecentlyVersion(String.valueOf(entity.getRecentlyVersion()));
-        plan.setEnabled(entity.getIsEnabled());
+        plan.setEnabled(entity.isEnabled());
+        plan.setNextTriggerAt(entity.getNextTriggerAt());
 
         // 获取plan 的当前版本
         Optional<PlanInfoEntity> planInfoEntityOptional = planInfoEntityRepo.findById(Long.valueOf(plan.getCurrentVersion()));

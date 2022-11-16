@@ -30,6 +30,9 @@ public class JobInstanceEntity extends BaseEntity {
 
     private Long planInfoId;
 
+    /**
+     * DAG中的jobId
+     */
     private String jobId;
 
     /**

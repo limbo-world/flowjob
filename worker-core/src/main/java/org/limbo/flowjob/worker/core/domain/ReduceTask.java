@@ -16,58 +16,24 @@
  *
  */
 
-package org.limbo.flowjob.api.param;
+package org.limbo.flowjob.worker.core.domain;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Map;
 
 /**
- * 下发任务
  * @author Devil
- * @since 2021/7/24
+ * @since 2022/11/16
  */
 @Data
-public class TaskSubmitParam {
-
-    @NotBlank
-    private String taskId;
-
-    private String planId;
-
-    private String planInstanceId;
-
-    private String jobId;
-
-    private String jobInstanceId;
-
-    private Byte type;
-
-    /**
-     * 执行器的名称
-     */
-    private String executorName;
-
-    /**
-     * 上下文元数据
-     */
-    private Map<String, Object> context;
-
-    /**
-     * job配置的属性
-     */
-    private Map<String, Object> attributes;
-
-    /**
-     * 每个map task单独的属性
-     */
-    private Map<String, Object> mapAttributes;
+@EqualsAndHashCode(callSuper = true)
+public class ReduceTask extends Task {
 
     /**
      * reduce时候使用的
      */
     private List<Map<String, Object>> reduceAttributes;
-
 }

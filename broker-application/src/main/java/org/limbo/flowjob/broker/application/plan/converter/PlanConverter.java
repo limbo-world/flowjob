@@ -1,6 +1,7 @@
 package org.limbo.flowjob.broker.application.plan.converter;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.BooleanUtils;
 import org.limbo.flowjob.api.param.DispatchOptionParam;
 import org.limbo.flowjob.api.param.JobAddParam;
 import org.limbo.flowjob.api.param.PlanAddParam;
@@ -12,6 +13,7 @@ import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.utils.dag.DAG;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.util.List;
 
@@ -30,6 +32,10 @@ public class PlanConverter {
 
         plan.getInfo().check();
 
+        plan.setCurrentVersion("1");
+        plan.setRecentlyVersion("1");
+        plan.setNextTriggerAt(TimeUtils.currentLocalDateTime());
+
         return plan;
     }
 
@@ -38,7 +44,12 @@ public class PlanConverter {
      * 生成新增计划时的计划数据
      */
     public static PlanInfo convertPlanInfo(PlanAddParam param) {
-        return new PlanInfo(null, null, param.getDescription(), convertScheduleOption(param.getScheduleOption()), convertJob(param.getJobs()));
+        // 一些默认值的设置
+        ScheduleOptionParam scheduleOption = param.getScheduleOption();
+        if (scheduleOption.getScheduleStartAt() == null) {
+            param.getScheduleOption().setScheduleStartAt(TimeUtils.currentLocalDateTime());
+        }
+        return new PlanInfo(null, null, param.getDescription(), convertScheduleOption(scheduleOption), convertJob(param.getJobs()));
     }
 
 
@@ -72,11 +83,15 @@ public class PlanConverter {
      */
     public static JobInfo convertJob(JobAddParam param) {
         JobInfo jobInfo = new JobInfo(param.getJobId(), param.getChildrenIds());
+        jobInfo.setName(param.getJobName());
         jobInfo.setDescription(param.getDescription());
+        jobInfo.setTriggerType(param.getTriggerType());
+        jobInfo.setType(param.getType());
+//        jobInfo.setAttributes(); todo
         jobInfo.setDispatchOption(convertJobDispatchOption(param.getDispatchOption()));
         jobInfo.setExecutorName(param.getExecutorName());
+        jobInfo.setTerminateWithFail(BooleanUtils.isFalse(param.getTerminateWithFail()));
         return jobInfo;
-
     }
 
 

@@ -32,10 +32,8 @@ import java.util.Optional;
 // todo
 @Slf4j
 public class LFULBStrategy<S extends LBServer> extends AbstractLBStrategy<S> {
-
-
     @Override
-    public Optional<S> select(List<S> servers) {
+    protected Optional<S> selectNonEmpty(List<S> servers) {
         return Optional.empty();
     }
 }

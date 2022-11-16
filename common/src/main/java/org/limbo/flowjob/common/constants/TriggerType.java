@@ -19,6 +19,7 @@
 package org.limbo.flowjob.common.constants;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 /**
@@ -43,6 +44,7 @@ public enum TriggerType {
 
     ;
 
+    @JsonValue
     public final byte type;
 
     @Getter

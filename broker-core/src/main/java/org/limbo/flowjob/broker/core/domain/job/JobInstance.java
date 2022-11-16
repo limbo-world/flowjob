@@ -24,6 +24,7 @@ import org.limbo.flowjob.common.constants.JobStatus;
 import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.broker.core.domain.DispatchOption;
 import org.limbo.flowjob.broker.core.schedule.Scheduled;
+import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
@@ -42,9 +43,11 @@ public class JobInstance implements Scheduled, Serializable {
 
     protected String jobInstanceId;
 
-    protected String planVersion;
-
     protected String planInstanceId;
+
+    protected String planId;
+
+    protected String planVersion;
 
     protected String jobId;
 
@@ -54,10 +57,12 @@ public class JobInstance implements Scheduled, Serializable {
 
     protected JobType type;
 
+    protected TriggerType triggerType;
+
     /**
      * 已经尝试的次数 todo
      */
-    protected Integer retry;
+    protected int retry = 0;
 
     /**
      * 状态

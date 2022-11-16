@@ -27,7 +27,7 @@ public class TaskEntity extends BaseEntity {
 
     private Long jobInstanceId;
 
-    private String planId;
+    private Long planId;
 
     private String jobId;
 
@@ -40,7 +40,7 @@ public class TaskEntity extends BaseEntity {
     /**
      * 执行作业的worker ID
      */
-    private String workerId;
+    private Long workerId;
 
     /**
      * 此次执行的参数

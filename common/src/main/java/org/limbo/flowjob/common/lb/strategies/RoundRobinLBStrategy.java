@@ -19,7 +19,6 @@
 package org.limbo.flowjob.common.lb.strategies;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.common.lb.AbstractLBStrategy;
 import org.limbo.flowjob.common.lb.LBServer;
 
@@ -31,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Brozen
  * @since 2022-09-02
  */
+// todo 这个计算方式有问题
 @Slf4j
 public class RoundRobinLBStrategy<S extends LBServer> extends AbstractLBStrategy<S> {
 
@@ -60,14 +60,7 @@ public class RoundRobinLBStrategy<S extends LBServer> extends AbstractLBStrategy
     }
 
     @Override
-    public Optional<S> select(List<S> servers) {
-
-        // 有服务存在，但是如果所有服务都挂了的话，也返回空
-        if (CollectionUtils.isEmpty(servers)) {
-            log.warn("No alive server for load strategy [{}]", getClass().getName());
-            return Optional.empty();
-        }
-
+    protected Optional<S> selectNonEmpty(List<S> servers) {
         // 这里不只取 aliveServers 遍历，防止遍历过程中，servers 中的服务从不可用变为可用
         // 找到轮询的下一个服务
         int idx = nextIndex(servers.size());

@@ -66,7 +66,7 @@ public abstract class AbstractWorkerRpc implements WorkerRpc {
     public <T> T getResponseData(Supplier<ResponseDTO<T>> supplier) {
         ResponseDTO<T> response = supplier.get();
         if (response == null || !response.isOk()) {
-            String msg = response == null ? MsgConstants.UNKNOWN + " error" : response.getMessage();
+            String msg = response == null ? "response is empty" : String.format("code:%s msg:%s", response.getCode(), response.getMessage());
             throw new WorkerException(workerId, msg);
         }
         return response.getData();

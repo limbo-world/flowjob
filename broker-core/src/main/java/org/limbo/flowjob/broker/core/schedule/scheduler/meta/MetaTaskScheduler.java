@@ -35,7 +35,7 @@ public class MetaTaskScheduler extends HashedWheelTimerScheduler<MetaTask> {
         try {
             task.execute();
         } catch (Exception e) {
-            log.error("Meta task [{}] execute failed", task.scheduleId());
+            log.error("Meta task [{}] execute failed", task.scheduleId(), e);
         }
     }
 

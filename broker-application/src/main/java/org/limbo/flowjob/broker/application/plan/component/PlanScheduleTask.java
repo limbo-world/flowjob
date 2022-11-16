@@ -31,6 +31,7 @@ import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
+import org.limbo.flowjob.broker.dao.support.DBFieldHelper;
 import org.limbo.flowjob.broker.dao.support.SlotManager;
 
 import javax.inject.Inject;
@@ -42,6 +43,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * 获取可以下发的plan 创建对应的 PlanInstance 进行调度
  * todo 这类task 是否可以直接交由调度系统调度
  */
 @Slf4j
@@ -80,7 +82,8 @@ public class PlanScheduleTask extends PlanScheduleMetaTask {
             return Collections.emptyList();
         }
         List<Long> planIds = slotEntities.stream().map(PlanSlotEntity::getPlanId).collect(Collectors.toList());
-        List<PlanEntity> planEntities = planEntityRepo.findByIdInAndIsEnabledAndNextTriggerAtBefore(planIds, true, nextTriggerAt);
+        // todo 这里可以只获取id
+        List<PlanEntity> planEntities = planEntityRepo.findByIdInAndIsEnabledGreaterThanAndNextTriggerAtBefore(planIds, DBFieldHelper.FALSE_LONG, nextTriggerAt);
         if (CollectionUtils.isEmpty(planEntities)) {
             return Collections.emptyList();
         }

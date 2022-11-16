@@ -58,6 +58,9 @@ public class JobInfo extends DAGNode {
      */
     private TriggerType triggerType;
 
+    /**
+     * 作业类型
+     */
     private JobType type;
 
     /**

@@ -34,8 +34,8 @@ import java.util.Optional;
 public class AppointLBStrategy<S extends LBServer> extends AbstractLBStrategy<S> {
 
     @Override
-    public Optional<S> select(List<S> servers) {
-        return null;
+    protected Optional<S> selectNonEmpty(List<S> servers) {
+        return Optional.empty();
     }
 
 }

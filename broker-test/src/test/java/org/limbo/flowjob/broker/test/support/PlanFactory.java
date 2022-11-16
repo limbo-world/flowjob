@@ -77,8 +77,10 @@ public class PlanFactory {
     public static JobAddParam normalJob(String id, String executorName) {
         JobAddParam job = new JobAddParam();
         job.setJobId(id);
+        job.setJobName("xxx");
         job.setDescription("test normal");
         job.setType(JobType.NORMAL);
+        job.setTriggerType(TriggerType.SCHEDULE);
         job.setDispatchOption(DispatchOptionParam.builder()
                 .retry(2)
                 .retryInterval(3)

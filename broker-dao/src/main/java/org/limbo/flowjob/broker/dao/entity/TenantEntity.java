@@ -39,8 +39,14 @@ import javax.persistence.Table;
 @DynamicUpdate
 public class TenantEntity extends BaseEntity {
     private static final long serialVersionUID = 2377619948630383909L;
+
     /**
      * 租户名
      */
     private String name;
+
+    /**
+     * 此租户下面 用于登录认证的 secret
+     */
+    private String secret;
 }

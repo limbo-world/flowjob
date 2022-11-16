@@ -41,7 +41,7 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
 
     List<JobInstanceEntity> findByPlanInstanceIdInAndStatusAndTriggerAtLessThan(Collection<Long> planIds, Byte status, LocalDateTime triggerAt);
 
-    List<JobInstanceEntity> findByPlanInstanceIdAndJobId(Long planInstanceId, Long jobId);
+    List<JobInstanceEntity> findByPlanInstanceIdAndJobIdIn(Long planInstanceId, List<String> jobIds);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity set status = :newStatus where id = :id and status = :oldStatus")

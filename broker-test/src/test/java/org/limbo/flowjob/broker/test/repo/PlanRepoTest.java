@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
+import org.limbo.flowjob.broker.dao.support.DBFieldHelper;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
@@ -48,7 +49,7 @@ public class PlanRepoTest {
     public void lock() throws InterruptedException {
         PlanEntity planEntity = planEntityRepo.selectForUpdate(1L);
         System.out.println("lock " + TimeUtils.currentLocalDateTime());
-        planEntity.setIsEnabled(true);
+        planEntity.setIsEnabled(planEntity.getId());
         planEntity.setCreatedAt(TimeUtils.currentLocalDateTime());
         planEntityRepo.saveAndFlush(planEntity);
 
@@ -61,7 +62,7 @@ public class PlanRepoTest {
     public void lock2() throws InterruptedException {
         PlanEntity planEntity = planEntityRepo.selectForUpdate(1L);
         System.out.println("lock2 " + TimeUtils.currentLocalDateTime());
-        planEntity.setIsEnabled(false);
+        planEntity.setIsEnabled(DBFieldHelper.FALSE_LONG);
         planEntity.setCreatedAt(TimeUtils.currentLocalDateTime());
         planEntityRepo.saveAndFlush(planEntity);
 

@@ -105,9 +105,8 @@ public class RpcParamFactory {
         return heartbeatParam;
     }
 
-    public static TaskFeedbackParam taskFeedbackParam(String taskId, Throwable ex) {
+    public static TaskFeedbackParam taskFeedbackParam(Throwable ex) {
         TaskFeedbackParam feedbackParam = new TaskFeedbackParam();
-        feedbackParam.setTaskId(taskId);
         feedbackParam.setResult((int) ExecuteResult.SUCCEED.result);
 
         if (ex != null) {

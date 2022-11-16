@@ -3,6 +3,7 @@ package org.limbo.flowjob.broker.application.plan.service;
 import lombok.Setter;
 import org.limbo.flowjob.api.param.PlanAddParam;
 import org.limbo.flowjob.api.param.PlanReplaceParam;
+import org.limbo.flowjob.broker.dao.support.DBFieldHelper;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
@@ -18,6 +19,7 @@ import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.common.utils.Verifies;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -93,11 +95,11 @@ public class PlanService {
 
         PlanEntity planEntity = planEntityOptional.get();
         // 已经启动不重复处理
-        if (Boolean.TRUE.equals(planEntity.getIsEnabled())) {
+        if (planEntity.isEnabled()) {
             return true;
         }
 
-        return planEntityRepo.updateEnable(planEntity.getId(), false, true) == 1;
+        return planEntityRepo.updateEnable(planEntity.getId(), DBFieldHelper.FALSE_LONG, Long.valueOf(planId)) == 1;
     }
 
     /**
@@ -112,22 +114,22 @@ public class PlanService {
         // 已经停止不重复处理
         PlanEntity planEntity = planEntityOptional.get();
         // 已经停止不重复处理
-        if (Boolean.FALSE.equals(planEntity.getIsEnabled())) {
+        if (planEntity.isEnabled()) {
             return true;
         }
 
         // 停用计划
-        return planEntityRepo.updateEnable(planEntity.getId(), true, false) == 1;
+        return planEntityRepo.updateEnable(planEntity.getId(), Long.valueOf(planId), DBFieldHelper.FALSE_LONG) == 1;
     }
 
     @Transactional
-    public void saveScheduleInfo(PlanInstance planInstance, List<JobInstance> jobInstances) {
+    public void saveScheduleInfo(PlanInstance planInstance) {
         Long planId = Long.valueOf(planInstance.getPlanId());
 
         // 加锁
         planEntityRepo.selectForUpdate(planId);
 
-        // 判断并发情况下 是否已经有人提交调度任务 如有则无需处理
+        // 判断并发情况下 是否已经有人提交调度任务 如有则无需处理 防止重复创建数据
         PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo
                 .findByPlanIdAndExpectTriggerAtAndTriggerType(
                         planId, planInstance.getExpectTriggerAt(), TriggerType.SCHEDULE.type
@@ -136,10 +138,12 @@ public class PlanService {
             return;
         }
 
+        // 保存 planInstance
         planInstanceRepository.save(planInstance);
 
-        // 批量保存数据
-        jobInstanceRepository.saveAll(jobInstances);
+        // 保存 jobInstance
+        List<JobInstance> rootJobs = planInstance.rootJobs();
+        jobInstanceRepository.saveAll(rootJobs);
 
         // 更新plan的下次触发时间
         if (ScheduleType.FIXED_DELAY != planInstance.getScheduleOption().getScheduleType() && TriggerType.SCHEDULE == planInstance.getScheduleOption().getTriggerType()) {

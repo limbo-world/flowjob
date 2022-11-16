@@ -15,6 +15,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class BrokerProperties extends BrokerConfig {
 
     /**
+     * 是否启用 worker
+     */
+    private boolean enabled = true;
+
+    /**
      * 重分配间隔
      */
     private long rebalanceInterval = 10000;

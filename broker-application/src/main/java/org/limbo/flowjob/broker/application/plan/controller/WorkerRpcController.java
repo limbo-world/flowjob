@@ -43,10 +43,10 @@ import javax.validation.constraints.NotNull;
  * @author Brozen
  * @since 2021-06-10
  */
-@Tag(name = "worker相关接口")
+@Tag(name = "对worker提供的相关接口")
 @RestController
-@RequestMapping("/api/v1/worker")
-public class WorkerController {
+@RequestMapping("/api/v1/rpc/worker")
+public class WorkerRpcController {
 
     @Setter(onMethod_ = @Inject)
     private WorkerService workerService;
@@ -70,7 +70,7 @@ public class WorkerController {
     @Operation(summary = "worker心跳")
     @PostMapping("/{workerId}/heartbeat")
     public ResponseDTO<WorkerRegisterDTO> heartbeat(@Validated @NotNull(message = "no workerId") @PathVariable("workerId") String workerId,
-                                                    @RequestBody WorkerHeartbeatParam heartbeatOption) {
+                                                    @Valid @RequestBody WorkerHeartbeatParam heartbeatOption) {
         return ResponseDTO.<WorkerRegisterDTO>builder().ok(workerService.heartbeat(workerId, heartbeatOption)).build();
     }
 
@@ -78,9 +78,10 @@ public class WorkerController {
      * 任务执行反馈接口
      */
     @Operation(summary = "任务执行反馈接口")
-    @PostMapping("/task/feedback")
-    public ResponseDTO<Void> feedback(@Valid @RequestBody TaskFeedbackParam feedback) {
-        taskService.feedback(feedback);
+    @PostMapping("/task/{taskId}/feedback")
+    public ResponseDTO<Void> feedback(@Validated @NotNull(message = "no taskId") @PathVariable("taskId") String taskId,
+                                      @Valid @RequestBody TaskFeedbackParam feedback) {
+        taskService.feedback(taskId, feedback);
         return ResponseDTO.<Void>builder().ok().build();
     }
 

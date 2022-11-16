@@ -34,7 +34,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  */
 @SpringBootApplication
 @Import({
-        BrokerConfiguration.class
+        BrokerConfiguration.class,
 })
 @ComponentScan(basePackages = "org.limbo.flowjob.broker", excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = {WebApplication.class})})
 @EntityScan(basePackages = "org.limbo.flowjob.broker.dao.entity")

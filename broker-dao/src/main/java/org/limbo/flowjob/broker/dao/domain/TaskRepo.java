@@ -32,7 +32,9 @@ import org.springframework.stereotype.Repository;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Brozen
@@ -63,17 +65,23 @@ public class TaskRepo implements TaskRepository {
     }
 
     @Override
+    @Transactional
     public void saveAll(List<Task> tasks) {
         if (CollectionUtils.isEmpty(tasks)) {
             return;
         }
-        List<TaskEntity> entities = new ArrayList<>();
+
+        Map<Task, TaskEntity> map = new HashMap<>();
         for (Task task : tasks) {
-            entities.add(DomainConverter.toTaskEntity(task));
+            map.put(task, DomainConverter.toTaskEntity(task));
         }
 
-        taskEntityRepo.saveAll(entities);
+        taskEntityRepo.saveAll(map.values());
         taskEntityRepo.flush();
+
+        for (Map.Entry<Task, TaskEntity> entry : map.entrySet()) {
+            entry.getKey().setTaskId(String.valueOf(entry.getValue().getId()));
+        }
     }
 
     @Override

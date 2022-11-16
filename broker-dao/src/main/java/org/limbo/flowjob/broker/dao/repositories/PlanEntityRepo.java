@@ -39,7 +39,10 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, Long> {
     @Query(value = "select * from flowjob_plan where id = :id for update", nativeQuery = true)
     PlanEntity selectForUpdate(@Param("id") Long id);
 
-    List<PlanEntity> findByIdInAndIsEnabledAndNextTriggerAtBefore(List<Long> ids, boolean isEnabled, LocalDateTime nextTriggerAt);
+    /**
+     * 根据id和触发时间找到启动的plan
+     */
+    List<PlanEntity> findByIdInAndIsEnabledGreaterThanAndNextTriggerAtBefore(List<Long> ids, Long isEnabled, LocalDateTime nextTriggerAt);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanEntity set currentVersion = :newCurrentVersion, recentlyVersion = :newRecentlyVersion " +
@@ -52,7 +55,7 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, Long> {
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanEntity set isEnabled = :newValue where id = :id and isEnabled = :oldValue")
-    int updateEnable(@Param("id") Long id, @Param("oldValue") Boolean oldValue, @Param("newValue") Boolean newValue);
+    int updateEnable(@Param("id") Long id, @Param("oldValue") Long oldValue, @Param("newValue") Long newValue);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanEntity set nextTriggerAt = :nextTriggerAt where id = :id")

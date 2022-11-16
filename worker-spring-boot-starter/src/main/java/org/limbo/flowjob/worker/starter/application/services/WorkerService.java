@@ -47,6 +47,7 @@ public class WorkerService {
      * @return
      */
     public Boolean receive(TaskSubmitParam param) {
+        log.info("receive task {}", param);
         try {
             Task task = taskConverter.task(param);
             worker.receiveTask(task);

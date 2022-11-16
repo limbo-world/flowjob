@@ -19,16 +19,15 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
-import org.limbo.flowjob.common.constants.PlanStatus;
-import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
-import org.limbo.flowjob.broker.core.schedule.calculator.ScheduleCalculatorFactory;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
+import org.limbo.flowjob.common.constants.PlanStatus;
+import org.limbo.flowjob.common.constants.TriggerType;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -47,16 +46,15 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
     @Setter(onMethod_ = @Inject)
     private PlanInfoEntityRepo planInfoEntityRepo;
 
-    @Setter(onMethod_ = @Inject)
-    private ScheduleCalculatorFactory scheduleCalculatorFactory;
-
 
     @Override
     @Transactional
     public String save(PlanInstance instance) {
         PlanInstanceEntity entity = toEntity(instance);
         planInstanceEntityRepo.saveAndFlush(entity);
-        return String.valueOf(entity.getId());
+        String planInstanceId = String.valueOf(entity.getId());
+        instance.setPlanInstanceId(planInstanceId);
+        return planInstanceId;
     }
 
     @Override
@@ -66,7 +64,9 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
 
     private PlanInstanceEntity toEntity(PlanInstance instance) {
         PlanInstanceEntity planInstanceEntity = new PlanInstanceEntity();
-        planInstanceEntity.setId(Long.valueOf(instance.getPlanInstanceId()));
+        if (instance.getPlanInstanceId() != null) {
+            planInstanceEntity.setId(Long.valueOf(instance.getPlanInstanceId()));
+        }
         planInstanceEntity.setPlanId(Long.valueOf(instance.getPlanId()));
         planInstanceEntity.setPlanInfoId(Long.valueOf(instance.getVersion()));
         planInstanceEntity.setStatus(instance.getStatus().status);
@@ -87,8 +87,6 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
         planInstance.setTriggerType(TriggerType.parse(entity.getTriggerType()));
         planInstance.setTriggerAt(entity.getTriggerAt());
         planInstance.setFeedbackAt(entity.getFeedbackAt());
-
-        planInstance.setStrategyFactory(scheduleCalculatorFactory);
 
         // 基础信息
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getPlanInfoId()).get();

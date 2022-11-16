@@ -3,10 +3,6 @@ package org.limbo.flowjob.broker.application.plan.service;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.param.TaskFeedbackParam;
-import org.limbo.flowjob.common.constants.ExecuteResult;
-import org.limbo.flowjob.common.constants.JobStatus;
-import org.limbo.flowjob.common.constants.PlanStatus;
-import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.broker.application.plan.component.JobScheduler;
 import org.limbo.flowjob.broker.application.plan.manager.PlanManager;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
@@ -18,9 +14,13 @@ import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
+import org.limbo.flowjob.common.constants.ExecuteResult;
+import org.limbo.flowjob.common.constants.JobStatus;
+import org.limbo.flowjob.common.constants.PlanStatus;
+import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.exception.VerifyException;
-import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -64,22 +64,23 @@ public class TaskService {
     /**
      * Worker任务执行反馈
      *
-     * @param param 反馈参数
+     * @param taskId 任务id
+     * @param param  反馈参数
      */
     @Transactional
-    public void feedback(TaskFeedbackParam param) {
+    public void feedback(String taskId, TaskFeedbackParam param) {
         // 获取实例
-        TaskEntity task = taskEntityRepo.findById(Long.valueOf(param.getTaskId()))
-                        .orElseThrow(() -> new VerifyException("Task not exist!"));
+        TaskEntity task = taskEntityRepo.findById(Long.parseLong(taskId))
+                .orElseThrow(() -> new VerifyException("Task not exist!"));
 
         ExecuteResult result = ExecuteResult.parse(param.getResult());
         switch (result) {
             case SUCCEED:
-                taskSuccess(task.getId(), task.getJobInstanceId(), param);
+                handleTaskSuccess(task.getId(), task.getJobInstanceId(), param);
                 break;
 
             case FAILED:
-                taskFail(task.getId(), task.getJobInstanceId(), param.getErrorMsg(), param.getErrorStackTrace());
+                handleTaskFail(task.getId(), task.getJobInstanceId(), param.getErrorMsg(), param.getErrorStackTrace());
                 break;
 
             case TERMINATED:
@@ -91,7 +92,7 @@ public class TaskService {
     }
 
     @Transactional
-    public void taskSuccess(Long taskId, Long jobInstanceId, TaskFeedbackParam param) {
+    public void handleTaskSuccess(Long taskId, Long jobInstanceId, TaskFeedbackParam param) {
         // todo 更新plan上下文
 
         int num = taskEntityRepo.updateSuccessStatus(taskId,
@@ -100,14 +101,14 @@ public class TaskService {
                 JacksonUtils.toJSONString(param.getResultAttributes())
         );
 
-        if (num != 1) {
+        if (num != 1) { // 已经被更新 无需重复处理
             return;
         }
-        checkJobAndDispatch(jobInstanceId);
+        handleJobStatus(jobInstanceId);
     }
 
     @Transactional
-    public void taskFail(Long taskId, Long jobInstanceId, String errorMsg, String errorStackTrace) {
+    public void handleTaskFail(Long taskId, Long jobInstanceId, String errorMsg, String errorStackTrace) {
         int num = taskEntityRepo.updateStatusWithError(Collections.singletonList(taskId),
                 TaskStatus.EXECUTING.status,
                 TaskStatus.FAILED.status,
@@ -118,27 +119,56 @@ public class TaskService {
         if (num != 1) {
             return; // 并发更新过了 正常来说前面job更新成功 这个不可能会进来
         }
-        checkJobAndDispatch(jobInstanceId);
+        handleJobStatus(jobInstanceId);
     }
 
-    @Transactional
-    public void checkJobAndDispatch(Long jobInstanceId) {
+    //    @Transactional
+    private void handleJobStatus(Long jobInstanceId) {
         // 加锁
         jobInstanceEntityRepo.selectForUpdate(jobInstanceId);
         // 检查task是否都已经完成
         List<TaskEntity> taskEntities = taskEntityRepo.findByJobInstanceId(jobInstanceId);
         for (TaskEntity taskEntity : taskEntities) {
             if (!TaskStatus.parse(taskEntity.getStatus()).isCompleted()) {
-                return;
+                return; // 如果还未完成 交由最后完成的task去做后续逻辑处理
             }
         }
 
         JobInstance jobInstance = jobInstanceRepository.get(jobInstanceId.toString());
+        // 判断状态是不是已经更新 可能已经被其它线程处理
+        if (JobStatus.EXECUTING != jobInstance.getStatus()) {
+            return;
+        }
 
+        // 如果所有task都是执行成功 则处理成功
+        // 如果所有task都是执行失败 则处理失败
+        boolean success = taskEntities.stream().allMatch(entity -> JobStatus.SUCCEED == JobStatus.parse(entity.getStatus()));
+        if (success) {
+            handleJobSuccess(jobInstance);
+        } else {
+            handleJobFail(jobInstance);
+        }
+
+    }
+
+    //    @Transactional
+    private void handleJobSuccess(JobInstance jobInstance) {
+        jobInstanceEntityRepo.updateStatus(
+                Long.valueOf(jobInstance.getJobInstanceId()),
+                JobStatus.EXECUTING.status,
+                JobStatus.SUCCEED.status
+        );
+
+        PlanInstance planInstance = planInstanceRepository.get(jobInstance.getPlanInstanceId());
+        planManager.dispatchNext(planInstance, jobInstance.getJobId());
+    }
+
+    //    @Transactional
+    private void handleJobFail(JobInstance jobInstance) {
         if (jobInstance.isTerminateWithFail()) {
 
             jobInstanceEntityRepo.updateStatus(
-                    jobInstanceId,
+                    Long.valueOf(jobInstance.getJobInstanceId()),
                     JobStatus.EXECUTING.status,
                     JobStatus.FAILED.status
             );
@@ -155,14 +185,7 @@ public class TaskService {
                 );
             }
         } else {
-            jobInstanceEntityRepo.updateStatus(
-                    Long.valueOf(jobInstance.getJobInstanceId()),
-                    JobStatus.EXECUTING.status,
-                    JobStatus.SUCCEED.status
-            );
-
-            PlanInstance planInstance = planInstanceRepository.get(jobInstance.getPlanInstanceId());
-            planManager.dispatchNext(planInstance, jobInstance.getJobId());
+            handleJobSuccess(jobInstance);
         }
     }
 

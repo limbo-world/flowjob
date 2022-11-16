@@ -8,7 +8,6 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.application.plan.support.WorkerInterceptor;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.format.datetime.DateFormatter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
@@ -23,7 +22,6 @@ import java.time.format.DateTimeFormatter;
  * @since 2021/7/26
  */
 @Slf4j
-@Configuration
 public class WebConfiguration implements WebMvcConfigurer {
 
     private static final String TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
@@ -74,6 +72,7 @@ public class WebConfiguration implements WebMvcConfigurer {
 
     /**
      * worker 会话拦截
+     *
      * @return
      */
     @Bean
@@ -84,7 +83,9 @@ public class WebConfiguration implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(workerInterceptor())
-                .addPathPatterns("/api/v1/worker/**")
-                .excludePathPatterns("/api/v1/worker");
+                .addPathPatterns("/api/v1/rpc/worker/*/heartbeat")
+                .addPathPatterns("/api/v1/rpc/worker/task/*/feedback")
+//                .excludePathPatterns("/api/v1/rpc/worker")
+        ;
     }
 }

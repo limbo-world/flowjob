@@ -109,7 +109,7 @@ public class JobService {
             taskEntityRepo.updateStatus(Long.valueOf(task.getTaskId()),
                     TaskStatus.DISPATCHING.status,
                     TaskStatus.EXECUTING.status,
-                    task.getWorkerId()
+                    Long.parseLong(task.getWorkerId())
             );
         }
 

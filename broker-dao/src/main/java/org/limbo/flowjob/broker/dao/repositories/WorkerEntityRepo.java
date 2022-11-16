@@ -30,7 +30,10 @@ import java.util.Optional;
  */
 public interface WorkerEntityRepo extends JpaRepository<WorkerEntity, Long> {
 
-    List<WorkerEntity> findByStatusAndDeleted(Byte status, Boolean deleted);
+    /**
+     * 根据状态查询未删除worker
+     */
+    List<WorkerEntity> findByStatusAndIsDeleted(Byte status, Long deleted);
 
     Optional<WorkerEntity> findByName(String name);
 }

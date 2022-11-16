@@ -33,6 +33,7 @@ import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerExecutorEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerMetricEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerTagEntityRepo;
+import org.limbo.flowjob.broker.dao.support.DBFieldHelper;
 import org.limbo.flowjob.common.constants.WorkerStatus;
 import org.springframework.stereotype.Repository;
 
@@ -139,7 +140,7 @@ public class WorkerRepo implements WorkerRepository {
      */
     @Override
     public List<Worker> listAvailableWorkers() {
-        return workerEntityRepo.findByStatusAndDeleted(WorkerStatus.RUNNING.status, Boolean.FALSE)
+        return workerEntityRepo.findByStatusAndIsDeleted(WorkerStatus.RUNNING.status, DBFieldHelper.FALSE_LONG)
                 .stream()
                 .map(this::toWorkerWithLazyInit)
                 .collect(Collectors.toList());
@@ -170,7 +171,7 @@ public class WorkerRepo implements WorkerRepository {
         Optional<WorkerEntity> workerEntityOptional = workerEntityRepo.findById(workerId);
         if (workerEntityOptional.isPresent()) {
             WorkerEntity workerEntity = workerEntityOptional.get();
-            workerEntity.setDeleted(true);
+            workerEntity.setIsDeleted(Long.valueOf(id));
             workerEntityRepo.saveAndFlush(workerEntity);
         }
     }

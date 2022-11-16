@@ -19,6 +19,7 @@
 package org.limbo.flowjob.common.constants;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 /**
@@ -55,6 +56,7 @@ public enum JobType {
     REDUCE(5, "Reduce任务"),
     ;
 
+    @JsonValue
     public final byte type;
 
     @Getter

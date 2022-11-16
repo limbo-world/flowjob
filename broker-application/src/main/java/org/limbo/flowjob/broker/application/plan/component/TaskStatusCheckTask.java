@@ -88,9 +88,9 @@ public class TaskStatusCheckTask extends FixIntervalMetaTask {
 
         for (TaskEntity task : tasks) {
             // 获取长时间为执行中的task 判断worker是否已经宕机
-            Worker worker = workerRepository.get(task.getWorkerId());
+            Worker worker = workerRepository.get(task.getWorkerId().toString());
             if (worker == null || !worker.isAlive()) {
-                taskService.taskFail(task.getId(), task.getJobInstanceId(), String.format("worker %s is offline", task.getWorkerId()), "");
+                taskService.handleTaskFail(task.getId(), task.getJobInstanceId(), String.format("worker %s is offline", task.getWorkerId()), "");
             }
         }
     }

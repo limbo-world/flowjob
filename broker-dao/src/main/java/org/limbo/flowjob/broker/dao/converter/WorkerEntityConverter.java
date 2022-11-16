@@ -29,6 +29,7 @@ import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
+import org.limbo.flowjob.broker.dao.support.DBFieldHelper;
 import org.limbo.flowjob.common.constants.WorkerStatus;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Component;
@@ -58,7 +59,7 @@ public class WorkerEntityConverter {
     public Worker toWorker(WorkerEntity po, Map<String, List<String>> tags,
                            List<WorkerExecutor> executors, WorkerMetric metric) {
         // 已删除则不返回
-        if (po == null || po.getDeleted()) {
+        if (po == null || po.isDeleted()) {
             return null;
         }
 
@@ -101,7 +102,7 @@ public class WorkerEntityConverter {
         po.setHost(worker.getRpcBaseUrl().getHost());
         po.setPort(worker.getRpcBaseUrl().getPort());
         po.setStatus(worker.getStatus().status);
-        po.setDeleted(false);
+        po.setIsDeleted(DBFieldHelper.FALSE_LONG);
         return po;
     }
 

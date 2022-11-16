@@ -24,17 +24,18 @@ import org.limbo.flowjob.common.lb.LBServer;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author Brozen
  * @since 2022-09-02
  */
-// todo
+// todo 考虑权重/优先级？
 @Slf4j
 public class RandomLBStrategy<S extends LBServer> extends AbstractLBStrategy<S> {
 
     @Override
-    public Optional<S> select(List<S> servers) {
-        return Optional.empty();
+    protected Optional<S> selectNonEmpty(List<S> servers) {
+        return Optional.of(servers.get(ThreadLocalRandom.current().nextInt(servers.size())));
     }
 }

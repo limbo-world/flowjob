@@ -16,14 +16,15 @@
 
 package org.limbo.flowjob.broker.dao.entity;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.limbo.flowjob.broker.dao.support.DBFieldHelper;
 import org.limbo.flowjob.common.constants.WorkerStatus;
 
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
@@ -76,9 +77,11 @@ public class WorkerEntity extends BaseEntity {
     /**
      * 节点是否被删除
      */
-    private Boolean deleted;
+    @Getter(AccessLevel.NONE)
+    private Long isDeleted;
 
-    public Boolean isDeleted() {
-        return deleted;
+    public boolean isDeleted() {
+        return DBFieldHelper.greaterThanZero(isDeleted);
     }
+
 }

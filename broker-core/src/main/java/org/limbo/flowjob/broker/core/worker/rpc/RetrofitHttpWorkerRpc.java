@@ -16,16 +16,17 @@
 
 package org.limbo.flowjob.broker.core.worker.rpc;
 
-import org.limbo.flowjob.api.dto.WorkerMetricDTO;
+import org.limbo.flowjob.api.constants.HttpWorkerApi;
 import org.limbo.flowjob.api.dto.ResponseDTO;
+import org.limbo.flowjob.api.param.TaskSubmitParam;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.exceptions.WorkerException;
 import org.limbo.flowjob.broker.core.worker.Worker;
-import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import retrofit2.Call;
 import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.Body;
-import retrofit2.http.GET;
+import retrofit2.http.Headers;
 import retrofit2.http.POST;
 
 /**
@@ -40,18 +41,19 @@ public class RetrofitHttpWorkerRpc extends HttpWorkerRpc {
         super(worker);
         this.api = new Retrofit.Builder()
                 .baseUrl(getBaseUrl())
+                .addConverterFactory(GsonConverterFactory.create())
                 .build().create(RetrofitWorkerApi.class);
     }
 
 
-    /**
-     * {@inheritDoc}
-     * @return
-     */
-    @Override
-    public WorkerMetric ping() {
-        return WorkerConverter.toDO(send(api.ping()));
-    }
+//    /**
+//     * {@inheritDoc}
+//     * @return
+//     */
+//    @Override
+//    public WorkerMetric ping() {
+//        return WorkerConverter.toDO(send(api.ping()));
+//    }
 
     /**
      * {@inheritDoc}
@@ -61,7 +63,8 @@ public class RetrofitHttpWorkerRpc extends HttpWorkerRpc {
      */
     @Override
     public Boolean sendTask(Task task) {
-        return send(api.sendTask(task));
+
+        return send(api.sendTask(WorkerConverter.toTaskSubmitParam(task)));
     }
 
     private <T> T send(Call<ResponseDTO<T>> call) {
@@ -89,11 +92,14 @@ public class RetrofitHttpWorkerRpc extends HttpWorkerRpc {
      */
     interface RetrofitWorkerApi {
 
-        @GET(API_PING)
-        Call<ResponseDTO<WorkerMetricDTO>> ping();
+//        @GET(HttpWorkerApi.API_PING)
+//        Call<ResponseDTO<WorkerMetricDTO>> ping();
 
-        @POST(API_SEND_TASK)
-        Call<ResponseDTO<Boolean>> sendTask(@Body Task task);
+        @Headers(
+                "Content-Type: application/json"
+        )
+        @POST(HttpWorkerApi.API_SEND_TASK)
+        Call<ResponseDTO<Boolean>> sendTask(@Body TaskSubmitParam param);
 
     }
 

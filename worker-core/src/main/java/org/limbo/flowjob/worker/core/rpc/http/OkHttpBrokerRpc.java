@@ -119,7 +119,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      * 向指定 broker 节点发起注册请求
      */
     private WorkerRegisterDTO registerWith(WorkerRegisterParam param) throws RegisterFailException {
-        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + "/api/v1/worker", param, new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
+        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + "/api/v1/rpc/worker", param, new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
         });
 
         if (response == null || !response.isOk()) {
@@ -166,7 +166,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      */
     @Override
     public void heartbeat(Worker worker) {
-        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + "/api/v1/worker/" + workerId + "/heartbeat", RpcParamFactory.heartbeatParam(worker), new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
+        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + "/api/v1/rpc/worker/" + workerId + "/heartbeat", RpcParamFactory.heartbeatParam(worker), new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
         });
 
         if (response == null || !response.isOk()) {
@@ -190,7 +190,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      */
     @Override
     public void feedbackTaskSucceed(ExecuteContext context) {
-        doFeedbackTask(RpcParamFactory.taskFeedbackParam(context.getTask().getTaskId(), null));
+        doFeedbackTask(context.getTask().getTaskId(), RpcParamFactory.taskFeedbackParam(null));
     }
 
 
@@ -202,20 +202,20 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      */
     @Override
     public void feedbackTaskFailed(ExecuteContext context, @Nullable Throwable ex) {
-        doFeedbackTask(RpcParamFactory.taskFeedbackParam(context.getTask().getTaskId(), ex));
+        doFeedbackTask(context.getTask().getTaskId(), RpcParamFactory.taskFeedbackParam(ex));
     }
 
 
     /**
      * 反馈任务执行结果
      */
-    private void doFeedbackTask(TaskFeedbackParam feedbackParam) {
-        ResponseDTO<Void> response = executePost(BASE_URL + "/api/v1/worker/task/feedback", feedbackParam, new TypeReference<ResponseDTO<Void>>() {
+    private void doFeedbackTask(String taskId, TaskFeedbackParam feedbackParam) {
+        ResponseDTO<Void> response = executePost(BASE_URL + "/api/v1/rpc/worker/task/" + taskId + "/feedback", feedbackParam, new TypeReference<ResponseDTO<Void>>() {
         });
 
         if (response == null || !response.isOk()) {
             String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
-            throw new RegisterFailException("Worker register failed: " + msg);
+            throw new RegisterFailException("Worker feedback Task failed: " + msg);
         }
     }
 

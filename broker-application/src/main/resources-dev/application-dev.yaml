@@ -9,6 +9,7 @@ flowjob:
   worker:
     brokers:
       - http://localhost:8081
+    taskQueueSize: 64
     tags:
       - a=b
       - c=d
@@ -28,5 +29,8 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: false  # 日志中显示sql语句
+    properties:
+      hibernate:
+        enable_lazy_load_no_trans: true # 解决懒加载问题 no Session
 
 

@@ -41,6 +41,10 @@ public class TaskDispatcher {
      * 将任务下发给worker。
      */
     public static void dispatch(Task task) {
+        if (log.isDebugEnabled()) {
+            log.debug("start dispatch task={}", task);
+        }
+
         if (task.getStatus() != TaskStatus.DISPATCHING) {
             throw new JobDispatchException(task.getJobId(), task.getTaskId(), "Cannot startup context due to current status: " + task.getStatus());
         }
@@ -65,18 +69,23 @@ public class TaskDispatcher {
                     task.setStatus(TaskStatus.EXECUTING);
                     task.setWorkerId(worker.getId());
 
+                    if (log.isDebugEnabled()) {
+                        log.debug("Task dispatch success task={}", task);
+                    }
                     return;
                 }
 
                 availableWorkers = availableWorkers.stream().filter(w -> !Objects.equals(w.getId(), worker.getId())).collect(Collectors.toList());
             } catch (Exception e) {
-                log.error("Task dispatch fail task={}", task, e);
+                log.error("Task dispatch with error task={}", task, e);
             }
         }
 
         // 下发失败
         task.setStatus(TaskStatus.FAILED);
-
+        if (log.isDebugEnabled()) {
+            log.debug("Task dispatch fail task={}", task);
+        }
     }
 
 }

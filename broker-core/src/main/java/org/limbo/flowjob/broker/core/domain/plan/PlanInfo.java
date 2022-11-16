@@ -92,7 +92,10 @@ public class PlanInfo implements Serializable {
         instance.setDag(dag);
         instance.setStatus(PlanStatus.SCHEDULING);
         instance.setTriggerType(triggerType);
+        instance.setScheduleOption(scheduleOption);
         instance.setExpectTriggerAt(nextTriggerAt);
+//        instance.setTriggerAt(nextTriggerAt); // 新建的时候不需要
+//        instance.setContext(); // todo
         return instance;
     }
 

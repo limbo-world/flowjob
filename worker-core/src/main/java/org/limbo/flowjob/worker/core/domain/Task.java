@@ -32,16 +32,10 @@ public class Task {
 
     private String planId;
 
-    private String planInstanceId;
-
     private String jobId;
 
     private String jobInstanceId;
 
-    /**
-     * sharding normal
-     */
-    private Byte type;
     /**
      * 执行器的名称
      */
@@ -57,18 +51,8 @@ public class Task {
      */
     private Map<String, Object> attributes;
 
-    /**
-     * 每个map task单独的属性
-     */
-    private Map<String, Object> mapAttributes;
-
-    /**
-     * reduce时候使用的
-     */
-    private List<Map<String, Object>> reduceAttributes;
-
     public String getId() {
-        return planId + "-" + planInstanceId + "-" + jobId + "-" + jobInstanceId + "-" + taskId;
+        return planId + "-" + jobId + "-" + jobInstanceId + "-" + taskId;
     }
 
 }

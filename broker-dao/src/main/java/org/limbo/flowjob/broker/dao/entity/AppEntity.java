@@ -27,7 +27,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 
 /**
- * 应用 application
+ * 应用 application 由ak/sk提供对外暴露应用下数据控制的能力
  *
  * @author Devil
  * @since 2022/6/24
@@ -51,5 +51,15 @@ public class AppEntity extends BaseEntity {
      * 应用名称
      */
     private String name;
+
+    /**
+     * Access Key
+     */
+    private String ak;
+
+    /**
+     * Secret Access Key
+     */
+    private String sk;
 
 }

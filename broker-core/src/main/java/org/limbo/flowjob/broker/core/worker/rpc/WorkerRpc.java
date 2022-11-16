@@ -34,7 +34,8 @@ public interface WorkerRpc {
      *
      * @return 返回worker节点的指标信息。
      */
-    WorkerMetric ping();
+    @Deprecated // todo 现在由worker发送心跳 这样存在需要token的问题，是否改为broker去发送心跳请求？？？
+//    WorkerMetric ping();
 
     /**
      * 发送一个作业到worker执行。当worker接受此task后，将触发返回
