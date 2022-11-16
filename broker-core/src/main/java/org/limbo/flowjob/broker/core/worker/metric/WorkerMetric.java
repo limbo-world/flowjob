@@ -33,7 +33,7 @@ import java.util.List;
 @Data
 @Setter(AccessLevel.NONE)
 @AllArgsConstructor
-@Builder(builderClassName = "Builder")
+@Builder(builderClassName = "Builder", toBuilder = true)
 public class WorkerMetric {
 
     /**

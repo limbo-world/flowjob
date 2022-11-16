@@ -112,6 +112,9 @@ public class Worker implements WorkerRpc, LBServer {
         return WorkerStatus.RUNNING == status;
     }
 
+    /**
+     * 获取 worker RPC 通信时的接口访问地址
+     */
     @Override
     public URL getUrl() {
         return rpcBaseUrl;
@@ -132,8 +135,12 @@ public class Worker implements WorkerRpc, LBServer {
     }
 
 
+    /**
+     * 是否需要记录 worker 统计信息
+     * @param metric 统计数据
+     */
     public void heartbeat(WorkerMetric metric) {
-
+        this.metric = metric;
     }
 
 

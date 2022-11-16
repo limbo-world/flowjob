@@ -106,6 +106,20 @@ public class WorkerRepo implements WorkerRepository {
 
     /**
      * {@inheritDoc}
+     * @param worker worker节点
+     */
+    @Override
+    public void saveMetric(Worker worker) {
+        // Metric 存储
+        WorkerMetric metric = worker.getMetric();
+        long workerId = Long.parseLong(worker.getId());
+        WorkerMetricEntity metricPo = converter.toMetricEntity(workerId, metric);
+        metricEntityRepo.saveAndFlush(Objects.requireNonNull(metricPo));
+    }
+
+
+    /**
+     * {@inheritDoc}
      *
      * @param id workerId
      * @return
