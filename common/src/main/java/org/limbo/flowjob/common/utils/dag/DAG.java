@@ -103,7 +103,7 @@ public class DAG<T extends DAGNode> implements Serializable {
             for (String childrenId : node.getChildrenIds()) {
                 T t = nodes.get(childrenId);
                 Verifies.notNull(t, "node " + node.getId() + " child " + childrenId + " is not exist");
-                t.addParent(t.getId());
+                t.addParent(node.getId());
             }
         });
 

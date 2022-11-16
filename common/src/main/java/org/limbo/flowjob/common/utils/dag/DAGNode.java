@@ -19,8 +19,10 @@
 package org.limbo.flowjob.common.utils.dag;
 
 import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -39,7 +41,7 @@ public class DAGNode implements Serializable {
 
     public DAGNode(String id, Set<String> childrenIds) {
         this.id = id;
-        this.childrenIds = childrenIds;
+        this.childrenIds = CollectionUtils.isEmpty(childrenIds) ? Collections.emptySet() : childrenIds;
         this.parentIds = new HashSet<>();
     }
 

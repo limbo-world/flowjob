@@ -91,10 +91,12 @@ public class PlanManager {
                 }
             }
 
-            jobInstanceRepository.saveAll(subJobInstances);
+            if (CollectionUtils.isNotEmpty(subJobInstances)) {
+                jobInstanceRepository.saveAll(subJobInstances);
 
-            for (JobInstance subJobInstance : subJobInstances) {
-                scheduler.schedule(subJobInstance);
+                for (JobInstance subJobInstance : subJobInstances) {
+                    scheduler.schedule(subJobInstance);
+                }
             }
 
         }

@@ -18,8 +18,11 @@
 
 package org.limbo.flowjob.broker.test.util;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.dag.DAG;
 
 import java.util.ArrayList;
@@ -66,6 +69,39 @@ public class DAGTest {
 
         try {
             DAG<JobInfo> dag = new DAG<>(jobInfos);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testNormal() {
+        JobInfo jobInfo1 = job("1", Sets.newHashSet("3", "6"));
+        JobInfo jobInfo2 = job("2", Sets.newHashSet("3", "4"));
+
+        JobInfo jobInfo6 = job("6", Sets.newHashSet("7"));
+        JobInfo jobInfo3 = job("3", Sets.newHashSet("5"));
+        JobInfo jobInfo4 = job("4", Sets.newHashSet("5"));
+
+        JobInfo jobInfo5 = job("5", Sets.newHashSet("7", "8"));
+
+        JobInfo jobInfo7 = job("7", null);
+        JobInfo jobInfo8 = job("8", null);
+
+        List<JobInfo> jobInfos = new ArrayList<>();
+        jobInfos.add(jobInfo1);
+        jobInfos.add(jobInfo2);
+        jobInfos.add(jobInfo3);
+        jobInfos.add(jobInfo4);
+        jobInfos.add(jobInfo5);
+        jobInfos.add(jobInfo6);
+        jobInfos.add(jobInfo7);
+        jobInfos.add(jobInfo8);
+
+        try {
+            DAG<JobInfo> dag = new DAG<>(jobInfos);
+            JobInfo node = dag.getNode("5");
+            Verifies.verify(node.getParentIds().size() == 2 && node.getParentIds().containsAll(Sets.newHashSet("3", "4")));
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
