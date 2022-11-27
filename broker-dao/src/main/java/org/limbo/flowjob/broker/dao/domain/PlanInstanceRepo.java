@@ -52,23 +52,21 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
     public String save(PlanInstance instance) {
         PlanInstanceEntity entity = toEntity(instance);
         planInstanceEntityRepo.saveAndFlush(entity);
-        String planInstanceId = String.valueOf(entity.getId());
+        String planInstanceId = entity.getPlanInstanceId();
         instance.setPlanInstanceId(planInstanceId);
         return planInstanceId;
     }
 
     @Override
     public PlanInstance get(String planInstanceId) {
-        return planInstanceEntityRepo.findById(Long.valueOf(planInstanceId)).map(this::toPlanInstance).orElse(null);
+        return planInstanceEntityRepo.findById(planInstanceId).map(this::toPlanInstance).orElse(null);
     }
 
     private PlanInstanceEntity toEntity(PlanInstance instance) {
         PlanInstanceEntity planInstanceEntity = new PlanInstanceEntity();
-        if (instance.getPlanInstanceId() != null) {
-            planInstanceEntity.setId(Long.valueOf(instance.getPlanInstanceId()));
-        }
-        planInstanceEntity.setPlanId(Long.valueOf(instance.getPlanId()));
-        planInstanceEntity.setPlanInfoId(Long.valueOf(instance.getVersion()));
+        planInstanceEntity.setPlanInstanceId(instance.getPlanInstanceId());
+        planInstanceEntity.setPlanId(instance.getPlanId());
+        planInstanceEntity.setPlanVersion(instance.getVersion());
         planInstanceEntity.setStatus(instance.getStatus().status);
         planInstanceEntity.setTriggerType(instance.getTriggerType().type);
         planInstanceEntity.setExpectTriggerAt(instance.getExpectTriggerAt());
@@ -79,9 +77,9 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
 
     private PlanInstance toPlanInstance(PlanInstanceEntity entity) {
         PlanInstance planInstance = new PlanInstance();
-        planInstance.setPlanInstanceId(entity.getId().toString());
-        planInstance.setPlanId(String.valueOf(entity.getPlanId()));
-        planInstance.setVersion(entity.getPlanInfoId().toString());
+        planInstance.setPlanInstanceId(entity.getPlanInstanceId());
+        planInstance.setPlanId(entity.getPlanId());
+        planInstance.setVersion(entity.getPlanVersion());
         planInstance.setStatus(PlanStatus.parse(entity.getStatus()));
         planInstance.setExpectTriggerAt(entity.getExpectTriggerAt());
         planInstance.setTriggerType(TriggerType.parse(entity.getTriggerType()));
@@ -89,11 +87,11 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
         planInstance.setFeedbackAt(entity.getFeedbackAt());
 
         // 基础信息
-        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getPlanInfoId()).get();
+        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findByPlanIdInAndPlanVersion(entity.getPlanId(), entity.getPlanVersion());
         planInstance.setScheduleOption(DomainConverter.toScheduleOption(planInfoEntity));
         planInstance.setDag(DomainConverter.toJobDag(planInfoEntity.getJobs()));
 
-//        // 处理 JobInstance
+//        // 处理 JobInstance todo
 //        List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findByPlanInstanceId(entity.getId());
 //        if (CollectionUtils.isNotEmpty(jobInstanceEntities)) {
 //            for (JobInstanceEntity jobInstanceEntity : jobInstanceEntities) {

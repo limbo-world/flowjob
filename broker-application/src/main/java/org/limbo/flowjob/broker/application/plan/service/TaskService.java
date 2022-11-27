@@ -9,7 +9,6 @@ import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
-import org.limbo.flowjob.broker.core.repository.TaskRepository;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
@@ -35,9 +34,6 @@ import java.util.List;
 @Slf4j
 @Service
 public class TaskService {
-
-    @Setter(onMethod_ = @Inject)
-    private TaskRepository taskRepository;
 
     @Setter(onMethod_ = @Inject)
     private TaskEntityRepo taskEntityRepo;
@@ -70,7 +66,7 @@ public class TaskService {
     @Transactional
     public void feedback(String taskId, TaskFeedbackParam param) {
         // 获取实例
-        TaskEntity task = taskEntityRepo.findById(Long.parseLong(taskId))
+        TaskEntity task = taskEntityRepo.findById(taskId)
                 .orElseThrow(() -> new VerifyException("Task not exist! id:" + taskId));
 
         ExecuteResult result = ExecuteResult.parse(param.getResult());
@@ -81,11 +77,11 @@ public class TaskService {
 
         switch (result) {
             case SUCCEED:
-                handleTaskSuccess(task.getId(), task.getJobInstanceId(), param);
+                handleTaskSuccess(task.getTaskId(), task.getJobInstanceId(), param);
                 break;
 
             case FAILED:
-                handleTaskFail(task.getId(), task.getJobInstanceId(), param.getErrorMsg(), param.getErrorStackTrace());
+                handleTaskFail(task.getTaskId(), task.getJobInstanceId(), param.getErrorMsg(), param.getErrorStackTrace());
                 break;
 
             case TERMINATED:
@@ -97,7 +93,7 @@ public class TaskService {
     }
 
     @Transactional
-    public void handleTaskSuccess(Long taskId, Long jobInstanceId, TaskFeedbackParam param) {
+    public void handleTaskSuccess(String taskId, String jobInstanceId, TaskFeedbackParam param) {
         // todo 更新plan上下文
 
         int num = taskEntityRepo.updateSuccessStatus(taskId,
@@ -113,7 +109,7 @@ public class TaskService {
     }
 
     @Transactional
-    public void handleTaskFail(Long taskId, Long jobInstanceId, String errorMsg, String errorStackTrace) {
+    public void handleTaskFail(String taskId, String jobInstanceId, String errorMsg, String errorStackTrace) {
         int num = taskEntityRepo.updateStatusWithError(Collections.singletonList(taskId),
                 TaskStatus.EXECUTING.status,
                 TaskStatus.FAILED.status,
@@ -128,7 +124,7 @@ public class TaskService {
     }
 
     //    @Transactional
-    private void handleJobStatus(Long jobInstanceId) {
+    private void handleJobStatus(String jobInstanceId) {
         // 加锁
         jobInstanceEntityRepo.selectForUpdate(jobInstanceId);
         // 检查task是否都已经完成
@@ -139,7 +135,7 @@ public class TaskService {
             }
         }
 
-        JobInstance jobInstance = jobInstanceRepository.get(jobInstanceId.toString());
+        JobInstance jobInstance = jobInstanceRepository.get(jobInstanceId);
         // 判断状态是不是已经更新 可能已经被其它线程处理
         if (JobStatus.EXECUTING != jobInstance.getStatus()) {
             return;
@@ -159,7 +155,7 @@ public class TaskService {
     //    @Transactional
     private void handleJobSuccess(JobInstance jobInstance) {
         jobInstanceEntityRepo.updateStatus(
-                Long.valueOf(jobInstance.getJobInstanceId()),
+                jobInstance.getJobInstanceId(),
                 JobStatus.EXECUTING.status,
                 JobStatus.SUCCEED.status
         );
@@ -173,7 +169,7 @@ public class TaskService {
         if (jobInstance.isTerminateWithFail()) {
 
             jobInstanceEntityRepo.updateStatus(
-                    Long.valueOf(jobInstance.getJobInstanceId()),
+                    jobInstance.getJobInstanceId(),
                     JobStatus.EXECUTING.status,
                     JobStatus.FAILED.status
             );
@@ -183,7 +179,7 @@ public class TaskService {
                 scheduler.schedule(jobInstance);
             } else {
                 planInstanceEntityRepo.end(
-                        Long.valueOf(jobInstance.getPlanInstanceId()),
+                        jobInstance.getPlanInstanceId(),
                         PlanStatus.EXECUTING.status,
                         PlanStatus.FAILED.status,
                         TimeUtils.currentLocalDateTime()

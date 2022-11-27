@@ -33,10 +33,8 @@ import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Brozen
@@ -55,7 +53,7 @@ public class JobInstanceRepo implements JobInstanceRepository {
     public String save(JobInstance jobInstance) {
         JobInstanceEntity entity = DomainConverter.toJobInstanceEntity(jobInstance);
         jobInstanceEntityRepo.saveAndFlush(entity);
-        return String.valueOf(entity.getId());
+        return entity.getJobInstanceId();
     }
 
     @Override
@@ -64,24 +62,17 @@ public class JobInstanceRepo implements JobInstanceRepository {
         if (CollectionUtils.isEmpty(jobInstances)) {
             return;
         }
-        Map<JobInstance, JobInstanceEntity> map = new HashMap<>();
-        for (JobInstance jobInstance : jobInstances) {
-            map.put(jobInstance, DomainConverter.toJobInstanceEntity(jobInstance));
-        }
 
-        jobInstanceEntityRepo.saveAll(map.values());
+        List<JobInstanceEntity> jobInstanceEntities = jobInstances.stream().map(DomainConverter::toJobInstanceEntity).collect(Collectors.toList());
+        jobInstanceEntityRepo.saveAll(jobInstanceEntities);
         jobInstanceEntityRepo.flush();
-
-        for (Map.Entry<JobInstance, JobInstanceEntity> entry : map.entrySet()) {
-            entry.getKey().setJobInstanceId(String.valueOf(entry.getValue().getId()));
-        }
     }
 
     @Override
     public JobInstance get(String jobInstanceId) {
-        return jobInstanceEntityRepo.findById(Long.valueOf(jobInstanceId)).map(entity -> {
+        return jobInstanceEntityRepo.findById(jobInstanceId).map(entity -> {
 
-            PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getPlanInfoId()).get();
+            PlanInfoEntity planInfoEntity = planInfoEntityRepo.findByPlanIdInAndPlanVersion(entity.getPlanId(), entity.getPlanVersion());
             DAG<JobInfo> dag = DomainConverter.toJobDag(planInfoEntity.getJobs());
             return DomainConverter.toJobInstance(entity, dag);
 

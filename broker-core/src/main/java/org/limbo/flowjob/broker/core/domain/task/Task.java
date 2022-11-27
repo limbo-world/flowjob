@@ -22,9 +22,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.common.constants.TaskStatus;
-import org.limbo.flowjob.broker.core.domain.DispatchOption;
+import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.worker.Worker;
+import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
 import java.io.Serializable;
@@ -48,7 +48,7 @@ public class Task implements Serializable {
 
     private String jobId;
 
-    private String planVersion;
+    private Integer planVersion;
 
     private String planId;
 

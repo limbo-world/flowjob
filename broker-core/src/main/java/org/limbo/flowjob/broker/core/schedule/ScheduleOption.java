@@ -21,6 +21,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TriggerType;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.io.Serializable;
 import java.time.Duration;
@@ -88,7 +89,7 @@ public class ScheduleOption implements Serializable {
                           String scheduleCronType) {
         this.scheduleType = scheduleType;
         this.triggerType = triggerType;
-        this.scheduleStartAt = scheduleStartAt;
+        this.scheduleStartAt = scheduleStartAt == null ? TimeUtils.currentLocalDateTime() : scheduleStartAt;
         this.scheduleDelay = scheduleDelay == null ? Duration.ZERO : scheduleDelay;
         this.scheduleInterval = scheduleInterval == null ? Duration.ZERO : scheduleInterval;
         this.scheduleCron = scheduleCron;

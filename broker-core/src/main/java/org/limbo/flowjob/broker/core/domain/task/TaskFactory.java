@@ -21,6 +21,8 @@ package org.limbo.flowjob.broker.core.domain.task;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.WorkerManager;
+import org.limbo.flowjob.broker.core.domain.IDGenerator;
+import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.common.constants.JobType;
@@ -46,8 +48,11 @@ public class TaskFactory {
 
     private final WorkerManager workerManager;
 
-    public TaskFactory(WorkerManager workerManager) {
+    private final IDGenerator idGenerator;
+
+    public TaskFactory(WorkerManager workerManager, IDGenerator idGenerator) {
         this.workerManager = workerManager;
+        this.idGenerator = idGenerator;
 
         creators = new EnumMap<>(JobType.class);
 
@@ -109,6 +114,7 @@ public class TaskFactory {
         @Override
         public List<Task> tasks(JobInstance instance) {
             Task task = new Task();
+            task.setTaskId(idGenerator.generateId(IDType.TASK));
             initTask(task, instance, workerManager.availableWorkers());
             return Collections.singletonList(task);
         }
@@ -136,6 +142,7 @@ public class TaskFactory {
             List<Task> tasks = new ArrayList<>();
             for (Worker worker : workers) {
                 Task task = new Task();
+                task.setTaskId(idGenerator.generateId(IDType.TASK));
                 initTask(task, instance, Lists.newArrayList(worker));
                 tasks.add(task);
             }
@@ -160,6 +167,7 @@ public class TaskFactory {
         @Override
         public List<Task> tasks(JobInstance instance) {
             Task task = new Task();
+            task.setTaskId(idGenerator.generateId(IDType.TASK));
             initTask(task, instance, workerManager.availableWorkers());
             return Collections.singletonList(task);
         }
@@ -187,6 +195,7 @@ public class TaskFactory {
             List<Task> tasks = new ArrayList<>();
             for (Map<String, Object> attribute : taskResult.getSubTaskAttributes()) {
                 MapTask task = new MapTask();
+                task.setTaskId(idGenerator.generateId(IDType.TASK));
                 initTask(task, instance, workers);
                 task.setMapAttributes(new Attributes(attribute));
                 tasks.add(task);
@@ -218,6 +227,7 @@ public class TaskFactory {
             }
 
             ReduceTask task = new ReduceTask();
+            task.setTaskId(idGenerator.generateId(IDType.TASK));
             initTask(task, instance, workerManager.availableWorkers());
             task.setReduceAttributes(reduceAttributes);
             return Collections.singletonList(task);

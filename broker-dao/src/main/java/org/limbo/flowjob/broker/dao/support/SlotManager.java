@@ -41,8 +41,8 @@ public class SlotManager {
     /**
      * 计算槽位
      */
-    public static int slot(long planId) {
-        return (int) (planId % SlotManager.SLOT_SIZE);
+    public static int slot(String planId) {
+        return planId.hashCode() % SlotManager.SLOT_SIZE;
     }
 
     /**

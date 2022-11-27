@@ -24,20 +24,21 @@ import lombok.Getter;
  * @author Brozen
  * @since 2021-05-14
  */
-public class JobExecuteException extends RuntimeException {
+public class JobException extends RuntimeException {
 
+    private static final long serialVersionUID = 1424187574314981017L;
     /**
      * 执行发生异常的作业
      */
     @Getter
-    private String jobId;
+    private final String jobId;
 
-    public JobExecuteException(String jobId, String message) {
+    public JobException(String jobId, String message) {
         super(message);
         this.jobId = jobId;
     }
 
-    public JobExecuteException(String jobId, String message, Throwable cause) {
+    public JobException(String jobId, String message, Throwable cause) {
         super(message, cause);
         this.jobId = jobId;
     }

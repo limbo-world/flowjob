@@ -21,9 +21,9 @@ package org.limbo.flowjob.broker.application.plan.manager;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.application.plan.component.JobScheduler;
+import org.limbo.flowjob.broker.core.domain.job.JobFactory;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
-import org.limbo.flowjob.broker.core.domain.job.JobInstanceFactory;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
@@ -53,12 +53,18 @@ public class PlanManager {
 
     @Setter(onMethod_ = @Inject)
     private JobInstanceEntityRepo jobInstanceEntityRepo;
+
     @Setter(onMethod_ = @Inject)
     private PlanInstanceEntityRepo planInstanceEntityRepo;
+
     @Setter(onMethod_ = @Inject)
     private JobInstanceRepository jobInstanceRepository;
+
     @Setter(onMethod_ = @Inject)
     private JobScheduler scheduler;
+
+    @Setter(onMethod_ = @Inject)
+    private JobFactory jobFactory;
 
     /**
      * 下发后续任务
@@ -74,7 +80,7 @@ public class PlanManager {
             // 1. 所有节点都已经成功或者失败 2. 这里只关心plan的成功更新，失败是在task回调
             if (checkJobsSuccessOrIgnoreError(planInstance.getPlanInstanceId(), dag.lasts())) {
                 planInstanceEntityRepo.end(
-                        Long.valueOf(planInstance.getPlanInstanceId()),
+                        planInstance.getPlanInstanceId(),
                         PlanStatus.EXECUTING.status,
                         PlanStatus.SUCCEED.status,
                         TimeUtils.currentLocalDateTime()
@@ -87,7 +93,7 @@ public class PlanManager {
             for (JobInfo subJobInfo : subJobInfos) {
                 // 前置节点已经完成则可以下发
                 if (checkJobsSuccessOrIgnoreError(planInstance.getPlanInstanceId(), dag.preNodes(subJobInfo.getId()))) {
-                    subJobInstances.add(JobInstanceFactory.create(planInstance, subJobInfo, TimeUtils.currentLocalDateTime()));
+                    subJobInstances.add(jobFactory.newInstance(planInstance, subJobInfo, TimeUtils.currentLocalDateTime()));
                 }
             }
 
@@ -104,16 +110,13 @@ public class PlanManager {
 
     /**
      * 校验 planInstance 下对应 job 的 jobInstance 是否执行成功 或者失败了但是可以忽略失败
-     * @param planInstanceId
-     * @param jobInfos
-     * @return
      */
     private boolean checkJobsSuccessOrIgnoreError(String planInstanceId, List<JobInfo> jobInfos) {
         if (CollectionUtils.isEmpty(jobInfos)) {
             return true;
         }
         Map<String, JobInfo> jobInfoMap = jobInfos.stream().collect(Collectors.toMap(DAGNode::getId, jobInfo -> jobInfo));
-        List<JobInstanceEntity> entities = jobInstanceEntityRepo.findByPlanInstanceIdAndJobIdIn(Long.valueOf(planInstanceId), new LinkedList<>(jobInfoMap.keySet()));
+        List<JobInstanceEntity> entities = jobInstanceEntityRepo.findByPlanInstanceIdAndJobIdIn(planInstanceId, new LinkedList<>(jobInfoMap.keySet()));
         if (CollectionUtils.isEmpty(entities) || jobInfos.size() > entities.size()) {
             return false; // 有些job还未创建
         }

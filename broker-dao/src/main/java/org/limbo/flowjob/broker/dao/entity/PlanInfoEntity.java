@@ -16,16 +16,15 @@
 
 package org.limbo.flowjob.broker.dao.entity;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
-import org.limbo.flowjob.broker.dao.support.DBFieldHelper;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TriggerType;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
 
@@ -44,11 +43,15 @@ import java.time.LocalDateTime;
 public class PlanInfoEntity extends BaseEntity {
 
     private static final long serialVersionUID = -1639602897831847418L;
-
     /**
      * 属于哪个plan
      */
-    private Long planId;
+    private String planId;
+
+    /**
+     * 版本
+     */
+    private Integer planVersion;
 
     /**
      * 执行计划描述
@@ -103,13 +106,4 @@ public class PlanInfoEntity extends BaseEntity {
      */
     private String jobs;
 
-    /**
-     * 是否删除
-     */
-    @Getter(AccessLevel.NONE)
-    private Long isDeleted;
-
-    public boolean isDeleted() {
-        return DBFieldHelper.greaterThanZero(isDeleted);
-    }
 }

@@ -30,11 +30,11 @@ import java.time.LocalDateTime;
  * @author Devil
  * @since 2022/6/24
  */
-public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity, Long> {
+public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity, String> {
 
-    PlanInstanceEntity findByPlanIdAndExpectTriggerAtAndTriggerType(Long planId, LocalDateTime expectTriggerTime, Byte triggerType);
+    PlanInstanceEntity findByPlanIdAndExpectTriggerAtAndTriggerType(String planId, LocalDateTime expectTriggerTime, Byte triggerType);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanInstanceEntity set status = :newStatus, feedbackAt = :feedbackAt where id = :id and status = :oldStatus")
-    int end(@Param("id") Long id, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus, @Param("feedbackAt") LocalDateTime feedbackAt);
+    @Query(value = "update PlanInstanceEntity set status = :newStatus, feedbackAt = :feedbackAt where planInstanceId = :planInstanceId and status = :oldStatus")
+    int end(@Param("planInstanceId") String planInstanceId, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus, @Param("feedbackAt") LocalDateTime feedbackAt);
 }

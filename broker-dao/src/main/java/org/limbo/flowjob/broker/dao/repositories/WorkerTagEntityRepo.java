@@ -28,13 +28,13 @@ import java.util.List;
  * @author Brozen
  * @since 2022-09-22
  */
-public interface WorkerTagEntityRepo extends JpaRepository<WorkerTagEntity, Long> {
+public interface WorkerTagEntityRepo extends JpaRepository<WorkerTagEntity, String> {
 
 
     @Modifying(clearAutomatically = true)
     @Query("delete from WorkerTagEntity where workerId = :workerId")
-    int deleteByWorkerId(@Param("workerId") Long workerId);
+    int deleteByWorkerId(@Param("workerId") String workerId);
 
-    List<WorkerTagEntity> findByWorkerId(Long workerId);
+    List<WorkerTagEntity> findByWorkerId(String workerId);
 
 }

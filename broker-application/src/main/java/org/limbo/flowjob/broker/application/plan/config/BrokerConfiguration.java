@@ -29,6 +29,9 @@ import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
 import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.cluster.WorkerManagerImpl;
+import org.limbo.flowjob.broker.core.domain.IDGenerator;
+import org.limbo.flowjob.broker.core.domain.job.JobFactory;
+import org.limbo.flowjob.broker.core.domain.plan.PlanFactory;
 import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
@@ -81,8 +84,18 @@ public class BrokerConfiguration {
     }
 
     @Bean
-    public TaskFactory taskFactory(WorkerManager workerManager) {
-        return new TaskFactory(workerManager);
+    public TaskFactory taskFactory(WorkerManager workerManager, IDGenerator idGenerator) {
+        return new TaskFactory(workerManager, idGenerator);
+    }
+
+    @Bean
+    public JobFactory jobFactory(IDGenerator idGenerator) {
+        return new JobFactory(idGenerator);
+    }
+
+    @Bean
+    public PlanFactory planFactory(IDGenerator idGenerator) {
+        return new PlanFactory(idGenerator);
     }
 
 
@@ -99,8 +112,8 @@ public class BrokerConfiguration {
      * 元任务：Plan 加载与调度
      */
     @Bean
-    public MetaTask planScheduleMetaTask(BrokerConfig config, NodeManger nodeManger) {
-        return new PlanScheduleTask(Duration.ofMillis(brokerProperties.getRebalanceInterval()), config, nodeManger);
+    public MetaTask planScheduleMetaTask(BrokerConfig config, NodeManger nodeManger, PlanFactory planFactory) {
+        return new PlanScheduleTask(Duration.ofMillis(brokerProperties.getRebalanceInterval()), config, nodeManger, planFactory);
     }
 
 

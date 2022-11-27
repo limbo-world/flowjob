@@ -33,7 +33,6 @@ import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerExecutorEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerMetricEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerTagEntityRepo;
-import org.limbo.flowjob.broker.dao.support.DBFieldHelper;
 import org.limbo.flowjob.common.constants.WorkerStatus;
 import org.springframework.stereotype.Repository;
 
@@ -78,8 +77,8 @@ public class WorkerRepo implements WorkerRepository {
         Objects.requireNonNull(entity);
         workerEntityRepo.saveAndFlush(entity);
 
-        Long workerId = entity.getId();
-        worker.setId(workerId.toString());
+        String workerId = entity.getWorkerId();
+        worker.setId(workerId);
 
         // Metric 存储
         WorkerMetric metric = worker.getMetric();
@@ -112,8 +111,7 @@ public class WorkerRepo implements WorkerRepository {
     public void saveMetric(Worker worker) {
         // Metric 存储
         WorkerMetric metric = worker.getMetric();
-        long workerId = Long.parseLong(worker.getId());
-        WorkerMetricEntity metricPo = converter.toMetricEntity(workerId, metric);
+        WorkerMetricEntity metricPo = converter.toMetricEntity(worker.getId(), metric);
         metricEntityRepo.saveAndFlush(Objects.requireNonNull(metricPo));
     }
 
@@ -129,8 +127,7 @@ public class WorkerRepo implements WorkerRepository {
         if (StringUtils.isBlank(id)) {
             return null;
         }
-        Long workerId = Long.valueOf(id);
-        return workerEntityRepo.findById(workerId)
+        return workerEntityRepo.findById(id)
                 .map(this::toWorkerWithLazyInit)
                 .orElse(null);
     }
@@ -154,7 +151,7 @@ public class WorkerRepo implements WorkerRepository {
      */
     @Override
     public List<Worker> listAvailableWorkers() {
-        return workerEntityRepo.findByStatusAndIsDeleted(WorkerStatus.RUNNING.status, DBFieldHelper.FALSE_LONG)
+        return workerEntityRepo.findByStatusAndDeleted(WorkerStatus.RUNNING.status, false)
                 .stream()
                 .map(this::toWorkerWithLazyInit)
                 .collect(Collectors.toList());
@@ -165,7 +162,7 @@ public class WorkerRepo implements WorkerRepository {
      * 将 Worker 持久化对象转为领域模型，并为其中的属性设置为懒加载。
      */
     private Worker toWorkerWithLazyInit(WorkerEntity worker) {
-        Long workerId = worker.getId();
+        String workerId = worker.getWorkerId();
         return converter.toWorker(worker,
                 converter.toTags(tagEntityRepo.findByWorkerId(workerId)),
                 converter.toExecutors(executorEntityRepo.findByWorkerId(workerId)),
@@ -181,11 +178,10 @@ public class WorkerRepo implements WorkerRepository {
      */
     @Override
     public void delete(String id) {
-        Long workerId = Long.valueOf(id);
-        Optional<WorkerEntity> workerEntityOptional = workerEntityRepo.findById(workerId);
+        Optional<WorkerEntity> workerEntityOptional = workerEntityRepo.findById(id);
         if (workerEntityOptional.isPresent()) {
             WorkerEntity workerEntity = workerEntityOptional.get();
-            workerEntity.setIsDeleted(Long.valueOf(id));
+            workerEntity.setDeleted(true);
             workerEntityRepo.saveAndFlush(workerEntity);
         }
     }

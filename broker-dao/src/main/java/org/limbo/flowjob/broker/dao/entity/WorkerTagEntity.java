@@ -22,6 +22,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
@@ -38,11 +39,12 @@ public class WorkerTagEntity extends BaseEntity {
 
     private static final long serialVersionUID = -5174256134471422541L;
 
-
+    @Id
+    private String workerTagId;
     /**
      * worker id
      */
-    private Long workerId;
+    private String workerId;
 
     /**
      * worker tag key

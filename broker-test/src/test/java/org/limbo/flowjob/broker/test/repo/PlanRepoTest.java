@@ -23,15 +23,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
-import org.limbo.flowjob.broker.dao.support.DBFieldHelper;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.Optional;
 
 /**
  * @author Devil
@@ -46,10 +43,10 @@ public class PlanRepoTest {
 
     @Test
     @Transactional
-    public void lock() throws InterruptedException {
-        PlanEntity planEntity = planEntityRepo.selectForUpdate(1L);
+    void lock() throws InterruptedException {
+        PlanEntity planEntity = planEntityRepo.selectForUpdate("1");
         System.out.println("lock " + TimeUtils.currentLocalDateTime());
-        planEntity.setIsEnabled(planEntity.getId());
+        planEntity.setEnabled(true);
         planEntity.setCreatedAt(TimeUtils.currentLocalDateTime());
         planEntityRepo.saveAndFlush(planEntity);
 
@@ -60,42 +57,14 @@ public class PlanRepoTest {
     @Test
     @Transactional
     public void lock2() throws InterruptedException {
-        PlanEntity planEntity = planEntityRepo.selectForUpdate(1L);
+        PlanEntity planEntity = planEntityRepo.selectForUpdate("1");
         System.out.println("lock2 " + TimeUtils.currentLocalDateTime());
-        planEntity.setIsEnabled(DBFieldHelper.FALSE_LONG);
+        planEntity.setEnabled(false);
         planEntity.setCreatedAt(TimeUtils.currentLocalDateTime());
         planEntityRepo.saveAndFlush(planEntity);
 
         Thread.sleep(2000);
         System.out.println("lock2 end" + TimeUtils.currentLocalDateTime());
-    }
-
-    @Test
-    @Transactional
-    @Rollback(false)
-    public void saveUpdate() {
-        Long id = 0L;
-        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(id);
-        PlanEntity plan = planEntityOptional.get();
-        plan.setCurrentVersion(System.currentTimeMillis());
-
-        PlanEntity planEntity = planEntityRepo.saveAndFlush(plan);
-        System.out.println(planEntity);
-    }
-
-    @Test
-    @Transactional
-    @Rollback(false)
-    public void update() {
-        Long id = 0L;
-        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(id);
-        PlanEntity plan = planEntityOptional.get();
-
-        Long newVersion = System.currentTimeMillis();
-        System.out.println(planEntityRepo.updateVersion(newVersion, newVersion, id, plan.getCurrentVersion(), plan.getRecentlyVersion()));
-
-        PlanEntity planEntity = planEntityRepo.findById(id).get();
-        System.out.println(1);
     }
 
 }

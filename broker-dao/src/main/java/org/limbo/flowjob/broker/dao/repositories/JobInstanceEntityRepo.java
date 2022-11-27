@@ -32,19 +32,19 @@ import java.util.List;
  * @author Devil
  * @since 2022/6/24
  */
-public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, Long> {
+public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, String> {
 
     long countByPlanInstanceIdAndStatusIn(Long planInstanceId, List<Byte> statuses);
 
-    @Query(value = "select * from flowjob_job_instance where id = :id for update", nativeQuery = true)
-    JobInstanceEntity selectForUpdate(@Param("id") Long id);
+    @Query(value = "select * from flowjob_job_instance where jobInstanceId = :jobInstanceId for update", nativeQuery = true)
+    JobInstanceEntity selectForUpdate(@Param("jobInstanceId") String jobInstanceId);
 
-    List<JobInstanceEntity> findByPlanInstanceIdInAndStatusAndTriggerAtLessThan(Collection<Long> planIds, Byte status, LocalDateTime triggerAt);
+    List<JobInstanceEntity> findByPlanInstanceIdInAndStatusAndTriggerAtLessThan(Collection<String> planIds, Byte status, LocalDateTime triggerAt);
 
-    List<JobInstanceEntity> findByPlanInstanceIdAndJobIdIn(Long planInstanceId, List<String> jobIds);
+    List<JobInstanceEntity> findByPlanInstanceIdAndJobIdIn(String planInstanceId, List<String> jobIds);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update JobInstanceEntity set status = :newStatus where id = :id and status = :oldStatus")
-    int updateStatus(@Param("id") Long id, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus);
+    @Query(value = "update JobInstanceEntity set status = :newStatus where jobInstanceId = :jobInstanceId and status = :oldStatus")
+    int updateStatus(@Param("jobInstanceId") String jobInstanceId, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus);
 
 }

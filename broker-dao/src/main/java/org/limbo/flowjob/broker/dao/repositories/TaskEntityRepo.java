@@ -30,22 +30,22 @@ import java.util.List;
  * @author Devil
  * @since 2022/6/24
  */
-public interface TaskEntityRepo extends JpaRepository<TaskEntity, Long> {
+public interface TaskEntityRepo extends JpaRepository<TaskEntity, String> {
 
-    List<TaskEntity> findByJobInstanceId(Long jobInstanceId);
+    List<TaskEntity> findByJobInstanceId(String jobInstanceId);
 
-    List<TaskEntity> findByPlanIdInAndStatus(List<Long> planIds, Byte status);
-
-    @Modifying(clearAutomatically = true)
-    @Query(value = "update TaskEntity set status = :newStatus, workerId = :workerId where id = :id and status = :oldStatus")
-    int updateStatus(@Param("id") Long id, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus, @Param("workerId") Long workerId);
+    List<TaskEntity> findByPlanIdInAndStatus(List<String> planIds, Byte status);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update TaskEntity set status = :newStatus, result = :result where id = :id and status = :oldStatus")
-    int updateSuccessStatus(@Param("id") Long id, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus, @Param("result") String result);
+    @Query(value = "update TaskEntity set status = :newStatus, workerId = :workerId where taskId = :taskId and status = :oldStatus")
+    int updateStatus(@Param("taskId") String taskId, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus, @Param("workerId") String workerId);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update TaskEntity set status = :newStatus, errorMsg = :errorMsg, errorStackTrace = :errorStack where id in (:ids) and status = :oldStatus")
-    int updateStatusWithError(@Param("ids") List<Long> ids, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus,
+    @Query(value = "update TaskEntity set status = :newStatus, result = :result where taskId = :taskId and status = :oldStatus")
+    int updateSuccessStatus(@Param("taskId") String taskId, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus, @Param("result") String result);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "update TaskEntity set status = :newStatus, errorMsg = :errorMsg, errorStackTrace = :errorStack where taskId in (:taskIds) and status = :oldStatus")
+    int updateStatusWithError(@Param("taskIds") List<String> taskIds, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus,
                               @Param("errorMsg") String errorMsg, @Param("errorStack") String errorStack);
 }

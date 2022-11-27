@@ -28,12 +28,12 @@ import java.util.Optional;
  * @author Devil
  * @since 2022/6/24
  */
-public interface WorkerEntityRepo extends JpaRepository<WorkerEntity, Long> {
+public interface WorkerEntityRepo extends JpaRepository<WorkerEntity, String> {
 
     /**
      * 根据状态查询未删除worker
      */
-    List<WorkerEntity> findByStatusAndIsDeleted(Byte status, Long deleted);
+    List<WorkerEntity> findByStatusAndDeleted(Byte status, boolean deleted);
 
     Optional<WorkerEntity> findByName(String name);
 }

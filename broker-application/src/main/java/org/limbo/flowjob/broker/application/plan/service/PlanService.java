@@ -3,13 +3,12 @@ package org.limbo.flowjob.broker.application.plan.service;
 import lombok.Setter;
 import org.limbo.flowjob.api.param.PlanAddParam;
 import org.limbo.flowjob.api.param.PlanReplaceParam;
-import org.limbo.flowjob.broker.dao.support.DBFieldHelper;
-import org.limbo.flowjob.common.constants.ScheduleType;
-import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
+import org.limbo.flowjob.broker.core.domain.job.JobFactory;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
+import org.limbo.flowjob.broker.core.domain.plan.PlanFactory;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
@@ -18,12 +17,15 @@ import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
+import org.limbo.flowjob.common.constants.ScheduleType;
+import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,6 +51,12 @@ public class PlanService {
     @Setter(onMethod_ = @Inject)
     private JobInstanceRepository jobInstanceRepository;
 
+    @Setter(onMethod_ = @Inject)
+    private JobFactory jobFactory;
+
+    @Setter(onMethod_ = @Inject)
+    private PlanFactory planFactory;
+
 
     /**
      * 新增执行计划
@@ -58,7 +66,13 @@ public class PlanService {
      */
     @Transactional
     public String add(PlanAddParam param) {
-        Plan plan = PlanConverter.convertPlan(param);
+        Plan plan = planFactory.create(
+                TimeUtils.currentLocalDateTime(),
+                param.getDescription(),
+                PlanConverter.convertScheduleOption(param.getScheduleOption()),
+                PlanConverter.convertJob(param.getJobs()),
+                false
+        );
         return planRepository.save(plan);
     }
 
@@ -76,10 +90,12 @@ public class PlanService {
         Plan plan = planRepository.get(planId);
         Verifies.notNull(plan, String.format("Cannot find Plan %s", planId));
 
-        PlanInfo planInfo = PlanConverter.convertPlanInfo(param);
-        plan.setInfo(planInfo);
-
-        return planRepository.save(plan);
+        Plan newPlan = planFactory.newVersion(plan,
+                param.getDescription(),
+                PlanConverter.convertScheduleOption(param.getScheduleOption()),
+                PlanConverter.convertJob(param.getJobs())
+        );
+        return planRepository.save(newPlan);
     }
 
 
@@ -90,7 +106,7 @@ public class PlanService {
      */
     @Transactional
     public boolean start(String planId) {
-        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(Long.valueOf(planId));
+        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(planId);
         Verifies.verify(planEntityOptional.isPresent(), String.format("Cannot find Plan %s", planId));
 
         PlanEntity planEntity = planEntityOptional.get();
@@ -99,7 +115,7 @@ public class PlanService {
             return true;
         }
 
-        return planEntityRepo.updateEnable(planEntity.getId(), DBFieldHelper.FALSE_LONG, Long.valueOf(planId)) == 1;
+        return planEntityRepo.updateEnable(planEntity.getPlanId(), false, true) == 1;
     }
 
     /**
@@ -108,7 +124,7 @@ public class PlanService {
     @Transactional
     public boolean stop(String planId) {
         // 获取当前的plan数据
-        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(Long.valueOf(planId));
+        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(planId);
         Verifies.verify(planEntityOptional.isPresent(), String.format("Cannot find Plan %s", planId));
 
         // 已经停止不重复处理
@@ -119,12 +135,12 @@ public class PlanService {
         }
 
         // 停用计划
-        return planEntityRepo.updateEnable(planEntity.getId(), Long.valueOf(planId), DBFieldHelper.FALSE_LONG) == 1;
+        return planEntityRepo.updateEnable(planEntity.getPlanId(), true, false) == 1;
     }
 
     @Transactional
-    public void saveScheduleInfo(PlanInstance planInstance) {
-        Long planId = Long.valueOf(planInstance.getPlanId());
+    public void saveScheduleInfo(PlanInstance planInstance, List<JobInstance> rootJobs) {
+        String planId = planInstance.getPlanId();
 
         // 加锁
         planEntityRepo.selectForUpdate(planId);
@@ -142,7 +158,6 @@ public class PlanService {
         planInstanceRepository.save(planInstance);
 
         // 保存 jobInstance
-        List<JobInstance> rootJobs = planInstance.rootJobs();
         jobInstanceRepository.saveAll(rootJobs);
 
         // 更新plan的下次触发时间
@@ -150,4 +165,16 @@ public class PlanService {
             planEntityRepo.nextTriggerAt(planId, planInstance.nextTriggerAt());
         }
     }
+
+    public List<JobInstance> rootJobs(PlanInstance planInstance) {
+        List<JobInstance> rootJobs = new ArrayList<>();
+
+        for (JobInfo jobInfo : planInstance.getDag().origins()) {
+            if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
+                rootJobs.add(jobFactory.newInstance(planInstance, jobInfo, TimeUtils.currentLocalDateTime()));
+            }
+        }
+        return rootJobs;
+    }
+
 }

@@ -88,7 +88,7 @@ public class WorkerService {
         workerRepository.save(worker);
         log.info("worker registered " + worker);
 
-        String token = TokenHelper.workerToken(Long.valueOf(worker.getId()), WorkerHeaders.TOKEN_KEY, DateUtils.addHours(new Date(), 2));
+        String token = TokenHelper.workerToken(worker.getId(), WorkerHeaders.TOKEN_KEY, DateUtils.addHours(new Date(), 2));
         return WorkerConverter.toRegisterDTO(token, worker, nodeManger.allAlive());
     }
 
@@ -110,7 +110,7 @@ public class WorkerService {
             log.debug("receive heartbeat from " + workerId);
         }
 
-        String token = TokenHelper.workerToken(Long.valueOf(worker.getId()), WorkerHeaders.TOKEN_KEY, DateUtils.addHours(new Date(), 2));
+        String token = TokenHelper.workerToken(worker.getId(), WorkerHeaders.TOKEN_KEY, DateUtils.addHours(new Date(), 2));
         return WorkerConverter.toRegisterDTO(token, worker, nodeManger.allAlive());
     }
 

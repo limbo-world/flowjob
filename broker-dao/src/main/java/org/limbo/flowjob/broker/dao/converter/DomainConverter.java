@@ -19,11 +19,6 @@
 package org.limbo.flowjob.broker.dao.converter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.common.constants.JobStatus;
-import org.limbo.flowjob.common.constants.ScheduleType;
-import org.limbo.flowjob.common.constants.TaskStatus;
-import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
@@ -33,6 +28,10 @@ import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
+import org.limbo.flowjob.common.constants.JobStatus;
+import org.limbo.flowjob.common.constants.ScheduleType;
+import org.limbo.flowjob.common.constants.TaskStatus;
+import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -50,8 +49,8 @@ public class DomainConverter {
 
     public static PlanInfo toPlanInfo(PlanInfoEntity entity) {
         return new PlanInfo(
-                String.valueOf(entity.getPlanId()),
-                String.valueOf(entity.getId()),
+                entity.getPlanId(),
+                entity.getPlanVersion(),
                 entity.getDescription(),
                 toScheduleOption(entity),
                 toJobDag(entity.getJobs())
@@ -77,10 +76,10 @@ public class DomainConverter {
 
     public static JobInstance toJobInstance(JobInstanceEntity entity, DAG<JobInfo> dag) {
         JobInstance jobInstance = new JobInstance();
-        jobInstance.setJobInstanceId(entity.getId().toString());
-        jobInstance.setPlanInstanceId(entity.getPlanInstanceId().toString());
-        jobInstance.setPlanVersion(entity.getPlanInfoId().toString());
-        jobInstance.setPlanId(entity.getPlanId().toString());
+        jobInstance.setJobInstanceId(entity.getJobInstanceId());
+        jobInstance.setPlanInstanceId(entity.getPlanInstanceId());
+        jobInstance.setPlanVersion(entity.getPlanVersion());
+        jobInstance.setPlanId(entity.getPlanId());
         jobInstance.setJobId(entity.getJobId());
         jobInstance.setStatus(JobStatus.parse(entity.getStatus()));
         jobInstance.setStartAt(entity.getStartAt());
@@ -98,33 +97,32 @@ public class DomainConverter {
 
     public static TaskEntity toTaskEntity(Task task) {
         TaskEntity taskEntity = new TaskEntity();
-        taskEntity.setJobInstanceId(Long.valueOf(task.getJobInstanceId()));
+        taskEntity.setJobInstanceId(task.getJobInstanceId());
         taskEntity.setJobId(task.getJobId());
-        taskEntity.setPlanId(Long.parseLong(task.getPlanId()));
         taskEntity.setStatus(task.getStatus().status);
-        taskEntity.setWorkerId(StringUtils.isBlank(task.getWorkerId()) ? 0L : Long.parseLong(task.getWorkerId()));
+        taskEntity.setWorkerId(task.getWorkerId());
         taskEntity.setAttributes(task.getAttributes() == null ? "" : task.getAttributes().toString());
         taskEntity.setStartAt(task.getStartAt());
         taskEntity.setEndAt(task.getEndAt());
-        taskEntity.setId(task.getTaskId() == null ? null : Long.valueOf(task.getTaskId()));
+        taskEntity.setTaskId(task.getTaskId());
         return taskEntity;
     }
 
     public static Task toTask(TaskEntity entity, PlanInfoEntityRepo planInfoEntityRepo) {
         Task task = new Task();
-        task.setTaskId(entity.getId().toString());
-        task.setJobInstanceId(entity.getJobInstanceId().toString());
-        task.setJobId(entity.getJobId().toString());
+        task.setTaskId(entity.getTaskId());
+        task.setJobInstanceId(entity.getJobInstanceId());
+        task.setJobId(entity.getJobId());
         task.setStatus(TaskStatus.parse(entity.getStatus()));
-        task.setWorkerId(entity.getWorkerId().toString());
+        task.setWorkerId(entity.getWorkerId());
         task.setAttributes(new Attributes(entity.getAttributes()));
         task.setStartAt(entity.getStartAt());
         task.setEndAt(entity.getEndAt());
 
         // job
-        PlanInfoEntity planInfo = planInfoEntityRepo.findById(Long.valueOf(task.getPlanVersion())).get();
+        PlanInfoEntity planInfo = planInfoEntityRepo.findByPlanIdInAndPlanVersion(task.getPlanId(), task.getPlanVersion());
         DAG<JobInfo> jobInfoDAG = DomainConverter.toJobDag(planInfo.getJobs());
-        JobInfo jobInfo = jobInfoDAG.getNode(entity.getJobId().toString());
+        JobInfo jobInfo = jobInfoDAG.getNode(entity.getJobId());
         task.setDispatchOption(jobInfo.getDispatchOption());
         task.setExecutorName(jobInfo.getExecutorName());
         return task;
@@ -132,18 +130,16 @@ public class DomainConverter {
 
     public static JobInstanceEntity toJobInstanceEntity(JobInstance jobInstance) {
         JobInstanceEntity entity = new JobInstanceEntity();
-        entity.setPlanInstanceId(Long.valueOf(jobInstance.getPlanInstanceId()));
-        entity.setPlanId(Long.valueOf(jobInstance.getPlanId()));
-        entity.setPlanInfoId(Long.valueOf(jobInstance.getPlanVersion()));
+        entity.setJobInstanceId(jobInstance.getJobInstanceId());
+        entity.setPlanInstanceId(jobInstance.getPlanInstanceId());
+        entity.setPlanId(jobInstance.getPlanId());
+        entity.setPlanVersion(jobInstance.getPlanVersion());
         entity.setJobId(jobInstance.getJobId());
         entity.setStatus(jobInstance.getStatus().status);
         entity.setAttributes(jobInstance.getAttributes() == null ? "{}" : jobInstance.getAttributes().toString());
         entity.setTriggerAt(jobInstance.getTriggerAt());
         entity.setStartAt(jobInstance.getStartAt());
         entity.setEndAt(jobInstance.getEndAt());
-        if (jobInstance.getJobInstanceId() != null) {
-            entity.setId(Long.valueOf(jobInstance.getJobInstanceId()));
-        }
         return entity;
     }
 }

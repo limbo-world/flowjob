@@ -70,13 +70,12 @@ public class PlanScheduler extends HashedWheelTimerScheduler<PlanInstance> {
         schedulePool.submit(() -> {
             try {
                 // 保存数据
-                planInstance.setTriggerAt(TimeUtils.currentLocalDateTime()); // 实际的调度时间，会相对晚于期望时间
-                planService.saveScheduleInfo(planInstance);
-
-                List<JobInstance> jobInstances = planInstance.rootJobs();
+                planInstance.trigger();
+                List<JobInstance> rootJobs = planService.rootJobs(planInstance);
+                planService.saveScheduleInfo(planInstance, rootJobs);
 
                 // 执行调度逻辑
-                for (JobInstance instance : jobInstances) {
+                for (JobInstance instance : rootJobs) {
                     jobScheduler.schedule(instance);
                 }
             } catch (Exception e) {

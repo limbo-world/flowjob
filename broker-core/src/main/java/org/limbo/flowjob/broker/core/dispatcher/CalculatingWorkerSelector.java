@@ -19,7 +19,7 @@
 package org.limbo.flowjob.broker.core.dispatcher;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.core.domain.DispatchOption;
+import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.common.lb.LBStrategy;

@@ -22,13 +22,15 @@ import lombok.Getter;
  * @author Brozen
  * @since 2021-05-21
  */
-public class JobDispatchException extends JobExecuteException {
+public class JobDispatchException extends JobException {
+
+    private static final long serialVersionUID = -6143171637384399604L;
 
     /**
      * 作业实例ID
      */
     @Getter
-    private String id;
+    private final String id;
 
     public JobDispatchException(String jobId, String id, String message) {
         super(jobId, message);

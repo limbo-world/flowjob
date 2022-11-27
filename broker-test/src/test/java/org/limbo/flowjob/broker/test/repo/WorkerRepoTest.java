@@ -25,7 +25,6 @@ import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
 import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerExecutorEntityRepo;
-import org.limbo.flowjob.broker.dao.support.DBFieldHelper;
 import org.limbo.flowjob.common.constants.WorkerStatus;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -41,7 +40,7 @@ import java.util.List;
  */
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-public class WorkerRepoTest {
+class WorkerRepoTest {
 
     @Setter(onMethod_ = @Inject)
     private WorkerExecutorEntityRepo workerExecutorEntityRepo;
@@ -50,14 +49,14 @@ public class WorkerRepoTest {
     private WorkerEntityRepo workerEntityRepo;
 
     @Test
-    public void findExecutor() {
-        List<WorkerExecutorEntity> workerExecutorEntities = workerExecutorEntityRepo.findByWorkerId(1234566L);
+    void findExecutor() {
+        List<WorkerExecutorEntity> workerExecutorEntities = workerExecutorEntityRepo.findByWorkerId("1234566");
         System.out.println(JacksonUtils.toJSONString(workerExecutorEntities));
     }
 
     @Test
-    public void findWorker() {
-        List<WorkerEntity> byStatusAndDeleted = workerEntityRepo.findByStatusAndIsDeleted(WorkerStatus.RUNNING.status, DBFieldHelper.FALSE_LONG);
+    void findWorker() {
+        List<WorkerEntity> byStatusAndDeleted = workerEntityRepo.findByStatusAndDeleted(WorkerStatus.RUNNING.status, false);
         for (WorkerEntity workerEntity : byStatusAndDeleted) {
             System.out.println(workerEntity.getId() + " " + workerEntity.getStatus() + workerEntity.isDeleted());
         }
@@ -65,8 +64,8 @@ public class WorkerRepoTest {
 
     @Test
     @Transactional
-    public void delete() {
-        int d = workerExecutorEntityRepo.deleteByWorkerId(1234566L);
+    void delete() {
+        int d = workerExecutorEntityRepo.deleteByWorkerId("1234566");
         System.out.println(d);
     }
 

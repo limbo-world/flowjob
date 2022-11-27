@@ -20,12 +20,10 @@ package org.limbo.flowjob.broker.dao.repositories;
 
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import javax.persistence.LockModeType;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -34,30 +32,30 @@ import java.util.List;
  * @author Devil
  * @since 2022/6/22
  */
-public interface PlanEntityRepo extends JpaRepository<PlanEntity, Long> {
+public interface PlanEntityRepo extends JpaRepository<PlanEntity, String> {
 
-    @Query(value = "select * from flowjob_plan where id = :id for update", nativeQuery = true)
-    PlanEntity selectForUpdate(@Param("id") Long id);
+    @Query(value = "select * from flowjob_plan where planId = :planId for update", nativeQuery = true)
+    PlanEntity selectForUpdate(@Param("planId") String planId);
 
     /**
      * 根据id和触发时间找到启动的plan
      */
-    List<PlanEntity> findByIdInAndIsEnabledGreaterThanAndNextTriggerAtBefore(List<Long> ids, Long isEnabled, LocalDateTime nextTriggerAt);
+    List<PlanEntity> findByPlanIdInAndEnabledAndNextTriggerAtBefore(List<String> planIds, boolean isEnabled, LocalDateTime nextTriggerAt);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanEntity set currentVersion = :newCurrentVersion, recentlyVersion = :newRecentlyVersion " +
-            "where id = :id and currentVersion = :currentVersion and recentlyVersion = :recentlyVersion")
-    int updateVersion(@Param("newCurrentVersion") Long newCurrentVersion,
-                      @Param("newRecentlyVersion") Long newRecentlyVersion,
-                      @Param("id") Long id,
-                      @Param("currentVersion") Long currentVersion,
-                      @Param("recentlyVersion") Long recentlyVersion);
+            "where planId = :planId and currentVersion = :currentVersion and recentlyVersion = :recentlyVersion")
+    int updateVersion(@Param("newCurrentVersion") Integer newCurrentVersion,
+                      @Param("newRecentlyVersion") Integer newRecentlyVersion,
+                      @Param("planId") String planId,
+                      @Param("currentVersion") Integer currentVersion,
+                      @Param("recentlyVersion") Integer recentlyVersion);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanEntity set isEnabled = :newValue where id = :id and isEnabled = :oldValue")
-    int updateEnable(@Param("id") Long id, @Param("oldValue") Long oldValue, @Param("newValue") Long newValue);
+    @Query(value = "update PlanEntity set enabled = :newValue where planId = :planId and enabled = :oldValue")
+    int updateEnable(@Param("planId") String planId, @Param("oldValue") boolean oldValue, @Param("newValue") boolean newValue);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanEntity set nextTriggerAt = :nextTriggerAt where id = :id")
-    int nextTriggerAt(@Param("id") Long id, @Param("nextTriggerAt") LocalDateTime nextTriggerAt);
+    @Query(value = "update PlanEntity set nextTriggerAt = :nextTriggerAt where planId = :planId")
+    int nextTriggerAt(@Param("planId") String planId, @Param("nextTriggerAt") LocalDateTime nextTriggerAt);
 }

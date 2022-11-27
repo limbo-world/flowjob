@@ -20,7 +20,6 @@ package org.limbo.flowjob.broker.application.plan.component;
 
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.common.constants.JobStatus;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
@@ -33,6 +32,7 @@ import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.support.SlotManager;
+import org.limbo.flowjob.common.constants.JobStatus;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import javax.inject.Inject;
@@ -84,13 +84,13 @@ public class JobStatusCheckTask extends FixIntervalMetaTask {
         if (CollectionUtils.isEmpty(slotEntities)) {
             return;
         }
-        Map<Long, Plan> planMap = new HashMap<>();
+        Map<String, Plan> planMap = new HashMap<>();
         for (PlanSlotEntity slotEntity : slotEntities) {
-            Long planId = slotEntity.getPlanId();
+            String planId = slotEntity.getPlanId();
             if (planMap.containsKey(planId)) {
                 continue;
             }
-            Plan plan = planRepository.get(planId.toString());
+            Plan plan = planRepository.get(planId);
             planMap.put(planId, plan);
         }
 

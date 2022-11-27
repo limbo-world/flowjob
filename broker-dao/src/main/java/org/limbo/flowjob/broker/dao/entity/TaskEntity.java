@@ -7,6 +7,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.limbo.flowjob.common.constants.TaskStatus;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
 
@@ -25,22 +26,22 @@ import java.time.LocalDateTime;
 public class TaskEntity extends BaseEntity {
     private static final long serialVersionUID = -6865597903513656450L;
 
-    private Long jobInstanceId;
+    @Id
+    private String taskId;
 
-    private Long planId;
+    private String jobInstanceId;
 
     private String jobId;
 
+    /**
+     * 执行作业的worker ID
+     */
+    private String workerId;
     /**
      * 状态
      * @see TaskStatus
      */
     private Byte status;
-
-    /**
-     * 执行作业的worker ID
-     */
-    private Long workerId;
 
     /**
      * 此次执行的参数

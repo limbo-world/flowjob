@@ -21,14 +21,11 @@ package org.limbo.flowjob.broker.core.domain.plan;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.limbo.flowjob.common.constants.PlanStatus;
-import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
+import org.limbo.flowjob.common.utils.dag.DAG;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
  * 计划在具体版本时的数据(值对象)，至少对应一个{@link JobInfo}
@@ -51,7 +48,7 @@ public class PlanInfo implements Serializable {
     /**
      * 版本 planId + version 唯一
      */
-    private String version;
+    private Integer version;
 
     /**
      * 执行计划描述
@@ -69,34 +66,13 @@ public class PlanInfo implements Serializable {
     private DAG<JobInfo> dag;
 
 
-    public PlanInfo(String planId, String version, String description,
+    public PlanInfo(String planId, Integer version, String description,
                     ScheduleOption scheduleOption, DAG<JobInfo> dag) {
         this.planId = planId;
         this.version = version;
         this.description = description;
         this.scheduleOption = scheduleOption;
         this.dag = dag;
-    }
-
-
-    /**
-     * 生成新的计划调度记录
-     *
-     * @param triggerType 触发类型
-     * @return 调度记录状态
-     */
-    public PlanInstance newInstance(TriggerType triggerType, LocalDateTime nextTriggerAt) {
-        PlanInstance instance = new PlanInstance();
-        instance.setPlanId(planId);
-        instance.setVersion(version);
-        instance.setDag(dag);
-        instance.setStatus(PlanStatus.SCHEDULING);
-        instance.setTriggerType(triggerType);
-        instance.setScheduleOption(scheduleOption);
-        instance.setExpectTriggerAt(nextTriggerAt);
-//        instance.setTriggerAt(nextTriggerAt); // 新建的时候不需要
-//        instance.setContext(); // todo
-        return instance;
     }
 
     /**

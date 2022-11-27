@@ -24,6 +24,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
 
@@ -39,6 +40,9 @@ import java.time.LocalDateTime;
 @DynamicUpdate
 public class BrokerEntity extends BaseEntity {
     private static final long serialVersionUID = -4470612703071698168L;
+
+    @Id
+    private String brokerId;
 
     private String name;
 

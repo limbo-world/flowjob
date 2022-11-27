@@ -26,7 +26,6 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
-import org.limbo.flowjob.broker.core.domain.job.JobInstanceFactory;
 import org.limbo.flowjob.broker.core.schedule.Calculated;
 import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
@@ -40,7 +39,6 @@ import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -62,7 +60,7 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
     /**
      * 计划的版本
      */
-    private String version;
+    private Integer version;
 
     /**
      * 计划调度状态
@@ -85,7 +83,7 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
     private TriggerType triggerType;
 
     /**
-     * 真正的触发时间 -- 开始时间
+     * 实际的调度时间 会晚于期望时间
      */
     private LocalDateTime triggerAt;
 
@@ -139,6 +137,11 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
         return expectTriggerAt;
     }
 
+    public void trigger() {
+        triggerAt = TimeUtils.currentLocalDateTime();
+        status = PlanStatus.EXECUTING;
+    }
+
     /**
      * 计算下次触发时间
      */
@@ -157,19 +160,6 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
         }
 
         return scheduleCalculator;
-    }
-
-    public List<JobInstance> rootJobs() {
-        if (rootJobs != null) {
-            return rootJobs;
-        }
-        rootJobs = new ArrayList<>();
-        for (JobInfo jobInfo : dag.origins()) {
-            if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
-                rootJobs.add(JobInstanceFactory.create(this, jobInfo, TimeUtils.currentLocalDateTime()));
-            }
-        }
-        return rootJobs;
     }
 
 }

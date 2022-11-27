@@ -47,14 +47,14 @@ public class Plan implements Serializable {
     private String planId;
 
     /**
-     * 当前版本，版本号就是 PlanInfo 实体的ID，
+     * 当前版本
      */
-    private String currentVersion;
+    private Integer currentVersion;
 
     /**
      * 最新版本
      */
-    private String recentlyVersion;
+    private Integer recentlyVersion;
 
     /**
      * 下次触发时间
@@ -71,4 +71,12 @@ public class Plan implements Serializable {
      */
     private boolean enabled;
 
+    public Plan(String planId, Integer currentVersion, Integer recentlyVersion, LocalDateTime nextTriggerAt, PlanInfo info, boolean enabled) {
+        this.planId = planId;
+        this.currentVersion = currentVersion;
+        this.recentlyVersion = recentlyVersion;
+        this.nextTriggerAt = nextTriggerAt;
+        this.info = info;
+        this.enabled = enabled;
+    }
 }

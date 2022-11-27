@@ -9,12 +9,12 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>api</module>
+        <module>common</module>
         <module>broker-core</module>
         <module>broker-cluster</module>
         <module>broker-dao</module>
         <module>broker-application</module>
         <module>broker-test</module>
-        <module>common</module>
         <module>worker-core</module>
         <module>worker-spring-boot-starter</module>
         <module>worker-spring-boot-demo</module>

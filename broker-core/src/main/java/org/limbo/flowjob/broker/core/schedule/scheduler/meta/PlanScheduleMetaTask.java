@@ -21,13 +21,14 @@ package org.limbo.flowjob.broker.core.schedule.scheduler.meta;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.common.constants.ScheduleType;
-import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.broker.core.domain.plan.PlanFactory;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
+import org.limbo.flowjob.common.constants.ScheduleType;
+import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
@@ -46,10 +47,15 @@ public abstract class PlanScheduleMetaTask extends FixIntervalMetaTask {
     @Getter
     private final NodeManger nodeManger;
 
-    protected PlanScheduleMetaTask(String taskId, Duration interval, BrokerConfig config, NodeManger nodeManger) {
+    private final PlanFactory planFactory;
+
+    protected PlanScheduleMetaTask(String taskId, Duration interval,
+                                   BrokerConfig config, NodeManger nodeManger,
+                                   PlanFactory planFactory) {
         super(taskId, interval);
         this.config = config;
         this.nodeManger = nodeManger;
+        this.planFactory = planFactory;
     }
 
 
@@ -82,7 +88,7 @@ public abstract class PlanScheduleMetaTask extends FixIntervalMetaTask {
                 }
 
                 // 实例化 Plan 并调度
-                PlanInstance planInstance = planInfo.newInstance(TriggerType.SCHEDULE, plan.getNextTriggerAt());
+                PlanInstance planInstance = planFactory.newInstance(planInfo, TriggerType.SCHEDULE, plan.getNextTriggerAt());
                 schedulePlan(planInstance);
             }
         } catch (Exception e) {

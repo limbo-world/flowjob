@@ -18,21 +18,28 @@
 
 package org.limbo.flowjob.broker.core.domain.job;
 
+import org.limbo.flowjob.broker.core.domain.IDGenerator;
+import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.common.constants.JobStatus;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 
 import java.time.LocalDateTime;
 
 /**
- * @author Brozen
- * @since 2021-10-20
+ * @author Devil
+ * @since 2022/11/26
  */
-public class JobInstanceFactory {
+public class JobFactory {
 
-    public static JobInstance create(PlanInstance planInstance, JobInfo jobInfo, LocalDateTime triggerAt) {
+    private final IDGenerator idGenerator;
+
+    public JobFactory(IDGenerator idGenerator) {
+        this.idGenerator = idGenerator;
+    }
+
+    public JobInstance newInstance(PlanInstance planInstance, JobInfo jobInfo, LocalDateTime triggerAt) {
         JobInstance instance = new JobInstance();
+        instance.setJobInstanceId(idGenerator.generateId(IDType.JOB_INSTANCE));
         instance.setPlanInstanceId(planInstance.getPlanInstanceId());
         instance.setPlanVersion(planInstance.getVersion());
         instance.setPlanId(planInstance.getPlanId());
@@ -47,5 +54,6 @@ public class JobInstanceFactory {
         instance.setTerminateWithFail(jobInfo.isTerminateWithFail());
         return instance;
     }
+
 
 }

@@ -33,7 +33,7 @@ public class TokenHelper {
 
     private static final String WORKER_ID = "workerId";
 
-    public static String workerToken(Long workerId, String secret, Date expiresAt) {
+    public static String workerToken(String workerId, String secret, Date expiresAt) {
         return JWT.create().withIssuer(ISSUER)
                 .withClaim(WORKER_ID, workerId)
                 .withExpiresAt(expiresAt)

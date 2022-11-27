@@ -24,6 +24,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.broker.core.domain.plan.PlanFactory;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanScheduleMetaTask;
@@ -31,7 +32,6 @@ import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
-import org.limbo.flowjob.broker.dao.support.DBFieldHelper;
 import org.limbo.flowjob.broker.dao.support.SlotManager;
 
 import javax.inject.Inject;
@@ -62,8 +62,8 @@ public class PlanScheduleTask extends PlanScheduleMetaTask {
     private PlanSlotEntityRepo planSlotEntityRepo;
 
 
-    public PlanScheduleTask(Duration interval, BrokerConfig config, NodeManger nodeManger) {
-        super("Meta[PlanScheduleTask]", interval, config, nodeManger);
+    public PlanScheduleTask(Duration interval, BrokerConfig config, NodeManger nodeManger, PlanFactory planFactory) {
+        super("Meta[PlanScheduleTask]", interval, config, nodeManger, planFactory);
     }
 
 
@@ -81,15 +81,15 @@ public class PlanScheduleTask extends PlanScheduleMetaTask {
         if (CollectionUtils.isEmpty(slotEntities)) {
             return Collections.emptyList();
         }
-        List<Long> planIds = slotEntities.stream().map(PlanSlotEntity::getPlanId).collect(Collectors.toList());
+        List<String> planIds = slotEntities.stream().map(PlanSlotEntity::getPlanId).collect(Collectors.toList());
         // todo 这里可以只获取id
-        List<PlanEntity> planEntities = planEntityRepo.findByIdInAndIsEnabledGreaterThanAndNextTriggerAtBefore(planIds, DBFieldHelper.FALSE_LONG, nextTriggerAt);
+        List<PlanEntity> planEntities = planEntityRepo.findByPlanIdInAndEnabledAndNextTriggerAtBefore(planIds, false, nextTriggerAt);
         if (CollectionUtils.isEmpty(planEntities)) {
             return Collections.emptyList();
         }
         List<Plan> plans = new ArrayList<>();
         for (PlanEntity planEntity : planEntities) {
-            plans.add(planRepository.get(planEntity.getId().toString()));
+            plans.add(planRepository.get(planEntity.getPlanId()));
         }
         return plans;
     }

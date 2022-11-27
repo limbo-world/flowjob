@@ -81,16 +81,16 @@ public class TaskStatusCheckTask extends FixIntervalMetaTask {
             return;
         }
 
-        List<Long> planIds = slotEntities.stream()
+        List<String> planIds = slotEntities.stream()
                 .map(PlanSlotEntity::getPlanId)
                 .collect(Collectors.toList());
         List<TaskEntity> tasks = taskEntityRepo.findByPlanIdInAndStatus(planIds, TaskStatus.EXECUTING.status);
 
         for (TaskEntity task : tasks) {
             // 获取长时间为执行中的task 判断worker是否已经宕机
-            Worker worker = workerRepository.get(task.getWorkerId().toString());
+            Worker worker = workerRepository.get(task.getWorkerId());
             if (worker == null || !worker.isAlive()) {
-                taskService.handleTaskFail(task.getId(), task.getJobInstanceId(), String.format("worker %s is offline", task.getWorkerId()), "");
+                taskService.handleTaskFail(task.getTaskId(), task.getJobInstanceId(), String.format("worker %s is offline", task.getWorkerId()), "");
             }
         }
     }

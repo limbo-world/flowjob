@@ -22,6 +22,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
@@ -38,10 +39,12 @@ public class WorkerExecutorEntity extends BaseEntity {
 
     private static final long serialVersionUID = 7370406980674258946L;
 
+    @Id
+    private String workerExecutorId;
     /**
      * worker节点ID
      */
-    private Long workerId;
+    private String workerId;
 
     /**
      * 执行器名称

@@ -26,7 +26,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.common.constants.TriggerType;
-import org.limbo.flowjob.broker.core.domain.DispatchOption;
+import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAGNode;
 
@@ -46,10 +46,13 @@ public class JobInfo extends DAGNode {
 
     private static final long serialVersionUID = 5340755318570959476L;
 
+    /**
+     * 名称
+     */
     private String name;
 
     /**
-     * 作业描述
+     * 描述
      */
     private String description;
 
@@ -59,7 +62,7 @@ public class JobInfo extends DAGNode {
     private TriggerType triggerType;
 
     /**
-     * 作业类型
+     * 类型
      */
     private JobType type;
 

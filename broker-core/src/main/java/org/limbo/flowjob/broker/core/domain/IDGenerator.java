@@ -16,14 +16,14 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.domain.job;
+package org.limbo.flowjob.broker.core.domain;
 
 /**
  * @author Devil
- * @since 2022/8/19
+ * @since 2022/11/20
  */
-public class FailHandlerFactory {
+public interface IDGenerator {
 
-
+    String generateId(IDType type);
 
 }

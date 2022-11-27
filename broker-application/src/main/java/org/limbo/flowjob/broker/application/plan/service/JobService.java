@@ -20,20 +20,20 @@ package org.limbo.flowjob.broker.application.plan.service;
 
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.common.constants.JobStatus;
-import org.limbo.flowjob.common.constants.PlanStatus;
-import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.broker.application.plan.manager.PlanManager;
+import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.domain.task.Task;
-import org.limbo.flowjob.broker.core.domain.task.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
 import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.repository.TaskRepository;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
+import org.limbo.flowjob.common.constants.JobStatus;
+import org.limbo.flowjob.common.constants.PlanStatus;
+import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
 
@@ -68,7 +68,7 @@ public class JobService {
     public void dispatch(JobInstance instance) {
         // 更新 job 为执行中
         int num = jobInstanceEntityRepo.updateStatus(
-                Long.valueOf(instance.getJobInstanceId()),
+                instance.getJobInstanceId(),
                 JobStatus.SCHEDULING.status,
                 JobStatus.EXECUTING.status
         );
@@ -106,15 +106,15 @@ public class JobService {
 
         // 下发成功的 根据执行完成回调处理
         for (Task task : dispatched) {
-            taskEntityRepo.updateStatus(Long.valueOf(task.getTaskId()),
+            taskEntityRepo.updateStatus(task.getTaskId(),
                     TaskStatus.DISPATCHING.status,
                     TaskStatus.EXECUTING.status,
-                    Long.parseLong(task.getWorkerId())
+                    task.getWorkerId()
             );
         }
 
         // 下发失败的
-        List<Long> dispatchFailIds = dispatchFail.stream().map(t -> Long.valueOf(t.getTaskId())).collect(Collectors.toList());
+        List<String> dispatchFailIds = dispatchFail.stream().map(Task::getTaskId).collect(Collectors.toList());
         taskEntityRepo.updateStatusWithError(dispatchFailIds,
                 TaskStatus.EXECUTING.status,
                 TaskStatus.FAILED.status,
@@ -133,13 +133,13 @@ public class JobService {
     public void handlerJobFail(JobInstance instance) {
         if (instance.isTerminateWithFail()) {
             jobInstanceEntityRepo.updateStatus(
-                    Long.valueOf(instance.getJobInstanceId()),
+                    instance.getJobInstanceId(),
                     JobStatus.EXECUTING.status,
                     JobStatus.FAILED.status
             );
 
             planInstanceEntityRepo.end(
-                    Long.valueOf(instance.getPlanInstanceId()),
+                    instance.getPlanInstanceId(),
                     PlanStatus.EXECUTING.status,
                     PlanStatus.FAILED.status,
                     TimeUtils.currentLocalDateTime()

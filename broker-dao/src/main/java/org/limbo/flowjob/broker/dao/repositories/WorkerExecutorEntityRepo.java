@@ -30,12 +30,12 @@ import java.util.List;
  * @author Devil
  * @since 2022/6/24
  */
-public interface WorkerExecutorEntityRepo extends JpaRepository<WorkerExecutorEntity, Long> {
+public interface WorkerExecutorEntityRepo extends JpaRepository<WorkerExecutorEntity, String> {
 
     @Modifying(clearAutomatically = true)
     @Query("delete from WorkerExecutorEntity where workerId = :workerId")
-    int deleteByWorkerId(@Param("workerId") Long workerId);
+    int deleteByWorkerId(@Param("workerId") String workerId);
 
-    List<WorkerExecutorEntity> findByWorkerId(Long workerId);
+    List<WorkerExecutorEntity> findByWorkerId(String workerId);
 
 }

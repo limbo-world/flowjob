@@ -22,6 +22,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -30,25 +31,36 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
+ * id 表
+ *
  * @author Devil
- * @since 2022/8/23
+ * @since 2022/6/24
  */
 @Setter
 @Getter
-@Table(name = "flowjob_plan_slot")
+@Table(name = "flowjob_id")
 @Entity
 @DynamicInsert
 @DynamicUpdate
-public class PlanSlotEntity extends BaseEntity {
+public class IdEntity extends BaseEntity {
 
-    private static final long serialVersionUID = 7861063816414486398L;
+    private static final long serialVersionUID = 1834852529057424113L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    /**
+     * 类型
+     */
+    private String type;
 
-    private String planId;
+    /**
+     * 当前id
+     */
+    private Long currentId;
 
-    private Integer slot;
-
+    /**
+     * 步长
+     */
+    private Integer step;
 }

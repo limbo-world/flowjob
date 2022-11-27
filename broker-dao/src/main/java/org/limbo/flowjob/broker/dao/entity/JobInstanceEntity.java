@@ -6,6 +6,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
 
@@ -24,11 +25,14 @@ import java.time.LocalDateTime;
 public class JobInstanceEntity extends BaseEntity {
     private static final long serialVersionUID = -1136312243146520057L;
 
-    private Long planInstanceId;
+    @Id
+    private String jobInstanceId;
 
-    private Long planId;
+    private String planInstanceId;
 
-    private Long planInfoId;
+    private String planId;
+
+    private Integer planVersion;
 
     /**
      * DAG中的jobId

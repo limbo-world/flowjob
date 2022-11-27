@@ -16,36 +16,20 @@
  *
  */
 
-package org.limbo.flowjob.broker.dao.support;
+package org.limbo.flowjob.broker.core.domain;
 
 /**
  * @author Devil
- * @since 2022/11/14
+ * @since 2022/11/27
  */
-public class DBFieldHelper {
+public enum IDType {
+    PLAN,
 
-    private static final long ZERO = 0;
-    /**
-     * false
-     */
-    public static final long FALSE_LONG = ZERO;
+    PLAN_INSTANCE,
 
-    /**
-     * 当value > 0 返回true
-     * @param value
-     * @return
-     */
-    public static boolean greaterThanZero(Long value) {
-        return value != null && value > 0;
-    }
+    JOB_INSTANCE,
 
-    /**
-     * 当value > 0 返回true
-     * @param value
-     * @return
-     */
-    public static Long boolToLong(boolean bool, Long value) {
-        return bool ? (value == null ? FALSE_LONG : value) : FALSE_LONG;
-    }
+    TASK,
+    ;
 
 }

@@ -7,7 +7,7 @@ import org.limbo.flowjob.api.param.JobAddParam;
 import org.limbo.flowjob.api.param.PlanAddParam;
 import org.limbo.flowjob.api.param.PlanReplaceParam;
 import org.limbo.flowjob.api.param.ScheduleOptionParam;
-import org.limbo.flowjob.broker.core.domain.DispatchOption;
+import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
@@ -22,43 +22,6 @@ import java.util.List;
  * @since 2022-06-11
  */
 public class PlanConverter {
-
-    /**
-     * 新增计划
-     */
-    public static Plan convertPlan(PlanAddParam param) {
-        Plan plan = new Plan();
-        plan.setInfo(convertPlanInfo(param));
-
-        plan.getInfo().check();
-
-        plan.setCurrentVersion("1");
-        plan.setRecentlyVersion("1");
-        plan.setNextTriggerAt(TimeUtils.currentLocalDateTime());
-
-        return plan;
-    }
-
-
-    /**
-     * 生成新增计划时的计划数据
-     */
-    public static PlanInfo convertPlanInfo(PlanAddParam param) {
-        // 一些默认值的设置
-        ScheduleOptionParam scheduleOption = param.getScheduleOption();
-        if (scheduleOption.getScheduleStartAt() == null) {
-            param.getScheduleOption().setScheduleStartAt(TimeUtils.currentLocalDateTime());
-        }
-        return new PlanInfo(null, null, param.getDescription(), convertScheduleOption(scheduleOption), convertJob(param.getJobs()));
-    }
-
-
-    /**
-     * 生成新增计划时的计划数据
-     */
-    public static PlanInfo convertPlanInfo(PlanReplaceParam param) {
-        return new PlanInfo(null, null, param.getDescription(), convertScheduleOption(param.getScheduleOption()), convertJob(param.getJobs()));
-    }
 
     /**
      * 生成更新计划 JobDAG

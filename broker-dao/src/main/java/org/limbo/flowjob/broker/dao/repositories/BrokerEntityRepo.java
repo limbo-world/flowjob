@@ -29,7 +29,7 @@ import java.util.Optional;
  * @author Devil
  * @since 2022/7/18
  */
-public interface BrokerEntityRepo extends JpaRepository<BrokerEntity, Long> {
+public interface BrokerEntityRepo extends JpaRepository<BrokerEntity, String> {
 
     Optional<BrokerEntity> findByName(String name);
 

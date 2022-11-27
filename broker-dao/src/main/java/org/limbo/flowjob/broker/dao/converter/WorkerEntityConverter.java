@@ -29,7 +29,6 @@ import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
-import org.limbo.flowjob.broker.dao.support.DBFieldHelper;
 import org.limbo.flowjob.common.constants.WorkerStatus;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Component;
@@ -64,7 +63,7 @@ public class WorkerEntityConverter {
         }
 
         return Worker.builder()
-                .id(String.valueOf(po.getId()))
+                .id(po.getWorkerId())
                 .name(po.getName())
                 .rpcBaseUrl(workerRpcBaseUrl(po))
                 .status(WorkerStatus.parse(po.getStatus()))
@@ -96,13 +95,13 @@ public class WorkerEntityConverter {
     public WorkerEntity toWorkerEntity(Worker worker) {
         WorkerEntity po = new WorkerEntity();
         po.setAppId(0L); // todo 待增加
-        po.setId(worker.getId() == null ? null : Long.valueOf(worker.getId()));
+        po.setWorkerId(worker.getId());
         po.setName(worker.getName());
         po.setProtocol(worker.getRpcBaseUrl().getProtocol());
         po.setHost(worker.getRpcBaseUrl().getHost());
         po.setPort(worker.getRpcBaseUrl().getPort());
         po.setStatus(worker.getStatus().status);
-        po.setIsDeleted(DBFieldHelper.FALSE_LONG);
+        po.setDeleted(false);
         return po;
     }
 
@@ -129,7 +128,7 @@ public class WorkerEntityConverter {
      * @param vo {@link WorkerMetric}值对象
      * @return {@link WorkerMetricEntity}持久化对象
      */
-    public WorkerMetricEntity toMetricEntity(Long workerId, WorkerMetric vo) {
+    public WorkerMetricEntity toMetricEntity(String workerId, WorkerMetric vo) {
         WorkerMetricEntity po = new WorkerMetricEntity();
         po.setWorkerId(workerId);
 
@@ -165,7 +164,7 @@ public class WorkerEntityConverter {
     /**
      * 提取 Worker 中的 executors，转为持久化对象列表
      */
-    public List<WorkerExecutorEntity> toExecutorEntities(Long workerId, Worker worker) {
+    public List<WorkerExecutorEntity> toExecutorEntities(String workerId, Worker worker) {
         List<WorkerExecutor> executors = worker.getExecutors();
         if (CollectionUtils.isEmpty(executors)) {
             return Lists.newArrayList();
@@ -204,7 +203,7 @@ public class WorkerEntityConverter {
     /**
      * 提取 Worker 中的 tags，转为持久化对象列表
      */
-    public List<WorkerTagEntity> toTagEntities(Long workerId, Worker worker) {
+    public List<WorkerTagEntity> toTagEntities(String workerId, Worker worker) {
         Map<String, List<String>> tags = worker.getTags();
         if (MapUtils.isEmpty(tags)) {
             return Lists.newArrayList();

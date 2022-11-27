@@ -31,10 +31,8 @@ import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Brozen
@@ -61,7 +59,7 @@ public class TaskRepo implements TaskRepository {
         Verifies.notNull(task, "task can't be null");
         TaskEntity entity = DomainConverter.toTaskEntity(task);
         taskEntityRepo.saveAndFlush(entity);
-        return String.valueOf(entity.getId());
+        return entity.getTaskId();
     }
 
     @Override
@@ -71,22 +69,14 @@ public class TaskRepo implements TaskRepository {
             return;
         }
 
-        Map<Task, TaskEntity> map = new HashMap<>();
-        for (Task task : tasks) {
-            map.put(task, DomainConverter.toTaskEntity(task));
-        }
-
-        taskEntityRepo.saveAll(map.values());
+        List<TaskEntity> taskEntities = tasks.stream().map(DomainConverter::toTaskEntity).collect(Collectors.toList());
+        taskEntityRepo.saveAll(taskEntities);
         taskEntityRepo.flush();
-
-        for (Map.Entry<Task, TaskEntity> entry : map.entrySet()) {
-            entry.getKey().setTaskId(String.valueOf(entry.getValue().getId()));
-        }
     }
 
     @Override
     public Task get(String taskId) {
-        return taskEntityRepo.findById(Long.valueOf(taskId)).map(entity -> DomainConverter.toTask(entity, planInfoEntityRepo)).orElse(null);
+        return taskEntityRepo.findById(taskId).map(entity -> DomainConverter.toTask(entity, planInfoEntityRepo)).orElse(null);
     }
 
 }

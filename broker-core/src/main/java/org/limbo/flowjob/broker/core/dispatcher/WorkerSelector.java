@@ -17,10 +17,9 @@
 package org.limbo.flowjob.broker.core.dispatcher;
 
 import org.limbo.flowjob.common.constants.LoadBalanceType;
-import org.limbo.flowjob.broker.core.domain.DispatchOption;
+import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.worker.Worker;
 
-import java.util.Collection;
 import java.util.List;
 
 /**

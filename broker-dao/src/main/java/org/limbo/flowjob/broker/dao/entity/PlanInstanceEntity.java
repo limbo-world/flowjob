@@ -6,6 +6,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
 
@@ -25,9 +26,12 @@ public class PlanInstanceEntity extends BaseEntity {
 
     private static final long serialVersionUID = -8999288394853231265L;
 
-    private Long planId;
+    @Id
+    private String planInstanceId;
 
-    private Long planInfoId;
+    private String planId;
+
+    private Integer planVersion;
 
     /**
      * 状态

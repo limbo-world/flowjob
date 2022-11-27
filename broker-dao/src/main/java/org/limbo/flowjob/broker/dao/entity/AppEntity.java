@@ -24,6 +24,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
@@ -42,10 +43,12 @@ public class AppEntity extends BaseEntity {
 
     private static final long serialVersionUID = 1834852529057424113L;
 
+    @Id
+    private String appId;
     /**
      * 所属租户
      */
-    private Long tenantId;
+    private String tenantId;
 
     /**
      * 应用名称

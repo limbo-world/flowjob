@@ -41,14 +41,14 @@ import javax.transaction.Transactional;
 @Slf4j
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-public class PlanServiceTest {
+class PlanServiceTest {
 
     @Setter(onMethod_ = @Inject)
     private PlanService planService;
 
     @Test
     @Transactional
-    public void addFixedRate() {
+    void addFixedRate() {
         PlanAddParam param = PlanFactory.newFixedRateAddParam();
 
         String id = planService.add(param);
@@ -60,7 +60,7 @@ public class PlanServiceTest {
 
     @Test
     @Transactional
-    public void enablePlan() {
+    void enablePlan() {
         String planId = "2";
 
         boolean start = planService.start(planId);
@@ -69,7 +69,7 @@ public class PlanServiceTest {
 
     @Test
     @Transactional
-    public void replace() {
+    void replace() {
         PlanAddParam param = PlanFactory.newFixedRateAddParam();
         String id = planService.add(param);
         id = planService.replace(id, PlanFactory.newFixedRateReplaceParam());
@@ -79,7 +79,7 @@ public class PlanServiceTest {
     }
 
     @Test
-    public void get() {
+    void get() {
         Plan plan = planService.get("2");
         log.info("plan>>>>>{}", JacksonUtils.toJSONString(plan));
         Assertions.assertNotNull(plan, "");

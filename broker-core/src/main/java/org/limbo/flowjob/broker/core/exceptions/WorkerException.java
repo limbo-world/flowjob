@@ -16,6 +16,8 @@
 
 package org.limbo.flowjob.broker.core.exceptions;
 
+import lombok.Getter;
+
 /**
  * Worker调用时发生的异常
  *
@@ -24,10 +26,13 @@ package org.limbo.flowjob.broker.core.exceptions;
  */
 public class WorkerException extends RuntimeException {
 
+    private static final long serialVersionUID = 8644570391864065637L;
+
     /**
      * 异常的worker id
      */
-    private String workerId;
+    @Getter
+    private final String workerId;
 
     public WorkerException(String workerId, String message) {
         super(message);
