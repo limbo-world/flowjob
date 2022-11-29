@@ -99,6 +99,7 @@ public class DomainConverter {
         TaskEntity taskEntity = new TaskEntity();
         taskEntity.setJobInstanceId(task.getJobInstanceId());
         taskEntity.setJobId(task.getJobId());
+        taskEntity.setPlanId(task.getPlanId());
         taskEntity.setStatus(task.getStatus().status);
         taskEntity.setWorkerId(task.getWorkerId());
         taskEntity.setAttributes(task.getAttributes() == null ? "" : task.getAttributes().toString());
@@ -120,7 +121,7 @@ public class DomainConverter {
         task.setEndAt(entity.getEndAt());
 
         // job
-        PlanInfoEntity planInfo = planInfoEntityRepo.findByPlanIdInAndPlanVersion(task.getPlanId(), task.getPlanVersion());
+        PlanInfoEntity planInfo = planInfoEntityRepo.findByPlanIdAndPlanVersion(task.getPlanId(), task.getPlanVersion());
         DAG<JobInfo> jobInfoDAG = DomainConverter.toJobDag(planInfo.getJobs());
         JobInfo jobInfo = jobInfoDAG.getNode(entity.getJobId());
         task.setDispatchOption(jobInfo.getDispatchOption());

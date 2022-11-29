@@ -5,6 +5,7 @@ import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -24,6 +25,12 @@ import java.time.LocalDateTime;
 @DynamicUpdate
 public class JobInstanceEntity extends BaseEntity {
     private static final long serialVersionUID = -1136312243146520057L;
+
+    /**
+     * 数据库自增id
+     */
+    @Column(updatable = false)
+    private Long id;
 
     @Id
     private String jobInstanceId;
@@ -63,4 +70,9 @@ public class JobInstanceEntity extends BaseEntity {
      * 调度触发时间
      */
     private LocalDateTime triggerAt;
+
+    @Override
+    public Object getUid() {
+        return jobInstanceId;
+    }
 }

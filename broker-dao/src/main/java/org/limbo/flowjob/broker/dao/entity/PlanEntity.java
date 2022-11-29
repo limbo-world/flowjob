@@ -27,8 +27,11 @@ public class PlanEntity extends BaseEntity {
     private static final long serialVersionUID = -6323915044280199312L;
 
     /**
-     * id
+     * 数据库自增id
      */
+    @Column(updatable = false)
+    private Long id;
+
     @Id
     private String planId;
     /**
@@ -59,4 +62,8 @@ public class PlanEntity extends BaseEntity {
     @Column(name = "is_enabled")
     private boolean enabled;
 
+    @Override
+    public Object getUid() {
+        return planId;
+    }
 }

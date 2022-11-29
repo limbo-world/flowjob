@@ -5,6 +5,7 @@ import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -25,6 +26,12 @@ import java.time.LocalDateTime;
 public class PlanInstanceEntity extends BaseEntity {
 
     private static final long serialVersionUID = -8999288394853231265L;
+
+    /**
+     * 数据库自增id
+     */
+    @Column(updatable = false)
+    private Long id;
 
     @Id
     private String planInstanceId;
@@ -57,4 +64,9 @@ public class PlanInstanceEntity extends BaseEntity {
      * 执行完成反馈时间
      */
     private LocalDateTime feedbackAt;
+
+    @Override
+    public Object getUid() {
+        return planInstanceId;
+    }
 }

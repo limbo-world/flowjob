@@ -6,6 +6,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.limbo.flowjob.common.constants.TaskStatus;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -26,12 +27,20 @@ import java.time.LocalDateTime;
 public class TaskEntity extends BaseEntity {
     private static final long serialVersionUID = -6865597903513656450L;
 
+    /**
+     * 数据库自增id
+     */
+    @Column(updatable = false)
+    private Long id;
+
     @Id
     private String taskId;
 
     private String jobInstanceId;
 
     private String jobId;
+
+    private String planId;
 
     /**
      * 执行作业的worker ID
@@ -73,4 +82,8 @@ public class TaskEntity extends BaseEntity {
      */
     private LocalDateTime endAt;
 
+    @Override
+    public Object getUid() {
+        return taskId;
+    }
 }

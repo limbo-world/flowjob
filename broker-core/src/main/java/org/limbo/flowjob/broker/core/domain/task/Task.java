@@ -46,13 +46,13 @@ public class Task implements Serializable {
 
     private String taskId;
 
-    private String jobId;
+    private String jobInstanceId;
 
-    private Integer planVersion;
+    private String jobId;
 
     private String planId;
 
-    private String jobInstanceId;
+    private Integer planVersion;
 
     /**
      * 状态

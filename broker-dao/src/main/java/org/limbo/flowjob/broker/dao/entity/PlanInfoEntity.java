@@ -23,6 +23,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TriggerType;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -43,6 +44,16 @@ import java.time.LocalDateTime;
 public class PlanInfoEntity extends BaseEntity {
 
     private static final long serialVersionUID = -1639602897831847418L;
+
+    /**
+     * 数据库自增id
+     */
+    @Column(updatable = false)
+    private Long id;
+
+    @Id
+    private String planInfoId;
+
     /**
      * 属于哪个plan
      */
@@ -106,4 +117,8 @@ public class PlanInfoEntity extends BaseEntity {
      */
     private String jobs;
 
+    @Override
+    public Object getUid() {
+        return planInfoId;
+    }
 }

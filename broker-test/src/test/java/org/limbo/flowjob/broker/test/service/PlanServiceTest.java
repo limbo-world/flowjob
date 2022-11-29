@@ -47,7 +47,7 @@ class PlanServiceTest {
     private PlanService planService;
 
     @Test
-    @Transactional
+//    @Transactional
     void addFixedRate() {
         PlanAddParam param = PlanFactory.newFixedRateAddParam();
 

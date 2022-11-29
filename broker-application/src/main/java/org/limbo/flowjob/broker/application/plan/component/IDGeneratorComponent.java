@@ -58,24 +58,31 @@ public class IDGeneratorComponent implements IDGenerator {
     }
 
     private Long gainRandomAutoId(final IDType type) {
-        synchronized (type) {
-            ID id = ID_MAP.get(type);
-            if (id == null) {
-                id = getNewId(type);
-            }
+        ID id = ID_MAP.get(type);
+        if (id == null) {
+            id = getNewId(type);
+        }
 
+        int time = 0;
+        while (time < 10) {
             long currentId = id.getCurrentId().incrementAndGet();
-
             if (currentId >= id.getEndId()) {
                 id = getNewId(type);
+            } else {
+                return currentId;
             }
-
-            return currentId;
+            time++;
         }
+        throw new IllegalStateException("The system is busy, Try again later!!!");
     }
 
-    private ID getNewId(IDType type) {
+    private synchronized ID getNewId(IDType type) {
         Verifies.notNull(type, MsgConstants.UNKNOWN + " type: " + type);
+
+        // 防止并发情况下，重复执行后续代码
+        if (ID_MAP.containsKey(type)) {
+            return ID_MAP.get(type);
+        }
 
         String typeName = type.name();
 
@@ -86,8 +93,8 @@ public class IDGeneratorComponent implements IDGenerator {
         long endId = 0;
 
         while (updateNum <= 0 && time < 10) {
-            time++;
-            IdEntity idEntity = idEntityRepo.findByType(typeName);
+            // 加锁 获取 类型
+            IdEntity idEntity = idEntityRepo.findById(typeName).orElse(null);
             startId = idEntity.getCurrentId();
             endId = idEntity.getCurrentId() + idEntity.getStep();
             updateNum = idEntityRepo.casGainId(typeName, endId, startId);
@@ -97,9 +104,12 @@ public class IDGeneratorComponent implements IDGenerator {
                 log.error("thread sleep fail", e);
                 Thread.currentThread().interrupt();
             }
+            time++;
         }
 
-        Verifies.verify(updateNum > 0, "The system is busy, Try again later!!!");
+        if (updateNum < 0) {
+            throw new IllegalStateException("The system is busy, Try again later!!!");
+        }
 
         ID id = new ID(new AtomicLong(startId), endId);
         ID_MAP.put(type, id);
@@ -108,7 +118,7 @@ public class IDGeneratorComponent implements IDGenerator {
 
     @Getter
     @AllArgsConstructor
-    private class ID {
+    private static class ID {
         private AtomicLong currentId;
 
         private Long endId;

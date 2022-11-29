@@ -39,12 +39,6 @@ public abstract class BaseEntity implements Serializable {
     private static final long serialVersionUID = 2529092986409475369L;
 
     /**
-     * 数据库自增id
-     */
-    @Column(updatable = false)
-    private Long id;
-
-    /**
      * 记录创建时间
      */
     @Transient
@@ -64,6 +58,7 @@ public abstract class BaseEntity implements Serializable {
     @Column(name = "is_deleted")
     private boolean deleted;
 
+    public abstract Object getUid();
 
     @Override
     public boolean equals(Object o) {
@@ -76,13 +71,13 @@ public abstract class BaseEntity implements Serializable {
         }
 
         BaseEntity that = (BaseEntity) o;
-        return getId() != null && Objects.equals(getId(), that.getId());
+        return getUid() != null && Objects.equals(getUid(), that.getUid());
     }
 
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getId());
+        return Objects.hashCode(getUid());
     }
 
 }

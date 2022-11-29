@@ -21,6 +21,7 @@ import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -38,6 +39,12 @@ import javax.persistence.Table;
 public class WorkerMetricEntity extends BaseEntity {
 
     private static final long serialVersionUID = -3009642474389520555L;
+
+    /**
+     * 数据库自增id
+     */
+    @Column(updatable = false)
+    private Long id;
 
     @Id
     private String workerId;
@@ -67,4 +74,8 @@ public class WorkerMetricEntity extends BaseEntity {
      */
     private Long lastHeartbeatAt;
 
+    @Override
+    public Object getUid() {
+        return workerId;
+    }
 }

@@ -19,6 +19,7 @@
 package org.limbo.flowjob.broker.dao.repositories;
 
 import org.limbo.flowjob.broker.dao.entity.IdEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -28,9 +29,7 @@ import org.springframework.data.repository.query.Param;
  * @author Devil
  * @since 2022/7/18
  */
-public interface IdEntityRepo extends JpaRepository<IdEntity, Long> {
-
-    IdEntity findByType(String type);
+public interface IdEntityRepo extends JpaRepository<IdEntity, String> {
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update IdEntity set currentId = :newCurrentId where currentId = :oldCurrentId and type = :type")

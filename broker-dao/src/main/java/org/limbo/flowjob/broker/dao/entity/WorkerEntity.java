@@ -22,6 +22,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.limbo.flowjob.common.constants.WorkerStatus;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -41,6 +42,12 @@ import javax.persistence.Table;
 public class WorkerEntity extends BaseEntity {
 
     private static final long serialVersionUID = -3237766932023820195L;
+
+    /**
+     * 数据库自增id
+     */
+    @Column(updatable = false)
+    private Long id;
 
     @Id
     private String workerId;
@@ -75,4 +82,8 @@ public class WorkerEntity extends BaseEntity {
      */
     private Byte status;
 
+    @Override
+    public Object getUid() {
+        return workerId;
+    }
 }

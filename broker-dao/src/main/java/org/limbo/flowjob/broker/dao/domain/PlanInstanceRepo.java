@@ -87,7 +87,7 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
         planInstance.setFeedbackAt(entity.getFeedbackAt());
 
         // 基础信息
-        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findByPlanIdInAndPlanVersion(entity.getPlanId(), entity.getPlanVersion());
+        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findByPlanIdAndPlanVersion(entity.getPlanId(), entity.getPlanVersion());
         planInstance.setScheduleOption(DomainConverter.toScheduleOption(planInfoEntity));
         planInstance.setDag(DomainConverter.toJobDag(planInfoEntity.getJobs()));
 

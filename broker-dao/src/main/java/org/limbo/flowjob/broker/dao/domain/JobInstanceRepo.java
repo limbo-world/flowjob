@@ -72,7 +72,7 @@ public class JobInstanceRepo implements JobInstanceRepository {
     public JobInstance get(String jobInstanceId) {
         return jobInstanceEntityRepo.findById(jobInstanceId).map(entity -> {
 
-            PlanInfoEntity planInfoEntity = planInfoEntityRepo.findByPlanIdInAndPlanVersion(entity.getPlanId(), entity.getPlanVersion());
+            PlanInfoEntity planInfoEntity = planInfoEntityRepo.findByPlanIdAndPlanVersion(entity.getPlanId(), entity.getPlanVersion());
             DAG<JobInfo> dag = DomainConverter.toJobDag(planInfoEntity.getJobs());
             return DomainConverter.toJobInstance(entity, dag);
 

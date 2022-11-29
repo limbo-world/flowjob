@@ -51,4 +51,8 @@ public class PlanSlotEntity extends BaseEntity {
 
     private Integer slot;
 
+    @Override
+    public Object getUid() {
+        return id;
+    }
 }

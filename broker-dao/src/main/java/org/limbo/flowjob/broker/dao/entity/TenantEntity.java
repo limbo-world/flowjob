@@ -23,6 +23,7 @@ import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -41,6 +42,12 @@ import javax.persistence.Table;
 public class TenantEntity extends BaseEntity {
     private static final long serialVersionUID = 2377619948630383909L;
 
+    /**
+     * 数据库自增id
+     */
+    @Column(updatable = false)
+    private Long id;
+
     @Id
     private String tenantId;
     /**
@@ -52,4 +59,9 @@ public class TenantEntity extends BaseEntity {
      * 此租户下面 用于登录认证的 secret
      */
     private String secret;
+
+    @Override
+    public Object getUid() {
+        return tenantId;
+    }
 }

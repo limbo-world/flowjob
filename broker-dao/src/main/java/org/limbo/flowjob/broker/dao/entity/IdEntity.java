@@ -24,6 +24,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -32,6 +33,7 @@ import javax.persistence.Table;
 
 /**
  * id 表
+ * 需要在sql中初始化数据
  *
  * @author Devil
  * @since 2022/6/24
@@ -46,12 +48,16 @@ public class IdEntity extends BaseEntity {
 
     private static final long serialVersionUID = 1834852529057424113L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    /**
+     * 数据库自增id
+     */
+    @Column(updatable = false)
     private Long id;
+
     /**
      * 类型
      */
+    @Id
     private String type;
 
     /**
@@ -63,4 +69,9 @@ public class IdEntity extends BaseEntity {
      * 步长
      */
     private Integer step;
+
+    @Override
+    public Object getUid() {
+        return type;
+    }
 }

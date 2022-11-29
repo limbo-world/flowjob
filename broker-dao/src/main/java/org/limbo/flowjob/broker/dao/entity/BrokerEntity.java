@@ -23,6 +23,7 @@ import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -41,6 +42,12 @@ import java.time.LocalDateTime;
 public class BrokerEntity extends BaseEntity {
     private static final long serialVersionUID = -4470612703071698168L;
 
+    /**
+     * 数据库自增id
+     */
+    @Column(updatable = false)
+    private Long id;
+
     @Id
     private String brokerId;
 
@@ -53,4 +60,9 @@ public class BrokerEntity extends BaseEntity {
      * 上次心跳时间
      */
     private LocalDateTime lastHeartbeat;
+
+    @Override
+    public Object getUid() {
+        return brokerId;
+    }
 }
