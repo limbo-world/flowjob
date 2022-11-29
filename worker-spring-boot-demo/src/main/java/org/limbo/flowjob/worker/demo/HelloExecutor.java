@@ -29,10 +29,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class HelloExecutor implements TaskExecutor {
 
-    public HelloExecutor() {
-        System.out.printf("OK");
-    }
-
     @Override
     public void run(ExecuteContext context) {
         log.warn("Say hello to {}", context.getTask().getId());

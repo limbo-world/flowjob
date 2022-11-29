@@ -73,12 +73,11 @@ public class WorkerRepo implements WorkerRepository {
     @Override
     @Transactional
     public void save(Worker worker) {
+        String workerId = worker.getId();
+
         WorkerEntity entity = converter.toWorkerEntity(worker);
         Objects.requireNonNull(entity);
         workerEntityRepo.saveAndFlush(entity);
-
-        String workerId = entity.getWorkerId();
-        worker.setId(workerId);
 
         // Metric 存储
         WorkerMetric metric = worker.getMetric();

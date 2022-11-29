@@ -19,8 +19,11 @@ package org.limbo.flowjob.broker.dao.converter;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.limbo.flowjob.broker.core.domain.IDGenerator;
+import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
@@ -29,11 +32,13 @@ import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
+import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
 import org.limbo.flowjob.common.constants.WorkerStatus;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
+import javax.inject.Inject;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,6 +54,8 @@ import java.util.stream.Stream;
 @Component
 public class WorkerEntityConverter {
 
+    @Setter(onMethod_ = @Inject)
+    private IDGenerator idGenerator;
 
     /**
      * 将持久化对象{@link WorkerEntity}转换为领域对象{@link Worker}
@@ -173,6 +180,7 @@ public class WorkerEntityConverter {
         return executors.stream()
                 .map(exe -> {
                     WorkerExecutorEntity executor = new WorkerExecutorEntity();
+                    executor.setWorkerExecutorId(idGenerator.generateId(IDType.WORKER_EXECUTOR));
                     executor.setWorkerId(workerId);
                     executor.setName(exe.getName());
                     executor.setDescription(exe.getDescription());
@@ -218,6 +226,7 @@ public class WorkerEntityConverter {
 
                     return values.stream().map(value -> {
                         WorkerTagEntity tag = new WorkerTagEntity();
+                        tag.setWorkerTagId(idGenerator.generateId(IDType.WORKER_TAG));
                         tag.setWorkerId(workerId);
                         tag.setTagKey(entry.getKey());
                         tag.setTagValue(value);

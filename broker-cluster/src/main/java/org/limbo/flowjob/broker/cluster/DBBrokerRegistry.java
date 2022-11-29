@@ -21,10 +21,13 @@ package org.limbo.flowjob.broker.cluster;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeEvent;
 import org.limbo.flowjob.broker.core.cluster.NodeListener;
 import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
+import org.limbo.flowjob.broker.core.domain.IDGenerator;
+import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.dao.entity.BrokerEntity;
 import org.limbo.flowjob.broker.dao.repositories.BrokerEntityRepo;
 import org.limbo.flowjob.common.utils.time.Formatters;
@@ -51,6 +54,9 @@ public class DBBrokerRegistry implements NodeRegistry {
 
     @Setter(onMethod_ = @Inject)
     private BrokerEntityRepo brokerEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private IDGenerator idGenerator;
 
     // todo 考虑移除
     @Setter(onMethod_ = @Inject)
@@ -97,6 +103,9 @@ public class DBBrokerRegistry implements NodeRegistry {
         public void run() {
             try {
                 BrokerEntity broker = brokerEntityRepo.findByName(name).orElse(new BrokerEntity());
+                if (StringUtils.isBlank(broker.getBrokerId())) {
+                    broker.setBrokerId(idGenerator.generateId(IDType.BROKER));
+                }
                 broker.setName(name);
                 broker.setHost(host);
                 broker.setPort(port);

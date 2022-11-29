@@ -20,6 +20,7 @@ package org.limbo.flowjob.broker.core.domain.plan;
 
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
+import org.limbo.flowjob.broker.core.domain.job.JobFactory;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.constants.PlanStatus;
@@ -36,8 +37,11 @@ public class PlanFactory {
 
     private final IDGenerator idGenerator;
 
-    public PlanFactory(IDGenerator idGenerator) {
+    private final JobFactory jobFactory;
+
+    public PlanFactory(IDGenerator idGenerator, JobFactory jobFactory) {
         this.idGenerator = idGenerator;
+        this.jobFactory = jobFactory;
     }
 
     public Plan create(LocalDateTime nextTriggerAt, String description, ScheduleOption scheduleOption, DAG<JobInfo> dag, boolean enabled) {

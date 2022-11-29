@@ -34,7 +34,7 @@ import java.util.List;
  */
 public interface PlanEntityRepo extends JpaRepository<PlanEntity, String> {
 
-    @Query(value = "select * from flowjob_plan where planId = :planId for update", nativeQuery = true)
+    @Query(value = "select * from flowjob_plan where plan_id = :planId for update", nativeQuery = true)
     PlanEntity selectForUpdate(@Param("planId") String planId);
 
     /**

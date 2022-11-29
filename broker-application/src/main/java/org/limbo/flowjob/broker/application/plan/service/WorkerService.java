@@ -27,6 +27,8 @@ import org.limbo.flowjob.broker.application.plan.converter.WorkerConverter;
 import org.limbo.flowjob.broker.application.plan.support.TokenHelper;
 import org.limbo.flowjob.broker.application.plan.support.WorkerFactory;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
+import org.limbo.flowjob.broker.core.domain.IDGenerator;
+import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.common.constants.MsgConstants;
@@ -53,6 +55,8 @@ public class WorkerService {
     private WorkerRepository workerRepository;
     @Setter(onMethod_ = @Inject)
     private NodeManger nodeManger;
+    @Setter(onMethod_ = @Inject)
+    private IDGenerator idGenerator;
 
     /**
      * worker注册
@@ -74,7 +78,7 @@ public class WorkerService {
         // 新增 or 更新 worker
         Worker worker = Optional
                 .ofNullable(workerRepository.getByName(options.getName()))
-                .orElseGet(() -> WorkerFactory.newWorker(options));
+                .orElseGet(() -> WorkerFactory.newWorker(idGenerator.generateId(IDType.WORKER), options));
 
         // 更新注册信息
         worker.register(

@@ -20,11 +20,10 @@ package org.limbo.flowjob.broker.application.plan.support;
 
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
-import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
+import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.worker.starter.processor.event.WorkerReadyEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.ApplicationListener;
@@ -57,8 +56,8 @@ public class BrokerStarter extends Broker implements ApplicationEventPublisherAw
         // 启动所有元任务调度
         metaTasks.forEach(metaTaskScheduler::schedule);
 
-        // 将自己注册为worker
-        eventPublisher.publishEvent(new WorkerReadyEvent());
+//        // 将自己注册为worker
+//        eventPublisher.publishEvent(new WorkerReadyEvent());
     }
 
     @Override

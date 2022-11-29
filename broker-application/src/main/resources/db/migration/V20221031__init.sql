@@ -56,6 +56,7 @@ DROP TABLE IF EXISTS `flowjob_broker`;
 CREATE TABLE `flowjob_broker`
 (
     `id`             bigint unsigned NOT NULL AUTO_INCREMENT,
+    `broker_id`      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `name`           varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `host`           varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `port`           int                                                             DEFAULT NULL,
@@ -490,6 +491,18 @@ CREATE TABLE `flowjob_id`
 LOCK
 TABLES `flowjob_id` WRITE;
 /*!40000 ALTER TABLE `flowjob_id` DISABLE KEYS */;
+INSERT INTO flowjob_id(`type`, `current_id`, `step`)
+VALUES ('APP', 100000, 1000);
+INSERT INTO flowjob_id(`type`, `current_id`, `step`)
+VALUES ('TENANT', 100000, 1000);
+INSERT INTO flowjob_id(`type`, `current_id`, `step`)
+VALUES ('WORKER', 100000, 1000);
+INSERT INTO flowjob_id(`type`, `current_id`, `step`)
+VALUES ('WORKER_EXECUTOR', 100000, 1000);
+INSERT INTO flowjob_id(`type`, `current_id`, `step`)
+VALUES ('WORKER_TAG', 100000, 1000);
+INSERT INTO flowjob_id(`type`, `current_id`, `step`)
+VALUES ('BROKER', 100000, 1000);
 INSERT INTO flowjob_id(`type`, `current_id`, `step`)
 VALUES ('PLAN', 100000, 1000);
 INSERT INTO flowjob_id(`type`, `current_id`, `step`)

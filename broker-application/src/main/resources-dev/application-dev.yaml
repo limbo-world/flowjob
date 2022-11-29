@@ -6,13 +6,6 @@ flowjob:
     name: b1
     host: 127.0.0.1
     port: 8081
-  worker:
-    brokers:
-      - http://localhost:8081
-    taskQueueSize: 64
-    tags:
-      - a=b
-      - c=d
 
 spring:
   # DB

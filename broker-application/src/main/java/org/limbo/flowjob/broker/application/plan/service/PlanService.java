@@ -166,15 +166,4 @@ public class PlanService {
         }
     }
 
-    public List<JobInstance> rootJobs(PlanInstance planInstance) {
-        List<JobInstance> rootJobs = new ArrayList<>();
-
-        for (JobInfo jobInfo : planInstance.getDag().origins()) {
-            if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
-                rootJobs.add(jobFactory.newInstance(planInstance, jobInfo, TimeUtils.currentLocalDateTime()));
-            }
-        }
-        return rootJobs;
-    }
-
 }

@@ -45,7 +45,7 @@ public class WorkerManagerImpl implements WorkerManager {
      */
     @Override
     public Worker registerWorker(Worker worker) {
-        workerRepository.save(worker);
+//        workerRepository.save(worker);
         return worker;
     }
 

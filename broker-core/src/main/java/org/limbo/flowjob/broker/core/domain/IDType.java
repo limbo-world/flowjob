@@ -23,6 +23,19 @@ package org.limbo.flowjob.broker.core.domain;
  * @since 2022/11/27
  */
 public enum IDType {
+
+    APP,
+
+    TENANT,
+
+    WORKER,
+
+    WORKER_EXECUTOR,
+
+    WORKER_TAG,
+
+    BROKER,
+
     PLAN,
 
     PLAN_INSTANCE,

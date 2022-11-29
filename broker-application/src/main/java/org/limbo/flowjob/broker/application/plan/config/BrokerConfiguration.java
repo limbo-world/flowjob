@@ -94,8 +94,8 @@ public class BrokerConfiguration {
     }
 
     @Bean
-    public PlanFactory planFactory(IDGenerator idGenerator) {
-        return new PlanFactory(idGenerator);
+    public PlanFactory planFactory(IDGenerator idGenerator, JobFactory jobFactory) {
+        return new PlanFactory(idGenerator, jobFactory);
     }
 
 

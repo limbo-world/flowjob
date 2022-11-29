@@ -46,9 +46,10 @@ public class WorkerFactory {
      * @param options worker 注册参数
      * @return worker领域对象
      */
-    public static Worker newWorker(WorkerRegisterParam options) {
+    public static Worker newWorker(String workerId, WorkerRegisterParam options) {
         String name = StringUtils.isNotBlank(options.getName()) ? options.getName() : UUIDUtils.randomID();
         return Worker.builder()
+                .id(workerId)
                 .name(name)
                 .rpcBaseUrl(options.getUrl())
                 .executors(executors(options.getExecutors()))
