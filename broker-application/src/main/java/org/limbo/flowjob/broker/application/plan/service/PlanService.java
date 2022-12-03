@@ -4,6 +4,7 @@ import lombok.Setter;
 import org.limbo.flowjob.api.param.PlanAddParam;
 import org.limbo.flowjob.api.param.PlanReplaceParam;
 import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
+import org.limbo.flowjob.broker.application.plan.manager.JobScheduleManager;
 import org.limbo.flowjob.broker.core.domain.job.JobFactory;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
@@ -52,10 +53,13 @@ public class PlanService {
     private JobInstanceRepository jobInstanceRepository;
 
     @Setter(onMethod_ = @Inject)
+    private PlanFactory planFactory;
+
+    @Setter(onMethod_ = @Inject)
     private JobFactory jobFactory;
 
     @Setter(onMethod_ = @Inject)
-    private PlanFactory planFactory;
+    private JobScheduleManager jobScheduleManager;
 
 
     /**
@@ -136,6 +140,28 @@ public class PlanService {
 
         // 停用计划
         return planEntityRepo.updateEnable(planEntity.getPlanId(), true, false) == 1;
+    }
+
+    @Transactional
+    public void scheduleInstance(PlanInstance planInstance) {
+        // 保存数据
+        planInstance.trigger();
+
+        // 获取头部数据
+        List<JobInstance> rootJobs = new ArrayList<>();
+
+        for (JobInfo jobInfo : planInstance.getDag().origins()) {
+            if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
+                rootJobs.add(jobFactory.newInstance(planInstance, jobInfo, TimeUtils.currentLocalDateTime()));
+            }
+        }
+
+        saveScheduleInfo(planInstance, rootJobs);
+
+        // 执行调度逻辑
+        for (JobInstance instance : rootJobs) {
+            jobScheduleManager.dispatch(instance);
+        }
     }
 
     @Transactional

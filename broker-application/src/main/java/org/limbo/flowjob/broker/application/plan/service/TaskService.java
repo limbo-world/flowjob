@@ -3,7 +3,7 @@ package org.limbo.flowjob.broker.application.plan.service;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.param.TaskFeedbackParam;
-import org.limbo.flowjob.broker.application.plan.component.JobScheduler;
+import org.limbo.flowjob.broker.application.plan.component.TaskScheduler;
 import org.limbo.flowjob.broker.application.plan.manager.PlanManager;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
@@ -45,7 +45,7 @@ public class TaskService {
     private JobInstanceEntityRepo jobInstanceEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private JobScheduler scheduler;
+    private TaskScheduler scheduler;
 
     @Setter(onMethod_ = @Inject)
     private PlanInstanceRepository planInstanceRepository;

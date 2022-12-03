@@ -21,19 +21,11 @@ package org.limbo.flowjob.broker.application.plan.component;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.application.plan.service.PlanService;
-import org.limbo.flowjob.broker.core.domain.job.JobFactory;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
-import org.limbo.flowjob.broker.core.domain.plan.PlanFactory;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.schedule.scheduler.HashedWheelTimerScheduler;
-import org.limbo.flowjob.common.constants.TriggerType;
-import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -51,12 +43,6 @@ public class PlanScheduler extends HashedWheelTimerScheduler<PlanInstance> {
 
     @Setter(onMethod_ = @Inject)
     private PlanService planService;
-
-    @Setter(onMethod_ = @Inject)
-    private JobScheduler jobScheduler;
-
-    @Setter(onMethod_ = @Inject)
-    private JobFactory jobFactory;
 
     /**
      * 调度线程池
@@ -77,24 +63,7 @@ public class PlanScheduler extends HashedWheelTimerScheduler<PlanInstance> {
         // 执行调度逻辑
         schedulePool.submit(() -> {
             try {
-                // 保存数据
-                planInstance.trigger();
-
-                // 获取头部数据
-                List<JobInstance> rootJobs = new ArrayList<>();
-
-                for (JobInfo jobInfo : planInstance.getDag().origins()) {
-                    if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
-                        rootJobs.add(jobFactory.newInstance(planInstance, jobInfo, TimeUtils.currentLocalDateTime()));
-                    }
-                }
-
-                planService.saveScheduleInfo(planInstance, rootJobs);
-
-                // 执行调度逻辑
-                for (JobInstance instance : rootJobs) {
-                    jobScheduler.schedule(instance);
-                }
+                planService.scheduleInstance(planInstance);
             } catch (Exception e) {
                 log.error("PlanScheduler schedule error planInstance:{}", planInstance, e);
             } finally {

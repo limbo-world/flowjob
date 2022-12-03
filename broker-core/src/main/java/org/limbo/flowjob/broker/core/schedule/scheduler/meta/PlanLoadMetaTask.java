@@ -39,7 +39,7 @@ import java.util.List;
  * 元任务：定时加载 Plan 进行调度
  */
 @Slf4j
-public abstract class PlanScheduleMetaTask extends FixIntervalMetaTask {
+public abstract class PlanLoadMetaTask extends FixIntervalMetaTask {
 
     @Getter
     private final BrokerConfig config;
@@ -49,9 +49,9 @@ public abstract class PlanScheduleMetaTask extends FixIntervalMetaTask {
 
     private final PlanFactory planFactory;
 
-    protected PlanScheduleMetaTask(String taskId, Duration interval,
-                                   BrokerConfig config, NodeManger nodeManger,
-                                   PlanFactory planFactory) {
+    protected PlanLoadMetaTask(String taskId, Duration interval,
+                               BrokerConfig config, NodeManger nodeManger,
+                               PlanFactory planFactory) {
         super(taskId, interval);
         this.config = config;
         this.nodeManger = nodeManger;

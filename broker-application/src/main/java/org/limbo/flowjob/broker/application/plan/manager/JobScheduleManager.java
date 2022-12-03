@@ -16,11 +16,10 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.plan.service;
+package org.limbo.flowjob.broker.application.plan.manager;
 
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.application.plan.manager.PlanManager;
 import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
@@ -47,7 +46,7 @@ import java.util.stream.Collectors;
  * @since 2022/9/1
  */
 @Component
-public class JobService {
+public class JobScheduleManager {
 
     @Setter(onMethod_ = @Inject)
     private JobInstanceEntityRepo jobInstanceEntityRepo;
@@ -129,6 +128,7 @@ public class JobService {
 
     }
 
+    // todo 这个失败需要修改 plan 状态？？ 是不是交由task
     @Transactional
     public void handlerJobFail(JobInstance instance) {
         if (instance.isTerminateWithFail()) {

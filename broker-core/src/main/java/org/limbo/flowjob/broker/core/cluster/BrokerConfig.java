@@ -30,26 +30,26 @@ public class BrokerConfig {
     /**
      * broker的唯一标识
      */
-    private String name;
+    protected String name;
 
     /**
      * 提供给worker的服务的 host
      */
-    private String host;
+    protected String host;
 
     /**
      * 提供给worker的服务 port
      */
-    private Integer port;
+    protected Integer port;
 
     /**
      * 心跳时间间隔，毫秒
      */
-    private long heartbeatInterval = 2000;
+    protected long heartbeatInterval = 2000;
 
     /**
      * 心跳超时时间，秒
      */
-    private long heartbeatTimeout = 10;
+    protected long heartbeatTimeout = 10;
 
 }

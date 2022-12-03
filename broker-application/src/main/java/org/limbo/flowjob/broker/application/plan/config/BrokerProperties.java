@@ -27,4 +27,5 @@ public class BrokerProperties extends BrokerConfig {
      * 状态检查间隔
      */
     private long statusCheckInterval = 10000;
+
 }

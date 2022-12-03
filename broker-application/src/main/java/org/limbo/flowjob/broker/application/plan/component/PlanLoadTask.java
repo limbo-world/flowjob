@@ -27,7 +27,7 @@ import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanFactory;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanScheduleMetaTask;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanLoadMetaTask;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
@@ -44,10 +44,9 @@ import java.util.stream.Collectors;
 
 /**
  * 获取可以下发的plan 创建对应的 PlanInstance 进行调度
- * todo 这类task 是否可以直接交由调度系统调度
  */
 @Slf4j
-public class PlanScheduleTask extends PlanScheduleMetaTask {
+public class PlanLoadTask extends PlanLoadMetaTask {
 
     @Setter(onMethod_ = @Inject)
     private PlanScheduler scheduler;
@@ -62,7 +61,7 @@ public class PlanScheduleTask extends PlanScheduleMetaTask {
     private PlanSlotEntityRepo planSlotEntityRepo;
 
 
-    public PlanScheduleTask(Duration interval, BrokerConfig config, NodeManger nodeManger, PlanFactory planFactory) {
+    public PlanLoadTask(Duration interval, BrokerConfig config, NodeManger nodeManger, PlanFactory planFactory) {
         super("Meta[PlanScheduleTask]", interval, config, nodeManger, planFactory);
     }
 

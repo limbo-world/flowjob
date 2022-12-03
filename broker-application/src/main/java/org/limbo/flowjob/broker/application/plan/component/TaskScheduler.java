@@ -20,7 +20,7 @@ package org.limbo.flowjob.broker.application.plan.component;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.application.plan.service.JobService;
+import org.limbo.flowjob.broker.application.plan.manager.JobScheduleManager;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.schedule.scheduler.HashedWheelTimerScheduler;
 import org.springframework.stereotype.Component;
@@ -37,10 +37,10 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Component
-public class JobScheduler extends HashedWheelTimerScheduler<JobInstance> {
+public class TaskScheduler extends HashedWheelTimerScheduler<JobInstance> {
 
     @Setter(onMethod_ = @Inject)
-    private JobService jobService;
+    private JobScheduleManager jobScheduleManager;
 
     /**
      * 调度线程池
@@ -64,7 +64,7 @@ public class JobScheduler extends HashedWheelTimerScheduler<JobInstance> {
         // 执行调度逻辑
         schedulePool.submit(() -> {
             try {
-                jobService.dispatch(jobInstance);
+                jobScheduleManager.dispatch(jobInstance);
             } catch (Exception e) {
                 log.error("JobScheduler schedule error jobInstance:{}", jobInstance, e);
             } finally {

@@ -19,7 +19,7 @@ package org.limbo.flowjob.broker.application.plan.config;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.application.plan.component.JobStatusCheckTask;
-import org.limbo.flowjob.broker.application.plan.component.PlanScheduleTask;
+import org.limbo.flowjob.broker.application.plan.component.PlanLoadTask;
 import org.limbo.flowjob.broker.application.plan.component.TaskStatusCheckTask;
 import org.limbo.flowjob.broker.application.plan.support.BrokerStarter;
 import org.limbo.flowjob.broker.application.plan.support.NodeMangerImpl;
@@ -113,7 +113,7 @@ public class BrokerConfiguration {
      */
     @Bean
     public MetaTask planScheduleMetaTask(BrokerConfig config, NodeManger nodeManger, PlanFactory planFactory) {
-        return new PlanScheduleTask(Duration.ofMillis(brokerProperties.getRebalanceInterval()), config, nodeManger, planFactory);
+        return new PlanLoadTask(Duration.ofMillis(brokerProperties.getRebalanceInterval()), config, nodeManger, planFactory);
     }
 
 

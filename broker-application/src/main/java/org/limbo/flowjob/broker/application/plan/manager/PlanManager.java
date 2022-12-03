@@ -20,7 +20,7 @@ package org.limbo.flowjob.broker.application.plan.manager;
 
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.application.plan.component.JobScheduler;
+import org.limbo.flowjob.broker.application.plan.component.TaskScheduler;
 import org.limbo.flowjob.broker.core.domain.job.JobFactory;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
@@ -61,7 +61,7 @@ public class PlanManager {
     private JobInstanceRepository jobInstanceRepository;
 
     @Setter(onMethod_ = @Inject)
-    private JobScheduler scheduler;
+    private TaskScheduler scheduler;
 
     @Setter(onMethod_ = @Inject)
     private JobFactory jobFactory;
