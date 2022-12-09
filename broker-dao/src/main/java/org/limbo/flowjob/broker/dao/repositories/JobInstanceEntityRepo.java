@@ -42,11 +42,15 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
     List<JobInstanceEntity> findByPlanInstanceIdAndJobIdIn(String planInstanceId, List<String> jobIds);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update JobInstanceEntity set status = :newStatus where jobInstanceId = :jobInstanceId and status = :oldStatus")
-    int updateStatus(@Param("jobInstanceId") String jobInstanceId, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus);
+    @Query(value = "update JobInstanceEntity set status = " + ConstantsPool.JOB_STATUS_EXECUTING + " where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.JOB_STATUS_SCHEDULING)
+    int updateStatusExecuting(@Param("jobInstanceId") String jobInstanceId);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "update JobInstanceEntity set status = " + ConstantsPool.JOB_STATUS_SUCCEED + " where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.JOB_STATUS_EXECUTING)
+    int updateStatusSuccess(@Param("jobInstanceId") String jobInstanceId);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity set status = " + ConstantsPool.JOB_STATUS_FAILED + ", errorMsg =:errorMsg where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.JOB_STATUS_EXECUTING)
-    int updateExecuteFail(@Param("jobInstanceId") String jobInstanceId, @Param("errorMsg") String errorMsg);
+    int updateStatusExecuteFail(@Param("jobInstanceId") String jobInstanceId, @Param("errorMsg") String errorMsg);
 
 }

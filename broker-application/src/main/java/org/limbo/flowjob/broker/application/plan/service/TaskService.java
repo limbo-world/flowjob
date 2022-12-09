@@ -15,6 +15,7 @@ import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.limbo.flowjob.common.constants.ExecuteResult;
 import org.limbo.flowjob.common.constants.JobStatus;
+import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.constants.PlanStatus;
 import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.exception.VerifyException;
@@ -153,11 +154,7 @@ public class TaskService {
 
     //    @Transactional
     private void handleJobSuccess(JobInstance jobInstance) {
-        jobInstanceEntityRepo.updateStatus(
-                jobInstance.getJobInstanceId(),
-                JobStatus.EXECUTING.status,
-                JobStatus.SUCCEED.status
-        );
+        jobInstanceEntityRepo.updateStatusSuccess(jobInstance.getJobInstanceId());
 
         PlanInstance planInstance = planInstanceRepository.get(jobInstance.getPlanInstanceId());
         planManager.dispatchNext(planInstance, jobInstance.getJobId());
@@ -167,11 +164,7 @@ public class TaskService {
     private void handleJobFail(JobInstance jobInstance) {
         if (jobInstance.isTerminateWithFail()) {
 
-            jobInstanceEntityRepo.updateStatus(
-                    jobInstance.getJobInstanceId(),
-                    JobStatus.EXECUTING.status,
-                    JobStatus.FAILED.status
-            );
+            jobInstanceEntityRepo.updateStatusExecuteFail(jobInstance.getJobInstanceId(), MsgConstants.TASK_FAIL);
 
             if (jobInstance.retry()) {
                 jobInstanceRepository.save(jobInstance);

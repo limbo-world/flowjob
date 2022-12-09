@@ -61,11 +61,7 @@ public class JobScheduleManager {
     @Transactional
     public void dispatch(JobInstance instance) {
         // 更新 job 为执行中
-        int num = jobInstanceEntityRepo.updateStatus(
-                instance.getJobInstanceId(),
-                JobStatus.SCHEDULING.status,
-                JobStatus.EXECUTING.status
-        );
+        int num = jobInstanceEntityRepo.updateStatusExecuting(instance.getJobInstanceId());
 
         if (num != 1) {
             return;
@@ -153,7 +149,7 @@ public class JobScheduleManager {
     @Transactional
     public void handlerJobFail(JobInstance instance) {
         if (instance.isTerminateWithFail()) {
-            jobInstanceEntityRepo.updateExecuteFail(instance.getJobInstanceId(), MsgConstants.EMPTY_TASKS);
+            jobInstanceEntityRepo.updateStatusExecuteFail(instance.getJobInstanceId(), MsgConstants.EMPTY_TASKS);
         } else {
             PlanInstance planInstance = planInstanceRepository.get(instance.getPlanInstanceId());
             planManager.dispatchNext(planInstance, instance.getJobId());

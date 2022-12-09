@@ -27,4 +27,6 @@ public interface MsgConstants {
     String UNKNOWN = "Unknown";
 
     String EMPTY_TASKS = "empty tasks";
+
+    String TASK_FAIL = "task fail";
 }
