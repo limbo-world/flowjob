@@ -106,21 +106,6 @@ public class PlanFactory {
         return job;
     }
 
-    public static JobAddParam splitJob(String id, String executorName) {
-        JobAddParam job = new JobAddParam();
-        job.setJobId(id);
-        job.setDescription("test split");
-        job.setType(JobType.SPLIT);
-        job.setDispatchOption(DispatchOptionParam.builder()
-                .retry(2)
-                .retryInterval(3)
-                .loadBalanceType(LoadBalanceType.LEAST_FREQUENTLY_USED)
-                .build()
-        );
-        job.setExecutorName(executorName);
-        return job;
-    }
-
     public static JobAddParam mapJob(String id, String executorName) {
         JobAddParam job = new JobAddParam();
         job.setJobId(id);
@@ -136,11 +121,11 @@ public class PlanFactory {
         return job;
     }
 
-    public static JobAddParam reduceJob(String id, String executorName) {
+    public static JobAddParam mapReduceJob(String id, String executorName) {
         JobAddParam job = new JobAddParam();
         job.setJobId(id);
         job.setDescription("test reduce");
-        job.setType(JobType.REDUCE);
+        job.setType(JobType.MAP_REDUCE);
         job.setDispatchOption(DispatchOptionParam.builder()
                 .retry(2)
                 .retryInterval(3)

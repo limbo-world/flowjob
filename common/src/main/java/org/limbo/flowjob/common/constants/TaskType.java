@@ -27,7 +27,7 @@ import lombok.Getter;
  * @author Brozen
  * @since 2021-05-19
  */
-public enum JobType {
+public enum TaskType {
     /**
      * 给一个节点下发的任务
      */
@@ -37,13 +37,23 @@ public enum JobType {
      */
     BROADCAST(2, "广播类型"),
     /**
-     * Map任务 拆分任务->处理分片
+     * 拆分子任务的任务
+     * 分割任务 产生后续task的切割情况
+     * 后续有且只有一个map任务
      */
-    MAP(3, "Map任务"),
+    SPLIT(3, "split任务"),
     /**
-     * MapReduce任务 拆分任务->处理分片->最终处理
+     * map任务
+     * 根据splite返回值创建对应task
+     * 前继有且只有一个splite任务
      */
-    MAP_REDUCE(4, "MapReduce任务"),
+    MAP(4, "Map任务"),
+    /**
+     * reduce任务
+     * 根据map任务的返回值进行结果处理
+     * 前继有且只有一个map任务
+     */
+    REDUCE(5, "Reduce任务"),
     ;
 
     @JsonValue
@@ -53,11 +63,11 @@ public enum JobType {
     public final String desc;
 
     @JsonCreator
-    JobType(int type, String desc) {
+    TaskType(int type, String desc) {
         this(((byte) type), desc);
     }
 
-    JobType(byte type, String desc) {
+    TaskType(byte type, String desc) {
         this.type = type;
         this.desc = desc;
     }
@@ -67,7 +77,7 @@ public enum JobType {
      *
      * @param type 待校验值
      */
-    public boolean is(JobType type) {
+    public boolean is(TaskType type) {
         return equals(type);
     }
 
@@ -83,12 +93,12 @@ public enum JobType {
     /**
      * 解析上下文状态值
      */
-    public static JobType parse(Number type) {
+    public static TaskType parse(Number type) {
         if (type == null) {
             return null;
         }
 
-        for (JobType jobType : values()) {
+        for (TaskType jobType : values()) {
             if (jobType.is(type)) {
                 return jobType;
             }

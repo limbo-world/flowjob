@@ -40,6 +40,7 @@ public class TaskDispatcher {
 
     /**
      * 将任务下发给worker。
+     * task status -> EXECUTING or FAILED
      */
     public static void dispatch(Task task) {
         if (log.isDebugEnabled()) {

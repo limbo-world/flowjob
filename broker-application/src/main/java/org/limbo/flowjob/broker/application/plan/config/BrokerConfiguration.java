@@ -18,7 +18,6 @@ package org.limbo.flowjob.broker.application.plan.config;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.application.plan.component.JobStatusCheckTask;
 import org.limbo.flowjob.broker.application.plan.component.PlanLoadTask;
 import org.limbo.flowjob.broker.application.plan.component.TaskStatusCheckTask;
 import org.limbo.flowjob.broker.application.plan.support.BrokerStarter;
@@ -123,15 +122,6 @@ public class BrokerConfiguration {
     @Bean
     public MetaTask taskStatusCheckTask() {
         return new TaskStatusCheckTask(Duration.ofMillis(brokerProperties.getStatusCheckInterval()));
-    }
-
-
-    /**
-     * 元任务：Job 状态检查
-     */
-    @Bean
-    public MetaTask jobStatusCheckTask() {
-        return new JobStatusCheckTask(Duration.ofMillis(brokerProperties.getStatusCheckInterval()));
     }
 
 }

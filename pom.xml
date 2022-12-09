@@ -86,7 +86,7 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- BOM -->
+            <!-- BOM Start-->
             <dependency>
                 <groupId>org.limbo.flowjob</groupId>
                 <artifactId>api</artifactId>
@@ -132,6 +132,7 @@
                 <artifactId>worker-spring-boot-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <!-- BOM End-->
 
             <!-- SpringBoot BOM -->
             <dependency>

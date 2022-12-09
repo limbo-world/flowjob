@@ -19,13 +19,12 @@
 package org.limbo.flowjob.broker.dao.repositories;
 
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
+import org.limbo.flowjob.common.constants.ConstantsPool;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -39,12 +38,14 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
     @Query(value = "select * from flowjob_job_instance where jobInstance_id = :jobInstanceId for update", nativeQuery = true)
     JobInstanceEntity selectForUpdate(@Param("jobInstanceId") String jobInstanceId);
 
-    List<JobInstanceEntity> findByPlanInstanceIdInAndStatusAndTriggerAtLessThan(Collection<String> planIds, Byte status, LocalDateTime triggerAt);
-
     List<JobInstanceEntity> findByPlanInstanceIdAndJobIdIn(String planInstanceId, List<String> jobIds);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity set status = :newStatus where jobInstanceId = :jobInstanceId and status = :oldStatus")
     int updateStatus(@Param("jobInstanceId") String jobInstanceId, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "update JobInstanceEntity set status = " + ConstantsPool.JOB_STATUS_FAILED + ", errorMsg =:errorMsg where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.JOB_STATUS_EXECUTING)
+    int updateExecuteFail(@Param("jobInstanceId") String jobInstanceId, @Param("errorMsg") String errorMsg);
 
 }

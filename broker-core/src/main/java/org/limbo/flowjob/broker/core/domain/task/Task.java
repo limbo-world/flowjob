@@ -23,6 +23,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
+import org.limbo.flowjob.broker.core.schedule.Scheduled;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
@@ -41,7 +42,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class Task implements Serializable {
+public class Task implements Scheduled, Serializable {
     private static final long serialVersionUID = -9164373359695671417L;
 
     private String taskId;
@@ -99,4 +100,13 @@ public class Task implements Serializable {
      */
     private String executorName;
 
+    @Override
+    public String scheduleId() {
+        return null;
+    }
+
+    @Override
+    public LocalDateTime triggerAt() {
+        return null;
+    }
 }

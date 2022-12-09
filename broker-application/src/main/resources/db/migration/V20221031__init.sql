@@ -213,6 +213,7 @@ CREATE TABLE `flowjob_job_instance`
     `end_at`           datetime(6) DEFAULT NULL,
     `attributes`       varchar(255) COLLATE utf8mb4_bin                                DEFAULT NULL,
     `status`           tinyint                                                NOT NULL,
+    `error_msg`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `is_deleted`       bit(1)                                                 NOT NULL DEFAULT 0,
     `created_at`       datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`       datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

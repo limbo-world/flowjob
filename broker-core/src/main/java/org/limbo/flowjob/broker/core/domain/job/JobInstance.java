@@ -37,7 +37,7 @@ import java.time.LocalDateTime;
  */
 @Slf4j
 @Data
-public class JobInstance implements Scheduled, Serializable {
+public class JobInstance implements Serializable {
 
     private static final long serialVersionUID = -7913375595969578408L;
 
@@ -106,16 +106,6 @@ public class JobInstance implements Scheduled, Serializable {
         } else {
             return false;
         }
-    }
-
-    @Override
-    public String scheduleId() {
-        return jobInstanceId;
-    }
-
-    @Override
-    public LocalDateTime triggerAt() {
-        return triggerAt;
     }
 
 }

@@ -20,6 +20,7 @@ package org.limbo.flowjob.common.constants;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
 
 /**
  * 作业调度状态
@@ -27,13 +28,16 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * @author Brozen
  * @since 2021-05-19
  */
+@Getter
 public enum JobStatus {
 
-    SCHEDULING(1, "调度中"),
-    EXECUTING(2, "执行中"),
-    SUCCEED(3, "执行成功"),
-    FAILED(4, "执行异常"), // worker拒绝，进入容错策略 失败次数不增加 TERMINATED 作业被手动终止 不再增加一个状态 而是写入 errMsg
+    SCHEDULING(ConstantsPool.JOB_STATUS_SCHEDULING, "调度中"),
+    EXECUTING(ConstantsPool.JOB_STATUS_EXECUTING, "执行中"),
+    SUCCEED(ConstantsPool.JOB_STATUS_SUCCEED, "执行成功"),
+    FAILED(ConstantsPool.JOB_STATUS_FAILED, "执行异常"), // worker拒绝，进入容错策略 失败次数不增加 TERMINATED 作业被手动终止 不再增加一个状态 而是写入 errMsg
     ;
+
+
 
     @JsonValue
     public final byte status;

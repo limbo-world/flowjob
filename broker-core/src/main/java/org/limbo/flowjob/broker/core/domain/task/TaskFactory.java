@@ -27,6 +27,7 @@ import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.common.constants.TaskStatus;
+import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
 import java.util.ArrayList;
@@ -44,7 +45,7 @@ public class TaskFactory {
     /**
      * 策略类型和策略生成器直接的映射
      */
-    private final Map<JobType, TaskCreator> creators;
+    private final Map<TaskType, TaskCreator> creators;
 
     private final WorkerManager workerManager;
 
@@ -54,18 +55,18 @@ public class TaskFactory {
         this.workerManager = workerManager;
         this.idGenerator = idGenerator;
 
-        creators = new EnumMap<>(JobType.class);
+        creators = new EnumMap<>(TaskType.class);
 
-        creators.put(JobType.NORMAL, new NormalTaskCreator());
-        creators.put(JobType.BROADCAST, new BroadcastTaskCreator());
-        creators.put(JobType.MAP, new MapTaskCreator());
-        creators.put(JobType.REDUCE, new ReduceTaskCreator());
-        creators.put(JobType.SPLIT, new SplitTaskCreator());
+        creators.put(TaskType.NORMAL, new NormalTaskCreator());
+        creators.put(TaskType.BROADCAST, new BroadcastTaskCreator());
+        creators.put(TaskType.MAP, new MapTaskCreator());
+        creators.put(TaskType.REDUCE, new ReduceTaskCreator());
+        creators.put(TaskType.SPLIT, new SplitTaskCreator());
     }
 
-    public List<Task> create(JobInstance instance) {
-        TaskCreator creator = creators.get(instance.getType());
-        if (creator == null || instance.getType() != creator.getType()) {
+    public List<Task> create(JobInstance instance, TaskType taskType) {
+        TaskCreator creator = creators.get(taskType);
+        if (creator == null) {
             return Collections.emptyList();
         }
         return creator.tasks(instance);
@@ -88,7 +89,7 @@ public class TaskFactory {
      */
     abstract static class TaskCreator {
 
-        public abstract JobType getType();
+        public abstract TaskType getType();
 
         public abstract List<Task> tasks(JobInstance instance);
 
@@ -120,11 +121,11 @@ public class TaskFactory {
         }
 
         /**
-         * 此策略仅适用于 {@link JobType#NORMAL} 类型的任务
+         * 此策略仅适用于 {@link TaskType#NORMAL} 类型的任务
          */
         @Override
-        public JobType getType() {
-            return JobType.NORMAL;
+        public TaskType getType() {
+            return TaskType.NORMAL;
         }
     }
 
@@ -150,11 +151,11 @@ public class TaskFactory {
         }
 
         /**
-         * 此策略仅适用于 {@link JobType#BROADCAST} 类型的任务
+         * 此策略仅适用于 {@link TaskType#BROADCAST} 类型的任务
          */
         @Override
-        public JobType getType() {
-            return JobType.BROADCAST;
+        public TaskType getType() {
+            return TaskType.BROADCAST;
         }
 
     }
@@ -173,11 +174,11 @@ public class TaskFactory {
         }
 
         /**
-         * 此策略仅适用于 {@link JobType#SPLIT} 类型的任务
+         * 此策略仅适用于 {@link TaskType#SPLIT} 类型的任务
          */
         @Override
-        public JobType getType() {
-            return JobType.SPLIT;
+        public TaskType getType() {
+            return TaskType.SPLIT;
         }
 
     }
@@ -204,11 +205,11 @@ public class TaskFactory {
         }
 
         /**
-         * 此策略仅适用于 {@link JobType#MAP} 类型的任务
+         * 此策略仅适用于 {@link TaskType#MAP} 类型的任务
          */
         @Override
-        public JobType getType() {
-            return JobType.MAP;
+        public TaskType getType() {
+            return TaskType.MAP;
         }
 
     }
@@ -234,11 +235,11 @@ public class TaskFactory {
         }
 
         /**
-         * 此策略仅适用于 {@link JobType#REDUCE} 类型的任务
+         * 此策略仅适用于 {@link TaskType#REDUCE} 类型的任务
          */
         @Override
-        public JobType getType() {
-            return JobType.REDUCE;
+        public TaskType getType() {
+            return TaskType.REDUCE;
         }
     }
 

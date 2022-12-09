@@ -48,6 +48,7 @@ public class JobInstanceEntity extends BaseEntity {
 
     /**
      * 状态
+     * @see org.limbo.flowjob.common.constants.JobStatus
      */
     private Byte status;
 
@@ -55,6 +56,11 @@ public class JobInstanceEntity extends BaseEntity {
      * 此次执行的参数
      */
     private String attributes;
+
+    /**
+     * 错误信息
+     */
+    private String errorMsg;
 
     /**
      * 执行开始时间

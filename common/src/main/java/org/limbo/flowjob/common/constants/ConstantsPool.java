@@ -20,11 +20,12 @@ package org.limbo.flowjob.common.constants;
 
 /**
  * @author Devil
- * @since 2022/11/2
+ * @since 2022/12/3
  */
-public interface MsgConstants {
-
-    String UNKNOWN = "Unknown";
-
-    String EMPTY_TASKS = "empty tasks";
+public interface ConstantsPool {
+    // JobStatus
+    byte JOB_STATUS_SCHEDULING = 1;
+    byte JOB_STATUS_EXECUTING = 2;
+    byte JOB_STATUS_SUCCEED = 3;
+    byte JOB_STATUS_FAILED = 4;
 }

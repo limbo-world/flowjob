@@ -3,7 +3,7 @@ package org.limbo.flowjob.broker.application.plan.service;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.param.TaskFeedbackParam;
-import org.limbo.flowjob.broker.application.plan.component.TaskScheduler;
+import org.limbo.flowjob.broker.application.plan.manager.JobScheduleManager;
 import org.limbo.flowjob.broker.application.plan.manager.PlanManager;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -45,9 +44,6 @@ public class TaskService {
     private JobInstanceEntityRepo jobInstanceEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private TaskScheduler scheduler;
-
-    @Setter(onMethod_ = @Inject)
     private PlanInstanceRepository planInstanceRepository;
 
     @Setter(onMethod_ = @Inject)
@@ -55,6 +51,9 @@ public class TaskService {
 
     @Setter(onMethod_ = @Inject)
     private PlanManager planManager;
+
+    @Setter(onMethod_ = @Inject)
+    private JobScheduleManager jobScheduleManager;
 
 
     /**
@@ -110,7 +109,7 @@ public class TaskService {
 
     @Transactional
     public void handleTaskFail(String taskId, String jobInstanceId, String errorMsg, String errorStackTrace) {
-        int num = taskEntityRepo.updateStatusWithError(Collections.singletonList(taskId),
+        int num = taskEntityRepo.updateStatusWithError(taskId,
                 TaskStatus.EXECUTING.status,
                 TaskStatus.FAILED.status,
                 errorMsg,
@@ -176,7 +175,7 @@ public class TaskService {
 
             if (jobInstance.retry()) {
                 jobInstanceRepository.save(jobInstance);
-                scheduler.schedule(jobInstance);
+                jobScheduleManager.dispatch(jobInstance);
             } else {
                 planInstanceEntityRepo.end(
                         jobInstance.getPlanInstanceId(),

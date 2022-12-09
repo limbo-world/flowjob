@@ -20,8 +20,8 @@ package org.limbo.flowjob.broker.application.plan.component;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.application.plan.manager.JobScheduleManager;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.application.plan.manager.TaskScheduleManager;
+import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.schedule.scheduler.HashedWheelTimerScheduler;
 import org.springframework.stereotype.Component;
 
@@ -37,10 +37,10 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Component
-public class TaskScheduler extends HashedWheelTimerScheduler<JobInstance> {
+public class TaskScheduler extends HashedWheelTimerScheduler<Task> {
 
     @Setter(onMethod_ = @Inject)
-    private JobScheduleManager jobScheduleManager;
+    private TaskScheduleManager taskScheduleManager;
 
     /**
      * 调度线程池
@@ -53,23 +53,20 @@ public class TaskScheduler extends HashedWheelTimerScheduler<JobInstance> {
             new ArrayBlockingQueue<>(1024),
             new ThreadPoolExecutor.CallerRunsPolicy());
 
-    /**
-     * 由于是延迟触发的 调度前 自行保存 jobinstance信息
-     */
     @Override
-    protected void doSchedule(JobInstance jobInstance) {
+    protected void doSchedule(Task task) {
         if (log.isDebugEnabled()) {
-            log.debug("[JobScheduler] submit jobInstance: {}", jobInstance);
+            log.debug("[TaskScheduler] submit task: {}", task);
         }
         // 执行调度逻辑
         schedulePool.submit(() -> {
             try {
-                jobScheduleManager.dispatch(jobInstance);
+                taskScheduleManager.dispatch(task);
             } catch (Exception e) {
-                log.error("JobScheduler schedule error jobInstance:{}", jobInstance, e);
+                log.error("TaskScheduler schedule error task:{}", task, e);
             } finally {
                 // 完成后移除
-                unschedule(jobInstance.scheduleId());
+                unschedule(task.scheduleId());
             }
         });
     }
