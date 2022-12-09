@@ -53,7 +53,7 @@ public class TaskScheduleManager {
 
         if (TaskStatus.FAILED == task.getStatus()) {
             // 下发失败
-            taskEntityRepo.updateStatusWithError(task.getTaskId(),
+            taskEntityRepo.updateStatusFail(task.getTaskId(),
                     TaskStatus.EXECUTING.status,
                     TaskStatus.FAILED.status,
                     "dispatch fail",
@@ -63,11 +63,7 @@ public class TaskScheduleManager {
             // 下发失败后要判断其他是否也失败 修改job状态
         } else {
             // 下发成功
-            taskEntityRepo.updateStatus(task.getTaskId(),
-                    TaskStatus.DISPATCHING.status,
-                    TaskStatus.EXECUTING.status,
-                    task.getWorkerId()
-            );
+            taskEntityRepo.updateStatusExecuting(task.getTaskId(), task.getWorkerId());
         }
     }
 

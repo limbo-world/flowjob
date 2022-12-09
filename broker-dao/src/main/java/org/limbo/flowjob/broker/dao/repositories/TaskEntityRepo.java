@@ -19,6 +19,7 @@
 package org.limbo.flowjob.broker.dao.repositories;
 
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
+import org.limbo.flowjob.common.constants.ConstantsPool;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -37,15 +38,14 @@ public interface TaskEntityRepo extends JpaRepository<TaskEntity, String> {
     List<TaskEntity> findByPlanIdInAndStatus(List<String> planIds, Byte status);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update TaskEntity set status = :newStatus, workerId = :workerId where taskId = :taskId and status = :oldStatus")
-    int updateStatus(@Param("taskId") String taskId, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus, @Param("workerId") String workerId);
+    @Query(value = "update TaskEntity set status = " + ConstantsPool.TASK_STATUS_EXECUTING + ", workerId = :workerId where taskId = :taskId and status = " + ConstantsPool.TASK_STATUS_DISPATCHING)
+    int updateStatusExecuting(@Param("taskId") String taskId, @Param("workerId") String workerId);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update TaskEntity set status = :newStatus, result = :result where taskId = :taskId and status = :oldStatus")
-    int updateSuccessStatus(@Param("taskId") String taskId, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus, @Param("result") String result);
+    @Query(value = "update TaskEntity set status = " + ConstantsPool.TASK_STATUS_SUCCEED + ", result = :result where taskId = :taskId and status = " + ConstantsPool.TASK_STATUS_EXECUTING)
+    int updateStatusSuccess(@Param("taskId") String taskId, @Param("result") String result);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update TaskEntity set status = :newStatus, errorMsg = :errorMsg, errorStackTrace = :errorStack where taskId = :taskId and status = :oldStatus")
-    int updateStatusWithError(@Param("taskId") String taskId, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus,
-                              @Param("errorMsg") String errorMsg, @Param("errorStack") String errorStack);
+    @Query(value = "update TaskEntity set status = " + ConstantsPool.TASK_STATUS_SUCCEED + ", errorMsg = :errorMsg, errorStackTrace = :errorStack where taskId = :taskId and status = " + ConstantsPool.TASK_STATUS_EXECUTING)
+    int updateStatusFail(@Param("taskId") String taskId, @Param("errorMsg") String errorMsg, @Param("errorStack") String errorStack);
 }

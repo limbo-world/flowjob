@@ -28,4 +28,10 @@ public interface ConstantsPool {
     byte JOB_STATUS_EXECUTING = 2;
     byte JOB_STATUS_SUCCEED = 3;
     byte JOB_STATUS_FAILED = 4;
+
+    // TaskStatus
+    byte TASK_STATUS_DISPATCHING = 1;
+    byte TASK_STATUS_EXECUTING = 2;
+    byte TASK_STATUS_SUCCEED = 3;
+    byte TASK_STATUS_FAILED = 4;
 }

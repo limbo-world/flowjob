@@ -96,11 +96,7 @@ public class TaskService {
     public void handleTaskSuccess(String taskId, String jobInstanceId, TaskFeedbackParam param) {
         // todo 更新plan上下文
 
-        int num = taskEntityRepo.updateSuccessStatus(taskId,
-                TaskStatus.EXECUTING.status,
-                TaskStatus.SUCCEED.status,
-                JacksonUtils.toJSONString(param.getResultAttributes())
-        );
+        int num = taskEntityRepo.updateStatusSuccess(taskId, JacksonUtils.toJSONString(param.getResultAttributes()));
 
         if (num != 1) { // 已经被更新 无需重复处理
             return;
@@ -110,12 +106,7 @@ public class TaskService {
 
     @Transactional
     public void handleTaskFail(String taskId, String jobInstanceId, String errorMsg, String errorStackTrace) {
-        int num = taskEntityRepo.updateStatusWithError(taskId,
-                TaskStatus.EXECUTING.status,
-                TaskStatus.FAILED.status,
-                errorMsg,
-                errorStackTrace
-        );
+        int num = taskEntityRepo.updateStatusFail(taskId, errorMsg, errorStackTrace);
 
         if (num != 1) {
             return; // 并发更新过了 正常来说前面job更新成功 这个不可能会进来

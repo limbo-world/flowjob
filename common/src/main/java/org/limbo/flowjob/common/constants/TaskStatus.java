@@ -35,22 +35,22 @@ public enum TaskStatus {
     /**
      * 任务刚创建，还在内存，未下发给worker
      */
-    DISPATCHING(1, "下发中"),
+    DISPATCHING(ConstantsPool.TASK_STATUS_DISPATCHING, "下发中"),
 
     /**
      * 任务已经创建且持久化，下发给worker成功，正在执行中
      */
-    EXECUTING(3, "执行中"),
+    EXECUTING(ConstantsPool.TASK_STATUS_EXECUTING, "执行中"),
 
     /**
      * 执行成功
      */
-    SUCCEED(4, "执行成功"),
+    SUCCEED(ConstantsPool.TASK_STATUS_SUCCEED, "执行成功"),
 
     /**
      * 执行失败
      */
-    FAILED(5, "执行失败"),
+    FAILED(ConstantsPool.TASK_STATUS_FAILED, "执行失败"),
     ;
 
     @JsonValue
