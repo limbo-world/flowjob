@@ -4,7 +4,7 @@ import lombok.Setter;
 import org.limbo.flowjob.api.param.PlanAddParam;
 import org.limbo.flowjob.api.param.PlanReplaceParam;
 import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
-import org.limbo.flowjob.broker.application.plan.manager.JobScheduleManager;
+import org.limbo.flowjob.broker.application.plan.manager.PlanScheduleManager;
 import org.limbo.flowjob.broker.core.domain.job.JobFactory;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
@@ -59,7 +59,7 @@ public class PlanService {
     private JobFactory jobFactory;
 
     @Setter(onMethod_ = @Inject)
-    private JobScheduleManager jobScheduleManager;
+    private PlanScheduleManager planScheduleManager;
 
 
     /**
@@ -160,7 +160,7 @@ public class PlanService {
 
         // 执行调度逻辑
         for (JobInstance instance : rootJobs) {
-            jobScheduleManager.dispatch(instance);
+            planScheduleManager.dispatch(instance);
         }
     }
 

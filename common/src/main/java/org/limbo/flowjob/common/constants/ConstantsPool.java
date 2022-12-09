@@ -23,6 +23,12 @@ package org.limbo.flowjob.common.constants;
  * @since 2022/12/3
  */
 public interface ConstantsPool {
+    // PLanStatus
+    byte PLAN_STATUS_SCHEDULING = 1;
+    byte PLAN_STATUS_EXECUTING = 2;
+    byte PLAN_STATUS_SUCCEED = 3;
+    byte PLAN_STATUS_FAILED = 4;
+
     // JobStatus
     byte JOB_STATUS_SCHEDULING = 1;
     byte JOB_STATUS_EXECUTING = 2;

@@ -19,6 +19,7 @@
 package org.limbo.flowjob.broker.dao.repositories;
 
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
+import org.limbo.flowjob.common.constants.ConstantsPool;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -35,6 +36,10 @@ public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity
     PlanInstanceEntity findByPlanIdAndExpectTriggerAtAndTriggerType(String planId, LocalDateTime expectTriggerTime, Byte triggerType);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanInstanceEntity set status = :newStatus, feedbackAt = :feedbackAt where planInstanceId = :planInstanceId and status = :oldStatus")
-    int end(@Param("planInstanceId") String planInstanceId, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus, @Param("feedbackAt") LocalDateTime feedbackAt);
+    @Query(value = "update PlanInstanceEntity set status = "+ ConstantsPool.PLAN_STATUS_SUCCEED+", feedbackAt = :feedbackAt where planInstanceId = :planInstanceId and status = "+ConstantsPool.PLAN_STATUS_EXECUTING)
+    int success(@Param("planInstanceId") String planInstanceId, @Param("feedbackAt") LocalDateTime feedbackAt);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "update PlanInstanceEntity set status = "+ConstantsPool.PLAN_STATUS_FAILED+", feedbackAt = :feedbackAt where planInstanceId = :planInstanceId and status = " + ConstantsPool.PLAN_STATUS_EXECUTING)
+    int fail(@Param("planInstanceId") String planInstanceId, @Param("feedbackAt") LocalDateTime feedbackAt);
 }

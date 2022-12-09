@@ -24,6 +24,7 @@ import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
+import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.constants.TaskStatus;
 import org.springframework.stereotype.Component;
 
@@ -53,12 +54,7 @@ public class TaskScheduleManager {
 
         if (TaskStatus.FAILED == task.getStatus()) {
             // 下发失败
-            taskEntityRepo.updateStatusFail(task.getTaskId(),
-                    TaskStatus.EXECUTING.status,
-                    TaskStatus.FAILED.status,
-                    "dispatch fail",
-                    ""
-            );
+            taskEntityRepo.updateStatusFail(task.getTaskId(), MsgConstants.DISPATCH_FAIL, "");
 
             // 下发失败后要判断其他是否也失败 修改job状态
         } else {

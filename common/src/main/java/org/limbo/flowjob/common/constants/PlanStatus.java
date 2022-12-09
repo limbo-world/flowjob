@@ -28,11 +28,11 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * @since 2021-05-19
  */
 public enum PlanStatus {
-
-    SCHEDULING(1, "调度中"), // 还没有任务在执行状态
-    EXECUTING(2, "执行中"), // 第一个任务切换为执行中的时候
-    SUCCEED(3, "执行成功"), // 所有节点都执行成功
-    FAILED(4, "执行异常"), // 有一个节点执行失败，并触发plan的失败场景
+    UNKNOWN(0, "未知"),
+    SCHEDULING(ConstantsPool.PLAN_STATUS_SUCCEED, "调度中"), // 还没有任务在执行状态
+    EXECUTING(ConstantsPool.PLAN_STATUS_EXECUTING, "执行中"), // 第一个任务切换为执行中的时候
+    SUCCEED(ConstantsPool.PLAN_STATUS_SUCCEED, "执行成功"), // 所有节点都执行成功
+    FAILED(ConstantsPool.PLAN_STATUS_FAILED, "执行异常"), // 有一个节点执行失败，并触发plan的失败场景
     ;
 
     @JsonValue
@@ -74,7 +74,7 @@ public enum PlanStatus {
     @JsonCreator
     public static PlanStatus parse(Number status) {
         if (status == null) {
-            return null;
+            return UNKNOWN;
         }
 
         for (PlanStatus statusEnum : values()) {
@@ -83,7 +83,7 @@ public enum PlanStatus {
             }
         }
 
-        return null;
+        return UNKNOWN;
     }
 
 }

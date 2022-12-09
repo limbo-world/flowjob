@@ -29,4 +29,6 @@ public interface MsgConstants {
     String EMPTY_TASKS = "empty tasks";
 
     String TASK_FAIL = "task fail";
+
+    String DISPATCH_FAIL = "dispatch fail";
 }

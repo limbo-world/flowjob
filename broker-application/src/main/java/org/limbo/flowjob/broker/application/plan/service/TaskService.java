@@ -3,8 +3,7 @@ package org.limbo.flowjob.broker.application.plan.service;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.param.TaskFeedbackParam;
-import org.limbo.flowjob.broker.application.plan.manager.JobScheduleManager;
-import org.limbo.flowjob.broker.application.plan.manager.PlanManager;
+import org.limbo.flowjob.broker.application.plan.manager.PlanScheduleManager;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
@@ -16,7 +15,6 @@ import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.limbo.flowjob.common.constants.ExecuteResult;
 import org.limbo.flowjob.common.constants.JobStatus;
 import org.limbo.flowjob.common.constants.MsgConstants;
-import org.limbo.flowjob.common.constants.PlanStatus;
 import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.exception.VerifyException;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -51,10 +49,7 @@ public class TaskService {
     private PlanInstanceEntityRepo planInstanceEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private PlanManager planManager;
-
-    @Setter(onMethod_ = @Inject)
-    private JobScheduleManager jobScheduleManager;
+    private PlanScheduleManager planScheduleManager;
 
 
     /**
@@ -148,7 +143,7 @@ public class TaskService {
         jobInstanceEntityRepo.updateStatusSuccess(jobInstance.getJobInstanceId());
 
         PlanInstance planInstance = planInstanceRepository.get(jobInstance.getPlanInstanceId());
-        planManager.dispatchNext(planInstance, jobInstance.getJobId());
+        planScheduleManager.dispatchNext(planInstance, jobInstance.getJobId());
     }
 
     //    @Transactional
@@ -159,14 +154,9 @@ public class TaskService {
 
             if (jobInstance.retry()) {
                 jobInstanceRepository.save(jobInstance);
-                jobScheduleManager.dispatch(jobInstance);
+                planScheduleManager.dispatch(jobInstance);
             } else {
-                planInstanceEntityRepo.end(
-                        jobInstance.getPlanInstanceId(),
-                        PlanStatus.EXECUTING.status,
-                        PlanStatus.FAILED.status,
-                        TimeUtils.currentLocalDateTime()
-                );
+                planInstanceEntityRepo.fail(jobInstance.getPlanInstanceId(), TimeUtils.currentLocalDateTime());
             }
         } else {
             handleJobSuccess(jobInstance);
