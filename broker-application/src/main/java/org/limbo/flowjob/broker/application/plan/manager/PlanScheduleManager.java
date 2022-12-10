@@ -158,7 +158,7 @@ public class PlanScheduleManager {
                 jobInstanceRepository.saveAll(subJobInstances);
 
                 for (JobInstance subJobInstance : subJobInstances) {
-                    dispatch(subJobInstance);
+                    dispatch(subJobInstance); // 这里递归了会不会性能不太好
                 }
             }
 
