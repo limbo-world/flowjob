@@ -56,7 +56,9 @@ public class TaskScheduleManager {
             // 下发失败
             taskEntityRepo.updateStatusFail(task.getTaskId(), MsgConstants.DISPATCH_FAIL, "");
 
-            // 下发失败后要判断其他是否也失败 修改job状态
+            // 进行task失败逻辑 todo
+
+
         } else {
             // 下发成功
             taskEntityRepo.updateStatusExecuting(task.getTaskId(), task.getWorkerId());
