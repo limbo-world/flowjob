@@ -86,6 +86,7 @@ public class PlanScheduleManager {
             return;
         }
 
+        // 根据job类型创建task
         List<Task> tasks;
         switch (instance.getType()) {
             case NORMAL:
@@ -102,6 +103,7 @@ public class PlanScheduleManager {
                 throw new JobException(instance.getJobId(), MsgConstants.UNKNOWN + " job type:" + instance.getType().type);
         }
 
+        // 如果可以创建的任务为空（一般为广播任务）则需要判断是终止plan还是继续下发后续job
         if (CollectionUtils.isEmpty(tasks)) {
             // job 是否终止流程
             if (instance.isTerminateWithFail()) {
@@ -164,7 +166,7 @@ public class PlanScheduleManager {
     }
 
     /**
-     * 校验 planInstance 下对应 job 的 jobInstance 是否执行成功 或者失败了但是可以忽略失败
+     * 校验 planInstance 下对应 job 的 jobInstance 是否都执行成功 或者失败了但是可以忽略失败
      */
     private boolean checkJobsSuccessOrIgnoreError(String planInstanceId, List<JobInfo> jobInfos) {
         if (CollectionUtils.isEmpty(jobInfos)) {
@@ -173,7 +175,9 @@ public class PlanScheduleManager {
         Map<String, JobInfo> jobInfoMap = jobInfos.stream().collect(Collectors.toMap(DAGNode::getId, jobInfo -> jobInfo));
         List<JobInstanceEntity> entities = jobInstanceEntityRepo.findByPlanInstanceIdAndJobIdIn(planInstanceId, new LinkedList<>(jobInfoMap.keySet()));
         if (CollectionUtils.isEmpty(entities) || jobInfos.size() > entities.size()) {
-            return false; // 有些job还未创建
+            // 按新流程 job 应该统一创建 不存在有些job还未创建的情况
+            log.warn("job doesn't create completable in PlanInstance:{} where jobIds:{}", planInstanceId, jobInfoMap.keySet());
+            return false;
         }
         for (JobInstanceEntity entity : entities) {
             if (entity.getStatus() == JobStatus.SUCCEED.status) {
@@ -185,6 +189,7 @@ public class PlanScheduleManager {
                     return false;
                 }
             } else {
+                // 执行中
                 return false;
             }
         }
