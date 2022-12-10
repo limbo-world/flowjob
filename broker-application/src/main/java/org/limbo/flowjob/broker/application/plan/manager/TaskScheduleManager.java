@@ -46,8 +46,6 @@ public class TaskScheduleManager {
 
     @Transactional
     public void dispatch(Task task) {
-        // todo db 更新状态为下发中
-
         // 判断是否有workid 广播 会已经存在 其他应该在这里获取
 
         TaskDispatcher.dispatch(task);
@@ -56,9 +54,7 @@ public class TaskScheduleManager {
             // 下发失败
             taskEntityRepo.updateStatusFail(task.getTaskId(), MsgConstants.DISPATCH_FAIL, "");
 
-            // 进行task失败逻辑 todo
-
-
+            // todo 下发失败后要判断其他是否也失败 修改job状态
         } else {
             // 下发成功
             taskEntityRepo.updateStatusExecuting(task.getTaskId(), task.getWorkerId());
