@@ -176,6 +176,7 @@ public class PlanScheduleManager {
         List<JobInstanceEntity> entities = jobInstanceEntityRepo.findByPlanInstanceIdAndJobIdIn(planInstanceId, new LinkedList<>(jobInfoMap.keySet()));
         if (CollectionUtils.isEmpty(entities) || jobInfos.size() > entities.size()) {
             // 按新流程 job 应该统一创建 不存在有些job还未创建的情况
+
             log.warn("job doesn't create completable in PlanInstance:{} where jobIds:{}", planInstanceId, jobInfoMap.keySet());
             return false;
         }
