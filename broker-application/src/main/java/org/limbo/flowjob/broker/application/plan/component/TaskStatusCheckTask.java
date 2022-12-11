@@ -20,8 +20,7 @@ package org.limbo.flowjob.broker.application.plan.component;
 
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.common.constants.TaskStatus;
-import org.limbo.flowjob.broker.application.plan.service.TaskService;
+import org.limbo.flowjob.broker.application.plan.service.ScheduleService;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixIntervalMetaTask;
@@ -32,6 +31,7 @@ import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.limbo.flowjob.broker.dao.support.SlotManager;
+import org.limbo.flowjob.common.constants.TaskStatus;
 
 import javax.inject.Inject;
 import java.time.Duration;
@@ -63,7 +63,7 @@ public class TaskStatusCheckTask extends FixIntervalMetaTask {
     private PlanSlotEntityRepo planSlotEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private TaskService taskService;
+    private ScheduleService scheduleService;
 
     public TaskStatusCheckTask(Duration interval) {
         super("Meta[TaskStatusCheckTask]", interval);
@@ -90,7 +90,7 @@ public class TaskStatusCheckTask extends FixIntervalMetaTask {
             // 获取长时间为执行中的task 判断worker是否已经宕机
             Worker worker = workerRepository.get(task.getWorkerId());
             if (worker == null || !worker.isAlive()) {
-                taskService.handleTaskFail(task.getTaskId(), task.getJobInstanceId(), String.format("worker %s is offline", task.getWorkerId()), "");
+                scheduleService.handleTaskFail(task.getTaskId(), task.getJobInstanceId(), String.format("worker %s is offline", task.getWorkerId()), "");
             }
         }
     }
