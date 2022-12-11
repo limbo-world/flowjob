@@ -1,0 +1,29 @@
+server:
+  port: 8081
+
+flowjob:
+  broker:
+    name: b1
+    host: 127.0.0.1
+    port: 8081
+
+spring:
+  # DB
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.jdbc.Driver
+#    url: jdbc:mysql://10.219.153.31:3306/flow_job?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
+#    username: brozen
+#    password: 159000
+    url: jdbc:mysql://127.0.0.1:3306/flow_job?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
+    username: root
+    password: root
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false  # 日志中显示sql语句
+    properties:
+      hibernate:
+        enable_lazy_load_no_trans: true # 解决懒加载问题 no Session
+
+

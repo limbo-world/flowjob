@@ -1,3 +1,7 @@
+# todo
+
+1. @Autowired 改为 @Inject + @Qualifier 的注入方式，并且使用set方法注入
+
 ## 功能
 
 1. web/worker调tracker 从节点302到主节点 如心跳/web端创建任务等
@@ -9,13 +13,6 @@
         worker通过分布式文件系统等方式共享文件（worker在不同网络环境怎么处理）
         网络资源（worker端实现）
 7. 日志靠约定，必须输出到标准输出流
-
-### 任务类型
-1. CRON
-2. Fixed rate 固定间隔
-3. Second delay 支持1~60秒间隔的秒级延迟调度，即每次任务执行完成后，间隔秒级时间再次触发调度。 适用于对实时性要求比较高的业务，例如需要不停做轮询的准实时业务。
-4. 固定延迟  -> 衍生出临时任务，只执行一次
-5. DAG 工作流
 
 ### 路由策略
 
@@ -64,9 +61,12 @@ Handler应该有个字段，判断是否能和其它的同时出发
 
 ### 处理模型
 1. 单机 一个任务实例只会随机触发到一台Worker上，支持所有的任务类型
-2. 广播 一个任务实例会广播到该分组所有Worker上执行，当所有Worker都执行完成，该任务才算完成。任意一台Worker执行失败，都算该任务失败。
+2. 广播 一个任务实例会广播到该分组所有Worker上执行，当所有Worker都执行完成，该任务才算完成。任意一台Worker执行失败，都算该任务失败。（比如一些定时清理磁盘等工作）
 3. Map 基于MapJobProcessor，调用Map方法，即可实现大数据分布式跑批的能力???
-4. MapReduce Map模型的扩展，新增Reduce接口，需要实现MapReduceJobProcessor???
+4. MapReduce Map模型的扩展，新增Reduce接口，需要实现MapReduceJobProcessor???（MapReduce其实就比Map多了个Reduce操作，
+在所有map任务执行后进行，Map和MapReduce和elasticjob以及xxl-job的分片我认为是一样的，就是将任务分为多份处理，不用DAG是因为这个任务划分的可能很多总不能人工处理）
+广播-map-mapreduce都是下发所有，但是也能指定标签
+使用sharding也能发挥MapReduce的作用
 
 ### 多语言执行
 先不考虑，只支持客户端处理
