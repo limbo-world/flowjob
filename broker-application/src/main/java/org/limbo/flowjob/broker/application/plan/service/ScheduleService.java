@@ -288,9 +288,7 @@ public class ScheduleService {
 
         if (TaskStatus.FAILED == task.getStatus()) {
             // 下发失败
-            taskEntityRepo.updateStatusFail(task.getTaskId(), MsgConstants.DISPATCH_FAIL, "");
-
-            // todo 下发失败后要判断其他是否也失败 修改job状态
+            handleTaskFail(task.getTaskId(), task.getJobInstanceId(), MsgConstants.DISPATCH_FAIL, "");
         } else {
             // 下发成功
             taskEntityRepo.updateStatusExecuting(task.getTaskId(), task.getWorkerId());
