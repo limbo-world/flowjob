@@ -24,12 +24,15 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAGNode;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -47,7 +50,7 @@ public class JobInfo extends DAGNode {
     private static final long serialVersionUID = 5340755318570959476L;
 
     /**
-     * 名称
+     * 名称 视图里面唯一
      */
     private String name;
 
@@ -87,8 +90,14 @@ public class JobInfo extends DAGNode {
     private boolean terminateWithFail;
 
     @JsonCreator
-    public JobInfo(@JsonProperty("id") String id, @JsonProperty("childrenIds") Set<String> childrenIds) {
-        super(id, childrenIds);
+    public JobInfo(@JsonProperty("name") String name, @JsonProperty("childrenIds") Set<String> childrenIds) {
+        this.name = name;
+        this.childrenIds = CollectionUtils.isEmpty(childrenIds) ? Collections.emptySet() : childrenIds;
+        this.parentIds = new HashSet<>();
     }
 
+    @Override
+    public String getId() {
+        return name;
+    }
 }

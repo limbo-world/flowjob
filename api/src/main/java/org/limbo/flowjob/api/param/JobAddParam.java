@@ -34,16 +34,10 @@ import java.util.Set;
 public class JobAddParam {
 
     /**
-     * 作业ID，plan中唯一
-     */
-    @Schema(title = "作业ID", description = "plan中唯一")
-    private String jobId;
-
-    /**
      * 作业名称
      */
-    @Schema(title = "作业名称")
-    private String jobName;
+    @Schema(title = "作业名称", description = "视图中唯一")
+    private String name;
 
     /**
      * 作业描述
@@ -52,10 +46,10 @@ public class JobAddParam {
     private String description;
 
     /**
-     * 此作业相连的下级作业ID
+     * 此作业相连的下级作业名称
      */
-    @Schema(title = "此作业相连的下级作业ID")
-    private Set<String> childrenIds;
+    @Schema(title = "此作业相连的下级作业名称")
+    private Set<String> children;
 
     /**
      * 作业类型

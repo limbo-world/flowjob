@@ -53,8 +53,10 @@ public class WorkerService {
 
     @Setter(onMethod_ = @Inject)
     private WorkerRepository workerRepository;
+
     @Setter(onMethod_ = @Inject)
     private NodeManger nodeManger;
+    
     @Setter(onMethod_ = @Inject)
     private IDGenerator idGenerator;
 

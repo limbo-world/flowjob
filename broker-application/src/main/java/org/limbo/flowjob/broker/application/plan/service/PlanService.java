@@ -4,15 +4,11 @@ import lombok.Setter;
 import org.limbo.flowjob.api.param.PlanAddParam;
 import org.limbo.flowjob.api.param.PlanReplaceParam;
 import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
-import org.limbo.flowjob.broker.core.domain.job.JobFactory;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanFactory;
-import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
-import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Service;
@@ -35,19 +31,7 @@ public class PlanService {
     private PlanEntityRepo planEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private PlanInstanceEntityRepo planInstanceEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private PlanInstanceRepository planInstanceRepository;
-
-    @Setter(onMethod_ = @Inject)
-    private JobInstanceRepository jobInstanceRepository;
-
-    @Setter(onMethod_ = @Inject)
     private PlanFactory planFactory;
-
-    @Setter(onMethod_ = @Inject)
-    private JobFactory jobFactory;
 
 
     /**

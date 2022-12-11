@@ -49,7 +49,7 @@ public class PlanFactory {
         param.setScheduleOption(scheduleOptionParam);
 
         JobAddParam n1 = normalJob("1", "hello");
-        n1.setChildrenIds(Sets.newHashSet("2"));
+        n1.setChildren(Sets.newHashSet("2"));
         JobAddParam n2 = normalJob("2", "hello");
 
         param.setJobs(Lists.newArrayList(n1, n2));
@@ -67,17 +67,16 @@ public class PlanFactory {
         param.setScheduleOption(scheduleOptionParam);
 
         JobAddParam n1 = normalJob("1", "hello");
-        n1.setChildrenIds(Sets.newHashSet("2"));
+        n1.setChildren(Sets.newHashSet("2"));
         JobAddParam n2 = normalJob("2", "hello");
 
         param.setJobs(Lists.newArrayList(n1, n2));
         return param;
     }
 
-    public static JobAddParam normalJob(String id, String executorName) {
+    public static JobAddParam normalJob(String name, String executorName) {
         JobAddParam job = new JobAddParam();
-        job.setJobId(id);
-        job.setJobName("xxx");
+        job.setName(name);
         job.setDescription("test normal");
         job.setType(JobType.NORMAL);
         job.setTriggerType(TriggerType.SCHEDULE);
@@ -91,9 +90,9 @@ public class PlanFactory {
         return job;
     }
 
-    public static JobAddParam broadcastJob(String id, String executorName) {
+    public static JobAddParam broadcastJob(String name, String executorName) {
         JobAddParam job = new JobAddParam();
-        job.setJobId(id);
+        job.setName(name);
         job.setDescription("test broadcast");
         job.setType(JobType.BROADCAST);
         job.setDispatchOption(DispatchOptionParam.builder()
@@ -106,9 +105,9 @@ public class PlanFactory {
         return job;
     }
 
-    public static JobAddParam mapJob(String id, String executorName) {
+    public static JobAddParam mapJob(String name, String executorName) {
         JobAddParam job = new JobAddParam();
-        job.setJobId(id);
+        job.setName(name);
         job.setDescription("test map");
         job.setType(JobType.MAP);
         job.setDispatchOption(DispatchOptionParam.builder()
@@ -121,9 +120,9 @@ public class PlanFactory {
         return job;
     }
 
-    public static JobAddParam mapReduceJob(String id, String executorName) {
+    public static JobAddParam mapReduceJob(String name, String executorName) {
         JobAddParam job = new JobAddParam();
-        job.setJobId(id);
+        job.setName(name);
         job.setDescription("test reduce");
         job.setType(JobType.MAP_REDUCE);
         job.setDispatchOption(DispatchOptionParam.builder()
