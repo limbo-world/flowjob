@@ -4,30 +4,21 @@ import lombok.Setter;
 import org.limbo.flowjob.api.param.PlanAddParam;
 import org.limbo.flowjob.api.param.PlanReplaceParam;
 import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
-import org.limbo.flowjob.broker.application.plan.manager.PlanScheduleManager;
 import org.limbo.flowjob.broker.core.domain.job.JobFactory;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanFactory;
-import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
-import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
-import org.limbo.flowjob.common.constants.ScheduleType;
-import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -57,9 +48,6 @@ public class PlanService {
 
     @Setter(onMethod_ = @Inject)
     private JobFactory jobFactory;
-
-    @Setter(onMethod_ = @Inject)
-    private PlanScheduleManager planScheduleManager;
 
 
     /**
@@ -140,56 +128,6 @@ public class PlanService {
 
         // 停用计划
         return planEntityRepo.updateEnable(planEntity.getPlanId(), true, false) == 1;
-    }
-
-    @Transactional
-    public void scheduleInstance(PlanInstance planInstance) {
-        // 保存数据
-        planInstance.trigger();
-
-        // 获取头部数据
-        List<JobInstance> rootJobs = new ArrayList<>();
-
-        for (JobInfo jobInfo : planInstance.getDag().origins()) {
-            if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
-                rootJobs.add(jobFactory.newInstance(planInstance, jobInfo, TimeUtils.currentLocalDateTime()));
-            }
-        }
-
-        saveScheduleInfo(planInstance, rootJobs);
-
-        // 执行调度逻辑
-        for (JobInstance instance : rootJobs) {
-            planScheduleManager.dispatch(instance);
-        }
-    }
-
-    @Transactional
-    public void saveScheduleInfo(PlanInstance planInstance, List<JobInstance> rootJobs) {
-        String planId = planInstance.getPlanId();
-
-        // 加锁
-        planEntityRepo.selectForUpdate(planId);
-
-        // 判断并发情况下 是否已经有人提交调度任务 如有则无需处理 防止重复创建数据
-        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo
-                .findByPlanIdAndExpectTriggerAtAndTriggerType(
-                        planId, planInstance.getExpectTriggerAt(), TriggerType.SCHEDULE.type
-                );
-        if (planInstanceEntity != null) {
-            return;
-        }
-
-        // 保存 planInstance
-        planInstanceRepository.save(planInstance);
-
-        // 保存 jobInstance
-        jobInstanceRepository.saveAll(rootJobs);
-
-        // 更新plan的下次触发时间
-        if (ScheduleType.FIXED_DELAY != planInstance.getScheduleOption().getScheduleType() && TriggerType.SCHEDULE == planInstance.getScheduleOption().getTriggerType()) {
-            planEntityRepo.nextTriggerAt(planId, planInstance.nextTriggerAt());
-        }
     }
 
 }

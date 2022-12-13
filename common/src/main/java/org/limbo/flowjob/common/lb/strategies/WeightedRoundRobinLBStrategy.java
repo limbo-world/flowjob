@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  * todo 这个感觉应该和其他策略配合使用，如果根据权重找到相同的一批节点，如何对这一批做负载
  */
 @Slf4j
-public class WeightedLBStrategy<S extends LBServer> extends RoundRobinLBStrategy<S> {
+public class WeightedRoundRobinLBStrategy<S extends LBServer> extends RoundRobinLBStrategy<S> {
 
     /**
      * 用于计算权重的函数
@@ -49,7 +49,7 @@ public class WeightedLBStrategy<S extends LBServer> extends RoundRobinLBStrategy
     private final Random random;
 
 
-    public WeightedLBStrategy(Function<List<String>, List<Double>> weightSupplier) {
+    public WeightedRoundRobinLBStrategy(Function<List<String>, List<Double>> weightSupplier) {
         this.weightSupplier = Objects.requireNonNull(weightSupplier);
         this.random = new Random();
     }

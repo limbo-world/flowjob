@@ -48,4 +48,5 @@ public abstract class AbstractLBStrategy<S extends LBServer> implements LBStrate
      * @return S
      */
     protected abstract Optional<S> selectNonEmpty(List<S> servers);
+
 }

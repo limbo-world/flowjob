@@ -37,4 +37,5 @@ public class ConsistentHashLBStrategy<S extends LBServer> extends AbstractLBStra
     protected Optional<S> selectNonEmpty(List<S> servers) {
         return Optional.empty();
     }
+
 }

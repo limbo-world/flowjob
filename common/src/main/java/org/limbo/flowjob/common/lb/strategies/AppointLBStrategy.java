@@ -19,11 +19,16 @@
 package org.limbo.flowjob.common.lb.strategies;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.common.lb.AbstractLBStrategy;
 import org.limbo.flowjob.common.lb.LBServer;
 
+import java.net.URL;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * @author Brozen
@@ -33,9 +38,52 @@ import java.util.Optional;
 @Slf4j
 public class AppointLBStrategy<S extends LBServer> extends AbstractLBStrategy<S> {
 
+    /**
+     * 通过节点 ID 指定负载均衡节点
+     * @param serverId 节点 ID
+     * @param <S> 负载均衡节点类型，可实现 LBServer 接口
+     */
+    public static <S extends LBServer> AppointLBStrategy<S> byId(String serverId) {
+        return new AppointLBStrategy<>(server -> StringUtils.equals(server.getServerId(), serverId));
+    }
+
+
+    /**
+     * 通过节点RPC通信URL指定负载均衡节点
+     * @param url 节点RPC通信地址
+     * @param <S> 负载均衡节点类型，可实现 LBServer 接口
+     */
+    public static <S extends LBServer> AppointLBStrategy<S> byUrl(URL url) {
+        Objects.requireNonNull(url);
+        return new AppointLBStrategy<>(server -> url.equals(server.getUrl()));
+    }
+
+
+    /**
+     * 判断节点是否符合指定条件
+     */
+    private Predicate<S> condition;
+
+
+    private AppointLBStrategy(Predicate<S> condition) {
+        this.condition = Objects.requireNonNull(condition);
+    }
+
+
+    /**
+     * {@inheritDoc}
+     * @param servers
+     * @return
+     */
     @Override
     protected Optional<S> selectNonEmpty(List<S> servers) {
-        return Optional.empty();
+        if (CollectionUtils.isEmpty(servers)) {
+            return Optional.empty();
+        }
+
+        return servers.stream()
+                .filter(this.condition)
+                .findFirst();
     }
 
 }

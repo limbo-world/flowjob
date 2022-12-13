@@ -26,7 +26,7 @@ import org.limbo.flowjob.api.dto.WorkerRegisterDTO;
 import org.limbo.flowjob.api.param.TaskFeedbackParam;
 import org.limbo.flowjob.api.param.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.param.WorkerRegisterParam;
-import org.limbo.flowjob.broker.application.plan.service.TaskService;
+import org.limbo.flowjob.broker.application.plan.service.ScheduleService;
 import org.limbo.flowjob.broker.application.plan.service.WorkerService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -52,7 +52,7 @@ public class WorkerRpcController {
     private WorkerService workerService;
 
     @Setter(onMethod_ = @Inject)
-    private TaskService taskService;
+    private ScheduleService scheduleService;
 
     /**
      * worker注册
@@ -81,7 +81,7 @@ public class WorkerRpcController {
     @PostMapping("/task/{taskId}/feedback")
     public ResponseDTO<Void> feedback(@Validated @NotNull(message = "no taskId") @PathVariable("taskId") String taskId,
                                       @Valid @RequestBody TaskFeedbackParam feedback) {
-        taskService.feedback(taskId, feedback);
+        scheduleService.taskFeedback(taskId, feedback);
         return ResponseDTO.<Void>builder().ok().build();
     }
 
