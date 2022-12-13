@@ -43,7 +43,7 @@ public class WorkerSelectorFactory {
         selectors.put(LoadBalanceType.RANDOM, new CalculatingWorkerSelector(new RandomLBStrategy<>()));
         selectors.put(LoadBalanceType.LEAST_FREQUENTLY_USED, new CalculatingWorkerSelector(new LFULBStrategy<>()));
         selectors.put(LoadBalanceType.LEAST_RECENTLY_USED, new CalculatingWorkerSelector(new LRULBStrategy<>()));
-        selectors.put(LoadBalanceType.APPOINT, new CalculatingWorkerSelector(new AppointLBStrategy<>()));
+//        selectors.put(LoadBalanceType.APPOINT, new CalculatingWorkerSelector(new AppointLBStrategy<>()));
         selectors.put(LoadBalanceType.CONSISTENT_HASH, new CalculatingWorkerSelector(new ConsistentHashLBStrategy<>()));
     }
 
