@@ -170,8 +170,8 @@ public class PlanRepo implements PlanRepository {
         jobInfoEntity.setName(jobInfo.getName());
         jobInfoEntity.setType(jobInfo.getType().type);
         jobInfoEntity.setTriggerType(jobInfo.getTriggerType().type);
-        jobInfoEntity.setAttributes(JacksonUtils.toJSONString(jobInfo.getAttributes()));
-        jobInfoEntity.setDispatchOption(JacksonUtils.toJSONString(jobInfo.getDispatchOption()));
+        jobInfoEntity.setAttributes(JacksonUtils.toJSONString(jobInfo.getAttributes(), JacksonUtils.DEFAULT_NONE_OBJECT));
+        jobInfoEntity.setDispatchOption(JacksonUtils.toJSONString(jobInfo.getDispatchOption(), JacksonUtils.DEFAULT_NONE_OBJECT));
         jobInfoEntity.setExecutorName(jobInfo.getExecutorName());
         jobInfoEntity.setTerminateWithFail(jobInfo.isTerminateWithFail());
         return jobInfoEntity;

@@ -18,8 +18,10 @@
 
 package org.limbo.flowjob.common.utils.dag;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.common.utils.Verifies;
+import org.limbo.flowjob.common.utils.json.DagSerializer;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.io.Serializable;
@@ -35,6 +37,7 @@ import java.util.stream.Collectors;
  * @author Devil
  * @since 2022/8/1
  */
+@JsonSerialize(using = DagSerializer.class)
 public class DAG<T extends DAGNode> implements Serializable {
 
     private static final long serialVersionUID = 4746630152041623943L;

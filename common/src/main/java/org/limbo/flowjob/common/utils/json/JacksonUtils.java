@@ -38,6 +38,10 @@ public class JacksonUtils {
 
     public static final ObjectMapper mapper = newObjectMapper();
 
+    public static final String DEFAULT_NONE_OBJECT = "{}";
+
+    public static final String DEFAULT_NONE_ARRAY = "[]";
+
     /**
      * 生成新的{@link ObjectMapper}
      */
@@ -84,6 +88,20 @@ public class JacksonUtils {
      */
     public static <T> String toJSONString(T t) {
         Objects.requireNonNull(t);
+        try {
+            return mapper.writeValueAsString(t);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Jackson序列化失败！type=" + t.getClass().getName(), e);
+        }
+    }
+
+    /**
+     * 将对象转换为JSON字符串
+     */
+    public static <T> String toJSONString(T t, String defaultValue) {
+        if (t == null) {
+            return defaultValue;
+        }
         try {
             return mapper.writeValueAsString(t);
         } catch (JsonProcessingException e) {
