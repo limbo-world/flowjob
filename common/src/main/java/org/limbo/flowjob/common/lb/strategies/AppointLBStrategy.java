@@ -22,13 +22,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.common.lb.AbstractLBStrategy;
+import org.limbo.flowjob.common.lb.Invocation;
 import org.limbo.flowjob.common.lb.LBServer;
 
 import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Predicate;
+import java.util.function.BiPredicate;
 
 /**
  * @author Brozen
@@ -44,7 +45,7 @@ public class AppointLBStrategy<S extends LBServer> extends AbstractLBStrategy<S>
      * @param <S> 负载均衡节点类型，可实现 LBServer 接口
      */
     public static <S extends LBServer> AppointLBStrategy<S> byId(String serverId) {
-        return new AppointLBStrategy<>(server -> StringUtils.equals(server.getServerId(), serverId));
+        return new AppointLBStrategy<>((server, invocation) -> StringUtils.equals(server.getServerId(), serverId));
     }
 
 
@@ -55,17 +56,17 @@ public class AppointLBStrategy<S extends LBServer> extends AbstractLBStrategy<S>
      */
     public static <S extends LBServer> AppointLBStrategy<S> byUrl(URL url) {
         Objects.requireNonNull(url);
-        return new AppointLBStrategy<>(server -> url.equals(server.getUrl()));
+        return new AppointLBStrategy<>((server, invocation) -> url.equals(server.getUrl()));
     }
 
 
     /**
      * 判断节点是否符合指定条件
      */
-    private Predicate<S> condition;
+    private final BiPredicate<S, Invocation> condition;
 
 
-    private AppointLBStrategy(Predicate<S> condition) {
+    private AppointLBStrategy(BiPredicate<S, Invocation> condition) {
         this.condition = Objects.requireNonNull(condition);
     }
 
@@ -73,16 +74,17 @@ public class AppointLBStrategy<S extends LBServer> extends AbstractLBStrategy<S>
     /**
      * {@inheritDoc}
      * @param servers
+     * @param invocation
      * @return
      */
     @Override
-    protected Optional<S> selectNonEmpty(List<S> servers) {
+    protected Optional<S> doSelect(List<S> servers, Invocation invocation) {
         if (CollectionUtils.isEmpty(servers)) {
             return Optional.empty();
         }
 
         return servers.stream()
-                .filter(this.condition)
+                .filter(s -> this.condition.test(s, invocation))
                 .findFirst();
     }
 
