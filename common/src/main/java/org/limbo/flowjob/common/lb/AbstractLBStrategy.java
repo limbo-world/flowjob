@@ -21,6 +21,7 @@ package org.limbo.flowjob.common.lb;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,22 +32,29 @@ import java.util.Optional;
 @Slf4j
 public abstract class AbstractLBStrategy<S extends LBServer> implements LBStrategy<S> {
 
+    /**
+     * {@inheritDoc}
+     * @param servers 被负载的服务列表
+     * @param invocation 本次调用的上下文信息
+     * @return
+     */
     @Override
-    public Optional<S> select(List<S> servers) {
+    public Optional<S> select(List<S> servers, Invocation invocation) {
         // 有服务存在，但是如果所有服务都挂了的话，也返回空
         if (CollectionUtils.isEmpty(servers)) {
             log.warn("No alive server for load strategy [{}]", getClass().getName());
             return Optional.empty();
         }
-        return selectNonEmpty(servers);
+
+        return doSelect(servers, invocation);
     }
 
+
     /**
-     * 从非空列表选取对象
-     *
-     * @param servers 非空
-     * @return S
+     * 从非空列表选取对象。
+     * @param servers 被负载的服务列表，可以保证非空。
+     * @param invocation 本次调用的上下文信息
      */
-    protected abstract Optional<S> selectNonEmpty(List<S> servers);
+    protected abstract Optional<S> doSelect(List<S> servers, Invocation invocation);
 
 }

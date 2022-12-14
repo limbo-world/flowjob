@@ -39,16 +39,17 @@ public class WorkerSelectorFactory {
     private static final Map<LoadBalanceType, WorkerSelector> selectors = new EnumMap<>(LoadBalanceType.class);
 
     static {
-        selectors.put(LoadBalanceType.ROUND_ROBIN, new CalculatingWorkerSelector(new RoundRobinLBStrategy<>()));
-        selectors.put(LoadBalanceType.RANDOM, new CalculatingWorkerSelector(new RandomLBStrategy<>()));
-        selectors.put(LoadBalanceType.LEAST_FREQUENTLY_USED, new CalculatingWorkerSelector(new LFULBStrategy<>()));
-        selectors.put(LoadBalanceType.LEAST_RECENTLY_USED, new CalculatingWorkerSelector(new LRULBStrategy<>()));
-//        selectors.put(LoadBalanceType.APPOINT, new CalculatingWorkerSelector(new AppointLBStrategy<>()));
-        selectors.put(LoadBalanceType.CONSISTENT_HASH, new CalculatingWorkerSelector(new ConsistentHashLBStrategy<>()));
+        selectors.put(LoadBalanceType.ROUND_ROBIN, new FilteringWorkerSelector(new RoundRobinLBStrategy<>()));
+        selectors.put(LoadBalanceType.RANDOM, new FilteringWorkerSelector(new RandomLBStrategy<>()));
+        selectors.put(LoadBalanceType.LEAST_FREQUENTLY_USED, new FilteringWorkerSelector(new LFULBStrategy<>()));
+        selectors.put(LoadBalanceType.LEAST_RECENTLY_USED, new FilteringWorkerSelector(new LRULBStrategy<>()));
+        selectors.put(LoadBalanceType.APPOINT, new FilteringWorkerSelector(new AppointLBStrategy<>()));
+        selectors.put(LoadBalanceType.CONSISTENT_HASH, new FilteringWorkerSelector(new ConsistentHashLBStrategy<>()));
+
+        // TODO 使用 SPI 机制允许第三方扩展 WorkerSelector ?
     }
 
     /**
-     * Double Selector (￣▽￣)~* <br/>
      * 根据作业的分发方式，创建一个分发器实例。委托给{@link LoadBalanceType}执行。
      *
      * @param loadBalanceType 分发类型

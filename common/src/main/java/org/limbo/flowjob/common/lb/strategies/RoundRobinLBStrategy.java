@@ -20,11 +20,16 @@ package org.limbo.flowjob.common.lb.strategies;
 
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.common.lb.AbstractLBStrategy;
+import org.limbo.flowjob.common.lb.Invocation;
 import org.limbo.flowjob.common.lb.LBServer;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author Brozen
@@ -35,42 +40,97 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RoundRobinLBStrategy<S extends LBServer> extends AbstractLBStrategy<S> {
 
     /**
+     * 用于计算权重的函数，如果不考虑权重，仅轮训，则为所有服务返回权重 1 即可。
+     */
+    private final Function<List<S>, Map<String, Integer>> weightSupplier;
+
+    /**
      * 记录轮询索引
      */
-    private final AtomicInteger index;
+    private final ConcurrentHashMap<String, Map<String, RoundRobinIndexer>> indexers;
 
 
     public RoundRobinLBStrategy() {
-        this.index = new AtomicInteger();
+        this(s -> s.stream().collect(Collectors.toMap(LBServer::getServerId, a -> 1)));
+    }
+
+
+    public RoundRobinLBStrategy(Function<List<S>, Map<String, Integer>> weightSupplier) {
+        this.weightSupplier = weightSupplier;
+        this.indexers = new ConcurrentHashMap<>();
     }
 
 
     /**
-     * 计算下一个服务索引
-     * @param serverCount 服务总数
+     * {@inheritDoc}
+     * @param servers 被负载的服务列表，可以保证非空。
+     * @param invocation 本次调用的上下文信息
+     * @return
      */
-    protected int nextIndex(int serverCount) {
-        while (true) {
-            int idx = this.index.get();
-            int nextIdx = (idx + 1) % serverCount;
-            if (this.index.compareAndSet(idx, nextIdx)) {
-                return nextIdx;
-            }
-        }
-    }
-
     @Override
-    protected Optional<S> selectNonEmpty(List<S> servers) {
-        // 这里不只取 aliveServers 遍历，防止遍历过程中，servers 中的服务从不可用变为可用
-        // 找到轮询的下一个服务
-        int idx = nextIndex(servers.size());
-        S selected = servers.get(idx);
+    protected Optional<S> doSelect(List<S> servers, Invocation invocation) {
 
-        // 服务不存在，重新尝试获取
-        if (selected == null || !selected.isAlive()) {
-            return Optional.empty();
+        String targetId = invocation.getInvokeTargetId();
+        Map<String, RoundRobinIndexer> indexerMap =
+                this.indexers.computeIfAbsent(targetId, _k -> new ConcurrentHashMap<>());
+
+        long now = System.currentTimeMillis();
+        Map<String, Integer> weights = weightSupplier.apply(servers);
+
+        long maxWeight = Long.MIN_VALUE;
+        long allWeight = 0;
+        S selected = null;
+        RoundRobinIndexer selectedIndexer = null;
+        for (S server : servers) {
+            int weight = Math.max(weights.getOrDefault(server.getServerId(), 0), 0);
+            RoundRobinIndexer indexer = indexerMap
+                    .computeIfAbsent(server.getServerId(), _sid -> new RoundRobinIndexer(weight));
+
+            if (indexer.weight != weight) {
+                indexer.weight = weight;
+            }
+
+            long curr = indexer.stepForward();
+            if (curr > maxWeight) {
+                maxWeight = curr;
+                selected = server;
+                selectedIndexer = indexer;
+            }
+
+            indexer.updatedAt = now;
+            allWeight += weight;
         }
 
-        return Optional.of(selected);
+        if (selected != null) {
+            selectedIndexer.reset(allWeight);
+            return Optional.of(selected);
+        }
+
+        return Optional.of(servers.get(0));
     }
+
+
+
+    static class RoundRobinIndexer {
+
+        int weight;
+
+        AtomicLong current = new AtomicLong(0);
+
+        long updatedAt = 0;
+
+        public RoundRobinIndexer(int weight) {
+            this.weight = weight;
+        }
+
+        long stepForward() {
+            return current.addAndGet(weight);
+        }
+
+        void reset(long step) {
+            current.addAndGet(-step);
+        }
+
+    }
+
 }

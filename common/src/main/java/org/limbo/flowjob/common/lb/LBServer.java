@@ -42,4 +42,5 @@ public interface LBServer {
      * 当前服务的资源路径
      */
     URL getUrl();
+
 }

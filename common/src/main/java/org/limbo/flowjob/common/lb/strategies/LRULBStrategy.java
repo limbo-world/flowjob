@@ -20,6 +20,7 @@ package org.limbo.flowjob.common.lb.strategies;
 
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.common.lb.AbstractLBStrategy;
+import org.limbo.flowjob.common.lb.Invocation;
 import org.limbo.flowjob.common.lb.LBServer;
 
 import java.util.List;
@@ -34,7 +35,7 @@ import java.util.Optional;
 public class LRULBStrategy<S extends LBServer> extends AbstractLBStrategy<S> {
 
     @Override
-    protected Optional<S> selectNonEmpty(List<S> servers) {
+    protected Optional<S> doSelect(List<S> servers, Invocation invocation) {
         return Optional.empty();
     }
 }
