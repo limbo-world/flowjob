@@ -25,9 +25,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.common.constants.TriggerType;
-import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAGNode;
 
@@ -90,14 +90,19 @@ public class JobInfo extends DAGNode {
     private boolean terminateWithFail;
 
     @JsonCreator
-    public JobInfo(@JsonProperty("name") String name, @JsonProperty("childrenIds") Set<String> childrenIds) {
-        this.name = name;
-        this.childrenIds = CollectionUtils.isEmpty(childrenIds) ? Collections.emptySet() : childrenIds;
-        this.parentIds = new HashSet<>();
+    public JobInfo(@JsonProperty("id") String id, @JsonProperty("childrenIds") Set<String> childrenIds) {
+        super(id, childrenIds);
+        this.name = id;
     }
 
     @Override
     public String getId() {
         return name;
     }
+
+    @Override
+    public void setId(String id) {
+        this.name = id;
+    }
+
 }

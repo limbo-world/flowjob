@@ -18,6 +18,10 @@
 
 package org.limbo.flowjob.broker.test.support;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.io.SegmentedStringWriter;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.limbo.flowjob.api.param.DispatchOptionParam;
@@ -25,18 +29,23 @@ import org.limbo.flowjob.api.param.JobAddParam;
 import org.limbo.flowjob.api.param.PlanAddParam;
 import org.limbo.flowjob.api.param.PlanReplaceParam;
 import org.limbo.flowjob.api.param.ScheduleOptionParam;
+import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.common.constants.LoadBalanceType;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TriggerType;
+import org.limbo.flowjob.common.utils.dag.DAG;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * @author Devil
  * @since 2022/10/20
  */
-public class PlanFactory {
+public class PlanParamFactory {
 
     public static PlanAddParam newFixedRateAddParam() {
         PlanAddParam param = new PlanAddParam();

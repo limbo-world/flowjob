@@ -18,12 +18,23 @@
 
 package org.limbo.flowjob.common.utils.dag;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
+
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
-public abstract class DAGNode implements Serializable {
+@Data
+public class DAGNode implements Serializable {
 
     private static final long serialVersionUID = 8572090796475782411L;
+
+    protected String id;
 
     protected Set<String> parentIds;
 
@@ -31,22 +42,11 @@ public abstract class DAGNode implements Serializable {
 
     protected int status = DAG.STATUS_INIT;
 
-    public abstract String getId();
-
-    public Set<String> getParentIds() {
-        return parentIds;
-    }
-
-    public Set<String> getChildrenIds() {
-        return childrenIds;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
-    public int getStatus() {
-        return status;
+    @JsonCreator
+    public DAGNode(@JsonProperty("id") String id, @JsonProperty("childrenIds") Set<String> childrenIds) {
+        this.id = id;
+        this.childrenIds = CollectionUtils.isEmpty(childrenIds) ? Collections.emptySet() : childrenIds;
+        this.parentIds = new HashSet<>();
     }
 
     public void addParent(String childrenId) {

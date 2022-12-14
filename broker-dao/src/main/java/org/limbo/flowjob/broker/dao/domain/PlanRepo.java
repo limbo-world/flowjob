@@ -20,25 +20,32 @@ package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
+import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
+import org.limbo.flowjob.broker.dao.repositories.JobInfoRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.support.SlotManager;
 import org.limbo.flowjob.common.utils.Verifies;
+import org.limbo.flowjob.common.utils.dag.DAGNode;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author Brozen
@@ -54,6 +61,8 @@ public class PlanRepo implements PlanRepository {
     private PlanInfoEntityRepo planInfoEntityRepo;
     @Setter(onMethod_ = @Inject)
     private PlanSlotEntityRepo planSlotEntityRepo;
+    @Setter(onMethod_ = @Inject)
+    private JobInfoRepo jobInfoRepo;
 
     /**
      * {@inheritDoc}
@@ -67,7 +76,11 @@ public class PlanRepo implements PlanRepository {
         Verifies.notNull(plan.getInfo(), "plan info is null id:" + plan.getPlanId());
         Verifies.verify(plan.getInfo().check(), "plan info is invalid id:" + plan.getPlanId());
 
+        PlanInfo planInfo = plan.getInfo();
+        // 视图属性 todo 校验dag不为空 且内部节点不能重复
+
         PlanEntity planEntity = planEntityRepo.findById(plan.getPlanId()).orElse(null);
+        PlanInfoEntity planInfoEntity = toEntity(planInfo);
         if (planEntity == null) {
             // 新增 Plan
             planEntity = toEntity(plan);
@@ -80,20 +93,25 @@ public class PlanRepo implements PlanRepository {
             planSlotEntityRepo.saveAndFlush(planSlotEntity);
 
             // 设置版本
-            PlanInfoEntity planInfo = toEntity(plan.getInfo());
-            planInfo.setPlanId(planEntity.getPlanId());
-            planInfoEntityRepo.saveAndFlush(planInfo);
+            planInfoEntity.setPlanId(planEntity.getPlanId());
         } else {
             // 更新 Plan 版本信息
             int effected = planEntityRepo.updateVersion(plan.getCurrentVersion(), plan.getRecentlyVersion(), plan.getPlanId(), planEntity.getCurrentVersion(), planEntity.getRecentlyVersion());
             if (effected <= 0) {
                 throw new IllegalStateException("更新Plan版本失败");
             }
-
-            // 新增 PlanInfo
-            PlanInfoEntity planInfo = toEntity(plan.getInfo());
-            planInfoEntityRepo.saveAndFlush(planInfo);
         }
+
+        // 保存版本信息
+        planInfoEntityRepo.saveAndFlush(planInfoEntity);
+
+        // 保存jobInfo信息
+        List<JobInfoEntity> jobInfoEntities = new ArrayList<>();
+        for (JobInfo jobInfo : planInfo.getDag().nodes()) {
+            jobInfoEntities.add(toEntity(planInfoEntity.getPlanInfoId(), jobInfo));
+        }
+        jobInfoRepo.saveAll(jobInfoEntities);
+        jobInfoRepo.flush();
 
         return plan.getPlanId();
     }
@@ -127,7 +145,8 @@ public class PlanRepo implements PlanRepository {
         entity.setScheduleDelay(scheduleOption.getScheduleDelay().toMillis());
         entity.setScheduleInterval(scheduleOption.getScheduleInterval().toMillis());
         entity.setScheduleCron(scheduleOption.getScheduleCron());
-        entity.setJobs(JacksonUtils.toJSONString(planInfo.getDag().nodes()));
+
+        entity.setJobs(planInfo.getDag().json());
 
         // 能够查询到info信息，说明未删除
         entity.setDeleted(false);
@@ -143,6 +162,19 @@ public class PlanRepo implements PlanRepository {
         planEntity.setPlanId(plan.getPlanId());
         planEntity.setNextTriggerAt(plan.getNextTriggerAt());
         return planEntity;
+    }
+
+    public JobInfoEntity toEntity(String planInfoId, JobInfo jobInfo) {
+        JobInfoEntity jobInfoEntity = new JobInfoEntity();
+        jobInfoEntity.setPlanInfoId(planInfoId);
+        jobInfoEntity.setName(jobInfo.getName());
+        jobInfoEntity.setType(jobInfo.getType().type);
+        jobInfoEntity.setTriggerType(jobInfo.getTriggerType().type);
+        jobInfoEntity.setAttributes(JacksonUtils.toJSONString(jobInfo.getAttributes()));
+        jobInfoEntity.setDispatchOption(JacksonUtils.toJSONString(jobInfo.getDispatchOption()));
+        jobInfoEntity.setExecutorName(jobInfo.getExecutorName());
+        jobInfoEntity.setTerminateWithFail(jobInfo.isTerminateWithFail());
+        return jobInfoEntity;
     }
 
     public Plan toPlan(PlanEntity entity) {

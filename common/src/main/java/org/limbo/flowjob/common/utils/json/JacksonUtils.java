@@ -36,7 +36,7 @@ import java.util.Objects;
  */
 public class JacksonUtils {
 
-    public static ObjectMapper mapper = newObjectMapper();
+    public static final ObjectMapper mapper = newObjectMapper();
 
     /**
      * 生成新的{@link ObjectMapper}
@@ -66,6 +66,18 @@ public class JacksonUtils {
         return mapper;
     }
 
+
+    /**
+     * 将对象转换为JSON字符串
+     */
+    public static <T> String toJSONString(T t, ObjectMapper mapper) {
+        Objects.requireNonNull(t);
+        try {
+            return mapper.writeValueAsString(t);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Jackson序列化失败！type=" + t.getClass().getName(), e);
+        }
+    }
 
     /**
      * 将对象转换为JSON字符串

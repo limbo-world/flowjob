@@ -26,7 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.limbo.flowjob.api.param.PlanAddParam;
 import org.limbo.flowjob.broker.application.plan.service.PlanService;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.test.support.PlanFactory;
+import org.limbo.flowjob.broker.test.support.PlanParamFactory;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -49,7 +49,7 @@ class PlanServiceTest {
     @Test
 //    @Transactional
     void addFixedRate() {
-        PlanAddParam param = PlanFactory.newFixedRateAddParam();
+        PlanAddParam param = PlanParamFactory.newFixedRateAddParam();
 
         String id = planService.add(param);
         Plan plan = planService.get(id);
@@ -70,9 +70,9 @@ class PlanServiceTest {
     @Test
     @Transactional
     void replace() {
-        PlanAddParam param = PlanFactory.newFixedRateAddParam();
+        PlanAddParam param = PlanParamFactory.newFixedRateAddParam();
         String id = planService.add(param);
-        id = planService.replace(id, PlanFactory.newFixedRateReplaceParam());
+        id = planService.replace(id, PlanParamFactory.newFixedRateReplaceParam());
         Plan plan = planService.get(id);
         log.info("plan>>>>>{}", JacksonUtils.toJSONString(plan));
         Assertions.assertNotNull(plan, "");
