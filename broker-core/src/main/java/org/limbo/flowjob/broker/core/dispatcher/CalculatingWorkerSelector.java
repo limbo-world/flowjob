@@ -23,6 +23,7 @@ import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.common.lb.LBStrategy;
+import org.limbo.flowjob.common.lb.RPCInvocation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +69,9 @@ public class CalculatingWorkerSelector implements WorkerSelector {
         if (CollectionUtils.isEmpty(availableWorkers)) {
             return null;
         }
-        return strategy.select(workers).orElse(null);
+
+        RPCInvocation lbInvocation = new RPCInvocation(executorName);
+        return strategy.select(workers, lbInvocation).orElse(null);
     }
 
 }

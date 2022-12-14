@@ -18,7 +18,6 @@ package org.limbo.flowjob.broker.core.dispatcher;
 
 import org.limbo.flowjob.common.constants.LoadBalanceType;
 import org.limbo.flowjob.common.constants.MsgConstants;
-import org.limbo.flowjob.common.lb.strategies.AppointLBStrategy;
 import org.limbo.flowjob.common.lb.strategies.ConsistentHashLBStrategy;
 import org.limbo.flowjob.common.lb.strategies.LFULBStrategy;
 import org.limbo.flowjob.common.lb.strategies.LRULBStrategy;
@@ -39,7 +38,7 @@ public class WorkerSelectorFactory {
     private static final Map<LoadBalanceType, WorkerSelector> selectors = new EnumMap<>(LoadBalanceType.class);
 
     static {
-        selectors.put(LoadBalanceType.ROUND_ROBIN, new CalculatingWorkerSelector(new RoundRobinLBStrategy<>()));
+        selectors.put(LoadBalanceType.ROUND_ROBIN, new CalculatingWorkerSelector(new RoundRobinLBStrategy<>(weightSupplier)));
         selectors.put(LoadBalanceType.RANDOM, new CalculatingWorkerSelector(new RandomLBStrategy<>()));
         selectors.put(LoadBalanceType.LEAST_FREQUENTLY_USED, new CalculatingWorkerSelector(new LFULBStrategy<>()));
         selectors.put(LoadBalanceType.LEAST_RECENTLY_USED, new CalculatingWorkerSelector(new LRULBStrategy<>()));
