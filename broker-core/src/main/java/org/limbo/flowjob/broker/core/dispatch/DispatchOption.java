@@ -21,6 +21,7 @@ package org.limbo.flowjob.broker.core.dispatch;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Data;
 import lombok.Setter;
 import org.limbo.flowjob.common.constants.LoadBalanceType;
@@ -36,6 +37,7 @@ import java.math.BigDecimal;
  */
 @Data
 @Setter(AccessLevel.NONE)
+@Builder(builderClassName = "Builder", toBuilder = true)
 public class DispatchOption implements Serializable {
 
     private static final long serialVersionUID = 7742829408764721529L;
@@ -64,40 +66,24 @@ public class DispatchOption implements Serializable {
      */
     private BigDecimal ramRequirement;
 
+    /**
+     * tag 过滤器配置
+     */
+    private TagFilterOption tagFilter;
+
     @JsonCreator // @JsonProperty("scheduleType") 不去掉mapstruct会用set方式，比较奇怪
     public DispatchOption(@JsonProperty("loadBalanceType") LoadBalanceType loadBalanceType,
                           @JsonProperty("cpuRequirement") BigDecimal cpuRequirement,
                           @JsonProperty("ramRequirement") BigDecimal ramRequirement,
                           @JsonProperty("retry") Integer retry,
-                          @JsonProperty("retryInterval") Integer retryInterval) {
+                          @JsonProperty("retryInterval") Integer retryInterval,
+                          @JsonProperty("tagFilterOption") TagFilterOption tagFilter) {
         this.loadBalanceType = loadBalanceType;
         this.cpuRequirement = cpuRequirement == null ? BigDecimal.ZERO : cpuRequirement;
         this.ramRequirement = ramRequirement == null ? BigDecimal.ZERO : ramRequirement;
         this.retry = retry == null ? 0 : retry;
         this.retryInterval = retryInterval == null ? 0 : retryInterval;
-    }
-
-    /**
-     * 设置分发方式
-     */
-    public DispatchOption setLoadBalanceType(LoadBalanceType loadBalanceType) {
-        return new DispatchOption(loadBalanceType, cpuRequirement, ramRequirement, retry, retryInterval);
-    }
-
-
-    /**
-     * 设置所需cpu核心数
-     */
-    public DispatchOption setCpuRequirement(BigDecimal cpuRequirement) {
-        return new DispatchOption(loadBalanceType, cpuRequirement, ramRequirement, retry, retryInterval);
-    }
-
-
-    /**
-     * 设置所需的内存GB数
-     */
-    public DispatchOption setRamRequirement(BigDecimal ramRequirement) {
-        return new DispatchOption(loadBalanceType, cpuRequirement, ramRequirement, retry, retryInterval);
+        this.tagFilter = tagFilter;
     }
 
 }

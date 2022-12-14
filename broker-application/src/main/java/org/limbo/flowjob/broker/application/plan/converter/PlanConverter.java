@@ -4,16 +4,11 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.BooleanUtils;
 import org.limbo.flowjob.api.param.DispatchOptionParam;
 import org.limbo.flowjob.api.param.JobAddParam;
-import org.limbo.flowjob.api.param.PlanAddParam;
-import org.limbo.flowjob.api.param.PlanReplaceParam;
 import org.limbo.flowjob.api.param.ScheduleOptionParam;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.utils.dag.DAG;
-import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.util.List;
 
@@ -78,12 +73,14 @@ public class PlanConverter {
      * 生成作业分发参数
      */
     public static DispatchOption convertJobDispatchOption(DispatchOptionParam param) {
-        return new DispatchOption(param.getLoadBalanceType(),
-                param.getCpuRequirement(),
-                param.getRamRequirement(),
-                param.getRetry(),
-                param.getRetryInterval()
-        );
+        return DispatchOption.builder()
+                .loadBalanceType(param.getLoadBalanceType())
+                .cpuRequirement(param.getCpuRequirement())
+                .ramRequirement(param.getRamRequirement())
+                .retry(param.getRetry())
+                .retryInterval(param.getRetryInterval())
+                .tagFilter(null) // TODO
+                .build();
     }
 
 }
