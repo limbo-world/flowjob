@@ -1,5 +1,7 @@
 package org.limbo.flowjob.common.lb;
 
+import java.util.Map;
+
 /**
  * @author Brozen
  * @since 2022-12-14
@@ -13,6 +15,11 @@ public interface Invocation {
      */
     String getInvokeTargetId();
 
+
+    /**
+     * 获取用于负载均衡的参数。
+     */
+    Map<String, String> getLBParameters();
 
 
 

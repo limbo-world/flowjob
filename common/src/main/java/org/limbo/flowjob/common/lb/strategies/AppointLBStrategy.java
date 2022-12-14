@@ -25,11 +25,10 @@ import org.limbo.flowjob.common.lb.AbstractLBStrategy;
 import org.limbo.flowjob.common.lb.Invocation;
 import org.limbo.flowjob.common.lb.LBServer;
 
-import java.net.URL;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
-import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 
 /**
  * @author Brozen
@@ -40,34 +39,33 @@ import java.util.function.BiPredicate;
 public class AppointLBStrategy<S extends LBServer> extends AbstractLBStrategy<S> {
 
     /**
-     * 通过节点 ID 指定负载均衡节点
-     * @param serverId 节点 ID
-     * @param <S> 负载均衡节点类型，可实现 LBServer 接口
-     */
-    public static <S extends LBServer> AppointLBStrategy<S> byId(String serverId) {
-        return new AppointLBStrategy<>((server, invocation) -> StringUtils.equals(server.getServerId(), serverId));
-    }
-
-
-    /**
      * 通过节点RPC通信URL指定负载均衡节点
-     * @param url 节点RPC通信地址
-     * @param <S> 负载均衡节点类型，可实现 LBServer 接口
      */
-    public static <S extends LBServer> AppointLBStrategy<S> byUrl(URL url) {
-        Objects.requireNonNull(url);
-        return new AppointLBStrategy<>((server, invocation) -> url.equals(server.getUrl()));
-    }
+    public static final String PARAM_BY_URL = "appoint.byUrl";
+
+    /**
+     * 通过节点 ID 指定负载均衡节点
+     */
+    public static final String PARAM_BY_SERVER_ID = "appoint.byServerId";
 
 
     /**
-     * 判断节点是否符合指定条件
+     * 从调用参数中解析指定节点的类型。
      */
-    private final BiPredicate<S, Invocation> condition;
+    private Predicate<S> getPredicate(Invocation invocation) {
+        Map<String, String> params = invocation.getLBParameters();
+        String byUrl = params.get(PARAM_BY_URL);
+        if (StringUtils.isNotBlank(byUrl)) {
+            return server -> server.getUrl().toString().equals(byUrl);
+        }
 
+        String byServerId = params.get(PARAM_BY_SERVER_ID);
+        if (StringUtils.isNotBlank(byServerId)) {
+            return server -> StringUtils.equals(server.getServerId(), byServerId);
+        }
 
-    private AppointLBStrategy(BiPredicate<S, Invocation> condition) {
-        this.condition = Objects.requireNonNull(condition);
+        // 如果找不到参数，则使用第一个
+        return server -> true;
     }
 
 
@@ -84,7 +82,7 @@ public class AppointLBStrategy<S extends LBServer> extends AbstractLBStrategy<S>
         }
 
         return servers.stream()
-                .filter(s -> this.condition.test(s, invocation))
+                .filter(getPredicate(invocation))
                 .findFirst();
     }
 
