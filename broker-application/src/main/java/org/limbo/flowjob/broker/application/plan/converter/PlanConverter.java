@@ -40,8 +40,7 @@ public class PlanConverter {
      * 生成单个作业
      */
     public static JobInfo convertJob(JobAddParam param) {
-        JobInfo jobInfo = new JobInfo(param.getJobId(), param.getChildrenIds());
-        jobInfo.setName(param.getJobName());
+        JobInfo jobInfo = new JobInfo(param.getName(), param.getChildren());
         jobInfo.setDescription(param.getDescription());
         jobInfo.setTriggerType(param.getTriggerType());
         jobInfo.setType(param.getType());

@@ -113,7 +113,7 @@ public class PlanInfoEntity extends BaseEntity {
     private Integer retry;
 
     /**
-     * 任务 json string
+     * 存储job节点直接的关联关系
      */
     private String jobs;
 

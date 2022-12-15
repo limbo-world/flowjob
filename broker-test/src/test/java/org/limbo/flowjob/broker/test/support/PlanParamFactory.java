@@ -18,6 +18,10 @@
 
 package org.limbo.flowjob.broker.test.support;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.io.SegmentedStringWriter;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.limbo.flowjob.api.param.DispatchOptionParam;
@@ -25,18 +29,23 @@ import org.limbo.flowjob.api.param.JobAddParam;
 import org.limbo.flowjob.api.param.PlanAddParam;
 import org.limbo.flowjob.api.param.PlanReplaceParam;
 import org.limbo.flowjob.api.param.ScheduleOptionParam;
+import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.common.constants.LoadBalanceType;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TriggerType;
+import org.limbo.flowjob.common.utils.dag.DAG;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * @author Devil
  * @since 2022/10/20
  */
-public class PlanFactory {
+public class PlanParamFactory {
 
     public static PlanAddParam newFixedRateAddParam() {
         PlanAddParam param = new PlanAddParam();
@@ -49,7 +58,7 @@ public class PlanFactory {
         param.setScheduleOption(scheduleOptionParam);
 
         JobAddParam n1 = normalJob("1", "hello");
-        n1.setChildrenIds(Sets.newHashSet("2"));
+        n1.setChildren(Sets.newHashSet("2"));
         JobAddParam n2 = normalJob("2", "hello");
 
         param.setJobs(Lists.newArrayList(n1, n2));
@@ -67,17 +76,16 @@ public class PlanFactory {
         param.setScheduleOption(scheduleOptionParam);
 
         JobAddParam n1 = normalJob("1", "hello");
-        n1.setChildrenIds(Sets.newHashSet("2"));
+        n1.setChildren(Sets.newHashSet("2"));
         JobAddParam n2 = normalJob("2", "hello");
 
         param.setJobs(Lists.newArrayList(n1, n2));
         return param;
     }
 
-    public static JobAddParam normalJob(String id, String executorName) {
+    public static JobAddParam normalJob(String name, String executorName) {
         JobAddParam job = new JobAddParam();
-        job.setJobId(id);
-        job.setJobName("xxx");
+        job.setName(name);
         job.setDescription("test normal");
         job.setType(JobType.NORMAL);
         job.setTriggerType(TriggerType.SCHEDULE);
@@ -91,9 +99,9 @@ public class PlanFactory {
         return job;
     }
 
-    public static JobAddParam broadcastJob(String id, String executorName) {
+    public static JobAddParam broadcastJob(String name, String executorName) {
         JobAddParam job = new JobAddParam();
-        job.setJobId(id);
+        job.setName(name);
         job.setDescription("test broadcast");
         job.setType(JobType.BROADCAST);
         job.setDispatchOption(DispatchOptionParam.builder()
@@ -106,9 +114,9 @@ public class PlanFactory {
         return job;
     }
 
-    public static JobAddParam mapJob(String id, String executorName) {
+    public static JobAddParam mapJob(String name, String executorName) {
         JobAddParam job = new JobAddParam();
-        job.setJobId(id);
+        job.setName(name);
         job.setDescription("test map");
         job.setType(JobType.MAP);
         job.setDispatchOption(DispatchOptionParam.builder()
@@ -121,9 +129,9 @@ public class PlanFactory {
         return job;
     }
 
-    public static JobAddParam mapReduceJob(String id, String executorName) {
+    public static JobAddParam mapReduceJob(String name, String executorName) {
         JobAddParam job = new JobAddParam();
-        job.setJobId(id);
+        job.setName(name);
         job.setDescription("test reduce");
         job.setType(JobType.MAP_REDUCE);
         job.setDispatchOption(DispatchOptionParam.builder()

@@ -158,6 +158,42 @@ UNLOCK
 TABLES;
 
 --
+-- Table structure for table `flowjob_job_info`
+--
+
+DROP TABLE IF EXISTS `flowjob_job_info`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `flowjob_job_info`
+(
+    `id`                  bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+    `plan_info_id`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+    `name`                varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+    `type`                tinyint                                                NOT NULL,
+    `trigger_type`        tinyint                                                NOT NULL,
+    `attributes`          text COLLATE utf8mb4_bin,
+    `dispatch_option`     varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+    `executor_name`       varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+    `terminate_with_fail` bit(1)                                                 NOT NULL DEFAULT 0,
+    `is_deleted`          bit(1)                                                 NOT NULL DEFAULT 0,
+    `created_at`          datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`          datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `flowjob_job_info`
+--
+
+LOCK
+TABLES `flowjob_job_info` WRITE;
+/*!40000 ALTER TABLE `flowjob_job_info` DISABLE KEYS */;
+/*!40000 ALTER TABLE `flowjob_job_info` ENABLE KEYS */;
+UNLOCK
+TABLES;
+
+--
 -- Table structure for table `flowjob_plan_instance`
 --
 

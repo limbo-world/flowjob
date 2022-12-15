@@ -18,13 +18,11 @@
 
 package org.limbo.flowjob.common.utils.dag;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.common.utils.Verifies;
-import org.limbo.flowjob.common.utils.json.DagDeserializer;
 import org.limbo.flowjob.common.utils.json.DagSerializer;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -36,12 +34,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- *
  * @author Devil
  * @since 2022/8/1
  */
 @JsonSerialize(using = DagSerializer.class)
-@JsonDeserialize(using = DagDeserializer.class)
 public class DAG<T extends DAGNode> implements Serializable {
 
     private static final long serialVersionUID = 4746630152041623943L;
@@ -233,6 +229,16 @@ public class DAG<T extends DAGNode> implements Serializable {
      */
     public List<T> nodes() {
         return new ArrayList<>(nodes.values());
+    }
+
+    /**
+     * 返回json字符串
+     */
+    public String json() {
+        return "[" + nodes.values().stream()
+                .map(node -> "{\"id\":\"" + node.getId() + "\",\"childrenIds\":" + JacksonUtils.toJSONString(node.getChildrenIds()) + "}")
+                .collect(Collectors.joining(","))
+                + "]";
     }
 
 }

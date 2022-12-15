@@ -137,7 +137,7 @@ public class DomainConverter {
         entity.setPlanVersion(jobInstance.getPlanVersion());
         entity.setJobId(jobInstance.getJobId());
         entity.setStatus(jobInstance.getStatus().status);
-        entity.setAttributes(jobInstance.getAttributes() == null ? "{}" : jobInstance.getAttributes().toString());
+        entity.setAttributes(JacksonUtils.toJSONString(jobInstance.getAttributes(), JacksonUtils.DEFAULT_NONE_OBJECT));
         entity.setTriggerAt(jobInstance.getTriggerAt());
         entity.setStartAt(jobInstance.getStartAt());
         entity.setEndAt(jobInstance.getEndAt());
