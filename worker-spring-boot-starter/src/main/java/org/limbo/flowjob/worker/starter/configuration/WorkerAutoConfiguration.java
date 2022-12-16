@@ -173,7 +173,7 @@ public class WorkerAutoConfiguration {
     @Bean("brokerLoadBalanceStrategy")
     @ConditionalOnMissingBean(name = "brokerLoadBalanceStrategy")
     public LBStrategy<BrokerNode> brokerLoadBalanceStrategy() {
-        return new RoundRobinLBStrategy<>(weightSupplier);
+        return new RoundRobinLBStrategy<>();
     }
 
 }

@@ -104,7 +104,7 @@ public class LoadBalanceInterceptor<S extends LBServer> implements Interceptor {
     public void updateLBStrategy(LBStrategy<S> strategy) {
         // 默认使用轮询
         if (strategy == null) {
-            strategy = new RoundRobinLBStrategy<>(weightSupplier);
+            strategy = new RoundRobinLBStrategy<>();
         }
 
         this.strategy = strategy;

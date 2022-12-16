@@ -21,8 +21,10 @@ package org.limbo.flowjob.broker.core.dispatch;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.limbo.flowjob.common.constants.LoadBalanceType;
 
@@ -37,6 +39,7 @@ import java.math.BigDecimal;
  */
 @Data
 @Setter(AccessLevel.NONE)
+// 如果用下面自己写的构造函数的，字段要按顺序对应
 @Builder(builderClassName = "Builder", toBuilder = true)
 public class DispatchOption implements Serializable {
 
@@ -49,12 +52,12 @@ public class DispatchOption implements Serializable {
     /**
      * 重试次数
      */
-    private final Integer retry;
+    private Integer retry;
 
     /**
      * 重试间隔
      */
-    private final Integer retryInterval;
+    private Integer retryInterval;
 
     /**
      * 所需的CPU核心数，小于等于0表示此作业未定义CPU需求。在分发作业时，会根据此方法返回的CPU核心需求数量来检测一个worker是否有能力执行此作业。
@@ -71,19 +74,19 @@ public class DispatchOption implements Serializable {
      */
     private TagFilterOption tagFilter;
 
-    @JsonCreator // @JsonProperty("scheduleType") 不去掉mapstruct会用set方式，比较奇怪
-    public DispatchOption(@JsonProperty("loadBalanceType") LoadBalanceType loadBalanceType,
-                          @JsonProperty("cpuRequirement") BigDecimal cpuRequirement,
-                          @JsonProperty("ramRequirement") BigDecimal ramRequirement,
-                          @JsonProperty("retry") Integer retry,
-                          @JsonProperty("retryInterval") Integer retryInterval,
-                          @JsonProperty("tagFilterOption") TagFilterOption tagFilter) {
-        this.loadBalanceType = loadBalanceType;
-        this.cpuRequirement = cpuRequirement == null ? BigDecimal.ZERO : cpuRequirement;
-        this.ramRequirement = ramRequirement == null ? BigDecimal.ZERO : ramRequirement;
-        this.retry = retry == null ? 0 : retry;
-        this.retryInterval = retryInterval == null ? 0 : retryInterval;
-        this.tagFilter = tagFilter;
-    }
+//    @JsonCreator // @JsonProperty("scheduleType") 不去掉mapstruct会用set方式，比较奇怪
+//    public DispatchOption(@JsonProperty("loadBalanceType") LoadBalanceType loadBalanceType,
+//                          @JsonProperty("retry") Integer retry,
+//                          @JsonProperty("retryInterval") Integer retryInterval,
+//                          @JsonProperty("cpuRequirement") BigDecimal cpuRequirement,
+//                          @JsonProperty("ramRequirement") BigDecimal ramRequirement,
+//                          @JsonProperty("tagFilterOption") TagFilterOption tagFilter) {
+//        this.loadBalanceType = loadBalanceType;
+//        this.cpuRequirement = cpuRequirement == null ? BigDecimal.ZERO : cpuRequirement;
+//        this.ramRequirement = ramRequirement == null ? BigDecimal.ZERO : ramRequirement;
+//        this.retry = retry == null ? 0 : retry;
+//        this.retryInterval = retryInterval == null ? 0 : retryInterval;
+//        this.tagFilter = tagFilter;
+//    }
 
 }
