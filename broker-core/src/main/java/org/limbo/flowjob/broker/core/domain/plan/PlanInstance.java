@@ -78,7 +78,8 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
     private LocalDateTime expectTriggerAt;
 
     /**
-     * 触发类型 todo 这个有啥用？ 和 job 上的触发类型一样的？
+     * 触发类型，触发本次 Plan 调度的方式，与 {@link JobInstance} 中的同名字段意义相同，
+     * {@link JobInstance#getTriggerType()} 是冗余字段。
      */
     private TriggerType triggerType;
 
