@@ -19,6 +19,8 @@ package org.limbo.flowjob.broker.application.plan.config;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.application.plan.component.PlanLoadTask;
+import org.limbo.flowjob.broker.application.plan.component.PlanScheduler;
+import org.limbo.flowjob.broker.application.plan.component.TaskScheduler;
 import org.limbo.flowjob.broker.application.plan.component.TaskStatusCheckTask;
 import org.limbo.flowjob.broker.application.plan.support.BrokerStarter;
 import org.limbo.flowjob.broker.application.plan.support.NodeMangerImpl;
@@ -43,6 +45,10 @@ import org.springframework.context.annotation.Configuration;
 import javax.inject.Inject;
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Brozen
@@ -122,6 +128,28 @@ public class BrokerConfiguration {
     @Bean
     public MetaTask taskStatusCheckTask() {
         return new TaskStatusCheckTask(Duration.ofMillis(brokerProperties.getStatusCheckInterval()));
+    }
+
+    @Bean
+    public ExecutorService planSchedulePool() {
+        return new ThreadPoolExecutor(
+                Runtime.getRuntime().availableProcessors() * 4,
+                Runtime.getRuntime().availableProcessors() * 4,
+                60,
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(256),
+                new ThreadPoolExecutor.CallerRunsPolicy());
+    }
+
+    @Bean
+    public ExecutorService taskSchedulePool() {
+        return new ThreadPoolExecutor(
+                Runtime.getRuntime().availableProcessors() * 8,
+                Runtime.getRuntime().availableProcessors() * 8,
+                60,
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(1024),
+                new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
 }

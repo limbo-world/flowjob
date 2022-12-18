@@ -26,10 +26,8 @@ import org.limbo.flowjob.broker.core.schedule.scheduler.HashedWheelTimerSchedule
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import java.util.concurrent.ArrayBlockingQueue;
+import javax.inject.Named;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Devil
@@ -45,13 +43,8 @@ public class TaskScheduler extends HashedWheelTimerScheduler<Task> {
     /**
      * 调度线程池
      */
-    private final ExecutorService schedulePool = new ThreadPoolExecutor(
-            Runtime.getRuntime().availableProcessors() * 8,
-            Runtime.getRuntime().availableProcessors() * 8,
-            60,
-            TimeUnit.SECONDS,
-            new ArrayBlockingQueue<>(1024),
-            new ThreadPoolExecutor.CallerRunsPolicy());
+    @Setter(onMethod_ = {@Inject, @Named("taskSchedulePool")})
+    private ExecutorService schedulePool;
 
     @Override
     protected void doSchedule(Task task) {

@@ -30,13 +30,12 @@ import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
-import org.limbo.flowjob.broker.dao.repositories.JobInfoRepo;
+import org.limbo.flowjob.broker.dao.repositories.JobInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.support.SlotManager;
 import org.limbo.flowjob.common.utils.Verifies;
-import org.limbo.flowjob.common.utils.dag.DAGNode;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Repository;
 
@@ -45,7 +44,6 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Brozen
@@ -62,7 +60,7 @@ public class PlanRepo implements PlanRepository {
     @Setter(onMethod_ = @Inject)
     private PlanSlotEntityRepo planSlotEntityRepo;
     @Setter(onMethod_ = @Inject)
-    private JobInfoRepo jobInfoRepo;
+    private JobInfoEntityRepo jobInfoEntityRepo;
 
     /**
      * {@inheritDoc}
@@ -110,8 +108,8 @@ public class PlanRepo implements PlanRepository {
         for (JobInfo jobInfo : planInfo.getDag().nodes()) {
             jobInfoEntities.add(toEntity(planInfoEntity.getPlanInfoId(), jobInfo));
         }
-        jobInfoRepo.saveAll(jobInfoEntities);
-        jobInfoRepo.flush();
+        jobInfoEntityRepo.saveAll(jobInfoEntities);
+        jobInfoEntityRepo.flush();
 
         return plan.getPlanId();
     }
@@ -182,7 +180,10 @@ public class PlanRepo implements PlanRepository {
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findByPlanIdAndPlanVersion(entity.getPlanId(), entity.getCurrentVersion());
         Verifies.notNull(planInfoEntity, "does not find " + entity.getPlanId() + " plan's info by version--" + entity.getCurrentVersion() + "");
 
-        PlanInfo planInfo = DomainConverter.toPlanInfo(planInfoEntity);
+        List<JobInfoEntity> jobInfoEntities = jobInfoEntityRepo.findByPlanInfoId(planInfoEntity.getPlanInfoId());
+        Verifies.notEmpty(jobInfoEntities, "does not find " + entity.getPlanId() + " plan's job info by version--" + entity.getCurrentVersion() + "");
+
+        PlanInfo planInfo = DomainConverter.toPlanInfo(planInfoEntity, jobInfoEntities);
 
         return new Plan(
                 entity.getPlanId(),

@@ -121,6 +121,7 @@ public class ScheduleService {
             }
         }
 
+        // rootJobs 可能为空 因为可能根节点都是非调度触发
         saveScheduleInfo(planInstance, rootJobs);
 
         // 执行调度逻辑

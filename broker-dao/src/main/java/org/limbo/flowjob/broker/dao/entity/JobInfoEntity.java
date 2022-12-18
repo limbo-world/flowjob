@@ -46,6 +46,11 @@ public class JobInfoEntity extends BaseEntity {
     private String name;
 
     /**
+     * 描述
+     */
+    private String description;
+
+    /**
      * 类型
      * @see JobType
      */

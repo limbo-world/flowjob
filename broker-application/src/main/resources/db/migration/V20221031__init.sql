@@ -169,6 +169,7 @@ CREATE TABLE `flowjob_job_info`
     `id`                  bigint(20) unsigned NOT NULL AUTO_INCREMENT,
     `plan_info_id`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
     `name`                varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+    `description`         varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `type`                tinyint                                                NOT NULL,
     `trigger_type`        tinyint                                                NOT NULL,
     `attributes`          text COLLATE utf8mb4_bin,

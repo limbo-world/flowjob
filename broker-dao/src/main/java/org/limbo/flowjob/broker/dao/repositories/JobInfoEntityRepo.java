@@ -21,11 +21,15 @@ package org.limbo.flowjob.broker.dao.repositories;
 import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 
 /**
  * @author Devil
  * @since 2022/6/22
  */
-public interface JobInfoRepo extends JpaRepository<JobInfoEntity, Long> {
+public interface JobInfoEntityRepo extends JpaRepository<JobInfoEntity, Long> {
+
+    List<JobInfoEntity> findByPlanInfoId(String planInfoId);
 
 }

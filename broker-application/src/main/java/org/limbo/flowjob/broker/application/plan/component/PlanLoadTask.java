@@ -82,7 +82,7 @@ public class PlanLoadTask extends PlanLoadMetaTask {
         }
         List<String> planIds = slotEntities.stream().map(PlanSlotEntity::getPlanId).collect(Collectors.toList());
         // todo 这里可以只获取id
-        List<PlanEntity> planEntities = planEntityRepo.findByPlanIdInAndEnabledAndNextTriggerAtBefore(planIds, false, nextTriggerAt);
+        List<PlanEntity> planEntities = planEntityRepo.findByPlanIdInAndEnabledAndNextTriggerAtBefore(planIds, true, nextTriggerAt);
         if (CollectionUtils.isEmpty(planEntities)) {
             return Collections.emptyList();
         }
