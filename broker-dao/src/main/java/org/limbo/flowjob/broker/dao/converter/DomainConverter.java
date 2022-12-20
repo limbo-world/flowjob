@@ -66,7 +66,6 @@ public class DomainConverter {
     public static ScheduleOption toScheduleOption(PlanInfoEntity entity) {
         return new ScheduleOption(
                 ScheduleType.parse(entity.getScheduleType()),
-                TriggerType.parse(entity.getTriggerType()),
                 entity.getScheduleStartAt(),
                 Duration.ofMillis(entity.getScheduleDelay()),
                 Duration.ofMillis(entity.getScheduleInterval()),
@@ -128,7 +127,7 @@ public class DomainConverter {
         taskEntity.setAttributes(task.getAttributes() == null ? "" : task.getAttributes().toString());
         taskEntity.setStartAt(task.getStartAt());
         taskEntity.setEndAt(task.getEndAt());
-        taskEntity.setTaskId(task.getTaskId());
+        taskEntity.setTaskId(task.getMetaId());
         return taskEntity;
     }
 

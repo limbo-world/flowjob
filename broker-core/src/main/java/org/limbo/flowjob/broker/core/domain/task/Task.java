@@ -24,6 +24,9 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.schedule.Scheduled;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
+import org.limbo.flowjob.broker.core.service.IScheduleService;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
@@ -42,7 +45,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class Task implements Scheduled, Serializable {
+public class Task implements MetaTask, Serializable {
     private static final long serialVersionUID = -9164373359695671417L;
 
     private String taskId;
@@ -81,6 +84,11 @@ public class Task implements Scheduled, Serializable {
     private Attributes attributes;
 
     /**
+     * 期望的触发时间
+     */
+    private LocalDateTime triggerAt;
+
+    /**
      * 开始时间
      */
     private LocalDateTime startAt;
@@ -100,13 +108,26 @@ public class Task implements Scheduled, Serializable {
      */
     private String executorName;
 
+    private IScheduleService iScheduleService;
+
     @Override
-    public String scheduleId() {
-        return null;
+    public void execute() {
+        iScheduleService.schedule(this);
+    }
+
+    @Override
+    public MetaTaskType getType() {
+        return MetaTaskType.TASK;
+    }
+
+    @Override
+    public String getMetaId() {
+        return taskId;
     }
 
     @Override
     public LocalDateTime triggerAt() {
-        return null;
+        return triggerAt;
     }
+
 }

@@ -25,6 +25,8 @@ import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
+import org.limbo.flowjob.broker.core.service.IScheduleService;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
@@ -61,6 +63,10 @@ public class PlanRepo implements PlanRepository {
     private PlanSlotEntityRepo planSlotEntityRepo;
     @Setter(onMethod_ = @Inject)
     private JobInfoEntityRepo jobInfoEntityRepo;
+    @Setter(onMethod_ = @Inject)
+    private IScheduleService iScheduleService; // todo 循环依赖
+    @Setter(onMethod_ = @Inject)
+    private MetaTaskScheduler metaTaskScheduler;
 
     /**
      * {@inheritDoc}
@@ -136,9 +142,10 @@ public class PlanRepo implements PlanRepository {
 
         entity.setDescription(planInfo.getDescription());
 
+        entity.setTriggerType(planInfo.getTriggerType().type);
+
         ScheduleOption scheduleOption = planInfo.getScheduleOption();
         entity.setScheduleType(scheduleOption.getScheduleType().type);
-        entity.setTriggerType(scheduleOption.getTriggerType().type);
         entity.setScheduleStartAt(scheduleOption.getScheduleStartAt());
         entity.setScheduleDelay(scheduleOption.getScheduleDelay().toMillis());
         entity.setScheduleInterval(scheduleOption.getScheduleInterval().toMillis());
@@ -158,7 +165,7 @@ public class PlanRepo implements PlanRepository {
         planEntity.setRecentlyVersion(plan.getRecentlyVersion());
         planEntity.setEnabled(plan.isEnabled());
         planEntity.setPlanId(plan.getPlanId());
-        planEntity.setNextTriggerAt(plan.getNextTriggerAt());
+        planEntity.setNextTriggerAt(plan.getTriggerAt());
         return planEntity;
     }
 
@@ -191,7 +198,9 @@ public class PlanRepo implements PlanRepository {
                 entity.getRecentlyVersion(),
                 entity.getNextTriggerAt(),
                 planInfo,
-                entity.isEnabled()
+                entity.isEnabled(),
+                iScheduleService,
+                metaTaskScheduler
         );
 
     }

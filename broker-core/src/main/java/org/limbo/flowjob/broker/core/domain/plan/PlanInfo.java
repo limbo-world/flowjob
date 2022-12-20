@@ -23,6 +23,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
+import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.dag.DAG;
 
 import java.io.Serializable;
@@ -54,6 +55,11 @@ public class PlanInfo implements Serializable {
      * 执行计划描述
      */
     private String description;
+
+    /**
+     * 触发类型
+     */
+    private TriggerType triggerType;
 
     /**
      * 作业计划调度配置参数

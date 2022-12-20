@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * 提供缓存的调度器
+ *
  * @author Devil
  * @since 2022/7/25
  */
@@ -38,18 +40,12 @@ public abstract class CacheableScheduler<T extends Scheduled> implements Schedul
         this.scheduling = new ConcurrentHashMap<>();
     }
 
-
     /**
      * 是否进行了缓存
      * @return 放入返回true 否则返回false
      */
-    public boolean put(Scheduled scheduled) {
-        String id = scheduled.scheduleId();
-        if (!scheduling.containsKey(id)) {
-            scheduling.put(id, scheduled);
-            return true;
-        }
-        return false;
+    public Scheduled put(Scheduled scheduled) {
+        return scheduling.put(scheduled.scheduleId(), scheduled);
     }
 
     @Override

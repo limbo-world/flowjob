@@ -58,7 +58,7 @@ public class CronScheduleCalculator extends ScheduleCalculator {
         long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
 
         // 计算第一次调度
-        if (calculated.lastScheduleAt() == null) {
+        if (calculated.lastTriggerAt() == null) {
             return Math.max(startScheduleAt, nowInstant.getEpochSecond());
         }
 

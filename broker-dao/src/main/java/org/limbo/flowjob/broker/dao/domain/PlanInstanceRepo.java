@@ -75,7 +75,7 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
         planInstanceEntity.setPlanVersion(instance.getVersion());
         planInstanceEntity.setStatus(instance.getStatus().status);
         planInstanceEntity.setTriggerType(instance.getTriggerType().type);
-        planInstanceEntity.setExpectTriggerAt(instance.getExpectTriggerAt());
+        planInstanceEntity.setStartAt(instance.getStartAt());
         planInstanceEntity.setTriggerAt(instance.getTriggerAt());
         planInstanceEntity.setFeedbackAt(instance.getFeedbackAt());
         return planInstanceEntity;
@@ -87,7 +87,7 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
         planInstance.setPlanId(entity.getPlanId());
         planInstance.setVersion(entity.getPlanVersion());
         planInstance.setStatus(PlanStatus.parse(entity.getStatus()));
-        planInstance.setExpectTriggerAt(entity.getExpectTriggerAt());
+        planInstance.setStartAt(entity.getStartAt());
         planInstance.setTriggerType(TriggerType.parse(entity.getTriggerType()));
         planInstance.setTriggerAt(entity.getTriggerAt());
         planInstance.setFeedbackAt(entity.getFeedbackAt());

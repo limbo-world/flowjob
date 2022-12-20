@@ -18,16 +18,20 @@
 
 package org.limbo.flowjob.broker.core.domain.plan;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.LoopMetaTask;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
+import org.limbo.flowjob.broker.core.service.IScheduleService;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- *
  * 执行计划。一个计划{@link Plan}对应至少一个作业{@link JobInfo}
  * 主要是对plan的管理
  *
@@ -37,7 +41,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @ToString
-public class Plan implements Serializable {
+public class Plan extends LoopMetaTask implements Serializable {
 
     private static final long serialVersionUID = 5657376836197403211L;
 
@@ -57,11 +61,6 @@ public class Plan implements Serializable {
     private Integer recentlyVersion;
 
     /**
-     * 下次触发时间
-     */
-    private LocalDateTime nextTriggerAt;
-
-    /**
      * 当前版本的Plan数据
      */
     private PlanInfo info;
@@ -71,12 +70,35 @@ public class Plan implements Serializable {
      */
     private boolean enabled;
 
-    public Plan(String planId, Integer currentVersion, Integer recentlyVersion, LocalDateTime nextTriggerAt, PlanInfo info, boolean enabled) {
+    @Setter(AccessLevel.NONE)
+    @Getter(AccessLevel.NONE)
+    @ToString.Exclude
+    private IScheduleService iScheduleService;
+
+    public Plan(String planId, Integer currentVersion, Integer recentlyVersion, LocalDateTime triggerAt, PlanInfo info, boolean enabled,
+                IScheduleService iScheduleService, MetaTaskScheduler metaTaskScheduler) {
+        super(triggerAt, info.getScheduleOption(), metaTaskScheduler);
         this.planId = planId;
         this.currentVersion = currentVersion;
         this.recentlyVersion = recentlyVersion;
-        this.nextTriggerAt = nextTriggerAt;
         this.info = info;
         this.enabled = enabled;
+        this.iScheduleService = iScheduleService;
     }
+
+    @Override
+    protected void executeTask() {
+        iScheduleService.schedule(this);
+    }
+
+    @Override
+    public MetaTaskType getType() {
+        return MetaTaskType.PLAN;
+    }
+
+    @Override
+    public String getMetaId() {
+        return planId + "-" + currentVersion;
+    }
+
 }

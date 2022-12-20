@@ -16,74 +16,31 @@
 
 package org.limbo.flowjob.broker.core.schedule.scheduler.meta;
 
-import lombok.Getter;
 import org.limbo.flowjob.broker.core.schedule.Scheduled;
-
-import java.time.LocalDateTime;
 
 /**
  * @author Brozen
  * @since 2022-10-11
  */
-public abstract class MetaTask implements Scheduled {
-
-    @Getter
-    private final String taskId;
+public interface MetaTask extends Scheduled {
 
     /**
-     * 下次任务触发时间
+     * 任务执行
      */
-    private LocalDateTime triggerAt;
+    void execute();
 
+    /**
+     * @return 任务类型
+     */
+    MetaTaskType getType();
 
-    protected MetaTask(String taskId) {
-        this.taskId = taskId;
+    /**
+     * @return 任务id
+     */
+    String getMetaId();
+
+    default String scheduleId() {
+        return getType().name() + "-" + getMetaId();
     }
-
-
-    /**
-     * 触发元任务执行，并更新元任务的触发时间。
-     */
-    public void execute() {
-        executeTask();
-        nextTriggerTime(false);
-    }
-
-
-    /**
-     *
-     */
-    protected abstract void executeTask();
-
-    protected void nextTriggerTime(boolean firstTime) {
-        this.triggerAt = calculateNextTriggerTime(firstTime);
-    }
-
-    /**
-     * 计算当前元任务的下次触发时间。
-     * @param firstTime 是否计算首次触发间隔
-     */
-    protected abstract LocalDateTime calculateNextTriggerTime(boolean firstTime);
-
-
-    /**
-     * {@inheritDoc}
-     * @return
-     */
-    @Override
-    public String scheduleId() {
-        return this.taskId;
-    }
-
-
-    /**
-     * {@inheritDoc}
-     * @return
-     */
-    @Override
-    public LocalDateTime triggerAt() {
-        return this.triggerAt;
-    }
-
 
 }

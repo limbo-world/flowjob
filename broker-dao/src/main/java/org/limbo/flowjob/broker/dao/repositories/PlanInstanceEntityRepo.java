@@ -33,13 +33,17 @@ import java.time.LocalDateTime;
  */
 public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity, String> {
 
-    PlanInstanceEntity findByPlanIdAndExpectTriggerAtAndTriggerType(String planId, LocalDateTime expectTriggerTime, Byte triggerType);
+    PlanInstanceEntity findByPlanIdAndTriggerAtAndTriggerType(String planId, LocalDateTime expectTriggerTime, Byte triggerType);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanInstanceEntity set status = "+ ConstantsPool.PLAN_STATUS_SUCCEED+", feedbackAt = :feedbackAt where planInstanceId = :planInstanceId and status = "+ConstantsPool.PLAN_STATUS_EXECUTING)
+    @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.PLAN_STATUS_EXECUTING + ", startAt = :startAt where planInstanceId = :planInstanceId and status = " + ConstantsPool.PLAN_STATUS_SCHEDULING)
+    int executing(@Param("planInstanceId") String planInstanceId, @Param("feedbackAt") LocalDateTime startAt);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.PLAN_STATUS_SUCCEED + ", feedbackAt = :feedbackAt where planInstanceId = :planInstanceId and status = " + ConstantsPool.PLAN_STATUS_EXECUTING)
     int success(@Param("planInstanceId") String planInstanceId, @Param("feedbackAt") LocalDateTime feedbackAt);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanInstanceEntity set status = "+ConstantsPool.PLAN_STATUS_FAILED+", feedbackAt = :feedbackAt where planInstanceId = :planInstanceId and status = " + ConstantsPool.PLAN_STATUS_EXECUTING)
+    @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.PLAN_STATUS_FAILED + ", feedbackAt = :feedbackAt where planInstanceId = :planInstanceId and status = " + ConstantsPool.PLAN_STATUS_EXECUTING)
     int fail(@Param("planInstanceId") String planInstanceId, @Param("feedbackAt") LocalDateTime feedbackAt);
 }

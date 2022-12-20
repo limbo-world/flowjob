@@ -39,9 +39,13 @@ public class PlanEntity extends BaseEntity {
      */
     private String appId;
     /**
-     * 下次触发时间
+     * 下次调度触发时间
      */
     private LocalDateTime nextTriggerAt;
+    /**
+     * 上次调度时间
+     */
+    private LocalDateTime lastScheduleAt;
     /**
      * 上次完成时间
      */

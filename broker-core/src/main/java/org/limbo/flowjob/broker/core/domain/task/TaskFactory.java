@@ -24,8 +24,8 @@ import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.core.service.IScheduleService;
 import org.limbo.flowjob.broker.core.worker.Worker;
-import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
@@ -51,9 +51,12 @@ public class TaskFactory {
 
     private final IDGenerator idGenerator;
 
-    public TaskFactory(WorkerManager workerManager, IDGenerator idGenerator) {
+    private final IScheduleService iScheduleService;
+
+    public TaskFactory(WorkerManager workerManager, IDGenerator idGenerator, IScheduleService iScheduleService) {
         this.workerManager = workerManager;
         this.idGenerator = idGenerator;
+        this.iScheduleService = iScheduleService;
 
         creators = new EnumMap<>(TaskType.class);
 
@@ -87,7 +90,7 @@ public class TaskFactory {
     /**
      * Task 创建策略接口，在这里对 Task 进行多种代理（装饰），实现下发重试策略。
      */
-    abstract static class TaskCreator {
+    abstract class TaskCreator {
 
         public abstract TaskType getType();
 
@@ -101,6 +104,7 @@ public class TaskFactory {
             task.setStatus(TaskStatus.DISPATCHING);
             task.setDispatchOption(instance.getDispatchOption());
             task.setExecutorName(instance.getExecutorName());
+            task.setIScheduleService(iScheduleService);
             task.setAttributes(instance.getAttributes());
             task.setAvailableWorkers(availableWorkers);
         }

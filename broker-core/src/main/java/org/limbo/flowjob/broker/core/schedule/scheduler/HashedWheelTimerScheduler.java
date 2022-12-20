@@ -56,26 +56,31 @@ public abstract class HashedWheelTimerScheduler<T extends Scheduled> extends Cac
      */
     @Override
     public void schedule(T scheduled) {
-        if (put(scheduled)) {
-            // 计算延迟时间
-            long delay = Duration.between(TimeUtils.currentLocalDateTime(), scheduled.triggerAt()).toMillis();
-            delay = delay < 0 ? 0 : delay;
-
-            // 在timer上调度作业执行
-            this.timer.newTimeout(timeout -> {
-                try {
-                    // 已经取消调度了，则不再重新调度作业
-                    if (!isScheduling(scheduled.scheduleId())) {
-                        return;
-                    }
-
-                    doSchedule(scheduled);
-
-                } catch (Exception e) {
-                    log.error("[HashedWheelTimerScheduler] schedule fail id:{}", scheduled.scheduleId(), e);
-                }
-            }, delay, TimeUnit.MILLISECONDS);
+        if (isScheduling(scheduled.scheduleId())) {
+            return;
         }
+
+        // 放入缓存
+        put(scheduled);
+
+        // 计算延迟时间
+        long delay = Duration.between(TimeUtils.currentLocalDateTime(), scheduled.triggerAt()).toMillis();
+        delay = delay < 0 ? 0 : delay;
+
+        // 在timer上调度作业执行
+        this.timer.newTimeout(timeout -> {
+            try {
+                // 已经取消调度了，则不再重新调度作业
+                if (!isScheduling(scheduled.scheduleId())) {
+                    return;
+                }
+
+                doSchedule(scheduled);
+
+            } catch (Exception e) {
+                log.error("[HashedWheelTimerScheduler] schedule fail id:{}", scheduled.scheduleId(), e);
+            }
+        }, delay, TimeUnit.MILLISECONDS);
     }
 
     protected abstract void doSchedule(T scheduled);

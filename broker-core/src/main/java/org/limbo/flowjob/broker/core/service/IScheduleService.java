@@ -16,36 +16,21 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.schedule;
+package org.limbo.flowjob.broker.core.service;
 
-import java.time.LocalDateTime;
+import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.broker.core.domain.task.Task;
 
 /**
- * 计算调度
- *
  * @author Devil
- * @since 2022/8/8
+ * @since 2022/12/19
  */
-public interface Calculated extends Scheduled {
+public interface IScheduleService {
 
-    /**
-     * 获取调度配置
-     */
-    ScheduleOption scheduleOption();
+    void schedule(Plan plan);
 
-    /**
-     * 获取上次触发时间
-     */
-    LocalDateTime lastTriggerAt();
+    void schedule(Task task);
 
-    /**
-     * 获取下次触发时间
-     */
-    LocalDateTime nextTriggerAt();
-
-    /**
-     * 获取上次调度反馈的时间
-     */
-    LocalDateTime lastFeedbackAt();
+    void handleTaskFail(String taskId, String jobInstanceId, String errorMsg, String errorStackTrace);
 
 }

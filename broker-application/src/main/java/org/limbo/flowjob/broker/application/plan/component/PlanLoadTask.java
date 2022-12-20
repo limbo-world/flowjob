@@ -24,15 +24,15 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.core.domain.plan.PlanFactory;
-import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanLoadMetaTask;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.AbstractPlanLoadTask;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.support.SlotManager;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import javax.inject.Inject;
 import java.time.Duration;
@@ -46,10 +46,7 @@ import java.util.stream.Collectors;
  * 获取可以下发的plan 创建对应的 PlanInstance 进行调度
  */
 @Slf4j
-public class PlanLoadTask extends PlanLoadMetaTask {
-
-    @Setter(onMethod_ = @Inject)
-    private PlanScheduler scheduler;
+public class PlanLoadTask extends AbstractPlanLoadTask {
 
     @Setter(onMethod_ = @Inject)
     private PlanEntityRepo planEntityRepo;
@@ -61,17 +58,17 @@ public class PlanLoadTask extends PlanLoadMetaTask {
     private PlanSlotEntityRepo planSlotEntityRepo;
 
 
-    public PlanLoadTask(Duration interval, BrokerConfig config, NodeManger nodeManger, PlanFactory planFactory) {
-        super("Meta[PlanScheduleTask]", interval, config, nodeManger, planFactory);
+    public PlanLoadTask(Duration interval, BrokerConfig config, NodeManger nodeManger, MetaTaskScheduler scheduler) {
+        super(interval, config, nodeManger, scheduler);
     }
 
 
     /**
      * {@inheritDoc}
-     * @param nextTriggerAt 指定的触发时间
      * @return
      */
-    protected List<Plan> loadSchedulablePlans(LocalDateTime nextTriggerAt) {
+    @Override
+    protected List<Plan> loadPlans() {
         List<Integer> slots = SlotManager.slots(getNodeManger().allAlive(), getConfig().getHost(), getConfig().getPort());
         if (CollectionUtils.isEmpty(slots)) {
             return Collections.emptyList();
@@ -80,6 +77,7 @@ public class PlanLoadTask extends PlanLoadMetaTask {
         if (CollectionUtils.isEmpty(slotEntities)) {
             return Collections.emptyList();
         }
+        LocalDateTime nextTriggerAt = TimeUtils.currentLocalDateTime().plusSeconds(30);
         List<String> planIds = slotEntities.stream().map(PlanSlotEntity::getPlanId).collect(Collectors.toList());
         // todo 这里可以只获取id
         List<PlanEntity> planEntities = planEntityRepo.findByPlanIdInAndEnabledAndNextTriggerAtBefore(planIds, true, nextTriggerAt);
@@ -91,16 +89,6 @@ public class PlanLoadTask extends PlanLoadMetaTask {
             plans.add(planRepository.get(planEntity.getPlanId()));
         }
         return plans;
-    }
-
-
-    /**
-     * {@inheritDoc}
-     * @param plan
-     */
-    @Override
-    protected void schedulePlan(PlanInstance plan) {
-        scheduler.schedule(plan);
     }
 
 }

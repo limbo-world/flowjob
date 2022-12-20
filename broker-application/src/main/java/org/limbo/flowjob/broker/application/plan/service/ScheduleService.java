@@ -22,11 +22,13 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.param.TaskFeedbackParam;
-import org.limbo.flowjob.broker.application.plan.component.TaskScheduler;
 import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.job.JobFactory;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.broker.core.domain.plan.PlanFactory;
+import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
@@ -34,6 +36,8 @@ import org.limbo.flowjob.broker.core.exceptions.JobException;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.repository.TaskRepository;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
+import org.limbo.flowjob.broker.core.service.IScheduleService;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
@@ -58,6 +62,7 @@ import org.springframework.stereotype.Service;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +76,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-public class ScheduleService {
+public class ScheduleService implements IScheduleService {
 
     @Setter(onMethod_ = @Inject)
     private JobInstanceEntityRepo jobInstanceEntityRepo;
@@ -86,7 +91,7 @@ public class ScheduleService {
     private PlanInstanceRepository planInstanceRepository;
 
     @Setter(onMethod_ = @Inject)
-    private TaskScheduler taskScheduler;
+    private MetaTaskScheduler metaTaskScheduler;
 
     @Setter(onMethod_ = @Inject)
     private PlanInstanceEntityRepo planInstanceEntityRepo;
@@ -103,16 +108,55 @@ public class ScheduleService {
     @Setter(onMethod_ = @Inject)
     private PlanEntityRepo planEntityRepo;
 
-    /**
-     * 调度PlanInstance
-     * @param planInstance
-     */
-    @Transactional
-    public void schedulePlanInstance(PlanInstance planInstance) {
-        // 保存数据
-        planInstance.trigger();
+    @Setter(onMethod_ = @Inject)
+    private PlanFactory planFactory;
 
-        // 获取头部数据
+    @Override
+    @Transactional
+    public void schedule(Plan plan) {
+        PlanInfo planInfo = plan.getInfo();
+        if (planInfo.getScheduleOption().getScheduleType() == null) {
+            log.error("{} scheduleType is null info={}", plan.scheduleId(), planInfo);
+            return;
+        }
+        if (ScheduleType.UNKNOWN == planInfo.getScheduleOption().getScheduleType()) {
+            log.error("{} scheduleType is {} info={}", plan.scheduleId(), MsgConstants.UNKNOWN, planInfo);
+            return;
+        }
+        if (ScheduleType.NONE == planInfo.getScheduleOption().getScheduleType()) {
+            return;
+        }
+
+        String planId = plan.getPlanId();
+        // 加锁
+        planEntityRepo.selectForUpdate(planId);
+
+        PlanInstance planInstance = planFactory.newInstance(planInfo, TriggerType.SCHEDULE, plan.getTriggerAt());
+
+        // 判断并发情况下 是否已经有人提交调度任务 如有则无需处理 防止重复创建数据
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findByPlanIdAndTriggerAtAndTriggerType(
+                planId, planInstance.getTriggerAt(), TriggerType.SCHEDULE.type
+        );
+        if (planInstanceEntity != null) {
+            return;
+        }
+
+        // 保存 planInstance
+        planInstanceRepository.save(planInstance);
+
+        // 更新plan的下次触发时间
+        if (TriggerType.SCHEDULE == planInstance.getTriggerType()) {
+            switch (planInstance.getScheduleOption().getScheduleType()) {
+                case FIXED_RATE:
+                case CRON:
+                    planEntityRepo.nextTriggerAt(planId, plan.nextTriggerAt());
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // 获取头部节点
         List<JobInstance> rootJobs = new ArrayList<>();
 
         for (JobInfo jobInfo : planInstance.getDag().origins()) {
@@ -121,92 +165,86 @@ public class ScheduleService {
             }
         }
 
-        // rootJobs 可能为空 因为可能根节点都是非调度触发
-        saveScheduleInfo(planInstance, rootJobs);
-
-        // 执行调度逻辑
-        for (JobInstance instance : rootJobs) {
-            scheduleJobInstance(instance);
+        // 如果root都为api触发则为空 交由api创建
+        if (CollectionUtils.isNotEmpty(rootJobs)) {
+            scheduleJobInstances(rootJobs);
         }
     }
 
-    private void saveScheduleInfo(PlanInstance planInstance, List<JobInstance> rootJobs) {
-        String planId = planInstance.getPlanId();
-
-        // 加锁
-        planEntityRepo.selectForUpdate(planId);
-
-        // 判断并发情况下 是否已经有人提交调度任务 如有则无需处理 防止重复创建数据
-        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo
-                .findByPlanIdAndExpectTriggerAtAndTriggerType(
-                        planId, planInstance.getExpectTriggerAt(), TriggerType.SCHEDULE.type
-                );
-        if (planInstanceEntity != null) {
-            return;
+    @Override
+    @Transactional
+    public void schedule(Task task) {
+        int num = taskEntityRepo.updateStatusDispatching(task.getTaskId());
+        if (num < 1) {
+            return; // 可能多个节点操作同个task
         }
 
-        // 保存 planInstance
-        planInstanceRepository.save(planInstance);
+        // 下面两个可能会被其他task更新 但是这是正常的
+        planInstanceEntityRepo.executing(task.getPlanId(), TimeUtils.currentLocalDateTime());
+        jobInstanceEntityRepo.updateStatusExecuting(task.getJobInstanceId());
 
-        // 保存 jobInstance
-        jobInstanceRepository.saveAll(rootJobs);
+        // todo 判断是否有 workId 广播 会已经存在 其他应该在这里获取
+        TaskDispatcher.dispatch(task);
 
-        // 更新plan的下次触发时间
-        if (ScheduleType.FIXED_DELAY != planInstance.getScheduleOption().getScheduleType() && TriggerType.SCHEDULE == planInstance.getScheduleOption().getTriggerType()) {
-            planEntityRepo.nextTriggerAt(planId, planInstance.nextTriggerAt());
+        if (TaskStatus.FAILED == task.getStatus()) {
+            // 下发失败
+            handleTaskFail(task.getMetaId(), task.getJobInstanceId(), MsgConstants.DISPATCH_FAIL, "");
+        } else {
+            // 下发成功
+            taskEntityRepo.updateStatusExecuting(task.getMetaId(), task.getWorkerId(), TimeUtils.currentLocalDateTime());
         }
     }
 
     /**
      * 调度jobInstance
-     * @param instance
      */
     @Transactional
-    public void scheduleJobInstance(JobInstance instance) {
-        // 更新 job 为执行中
-        int num = jobInstanceEntityRepo.updateStatusExecuting(instance.getJobInstanceId());
+    public void scheduleJobInstances(List<JobInstance> jobInstances) {
 
-        if (num != 1) {
-            return;
-        }
+        // 保存 jobInstance
+        jobInstanceRepository.saveAll(jobInstances);
 
-        // 根据job类型创建task
-        List<Task> tasks;
-        switch (instance.getType()) {
-            case NORMAL:
-                tasks = taskFactory.create(instance, TaskType.NORMAL);
-                break;
-            case BROADCAST:
-                tasks = taskFactory.create(instance, TaskType.BROADCAST);
-                break;
-            case MAP:
-            case MAP_REDUCE:
-                tasks = taskFactory.create(instance, TaskType.SPLIT);
-                break;
-            default:
-                throw new JobException(instance.getJobId(), MsgConstants.UNKNOWN + " job type:" + instance.getType().type);
-        }
-
-        // 如果可以创建的任务为空（一般为广播任务）则需要判断是终止plan还是继续下发后续job
-        if (CollectionUtils.isEmpty(tasks)) {
-            // job 是否终止流程
-            if (instance.isTerminateWithFail()) {
-                jobInstanceEntityRepo.updateStatusExecuteFail(instance.getJobInstanceId(), MsgConstants.EMPTY_TASKS);
-            } else {
-                PlanInstance planInstance = planInstanceRepository.get(instance.getPlanInstanceId());
-                scheduleNextJobInstance(planInstance, instance.getJobId());
+        List<Task> tasks = new ArrayList<>();
+        for (JobInstance instance : jobInstances) {
+            // 根据job类型创建task
+            List<Task> jobTasks;
+            switch (instance.getType()) {
+                case NORMAL:
+                    jobTasks = taskFactory.create(instance, TaskType.NORMAL);
+                    break;
+                case BROADCAST:
+                    jobTasks = taskFactory.create(instance, TaskType.BROADCAST);
+                    break;
+                case MAP:
+                case MAP_REDUCE:
+                    jobTasks = taskFactory.create(instance, TaskType.SPLIT);
+                    break;
+                default:
+                    throw new JobException(instance.getJobId(), MsgConstants.UNKNOWN + " job type:" + instance.getType().type);
             }
-        } else {
 
-            taskRepository.saveAll(tasks);
-
-            for (Task task : tasks) {
-                try {
-                    taskScheduler.schedule(task);
-                } catch (Exception e) {
-                    // 调度失败 不要影响事务，事务提交后 由task的状态检查任务去修复task的执行情况
-                    log.error("task schedule fail! task={}", task);
+            // 如果可以创建的任务为空（一般为广播任务）则需要判断是终止plan还是继续下发后续job
+            if (CollectionUtils.isEmpty(jobTasks)) {
+                // job 是否终止流程
+                if (instance.isTerminateWithFail()) {
+                    jobInstanceEntityRepo.updateStatusExecuteFail(instance.getJobInstanceId(), MsgConstants.EMPTY_TASKS);
+                } else {
+                    PlanInstance planInstance = planInstanceRepository.get(instance.getPlanInstanceId());
+                    scheduleNextJobInstance(planInstance, instance.getJobId());
                 }
+            } else {
+                tasks.addAll(jobTasks);
+            }
+        }
+
+        taskRepository.saveAll(tasks);
+
+        for (Task task : tasks) {
+            try {
+                metaTaskScheduler.schedule(task);
+            } catch (Exception e) {
+                // 调度失败 不要影响事务，事务提交后 由task的状态检查任务去修复task的执行情况
+                log.error("task schedule fail! task={}", task);
             }
         }
 
@@ -239,11 +277,7 @@ public class ScheduleService {
             }
 
             if (CollectionUtils.isNotEmpty(subJobInstances)) {
-                jobInstanceRepository.saveAll(subJobInstances);
-
-                for (JobInstance subJobInstance : subJobInstances) {
-                    scheduleJobInstance(subJobInstance); // 这里递归了会不会性能不太好
-                }
+                scheduleJobInstances(subJobInstances);
             }
 
         }
@@ -279,21 +313,6 @@ public class ScheduleService {
         }
 
         return true;
-    }
-
-    @Transactional
-    public void scheduleTask(Task task) {
-        // 判断是否有workid 广播 会已经存在 其他应该在这里获取
-
-        TaskDispatcher.dispatch(task);
-
-        if (TaskStatus.FAILED == task.getStatus()) {
-            // 下发失败
-            handleTaskFail(task.getTaskId(), task.getJobInstanceId(), MsgConstants.DISPATCH_FAIL, "");
-        } else {
-            // 下发成功
-            taskEntityRepo.updateStatusExecuting(task.getTaskId(), task.getWorkerId());
-        }
     }
 
     /**
@@ -335,7 +354,7 @@ public class ScheduleService {
     public void handleTaskSuccess(String taskId, String jobInstanceId, TaskFeedbackParam param) {
         // todo 更新plan上下文
 
-        int num = taskEntityRepo.updateStatusSuccess(taskId, JacksonUtils.toJSONString(param.getResultAttributes()));
+        int num = taskEntityRepo.updateStatusSuccess(taskId, TimeUtils.currentLocalDateTime(), JacksonUtils.toJSONString(param.getResultAttributes()));
 
         if (num != 1) { // 已经被更新 无需重复处理
             return;
@@ -344,8 +363,9 @@ public class ScheduleService {
     }
 
     @Transactional
+    @Override
     public void handleTaskFail(String taskId, String jobInstanceId, String errorMsg, String errorStackTrace) {
-        int num = taskEntityRepo.updateStatusFail(taskId, errorMsg, errorStackTrace);
+        int num = taskEntityRepo.updateStatusFail(taskId, TimeUtils.currentLocalDateTime(), errorMsg, errorStackTrace);
 
         if (num != 1) {
             return; // 并发更新过了 正常来说前面job更新成功 这个不可能会进来
@@ -397,8 +417,7 @@ public class ScheduleService {
             jobInstanceEntityRepo.updateStatusExecuteFail(jobInstance.getJobInstanceId(), MsgConstants.TASK_FAIL);
 
             if (jobInstance.retry()) {
-                jobInstanceRepository.save(jobInstance);
-                scheduleJobInstance(jobInstance);
+                scheduleJobInstances(Collections.singletonList(jobInstance));
             } else {
                 planInstanceEntityRepo.fail(jobInstance.getPlanInstanceId(), TimeUtils.currentLocalDateTime());
             }
