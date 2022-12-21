@@ -77,10 +77,8 @@ public class PlanLoadTask extends AbstractPlanLoadTask {
         if (CollectionUtils.isEmpty(slotEntities)) {
             return Collections.emptyList();
         }
-        LocalDateTime nextTriggerAt = TimeUtils.currentLocalDateTime().plusSeconds(30);
         List<String> planIds = slotEntities.stream().map(PlanSlotEntity::getPlanId).collect(Collectors.toList());
-        // todo 这里可以只获取id
-        List<PlanEntity> planEntities = planEntityRepo.findByPlanIdInAndEnabledAndNextTriggerAtBefore(planIds, true, nextTriggerAt);
+        List<PlanEntity> planEntities = planEntityRepo.findByPlanIdInAndEnabled(planIds, true);
         if (CollectionUtils.isEmpty(planEntities)) {
             return Collections.emptyList();
         }

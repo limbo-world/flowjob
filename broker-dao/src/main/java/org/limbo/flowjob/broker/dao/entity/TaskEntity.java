@@ -42,6 +42,8 @@ public class TaskEntity extends BaseEntity {
 
     private String planId;
 
+    private Integer planVersion;
+
     /**
      * 执行作业的worker ID
      */

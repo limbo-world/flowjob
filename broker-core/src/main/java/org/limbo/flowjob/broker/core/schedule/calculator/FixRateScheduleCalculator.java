@@ -46,24 +46,15 @@ public class FixRateScheduleCalculator extends ScheduleCalculator {
      * @return 下次触发调度的时间戳，当返回非正数时，表示作业不会有触发时间。
      */
     @Override
-    public Long calculate(Calculated calculated) {
-
+    public Long doCalculate(Calculated calculated) {
         ScheduleOption scheduleOption = calculated.scheduleOption();
-        long now = TimeUtils.currentInstant().getEpochSecond();
-        long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
-
-        // 计算第一次调度
-        if (calculated.lastTriggerAt() == null) {
-            return Math.max(startScheduleAt, now);
-        }
-
         // 上次调度一定间隔后调度
         Duration interval = scheduleOption.getScheduleInterval();
         if (interval == null) {
             log.error("cannot calculate next trigger timestamp of {} because interval is not assigned!", calculated);
             return ScheduleCalculator.NO_TRIGGER;
         }
-
+        long now = TimeUtils.currentInstant().toEpochMilli();
         long scheduleAt = TimeUtils.toInstant(calculated.lastTriggerAt()).toEpochMilli() + interval.toMillis();
         return Math.max(scheduleAt, now);
     }

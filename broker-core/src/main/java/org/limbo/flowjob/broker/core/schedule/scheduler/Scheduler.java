@@ -28,7 +28,7 @@ import org.limbo.flowjob.broker.core.schedule.Scheduled;
 public interface Scheduler<T extends Scheduled> {
 
     /**
-     * 开始调度
+     * 进行一次调度 如果任务已存在 不会重复调度
      * @param scheduled 待调度的对象
      */
     void schedule(T scheduled);

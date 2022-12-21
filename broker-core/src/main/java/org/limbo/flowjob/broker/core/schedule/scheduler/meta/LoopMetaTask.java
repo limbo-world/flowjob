@@ -23,6 +23,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.schedule.Calculated;
 import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
@@ -38,18 +39,24 @@ import java.time.LocalDateTime;
  * @author Devil
  * @since 2022/12/19
  */
+@Slf4j
 @Getter
 public abstract class LoopMetaTask implements MetaTask, Calculated {
 
     /**
-     * 下次任务触发时间
+     * 上次任务触发时间
+     */
+    private LocalDateTime lastTriggerAt;
+
+    /**
+     * 当前任务触发时间
      */
     private LocalDateTime triggerAt;
 
     /**
-     * 上次被调度时间
+     * 下次任务触发时间
      */
-    private LocalDateTime lastTriggerAt;
+    private LocalDateTime nextTriggerAt;
 
     /**
      * 上次调度反馈的时间
@@ -70,10 +77,12 @@ public abstract class LoopMetaTask implements MetaTask, Calculated {
     @ToString.Exclude
     private MetaTaskScheduler metaTaskScheduler;
 
-    protected LoopMetaTask(LocalDateTime triggerAt, ScheduleOption scheduleOption, MetaTaskScheduler metaTaskScheduler) {
-        this.triggerAt = triggerAt;
+    protected LoopMetaTask(LocalDateTime lastTriggerAt, LocalDateTime lastFeedbackAt, ScheduleOption scheduleOption, MetaTaskScheduler metaTaskScheduler) {
+        this.lastTriggerAt = lastTriggerAt;
+        this.lastFeedbackAt = lastFeedbackAt;
         this.scheduleOption = scheduleOption;
         this.metaTaskScheduler = metaTaskScheduler;
+        this.nextTriggerAt = calNextTriggerAt();
     }
 
     /**
@@ -81,14 +90,39 @@ public abstract class LoopMetaTask implements MetaTask, Calculated {
      */
     @Override
     public void execute() {
-        try {
-            executeTask();
+        switch (scheduleOption.getScheduleType()) {
+            case FIXED_RATE:
+            case CRON:
+                executeFixedRate();
+                break;
+            case FIXED_DELAY:
+                executeFixedDelay();
+                break;
+            default:
+                break;
+        }
+    }
 
-            lastTriggerAt = getTriggerAt();
-            triggerAt = nextTriggerAt();
-            lastFeedbackAt = TimeUtils.currentLocalDateTime();
+    protected void executeFixedRate() {
+        try {
+            lastTriggerAt = triggerAt;
+            triggerAt = nextTriggerAt;
+            nextTriggerAt = calNextTriggerAt();
+            metaTaskScheduler.schedule(this);
+            executeTask();
         } finally {
-            metaTaskScheduler.unschedule(scheduleId());
+            lastFeedbackAt = TimeUtils.currentLocalDateTime();
+        }
+    }
+
+    protected void executeFixedDelay() {
+        try {
+            lastTriggerAt = triggerAt;
+            triggerAt = nextTriggerAt;
+            executeTask();
+        } finally {
+            lastFeedbackAt = TimeUtils.currentLocalDateTime();
+            nextTriggerAt = calNextTriggerAt();
             metaTaskScheduler.schedule(this);
         }
     }
@@ -104,8 +138,8 @@ public abstract class LoopMetaTask implements MetaTask, Calculated {
      * @return
      */
     @Override
-    public LocalDateTime triggerAt() {
-        return triggerAt;
+    public LocalDateTime scheduleAt() {
+        return nextTriggerAt;
     }
 
     @Override
@@ -115,14 +149,16 @@ public abstract class LoopMetaTask implements MetaTask, Calculated {
 
     @Override
     public LocalDateTime lastTriggerAt() {
-        return lastTriggerAt;
+        // 只有 fixRate会被用到 对于本模型来说 就是当前触发时间
+        return triggerAt;
     }
 
     /**
      * 下次触发时间
      */
-    public LocalDateTime nextTriggerAt() {
-        return TimeUtils.toLocalDateTime(lazyInitTriggerCalculator().calculate(this));
+    public LocalDateTime calNextTriggerAt() {
+        Long calculate = lazyInitTriggerCalculator().calculate(this); // 这里获取到的是毫秒 转为秒
+        return TimeUtils.toLocalDateTime(calculate);
     }
 
     @Override
@@ -137,7 +173,11 @@ public abstract class LoopMetaTask implements MetaTask, Calculated {
         if (scheduleCalculator == null) {
             scheduleCalculator = ScheduleCalculatorFactory.create(scheduleOption.getScheduleType());
         }
-
         return scheduleCalculator;
+    }
+
+    @Override
+    public String scheduleId() {
+        return MetaTask.super.scheduleId() + "-" + scheduleAt();
     }
 }

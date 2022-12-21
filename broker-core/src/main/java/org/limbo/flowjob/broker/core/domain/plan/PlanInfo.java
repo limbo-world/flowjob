@@ -73,12 +73,13 @@ public class PlanInfo implements Serializable {
 
 
     public PlanInfo(String planId, Integer version, String description,
-                    ScheduleOption scheduleOption, DAG<JobInfo> dag) {
+                    TriggerType triggerType, ScheduleOption scheduleOption, DAG<JobInfo> dag) {
         this.planId = planId;
         this.version = version;
         this.description = description;
         this.scheduleOption = scheduleOption;
         this.dag = dag;
+        this.triggerType = triggerType;
     }
 
     /**

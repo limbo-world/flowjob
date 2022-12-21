@@ -38,14 +38,14 @@ import java.util.List;
  */
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-public class JobRepoTest {
+class JobRepoTest {
 
     @Setter(onMethod_ = @Inject)
     private JobInstanceEntityRepo jobInstanceEntityRepo;
 
     @Test
     @Transactional
-    public void insert() {
+    void insert() {
         List<JobInstanceEntity> jobInstances = new ArrayList<>();
 
         for (int i = 0; i < 5; i++) {

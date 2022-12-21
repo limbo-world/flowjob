@@ -72,14 +72,15 @@ public abstract class AbstractTaskStatusCheckTask extends FixDelayMetaTask {
 
         List<Task> dispatchingTasks = loadDispatchingTasks();
         if (CollectionUtils.isNotEmpty(dispatchingTasks)) {
-            // 没有进行调度的，要进行调度 todo
+            for (Task dispatchingTask : dispatchingTasks) {
+                iScheduleService.schedule(dispatchingTask);
+            }
         }
 
         List<Task> executingTasks = loadExecutingTasks();
         if (CollectionUtils.isNotEmpty(executingTasks)) {
-            // worker挂了的 要进行失败重试 todo
+            // 获取长时间为执行中的task 判断worker是否已经宕机
             for (Task task : executingTasks) {
-                // 获取长时间为执行中的task 判断worker是否已经宕机
                 Worker worker = workerRepository.get(task.getWorkerId());
                 if (worker == null || !worker.isAlive()) {
                     iScheduleService.handleTaskFail(task.getTaskId(), task.getJobInstanceId(), String.format("worker %s is offline", task.getWorkerId()), "");

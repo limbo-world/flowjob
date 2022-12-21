@@ -32,12 +32,12 @@ import java.time.LocalDateTime;
 public abstract class FixDelayMetaTask extends LoopMetaTask {
 
     protected FixDelayMetaTask(Duration interval, MetaTaskScheduler metaTaskScheduler) {
-        this(TimeUtils.currentLocalDateTime(), Duration.ZERO, interval, metaTaskScheduler);
+        this(Duration.ZERO, interval, metaTaskScheduler);
     }
 
 
-    protected FixDelayMetaTask(LocalDateTime triggerAt, Duration delay, Duration interval, MetaTaskScheduler metaTaskScheduler) {
-        super(triggerAt, new ScheduleOption(ScheduleType.FIXED_DELAY, null, delay, interval, null, null), metaTaskScheduler);
+    protected FixDelayMetaTask(Duration delay, Duration interval, MetaTaskScheduler metaTaskScheduler) {
+        super(null, null, new ScheduleOption(ScheduleType.FIXED_DELAY, null, delay, interval, null, null), metaTaskScheduler);
     }
 
 }

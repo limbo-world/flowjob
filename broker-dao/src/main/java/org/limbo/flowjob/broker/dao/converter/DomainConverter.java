@@ -58,6 +58,7 @@ public class DomainConverter {
                 entity.getPlanId(),
                 entity.getPlanVersion(),
                 entity.getDescription(),
+                TriggerType.parse(entity.getTriggerType()),
                 toScheduleOption(entity),
                 toJobDag(entity.getJobs(), jobInfoEntities)
         );
@@ -75,9 +76,8 @@ public class DomainConverter {
     }
 
     /**
-     *
      * @param dag 节点关系
-     * @return
+     * @return job dag
      */
     public static DAG<JobInfo> toJobDag(String dag, List<JobInfoEntity> jobInfoEntities) {
         List<JobInfo> jobInfos = JacksonUtils.parseObject(dag, new TypeReference<List<JobInfo>>() {
@@ -122,6 +122,7 @@ public class DomainConverter {
         taskEntity.setJobInstanceId(task.getJobInstanceId());
         taskEntity.setJobId(task.getJobId());
         taskEntity.setPlanId(task.getPlanId());
+        taskEntity.setPlanVersion(task.getPlanVersion());
         taskEntity.setStatus(task.getStatus().status);
         taskEntity.setWorkerId(task.getWorkerId());
         taskEntity.setAttributes(task.getAttributes() == null ? "" : task.getAttributes().toString());
@@ -141,6 +142,8 @@ public class DomainConverter {
         task.setAttributes(new Attributes(entity.getAttributes()));
         task.setStartAt(entity.getStartAt());
         task.setEndAt(entity.getEndAt());
+        task.setPlanId(entity.getPlanId());
+        task.setPlanVersion(entity.getPlanVersion());
 
         // job
         PlanInfoEntity planInfo = planInfoEntityRepo.findByPlanIdAndPlanVersion(task.getPlanId(), task.getPlanVersion());

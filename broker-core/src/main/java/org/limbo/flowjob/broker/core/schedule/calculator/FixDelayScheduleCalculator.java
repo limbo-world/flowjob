@@ -46,17 +46,8 @@ public class FixDelayScheduleCalculator extends ScheduleCalculator {
      * @return 下次触发调度的时间戳，当返回非正数时，表示作业不会有触发时间。
      */
     @Override
-    public Long calculate(Calculated calculated) {
-
+    public Long doCalculate(Calculated calculated) {
         ScheduleOption scheduleOption = calculated.scheduleOption();
-        long now = TimeUtils.currentInstant().getEpochSecond();
-        long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
-
-        // 计算第一次调度
-        if (calculated.lastTriggerAt() == null) {
-            return Math.max(startScheduleAt, now);
-        }
-
         LocalDateTime lastFeedbackAt = calculated.lastFeedbackAt();
         // 如果为空，表示此次上次任务还没反馈，等待反馈后重新调度
         if (lastFeedbackAt == null) {
@@ -69,6 +60,7 @@ public class FixDelayScheduleCalculator extends ScheduleCalculator {
             return ScheduleCalculator.NO_TRIGGER;
         }
 
+        long now = TimeUtils.currentInstant().toEpochMilli();
         long scheduleAt = TimeUtils.toInstant(lastFeedbackAt).toEpochMilli() + interval.toMillis();
         return Math.max(scheduleAt, now);
     }

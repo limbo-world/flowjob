@@ -126,7 +126,7 @@ public class Task implements MetaTask, Serializable {
     }
 
     @Override
-    public LocalDateTime triggerAt() {
+    public LocalDateTime scheduleAt() {
         return triggerAt;
     }
 

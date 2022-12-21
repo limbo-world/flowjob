@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
  * @since 2021-05-18
  */
 @Slf4j
-public abstract class HashedWheelTimerScheduler<T extends Scheduled> extends CacheableScheduler<T> {
+public abstract class HashedWheelTimerScheduler<T extends Scheduled> implements Scheduler<T> {
 
     /**
      * 依赖netty的时间轮算法进行作业调度
@@ -45,26 +45,13 @@ public abstract class HashedWheelTimerScheduler<T extends Scheduled> extends Cac
     /**
      * 使用指定执行器构造一个调度器，该调度器基于哈希时间轮算法。
      */
-    public HashedWheelTimerScheduler() {
+    protected HashedWheelTimerScheduler() {
         this.timer = new HashedWheelTimer(NamedThreadFactory.newInstance(this.getClass().getSimpleName() + "-timer-"));
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @param scheduled 待调度的对象
-     */
-    @Override
-    public void schedule(T scheduled) {
-        if (isScheduling(scheduled.scheduleId())) {
-            return;
-        }
-
-        // 放入缓存
-        put(scheduled);
-
+    protected void calAndSchedule(T scheduled) {
         // 计算延迟时间
-        long delay = Duration.between(TimeUtils.currentLocalDateTime(), scheduled.triggerAt()).toMillis();
+        long delay = Duration.between(TimeUtils.currentLocalDateTime(), scheduled.scheduleAt()).toMillis();
         delay = delay < 0 ? 0 : delay;
 
         // 在timer上调度作业执行
@@ -75,14 +62,16 @@ public abstract class HashedWheelTimerScheduler<T extends Scheduled> extends Cac
                     return;
                 }
 
-                doSchedule(scheduled);
+                scheduled.execute();
 
             } catch (Exception e) {
                 log.error("[HashedWheelTimerScheduler] schedule fail id:{}", scheduled.scheduleId(), e);
+            } finally {
+
             }
         }, delay, TimeUnit.MILLISECONDS);
     }
 
-    protected abstract void doSchedule(T scheduled);
+    protected void afterExecute(T scheduled) {}
 
 }

@@ -39,6 +39,7 @@ import org.limbo.flowjob.broker.core.repository.TaskRepository;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.service.IScheduleService;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
@@ -66,6 +67,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -129,7 +131,11 @@ public class ScheduleService implements IScheduleService {
 
         String planId = plan.getPlanId();
         // 加锁
-        planEntityRepo.selectForUpdate(planId);
+        PlanEntity planEntity = planEntityRepo.selectForUpdate(planId);
+        if (!Objects.equals(plan.getCurrentVersion(), planEntity.getCurrentVersion())) {
+            log.info("{} version {} change to {}", plan.scheduleId(), plan.getCurrentVersion(), planEntity.getCurrentVersion());
+            return;
+        }
 
         PlanInstance planInstance = planFactory.newInstance(planInfo, TriggerType.SCHEDULE, plan.getTriggerAt());
 
@@ -143,18 +149,6 @@ public class ScheduleService implements IScheduleService {
 
         // 保存 planInstance
         planInstanceRepository.save(planInstance);
-
-        // 更新plan的下次触发时间
-        if (TriggerType.SCHEDULE == planInstance.getTriggerType()) {
-            switch (planInstance.getScheduleOption().getScheduleType()) {
-                case FIXED_RATE:
-                case CRON:
-                    planEntityRepo.nextTriggerAt(planId, plan.nextTriggerAt());
-                    break;
-                default:
-                    break;
-            }
-        }
 
         // 获取头部节点
         List<JobInstance> rootJobs = new ArrayList<>();
@@ -210,14 +204,14 @@ public class ScheduleService implements IScheduleService {
             List<Task> jobTasks;
             switch (instance.getType()) {
                 case NORMAL:
-                    jobTasks = taskFactory.create(instance, TaskType.NORMAL);
+                    jobTasks = taskFactory.create(instance, instance.getTriggerAt(), TaskType.NORMAL);
                     break;
                 case BROADCAST:
-                    jobTasks = taskFactory.create(instance, TaskType.BROADCAST);
+                    jobTasks = taskFactory.create(instance, instance.getTriggerAt(), TaskType.BROADCAST);
                     break;
                 case MAP:
                 case MAP_REDUCE:
-                    jobTasks = taskFactory.create(instance, TaskType.SPLIT);
+                    jobTasks = taskFactory.create(instance, instance.getTriggerAt(), TaskType.SPLIT);
                     break;
                 default:
                     throw new JobException(instance.getJobId(), MsgConstants.UNKNOWN + " job type:" + instance.getType().type);
@@ -244,7 +238,7 @@ public class ScheduleService implements IScheduleService {
                 metaTaskScheduler.schedule(task);
             } catch (Exception e) {
                 // 调度失败 不要影响事务，事务提交后 由task的状态检查任务去修复task的执行情况
-                log.error("task schedule fail! task={}", task);
+                log.error("task schedule fail! task={}", task, e);
             }
         }
 

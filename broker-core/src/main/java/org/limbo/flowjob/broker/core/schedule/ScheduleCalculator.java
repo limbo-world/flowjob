@@ -16,11 +16,14 @@
 
 package org.limbo.flowjob.broker.core.schedule;
 
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * 调度时间计算策略，用于计算下次触发调度时间戳
@@ -60,8 +63,19 @@ public abstract class ScheduleCalculator {
      * @param calculated 待调度对象
      * @return 下次触发调度的时间戳，当返回非正数时，表示作业不会有触发时间。
      */
-    public abstract Long calculate(Calculated calculated);
+    public Long calculate(Calculated calculated) {
+        // 计算第一次调度
+        if (calculated.lastTriggerAt() == null) {
+            ScheduleOption scheduleOption = calculated.scheduleOption();
+            Instant nowInstant = TimeUtils.currentInstant();
+            long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
+            return Math.max(startScheduleAt, nowInstant.getEpochSecond());
+        }
 
+        return doCalculate(calculated);
+    }
+
+    public abstract Long doCalculate(Calculated calculated);
 
     public ScheduleType getScheduleType() {
         return scheduleType;
@@ -75,8 +89,19 @@ public abstract class ScheduleCalculator {
     protected long calculateStartScheduleTimestamp(ScheduleOption scheduleOption) {
         LocalDateTime startAt = scheduleOption.getScheduleStartAt();
         Duration delay = scheduleOption.getScheduleDelay();
-        long startScheduleAt = startAt.toEpochSecond(TimeUtils.zoneOffset());
+        long startScheduleAt = startAt.toInstant(TimeUtils.zoneOffset()).toEpochMilli();
         return delay != null ? startScheduleAt + delay.toMillis() : startScheduleAt;
     }
 
+
+    public static void main(String[] args) {
+        LocalDateTime startAt = LocalDateTime.of(2022, 12, 21, 13, 2, 58, 851);
+        Duration delay = Duration.ZERO;
+        long startScheduleAt = startAt.toInstant(TimeUtils.zoneOffset()).toEpochMilli();
+        System.out.println(startScheduleAt);
+        System.out.println(startAt.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")));
+        long l = delay != null ? startScheduleAt + delay.toMillis() : startScheduleAt;
+        System.out.println(l);
+        System.out.println(DateFormatUtils.ISO_8601_EXTENDED_DATETIME_FORMAT.format(l));
+    }
 }

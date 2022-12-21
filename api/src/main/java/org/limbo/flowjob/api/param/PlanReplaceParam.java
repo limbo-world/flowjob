@@ -20,7 +20,9 @@ package org.limbo.flowjob.api.param;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.limbo.flowjob.common.constants.TriggerType;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -36,6 +38,13 @@ public class PlanReplaceParam {
      */
     @Schema(title = "计划描述")
     private String description;
+
+    /**
+     * 触发方式
+     */
+    @Schema(title = "触发方式", implementation = Integer.class)
+    @NotNull
+    private TriggerType triggerType;
 
     /**
      * 作业计划调度配置参数

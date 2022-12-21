@@ -18,6 +18,8 @@
 
 package org.limbo.flowjob.broker.core.schedule.scheduler.meta;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * @author Devil
  * @since 2022/12/18
@@ -32,5 +34,18 @@ public enum MetaTaskType {
 
     TASK_STATUS_CHECK,
     ;
+
+    public static MetaTaskType parse(String value) {
+        if (StringUtils.isBlank(value)) {
+            return null;
+        }
+
+        for (MetaTaskType type : values()) {
+            if (type.name().equalsIgnoreCase(value)) {
+                return type;
+            }
+        }
+        return null;
+    }
 
 }

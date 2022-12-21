@@ -48,20 +48,20 @@ public class PlanFactory {
         this.metaTaskScheduler = metaTaskScheduler;
     }
 
-    public Plan create(LocalDateTime triggerAt, String description, ScheduleOption scheduleOption, DAG<JobInfo> dag, boolean enabled) {
+    public Plan create(String description, TriggerType triggerType, ScheduleOption scheduleOption, DAG<JobInfo> dag, boolean enabled) {
         String planId = idGenerator.generateId(IDType.PLAN);
         Integer version = 1;
-        PlanInfo info = new PlanInfo(planId, version, description, scheduleOption, dag);
-        return new Plan(planId, version, version, triggerAt, info, enabled, iScheduleService, metaTaskScheduler);
+        PlanInfo info = new PlanInfo(planId, version, description, triggerType, scheduleOption, dag);
+        return new Plan(planId, version, version, info, enabled, null, null, iScheduleService, metaTaskScheduler);
     }
 
-    public Plan newVersion(Plan oldPlan, String description, ScheduleOption scheduleOption, DAG<JobInfo> dag) {
+    public Plan newVersion(Plan oldPlan, String description, TriggerType triggerType, ScheduleOption scheduleOption, DAG<JobInfo> dag) {
         PlanInfo oldInfo = oldPlan.getInfo();
         Integer newVersion = oldInfo.getVersion() + 1;
 
-        PlanInfo newInfo = new PlanInfo(oldPlan.getPlanId(), newVersion, description, scheduleOption, dag);
+        PlanInfo newInfo = new PlanInfo(oldPlan.getPlanId(), newVersion, description, triggerType, scheduleOption, dag);
 
-        return new Plan(oldPlan.getPlanId(), newVersion, newVersion, oldPlan.nextTriggerAt(), newInfo, oldPlan.isEnabled(), iScheduleService, metaTaskScheduler);
+        return new Plan(oldPlan.getPlanId(), newVersion, newVersion, newInfo, oldPlan.isEnabled(), null, null, iScheduleService, metaTaskScheduler);
     }
 
     /**
@@ -80,7 +80,6 @@ public class PlanFactory {
         instance.setTriggerType(triggerType);
         instance.setScheduleOption(planInfo.getScheduleOption());
         instance.setTriggerAt(triggerAt);
-//        instance.setTriggerAt(nextTriggerAt); // 新建的时候不需要
 //        instance.setContext(); // todo
         return instance;
     }

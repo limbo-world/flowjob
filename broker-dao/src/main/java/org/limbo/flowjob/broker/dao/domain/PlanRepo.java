@@ -31,10 +31,12 @@ import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.support.SlotManager;
 import org.limbo.flowjob.common.utils.Verifies;
@@ -64,7 +66,9 @@ public class PlanRepo implements PlanRepository {
     @Setter(onMethod_ = @Inject)
     private JobInfoEntityRepo jobInfoEntityRepo;
     @Setter(onMethod_ = @Inject)
-    private IScheduleService iScheduleService; // todo 循环依赖
+    private PlanInstanceEntityRepo planInstanceEntityRepo;
+    @Setter(onMethod_ = @Inject)
+    private IScheduleService iScheduleService; // todo @d 循环依赖
     @Setter(onMethod_ = @Inject)
     private MetaTaskScheduler metaTaskScheduler;
 
@@ -165,7 +169,6 @@ public class PlanRepo implements PlanRepository {
         planEntity.setRecentlyVersion(plan.getRecentlyVersion());
         planEntity.setEnabled(plan.isEnabled());
         planEntity.setPlanId(plan.getPlanId());
-        planEntity.setNextTriggerAt(plan.getTriggerAt());
         return planEntity;
     }
 
@@ -192,13 +195,18 @@ public class PlanRepo implements PlanRepository {
 
         PlanInfo planInfo = DomainConverter.toPlanInfo(planInfoEntity, jobInfoEntities);
 
+        // 获取最近一次调度的planInstance和最近一次结束的planInstance
+        PlanInstanceEntity latelyTrigger = planInstanceEntityRepo.findLatelyTrigger(entity.getPlanId());
+        PlanInstanceEntity latelyFeedback = planInstanceEntityRepo.findLatelyFeedback(entity.getPlanId());
+
         return new Plan(
                 entity.getPlanId(),
                 entity.getCurrentVersion(),
                 entity.getRecentlyVersion(),
-                entity.getNextTriggerAt(),
                 planInfo,
                 entity.isEnabled(),
+                latelyTrigger == null ? null : latelyTrigger.getTriggerAt(),
+                latelyFeedback == null ? null : latelyFeedback.getFeedbackAt(),
                 iScheduleService,
                 metaTaskScheduler
         );

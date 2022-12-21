@@ -39,11 +39,6 @@ public interface Calculated extends Scheduled {
     LocalDateTime lastTriggerAt();
 
     /**
-     * 获取下次触发时间
-     */
-    LocalDateTime nextTriggerAt();
-
-    /**
      * 获取上次调度反馈的时间
      */
     LocalDateTime lastFeedbackAt();

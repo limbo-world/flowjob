@@ -49,13 +49,6 @@ public class ScheduleOptionParam {
     private ScheduleType scheduleType;
 
     /**
-     * 触发方式
-     */
-    @Schema(title = "触发方式", implementation = Integer.class)
-    @NotNull
-    private TriggerType triggerType;
-
-    /**
      * 调度开始时间，从此时间开始执行调度。
      */
     @Schema(title = "调度开始时间")

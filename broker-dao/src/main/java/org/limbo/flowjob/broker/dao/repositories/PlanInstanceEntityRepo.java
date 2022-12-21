@@ -33,11 +33,17 @@ import java.time.LocalDateTime;
  */
 public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity, String> {
 
-    PlanInstanceEntity findByPlanIdAndTriggerAtAndTriggerType(String planId, LocalDateTime expectTriggerTime, Byte triggerType);
+    PlanInstanceEntity findByPlanIdAndTriggerAtAndTriggerType(String planId, LocalDateTime triggerAt, Byte triggerType);
+
+    @Query(value = "select * from flowjob_plan_instance where plan_id = :planId order by trigger_at desc limit 1", nativeQuery = true)
+    PlanInstanceEntity findLatelyTrigger(@Param("planId") String planId);
+
+    @Query(value = "select * from flowjob_plan_instance where plan_id = :planId order by feedback_at desc limit 1", nativeQuery = true)
+    PlanInstanceEntity findLatelyFeedback(@Param("planId") String planId);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.PLAN_STATUS_EXECUTING + ", startAt = :startAt where planInstanceId = :planInstanceId and status = " + ConstantsPool.PLAN_STATUS_SCHEDULING)
-    int executing(@Param("planInstanceId") String planInstanceId, @Param("feedbackAt") LocalDateTime startAt);
+    int executing(@Param("planInstanceId") String planInstanceId, @Param("startAt") LocalDateTime startAt);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.PLAN_STATUS_SUCCEED + ", feedbackAt = :feedbackAt where planInstanceId = :planInstanceId and status = " + ConstantsPool.PLAN_STATUS_EXECUTING)

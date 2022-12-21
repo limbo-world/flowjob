@@ -38,9 +38,9 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, String> {
     PlanEntity selectForUpdate(@Param("planId") String planId);
 
     /**
-     * 根据id和触发时间找到启动的plan
+     * 根据id找到启动的plan
      */
-    List<PlanEntity> findByPlanIdInAndEnabledAndNextTriggerAtBefore(List<String> planIds, boolean isEnabled, LocalDateTime nextTriggerAt);
+    List<PlanEntity> findByPlanIdInAndEnabled(List<String> planIds, boolean isEnabled);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanEntity set currentVersion = :newCurrentVersion, recentlyVersion = :newRecentlyVersion " +
@@ -55,7 +55,4 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, String> {
     @Query(value = "update PlanEntity set enabled = :newValue where planId = :planId and enabled = :oldValue")
     int updateEnable(@Param("planId") String planId, @Param("oldValue") boolean oldValue, @Param("newValue") boolean newValue);
 
-    @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanEntity set nextTriggerAt = :nextTriggerAt where planId = :planId")
-    int nextTriggerAt(@Param("planId") String planId, @Param("nextTriggerAt") LocalDateTime nextTriggerAt);
 }

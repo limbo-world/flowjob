@@ -22,6 +22,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.java.Log;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.LoopMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
@@ -75,15 +76,30 @@ public class Plan extends LoopMetaTask implements Serializable {
     @ToString.Exclude
     private IScheduleService iScheduleService;
 
-    public Plan(String planId, Integer currentVersion, Integer recentlyVersion, LocalDateTime triggerAt, PlanInfo info, boolean enabled,
+    public Plan(String planId, Integer currentVersion, Integer recentlyVersion, PlanInfo info, boolean enabled,
+                LocalDateTime lastTriggerAt, LocalDateTime lastFeedbackAt,
                 IScheduleService iScheduleService, MetaTaskScheduler metaTaskScheduler) {
-        super(triggerAt, info.getScheduleOption(), metaTaskScheduler);
+        super(lastTriggerAt, lastFeedbackAt, info.getScheduleOption(), metaTaskScheduler);
         this.planId = planId;
         this.currentVersion = currentVersion;
         this.recentlyVersion = recentlyVersion;
         this.info = info;
         this.enabled = enabled;
         this.iScheduleService = iScheduleService;
+    }
+
+    @Override
+    public void execute() {
+
+        switch (getScheduleOption().getScheduleType()) {
+            case FIXED_RATE:
+            case CRON:
+                executeFixedRate();
+                break;
+            default:
+                // FIXED_DELAY 交由执行完后处理
+                break;
+        }
     }
 
     @Override

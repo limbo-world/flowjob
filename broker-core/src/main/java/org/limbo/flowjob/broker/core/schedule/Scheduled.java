@@ -32,8 +32,13 @@ public interface Scheduled {
     String scheduleId();
 
     /**
-     * 触发时间
+     * 任务执行
      */
-    LocalDateTime triggerAt();
+    void execute();
+
+    /**
+     * 任务应该被执行的时间
+     */
+    LocalDateTime scheduleAt();
 
 }
