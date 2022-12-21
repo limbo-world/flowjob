@@ -21,6 +21,7 @@ package org.limbo.flowjob.broker.core.domain.plan;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.constants.PlanStatus;
 import org.limbo.flowjob.common.constants.TriggerType;
@@ -57,7 +58,8 @@ public class PlanInstance implements Serializable {
     private PlanStatus status;
 
     /**
-     * 触发类型
+     * 触发类型，触发本次 Plan 调度的方式，与 {@link JobInstance} 中的同名字段意义相同，
+     * {@link JobInstance#getTriggerType()}
      */
     private TriggerType triggerType;
 
