@@ -16,26 +16,24 @@
 
 package org.limbo.flowjob.broker.core.schedule.scheduler.meta;
 
-import org.limbo.flowjob.broker.core.schedule.Scheduled;
+import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
+import org.limbo.flowjob.common.constants.ScheduleType;
+
+import java.time.Duration;
 
 /**
  * @author Brozen
  * @since 2022-10-11
  */
-public interface MetaTask extends Scheduled {
+public abstract class FixRateMetaTask extends LoopMetaTask {
 
-    /**
-     * @return 任务类型
-     */
-    MetaTaskType getType();
+    protected FixRateMetaTask(Duration interval, MetaTaskScheduler metaTaskScheduler) {
+        this(Duration.ZERO, interval, metaTaskScheduler);
+    }
 
-    /**
-     * @return 任务id
-     */
-    String getMetaId();
 
-    default String scheduleId() {
-        return getType().name() + "-" + getMetaId();
+    protected FixRateMetaTask(Duration delay, Duration interval, MetaTaskScheduler metaTaskScheduler) {
+        super(null, null, new ScheduleOption(ScheduleType.FIXED_RATE, null, delay, interval, null, null), metaTaskScheduler);
     }
 
 }

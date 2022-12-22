@@ -20,9 +20,10 @@ package org.limbo.flowjob.broker.core.domain.plan;
 
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
-import org.limbo.flowjob.broker.core.domain.job.JobFactory;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
+import org.limbo.flowjob.broker.core.service.IScheduleService;
 import org.limbo.flowjob.common.constants.PlanStatus;
 import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.dag.DAG;
@@ -37,27 +38,30 @@ public class PlanFactory {
 
     private final IDGenerator idGenerator;
 
-    private final JobFactory jobFactory;
+    private final IScheduleService iScheduleService;
 
-    public PlanFactory(IDGenerator idGenerator, JobFactory jobFactory) {
+    private final MetaTaskScheduler metaTaskScheduler;
+
+    public PlanFactory(IDGenerator idGenerator, IScheduleService iScheduleService, MetaTaskScheduler metaTaskScheduler) {
         this.idGenerator = idGenerator;
-        this.jobFactory = jobFactory;
+        this.iScheduleService = iScheduleService;
+        this.metaTaskScheduler = metaTaskScheduler;
     }
 
-    public Plan create(LocalDateTime nextTriggerAt, String description, ScheduleOption scheduleOption, DAG<JobInfo> dag, boolean enabled) {
+    public Plan create(String description, TriggerType triggerType, ScheduleOption scheduleOption, DAG<JobInfo> dag, boolean enabled) {
         String planId = idGenerator.generateId(IDType.PLAN);
         Integer version = 1;
-        PlanInfo info = new PlanInfo(planId, version, description, scheduleOption, dag);
-        return new Plan(planId, version, version, nextTriggerAt, info, enabled);
+        PlanInfo info = new PlanInfo(planId, version, description, triggerType, scheduleOption, dag);
+        return new Plan(planId, version, version, info, enabled, null, null, iScheduleService, metaTaskScheduler);
     }
 
-    public Plan newVersion(Plan oldPlan, String description, ScheduleOption scheduleOption, DAG<JobInfo> dag) {
+    public Plan newVersion(Plan oldPlan, String description, TriggerType triggerType, ScheduleOption scheduleOption, DAG<JobInfo> dag) {
         PlanInfo oldInfo = oldPlan.getInfo();
         Integer newVersion = oldInfo.getVersion() + 1;
 
-        PlanInfo newInfo = new PlanInfo(oldPlan.getPlanId(), newVersion, description, scheduleOption, dag);
+        PlanInfo newInfo = new PlanInfo(oldPlan.getPlanId(), newVersion, description, triggerType, scheduleOption, dag);
 
-        return new Plan(oldPlan.getPlanId(), newVersion, newVersion, oldPlan.getNextTriggerAt(), newInfo, oldPlan.isEnabled());
+        return new Plan(oldPlan.getPlanId(), newVersion, newVersion, newInfo, oldPlan.isEnabled(), null, null, iScheduleService, metaTaskScheduler);
     }
 
     /**
@@ -66,7 +70,7 @@ public class PlanFactory {
      * @param triggerType 触发类型
      * @return 调度记录状态
      */
-    public PlanInstance newInstance(PlanInfo planInfo, TriggerType triggerType, LocalDateTime nextTriggerAt) {
+    public PlanInstance newInstance(PlanInfo planInfo, TriggerType triggerType, LocalDateTime triggerAt) {
         PlanInstance instance = new PlanInstance();
         instance.setPlanInstanceId(idGenerator.generateId(IDType.PLAN_INSTANCE));
         instance.setPlanId(planInfo.getPlanId());
@@ -75,8 +79,7 @@ public class PlanFactory {
         instance.setStatus(PlanStatus.SCHEDULING);
         instance.setTriggerType(triggerType);
         instance.setScheduleOption(planInfo.getScheduleOption());
-        instance.setExpectTriggerAt(nextTriggerAt);
-//        instance.setTriggerAt(nextTriggerAt); // 新建的时候不需要
+        instance.setTriggerAt(triggerAt);
 //        instance.setContext(); // todo
         return instance;
     }

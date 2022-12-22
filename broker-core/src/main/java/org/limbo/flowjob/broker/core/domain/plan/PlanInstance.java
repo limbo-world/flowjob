@@ -18,28 +18,18 @@
 
 package org.limbo.flowjob.broker.core.domain.plan;
 
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
-import org.limbo.flowjob.broker.core.schedule.Calculated;
-import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
-import org.limbo.flowjob.broker.core.schedule.Scheduled;
-import org.limbo.flowjob.broker.core.schedule.calculator.ScheduleCalculatorFactory;
 import org.limbo.flowjob.common.constants.PlanStatus;
 import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
-import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * 一个调度的plan实例
@@ -49,7 +39,7 @@ import java.util.List;
  */
 @Slf4j
 @Data
-public class PlanInstance implements Scheduled, Calculated, Serializable {
+public class PlanInstance implements Serializable {
 
     private static final long serialVersionUID = 1837382860200548371L;
 
@@ -68,28 +58,28 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
     private PlanStatus status;
 
     /**
+     * 触发类型，触发本次 Plan 调度的方式，与 {@link JobInstance} 中的同名字段意义相同，
+     * {@link JobInstance#getTriggerType()}
+     */
+    private TriggerType triggerType;
+
+    /**
      * 作业计划调度配置参数
      */
     private ScheduleOption scheduleOption;
 
     /**
-     * 期望的触发时间
-     */
-    private LocalDateTime expectTriggerAt;
-
-    /**
-     * 触发类型，触发本次 Plan 调度的方式，与 {@link JobInstance} 中的同名字段意义相同，
-     * {@link JobInstance#getTriggerType()} 是冗余字段。
-     */
-    private TriggerType triggerType;
-
-    /**
-     * 实际的调度时间 会晚于期望时间
+     * 期望的调度触发时间
      */
     private LocalDateTime triggerAt;
 
     /**
-     * 结束时间
+     * 执行开始时间
+     */
+    private LocalDateTime startAt;
+
+    /**
+     * 执行结束时间
      */
     private LocalDateTime feedbackAt;
 
@@ -102,65 +92,5 @@ public class PlanInstance implements Scheduled, Calculated, Serializable {
      * 全局上下文 配置 --- 或者job执行中变更 整个plan生命周期内传递
      */
     private Attributes context;
-
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    @ToString.Exclude
-    private transient ScheduleCalculator scheduleCalculator;
-
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    @ToString.Exclude
-    private List<JobInstance> rootJobs;
-
-    @Override
-    public String scheduleId() {
-        return planId + ":" + expectTriggerAt;
-    }
-
-    @Override
-    public ScheduleOption scheduleOption() {
-        return scheduleOption;
-    }
-
-    @Override
-    public LocalDateTime lastScheduleAt() {
-        return triggerAt;
-    }
-
-    @Override
-    public LocalDateTime lastFeedbackAt() {
-        return feedbackAt;
-    }
-
-    @Override
-    public LocalDateTime triggerAt() {
-        return expectTriggerAt;
-    }
-
-    public void trigger() {
-        triggerAt = TimeUtils.currentLocalDateTime();
-        status = PlanStatus.EXECUTING;
-    }
-
-    /**
-     * 计算下次触发时间
-     */
-    @Override
-    public LocalDateTime nextTriggerAt() {
-        Long nextTriggerAt = lazyInitTriggerCalculator().calculate(this);
-        return TimeUtils.toLocalDateTime(nextTriggerAt);
-    }
-
-    /**
-     * 延迟加载作业触发计算器
-     */
-    protected ScheduleCalculator lazyInitTriggerCalculator() {
-        if (scheduleCalculator == null) {
-            scheduleCalculator = ScheduleCalculatorFactory.create(scheduleOption.getScheduleType());
-        }
-
-        return scheduleCalculator;
-    }
 
 }

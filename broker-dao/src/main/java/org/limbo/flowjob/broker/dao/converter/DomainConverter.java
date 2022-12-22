@@ -19,16 +19,20 @@
 package org.limbo.flowjob.broker.dao.converter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
+import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
+import org.limbo.flowjob.broker.dao.repositories.JobInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.common.constants.JobStatus;
+import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.constants.TriggerType;
@@ -38,6 +42,8 @@ import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 基础信息转换 静态方法
@@ -47,20 +53,20 @@ import java.util.List;
  */
 public class DomainConverter {
 
-    public static PlanInfo toPlanInfo(PlanInfoEntity entity) {
+    public static PlanInfo toPlanInfo(PlanInfoEntity entity, List<JobInfoEntity> jobInfoEntities) {
         return new PlanInfo(
                 entity.getPlanId(),
                 entity.getPlanVersion(),
                 entity.getDescription(),
+                TriggerType.parse(entity.getTriggerType()),
                 toScheduleOption(entity),
-                toJobDag(entity.getJobs())
+                toJobDag(entity.getJobs(), jobInfoEntities)
         );
     }
 
     public static ScheduleOption toScheduleOption(PlanInfoEntity entity) {
         return new ScheduleOption(
                 ScheduleType.parse(entity.getScheduleType()),
-                TriggerType.parse(entity.getTriggerType()),
                 entity.getScheduleStartAt(),
                 Duration.ofMillis(entity.getScheduleDelay()),
                 Duration.ofMillis(entity.getScheduleInterval()),
@@ -69,9 +75,25 @@ public class DomainConverter {
         );
     }
 
-    public static DAG<JobInfo> toJobDag(String json) {
-        return new DAG<>(JacksonUtils.parseObject(json, new TypeReference<List<JobInfo>>() {
-        }));
+    /**
+     * @param dag 节点关系
+     * @return job dag
+     */
+    public static DAG<JobInfo> toJobDag(String dag, List<JobInfoEntity> jobInfoEntities) {
+        List<JobInfo> jobInfos = JacksonUtils.parseObject(dag, new TypeReference<List<JobInfo>>() {
+        });
+        Map<String, JobInfoEntity> jobInfoEntityMap = jobInfoEntities.stream().collect(Collectors.toMap(JobInfoEntity::getName, entity -> entity, (entity, entity2) -> entity));
+        for (JobInfo jobInfo : jobInfos) {
+            JobInfoEntity jobInfoEntity = jobInfoEntityMap.get(jobInfo.getName());
+            jobInfo.setDescription(jobInfoEntity.getDescription());
+            jobInfo.setTriggerType(TriggerType.parse(jobInfoEntity.getTriggerType()));
+            jobInfo.setType(JobType.parse(jobInfoEntity.getType()));
+            jobInfo.setAttributes(new Attributes(jobInfoEntity.getAttributes()));
+            jobInfo.setDispatchOption(JacksonUtils.parseObject(jobInfoEntity.getDispatchOption(), DispatchOption.class));
+            jobInfo.setExecutorName(jobInfoEntity.getExecutorName());
+            jobInfo.setTerminateWithFail(jobInfoEntity.getTerminateWithFail());
+        }
+        return new DAG<>(jobInfos);
     }
 
     public static JobInstance toJobInstance(JobInstanceEntity entity, DAG<JobInfo> dag) {
@@ -100,16 +122,17 @@ public class DomainConverter {
         taskEntity.setJobInstanceId(task.getJobInstanceId());
         taskEntity.setJobId(task.getJobId());
         taskEntity.setPlanId(task.getPlanId());
+        taskEntity.setPlanVersion(task.getPlanVersion());
         taskEntity.setStatus(task.getStatus().status);
         taskEntity.setWorkerId(task.getWorkerId());
         taskEntity.setAttributes(task.getAttributes() == null ? "" : task.getAttributes().toString());
         taskEntity.setStartAt(task.getStartAt());
         taskEntity.setEndAt(task.getEndAt());
-        taskEntity.setTaskId(task.getTaskId());
+        taskEntity.setTaskId(task.getMetaId());
         return taskEntity;
     }
 
-    public static Task toTask(TaskEntity entity, PlanInfoEntityRepo planInfoEntityRepo) {
+    public static Task toTask(TaskEntity entity, PlanInfoEntityRepo planInfoEntityRepo, JobInfoEntityRepo jobInfoEntityRepo) {
         Task task = new Task();
         task.setTaskId(entity.getTaskId());
         task.setJobInstanceId(entity.getJobInstanceId());
@@ -119,10 +142,13 @@ public class DomainConverter {
         task.setAttributes(new Attributes(entity.getAttributes()));
         task.setStartAt(entity.getStartAt());
         task.setEndAt(entity.getEndAt());
+        task.setPlanId(entity.getPlanId());
+        task.setPlanVersion(entity.getPlanVersion());
 
         // job
         PlanInfoEntity planInfo = planInfoEntityRepo.findByPlanIdAndPlanVersion(task.getPlanId(), task.getPlanVersion());
-        DAG<JobInfo> jobInfoDAG = DomainConverter.toJobDag(planInfo.getJobs());
+        List<JobInfoEntity> jobInfoEntities = jobInfoEntityRepo.findByPlanInfoId(planInfo.getPlanInfoId());
+        DAG<JobInfo> jobInfoDAG = DomainConverter.toJobDag(planInfo.getJobs(), jobInfoEntities);
         JobInfo jobInfo = jobInfoDAG.getNode(entity.getJobId());
         task.setDispatchOption(jobInfo.getDispatchOption());
         task.setExecutorName(jobInfo.getExecutorName());

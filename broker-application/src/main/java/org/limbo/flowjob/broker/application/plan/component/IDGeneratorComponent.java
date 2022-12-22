@@ -27,6 +27,7 @@ import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.dao.entity.IdEntity;
 import org.limbo.flowjob.broker.dao.repositories.IdEntityRepo;
 import org.limbo.flowjob.common.constants.MsgConstants;
+import org.limbo.flowjob.common.exception.VerifyException;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +36,7 @@ import javax.transaction.Transactional;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 
 /**
  * @author Devil
@@ -95,6 +97,7 @@ public class IDGeneratorComponent implements IDGenerator {
         while (updateNum <= 0 && time < 10) {
             // 加锁 获取 类型
             IdEntity idEntity = idEntityRepo.findById(typeName).orElse(null);
+            Verifies.notNull(idEntity, MsgConstants.UNKNOWN + " ID Type of " + typeName);
             startId = idEntity.getCurrentId();
             endId = idEntity.getCurrentId() + idEntity.getStep();
             updateNum = idEntityRepo.casGainId(typeName, endId, startId);

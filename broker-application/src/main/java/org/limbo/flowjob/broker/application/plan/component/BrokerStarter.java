@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.plan.support;
+package org.limbo.flowjob.broker.application.plan.component;
 
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;

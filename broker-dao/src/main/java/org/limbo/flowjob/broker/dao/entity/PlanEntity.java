@@ -38,14 +38,7 @@ public class PlanEntity extends BaseEntity {
      * 所属应用
      */
     private String appId;
-    /**
-     * 下次触发时间
-     */
-    private LocalDateTime nextTriggerAt;
-    /**
-     * 上次完成时间
-     */
-    private LocalDateTime lastFeedbackAt;
+
     /**
      * 当前版本。可能发生回滚，因此 currentVersion 可能小于 recentlyVersion 。
      */

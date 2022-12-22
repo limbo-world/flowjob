@@ -24,8 +24,10 @@ import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
+import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
+import org.limbo.flowjob.broker.dao.repositories.JobInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.common.utils.dag.DAG;
@@ -47,6 +49,8 @@ public class JobInstanceRepo implements JobInstanceRepository {
     private JobInstanceEntityRepo jobInstanceEntityRepo;
     @Setter(onMethod_ = @Inject)
     private PlanInfoEntityRepo planInfoEntityRepo;
+    @Setter(onMethod_ = @Inject)
+    private JobInfoEntityRepo jobInfoEntityRepo;
 
     @Override
     @Transactional
@@ -73,7 +77,8 @@ public class JobInstanceRepo implements JobInstanceRepository {
         return jobInstanceEntityRepo.findById(jobInstanceId).map(entity -> {
 
             PlanInfoEntity planInfoEntity = planInfoEntityRepo.findByPlanIdAndPlanVersion(entity.getPlanId(), entity.getPlanVersion());
-            DAG<JobInfo> dag = DomainConverter.toJobDag(planInfoEntity.getJobs());
+            List<JobInfoEntity> jobInfoEntities = jobInfoEntityRepo.findByPlanInfoId(planInfoEntity.getPlanInfoId());
+            DAG<JobInfo> dag = DomainConverter.toJobDag(planInfoEntity.getJobs(), jobInfoEntities);
             return DomainConverter.toJobInstance(entity, dag);
 
         }).orElse(null);

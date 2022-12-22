@@ -34,9 +34,6 @@ public class WorkerDemoBootstrap {
                 .sources(WorkerDemoBootstrap.class)
                 .build()
                 .run(args);
-
-        HelloExecutor bean = app.getBean(HelloExecutor.class);
-        System.out.println(bean);
     }
 
 }

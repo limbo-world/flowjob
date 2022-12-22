@@ -63,6 +63,11 @@ public class JobInstanceEntity extends BaseEntity {
     private String errorMsg;
 
     /**
+     * 调度触发时间
+     */
+    private LocalDateTime triggerAt;
+
+    /**
      * 执行开始时间
      */
     private LocalDateTime startAt;
@@ -71,11 +76,6 @@ public class JobInstanceEntity extends BaseEntity {
      * 执行结束时间
      */
     private LocalDateTime endAt;
-
-    /**
-     * 调度触发时间
-     */
-    private LocalDateTime triggerAt;
 
     @Override
     public Object getUid() {

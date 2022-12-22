@@ -51,17 +51,8 @@ public class CronScheduleCalculator extends ScheduleCalculator {
      * @return 下次触发调度的时间戳，当返回非正数时，表示作业不会有触发时间。
      */
     @Override
-    public Long calculate(Calculated calculated) {
-
+    public Long doCalculate(Calculated calculated) {
         ScheduleOption scheduleOption = calculated.scheduleOption();
-        Instant nowInstant = TimeUtils.currentInstant();
-        long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
-
-        // 计算第一次调度
-        if (calculated.lastScheduleAt() == null) {
-            return Math.max(startScheduleAt, nowInstant.getEpochSecond());
-        }
-
         // 计算下一次调度
         String cron = scheduleOption.getScheduleCron();
         String cronType = scheduleOption.getScheduleCronType();

@@ -31,6 +31,7 @@ import lombok.Getter;
 @Getter
 public enum JobStatus {
 
+    UNKNOWN(ConstantsPool.STATUS_UNKNOWN, "未知"),
     SCHEDULING(ConstantsPool.JOB_STATUS_SCHEDULING, "调度中"),
     EXECUTING(ConstantsPool.JOB_STATUS_EXECUTING, "执行中"),
     SUCCEED(ConstantsPool.JOB_STATUS_SUCCEED, "执行成功"),
@@ -78,7 +79,7 @@ public enum JobStatus {
     @JsonCreator
     public static JobStatus parse(Number status) {
         if (status == null) {
-            return null;
+            return UNKNOWN;
         }
 
         for (JobStatus statusEnum : values()) {
@@ -87,7 +88,7 @@ public enum JobStatus {
             }
         }
 
-        return null;
+        return UNKNOWN;
     }
 
 }
