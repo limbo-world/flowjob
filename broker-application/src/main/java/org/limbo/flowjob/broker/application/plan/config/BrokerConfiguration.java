@@ -1,0 +1,166 @@
+/*
+ * Copyright 2020-2024 Limbo Team (https://github.com/limbo-world).
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.limbo.flowjob.broker.application.plan.config;
+
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.broker.application.plan.component.BrokerStarter;
+import org.limbo.flowjob.broker.application.plan.component.PlanLoadTask;
+import org.limbo.flowjob.broker.application.plan.component.TaskStatusCheckTask;
+import org.limbo.flowjob.broker.application.plan.support.NodeMangerImpl;
+import org.limbo.flowjob.broker.core.cluster.Broker;
+import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
+import org.limbo.flowjob.broker.core.cluster.NodeManger;
+import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
+import org.limbo.flowjob.broker.core.cluster.WorkerManager;
+import org.limbo.flowjob.broker.core.cluster.WorkerManagerImpl;
+import org.limbo.flowjob.broker.core.domain.IDGenerator;
+import org.limbo.flowjob.broker.core.domain.job.JobFactory;
+import org.limbo.flowjob.broker.core.domain.plan.PlanFactory;
+import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
+import org.limbo.flowjob.broker.core.service.IScheduleService;
+import org.limbo.flowjob.broker.core.worker.WorkerRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import javax.inject.Inject;
+import java.time.Duration;
+import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * @author Brozen
+ * @since 2021-06-01
+ */
+@Slf4j
+@Configuration
+@EnableConfigurationProperties({BrokerProperties.class})
+public class BrokerConfiguration {
+
+    @Setter(onMethod_ = @Inject)
+    private BrokerProperties brokerProperties;
+
+    @Setter(onMethod_ = @Inject)
+    private NodeRegistry brokerRegistry;
+
+    /**
+     * worker 管理，持久化等
+     *
+     * @param metaTasks 下面定义的MetaTask的bean
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "flowjob.broker", value = "enabled", havingValue = "true", matchIfMissing = true)
+    public Broker brokerNode(NodeManger nodeManger, MetaTaskScheduler metaTaskScheduler, List<MetaTask> metaTasks) {
+        return new BrokerStarter(brokerProperties, brokerRegistry, nodeManger, metaTaskScheduler, metaTasks);
+    }
+
+    @Bean
+    public NodeManger brokerManger() {
+        return new NodeMangerImpl();
+    }
+
+    /**
+     * worker 管理，持久化等
+     */
+    @Bean
+    public WorkerManager workerManager(WorkerRepository workerRepository) {
+        return new WorkerManagerImpl(workerRepository);
+    }
+
+    @Bean
+    public TaskFactory taskFactory(WorkerManager workerManager, IDGenerator idGenerator, IScheduleService iScheduleService) {
+        return new TaskFactory(workerManager, idGenerator, iScheduleService);
+    }
+
+    @Bean
+    public JobFactory jobFactory(IDGenerator idGenerator) {
+        return new JobFactory(idGenerator);
+    }
+
+    @Bean
+    public PlanFactory planFactory(IDGenerator idGenerator, IScheduleService iScheduleService, MetaTaskScheduler metaTaskScheduler) {
+        return new PlanFactory(idGenerator, iScheduleService, metaTaskScheduler);
+    }
+
+
+    /**
+     * 元任务调度器
+     */
+    @Bean
+    public MetaTaskScheduler metaTaskScheduler() {
+        return new MetaTaskScheduler();
+    }
+
+
+    /**
+     * 元任务：Plan 加载与调度
+     */
+    @Bean
+    public MetaTask planScheduleMetaTask(BrokerConfig config, NodeManger nodeManger, MetaTaskScheduler metaTaskScheduler) {
+        return new PlanLoadTask(Duration.ofMillis(brokerProperties.getRebalanceInterval()), config, nodeManger, metaTaskScheduler);
+    }
+
+
+    /**
+     * 元任务：Task 状态检查，判断任务是否失败
+     */
+    @Bean
+    public MetaTask taskStatusCheckTask(BrokerConfig config,
+                                        NodeManger nodeManger,
+                                        IScheduleService iScheduleService,
+                                        MetaTaskScheduler metaTaskScheduler,
+                                        WorkerRepository workerRepository) {
+        return new TaskStatusCheckTask(
+                Duration.ofMillis(brokerProperties.getStatusCheckInterval()),
+                config,
+                nodeManger,
+                iScheduleService,
+                metaTaskScheduler,
+                workerRepository
+        );
+    }
+
+    @Bean
+    public ExecutorService planSchedulePool() {
+        return new ThreadPoolExecutor(
+                Runtime.getRuntime().availableProcessors() * 4,
+                Runtime.getRuntime().availableProcessors() * 4,
+                60,
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(256),
+                new ThreadPoolExecutor.CallerRunsPolicy());
+    }
+
+    @Bean
+    public ExecutorService taskSchedulePool() {
+        return new ThreadPoolExecutor(
+                Runtime.getRuntime().availableProcessors() * 8,
+                Runtime.getRuntime().availableProcessors() * 8,
+                60,
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(1024),
+                new ThreadPoolExecutor.CallerRunsPolicy());
+    }
+
+}
