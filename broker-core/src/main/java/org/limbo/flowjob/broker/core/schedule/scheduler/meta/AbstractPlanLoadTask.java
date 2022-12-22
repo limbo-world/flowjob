@@ -24,22 +24,20 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.core.domain.plan.PlanFactory;
-import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
-import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
-import org.limbo.flowjob.common.constants.ScheduleType;
-import org.limbo.flowjob.common.constants.TriggerType;
-import org.limbo.flowjob.common.utils.time.TimeUtils;
+import org.limbo.flowjob.broker.core.schedule.Scheduled;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 元任务：定时加载 Plan 进行调度
  */
 @Slf4j
-public abstract class PlanLoadMetaTask extends FixIntervalMetaTask {
+public abstract class AbstractPlanLoadTask extends FixDelayMetaTask {
 
     @Getter
     private final BrokerConfig config;
@@ -47,15 +45,16 @@ public abstract class PlanLoadMetaTask extends FixIntervalMetaTask {
     @Getter
     private final NodeManger nodeManger;
 
-    private final PlanFactory planFactory;
+    private final MetaTaskScheduler scheduler;
 
-    protected PlanLoadMetaTask(String taskId, Duration interval,
-                               BrokerConfig config, NodeManger nodeManger,
-                               PlanFactory planFactory) {
-        super(taskId, interval);
+    protected AbstractPlanLoadTask(Duration interval,
+                                   BrokerConfig config,
+                                   NodeManger nodeManger,
+                                   MetaTaskScheduler scheduler) {
+        super(interval, scheduler);
         this.config = config;
         this.nodeManger = nodeManger;
-        this.planFactory = planFactory;
+        this.scheduler = scheduler;
     }
 
 
@@ -71,25 +70,22 @@ public abstract class PlanLoadMetaTask extends FixIntervalMetaTask {
             }
 
             // 调度当前时间以及未来的任务
-            List<Plan> plans = loadSchedulablePlans(TimeUtils.currentLocalDateTime().plusSeconds(30));
-            if (CollectionUtils.isEmpty(plans)) {
-                return;
+            List<Plan> plans = loadPlans();
+            Map<String, Plan> scheduleMap = plans.stream().collect(Collectors.toMap(MetaTask::scheduleId, plan -> plan));
+
+            // 移除调非本节点的plan
+            Collection<MetaTask> metaTasks = scheduler.getSchedulingByType(MetaTaskType.PLAN);
+            for (MetaTask metaTask : metaTasks) {
+                if (!scheduleMap.containsKey(metaTask.scheduleId())) {
+                    scheduler.unschedule(metaTask.scheduleId());
+                }
             }
 
-            for (Plan plan : plans) {
-                PlanInfo planInfo = plan.getInfo();
-                if (planInfo.getScheduleOption().getScheduleType() == null) {
-                    log.error("{} scheduleType is null info={}", scheduleId(), planInfo);
-                    continue;
+            // 重新调度 新增/版本变更的plan
+            if (CollectionUtils.isNotEmpty(plans)) {
+                for (Plan plan : plans) {
+                    scheduler.schedule(plan);
                 }
-
-                if (ScheduleType.NONE == planInfo.getScheduleOption().getScheduleType()) {
-                    continue;
-                }
-
-                // 实例化 Plan 并调度
-                PlanInstance planInstance = planFactory.newInstance(planInfo, TriggerType.SCHEDULE, plan.getNextTriggerAt());
-                schedulePlan(planInstance);
             }
         } catch (Exception e) {
             log.error("{} load and schedule plan fail", scheduleId(), e);
@@ -99,16 +95,17 @@ public abstract class PlanLoadMetaTask extends FixIntervalMetaTask {
 
     /**
      * 加载触发时间在指定时间之前的 Plan。
-     *
-     * @param nextTriggerAt 指定的触发时间
      */
-    protected abstract List<Plan> loadSchedulablePlans(LocalDateTime nextTriggerAt);
+    protected abstract List<Plan> loadPlans();
 
 
-    /**
-     * 调度 Plan，将 Plan 拆解为 Job 放入调度器。
-     */
-    protected abstract void schedulePlan(PlanInstance plan);
+    @Override
+    public MetaTaskType getType() {
+        return MetaTaskType.PLAN_LOAD;
+    }
 
-
+    @Override
+    public String getMetaId() {
+        return "PlanLoadTask";
+    }
 }

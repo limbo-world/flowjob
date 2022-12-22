@@ -28,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * @since 2021-05-19
  */
 public enum PlanStatus {
-    UNKNOWN(0, "未知"),
+    UNKNOWN(ConstantsPool.STATUS_UNKNOWN, "未知"),
     SCHEDULING(ConstantsPool.PLAN_STATUS_SUCCEED, "调度中"), // 还没有任务在执行状态
     EXECUTING(ConstantsPool.PLAN_STATUS_EXECUTING, "执行中"), // 第一个任务切换为执行中的时候
     SUCCEED(ConstantsPool.PLAN_STATUS_SUCCEED, "执行成功"), // 所有节点都执行成功

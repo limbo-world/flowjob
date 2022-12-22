@@ -58,7 +58,6 @@ public class PlanConverter {
     public static ScheduleOption convertScheduleOption(ScheduleOptionParam param) {
         return new ScheduleOption(
                 param.getScheduleType(),
-                param.getTriggerType(),
                 param.getScheduleStartAt(),
                 param.getScheduleDelay(),
                 param.getScheduleInterval(),

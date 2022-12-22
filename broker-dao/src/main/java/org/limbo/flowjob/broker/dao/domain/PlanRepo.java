@@ -25,18 +25,21 @@ import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.repository.PlanRepository;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
+import org.limbo.flowjob.broker.core.service.IScheduleService;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
-import org.limbo.flowjob.broker.dao.repositories.JobInfoRepo;
+import org.limbo.flowjob.broker.dao.repositories.JobInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.support.SlotManager;
 import org.limbo.flowjob.common.utils.Verifies;
-import org.limbo.flowjob.common.utils.dag.DAGNode;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Repository;
 
@@ -45,7 +48,6 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Brozen
@@ -62,7 +64,13 @@ public class PlanRepo implements PlanRepository {
     @Setter(onMethod_ = @Inject)
     private PlanSlotEntityRepo planSlotEntityRepo;
     @Setter(onMethod_ = @Inject)
-    private JobInfoRepo jobInfoRepo;
+    private JobInfoEntityRepo jobInfoEntityRepo;
+    @Setter(onMethod_ = @Inject)
+    private PlanInstanceEntityRepo planInstanceEntityRepo;
+    @Setter(onMethod_ = @Inject)
+    private IScheduleService iScheduleService; // todo @d 循环依赖
+    @Setter(onMethod_ = @Inject)
+    private MetaTaskScheduler metaTaskScheduler;
 
     /**
      * {@inheritDoc}
@@ -110,8 +118,8 @@ public class PlanRepo implements PlanRepository {
         for (JobInfo jobInfo : planInfo.getDag().nodes()) {
             jobInfoEntities.add(toEntity(planInfoEntity.getPlanInfoId(), jobInfo));
         }
-        jobInfoRepo.saveAll(jobInfoEntities);
-        jobInfoRepo.flush();
+        jobInfoEntityRepo.saveAll(jobInfoEntities);
+        jobInfoEntityRepo.flush();
 
         return plan.getPlanId();
     }
@@ -138,9 +146,10 @@ public class PlanRepo implements PlanRepository {
 
         entity.setDescription(planInfo.getDescription());
 
+        entity.setTriggerType(planInfo.getTriggerType().type);
+
         ScheduleOption scheduleOption = planInfo.getScheduleOption();
         entity.setScheduleType(scheduleOption.getScheduleType().type);
-        entity.setTriggerType(scheduleOption.getTriggerType().type);
         entity.setScheduleStartAt(scheduleOption.getScheduleStartAt());
         entity.setScheduleDelay(scheduleOption.getScheduleDelay().toMillis());
         entity.setScheduleInterval(scheduleOption.getScheduleInterval().toMillis());
@@ -160,7 +169,6 @@ public class PlanRepo implements PlanRepository {
         planEntity.setRecentlyVersion(plan.getRecentlyVersion());
         planEntity.setEnabled(plan.isEnabled());
         planEntity.setPlanId(plan.getPlanId());
-        planEntity.setNextTriggerAt(plan.getNextTriggerAt());
         return planEntity;
     }
 
@@ -182,15 +190,25 @@ public class PlanRepo implements PlanRepository {
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findByPlanIdAndPlanVersion(entity.getPlanId(), entity.getCurrentVersion());
         Verifies.notNull(planInfoEntity, "does not find " + entity.getPlanId() + " plan's info by version--" + entity.getCurrentVersion() + "");
 
-        PlanInfo planInfo = DomainConverter.toPlanInfo(planInfoEntity);
+        List<JobInfoEntity> jobInfoEntities = jobInfoEntityRepo.findByPlanInfoId(planInfoEntity.getPlanInfoId());
+        Verifies.notEmpty(jobInfoEntities, "does not find " + entity.getPlanId() + " plan's job info by version--" + entity.getCurrentVersion() + "");
+
+        PlanInfo planInfo = DomainConverter.toPlanInfo(planInfoEntity, jobInfoEntities);
+
+        // 获取最近一次调度的planInstance和最近一次结束的planInstance
+        PlanInstanceEntity latelyTrigger = planInstanceEntityRepo.findLatelyTrigger(entity.getPlanId());
+        PlanInstanceEntity latelyFeedback = planInstanceEntityRepo.findLatelyFeedback(entity.getPlanId());
 
         return new Plan(
                 entity.getPlanId(),
                 entity.getCurrentVersion(),
                 entity.getRecentlyVersion(),
-                entity.getNextTriggerAt(),
                 planInfo,
-                entity.isEnabled()
+                entity.isEnabled(),
+                latelyTrigger == null ? null : latelyTrigger.getTriggerAt(),
+                latelyFeedback == null ? null : latelyFeedback.getFeedbackAt(),
+                iScheduleService,
+                metaTaskScheduler
         );
 
     }

@@ -43,8 +43,8 @@ public class PlanService {
     @Transactional
     public String add(PlanAddParam param) {
         Plan plan = planFactory.create(
-                TimeUtils.currentLocalDateTime(),
                 param.getDescription(),
+                param.getTriggerType(),
                 PlanConverter.convertScheduleOption(param.getScheduleOption()),
                 PlanConverter.convertJob(param.getJobs()),
                 false
@@ -68,6 +68,7 @@ public class PlanService {
 
         Plan newPlan = planFactory.newVersion(plan,
                 param.getDescription(),
+                param.getTriggerType(),
                 PlanConverter.convertScheduleOption(param.getScheduleOption()),
                 PlanConverter.convertJob(param.getJobs())
         );

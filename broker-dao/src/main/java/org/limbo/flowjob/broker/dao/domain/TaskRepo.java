@@ -24,6 +24,7 @@ import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.repository.TaskRepository;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
+import org.limbo.flowjob.broker.dao.repositories.JobInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.limbo.flowjob.common.utils.Verifies;
@@ -46,6 +47,9 @@ public class TaskRepo implements TaskRepository {
 
     @Setter(onMethod_ = @Inject)
     private PlanInfoEntityRepo planInfoEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private JobInfoEntityRepo jobInfoEntityRepo;
 
     /**
      * {@inheritDoc}
@@ -76,7 +80,7 @@ public class TaskRepo implements TaskRepository {
 
     @Override
     public Task get(String taskId) {
-        return taskEntityRepo.findById(taskId).map(entity -> DomainConverter.toTask(entity, planInfoEntityRepo)).orElse(null);
+        return taskEntityRepo.findById(taskId).map(entity -> DomainConverter.toTask(entity, planInfoEntityRepo, jobInfoEntityRepo)).orElse(null);
     }
 
 }

@@ -60,4 +60,9 @@ public class DelegatedScheduleCalculator extends ScheduleCalculator {
     public Long calculate(Calculated calculated) {
         return Objects.requireNonNull(delegated, "delegated target").calculate(calculated);
     }
+
+    @Override
+    public Long doCalculate(Calculated calculated) {
+        return Objects.requireNonNull(delegated, "delegated target").doCalculate(calculated);
+    }
 }

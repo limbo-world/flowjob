@@ -39,6 +39,8 @@ import java.math.BigDecimal;
  */
 @Data
 @Setter(AccessLevel.NONE)
+@NoArgsConstructor
+@AllArgsConstructor
 // 如果用下面自己写的构造函数的，字段要按顺序对应
 @Builder(builderClassName = "Builder", toBuilder = true)
 public class DispatchOption implements Serializable {

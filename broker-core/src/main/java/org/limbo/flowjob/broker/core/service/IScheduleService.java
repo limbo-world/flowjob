@@ -16,16 +16,21 @@
  *
  */
 
-package org.limbo.flowjob.broker.dao.repositories;
+package org.limbo.flowjob.broker.core.service;
 
-import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
-
+import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.broker.core.domain.task.Task;
 
 /**
  * @author Devil
- * @since 2022/6/22
+ * @since 2022/12/19
  */
-public interface JobInfoRepo extends JpaRepository<JobInfoEntity, Long> {
+public interface IScheduleService {
+
+    void schedule(Plan plan);
+
+    void schedule(Task task);
+
+    void handleTaskFail(String taskId, String jobInstanceId, String errorMsg, String errorStackTrace);
 
 }

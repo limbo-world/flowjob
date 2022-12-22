@@ -51,17 +51,17 @@ public class PlanInstanceEntity extends BaseEntity {
     private Byte triggerType;
 
     /**
-     * 预计触发时间
-     */
-    private LocalDateTime expectTriggerAt;
-
-    /**
-     * 真实触发时间
+     * 期望的调度触发时间
      */
     private LocalDateTime triggerAt;
 
     /**
-     * 执行完成反馈时间
+     * 执行开始时间
+     */
+    private LocalDateTime startAt;
+
+    /**
+     * 执行结束时间
      */
     private LocalDateTime feedbackAt;
 

@@ -16,31 +16,20 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.schedule;
+package org.limbo.flowjob.broker.dao.repositories;
 
-import java.time.LocalDateTime;
+import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
 
 /**
- * 计算调度
- *
  * @author Devil
- * @since 2022/8/8
+ * @since 2022/6/22
  */
-public interface Calculated extends Scheduled {
+public interface JobInfoEntityRepo extends JpaRepository<JobInfoEntity, Long> {
 
-    /**
-     * 获取调度配置
-     */
-    ScheduleOption scheduleOption();
-
-    /**
-     * 获取上次触发时间
-     */
-    LocalDateTime lastTriggerAt();
-
-    /**
-     * 获取上次调度反馈的时间
-     */
-    LocalDateTime lastFeedbackAt();
+    List<JobInfoEntity> findByPlanInfoId(String planInfoId);
 
 }
