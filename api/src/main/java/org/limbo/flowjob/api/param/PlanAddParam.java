@@ -22,6 +22,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.limbo.flowjob.common.constants.TriggerType;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
@@ -52,13 +54,15 @@ public class PlanAddParam implements Serializable {
     /**
      * 作业计划调度配置参数
      */
+    @NotNull
     @Schema(title = "作业计划调度配置参数")
     private ScheduleOptionParam scheduleOption;
 
     /**
      * 此执行计划对应的所有作业
      */
+    @NotEmpty
     @Schema(title = "此执行计划对应的所有作业")
-    private List<JobAddParam> jobs;
+    private List<@Valid JobAddParam> jobs;
 
 }

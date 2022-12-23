@@ -14,32 +14,30 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.common.lb;
+package org.limbo.flowjob.broker.core.schedule.calculator;
 
-import com.google.common.collect.Lists;
-
-import java.time.Duration;
-import java.util.List;
-import java.util.Set;
+import org.limbo.flowjob.broker.core.schedule.Calculated;
+import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
+import org.limbo.flowjob.common.constants.ScheduleType;
 
 /**
  * @author Brozen
- * @since 2022-12-16
+ * @since 2022-12-22
  */
-public interface LBServerStatisticsProvider {
+public class NeverScheduleCalculator extends ScheduleCalculator {
+
+    public NeverScheduleCalculator() {
+        super(ScheduleType.NONE);
+    }
 
     /**
-     * 不返回任何统计数据
+     * {@inheritDoc}
+     * @param calculated
+     * @return
      */
-    LBServerStatisticsProvider EMPTY_PROVIDER = (sids, interval) -> Lists.newArrayList();
-
-
-    /**
-     * 查询 {@link LBServer} 的统计信息。
-     * @param serverIds 服务 ID 结合
-     * @param interval 查询的统计信息时长
-     */
-    List<LBServerStatistics> getStatistics(Set<String> serverIds, Duration interval);
-
+    @Override
+    public Long doCalculate(Calculated calculated) {
+        return Long.MAX_VALUE;
+    }
 
 }

@@ -1,17 +1,16 @@
 ### 新增 plan
-POST http://{{host}}:{{port}}/api/admin/v1/plan
+POST http://{{host}}:{{port}}/api/v1/plan
 Content-Type: application/json
 
 {
-  "planId": "abcdefghijklm",
-  "planDesc": "test",
+  "description": "round_robin",
   "scheduleOption": {
     "scheduleType": 1,
     "scheduleDelay": 1,
     "scheduleInterval": 3,
     "scheduleStartAt": "2021-07-26 16:15:00"
   },
-  "jobInfos": [
+  "jobs": [
     {
       "jobId": "1",
       "jobDesc": "test",

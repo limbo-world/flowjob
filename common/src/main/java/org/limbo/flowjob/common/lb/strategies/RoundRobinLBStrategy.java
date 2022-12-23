@@ -32,10 +32,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
+ * FIX 如果多次进入，server 列表不同，且权重并未改变，会根据 indexers 记录的权重变化来选择下一个节点。
+ *
  * @author Brozen
  * @since 2022-09-02
  */
-// todo 这个计算方式有问题
 @Slf4j
 public class RoundRobinLBStrategy<S extends LBServer> extends AbstractLBStrategy<S> {
 

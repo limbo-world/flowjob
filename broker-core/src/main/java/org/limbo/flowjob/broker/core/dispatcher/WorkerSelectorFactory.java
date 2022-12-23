@@ -16,8 +16,10 @@
 
 package org.limbo.flowjob.broker.core.dispatcher;
 
+import lombok.Setter;
 import org.limbo.flowjob.common.constants.LoadBalanceType;
 import org.limbo.flowjob.common.constants.MsgConstants;
+import org.limbo.flowjob.common.lb.LBServerStatisticsProvider;
 import org.limbo.flowjob.common.lb.strategies.AppointLBStrategy;
 import org.limbo.flowjob.common.lb.strategies.ConsistentHashLBStrategy;
 import org.limbo.flowjob.common.lb.strategies.LFULBStrategy;
@@ -27,6 +29,8 @@ import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * {@link WorkerSelector} 工厂
@@ -36,17 +40,22 @@ import java.util.Map;
  */
 public class WorkerSelectorFactory {
 
-    private static final Map<LoadBalanceType, WorkerSelector> selectors = new EnumMap<>(LoadBalanceType.class);
+    /**
+     * 用于获取 LB 服务的统计信息，LRU、LFU 算法会用到。
+     * 如果确认不使用 LRU、LFU 算法，可以不设置此属性
+     */
+    @Setter
+    private LBServerStatisticsProvider lbServerStatisticsProvider = LBServerStatisticsProvider.EMPTY_PROVIDER;
 
-    static {
-        selectors.put(LoadBalanceType.ROUND_ROBIN, new FilteringWorkerSelector(new RoundRobinLBStrategy<>()));
-        selectors.put(LoadBalanceType.RANDOM, new FilteringWorkerSelector(new RandomLBStrategy<>()));
-        selectors.put(LoadBalanceType.LEAST_FREQUENTLY_USED, new FilteringWorkerSelector(new LFULBStrategy<>()));
-        selectors.put(LoadBalanceType.LEAST_RECENTLY_USED, new FilteringWorkerSelector(new LRULBStrategy<>()));
-        selectors.put(LoadBalanceType.APPOINT, new FilteringWorkerSelector(new AppointLBStrategy<>()));
-        selectors.put(LoadBalanceType.CONSISTENT_HASH, new FilteringWorkerSelector(new ConsistentHashLBStrategy<>()));
+    private Map<LoadBalanceType, Supplier<WorkerSelector>> selectors = new EnumMap<>(LoadBalanceType.class);
 
-        // TODO 使用 SPI 机制允许第三方扩展 WorkerSelector ?
+    public WorkerSelectorFactory() {
+        selectors.put(LoadBalanceType.ROUND_ROBIN, () -> new FilteringWorkerSelector(new RoundRobinLBStrategy<>()));
+        selectors.put(LoadBalanceType.RANDOM, () -> new FilteringWorkerSelector(new RandomLBStrategy<>()));
+        selectors.put(LoadBalanceType.LEAST_FREQUENTLY_USED, () -> new FilteringWorkerSelector(new LFULBStrategy<>(this.lbServerStatisticsProvider)));
+        selectors.put(LoadBalanceType.LEAST_RECENTLY_USED, () -> new FilteringWorkerSelector(new LRULBStrategy<>(this.lbServerStatisticsProvider)));
+        selectors.put(LoadBalanceType.APPOINT, () -> new FilteringWorkerSelector(new AppointLBStrategy<>()));
+        selectors.put(LoadBalanceType.CONSISTENT_HASH, () -> new FilteringWorkerSelector(new ConsistentHashLBStrategy<>()));
     }
 
     /**
@@ -55,12 +64,10 @@ public class WorkerSelectorFactory {
      * @param loadBalanceType 分发类型
      * @return 作业分发器
      */
-    public static WorkerSelector newSelector(LoadBalanceType loadBalanceType) {
-        WorkerSelector workerSelector = selectors.get(loadBalanceType);
-        if (workerSelector == null) {
-            throw new IllegalArgumentException(MsgConstants.UNKNOWN + " load balance type: " + loadBalanceType);
-        }
-        return workerSelector;
+    public WorkerSelector newSelector(LoadBalanceType loadBalanceType) {
+        return Optional.ofNullable(selectors.get(loadBalanceType))
+                .map(Supplier::get)
+                .orElseThrow(() -> new IllegalArgumentException(MsgConstants.UNKNOWN + " load balance type: " + loadBalanceType));
     }
 
 }
