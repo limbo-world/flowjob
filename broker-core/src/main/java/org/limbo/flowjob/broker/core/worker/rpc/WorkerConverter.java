@@ -49,7 +49,7 @@ public class WorkerConverter {
 
     public static TaskSubmitParam toTaskSubmitParam(Task task) {
         TaskSubmitParam taskSubmitParam = new TaskSubmitParam();
-        taskSubmitParam.setTaskId(task.getMetaId());
+        taskSubmitParam.setTaskId(task.getTaskId());
         taskSubmitParam.setPlanId(task.getPlanId());
         taskSubmitParam.setJobId(task.getJobId());
         taskSubmitParam.setJobInstanceId(task.getJobInstanceId());

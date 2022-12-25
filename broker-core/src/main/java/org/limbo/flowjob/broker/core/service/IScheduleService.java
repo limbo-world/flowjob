@@ -31,6 +31,6 @@ public interface IScheduleService {
 
     void schedule(Task task);
 
-    void handleTaskFail(String taskId, String jobInstanceId, String errorMsg, String errorStackTrace);
+    void handleTaskFail(String taskId, String errorMsg, String errorStackTrace);
 
 }
