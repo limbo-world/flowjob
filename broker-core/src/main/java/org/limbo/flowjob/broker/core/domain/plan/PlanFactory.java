@@ -25,6 +25,7 @@ import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.service.IScheduleService;
 import org.limbo.flowjob.common.constants.PlanStatus;
+import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.dag.DAG;
 
@@ -48,18 +49,18 @@ public class PlanFactory {
         this.metaTaskScheduler = metaTaskScheduler;
     }
 
-    public Plan create(String description, TriggerType triggerType, ScheduleOption scheduleOption, DAG<JobInfo> dag, boolean enabled) {
+    public Plan create(String description, PlanType type, TriggerType triggerType, ScheduleOption scheduleOption, DAG<JobInfo> dag, boolean enabled) {
         String planId = idGenerator.generateId(IDType.PLAN);
         Integer version = 1;
-        PlanInfo info = new PlanInfo(planId, version, description, triggerType, scheduleOption, dag);
+        PlanInfo info = new PlanInfo(planId, version, type, description, triggerType, scheduleOption, dag);
         return new Plan(planId, version, version, info, enabled, null, null, iScheduleService, metaTaskScheduler);
     }
 
-    public Plan newVersion(Plan oldPlan, String description, TriggerType triggerType, ScheduleOption scheduleOption, DAG<JobInfo> dag) {
+    public Plan newVersion(Plan oldPlan, String description, PlanType type, TriggerType triggerType, ScheduleOption scheduleOption, DAG<JobInfo> dag) {
         PlanInfo oldInfo = oldPlan.getInfo();
         Integer newVersion = oldInfo.getVersion() + 1;
 
-        PlanInfo newInfo = new PlanInfo(oldPlan.getPlanId(), newVersion, description, triggerType, scheduleOption, dag);
+        PlanInfo newInfo = new PlanInfo(oldPlan.getPlanId(), newVersion, type, description, triggerType, scheduleOption, dag);
 
         return new Plan(oldPlan.getPlanId(), newVersion, newVersion, newInfo, oldPlan.isEnabled(), null, null, iScheduleService, metaTaskScheduler);
     }

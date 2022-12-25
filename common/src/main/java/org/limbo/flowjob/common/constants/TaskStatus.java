@@ -31,7 +31,7 @@ public enum TaskStatus {
     /**
      * unknown 不应该出现
      */
-    UNKNOWN(ConstantsPool.STATUS_UNKNOWN, "未知"),
+    UNKNOWN(ConstantsPool.UNKNOWN, "未知"),
 
     /**
      * 任务刚创建，还在调度中

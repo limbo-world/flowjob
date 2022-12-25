@@ -98,7 +98,10 @@ public class TaskFactory {
 
         public abstract List<Task> tasks(JobInstance instance, LocalDateTime triggerAt);
 
-        protected void initTask(Task task, JobInstance instance, LocalDateTime triggerAt, List<Worker> availableWorkers) {
+        protected Task initTask(TaskType type, JobInstance instance, LocalDateTime triggerAt, List<Worker> availableWorkers) {
+            Task task = new Task();
+            task.setTaskId(idGenerator.generateId(IDType.TASK));
+            task.setTaskType(type);
             task.setJobId(instance.getJobId());
             task.setTriggerAt(triggerAt);
             task.setTriggerAt(TimeUtils.currentLocalDateTime());
@@ -111,6 +114,7 @@ public class TaskFactory {
             task.setIScheduleService(iScheduleService);
             task.setAttributes(instance.getAttributes());
             task.setAvailableWorkers(availableWorkers);
+            return task;
         }
 
     }
@@ -122,9 +126,7 @@ public class TaskFactory {
 
         @Override
         public List<Task> tasks(JobInstance instance, LocalDateTime triggerAt) {
-            Task task = new Task();
-            task.setTaskId(idGenerator.generateId(IDType.TASK));
-            initTask(task, instance, triggerAt, workerManager.availableWorkers());
+            Task task = initTask(TaskType.NORMAL, instance, triggerAt, workerManager.availableWorkers());
             return Collections.singletonList(task);
         }
 
@@ -150,9 +152,7 @@ public class TaskFactory {
             }
             List<Task> tasks = new ArrayList<>();
             for (Worker worker : workers) {
-                Task task = new Task();
-                task.setTaskId(idGenerator.generateId(IDType.TASK));
-                initTask(task, instance, triggerAt, Lists.newArrayList(worker));
+                Task task = initTask(TaskType.BROADCAST, instance, triggerAt, Lists.newArrayList(worker));
                 tasks.add(task);
             }
             return tasks;
@@ -175,9 +175,7 @@ public class TaskFactory {
 
         @Override
         public List<Task> tasks(JobInstance instance, LocalDateTime triggerAt) {
-            Task task = new Task();
-            task.setTaskId(idGenerator.generateId(IDType.TASK));
-            initTask(task, instance, triggerAt, workerManager.availableWorkers());
+            Task task = initTask(TaskType.SPLIT, instance, triggerAt, workerManager.availableWorkers());
             return Collections.singletonList(task);
         }
 
@@ -203,9 +201,7 @@ public class TaskFactory {
             List<Worker> workers = workerManager.availableWorkers();
             List<Task> tasks = new ArrayList<>();
             for (Map<String, Object> attribute : taskResult.getSubTaskAttributes()) {
-                MapTask task = new MapTask();
-                task.setTaskId(idGenerator.generateId(IDType.TASK));
-                initTask(task, instance, triggerAt, workers);
+                Task task = initTask(TaskType.MAP, instance, triggerAt, workers);
                 task.setMapAttributes(new Attributes(attribute));
                 tasks.add(task);
             }
@@ -234,10 +230,7 @@ public class TaskFactory {
             for (TaskResult taskResult : taskResults) {
                 reduceAttributes.add(new Attributes(taskResult.getResultAttributes()));
             }
-
-            ReduceTask task = new ReduceTask();
-            task.setTaskId(idGenerator.generateId(IDType.TASK));
-            initTask(task, instance, triggerAt, workerManager.availableWorkers());
+            Task task = initTask(TaskType.REDUCE, instance, triggerAt, workerManager.availableWorkers());
             task.setReduceAttributes(reduceAttributes);
             return Collections.singletonList(task);
         }

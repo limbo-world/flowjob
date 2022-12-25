@@ -370,7 +370,11 @@ public class ScheduleService implements IScheduleService {
     //    @Transactional
     private void handleJobStatus(String jobInstanceId) {
         // 加锁
-        jobInstanceEntityRepo.selectForUpdate(jobInstanceId);
+        JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.selectForUpdate(jobInstanceId);
+        // 判断状态是不是已经更新 可能已经被其它线程处理
+        if (JobStatus.EXECUTING != JobStatus.parse(jobInstanceEntity.getStatus())) {
+            return;
+        }
         // 检查task是否都已经完成
         List<TaskEntity> taskEntities = taskEntityRepo.findByJobInstanceId(jobInstanceId);
         for (TaskEntity taskEntity : taskEntities) {
@@ -380,10 +384,6 @@ public class ScheduleService implements IScheduleService {
         }
 
         JobInstance jobInstance = jobInstanceRepository.get(jobInstanceId);
-        // 判断状态是不是已经更新 可能已经被其它线程处理
-        if (JobStatus.EXECUTING != jobInstance.getStatus()) {
-            return;
-        }
 
         // 如果所有task都是执行成功 则处理成功
         // 如果所有task都是执行失败 则处理失败

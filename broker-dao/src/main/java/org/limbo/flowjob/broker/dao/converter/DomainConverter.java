@@ -33,6 +33,7 @@ import org.limbo.flowjob.broker.dao.repositories.JobInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.common.constants.JobStatus;
 import org.limbo.flowjob.common.constants.JobType;
+import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.constants.TriggerType;
@@ -57,6 +58,7 @@ public class DomainConverter {
         return new PlanInfo(
                 entity.getPlanId(),
                 entity.getPlanVersion(),
+                PlanType.parse(entity.getPlanType()),
                 entity.getDescription(),
                 TriggerType.parse(entity.getTriggerType()),
                 toScheduleOption(entity),
@@ -123,6 +125,7 @@ public class DomainConverter {
         taskEntity.setJobId(task.getJobId());
         taskEntity.setPlanId(task.getPlanId());
         taskEntity.setPlanVersion(task.getPlanVersion());
+        taskEntity.setType(task.getTaskType().type);
         taskEntity.setStatus(task.getStatus().status);
         taskEntity.setWorkerId(task.getWorkerId());
         taskEntity.setAttributes(task.getAttributes() == null ? "" : task.getAttributes().toString());
