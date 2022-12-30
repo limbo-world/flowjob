@@ -77,18 +77,6 @@ public class TaskFactory {
         return creator.tasks(instance, triggerAt);
     }
 
-    // todo
-    /**
-     * 获取上个任务
-     */
-    private List<TaskResult> preJobTaskResults(JobInstance instance) {
-        // 获取上个节点
-        instance.getJobId();
-
-        // 获取所有task
-        return null;
-    }
-
     /**
      * Task 创建策略接口，在这里对 Task 进行多种代理（装饰），实现下发重试策略。
      */
@@ -197,7 +185,7 @@ public class TaskFactory {
 
         @Override
         public List<Task> tasks(JobInstance instance, LocalDateTime triggerAt) {
-            TaskResult taskResult = preJobTaskResults(instance).get(0);
+            TaskResult taskResult = iScheduleService.getTaskResults(instance.getJobInstanceId(), TaskType.SPLIT).get(0);
             List<Worker> workers = workerManager.availableWorkers();
             List<Task> tasks = new ArrayList<>();
             for (Map<String, Object> attribute : taskResult.getSubTaskAttributes()) {
@@ -225,7 +213,7 @@ public class TaskFactory {
 
         @Override
         public List<Task> tasks(JobInstance instance, LocalDateTime triggerAt) {
-            List<TaskResult> taskResults = preJobTaskResults(instance);
+            List<TaskResult> taskResults = iScheduleService.getTaskResults(instance.getJobInstanceId(), TaskType.MAP);
             List<Attributes> reduceAttributes = new ArrayList<>();
             for (TaskResult taskResult : taskResults) {
                 reduceAttributes.add(new Attributes(taskResult.getResultAttributes()));
