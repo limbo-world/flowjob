@@ -18,6 +18,8 @@
 
 package org.limbo.flowjob.broker.core.domain.task;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -29,6 +31,7 @@ import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
 import org.limbo.flowjob.broker.core.service.IScheduleService;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.common.constants.TaskStatus;
+import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
 import java.io.Serializable;
@@ -57,6 +60,11 @@ public class Task implements MetaTask, Serializable {
     private String planId;
 
     private Integer planVersion;
+
+    /**
+     * 类型
+     */
+    private TaskType taskType;
 
     /**
      * 状态
@@ -108,6 +116,18 @@ public class Task implements MetaTask, Serializable {
      */
     private String executorName;
 
+    /**
+     * map属性
+     */
+    private Attributes mapAttributes;
+
+    /**
+     * reduce属性
+     */
+    private List<Attributes> reduceAttributes;
+
+    @Getter(AccessLevel.NONE)
+    @ToString.Exclude
     private IScheduleService iScheduleService;
 
     @Override

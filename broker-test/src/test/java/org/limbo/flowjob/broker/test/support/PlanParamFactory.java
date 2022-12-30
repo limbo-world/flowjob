@@ -27,6 +27,7 @@ import org.limbo.flowjob.api.param.PlanReplaceParam;
 import org.limbo.flowjob.api.param.ScheduleOptionParam;
 import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.common.constants.LoadBalanceType;
+import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TriggerType;
 
@@ -42,6 +43,7 @@ public class PlanParamFactory {
         PlanAddParam param = new PlanAddParam();
         param.setDescription("测试-固定速率");
         param.setTriggerType(TriggerType.SCHEDULE);
+        param.setPlanType(PlanType.WORKFLOW);
 
         ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
         scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE);
@@ -60,6 +62,7 @@ public class PlanParamFactory {
         PlanReplaceParam param = new PlanReplaceParam();
         param.setDescription("测试-固定速率-replace");
         param.setTriggerType(TriggerType.SCHEDULE);
+        param.setPlanType(PlanType.WORKFLOW);
 
         ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
         scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE);

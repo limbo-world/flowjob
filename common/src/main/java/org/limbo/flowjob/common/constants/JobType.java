@@ -30,18 +30,24 @@ import lombok.Getter;
 public enum JobType {
     /**
      * 给一个节点下发的任务
+     * normal
      */
     NORMAL(1, "普通类型"),
     /**
      * 给每个可选中节点下发任务
+     * normal
      */
     BROADCAST(2, "广播类型"),
     /**
-     * Map任务 拆分任务->处理分片
+     * Map任务
+     * 拆分任务->处理分片
+     * split + map
      */
     MAP(3, "Map任务"),
     /**
-     * MapReduce任务 拆分任务->处理分片->最终处理
+     * MapReduce任务
+     * 拆分任务->处理分片->最终处理
+     * split + map + reduce
      */
     MAP_REDUCE(4, "MapReduce任务"),
     ;

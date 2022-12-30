@@ -18,6 +18,7 @@
 
 package org.limbo.flowjob.broker.application.plan.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -32,6 +33,7 @@ import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
+import org.limbo.flowjob.broker.core.domain.task.TaskResult;
 import org.limbo.flowjob.broker.core.exceptions.JobException;
 import org.limbo.flowjob.broker.core.repository.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.repository.PlanInstanceRepository;
@@ -53,7 +55,6 @@ import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.common.constants.TriggerType;
-import org.limbo.flowjob.common.exception.VerifyException;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.dag.DAGNode;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -182,11 +183,39 @@ public class ScheduleService implements IScheduleService {
 
         if (TaskStatus.FAILED == task.getStatus()) {
             // 下发失败
-            handleTaskFail(task.getMetaId(), task.getJobInstanceId(), MsgConstants.DISPATCH_FAIL, "");
+            handleTaskFail(task.getTaskId(), MsgConstants.DISPATCH_FAIL, "");
         } else {
             // 下发成功
-            taskEntityRepo.updateStatusExecuting(task.getMetaId(), task.getWorkerId(), TimeUtils.currentLocalDateTime());
+            taskEntityRepo.updateStatusExecuting(task.getTaskId(), task.getWorkerId(), TimeUtils.currentLocalDateTime());
         }
+    }
+
+    @Override
+    public List<TaskResult> getTaskResults(String jobInstanceId, TaskType taskType) {
+        List<TaskEntity> taskEntities = taskEntityRepo.findByJobInstanceIdAndType(jobInstanceId, taskType.type);
+        if (CollectionUtils.isEmpty(taskEntities)) {
+            return Collections.emptyList();
+        }
+        return taskEntities.stream().map(taskEntity -> {
+            TaskResult taskResult = TaskResult.builder()
+                    .taskId(taskEntity.getTaskId())
+                    .errorMsg(taskEntity.getErrorMsg())
+                    .errorStackTrace(taskEntity.getErrorStackTrace())
+                    .build();
+            switch (taskType) {
+                case SPLIT:
+                    taskResult.setSubTaskAttributes(JacksonUtils.parseObject(taskEntity.getResult(), new TypeReference<List<Map<String, Object>>>() {
+                    }));
+                    break;
+                case MAP:
+                    taskResult.setResultAttributes(JacksonUtils.parseObject(taskEntity.getResult(), new TypeReference<Map<String, Object>>() {
+                    }));
+                    break;
+                default:
+                    break;
+            }
+            return taskResult;
+        }).collect(Collectors.toList());
     }
 
     /**
@@ -317,10 +346,6 @@ public class ScheduleService implements IScheduleService {
      */
     @Transactional
     public void taskFeedback(String taskId, TaskFeedbackParam param) {
-        // 获取实例
-        TaskEntity task = taskEntityRepo.findById(taskId)
-                .orElseThrow(() -> new VerifyException("Task not exist! id:" + taskId));
-
         ExecuteResult result = ExecuteResult.parse(param.getResult());
 
         if (log.isDebugEnabled()) {
@@ -329,11 +354,11 @@ public class ScheduleService implements IScheduleService {
 
         switch (result) {
             case SUCCEED:
-                handleTaskSuccess(task.getTaskId(), task.getJobInstanceId(), param);
+                handleTaskSuccess(taskId, param);
                 break;
 
             case FAILED:
-                handleTaskFail(task.getTaskId(), task.getJobInstanceId(), param.getErrorMsg(), param.getErrorStackTrace());
+                handleTaskFail(taskId, param.getErrorMsg(), param.getErrorStackTrace());
                 break;
 
             case TERMINATED:
@@ -345,7 +370,7 @@ public class ScheduleService implements IScheduleService {
     }
 
     @Transactional
-    public void handleTaskSuccess(String taskId, String jobInstanceId, TaskFeedbackParam param) {
+    public void handleTaskSuccess(String taskId, TaskFeedbackParam param) {
         // todo 更新plan上下文
 
         int num = taskEntityRepo.updateStatusSuccess(taskId, TimeUtils.currentLocalDateTime(), JacksonUtils.toJSONString(param.getResultAttributes()));
@@ -353,43 +378,46 @@ public class ScheduleService implements IScheduleService {
         if (num != 1) { // 已经被更新 无需重复处理
             return;
         }
-        handleJobStatus(jobInstanceId);
+        handleTask(taskId);
     }
 
     @Transactional
     @Override
-    public void handleTaskFail(String taskId, String jobInstanceId, String errorMsg, String errorStackTrace) {
+    public void handleTaskFail(String taskId, String errorMsg, String errorStackTrace) {
         int num = taskEntityRepo.updateStatusFail(taskId, TimeUtils.currentLocalDateTime(), errorMsg, errorStackTrace);
 
         if (num != 1) {
             return; // 并发更新过了 正常来说前面job更新成功 这个不可能会进来
         }
-        handleJobStatus(jobInstanceId);
+        handleTask(taskId);
     }
 
     //    @Transactional
-    private void handleJobStatus(String jobInstanceId) {
-        // 加锁
-        jobInstanceEntityRepo.selectForUpdate(jobInstanceId);
+    private void handleTask(String taskId) {
+        // 加锁 ---- 移除 前面 task更新的时候已经有锁 失败的不会进来
+//        JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.selectForUpdate(jobInstanceId);
+
+        TaskEntity taskEntity = taskEntityRepo.findById(taskId).get();
+
+        JobInstance jobInstance = jobInstanceRepository.get(taskEntity.getJobInstanceId());
+        // 判断状态是不是已经更新 可能已经被其它线程处理 正常来说不可能的
+        if (JobStatus.EXECUTING != jobInstance.getStatus()) {
+            log.warn("task:{} update status success but jobInstance:{} is already changed", taskId, taskEntity.getJobInstanceId());
+            return;
+        }
         // 检查task是否都已经完成
-        List<TaskEntity> taskEntities = taskEntityRepo.findByJobInstanceId(jobInstanceId);
-        for (TaskEntity taskEntity : taskEntities) {
-            if (!TaskStatus.parse(taskEntity.getStatus()).isCompleted()) {
+        List<TaskEntity> taskEntities = taskEntityRepo.findByJobInstanceIdAndType(taskEntity.getJobInstanceId(), taskEntity.getType());
+        for (TaskEntity taskE : taskEntities) {
+            if (!TaskStatus.parse(taskE.getStatus()).isCompleted()) {
                 return; // 如果还未完成 交由最后完成的task去做后续逻辑处理
             }
-        }
-
-        JobInstance jobInstance = jobInstanceRepository.get(jobInstanceId);
-        // 判断状态是不是已经更新 可能已经被其它线程处理
-        if (JobStatus.EXECUTING != jobInstance.getStatus()) {
-            return;
         }
 
         // 如果所有task都是执行成功 则处理成功
         // 如果所有task都是执行失败 则处理失败
         boolean success = taskEntities.stream().allMatch(entity -> TaskStatus.SUCCEED == TaskStatus.parse(entity.getStatus()));
         if (success) {
-            handleJobSuccess(jobInstance);
+            handleJobSuccess(taskEntity, jobInstance);
         } else {
             handleJobFail(jobInstance);
         }
@@ -397,7 +425,68 @@ public class ScheduleService implements IScheduleService {
     }
 
     //    @Transactional
-    private void handleJobSuccess(JobInstance jobInstance) {
+    private void handleJobSuccess(TaskEntity taskEntity, JobInstance jobInstance) {
+        switch (jobInstance.getType()) {
+            case NORMAL:
+            case BROADCAST:
+                handleJobSuccessFinal(jobInstance);
+                break;
+            case MAP:
+                handleMapJobSuccess(taskEntity, jobInstance);
+                break;
+            case MAP_REDUCE:
+                handleMapReduceJobSuccess(taskEntity, jobInstance);
+                break;
+            default:
+                throw new IllegalArgumentException(MsgConstants.UNKNOWN + " JobType in jobInstance:" + jobInstance.getJobInstanceId());
+        }
+    }
+
+    private void handleMapJobSuccess(TaskEntity taskEntity, JobInstance jobInstance) {
+        TaskType taskType = TaskType.parse(taskEntity.getType());
+        switch (taskType) {
+            case SPLIT:
+                createAndScheduleTask(jobInstance, TaskType.MAP);
+                break;
+            case MAP:
+                handleJobSuccessFinal(jobInstance);
+                break;
+            default:
+                throw new IllegalArgumentException("Illegal TaskType in task:" + taskEntity.getTaskId());
+        }
+    }
+
+    private void handleMapReduceJobSuccess(TaskEntity taskEntity, JobInstance jobInstance) {
+        TaskType taskType = TaskType.parse(taskEntity.getType());
+        switch (taskType) {
+            case SPLIT:
+                createAndScheduleTask(jobInstance, TaskType.MAP);
+                break;
+            case MAP:
+                createAndScheduleTask(jobInstance, TaskType.REDUCE);
+                break;
+            case REDUCE:
+                handleJobSuccessFinal(jobInstance);
+                break;
+            default:
+                throw new IllegalArgumentException("Illegal TaskType in task:" + taskEntity.getTaskId());
+        }
+    }
+
+    private void createAndScheduleTask(JobInstance instance, TaskType taskType) {
+        List<Task> tasks = taskFactory.create(instance, instance.getTriggerAt(), taskType);
+        taskRepository.saveAll(tasks);
+        for (Task task : tasks) {
+            try {
+                metaTaskScheduler.schedule(task);
+            } catch (Exception e) {
+                // 调度失败 不要影响事务，事务提交后 由task的状态检查任务去修复task的执行情况
+                log.error("task schedule fail! task={}", task, e);
+            }
+        }
+    }
+
+    private void handleJobSuccessFinal(JobInstance jobInstance) {
         jobInstanceEntityRepo.updateStatusSuccess(jobInstance.getJobInstanceId());
 
         PlanInstance planInstance = planInstanceRepository.get(jobInstance.getPlanInstanceId());
@@ -416,7 +505,7 @@ public class ScheduleService implements IScheduleService {
                 planInstanceEntityRepo.fail(jobInstance.getPlanInstanceId(), TimeUtils.currentLocalDateTime());
             }
         } else {
-            handleJobSuccess(jobInstance);
+            handleJobSuccessFinal(jobInstance);
         }
     }
 

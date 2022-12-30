@@ -142,6 +142,7 @@ public class PlanRepo implements PlanRepository {
 
         entity.setPlanId(planInfo.getPlanId());
         entity.setPlanVersion(planInfo.getVersion());
+        entity.setPlanType(planInfo.getType().status);
         entity.setPlanInfoId(planInfo.getPlanId() + "-" + planInfo.getVersion());
 
         entity.setDescription(planInfo.getDescription());
