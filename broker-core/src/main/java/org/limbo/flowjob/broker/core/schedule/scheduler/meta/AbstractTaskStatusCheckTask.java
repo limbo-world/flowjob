@@ -83,7 +83,7 @@ public abstract class AbstractTaskStatusCheckTask extends FixDelayMetaTask {
             for (Task task : executingTasks) {
                 Worker worker = workerRepository.get(task.getWorkerId());
                 if (worker == null || !worker.isAlive()) {
-                    iScheduleService.handleTaskFail(task.getTaskId(), task.getJobInstanceId(), String.format("worker %s is offline", task.getWorkerId()), "");
+                    iScheduleService.handleTaskFail(task.getTaskId(), String.format("worker %s is offline", task.getWorkerId()), "");
                 }
             }
         }

@@ -20,25 +20,18 @@ package org.limbo.flowjob.common.constants;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import lombok.Getter;
 
 /**
- * 作业调度状态
+ * 计划类型
  *
  * @author Brozen
  * @since 2021-05-19
  */
-@Getter
-public enum JobStatus {
-
+public enum PlanType {
     UNKNOWN(ConstantsPool.UNKNOWN, "未知"),
-    SCHEDULING(ConstantsPool.JOB_STATUS_SCHEDULING, "调度中"),
-    EXECUTING(ConstantsPool.JOB_STATUS_EXECUTING, "执行中"),
-    SUCCEED(ConstantsPool.JOB_STATUS_SUCCEED, "执行成功"),
-    FAILED(ConstantsPool.JOB_STATUS_FAILED, "执行异常"), // worker拒绝，进入容错策略 失败次数不增加 TERMINATED 作业被手动终止 不再增加一个状态 而是写入 errMsg
+    SINGLE(1, "单任务"),
+    WORKFLOW(2, "工作流任务"),
     ;
-
-
 
     @JsonValue
     public final byte status;
@@ -46,11 +39,11 @@ public enum JobStatus {
     public final String desc;
 
     @JsonCreator
-    JobStatus(int status, String desc) {
+    PlanType(int status, String desc) {
         this(((byte) status), desc);
     }
 
-    JobStatus(byte status, String desc) {
+    PlanType(byte status, String desc) {
         this.status = status;
         this.desc = desc;
     }
@@ -60,7 +53,7 @@ public enum JobStatus {
      *
      * @param status 待校验状态值
      */
-    public boolean is(JobStatus status) {
+    public boolean is(PlanType status) {
         return equals(status);
     }
 
@@ -77,12 +70,12 @@ public enum JobStatus {
      * 解析上下文状态值
      */
     @JsonCreator
-    public static JobStatus parse(Number status) {
+    public static PlanType parse(Number status) {
         if (status == null) {
             return UNKNOWN;
         }
 
-        for (JobStatus statusEnum : values()) {
+        for (PlanType statusEnum : values()) {
             if (statusEnum.is(status)) {
                 return statusEnum;
             }

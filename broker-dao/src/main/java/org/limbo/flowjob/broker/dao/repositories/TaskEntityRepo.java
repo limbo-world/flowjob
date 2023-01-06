@@ -34,7 +34,7 @@ import java.util.List;
  */
 public interface TaskEntityRepo extends JpaRepository<TaskEntity, String> {
 
-    List<TaskEntity> findByJobInstanceId(String jobInstanceId);
+    List<TaskEntity> findByJobInstanceIdAndType(String jobInstanceId, Byte type);
 
     List<TaskEntity> findByPlanIdInAndStatus(List<String> planIds, Byte status);
 

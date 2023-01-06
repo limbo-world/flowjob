@@ -18,7 +18,10 @@
 
 package org.limbo.flowjob.broker.core.domain.task;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
@@ -28,6 +31,9 @@ import java.util.Map;
  * @since 2022/9/5
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TaskResult {
 
     private String taskId;
@@ -41,8 +47,6 @@ public class TaskResult {
      * 执行失败时的异常堆栈
      */
     private String errorStackTrace;
-
-    private String result;
 
     /**
      * 生成任务用的属性

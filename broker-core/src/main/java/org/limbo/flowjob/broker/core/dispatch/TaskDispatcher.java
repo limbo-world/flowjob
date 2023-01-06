@@ -57,7 +57,7 @@ public class TaskDispatcher {
         }
 
         if (task.getStatus() != TaskStatus.DISPATCHING) {
-            throw new JobDispatchException(task.getJobId(), task.getMetaId(), "Cannot startup context due to current status: " + task.getStatus());
+            throw new JobDispatchException(task.getJobId(), task.getTaskId(), "Cannot startup context due to current status: " + task.getStatus());
         }
 
         List<Worker> availableWorkers = task.getAvailableWorkers();

@@ -20,6 +20,10 @@ package org.limbo.flowjob.broker.core.service;
 
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
+import org.limbo.flowjob.broker.core.domain.task.TaskResult;
+import org.limbo.flowjob.common.constants.TaskType;
+
+import java.util.List;
 
 /**
  * @author Devil
@@ -31,6 +35,8 @@ public interface IScheduleService {
 
     void schedule(Task task);
 
-    void handleTaskFail(String taskId, String jobInstanceId, String errorMsg, String errorStackTrace);
+    List<TaskResult> getTaskResults(String jobInstanceId, TaskType taskType);
+
+    void handleTaskFail(String taskId, String errorMsg, String errorStackTrace);
 
 }
