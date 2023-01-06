@@ -23,6 +23,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
+import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.dag.DAG;
 
@@ -52,6 +53,12 @@ public class PlanInfo implements Serializable {
     private Integer version;
 
     /**
+     * 计划类型
+     * @see PlanType
+     */
+    private PlanType type;
+
+    /**
      * 执行计划描述
      */
     private String description;
@@ -72,10 +79,11 @@ public class PlanInfo implements Serializable {
     private DAG<JobInfo> dag;
 
 
-    public PlanInfo(String planId, Integer version, String description,
+    public PlanInfo(String planId, Integer version, PlanType type, String description,
                     TriggerType triggerType, ScheduleOption scheduleOption, DAG<JobInfo> dag) {
         this.planId = planId;
         this.version = version;
+        this.type = type;
         this.description = description;
         this.scheduleOption = scheduleOption;
         this.dag = dag;

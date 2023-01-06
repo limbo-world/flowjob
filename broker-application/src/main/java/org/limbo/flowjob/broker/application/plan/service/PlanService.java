@@ -44,6 +44,7 @@ public class PlanService {
     public String add(PlanAddParam param) {
         Plan plan = planFactory.create(
                 param.getDescription(),
+                param.getPlanType(),
                 param.getTriggerType(),
                 PlanConverter.convertScheduleOption(param.getScheduleOption()),
                 PlanConverter.convertJob(param.getJobs()),
@@ -68,6 +69,7 @@ public class PlanService {
 
         Plan newPlan = planFactory.newVersion(plan,
                 param.getDescription(),
+                param.getPlanType(),
                 param.getTriggerType(),
                 PlanConverter.convertScheduleOption(param.getScheduleOption()),
                 PlanConverter.convertJob(param.getJobs())

@@ -24,7 +24,7 @@ package org.limbo.flowjob.common.constants;
  */
 public interface ConstantsPool {
 
-    byte STATUS_UNKNOWN = 0;
+    byte UNKNOWN = 0;
 
     // PLanStatus
     byte PLAN_STATUS_SCHEDULING = 1;

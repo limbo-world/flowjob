@@ -25,10 +25,12 @@ import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.service.IScheduleService;
 import org.limbo.flowjob.common.constants.PlanStatus;
+import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.dag.DAG;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 
 /**
  * @author Devil
@@ -48,20 +50,33 @@ public class PlanFactory {
         this.metaTaskScheduler = metaTaskScheduler;
     }
 
-    public Plan create(String description, TriggerType triggerType, ScheduleOption scheduleOption, DAG<JobInfo> dag, boolean enabled) {
+    public Plan create(String description, PlanType type, TriggerType triggerType, ScheduleOption scheduleOption, DAG<JobInfo> dag, boolean enabled) {
         String planId = idGenerator.generateId(IDType.PLAN);
         Integer version = 1;
-        PlanInfo info = new PlanInfo(planId, version, description, triggerType, scheduleOption, dag);
+        PlanInfo info = new PlanInfo(planId, version, type, description, triggerType, scheduleOption, safestDag(type, dag));
         return new Plan(planId, version, version, info, enabled, null, null, iScheduleService, metaTaskScheduler);
     }
 
-    public Plan newVersion(Plan oldPlan, String description, TriggerType triggerType, ScheduleOption scheduleOption, DAG<JobInfo> dag) {
+    public Plan newVersion(Plan oldPlan, String description, PlanType type, TriggerType triggerType, ScheduleOption scheduleOption, DAG<JobInfo> dag) {
         PlanInfo oldInfo = oldPlan.getInfo();
         Integer newVersion = oldInfo.getVersion() + 1;
 
-        PlanInfo newInfo = new PlanInfo(oldPlan.getPlanId(), newVersion, description, triggerType, scheduleOption, dag);
+        PlanInfo newInfo = new PlanInfo(oldPlan.getPlanId(), newVersion, type, description, triggerType, scheduleOption, safestDag(type, dag));
 
         return new Plan(oldPlan.getPlanId(), newVersion, newVersion, newInfo, oldPlan.isEnabled(), null, null, iScheduleService, metaTaskScheduler);
+    }
+
+    private DAG<JobInfo> safestDag(PlanType type, DAG<JobInfo> dag) {
+        DAG<JobInfo> result;
+        switch (type) {
+            case SINGLE:
+                result = new DAG<>(Collections.singletonList(dag.nodes().get(0)));
+                break;
+            default:
+                result = dag;
+                break;
+        }
+        return result;
     }
 
     /**
