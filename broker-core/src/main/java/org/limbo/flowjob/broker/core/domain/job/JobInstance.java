@@ -24,6 +24,7 @@ import org.limbo.flowjob.common.constants.JobStatus;
 import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.schedule.Scheduled;
+import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
@@ -47,7 +48,9 @@ public class JobInstance implements Serializable {
 
     protected String planId;
 
-    protected Integer planVersion;
+    protected String planVersion;
+
+    protected PlanType planType;
 
     protected String jobId;
 
@@ -60,7 +63,7 @@ public class JobInstance implements Serializable {
     protected TriggerType triggerType;
 
     /**
-     * 已经尝试的次数 todo
+     * 已经尝试的次数
      */
     protected int retry = 0;
 
@@ -95,7 +98,7 @@ public class JobInstance implements Serializable {
     private boolean terminateWithFail;
 
     /**
-     * 是否需要重试
+     * 是否需要重试 todo
      */
     public boolean retry() {
         if (dispatchOption.getRetry() > retry) {

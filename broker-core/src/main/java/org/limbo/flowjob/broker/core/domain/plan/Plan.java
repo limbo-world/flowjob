@@ -18,17 +18,19 @@
 
 package org.limbo.flowjob.broker.core.domain.plan;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.LoopMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
-import org.limbo.flowjob.broker.core.service.IScheduleService;
+import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
+import org.limbo.flowjob.common.constants.MsgConstants;
+import org.limbo.flowjob.common.constants.ScheduleType;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -40,8 +42,8 @@ import java.time.LocalDateTime;
  * @author Brozen
  * @since 2021-07-12
  */
+@Slf4j
 @Getter
-@Setter
 @ToString
 public class Plan extends LoopMetaTask implements Serializable {
 
@@ -50,48 +52,43 @@ public class Plan extends LoopMetaTask implements Serializable {
     /**
      * 执行计划ID
      */
-    private String planId;
+    private final String planId;
 
     /**
      * 当前版本
      */
-    private Integer currentVersion;
+    private final String version;
 
     /**
-     * 最新版本
+     * 计划信息
      */
-    private Integer recentlyVersion;
-
-    /**
-     * 当前版本的Plan数据
-     */
-    private PlanInfo info;
-
-    /**
-     * 是否已启用
-     */
-    private boolean enabled;
+    private final PlanInfo planInfo;
 
     @Setter(AccessLevel.NONE)
     @Getter(AccessLevel.NONE)
     @ToString.Exclude
-    private IScheduleService iScheduleService;
+    private IScheduleStrategy iScheduleStrategy;
 
-    public Plan(String planId, Integer currentVersion, Integer recentlyVersion, PlanInfo info, boolean enabled,
+    public Plan(PlanInfo planInfo, ScheduleOption scheduleOption,
                 LocalDateTime lastTriggerAt, LocalDateTime lastFeedbackAt,
-                IScheduleService iScheduleService, MetaTaskScheduler metaTaskScheduler) {
-        super(lastTriggerAt, lastFeedbackAt, info.getScheduleOption(), metaTaskScheduler);
-        this.planId = planId;
-        this.currentVersion = currentVersion;
-        this.recentlyVersion = recentlyVersion;
-        this.info = info;
-        this.enabled = enabled;
-        this.iScheduleService = iScheduleService;
+                IScheduleStrategy iScheduleStrategy, MetaTaskScheduler metaTaskScheduler) {
+        super(lastTriggerAt, lastFeedbackAt, scheduleOption, metaTaskScheduler);
+        this.planId = planInfo.getPlanId();
+        this.version = planInfo.getVersion();
+        this.planInfo = planInfo;
+        this.iScheduleStrategy = iScheduleStrategy;
     }
 
     @Override
     public void execute() {
-
+        ScheduleOption scheduleOption = getScheduleOption();
+        if (scheduleOption == null || scheduleOption.getScheduleType() == null || ScheduleType.UNKNOWN == scheduleOption.getScheduleType()) {
+            log.error("{} scheduleType is {} scheduleOption={}", scheduleId(), MsgConstants.UNKNOWN, scheduleOption);
+            return;
+        }
+        if (ScheduleType.NONE == scheduleOption.getScheduleType()) {
+            return;
+        }
         switch (getScheduleOption().getScheduleType()) {
             case FIXED_RATE:
             case CRON:
@@ -105,7 +102,7 @@ public class Plan extends LoopMetaTask implements Serializable {
 
     @Override
     protected void executeTask() {
-        iScheduleService.schedule(this);
+        iScheduleStrategy.schedule(this);
     }
 
     @Override
@@ -115,7 +112,7 @@ public class Plan extends LoopMetaTask implements Serializable {
 
     @Override
     public String getMetaId() {
-        return planId + "-" + currentVersion;
+        return planId + "-" + version;
     }
 
 }

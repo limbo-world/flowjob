@@ -50,7 +50,7 @@ public class PlanInstance implements Serializable {
     /**
      * 计划的版本
      */
-    private Integer version;
+    private String version;
 
     /**
      * 计划调度状态

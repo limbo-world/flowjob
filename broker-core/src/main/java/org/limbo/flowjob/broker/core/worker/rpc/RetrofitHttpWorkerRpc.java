@@ -16,9 +16,10 @@
 
 package org.limbo.flowjob.broker.core.worker.rpc;
 
-import org.limbo.flowjob.api.constants.HttpWorkerApi;
-import org.limbo.flowjob.api.dto.ResponseDTO;
-import org.limbo.flowjob.api.param.TaskSubmitParam;
+import org.apache.commons.lang3.BooleanUtils;
+import org.limbo.flowjob.api.remote.constants.HttpWorkerApi;
+import org.limbo.flowjob.api.remote.dto.ResponseDTO;
+import org.limbo.flowjob.api.remote.param.TaskSubmitParam;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.exceptions.WorkerException;
 import org.limbo.flowjob.broker.core.worker.Worker;
@@ -45,16 +46,6 @@ public class RetrofitHttpWorkerRpc extends HttpWorkerRpc {
                 .build().create(RetrofitWorkerApi.class);
     }
 
-
-//    /**
-//     * {@inheritDoc}
-//     * @return
-//     */
-//    @Override
-//    public WorkerMetric ping() {
-//        return WorkerConverter.toDO(send(api.ping()));
-//    }
-
     /**
      * {@inheritDoc}
      *
@@ -62,9 +53,9 @@ public class RetrofitHttpWorkerRpc extends HttpWorkerRpc {
      * @return
      */
     @Override
-    public Boolean sendTask(Task task) {
-
-        return send(api.sendTask(WorkerConverter.toTaskSubmitParam(task)));
+    public boolean sendTask(Task task) {
+        Boolean result = send(api.sendTask(WorkerConverter.toTaskSubmitParam(task)));
+        return BooleanUtils.isTrue(result);
     }
 
     private <T> T send(Call<ResponseDTO<T>> call) {
@@ -91,9 +82,6 @@ public class RetrofitHttpWorkerRpc extends HttpWorkerRpc {
      * Worker HTTP 协议通信接口
      */
     interface RetrofitWorkerApi {
-
-//        @GET(HttpWorkerApi.API_PING)
-//        Call<ResponseDTO<WorkerMetricDTO>> ping();
 
         @Headers(
                 "Content-Type: application/json"

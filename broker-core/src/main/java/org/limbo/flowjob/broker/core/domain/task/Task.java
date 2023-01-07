@@ -18,18 +18,15 @@
 
 package org.limbo.flowjob.broker.core.domain.task;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
-import org.limbo.flowjob.broker.core.schedule.Scheduled;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
-import org.limbo.flowjob.broker.core.service.IScheduleService;
-import org.limbo.flowjob.broker.core.worker.Worker;
+import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
 import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
@@ -37,6 +34,7 @@ import org.limbo.flowjob.common.utils.attribute.Attributes;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 作业执行上下文
@@ -59,7 +57,7 @@ public class Task implements MetaTask, Serializable {
 
     private String planId;
 
-    private Integer planVersion;
+    private String planVersion;
 
     /**
      * 类型
@@ -75,11 +73,6 @@ public class Task implements MetaTask, Serializable {
      * 此分发执行此作业上下文的worker
      */
     private String workerId;
-
-    /**
-     * 可下发的worker
-     */
-    private List<Worker> availableWorkers;
 
     /**
      * 全局上下文
@@ -128,11 +121,19 @@ public class Task implements MetaTask, Serializable {
 
     @Getter(AccessLevel.NONE)
     @ToString.Exclude
-    private IScheduleService iScheduleService;
+    private IScheduleStrategy iScheduleStrategy;
 
     @Override
     public void execute() {
-        iScheduleService.schedule(this);
+        iScheduleStrategy.schedule(this);
+    }
+
+    public void success(Map<String, Object> resultAttributes) {
+        iScheduleStrategy.handleTaskSuccess(this, resultAttributes);
+    }
+
+    public void fail(String errorMsg, String errorStackTrace) {
+        iScheduleStrategy.handleTaskFail(this, errorMsg, errorStackTrace);
     }
 
     @Override

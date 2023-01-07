@@ -25,8 +25,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author Devil
  * @since 2022/6/23
  */
-public interface PlanInfoEntityRepo extends JpaRepository<PlanInfoEntity, Long> {
-
-    PlanInfoEntity findByPlanIdAndPlanVersion(String planId, Integer planVersion);
+public interface PlanInfoEntityRepo extends JpaRepository<PlanInfoEntity, String> {
 
 }

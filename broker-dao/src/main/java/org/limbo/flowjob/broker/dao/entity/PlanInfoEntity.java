@@ -61,20 +61,20 @@ public class PlanInfoEntity extends BaseEntity {
     private String planId;
 
     /**
-     * 版本
+     * 名称
      */
-    private Integer planVersion;
+    private String name;
 
     /**
-     * 计划类型
+     * 描述
+     */
+    private String description;
+
+    /**
+     * 计划作业类型
      * @see PlanType
      */
     private Byte planType;
-
-    /**
-     * 执行计划描述
-     */
-    private String description;
 
     /**
      * 计划作业调度方式
@@ -120,9 +120,10 @@ public class PlanInfoEntity extends BaseEntity {
     private Integer retry;
 
     /**
-     * 存储job节点直接的关联关系
+     * single 存储job信息
+     * workflow存储job节点之间的关联关系
      */
-    private String jobs;
+    private String jobInfo;
 
     @Override
     public Object getUid() {

@@ -18,13 +18,12 @@
 
 package org.limbo.flowjob.broker.core.domain.task;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
-import org.limbo.flowjob.broker.core.service.IScheduleService;
+import org.limbo.flowjob.broker.core.schedule.strategy.ScheduleStrategyFactory;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.constants.TaskType;
@@ -51,14 +50,17 @@ public class TaskFactory {
 
     private final WorkerManager workerManager;
 
+    private final TaskManager taskManager;
+
     private final IDGenerator idGenerator;
 
-    private final IScheduleService iScheduleService;
+    private final ScheduleStrategyFactory scheduleStrategyFactory;
 
-    public TaskFactory(WorkerManager workerManager, IDGenerator idGenerator, IScheduleService iScheduleService) {
+    public TaskFactory(WorkerManager workerManager, TaskManager taskManager, IDGenerator idGenerator, ScheduleStrategyFactory scheduleStrategyFactory) {
         this.workerManager = workerManager;
+        this.taskManager = taskManager;
         this.idGenerator = idGenerator;
-        this.iScheduleService = iScheduleService;
+        this.scheduleStrategyFactory = scheduleStrategyFactory;
 
         creators = new EnumMap<>(TaskType.class);
 
@@ -86,7 +88,7 @@ public class TaskFactory {
 
         public abstract List<Task> tasks(JobInstance instance, LocalDateTime triggerAt);
 
-        protected Task initTask(TaskType type, JobInstance instance, LocalDateTime triggerAt, List<Worker> availableWorkers) {
+        protected Task initTask(TaskType type, JobInstance instance, LocalDateTime triggerAt, String workerId) {
             Task task = new Task();
             task.setTaskId(idGenerator.generateId(IDType.TASK));
             task.setTaskType(type);
@@ -99,9 +101,9 @@ public class TaskFactory {
             task.setStatus(TaskStatus.DISPATCHING);
             task.setDispatchOption(instance.getDispatchOption());
             task.setExecutorName(instance.getExecutorName());
-            task.setIScheduleService(iScheduleService);
+            task.setIScheduleStrategy(scheduleStrategyFactory.build(instance.getPlanType()));
             task.setAttributes(instance.getAttributes());
-            task.setAvailableWorkers(availableWorkers);
+            task.setWorkerId(workerId);
             return task;
         }
 
@@ -114,7 +116,7 @@ public class TaskFactory {
 
         @Override
         public List<Task> tasks(JobInstance instance, LocalDateTime triggerAt) {
-            Task task = initTask(TaskType.NORMAL, instance, triggerAt, workerManager.availableWorkers());
+            Task task = initTask(TaskType.NORMAL, instance, triggerAt, null);
             return Collections.singletonList(task);
         }
 
@@ -140,7 +142,7 @@ public class TaskFactory {
             }
             List<Task> tasks = new ArrayList<>();
             for (Worker worker : workers) {
-                Task task = initTask(TaskType.BROADCAST, instance, triggerAt, Lists.newArrayList(worker));
+                Task task = initTask(TaskType.BROADCAST, instance, triggerAt, worker.getId());
                 tasks.add(task);
             }
             return tasks;
@@ -163,7 +165,7 @@ public class TaskFactory {
 
         @Override
         public List<Task> tasks(JobInstance instance, LocalDateTime triggerAt) {
-            Task task = initTask(TaskType.SPLIT, instance, triggerAt, workerManager.availableWorkers());
+            Task task = initTask(TaskType.SPLIT, instance, triggerAt, null);
             return Collections.singletonList(task);
         }
 
@@ -185,11 +187,10 @@ public class TaskFactory {
 
         @Override
         public List<Task> tasks(JobInstance instance, LocalDateTime triggerAt) {
-            TaskResult taskResult = iScheduleService.getTaskResults(instance.getJobInstanceId(), TaskType.SPLIT).get(0);
-            List<Worker> workers = workerManager.availableWorkers();
+            TaskResult taskResult = taskManager.getTaskResults(instance.getJobInstanceId(), TaskType.SPLIT).get(0);
             List<Task> tasks = new ArrayList<>();
             for (Map<String, Object> attribute : taskResult.getSubTaskAttributes()) {
-                Task task = initTask(TaskType.MAP, instance, triggerAt, workers);
+                Task task = initTask(TaskType.MAP, instance, triggerAt, null);
                 task.setMapAttributes(new Attributes(attribute));
                 tasks.add(task);
             }
@@ -213,12 +214,12 @@ public class TaskFactory {
 
         @Override
         public List<Task> tasks(JobInstance instance, LocalDateTime triggerAt) {
-            List<TaskResult> taskResults = iScheduleService.getTaskResults(instance.getJobInstanceId(), TaskType.MAP);
+            List<TaskResult> taskResults = taskManager.getTaskResults(instance.getJobInstanceId(), TaskType.MAP);
             List<Attributes> reduceAttributes = new ArrayList<>();
             for (TaskResult taskResult : taskResults) {
                 reduceAttributes.add(new Attributes(taskResult.getResultAttributes()));
             }
-            Task task = initTask(TaskType.REDUCE, instance, triggerAt, workerManager.availableWorkers());
+            Task task = initTask(TaskType.REDUCE, instance, triggerAt, null);
             task.setReduceAttributes(reduceAttributes);
             return Collections.singletonList(task);
         }

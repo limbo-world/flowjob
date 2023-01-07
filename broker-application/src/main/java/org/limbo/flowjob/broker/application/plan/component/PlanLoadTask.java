@@ -24,19 +24,17 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.core.repository.PlanRepository;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.AbstractPlanLoadTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
+import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.support.SlotManager;
-import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import javax.inject.Inject;
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -52,16 +50,14 @@ public class PlanLoadTask extends AbstractPlanLoadTask {
     private PlanEntityRepo planEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private PlanRepository planRepository;
-
-    @Setter(onMethod_ = @Inject)
     private PlanSlotEntityRepo planSlotEntityRepo;
 
+    @Setter(onMethod_ = @Inject)
+    private DomainConverter domainConverter;
 
     public PlanLoadTask(Duration interval, BrokerConfig config, NodeManger nodeManger, MetaTaskScheduler scheduler) {
         super(interval, config, nodeManger, scheduler);
     }
-
 
     /**
      * {@inheritDoc}
@@ -84,7 +80,7 @@ public class PlanLoadTask extends AbstractPlanLoadTask {
         }
         List<Plan> plans = new ArrayList<>();
         for (PlanEntity planEntity : planEntities) {
-            plans.add(planRepository.get(planEntity.getPlanId()));
+            plans.add(domainConverter.toPlan(planEntity));
         }
         return plans;
     }

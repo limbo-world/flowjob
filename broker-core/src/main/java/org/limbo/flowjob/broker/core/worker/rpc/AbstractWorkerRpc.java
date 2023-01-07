@@ -19,9 +19,8 @@
 package org.limbo.flowjob.broker.core.worker.rpc;
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.constants.Protocol;
-import org.limbo.flowjob.api.dto.ResponseDTO;
+import org.limbo.flowjob.api.remote.dto.ResponseDTO;
 import org.limbo.flowjob.broker.core.exceptions.WorkerException;
 import org.limbo.flowjob.broker.core.worker.Worker;
 
@@ -55,9 +54,8 @@ public abstract class AbstractWorkerRpc implements WorkerRpc {
      */
     private final Integer port;
 
-    public AbstractWorkerRpc(Worker worker) {
+    protected AbstractWorkerRpc(Worker worker) {
         this.workerId = worker.getId();
-        // todo
         this.protocol = null;
         this.host = null;
         this.port = null;

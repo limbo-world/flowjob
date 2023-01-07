@@ -6,12 +6,15 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.limbo.flowjob.api.param.PlanAddParam;
-import org.limbo.flowjob.api.param.PlanReplaceParam;
-import org.limbo.flowjob.api.dto.ResponseDTO;
+import org.limbo.flowjob.api.console.param.PlanParam;
+import org.limbo.flowjob.api.remote.dto.ResponseDTO;
 import org.limbo.flowjob.broker.application.plan.service.PlanService;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotBlank;
@@ -33,9 +36,9 @@ public class PlanController {
      */
     @Operation(summary = "新增计划")
     @PostMapping
-    public ResponseDTO<String> add(@Validated @RequestBody PlanAddParam options) {
+    public ResponseDTO<String> add(@Validated @RequestBody PlanParam options) {
         return ResponseDTO.<String>builder()
-                .ok(planService.add(options))
+                .ok(planService.save(null, options))
                 .build();
     }
 
@@ -48,8 +51,10 @@ public class PlanController {
     })
     @PutMapping("/{planId}")
     public ResponseDTO<String> replace(@NotBlank(message = "ID不能为空") @PathVariable("planId") String planId,
-                                           @Validated @RequestBody PlanReplaceParam dto) {
-        return ResponseDTO.<String>builder().ok(planService.replace(planId, dto)).build();
+                                           @Validated @RequestBody PlanParam options) {
+        return ResponseDTO.<String>builder()
+                .ok(planService.save(planId, options))
+                .build();
     }
 
     /**

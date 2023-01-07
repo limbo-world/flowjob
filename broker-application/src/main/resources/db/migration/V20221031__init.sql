@@ -135,7 +135,8 @@ CREATE TABLE `flowjob_plan_info`
     `schedule_delay`     bigint                                                          DEFAULT NULL,
     `schedule_interval`  bigint                                                          DEFAULT NULL,
     `schedule_start_at`  datetime(6) DEFAULT NULL,
-    `jobs`               text COLLATE utf8mb4_bin,
+    `job_info`           text COLLATE utf8mb4_bin,
+    `name`               varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `description`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `retry`              int                                                             DEFAULT NULL,
     `is_deleted`         bit(1)                                                 NOT NULL DEFAULT 0,
@@ -243,7 +244,7 @@ CREATE TABLE `flowjob_job_instance`
     `job_id`           varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `plan_instance_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `plan_id`          varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `plan_version`     int(8) unsigned NOT NULL,
+    `plan_info_id`     varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `trigger_at`       datetime(6) NOT NULL,
     `start_at`         datetime(6) DEFAULT NULL,
     `end_at`           datetime(6) DEFAULT NULL,
@@ -544,6 +545,8 @@ INSERT INTO flowjob_id(`type`, `current_id`, `step`)
 VALUES ('BROKER', 100000, 1000);
 INSERT INTO flowjob_id(`type`, `current_id`, `step`)
 VALUES ('PLAN', 100000, 1000);
+INSERT INTO flowjob_id(`type`, `current_id`, `step`)
+VALUES ('PLAN_INFO', 100000, 1000);
 INSERT INTO flowjob_id(`type`, `current_id`, `step`)
 VALUES ('PLAN_INSTANCE', 100000, 1000);
 INSERT INTO flowjob_id(`type`, `current_id`, `step`)

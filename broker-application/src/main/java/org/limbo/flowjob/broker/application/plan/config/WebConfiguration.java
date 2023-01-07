@@ -6,12 +6,10 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.application.plan.support.WorkerInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.format.datetime.DateFormatter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.time.LocalDateTime;
@@ -70,22 +68,22 @@ public class WebConfiguration implements WebMvcConfigurer {
         registry.addFormatter(new DateFormatter(TIME_PATTERN));
     }
 
-    /**
-     * worker 会话拦截
-     *
-     * @return
-     */
-    @Bean
-    public WorkerInterceptor workerInterceptor() {
-        return new WorkerInterceptor();
-    }
-
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(workerInterceptor())
-                .addPathPatterns("/api/v1/rpc/worker/*/heartbeat")
-                .addPathPatterns("/api/v1/rpc/worker/task/*/feedback")
-//                .excludePathPatterns("/api/v1/rpc/worker")
-        ;
-    }
+//    /**
+//     * worker 会话拦截
+//     *
+//     * @return
+//     */
+//    @Bean
+//    public WorkerInterceptor workerInterceptor() {
+//        return new WorkerInterceptor();
+//    }
+//
+//    @Override
+//    public void addInterceptors(InterceptorRegistry registry) {
+//        registry.addInterceptor(workerInterceptor())
+//                .addPathPatterns("/api/v1/rpc/worker/*/heartbeat")
+//                .addPathPatterns("/api/v1/rpc/worker/task/*/feedback")
+////                .excludePathPatterns("/api/v1/rpc/worker")
+//        ;
+//    }
 }

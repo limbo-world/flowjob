@@ -23,7 +23,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.task.Task;
-import org.limbo.flowjob.broker.core.service.IScheduleService;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 
@@ -45,20 +44,16 @@ public abstract class AbstractTaskStatusCheckTask extends FixDelayMetaTask {
     @Getter
     protected final NodeManger nodeManger;
 
-    private final IScheduleService iScheduleService;
-
     private final WorkerRepository workerRepository;
 
     protected AbstractTaskStatusCheckTask(Duration interval,
                                           BrokerConfig config,
                                           NodeManger nodeManger,
-                                          IScheduleService iScheduleService,
                                           MetaTaskScheduler metaTaskScheduler,
                                           WorkerRepository workerRepository) {
         super(interval, metaTaskScheduler);
         this.config = config;
         this.nodeManger = nodeManger;
-        this.iScheduleService = iScheduleService;
         this.workerRepository = workerRepository;
     }
 
@@ -72,8 +67,8 @@ public abstract class AbstractTaskStatusCheckTask extends FixDelayMetaTask {
 
         List<Task> dispatchingTasks = loadDispatchingTasks();
         if (CollectionUtils.isNotEmpty(dispatchingTasks)) {
-            for (Task dispatchingTask : dispatchingTasks) {
-                iScheduleService.schedule(dispatchingTask);
+            for (Task task : dispatchingTasks) {
+                task.execute();
             }
         }
 
@@ -83,7 +78,7 @@ public abstract class AbstractTaskStatusCheckTask extends FixDelayMetaTask {
             for (Task task : executingTasks) {
                 Worker worker = workerRepository.get(task.getWorkerId());
                 if (worker == null || !worker.isAlive()) {
-                    iScheduleService.handleTaskFail(task.getTaskId(), String.format("worker %s is offline", task.getWorkerId()), "");
+                    task.fail(String.format("worker %s is offline", task.getWorkerId()), "");
                 }
             }
         }

@@ -25,13 +25,10 @@ import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.AbstractTaskStatusCheckTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.core.service.IScheduleService;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
-import org.limbo.flowjob.broker.dao.repositories.JobInfoEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.limbo.flowjob.broker.dao.support.SlotManager;
@@ -59,18 +56,14 @@ public class TaskStatusCheckTask extends AbstractTaskStatusCheckTask {
     private PlanSlotEntityRepo planSlotEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private PlanInfoEntityRepo planInfoEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private JobInfoEntityRepo jobInfoEntityRepo;
+    private DomainConverter domainConverter;
 
     public TaskStatusCheckTask(Duration interval,
                                BrokerConfig config,
                                NodeManger nodeManger,
-                               IScheduleService iScheduleService,
                                MetaTaskScheduler metaTaskScheduler,
                                WorkerRepository workerRepository) {
-        super(interval, config, nodeManger, iScheduleService, metaTaskScheduler, workerRepository);
+        super(interval, config, nodeManger, metaTaskScheduler, workerRepository);
     }
 
 
@@ -78,14 +71,14 @@ public class TaskStatusCheckTask extends AbstractTaskStatusCheckTask {
     protected List<Task> loadDispatchingTasks() {
         List<String> planIds = loadPlanIds();
         List<TaskEntity> taskEntities = taskEntityRepo.findByPlanIdInAndStatus(planIds, TaskStatus.DISPATCHING.status);
-        return taskEntities.stream().map(entity -> DomainConverter.toTask(entity, planInfoEntityRepo, jobInfoEntityRepo)).collect(Collectors.toList());
+        return taskEntities.stream().map(entity -> domainConverter.toTask(entity)).collect(Collectors.toList());
     }
 
     @Override
     protected List<Task> loadExecutingTasks() {
         List<String> planIds = loadPlanIds();
         List<TaskEntity> taskEntities = taskEntityRepo.findByPlanIdInAndStatus(planIds, TaskStatus.EXECUTING.status);
-        return taskEntities.stream().map(entity -> DomainConverter.toTask(entity, planInfoEntityRepo, jobInfoEntityRepo)).collect(Collectors.toList());
+        return taskEntities.stream().map(entity -> domainConverter.toTask(entity)).collect(Collectors.toList());
     }
 
     private List<String> loadPlanIds() {

@@ -20,6 +20,8 @@ package org.limbo.flowjob.broker.core.dispatch;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.domain.task.Task;
@@ -38,34 +40,75 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TaskDispatcher {
 
+    private final WorkerManager workerManager;
+
+    public TaskDispatcher(WorkerManager workerManager) {
+        this.workerManager = workerManager;
+    }
+
     /**
      * 将任务下发给worker。
      * task status -> EXECUTING or FAILED
      */
-    public static void dispatch(Task task) {
+    public boolean dispatch(Task task) {
         if (log.isDebugEnabled()) {
             log.debug("start dispatch task={}", task);
         }
 
-        if (task.getStatus() != TaskStatus.DISPATCHING) {
-            throw new JobDispatchException(task.getJobId(), task.getTaskId(), "Cannot startup context due to current status: " + task.getStatus());
+        if (StringUtils.isBlank(task.getWorkerId())) {
+            return dispatchWithWorkerId(task);
+        } else {
+            return dispatchNoWorker(task);
+        }
+    }
+
+    private boolean dispatchWithWorkerId(Task task) {
+        Worker worker = workerManager.get(task.getWorkerId());
+        if (worker == null) {
+            return false;
         }
 
-        List<Worker> availableWorkers = task.getAvailableWorkers();
+        try {
+            // 发送任务到worker，根据worker返回结果，更新状态
+            boolean dispatched = worker.sendTask(task);
+            if (dispatched) {
+                // 更新状态
+                task.setStatus(TaskStatus.EXECUTING);
+                task.setWorkerId(worker.getId());
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Task dispatch success task={}", task);
+                }
+                return true;
+            }
+        } catch (Exception e) {
+            log.error("Task dispatch with error task={}", task, e);
+        }
+
+        // 下发失败
+        task.setStatus(TaskStatus.FAILED);
+        if (log.isDebugEnabled()) {
+            log.debug("Task dispatch fail task={}", task);
+        }
+        return false;
+    }
+
+    private boolean dispatchNoWorker(Task task) {
+        List<Worker> availableWorkers = workerManager.availableWorkers();
         if (CollectionUtils.isEmpty(availableWorkers)) {
-            return;
+            return false;
         }
         WorkerSelector workerSelector = WorkerSelectorFactory.newSelector(task.getDispatchOption().getLoadBalanceType());
         for (int i = 0; i < 3; i++) {
             try {
                 Worker worker = workerSelector.select(task.getDispatchOption(), task.getExecutorName(), availableWorkers);
                 if (worker == null) {
-                    return;
+                    return false;
                 }
 
                 // 发送任务到worker，根据worker返回结果，更新状态
-                Boolean dispatched = worker.sendTask(task);
-                if (Boolean.TRUE.equals(dispatched)) {
+                boolean dispatched = worker.sendTask(task);
+                if (dispatched) {
 
                     // 更新状态
                     task.setStatus(TaskStatus.EXECUTING);
@@ -74,7 +117,7 @@ public class TaskDispatcher {
                     if (log.isDebugEnabled()) {
                         log.debug("Task dispatch success task={}", task);
                     }
-                    return;
+                    return true;
                 }
 
                 availableWorkers = availableWorkers.stream().filter(w -> !Objects.equals(w.getId(), worker.getId())).collect(Collectors.toList());
@@ -88,6 +131,7 @@ public class TaskDispatcher {
         if (log.isDebugEnabled()) {
             log.debug("Task dispatch fail task={}", task);
         }
+        return false;
     }
 
 }
