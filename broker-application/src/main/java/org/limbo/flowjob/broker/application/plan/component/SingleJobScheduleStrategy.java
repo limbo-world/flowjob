@@ -45,17 +45,13 @@ import java.util.List;
 public class SingleJobScheduleStrategy extends AbstractScheduleStrategy {
 
     @Override
-    protected void schedulePlanInfo(PlanInfo planInfo, LocalDateTime triggerAt) {
+    protected void schedulePlanInfo(TriggerType triggerType, PlanInfo planInfo, LocalDateTime triggerAt) {
         String planId = planInfo.getPlanId();
         String version = planInfo.getVersion();
 
         SinglePlanInfo singlePlanInfo = (SinglePlanInfo) planInfo;
-        if (TriggerType.SCHEDULE == planInfo.getTriggerType()) {
-            return;
-        }
-
-        // 保存 planInstance todo 触发类型 手动触发？？
-        String planInstanceId = savePlanInstanceEntity(planId, version, TriggerType.SCHEDULE, triggerAt);
+        // 保存 planInstance
+        String planInstanceId = savePlanInstanceEntity(planId, version, triggerType, triggerAt);
         JobInstance jobInstance = newJobInstance(planId, version, planInfo.planType(), planInstanceId, singlePlanInfo.getJobInfo(), TimeUtils.currentLocalDateTime());
         scheduleJobInstance(jobInstance);
     }

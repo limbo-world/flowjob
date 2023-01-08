@@ -60,8 +60,6 @@ public class JobInstance implements Serializable {
 
     protected JobType type;
 
-    protected TriggerType triggerType;
-
     /**
      * 已经尝试的次数
      */

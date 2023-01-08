@@ -31,6 +31,7 @@ import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
 import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
 import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.constants.ScheduleType;
+import org.limbo.flowjob.common.constants.TriggerType;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -93,7 +94,7 @@ public class Plan extends LoopMetaTask implements Serializable {
 
     @Override
     protected void executeTask() {
-        iScheduleStrategy.schedule(this);
+        iScheduleStrategy.schedule(TriggerType.SCHEDULE, this);
     }
 
     @Override

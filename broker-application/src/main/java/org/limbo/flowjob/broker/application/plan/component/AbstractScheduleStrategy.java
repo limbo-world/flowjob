@@ -21,7 +21,6 @@ package org.limbo.flowjob.broker.application.plan.component;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
@@ -63,7 +62,6 @@ import org.limbo.flowjob.common.utils.time.TimeUtils;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -117,7 +115,7 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
 
     @Override
     @Transactional
-    public void schedule(Plan plan) {
+    public void schedule(TriggerType triggerType, Plan plan) {
         String planId = plan.getPlanId();
         PlanInfo planInfo = plan.getPlanInfo();
 
@@ -153,10 +151,10 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
             return;
         }
         // 调度逻辑
-        schedulePlanInfo(planInfo, plan.getTriggerAt());
+        schedulePlanInfo(triggerType, planInfo, plan.getTriggerAt());
     }
 
-    protected abstract void schedulePlanInfo(PlanInfo planInfo, LocalDateTime triggerAt);
+    protected abstract void schedulePlanInfo(TriggerType triggerType, PlanInfo planInfo, LocalDateTime triggerAt);
 
     @Override
     @Transactional
@@ -332,7 +330,6 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
         instance.setDispatchOption(jobInfo.getDispatchOption());
         instance.setExecutorName(jobInfo.getExecutorName());
         instance.setType(jobInfo.getType());
-        instance.setTriggerType(jobInfo.getTriggerType());
         instance.setStatus(JobStatus.SCHEDULING);
         instance.setTriggerAt(triggerAt);
         instance.setAttributes(jobInfo.getAttributes());

@@ -20,11 +20,8 @@ package org.limbo.flowjob.broker.core.schedule.strategy;
 
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
-import org.limbo.flowjob.broker.core.domain.task.TaskResult;
-import org.limbo.flowjob.common.constants.PlanType;
-import org.limbo.flowjob.common.constants.TaskType;
+import org.limbo.flowjob.common.constants.TriggerType;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,7 +30,7 @@ import java.util.Map;
  */
 public interface IScheduleStrategy {
 
-    void schedule(Plan plan);
+    void schedule(TriggerType triggerType, Plan plan);
 
     void schedule(Task task);
 

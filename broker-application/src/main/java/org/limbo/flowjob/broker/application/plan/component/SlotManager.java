@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
+import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -37,6 +38,7 @@ import java.util.stream.Collectors;
  * @since 2022/8/22
  */
 @Slf4j
+@Component
 public class SlotManager {
 
     @Setter(onMethod_ = @Inject)

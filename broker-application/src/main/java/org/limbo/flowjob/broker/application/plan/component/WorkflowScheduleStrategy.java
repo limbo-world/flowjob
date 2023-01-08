@@ -57,14 +57,14 @@ import java.util.stream.Collectors;
 public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
 
     @Override
-    protected void schedulePlanInfo(PlanInfo planInfo, LocalDateTime triggerAt) {
+    protected void schedulePlanInfo(TriggerType triggerType, PlanInfo planInfo, LocalDateTime triggerAt) {
         String planId = planInfo.getPlanId();
         String version = planInfo.getVersion();
         List<JobInfoEntity> jobInfoEntities = jobInfoEntityRepo.findByPlanInfoId(version);
         Verifies.notEmpty(jobInfoEntities, "does not find " + planId + " plan's job info by version--" + version + "");
 
-        // 保存 planInstance todo 触发类型 手动触发？？
-        String planInstanceId = savePlanInstanceEntity(planId, version, TriggerType.SCHEDULE, triggerAt);
+        // 保存 planInstance
+        String planInstanceId = savePlanInstanceEntity(planId, version, triggerType, triggerAt);
 
         WorkflowPlanInfo workflowPlanInfo = (WorkflowPlanInfo) planInfo;
 
