@@ -61,8 +61,8 @@ public class JacksonUtils {
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         //在序列化时日期格式默认为 yyyy-MM-dd HH:mm:ss
-        mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
-        mapper.getDeserializationConfig().with(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+        mapper.setDateFormat(new SimpleDateFormat(Formatters.YMD_HMS));
+        mapper.getDeserializationConfig().with(new SimpleDateFormat(Formatters.YMD_HMS));
 
         //在序列化时忽略值为 null 的属性
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);

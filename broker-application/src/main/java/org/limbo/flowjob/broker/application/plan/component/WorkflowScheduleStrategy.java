@@ -18,7 +18,6 @@
 
 package org.limbo.flowjob.broker.application.plan.component;
 
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
@@ -30,7 +29,6 @@ import org.limbo.flowjob.broker.core.exceptions.JobException;
 import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
-import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.common.constants.JobStatus;
 import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.constants.PlanType;
@@ -42,7 +40,6 @@ import org.limbo.flowjob.common.utils.dag.DAGNode;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -58,9 +55,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
-
-    @Setter(onMethod_ = @Inject)
-    private PlanInstanceEntityRepo planInstanceEntityRepo;
 
     @Override
     protected void schedulePlanInfo(PlanInfo planInfo, LocalDateTime triggerAt) {

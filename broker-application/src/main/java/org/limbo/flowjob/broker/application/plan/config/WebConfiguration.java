@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.common.utils.time.Formatters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.format.datetime.DateFormatter;
@@ -22,15 +23,13 @@ import java.time.format.DateTimeFormatter;
 @Slf4j
 public class WebConfiguration implements WebMvcConfigurer {
 
-    private static final String TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
-
     /**
      * json 返回结果处理
      */
     @Bean
     public ObjectMapper jacksonObjectMapper() {
         JavaTimeModule module = new JavaTimeModule();
-        LocalDateTimeDeserializer dateTimeDeserializer = new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(TIME_PATTERN));
+        LocalDateTimeDeserializer dateTimeDeserializer = new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(Formatters.YMD_HMS));
         module.addDeserializer(LocalDateTime.class, dateTimeDeserializer);
         ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.json().modules(module)
                 .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).build();
@@ -65,9 +64,11 @@ public class WebConfiguration implements WebMvcConfigurer {
 
     @Override
     public void addFormatters(FormatterRegistry registry) {
-        registry.addFormatter(new DateFormatter(TIME_PATTERN));
+        registry.addFormatter(new DateFormatter(Formatters.YMD_HMS));
     }
 
+// todo work调用先不用拦截 ak/sk
+    //
 //    /**
 //     * worker 会话拦截
 //     *
