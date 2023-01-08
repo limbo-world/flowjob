@@ -31,10 +31,13 @@ import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
-import org.limbo.flowjob.broker.dao.support.SlotManager;
+import org.limbo.flowjob.common.utils.time.DateTimeUtils;
+import org.limbo.flowjob.common.utils.time.Formatters;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import javax.inject.Inject;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -55,6 +58,11 @@ public class PlanLoadTask extends AbstractPlanLoadTask {
     @Setter(onMethod_ = @Inject)
     private DomainConverter domainConverter;
 
+    @Setter(onMethod_ = @Inject)
+    private SlotManager slotManager;
+
+    private LocalDateTime loadTimePoint = DateTimeUtils.parse("2000-01-01 00:00:00", Formatters.YMD_HMS);
+
     public PlanLoadTask(Duration interval, BrokerConfig config, NodeManger nodeManger, MetaTaskScheduler scheduler) {
         super(interval, config, nodeManger, scheduler);
     }
@@ -65,7 +73,7 @@ public class PlanLoadTask extends AbstractPlanLoadTask {
      */
     @Override
     protected List<Plan> loadPlans() {
-        List<Integer> slots = SlotManager.slots(getNodeManger().allAlive(), getConfig().getHost(), getConfig().getPort());
+        List<Integer> slots = slotManager.slots();
         if (CollectionUtils.isEmpty(slots)) {
             return Collections.emptyList();
         }
@@ -74,7 +82,8 @@ public class PlanLoadTask extends AbstractPlanLoadTask {
             return Collections.emptyList();
         }
         List<String> planIds = slotEntities.stream().map(PlanSlotEntity::getPlanId).collect(Collectors.toList());
-        List<PlanEntity> planEntities = planEntityRepo.findByPlanIdInAndEnabled(planIds, true);
+        List<PlanEntity> planEntities = planEntityRepo.findByPlanIdInAndUpdatedAtAfterAndEnabled(planIds, loadTimePoint,true);
+        loadTimePoint = TimeUtils.currentLocalDateTime();
         if (CollectionUtils.isEmpty(planEntities)) {
             return Collections.emptyList();
         }

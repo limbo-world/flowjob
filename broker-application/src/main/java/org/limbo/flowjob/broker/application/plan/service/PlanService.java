@@ -5,9 +5,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.api.console.param.PlanParam;
 import org.limbo.flowjob.api.console.param.ScheduleOptionParam;
 import org.limbo.flowjob.api.console.param.WorkflowJobParam;
+import org.limbo.flowjob.broker.application.plan.component.SlotManager;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
-import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
@@ -17,7 +17,6 @@ import org.limbo.flowjob.broker.dao.repositories.JobInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
-import org.limbo.flowjob.broker.dao.support.SlotManager;
 import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.utils.Verifies;
@@ -55,11 +54,8 @@ public class PlanService {
     @Setter(onMethod_ = @Inject)
     private IDGenerator idGenerator;
 
-    public Plan get(String id) {
-        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(id);
-        Verifies.verify(planEntityOptional.isPresent(), "plan is not exist " + id);
-        return domainConverter.toPlan(planEntityOptional.get());
-    }
+    @Setter(onMethod_ = @Inject)
+    private SlotManager slotManager;
 
     @Transactional
     public String save(String planId, PlanParam param) {
@@ -88,7 +84,7 @@ public class PlanService {
 
             // 槽位保存
             PlanSlotEntity planSlotEntity = new PlanSlotEntity();
-            planSlotEntity.setSlot(SlotManager.slot(planEntity.getPlanId()));
+            planSlotEntity.setSlot(slotManager.slot(planEntity.getPlanId()));
             planSlotEntity.setPlanId(planEntity.getPlanId());
             planSlotEntityRepo.saveAndFlush(planSlotEntity);
         } else {

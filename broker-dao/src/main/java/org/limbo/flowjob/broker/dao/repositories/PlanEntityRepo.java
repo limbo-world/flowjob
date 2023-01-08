@@ -42,6 +42,11 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, String> {
      */
     List<PlanEntity> findByPlanIdInAndEnabled(List<String> planIds, boolean isEnabled);
 
+    /**
+     * 找到变动的plan
+     */
+    List<PlanEntity> findByPlanIdInAndUpdatedAtAfterAndEnabled(List<String> planIds, LocalDateTime updateTime, boolean isEnabled);
+
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanEntity set currentVersion = :newCurrentVersion, recentlyVersion = :newRecentlyVersion " +
             "where planId = :planId and currentVersion = :currentVersion and recentlyVersion = :recentlyVersion")

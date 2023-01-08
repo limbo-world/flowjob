@@ -24,14 +24,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.core.schedule.Scheduled;
 
 import java.time.Duration;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * 元任务：定时加载 Plan 进行调度
@@ -71,15 +66,6 @@ public abstract class AbstractPlanLoadTask extends FixDelayMetaTask {
 
             // 调度当前时间以及未来的任务
             List<Plan> plans = loadPlans();
-            Map<String, Plan> scheduleMap = plans.stream().collect(Collectors.toMap(MetaTask::scheduleId, plan -> plan));
-
-            // 移除调非本节点的plan
-            Collection<MetaTask> metaTasks = scheduler.getSchedulingByType(MetaTaskType.PLAN);
-            for (MetaTask metaTask : metaTasks) {
-                if (!scheduleMap.containsKey(metaTask.scheduleId())) {
-                    scheduler.unschedule(metaTask.scheduleId());
-                }
-            }
 
             // 重新调度 新增/版本变更的plan
             if (CollectionUtils.isNotEmpty(plans)) {

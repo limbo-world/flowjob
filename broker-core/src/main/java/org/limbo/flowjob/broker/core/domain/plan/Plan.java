@@ -55,11 +55,6 @@ public class Plan extends LoopMetaTask implements Serializable {
     private final String planId;
 
     /**
-     * 当前版本
-     */
-    private final String version;
-
-    /**
      * 计划信息
      */
     private final PlanInfo planInfo;
@@ -74,7 +69,6 @@ public class Plan extends LoopMetaTask implements Serializable {
                 IScheduleStrategy iScheduleStrategy, MetaTaskScheduler metaTaskScheduler) {
         super(lastTriggerAt, lastFeedbackAt, scheduleOption, metaTaskScheduler);
         this.planId = planInfo.getPlanId();
-        this.version = planInfo.getVersion();
         this.planInfo = planInfo;
         this.iScheduleStrategy = iScheduleStrategy;
     }
@@ -84,9 +78,6 @@ public class Plan extends LoopMetaTask implements Serializable {
         ScheduleOption scheduleOption = getScheduleOption();
         if (scheduleOption == null || scheduleOption.getScheduleType() == null || ScheduleType.UNKNOWN == scheduleOption.getScheduleType()) {
             log.error("{} scheduleType is {} scheduleOption={}", scheduleId(), MsgConstants.UNKNOWN, scheduleOption);
-            return;
-        }
-        if (ScheduleType.NONE == scheduleOption.getScheduleType()) {
             return;
         }
         switch (getScheduleOption().getScheduleType()) {
@@ -112,7 +103,7 @@ public class Plan extends LoopMetaTask implements Serializable {
 
     @Override
     public String getMetaId() {
-        return planId + "-" + version;
+        return planId + "-" + planInfo.getVersion();
     }
 
 }

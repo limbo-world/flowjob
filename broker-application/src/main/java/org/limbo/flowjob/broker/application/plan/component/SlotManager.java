@@ -16,13 +16,16 @@
  *
  */
 
-package org.limbo.flowjob.broker.dao.support;
+package org.limbo.flowjob.broker.application.plan.component;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.Node;
+import org.limbo.flowjob.broker.core.cluster.NodeManger;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -36,12 +39,18 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SlotManager {
 
+    @Setter(onMethod_ = @Inject)
+    private BrokerConfig brokerConfig;
+
+    @Setter(onMethod_ = @Inject)
+    private NodeManger nodeManger;
+
     private static final int SLOT_SIZE = 64;
 
     /**
      * 计算槽位
      */
-    public static int slot(String planId) {
+    public int slot(String planId) {
         return planId.hashCode() % SlotManager.SLOT_SIZE;
     }
 
@@ -50,21 +59,21 @@ public class SlotManager {
      *
      * @return 当前机器对应的所有槽位
      */
-    public static List<Integer> slots(Collection<Node> aliveNodes, String host, Integer port) {
-        List<Node> sortedNodes = aliveNodes.stream().sorted(Comparator.comparing(Node::getHost).thenComparingInt(Node::getPort)).collect(Collectors.toList());
+    public List<Integer> slots() {
+        List<Node> sortedNodes = nodeManger.allAlive().stream().sorted(Comparator.comparing(Node::getHost).thenComparingInt(Node::getPort)).collect(Collectors.toList());
 
         // 判断自己所在的id位置
         int mark = -1;
         for (int i = 0; i < sortedNodes.size(); i++) {
             Node node = sortedNodes.get(i);
-            if (Objects.equals(host, node.getHost()) && Objects.equals(port, node.getPort())) {
+            if (Objects.equals(brokerConfig.getHost(), node.getHost()) && Objects.equals(brokerConfig.getPort(), node.getPort())) {
                 mark = i;
                 break;
             }
         }
 
         if (mark < 0) {
-            log.warn("can't find in alive nodes host:{} port:{}", host, port);
+            log.warn("can't find in alive nodes host:{} port:{}", brokerConfig.getHost(), brokerConfig.getPort());
             return Collections.emptyList();
         }
 

@@ -21,6 +21,7 @@ package org.limbo.flowjob.broker.application.plan.component;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
@@ -35,13 +36,17 @@ import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.limbo.flowjob.common.constants.JobStatus;
 import org.limbo.flowjob.common.constants.JobType;
@@ -58,8 +63,10 @@ import org.limbo.flowjob.common.utils.time.TimeUtils;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -68,6 +75,9 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
+
+    @Setter(onMethod_ = @Inject)
+    protected PlanEntityRepo planEntityRepo;
 
     @Setter(onMethod_ = @Inject)
     protected TaskEntityRepo taskEntityRepo;
@@ -99,20 +109,41 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
     @Setter(onMethod_ = @Inject)
     protected TaskDispatcher taskDispatcher;
 
+    @Setter(onMethod_ = @Inject)
+    protected SlotManager slotManager;
+
+    @Setter(onMethod_ = @Inject)
+    protected PlanSlotEntityRepo planSlotEntityRepo;
+
     @Override
     @Transactional
     public void schedule(Plan plan) {
         String planId = plan.getPlanId();
+        PlanInfo planInfo = plan.getPlanInfo();
 
-        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(plan.getVersion()).orElse(null);
-        Verifies.notNull(planInfoEntity, "does not find " + planId + " plan's info by version--" + plan.getVersion() + "");
+        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(planInfo.getVersion()).orElse(null);
+        Verifies.notNull(planInfoEntity, "does not find " + planId + " plan's info by version--" + planInfo.getVersion() + "");
 
-//        // 加锁 这个版本判断逻辑是为什么？？？
-//        PlanEntity planEntity = planEntityRepo.selectForUpdate(planId);
-//        if (!Objects.equals(plan.getVersion(), planEntity.getCurrentVersion())) {
-//            log.info("{} version {} change to {}", plan.scheduleId(), plan.getVersion(), planEntity.getCurrentVersion());
-//            return;
-//        }
+        PlanEntity planEntity = planEntityRepo.selectForUpdate(planId);
+        // 任务是由之前时间创建的 调度时候如果版本改变 可能会有调度时间的变化本次就无需执行
+        // 比如 5s 执行一次 分别在 5s 10s 15s 在11s的时候内存里下次执行为 15s 此时修改为 2s 执行一次 那么重新加载plan后应该为 12s 14s 所以15s这次可以跳过
+        if (!Objects.equals(planInfo.getVersion(), planEntity.getCurrentVersion())) {
+            log.info("{} version {} change to {}", plan.scheduleId(), planInfo.getVersion(), planEntity.getCurrentVersion());
+            return;
+        }
+
+        // 判断是否由当前节点执行
+        List<Integer> slots = slotManager.slots();
+        if (CollectionUtils.isEmpty(slots)) {
+            return;
+        }
+        PlanSlotEntity planSlotEntity = planSlotEntityRepo.findByPlanId(planId);
+        if (planSlotEntity == null) {
+            return;
+        }
+        if (!slots.contains(planSlotEntity.getSlot())) {
+            return;
+        }
 
         // 判断并发情况下 是否已经有人提交调度任务 如有则无需处理 防止重复创建数据
         PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findByPlanIdAndTriggerAtAndTriggerType(
@@ -122,7 +153,7 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
             return;
         }
         // 调度逻辑
-        schedulePlanInfo(plan.getPlanInfo(), plan.getTriggerAt());
+        schedulePlanInfo(planInfo, plan.getTriggerAt());
     }
 
     protected abstract void schedulePlanInfo(PlanInfo planInfo, LocalDateTime triggerAt);
