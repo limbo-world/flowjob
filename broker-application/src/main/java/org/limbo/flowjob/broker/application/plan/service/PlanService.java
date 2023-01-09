@@ -6,8 +6,10 @@ import org.limbo.flowjob.api.console.param.PlanParam;
 import org.limbo.flowjob.api.console.param.ScheduleOptionParam;
 import org.limbo.flowjob.api.console.param.WorkflowJobParam;
 import org.limbo.flowjob.broker.application.plan.component.SlotManager;
+import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
@@ -20,6 +22,7 @@ import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.utils.Verifies;
+import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Service;
 
@@ -111,13 +114,16 @@ public class PlanService {
         ScheduleOptionParam scheduleOption = param.getScheduleOption();
         planInfoEntity.setScheduleType(scheduleOption.getScheduleType().type);
         planInfoEntity.setScheduleStartAt(scheduleOption.getScheduleStartAt());
-        planInfoEntity.setScheduleDelay(scheduleOption.getScheduleDelay().toMillis());
-        planInfoEntity.setScheduleInterval(scheduleOption.getScheduleInterval().toMillis());
+        planInfoEntity.setScheduleDelay(scheduleOption.getScheduleDelay() == null ? 0L : scheduleOption.getScheduleDelay().toMillis());
+        planInfoEntity.setScheduleInterval(scheduleOption.getScheduleInterval() == null ? 0L : scheduleOption.getScheduleInterval().toMillis());
         planInfoEntity.setScheduleCron(scheduleOption.getScheduleCron());
         // job info
         if (PlanType.SINGLE == param.getPlanType()) {
             planInfoEntity.setJobInfo(JacksonUtils.toJSONString(param.getJob()));
         } else {
+            DAG<JobInfo> workflow = PlanConverter.convertJob(param.getWorkflow());
+            planInfoEntity.setJobInfo(workflow.json());
+
             // 保存jobInfo信息
             List<JobInfoEntity> jobInfoEntities = new ArrayList<>();
             for (WorkflowJobParam jobParam : param.getWorkflow()) {

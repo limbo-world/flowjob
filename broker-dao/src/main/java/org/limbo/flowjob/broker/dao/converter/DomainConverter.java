@@ -51,6 +51,7 @@ import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -178,7 +179,7 @@ public class DomainConverter {
         return jobInstance;
     }
 
-    public TaskEntity toTaskEntity(Task task, LocalDateTime triggerAt) {
+    public TaskEntity toTaskEntity(Task task) {
         TaskEntity taskEntity = new TaskEntity();
         taskEntity.setJobInstanceId(task.getJobInstanceId());
         taskEntity.setJobId(task.getJobId());
@@ -189,7 +190,6 @@ public class DomainConverter {
         taskEntity.setWorkerId(task.getWorkerId());
         taskEntity.setAttributes(task.getAttributes() == null ? "{}" : task.getAttributes().toString());
         taskEntity.setTaskId(task.getTaskId());
-        taskEntity.setTriggerAt(triggerAt);
         return taskEntity;
     }
 
@@ -217,7 +217,7 @@ public class DomainConverter {
 
     public TaskScheduleTask toTaskScheduleTask(TaskEntity entity) {
         Task task = toTask(entity);
-        return new TaskScheduleTask(task, entity.getTriggerAt(), scheduleStrategyFactory.build(task.getPlanType()));
+        return new TaskScheduleTask(task, TimeUtils.currentLocalDateTime(), scheduleStrategyFactory.build(task.getPlanType()));
     }
 
     public JobInstanceEntity toJobInstanceEntity(JobInstance jobInstance) {

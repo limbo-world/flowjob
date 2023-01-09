@@ -304,7 +304,7 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
             return;
         }
 
-        List<TaskEntity> taskEntities = tasks.stream().map(task -> domainConverter.toTaskEntity(task, triggerAt)).collect(Collectors.toList());
+        List<TaskEntity> taskEntities = tasks.stream().map(domainConverter::toTaskEntity).collect(Collectors.toList());
         taskEntityRepo.saveAll(taskEntities);
         taskEntityRepo.flush();
         for (Task task : tasks) {
