@@ -20,11 +20,10 @@ package org.limbo.flowjob.broker.test.support;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.limbo.flowjob.api.param.DispatchOptionParam;
-import org.limbo.flowjob.api.param.JobAddParam;
-import org.limbo.flowjob.api.param.PlanAddParam;
-import org.limbo.flowjob.api.param.PlanReplaceParam;
-import org.limbo.flowjob.api.param.ScheduleOptionParam;
+import org.limbo.flowjob.api.console.param.DispatchOptionParam;
+import org.limbo.flowjob.api.console.param.PlanParam;
+import org.limbo.flowjob.api.console.param.ScheduleOptionParam;
+import org.limbo.flowjob.api.console.param.WorkflowJobParam;
 import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.common.constants.LoadBalanceType;
 import org.limbo.flowjob.common.constants.PlanType;
@@ -39,8 +38,8 @@ import java.time.Duration;
  */
 public class PlanParamFactory {
 
-    public static PlanAddParam newFixedRateAddParam() {
-        PlanAddParam param = new PlanAddParam();
+    public static PlanParam newFixedRateAddParam() {
+        PlanParam param = new PlanParam();
         param.setDescription("测试-固定速率");
         param.setTriggerType(TriggerType.SCHEDULE);
         param.setPlanType(PlanType.WORKFLOW);
@@ -50,16 +49,16 @@ public class PlanParamFactory {
         scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(5));
         param.setScheduleOption(scheduleOptionParam);
 
-        JobAddParam n1 = normalJob("1", "hello");
+        WorkflowJobParam n1 = normalWorkflowJob("1", "hello");
         n1.setChildren(Sets.newHashSet("2"));
-        JobAddParam n2 = normalJob("2", "hello");
+        WorkflowJobParam n2 = normalWorkflowJob("2", "hello");
 
-        param.setJobs(Lists.newArrayList(n1, n2));
+        param.setWorkflow(Lists.newArrayList(n1, n2));
         return param;
     }
 
-    public static PlanReplaceParam newFixedRateReplaceParam() {
-        PlanReplaceParam param = new PlanReplaceParam();
+    public static PlanParam newFixedRateReplaceParam() {
+        PlanParam param = new PlanParam();
         param.setDescription("测试-固定速率-replace");
         param.setTriggerType(TriggerType.SCHEDULE);
         param.setPlanType(PlanType.WORKFLOW);
@@ -69,16 +68,16 @@ public class PlanParamFactory {
         scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(3));
         param.setScheduleOption(scheduleOptionParam);
 
-        JobAddParam n1 = normalJob("1", "hello");
+        WorkflowJobParam n1 = normalWorkflowJob("1", "hello");
         n1.setChildren(Sets.newHashSet("2"));
-        JobAddParam n2 = normalJob("2", "hello");
+        WorkflowJobParam n2 = normalWorkflowJob("2", "hello");
 
-        param.setJobs(Lists.newArrayList(n1, n2));
+        param.setWorkflow(Lists.newArrayList(n1, n2));
         return param;
     }
 
-    public static JobAddParam normalJob(String name, String executorName) {
-        JobAddParam job = new JobAddParam();
+    public static WorkflowJobParam normalWorkflowJob(String name, String executorName) {
+        WorkflowJobParam job = new WorkflowJobParam();
         job.setName(name);
         job.setDescription("test normal");
         job.setType(JobType.NORMAL);
@@ -93,8 +92,8 @@ public class PlanParamFactory {
         return job;
     }
 
-    public static JobAddParam broadcastJob(String name, String executorName) {
-        JobAddParam job = new JobAddParam();
+    public static WorkflowJobParam broadcastWorkflowJob(String name, String executorName) {
+        WorkflowJobParam job = new WorkflowJobParam();
         job.setName(name);
         job.setDescription("test broadcast");
         job.setType(JobType.BROADCAST);
@@ -108,8 +107,8 @@ public class PlanParamFactory {
         return job;
     }
 
-    public static JobAddParam mapJob(String name, String executorName) {
-        JobAddParam job = new JobAddParam();
+    public static WorkflowJobParam mapWorkflowJob(String name, String executorName) {
+        WorkflowJobParam job = new WorkflowJobParam();
         job.setName(name);
         job.setDescription("test map");
         job.setType(JobType.MAP);
@@ -123,8 +122,8 @@ public class PlanParamFactory {
         return job;
     }
 
-    public static JobAddParam mapReduceJob(String name, String executorName) {
-        JobAddParam job = new JobAddParam();
+    public static WorkflowJobParam mapReduceWorkflowJob(String name, String executorName) {
+        WorkflowJobParam job = new WorkflowJobParam();
         job.setName(name);
         job.setDescription("test reduce");
         job.setType(JobType.MAP_REDUCE);

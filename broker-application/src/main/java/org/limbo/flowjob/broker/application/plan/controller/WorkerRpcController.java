@@ -21,12 +21,12 @@ package org.limbo.flowjob.broker.application.plan.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Setter;
-import org.limbo.flowjob.api.dto.ResponseDTO;
-import org.limbo.flowjob.api.dto.WorkerRegisterDTO;
-import org.limbo.flowjob.api.param.TaskFeedbackParam;
-import org.limbo.flowjob.api.param.WorkerHeartbeatParam;
-import org.limbo.flowjob.api.param.WorkerRegisterParam;
-import org.limbo.flowjob.broker.application.plan.service.ScheduleService;
+import org.limbo.flowjob.api.remote.dto.ResponseDTO;
+import org.limbo.flowjob.api.remote.dto.WorkerRegisterDTO;
+import org.limbo.flowjob.api.remote.param.TaskFeedbackParam;
+import org.limbo.flowjob.api.remote.param.WorkerHeartbeatParam;
+import org.limbo.flowjob.api.remote.param.WorkerRegisterParam;
+import org.limbo.flowjob.broker.application.plan.service.TaskService;
 import org.limbo.flowjob.broker.application.plan.service.WorkerService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -52,7 +52,7 @@ public class WorkerRpcController {
     private WorkerService workerService;
 
     @Setter(onMethod_ = @Inject)
-    private ScheduleService scheduleService;
+    private TaskService taskService;
 
     /**
      * worker注册
@@ -81,7 +81,7 @@ public class WorkerRpcController {
     @PostMapping("/task/{taskId}/feedback")
     public ResponseDTO<Void> feedback(@Validated @NotNull(message = "no taskId") @PathVariable("taskId") String taskId,
                                       @Valid @RequestBody TaskFeedbackParam feedback) {
-        scheduleService.taskFeedback(taskId, feedback);
+        taskService.taskFeedback(taskId, feedback);
         return ResponseDTO.<Void>builder().ok().build();
     }
 

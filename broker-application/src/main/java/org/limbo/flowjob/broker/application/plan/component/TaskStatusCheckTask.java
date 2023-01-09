@@ -22,19 +22,16 @@ import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
-import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.AbstractTaskStatusCheckTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.core.service.IScheduleService;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.TaskScheduleTask;
+import org.limbo.flowjob.broker.core.schedule.strategy.ScheduleStrategyFactory;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
-import org.limbo.flowjob.broker.dao.repositories.JobInfoEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
-import org.limbo.flowjob.broker.dao.support.SlotManager;
 import org.limbo.flowjob.common.constants.TaskStatus;
 
 import javax.inject.Inject;
@@ -59,37 +56,37 @@ public class TaskStatusCheckTask extends AbstractTaskStatusCheckTask {
     private PlanSlotEntityRepo planSlotEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private PlanInfoEntityRepo planInfoEntityRepo;
+    private DomainConverter domainConverter;
 
     @Setter(onMethod_ = @Inject)
-    private JobInfoEntityRepo jobInfoEntityRepo;
+    private SlotManager slotManager;
 
     public TaskStatusCheckTask(Duration interval,
                                BrokerConfig config,
                                NodeManger nodeManger,
-                               IScheduleService iScheduleService,
                                MetaTaskScheduler metaTaskScheduler,
-                               WorkerRepository workerRepository) {
-        super(interval, config, nodeManger, iScheduleService, metaTaskScheduler, workerRepository);
+                               WorkerRepository workerRepository,
+                               ScheduleStrategyFactory scheduleStrategyFactory) {
+        super(interval, config, nodeManger, metaTaskScheduler, workerRepository, scheduleStrategyFactory);
     }
 
 
     @Override
-    protected List<Task> loadDispatchingTasks() {
+    protected List<TaskScheduleTask> loadDispatchingTasks() {
         List<String> planIds = loadPlanIds();
         List<TaskEntity> taskEntities = taskEntityRepo.findByPlanIdInAndStatus(planIds, TaskStatus.DISPATCHING.status);
-        return taskEntities.stream().map(entity -> DomainConverter.toTask(entity, planInfoEntityRepo, jobInfoEntityRepo)).collect(Collectors.toList());
+        return taskEntities.stream().map(entity -> domainConverter.toTaskScheduleTask(entity)).collect(Collectors.toList());
     }
 
     @Override
-    protected List<Task> loadExecutingTasks() {
+    protected List<TaskScheduleTask> loadExecutingTasks() {
         List<String> planIds = loadPlanIds();
         List<TaskEntity> taskEntities = taskEntityRepo.findByPlanIdInAndStatus(planIds, TaskStatus.EXECUTING.status);
-        return taskEntities.stream().map(entity -> DomainConverter.toTask(entity, planInfoEntityRepo, jobInfoEntityRepo)).collect(Collectors.toList());
+        return taskEntities.stream().map(entity -> domainConverter.toTaskScheduleTask(entity)).collect(Collectors.toList());
     }
 
     private List<String> loadPlanIds() {
-        List<Integer> slots = SlotManager.slots(nodeManger.allAlive(), config.getHost(), config.getPort());
+        List<Integer> slots = slotManager.slots();
         if (CollectionUtils.isEmpty(slots)) {
             return Collections.emptyList();
         }

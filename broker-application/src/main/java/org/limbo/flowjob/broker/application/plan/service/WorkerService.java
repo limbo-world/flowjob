@@ -19,10 +19,10 @@ package org.limbo.flowjob.broker.application.plan.service;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
-import org.limbo.flowjob.api.constants.WorkerHeaders;
-import org.limbo.flowjob.api.dto.WorkerRegisterDTO;
-import org.limbo.flowjob.api.param.WorkerHeartbeatParam;
-import org.limbo.flowjob.api.param.WorkerRegisterParam;
+import org.limbo.flowjob.api.remote.constants.WorkerHeaders;
+import org.limbo.flowjob.api.remote.dto.WorkerRegisterDTO;
+import org.limbo.flowjob.api.remote.param.WorkerHeartbeatParam;
+import org.limbo.flowjob.api.remote.param.WorkerRegisterParam;
 import org.limbo.flowjob.broker.application.plan.converter.WorkerConverter;
 import org.limbo.flowjob.broker.application.plan.support.TokenHelper;
 import org.limbo.flowjob.broker.application.plan.support.WorkerFactory;
@@ -56,7 +56,7 @@ public class WorkerService {
 
     @Setter(onMethod_ = @Inject)
     private NodeManger nodeManger;
-    
+
     @Setter(onMethod_ = @Inject)
     private IDGenerator idGenerator;
 

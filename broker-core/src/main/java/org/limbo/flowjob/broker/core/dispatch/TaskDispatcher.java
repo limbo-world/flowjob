@@ -18,9 +18,10 @@
 
 package org.limbo.flowjob.broker.core.dispatch;
 
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.domain.task.Task;
@@ -40,64 +41,94 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TaskDispatcher {
 
-    @Setter
-    private WorkerSelectorFactory workerSelectorFactory;
+    private final WorkerManager workerManager;
 
-    @Setter
-    private WorkerStatisticsRepository statisticsRepository;
+    private final WorkerSelectorFactory workerSelectorFactory;
 
+    private final WorkerStatisticsRepository statisticsRepository;
+
+    public TaskDispatcher(WorkerManager workerManager, WorkerSelectorFactory workerSelectorFactory, WorkerStatisticsRepository statisticsRepository) {
+        this.workerManager = workerManager;
+        this.workerSelectorFactory = workerSelectorFactory;
+        this.statisticsRepository = statisticsRepository;
+    }
 
     /**
      * 将任务下发给worker。
      * task status -> EXECUTING or FAILED
      */
-    public void dispatch(Task task) {
+    public boolean dispatch(Task task) {
         if (log.isDebugEnabled()) {
-            log.debug("Start dispatch task={}", task);
+            log.debug("start dispatch task={}", task);
         }
 
         if (task.getStatus() != TaskStatus.DISPATCHING) {
             throw new JobDispatchException(task.getJobId(), task.getTaskId(), "Cannot startup context due to current status: " + task.getStatus());
         }
 
-        List<Worker> availableWorkers = task.getAvailableWorkers();
-        if (CollectionUtils.isEmpty(availableWorkers)) {
-            if (log.isDebugEnabled()) {
-                log.debug("Dispatch failed, no available workers. task={}", task.getTaskId());
-            }
-            return;
+        if (StringUtils.isBlank(task.getWorkerId())) {
+            return dispatchWithWorkerId(task);
+        } else {
+            return dispatchNoWorker(task);
+        }
+    }
+
+    private boolean dispatchWithWorkerId(Task task) {
+        Worker worker = workerManager.get(task.getWorkerId());
+        if (worker == null) {
+            return false;
         }
 
-        // 下发时，重试3次，如超过3次仍下发失败，则本次任务下发失败。
-        int dispatchRetryTimes = 3;
+        try {
+            // 发送任务到worker，根据worker返回结果，更新状态
+            boolean dispatched = worker.sendTask(task);
+            if (dispatched) {
+                onDispatchSucceed(task, worker);
+                return true;
+            } else {
+                onDispatchToWorkerFailed(task, worker);
+            }
+        } catch (Exception e) {
+            log.error("Task dispatch with error task={}", task, e);
+        }
+
+        // 下发失败
+        onDispatchFailed(task);
+        return false;
+    }
+
+    private boolean dispatchNoWorker(Task task) {
+        List<Worker> availableWorkers = workerManager.availableWorkers();
+        if (CollectionUtils.isEmpty(availableWorkers)) {
+            return false;
+        }
         WorkerSelector workerSelector = workerSelectorFactory.newSelector(task.getDispatchOption().getLoadBalanceType());
-        for (int i = 0; i < dispatchRetryTimes; i++) {
+        for (int i = 0; i < 3; i++) {
             try {
-                // 选择需要下发任务的 worker，这里有 LB 策略
                 Worker worker = workerSelector.select(task.getDispatchOption(), task.getExecutorName(), availableWorkers);
                 if (worker == null) {
-                    return;
+                    return false;
                 }
 
-                // 发送任务到worker成功，根据worker返回结果，更新状态
-                Boolean dispatched = worker.sendTask(task);
-                if (Boolean.TRUE.equals(dispatched)) {
+                // 发送任务到worker，根据worker返回结果，更新状态
+                boolean dispatched = worker.sendTask(task);
+                if (dispatched) {
                     onDispatchSucceed(task, worker);
-                    return;
+                    return true;
                 } else {
                     onDispatchToWorkerFailed(task, worker);
                 }
 
                 availableWorkers = availableWorkers.stream().filter(w -> !Objects.equals(w.getId(), worker.getId())).collect(Collectors.toList());
             } catch (Exception e) {
-                log.error("Task dispatch with error task={}", task.getTaskId(), e);
+                log.error("Task dispatch with error task={}", task, e);
             }
         }
 
         // 下发失败
         onDispatchFailed(task);
+        return false;
     }
-
 
     /**
      * 下发任务到 worker 成功时的流程

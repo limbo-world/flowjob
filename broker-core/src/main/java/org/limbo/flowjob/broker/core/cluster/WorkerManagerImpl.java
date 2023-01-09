@@ -37,6 +37,11 @@ public class WorkerManagerImpl implements WorkerManager {
         this.workerRepository = workerRepository;
     }
 
+    @Override
+    public Worker get(String workerId) {
+        return workerRepository.get(workerId);
+    }
+
     /**
      * {@inheritDoc}
      *
@@ -45,7 +50,7 @@ public class WorkerManagerImpl implements WorkerManager {
      */
     @Override
     public Worker registerWorker(Worker worker) {
-//        workerRepository.save(worker);
+        workerRepository.save(worker);
         return worker;
     }
 

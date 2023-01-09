@@ -19,9 +19,9 @@
 package org.limbo.flowjob.broker.core.worker.rpc;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.api.dto.WorkerAvailableResourceDTO;
-import org.limbo.flowjob.api.dto.WorkerMetricDTO;
-import org.limbo.flowjob.api.param.TaskSubmitParam;
+import org.limbo.flowjob.api.remote.dto.WorkerAvailableResourceDTO;
+import org.limbo.flowjob.api.remote.dto.WorkerMetricDTO;
+import org.limbo.flowjob.api.remote.param.TaskSubmitParam;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;

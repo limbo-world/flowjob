@@ -6,12 +6,11 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.application.plan.support.WorkerInterceptor;
+import org.limbo.flowjob.common.utils.time.Formatters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.format.datetime.DateFormatter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.time.LocalDateTime;
@@ -24,15 +23,13 @@ import java.time.format.DateTimeFormatter;
 @Slf4j
 public class WebConfiguration implements WebMvcConfigurer {
 
-    private static final String TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
-
     /**
      * json 返回结果处理
      */
     @Bean
     public ObjectMapper jacksonObjectMapper() {
         JavaTimeModule module = new JavaTimeModule();
-        LocalDateTimeDeserializer dateTimeDeserializer = new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(TIME_PATTERN));
+        LocalDateTimeDeserializer dateTimeDeserializer = new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(Formatters.YMD_HMS));
         module.addDeserializer(LocalDateTime.class, dateTimeDeserializer);
         ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.json().modules(module)
                 .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).build();
@@ -67,25 +64,27 @@ public class WebConfiguration implements WebMvcConfigurer {
 
     @Override
     public void addFormatters(FormatterRegistry registry) {
-        registry.addFormatter(new DateFormatter(TIME_PATTERN));
+        registry.addFormatter(new DateFormatter(Formatters.YMD_HMS));
     }
 
-    /**
-     * worker 会话拦截
-     *
-     * @return
-     */
-    @Bean
-    public WorkerInterceptor workerInterceptor() {
-        return new WorkerInterceptor();
-    }
-
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(workerInterceptor())
-                .addPathPatterns("/api/v1/rpc/worker/*/heartbeat")
-                .addPathPatterns("/api/v1/rpc/worker/task/*/feedback")
-//                .excludePathPatterns("/api/v1/rpc/worker")
-        ;
-    }
+// todo work调用先不用拦截 ak/sk
+    //
+//    /**
+//     * worker 会话拦截
+//     *
+//     * @return
+//     */
+//    @Bean
+//    public WorkerInterceptor workerInterceptor() {
+//        return new WorkerInterceptor();
+//    }
+//
+//    @Override
+//    public void addInterceptors(InterceptorRegistry registry) {
+//        registry.addInterceptor(workerInterceptor())
+//                .addPathPatterns("/api/v1/rpc/worker/*/heartbeat")
+//                .addPathPatterns("/api/v1/rpc/worker/task/*/feedback")
+////                .excludePathPatterns("/api/v1/rpc/worker")
+//        ;
+//    }
 }

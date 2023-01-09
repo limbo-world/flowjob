@@ -25,7 +25,6 @@ import lombok.Getter;
 /**
  * 作业调度方式：
  * <ul>
- *     <li>{@linkplain ScheduleType#NONE 无需调度}</li>
  *     <li>{@linkplain ScheduleType#FIXED_RATE 固定速度}</li>
  *     <li>{@linkplain ScheduleType#FIXED_DELAY 固定延迟}</li>
  *     <li>{@linkplain ScheduleType#CRON CRON}</li>
@@ -40,25 +39,21 @@ public enum ScheduleType {
      * unknown 不应该出现
      */
     UNKNOWN(0, "未知"),
-    /**
-     * 无需调度 由其它方式触发
-     */
-    NONE(1, "无需调度"),
 
     /**
      * 固定速度，作业创建后，每次调度下发后，间隔固定时间长度后，再次触发作业调度。
      */
-    FIXED_RATE(2, "固定速度"),
+    FIXED_RATE(1, "固定速度"),
 
     /**
      * 固定延迟，作业创建后，每次作业下发执行完成（成功或失败）后，间隔固定时间长度后，再次触发作业调度。
      */
-    FIXED_DELAY(3, "固定延迟"),
+    FIXED_DELAY(2, "固定延迟"),
 
     /**
      * 通过CRON表达式指定作业触发调度的时间点。FIXED_RATE 的另一种模式
      */
-    CRON(4, "CRON表达式"),
+    CRON(3, "CRON表达式"),
 
     ;
 

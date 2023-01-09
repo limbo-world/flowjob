@@ -16,11 +16,14 @@
 
 package org.limbo.flowjob.broker.application.plan.config;
 
+import com.google.common.collect.Maps;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.application.plan.component.BrokerStarter;
 import org.limbo.flowjob.broker.application.plan.component.PlanLoadTask;
+import org.limbo.flowjob.broker.application.plan.component.SingleJobScheduleStrategy;
 import org.limbo.flowjob.broker.application.plan.component.TaskStatusCheckTask;
+import org.limbo.flowjob.broker.application.plan.component.WorkflowScheduleStrategy;
 import org.limbo.flowjob.broker.application.plan.support.NodeMangerImpl;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
@@ -31,15 +34,16 @@ import org.limbo.flowjob.broker.core.cluster.WorkerManagerImpl;
 import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
-import org.limbo.flowjob.broker.core.domain.job.JobFactory;
-import org.limbo.flowjob.broker.core.domain.plan.PlanFactory;
 import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
+import org.limbo.flowjob.broker.core.domain.task.TaskManager;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.core.service.IScheduleService;
+import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
+import org.limbo.flowjob.broker.core.schedule.strategy.ScheduleStrategyFactory;
 import org.limbo.flowjob.broker.core.statistics.WorkerStatisticsRepository;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.domain.SingletonWorkerStatisticsRepo;
+import org.limbo.flowjob.common.constants.PlanType;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -48,6 +52,7 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.inject.Inject;
 import java.time.Duration;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -94,8 +99,8 @@ public class BrokerConfiguration {
     }
 
     @Bean
-    public TaskFactory taskFactory(WorkerManager workerManager, IDGenerator idGenerator, IScheduleService iScheduleService) {
-        return new TaskFactory(workerManager, idGenerator, iScheduleService);
+    public TaskFactory taskFactory(WorkerManager workerManager, TaskManager taskManager, IDGenerator idGenerator) {
+        return new TaskFactory(workerManager, taskManager, idGenerator);
     }
 
 
@@ -124,23 +129,18 @@ public class BrokerConfiguration {
      * 用于分发任务
      */
     @Bean
-    public TaskDispatcher taskDispatcher(WorkerSelectorFactory factory, WorkerStatisticsRepository statisticsRepository) {
-        TaskDispatcher dispatcher = new TaskDispatcher();
-        dispatcher.setWorkerSelectorFactory(factory);
-        dispatcher.setStatisticsRepository(statisticsRepository);
-        return dispatcher;
+    public TaskDispatcher taskDispatcher(WorkerManager workerManager, WorkerSelectorFactory factory, WorkerStatisticsRepository statisticsRepository) {
+        return new TaskDispatcher(workerManager, factory, statisticsRepository);
     }
 
     @Bean
-    public JobFactory jobFactory(IDGenerator idGenerator) {
-        return new JobFactory(idGenerator);
+    public ScheduleStrategyFactory scheduleStrategyFactory(SingleJobScheduleStrategy singleJobScheduleStrategy,
+                                                           WorkflowScheduleStrategy workflowScheduleStrategy) {
+        EnumMap<PlanType, IScheduleStrategy> strategyMap = Maps.newEnumMap(PlanType.class);
+        strategyMap.put(PlanType.SINGLE, singleJobScheduleStrategy);
+        strategyMap.put(PlanType.WORKFLOW, workflowScheduleStrategy);
+        return new ScheduleStrategyFactory(strategyMap);
     }
-
-    @Bean
-    public PlanFactory planFactory(IDGenerator idGenerator, IScheduleService iScheduleService, MetaTaskScheduler metaTaskScheduler) {
-        return new PlanFactory(idGenerator, iScheduleService, metaTaskScheduler);
-    }
-
 
     /**
      * 元任务调度器
@@ -166,16 +166,16 @@ public class BrokerConfiguration {
     @Bean
     public MetaTask taskStatusCheckTask(BrokerConfig config,
                                         NodeManger nodeManger,
-                                        IScheduleService iScheduleService,
                                         MetaTaskScheduler metaTaskScheduler,
-                                        WorkerRepository workerRepository) {
+                                        WorkerRepository workerRepository,
+                                        ScheduleStrategyFactory scheduleStrategyFactory) {
         return new TaskStatusCheckTask(
                 Duration.ofMillis(brokerProperties.getStatusCheckInterval()),
                 config,
                 nodeManger,
-                iScheduleService,
                 metaTaskScheduler,
-                workerRepository
+                workerRepository,
+                scheduleStrategyFactory
         );
     }
 

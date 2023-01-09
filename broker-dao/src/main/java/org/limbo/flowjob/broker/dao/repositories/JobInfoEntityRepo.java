@@ -32,4 +32,6 @@ public interface JobInfoEntityRepo extends JpaRepository<JobInfoEntity, Long> {
 
     List<JobInfoEntity> findByPlanInfoId(String planInfoId);
 
+    JobInfoEntity findByPlanInfoIdAndName(String planInfoId, String name);
+
 }

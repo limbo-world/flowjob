@@ -42,12 +42,12 @@ public class PlanEntity extends BaseEntity {
     /**
      * 当前版本。可能发生回滚，因此 currentVersion 可能小于 recentlyVersion 。
      */
-    private Integer currentVersion;
+    private String currentVersion;
 
     /**
      * 最新版本
      */
-    private Integer recentlyVersion;
+    private String recentlyVersion;
 
     /**
      * 是否启动 新建plan的时候 默认为不启动

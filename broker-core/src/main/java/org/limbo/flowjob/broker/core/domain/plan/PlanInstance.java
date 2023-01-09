@@ -50,7 +50,7 @@ public class PlanInstance implements Serializable {
     /**
      * 计划的版本
      */
-    private Integer version;
+    private String version;
 
     /**
      * 计划调度状态
@@ -58,8 +58,7 @@ public class PlanInstance implements Serializable {
     private PlanStatus status;
 
     /**
-     * 触发类型，触发本次 Plan 调度的方式，与 {@link JobInstance} 中的同名字段意义相同，
-     * {@link JobInstance#getTriggerType()}
+     * 触发类型，触发本次 Plan 的方式
      */
     private TriggerType triggerType;
 

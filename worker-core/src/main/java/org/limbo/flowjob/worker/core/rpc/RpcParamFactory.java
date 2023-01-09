@@ -19,11 +19,11 @@
 package org.limbo.flowjob.worker.core.rpc;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.limbo.flowjob.api.param.TaskFeedbackParam;
-import org.limbo.flowjob.api.param.WorkerExecutorRegisterParam;
-import org.limbo.flowjob.api.param.WorkerHeartbeatParam;
-import org.limbo.flowjob.api.param.WorkerRegisterParam;
-import org.limbo.flowjob.api.param.WorkerResourceParam;
+import org.limbo.flowjob.api.remote.param.TaskFeedbackParam;
+import org.limbo.flowjob.api.remote.param.WorkerExecutorRegisterParam;
+import org.limbo.flowjob.api.remote.param.WorkerHeartbeatParam;
+import org.limbo.flowjob.api.remote.param.WorkerRegisterParam;
+import org.limbo.flowjob.api.remote.param.WorkerResourceParam;
 import org.limbo.flowjob.common.constants.ExecuteResult;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.domain.WorkerResources;

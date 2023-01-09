@@ -23,15 +23,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
-import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.core.repository.PlanRepository;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.AbstractPlanLoadTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanScheduleTask;
+import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
-import org.limbo.flowjob.broker.dao.support.SlotManager;
+import org.limbo.flowjob.common.utils.time.DateTimeUtils;
+import org.limbo.flowjob.common.utils.time.Formatters;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import javax.inject.Inject;
@@ -52,24 +53,28 @@ public class PlanLoadTask extends AbstractPlanLoadTask {
     private PlanEntityRepo planEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private PlanRepository planRepository;
-
-    @Setter(onMethod_ = @Inject)
     private PlanSlotEntityRepo planSlotEntityRepo;
 
+    @Setter(onMethod_ = @Inject)
+    private DomainConverter domainConverter;
+
+    @Setter(onMethod_ = @Inject)
+    private SlotManager slotManager;
+
+    private LocalDateTime loadTimePoint = DateTimeUtils.parse("2000-01-01 00:00:00", Formatters.YMD_HMS);
 
     public PlanLoadTask(Duration interval, BrokerConfig config, NodeManger nodeManger, MetaTaskScheduler scheduler) {
         super(interval, config, nodeManger, scheduler);
     }
 
-
     /**
      * {@inheritDoc}
+     *
      * @return
      */
     @Override
-    protected List<Plan> loadPlans() {
-        List<Integer> slots = SlotManager.slots(getNodeManger().allAlive(), getConfig().getHost(), getConfig().getPort());
+    protected List<PlanScheduleTask> loadTasks() {
+        List<Integer> slots = slotManager.slots();
         if (CollectionUtils.isEmpty(slots)) {
             return Collections.emptyList();
         }
@@ -78,13 +83,14 @@ public class PlanLoadTask extends AbstractPlanLoadTask {
             return Collections.emptyList();
         }
         List<String> planIds = slotEntities.stream().map(PlanSlotEntity::getPlanId).collect(Collectors.toList());
-        List<PlanEntity> planEntities = planEntityRepo.findByPlanIdInAndEnabled(planIds, true);
+        List<PlanEntity> planEntities = planEntityRepo.loadUpdatedPlans(planIds, loadTimePoint);
+        loadTimePoint = TimeUtils.currentLocalDateTime();
         if (CollectionUtils.isEmpty(planEntities)) {
             return Collections.emptyList();
         }
-        List<Plan> plans = new ArrayList<>();
+        List<PlanScheduleTask> plans = new ArrayList<>();
         for (PlanEntity planEntity : planEntities) {
-            plans.add(planRepository.get(planEntity.getPlanId()));
+            plans.add(domainConverter.toPlanScheduleTask(planEntity));
         }
         return plans;
     }
