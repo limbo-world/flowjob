@@ -239,6 +239,7 @@ public class ScheduleService implements IScheduleService {
                     jobTasks = taskFactory.create(instance, instance.getTriggerAt(), TaskType.NORMAL);
                     break;
                 case BROADCAST:
+                    // FIXME 广播模式下，生成的 Task 应该要重写 LB 配置，重写为指定节点，防止调度到其他节点上去
                     jobTasks = taskFactory.create(instance, instance.getTriggerAt(), TaskType.BROADCAST);
                     break;
                 case MAP:

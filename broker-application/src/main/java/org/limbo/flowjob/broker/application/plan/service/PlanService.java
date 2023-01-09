@@ -109,7 +109,7 @@ public class PlanService {
         // 已经停止不重复处理
         PlanEntity planEntity = planEntityOptional.get();
         // 已经停止不重复处理
-        if (planEntity.isEnabled()) {
+        if (!planEntity.isEnabled()) {
             return true;
         }
 
