@@ -22,8 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
-import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
-import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlanInfo;
+import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.exceptions.JobException;
 import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
@@ -57,34 +57,34 @@ import java.util.stream.Collectors;
 public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
 
     @Override
-    protected void schedulePlanInfo(TriggerType triggerType, PlanInfo planInfo, LocalDateTime triggerAt) {
-        String planId = planInfo.getPlanId();
-        String version = planInfo.getVersion();
+    protected void schedulePlan(TriggerType triggerType, Plan plan, LocalDateTime triggerAt) {
+        String planId = plan.getPlanId();
+        String version = plan.getVersion();
         List<JobInfoEntity> jobInfoEntities = jobInfoEntityRepo.findByPlanInfoId(version);
         Verifies.notEmpty(jobInfoEntities, "does not find " + planId + " plan's job info by version--" + version + "");
 
         // 保存 planInstance
         String planInstanceId = savePlanInstanceEntity(planId, version, triggerType, triggerAt);
 
-        WorkflowPlanInfo workflowPlanInfo = (WorkflowPlanInfo) planInfo;
+        WorkflowPlan workflowPlan = (WorkflowPlan) plan;
 
         // 获取头部节点
         List<JobInstance> rootJobs = new ArrayList<>();
 
-        for (JobInfo jobInfo : workflowPlanInfo.getDag().origins()) {
+        for (JobInfo jobInfo : workflowPlan.getDag().origins()) {
             if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
-                rootJobs.add(newJobInstance(planId, version, planInfo.planType(), planInstanceId, jobInfo, TimeUtils.currentLocalDateTime()));
+                rootJobs.add(newJobInstance(planId, version, plan.planType(), planInstanceId, jobInfo, triggerAt));
             }
         }
 
         // 如果root都为api触发则为空 交由api创建
         if (CollectionUtils.isNotEmpty(rootJobs)) {
-            scheduleJobInstances(rootJobs);
+            scheduleJobInstances(rootJobs, triggerAt);
         }
     }
 
-    public WorkflowPlanInfo toPlanInfo(PlanInfoEntity entity, List<JobInfoEntity> jobInfoEntities) {
-        return new WorkflowPlanInfo(
+    public WorkflowPlan toPlanInfo(PlanInfoEntity entity, List<JobInfoEntity> jobInfoEntities) {
+        return new WorkflowPlan(
                 entity.getPlanId(),
                 entity.getPlanInfoId(),
                 TriggerType.parse(entity.getTriggerType()),
@@ -116,18 +116,18 @@ public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
                 planInstanceEntityRepo.success(planInstanceId, TimeUtils.currentLocalDateTime());
             }
         } else {
-
+            LocalDateTime triggerAt = TimeUtils.currentLocalDateTime();
             // 后续作业存在，则检测是否可触发，并继续下发作业
             List<JobInstance> subJobInstances = new ArrayList<>();
             for (JobInfo subJobInfo : subJobInfos) {
                 // 前置节点已经完成则可以下发
                 if (checkJobsSuccessOrIgnoreError(planInstanceId, dag.preNodes(subJobInfo.getId()))) {
-                    subJobInstances.add(newJobInstance(planId, version, PlanType.parse(planInfoEntity.getPlanType()), planInstanceId, subJobInfo, TimeUtils.currentLocalDateTime()));
+                    subJobInstances.add(newJobInstance(planId, version, PlanType.parse(planInfoEntity.getPlanType()), planInstanceId, subJobInfo, triggerAt));
                 }
             }
 
             if (CollectionUtils.isNotEmpty(subJobInstances)) {
-                scheduleJobInstances(subJobInstances);
+                scheduleJobInstances(subJobInstances, triggerAt);
             }
 
         }
@@ -140,7 +140,7 @@ public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
             jobInstanceEntityRepo.updateStatusExecuteFail(jobInstance.getJobInstanceId(), MsgConstants.TASK_FAIL);
 
             if (jobInstance.retry()) {
-                scheduleJobInstances(Collections.singletonList(jobInstance));
+                scheduleJobInstances(Collections.singletonList(jobInstance), TimeUtils.currentLocalDateTime());
             } else {
                 planInstanceEntityRepo.fail(jobInstance.getPlanInstanceId(), TimeUtils.currentLocalDateTime());
             }
@@ -152,7 +152,7 @@ public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
     /**
      * 调度jobInstance
      */
-    private void scheduleJobInstances(List<JobInstance> jobInstances) {
+    private void scheduleJobInstances(List<JobInstance> jobInstances, LocalDateTime triggerAt) {
         if (CollectionUtils.isEmpty(jobInstances)) {
             return;
         }
@@ -168,14 +168,14 @@ public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
             List<Task> jobTasks;
             switch (instance.getType()) {
                 case NORMAL:
-                    jobTasks = taskFactory.create(instance, instance.getTriggerAt(), TaskType.NORMAL);
+                    jobTasks = taskFactory.create(instance, TaskType.NORMAL);
                     break;
                 case BROADCAST:
-                    jobTasks = taskFactory.create(instance, instance.getTriggerAt(), TaskType.BROADCAST);
+                    jobTasks = taskFactory.create(instance, TaskType.BROADCAST);
                     break;
                 case MAP:
                 case MAP_REDUCE:
-                    jobTasks = taskFactory.create(instance, instance.getTriggerAt(), TaskType.SPLIT);
+                    jobTasks = taskFactory.create(instance, TaskType.SPLIT);
                     break;
                 default:
                     throw new JobException(instance.getJobId(), MsgConstants.UNKNOWN + " job type:" + instance.getType().type);
@@ -189,7 +189,7 @@ public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
             }
         }
 
-        saveAndScheduleTask(tasks);
+        saveAndScheduleTask(tasks, triggerAt);
     }
 
     /**

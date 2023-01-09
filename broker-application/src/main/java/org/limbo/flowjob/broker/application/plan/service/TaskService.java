@@ -26,6 +26,8 @@ import org.limbo.flowjob.api.remote.param.TaskFeedbackParam;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.domain.task.TaskManager;
 import org.limbo.flowjob.broker.core.domain.task.TaskResult;
+import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
+import org.limbo.flowjob.broker.core.schedule.strategy.ScheduleStrategyFactory;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
@@ -56,6 +58,9 @@ public class TaskService implements TaskManager {
     @Setter(onMethod_ = @Inject)
     private DomainConverter domainConverter;
 
+    @Setter(onMethod_ = @Inject)
+    private ScheduleStrategyFactory scheduleStrategyFactory;
+
     /**
      * Worker任务执行反馈
      *
@@ -74,13 +79,16 @@ public class TaskService implements TaskManager {
 
         Task task = domainConverter.toTask(taskEntity);
 
+        IScheduleStrategy scheduleStrategy = scheduleStrategyFactory.build(task.getPlanType());
+
+
         switch (result) {
             case SUCCEED:
-                task.success(param.getResultAttributes());
+                scheduleStrategy.handleTaskSuccess(task, param.getResultAttributes());
                 break;
 
             case FAILED:
-                task.fail(param.getErrorMsg(), param.getErrorStackTrace());
+                scheduleStrategy.handleTaskFail(task, param.getErrorMsg(), param.getErrorStackTrace());
                 break;
 
             case TERMINATED:

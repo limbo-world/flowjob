@@ -23,14 +23,11 @@ import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
-import org.limbo.flowjob.broker.core.schedule.strategy.ScheduleStrategyFactory;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
-import org.limbo.flowjob.common.utils.time.TimeUtils;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -54,13 +51,10 @@ public class TaskFactory {
 
     private final IDGenerator idGenerator;
 
-    private final ScheduleStrategyFactory scheduleStrategyFactory;
-
-    public TaskFactory(WorkerManager workerManager, TaskManager taskManager, IDGenerator idGenerator, ScheduleStrategyFactory scheduleStrategyFactory) {
+    public TaskFactory(WorkerManager workerManager, TaskManager taskManager, IDGenerator idGenerator) {
         this.workerManager = workerManager;
         this.taskManager = taskManager;
         this.idGenerator = idGenerator;
-        this.scheduleStrategyFactory = scheduleStrategyFactory;
 
         creators = new EnumMap<>(TaskType.class);
 
@@ -71,12 +65,12 @@ public class TaskFactory {
         creators.put(TaskType.SPLIT, new SplitTaskCreator());
     }
 
-    public List<Task> create(JobInstance instance, LocalDateTime triggerAt, TaskType taskType) {
+    public List<Task> create(JobInstance instance, TaskType taskType) {
         TaskCreator creator = creators.get(taskType);
         if (creator == null) {
             return Collections.emptyList();
         }
-        return creator.tasks(instance, triggerAt);
+        return creator.tasks(instance);
     }
 
     /**
@@ -86,22 +80,19 @@ public class TaskFactory {
 
         public abstract TaskType getType();
 
-        public abstract List<Task> tasks(JobInstance instance, LocalDateTime triggerAt);
+        public abstract List<Task> tasks(JobInstance instance);
 
-        protected Task initTask(TaskType type, JobInstance instance, LocalDateTime triggerAt, String workerId) {
+        protected Task initTask(TaskType type, JobInstance instance, String workerId) {
             Task task = new Task();
             task.setTaskId(idGenerator.generateId(IDType.TASK));
             task.setTaskType(type);
             task.setJobId(instance.getJobId());
-            task.setTriggerAt(triggerAt);
-            task.setTriggerAt(TimeUtils.currentLocalDateTime());
             task.setPlanVersion(instance.getPlanVersion());
             task.setPlanId(instance.getPlanId());
             task.setJobInstanceId(instance.getJobInstanceId());
             task.setStatus(TaskStatus.DISPATCHING);
             task.setDispatchOption(instance.getDispatchOption());
             task.setExecutorName(instance.getExecutorName());
-            task.setIScheduleStrategy(scheduleStrategyFactory.build(instance.getPlanType()));
             task.setAttributes(instance.getAttributes());
             task.setWorkerId(workerId);
             return task;
@@ -115,8 +106,8 @@ public class TaskFactory {
     public class NormalTaskCreator extends TaskCreator {
 
         @Override
-        public List<Task> tasks(JobInstance instance, LocalDateTime triggerAt) {
-            Task task = initTask(TaskType.NORMAL, instance, triggerAt, null);
+        public List<Task> tasks(JobInstance instance) {
+            Task task = initTask(TaskType.NORMAL, instance, null);
             return Collections.singletonList(task);
         }
 
@@ -135,14 +126,14 @@ public class TaskFactory {
     public class BroadcastTaskCreator extends TaskCreator {
 
         @Override
-        public List<Task> tasks(JobInstance instance, LocalDateTime triggerAt) {
+        public List<Task> tasks(JobInstance instance) {
             List<Worker> workers = workerManager.availableWorkers();
             if (CollectionUtils.isEmpty(workers)) {
                 return Collections.emptyList();
             }
             List<Task> tasks = new ArrayList<>();
             for (Worker worker : workers) {
-                Task task = initTask(TaskType.BROADCAST, instance, triggerAt, worker.getId());
+                Task task = initTask(TaskType.BROADCAST, instance, worker.getId());
                 tasks.add(task);
             }
             return tasks;
@@ -164,8 +155,8 @@ public class TaskFactory {
     public class SplitTaskCreator extends TaskCreator {
 
         @Override
-        public List<Task> tasks(JobInstance instance, LocalDateTime triggerAt) {
-            Task task = initTask(TaskType.SPLIT, instance, triggerAt, null);
+        public List<Task> tasks(JobInstance instance) {
+            Task task = initTask(TaskType.SPLIT, instance, null);
             return Collections.singletonList(task);
         }
 
@@ -186,11 +177,11 @@ public class TaskFactory {
     public class MapTaskCreator extends TaskCreator {
 
         @Override
-        public List<Task> tasks(JobInstance instance, LocalDateTime triggerAt) {
+        public List<Task> tasks(JobInstance instance) {
             TaskResult taskResult = taskManager.getTaskResults(instance.getJobInstanceId(), TaskType.SPLIT).get(0);
             List<Task> tasks = new ArrayList<>();
             for (Map<String, Object> attribute : taskResult.getSubTaskAttributes()) {
-                Task task = initTask(TaskType.MAP, instance, triggerAt, null);
+                Task task = initTask(TaskType.MAP, instance, null);
                 task.setMapAttributes(new Attributes(attribute));
                 tasks.add(task);
             }
@@ -213,13 +204,13 @@ public class TaskFactory {
     public class ReduceTaskCreator extends TaskCreator {
 
         @Override
-        public List<Task> tasks(JobInstance instance, LocalDateTime triggerAt) {
+        public List<Task> tasks(JobInstance instance) {
             List<TaskResult> taskResults = taskManager.getTaskResults(instance.getJobInstanceId(), TaskType.MAP);
             List<Attributes> reduceAttributes = new ArrayList<>();
             for (TaskResult taskResult : taskResults) {
                 reduceAttributes.add(new Attributes(taskResult.getResultAttributes()));
             }
-            Task task = initTask(TaskType.REDUCE, instance, triggerAt, null);
+            Task task = initTask(TaskType.REDUCE, instance, null);
             task.setReduceAttributes(reduceAttributes);
             return Collections.singletonList(task);
         }

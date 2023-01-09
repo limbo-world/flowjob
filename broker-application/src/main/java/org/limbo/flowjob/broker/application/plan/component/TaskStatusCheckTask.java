@@ -22,9 +22,10 @@ import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
-import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.AbstractTaskStatusCheckTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.TaskScheduleTask;
+import org.limbo.flowjob.broker.core.schedule.strategy.ScheduleStrategyFactory;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
@@ -64,23 +65,24 @@ public class TaskStatusCheckTask extends AbstractTaskStatusCheckTask {
                                BrokerConfig config,
                                NodeManger nodeManger,
                                MetaTaskScheduler metaTaskScheduler,
-                               WorkerRepository workerRepository) {
-        super(interval, config, nodeManger, metaTaskScheduler, workerRepository);
+                               WorkerRepository workerRepository,
+                               ScheduleStrategyFactory scheduleStrategyFactory) {
+        super(interval, config, nodeManger, metaTaskScheduler, workerRepository, scheduleStrategyFactory);
     }
 
 
     @Override
-    protected List<Task> loadDispatchingTasks() {
+    protected List<TaskScheduleTask> loadDispatchingTasks() {
         List<String> planIds = loadPlanIds();
         List<TaskEntity> taskEntities = taskEntityRepo.findByPlanIdInAndStatus(planIds, TaskStatus.DISPATCHING.status);
-        return taskEntities.stream().map(entity -> domainConverter.toTask(entity)).collect(Collectors.toList());
+        return taskEntities.stream().map(entity -> domainConverter.toTaskScheduleTask(entity)).collect(Collectors.toList());
     }
 
     @Override
-    protected List<Task> loadExecutingTasks() {
+    protected List<TaskScheduleTask> loadExecutingTasks() {
         List<String> planIds = loadPlanIds();
         List<TaskEntity> taskEntities = taskEntityRepo.findByPlanIdInAndStatus(planIds, TaskStatus.EXECUTING.status);
-        return taskEntities.stream().map(entity -> domainConverter.toTask(entity)).collect(Collectors.toList());
+        return taskEntities.stream().map(entity -> domainConverter.toTaskScheduleTask(entity)).collect(Collectors.toList());
     }
 
     private List<String> loadPlanIds() {

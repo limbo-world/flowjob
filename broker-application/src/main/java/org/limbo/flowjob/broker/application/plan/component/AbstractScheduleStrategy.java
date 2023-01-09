@@ -27,7 +27,6 @@ import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
@@ -115,18 +114,17 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
 
     @Override
     @Transactional
-    public void schedule(TriggerType triggerType, Plan plan) {
+    public void schedule(TriggerType triggerType, Plan plan, LocalDateTime triggerAt) {
         String planId = plan.getPlanId();
-        PlanInfo planInfo = plan.getPlanInfo();
 
-        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(planInfo.getVersion()).orElse(null);
-        Verifies.notNull(planInfoEntity, "does not find " + planId + " plan's info by version--" + planInfo.getVersion() + "");
+        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(plan.getVersion()).orElse(null);
+        Verifies.notNull(planInfoEntity, "does not find " + planId + " plan's info by version--" + plan.getVersion() + "");
 
         PlanEntity planEntity = planEntityRepo.selectForUpdate(planId);
         // 任务是由之前时间创建的 调度时候如果版本改变 可能会有调度时间的变化本次就无需执行
         // 比如 5s 执行一次 分别在 5s 10s 15s 在11s的时候内存里下次执行为 15s 此时修改为 2s 执行一次 那么重新加载plan后应该为 12s 14s 所以15s这次可以跳过
-        if (!Objects.equals(planInfo.getVersion(), planEntity.getCurrentVersion())) {
-            log.info("{} version {} change to {}", plan.scheduleId(), planInfo.getVersion(), planEntity.getCurrentVersion());
+        if (!Objects.equals(plan.getVersion(), planEntity.getCurrentVersion())) {
+            log.info("plan:{} version {} change to {}", plan.getPlanId(), plan.getVersion(), planEntity.getCurrentVersion());
             return;
         }
 
@@ -145,16 +143,16 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
 
         // 判断并发情况下 是否已经有人提交调度任务 如有则无需处理 防止重复创建数据
         PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findByPlanIdAndTriggerAtAndTriggerType(
-                planId, plan.getTriggerAt(), TriggerType.SCHEDULE.type
+                planId, triggerAt, TriggerType.SCHEDULE.type
         );
         if (planInstanceEntity != null) {
             return;
         }
         // 调度逻辑
-        schedulePlanInfo(triggerType, planInfo, plan.getTriggerAt());
+        schedulePlan(triggerType, plan, triggerAt);
     }
 
-    protected abstract void schedulePlanInfo(TriggerType triggerType, PlanInfo planInfo, LocalDateTime triggerAt);
+    protected abstract void schedulePlan(TriggerType triggerType, Plan plan, LocalDateTime triggerAt);
 
     @Override
     @Transactional
@@ -251,7 +249,7 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
     private void handleMapJobSuccess(Task task, JobInstance jobInstance) {
         switch (task.getTaskType()) {
             case SPLIT:
-                saveAndScheduleTask(taskFactory.create(jobInstance, jobInstance.getTriggerAt(), TaskType.MAP));
+                saveAndScheduleTask(taskFactory.create(jobInstance, TaskType.MAP), TimeUtils.currentLocalDateTime());
                 break;
             case MAP:
                 handleJobSuccess(jobInstance);
@@ -264,10 +262,10 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
     private void handleMapReduceJobSuccess(Task task, JobInstance jobInstance) {
         switch (task.getTaskType()) {
             case SPLIT:
-                saveAndScheduleTask(taskFactory.create(jobInstance, jobInstance.getTriggerAt(), TaskType.MAP));
+                saveAndScheduleTask(taskFactory.create(jobInstance, TaskType.MAP), TimeUtils.currentLocalDateTime());
                 break;
             case MAP:
-                saveAndScheduleTask(taskFactory.create(jobInstance, jobInstance.getTriggerAt(), TaskType.REDUCE));
+                saveAndScheduleTask(taskFactory.create(jobInstance, TaskType.REDUCE), TimeUtils.currentLocalDateTime());
                 break;
             case REDUCE:
                 handleJobSuccess(jobInstance);
@@ -301,17 +299,17 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
     }
 
     @Transactional
-    public void saveAndScheduleTask(List<Task> tasks) {
+    public void saveAndScheduleTask(List<Task> tasks, LocalDateTime triggerAt) {
         if (CollectionUtils.isEmpty(tasks)) {
             return;
         }
 
-        List<TaskEntity> taskEntities = tasks.stream().map(domainConverter::toTaskEntity).collect(Collectors.toList());
+        List<TaskEntity> taskEntities = tasks.stream().map(task -> domainConverter.toTaskEntity(task, triggerAt)).collect(Collectors.toList());
         taskEntityRepo.saveAll(taskEntities);
         taskEntityRepo.flush();
         for (Task task : tasks) {
             try {
-                metaTaskScheduler.schedule(task);
+                metaTaskScheduler.schedule(domainConverter.toTaskScheduleTask(task, triggerAt));
             } catch (Exception e) {
                 // 调度失败 不要影响事务，事务提交后 由task的状态检查任务去修复task的执行情况
                 log.error("task schedule fail! task={}", task, e);

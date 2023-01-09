@@ -83,6 +83,11 @@ public class TaskEntity extends BaseEntity {
     private String errorStackTrace;
 
     /**
+     * 期望的触发时间
+     */
+    private LocalDateTime triggerAt;
+
+    /**
      * 开始时间
      */
     private LocalDateTime startAt;

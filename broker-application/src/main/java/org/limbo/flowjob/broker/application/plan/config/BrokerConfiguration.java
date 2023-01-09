@@ -95,8 +95,8 @@ public class BrokerConfiguration {
     }
 
     @Bean
-    public TaskFactory taskFactory(WorkerManager workerManager, TaskManager taskManager, IDGenerator idGenerator, ScheduleStrategyFactory scheduleStrategyFactory) {
-        return new TaskFactory(workerManager, taskManager, idGenerator, scheduleStrategyFactory);
+    public TaskFactory taskFactory(WorkerManager workerManager, TaskManager taskManager, IDGenerator idGenerator) {
+        return new TaskFactory(workerManager, taskManager, idGenerator);
     }
 
     @Bean
@@ -138,13 +138,15 @@ public class BrokerConfiguration {
     public MetaTask taskStatusCheckTask(BrokerConfig config,
                                         NodeManger nodeManger,
                                         MetaTaskScheduler metaTaskScheduler,
-                                        WorkerRepository workerRepository) {
+                                        WorkerRepository workerRepository,
+                                        ScheduleStrategyFactory scheduleStrategyFactory) {
         return new TaskStatusCheckTask(
                 Duration.ofMillis(brokerProperties.getStatusCheckInterval()),
                 config,
                 nodeManger,
                 metaTaskScheduler,
-                workerRepository
+                workerRepository,
+                scheduleStrategyFactory
         );
     }
 

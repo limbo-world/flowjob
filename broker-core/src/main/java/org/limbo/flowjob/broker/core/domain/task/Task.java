@@ -18,23 +18,18 @@
 
 package org.limbo.flowjob.broker.core.domain.task;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
-import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
+import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 作业执行上下文
@@ -46,8 +41,7 @@ import java.util.Map;
 @Getter
 @Setter
 @ToString
-public class Task implements MetaTask, Serializable {
-    private static final long serialVersionUID = -9164373359695671417L;
+public class Task {
 
     private String taskId;
 
@@ -58,6 +52,11 @@ public class Task implements MetaTask, Serializable {
     private String planId;
 
     private String planVersion;
+
+    /**
+     * 类型 todo @pq
+     */
+    private PlanType planType;
 
     /**
      * 类型
@@ -85,21 +84,6 @@ public class Task implements MetaTask, Serializable {
     private Attributes attributes;
 
     /**
-     * 期望的触发时间
-     */
-    private LocalDateTime triggerAt;
-
-    /**
-     * 开始时间
-     */
-    private LocalDateTime startAt;
-
-    /**
-     * 结束时间
-     */
-    private LocalDateTime endAt;
-
-    /**
      * 下发参数
      */
     private DispatchOption dispatchOption;
@@ -118,37 +102,5 @@ public class Task implements MetaTask, Serializable {
      * reduce属性
      */
     private List<Attributes> reduceAttributes;
-
-    @Getter(AccessLevel.NONE)
-    @ToString.Exclude
-    private IScheduleStrategy iScheduleStrategy;
-
-    @Override
-    public void execute() {
-        iScheduleStrategy.schedule(this);
-    }
-
-    public void success(Map<String, Object> resultAttributes) {
-        iScheduleStrategy.handleTaskSuccess(this, resultAttributes);
-    }
-
-    public void fail(String errorMsg, String errorStackTrace) {
-        iScheduleStrategy.handleTaskFail(this, errorMsg, errorStackTrace);
-    }
-
-    @Override
-    public MetaTaskType getType() {
-        return MetaTaskType.TASK;
-    }
-
-    @Override
-    public String getMetaId() {
-        return taskId;
-    }
-
-    @Override
-    public LocalDateTime scheduleAt() {
-        return triggerAt;
-    }
 
 }

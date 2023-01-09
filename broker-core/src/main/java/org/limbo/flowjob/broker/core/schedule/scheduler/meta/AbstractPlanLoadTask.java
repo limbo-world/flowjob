@@ -23,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
-import org.limbo.flowjob.broker.core.domain.plan.Plan;
 
 import java.time.Duration;
 import java.util.List;
@@ -65,16 +64,16 @@ public abstract class AbstractPlanLoadTask extends FixDelayMetaTask {
             }
 
             // 调度当前时间以及未来的任务
-            List<Plan> plans = loadPlans();
+            List<PlanScheduleTask> plans = loadTasks();
 
             // 重新调度 新增/版本变更的plan
             if (CollectionUtils.isNotEmpty(plans)) {
-                for (Plan plan : plans) {
+                for (PlanScheduleTask plan : plans) {
                     scheduler.schedule(plan);
                 }
             }
         } catch (Exception e) {
-            log.error("{} load and schedule plan fail", scheduleId(), e);
+            log.error("{} load and schedule plan task fail", scheduleId(), e);
         }
     }
 
@@ -82,7 +81,7 @@ public abstract class AbstractPlanLoadTask extends FixDelayMetaTask {
     /**
      * 加载触发时间在指定时间之前的 Plan。
      */
-    protected abstract List<Plan> loadPlans();
+    protected abstract List<PlanScheduleTask> loadTasks();
 
 
     @Override

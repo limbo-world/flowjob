@@ -23,9 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
-import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.AbstractPlanLoadTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanScheduleTask;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
@@ -72,7 +72,7 @@ public class PlanLoadTask extends AbstractPlanLoadTask {
      * @return
      */
     @Override
-    protected List<Plan> loadPlans() {
+    protected List<PlanScheduleTask> loadTasks() {
         List<Integer> slots = slotManager.slots();
         if (CollectionUtils.isEmpty(slots)) {
             return Collections.emptyList();
@@ -87,9 +87,9 @@ public class PlanLoadTask extends AbstractPlanLoadTask {
         if (CollectionUtils.isEmpty(planEntities)) {
             return Collections.emptyList();
         }
-        List<Plan> plans = new ArrayList<>();
+        List<PlanScheduleTask> plans = new ArrayList<>();
         for (PlanEntity planEntity : planEntities) {
-            plans.add(domainConverter.toPlan(planEntity));
+            plans.add(domainConverter.toPlanScheduleTask(planEntity));
         }
         return plans;
     }

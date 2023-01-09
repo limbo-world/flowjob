@@ -20,50 +20,35 @@ package org.limbo.flowjob.broker.core.domain.plan;
 
 import lombok.Getter;
 import lombok.ToString;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.TriggerType;
-
-import java.io.Serializable;
+import org.limbo.flowjob.common.utils.dag.DAG;
 
 /**
+ * 计划在具体版本时的数据(值对象)，至少对应一个{@link JobInfo}
+ *
  * @author Brozen
  * @since 2021-10-14
  */
 @Getter
 @ToString
-public abstract class PlanInfo implements Serializable {
-
-    private static final long serialVersionUID = -3488415933872953356L;
+public class WorkflowPlan extends Plan {
 
     /**
-     * 作业执行计划ID
+     * 作业计划对应的Job，以DAG数据结构组织
      */
-    private final String planId;
+    private final DAG<JobInfo> dag;
 
-    /**
-     * 版本
-     */
-    private final String version;
-
-    /**
-     * 触发类型
-     */
-    private final TriggerType triggerType;
-
-    /**
-     * 作业计划调度配置参数
-     */
-    private final ScheduleOption scheduleOption;
-
-    protected PlanInfo(String planId, String version, TriggerType triggerType,
-                    ScheduleOption scheduleOption) {
-        this.planId = planId;
-        this.version = version;
-        this.triggerType = triggerType;
-        this.scheduleOption = scheduleOption;
+    public WorkflowPlan(String planId, String version,
+                        TriggerType triggerType, ScheduleOption scheduleOption, DAG<JobInfo> dag) {
+        super(planId, version, triggerType, scheduleOption);
+        this.dag = dag;
     }
 
-    public abstract PlanType planType();
-
+    @Override
+    public PlanType planType() {
+        return PlanType.WORKFLOW;
+    }
 }

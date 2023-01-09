@@ -23,6 +23,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.task.Task;
+import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
+import org.limbo.flowjob.broker.core.schedule.strategy.ScheduleStrategyFactory;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 
@@ -46,15 +48,19 @@ public abstract class AbstractTaskStatusCheckTask extends FixDelayMetaTask {
 
     private final WorkerRepository workerRepository;
 
+    private final ScheduleStrategyFactory scheduleStrategyFactory;
+
     protected AbstractTaskStatusCheckTask(Duration interval,
                                           BrokerConfig config,
                                           NodeManger nodeManger,
                                           MetaTaskScheduler metaTaskScheduler,
-                                          WorkerRepository workerRepository) {
+                                          WorkerRepository workerRepository,
+                                          ScheduleStrategyFactory scheduleStrategyFactory) {
         super(interval, metaTaskScheduler);
         this.config = config;
         this.nodeManger = nodeManger;
         this.workerRepository = workerRepository;
+        this.scheduleStrategyFactory = scheduleStrategyFactory;
     }
 
 
@@ -65,20 +71,22 @@ public abstract class AbstractTaskStatusCheckTask extends FixDelayMetaTask {
             return;
         }
 
-        List<Task> dispatchingTasks = loadDispatchingTasks();
+        List<TaskScheduleTask> dispatchingTasks = loadDispatchingTasks();
         if (CollectionUtils.isNotEmpty(dispatchingTasks)) {
-            for (Task task : dispatchingTasks) {
-                task.execute();
+            for (TaskScheduleTask scheduleTask : dispatchingTasks) {
+                scheduleTask.execute();
             }
         }
 
-        List<Task> executingTasks = loadExecutingTasks();
+        List<TaskScheduleTask> executingTasks = loadExecutingTasks();
         if (CollectionUtils.isNotEmpty(executingTasks)) {
             // 获取长时间为执行中的task 判断worker是否已经宕机
-            for (Task task : executingTasks) {
+            for (TaskScheduleTask scheduleTask : executingTasks) {
+                Task task = scheduleTask.getTask();
                 Worker worker = workerRepository.get(task.getWorkerId());
                 if (worker == null || !worker.isAlive()) {
-                    task.fail(String.format("worker %s is offline", task.getWorkerId()), "");
+                    IScheduleStrategy scheduleStrategy = scheduleStrategyFactory.build(task.getPlanType());
+                    scheduleStrategy.handleTaskFail(task, String.format("worker %s is offline", task.getWorkerId()), "");
                 }
             }
         }
@@ -87,12 +95,12 @@ public abstract class AbstractTaskStatusCheckTask extends FixDelayMetaTask {
     /**
      * 加载下发中的 task。
      */
-    protected abstract List<Task> loadDispatchingTasks();
+    protected abstract List<TaskScheduleTask> loadDispatchingTasks();
 
     /**
      * 加载执行中的 task。
      */
-    protected abstract List<Task> loadExecutingTasks();
+    protected abstract List<TaskScheduleTask> loadExecutingTasks();
 
     @Override
     public MetaTaskType getType() {

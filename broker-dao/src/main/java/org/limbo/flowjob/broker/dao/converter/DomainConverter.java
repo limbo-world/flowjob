@@ -24,12 +24,13 @@ import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
-import org.limbo.flowjob.broker.core.domain.plan.SinglePlanInfo;
-import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlanInfo;
+import org.limbo.flowjob.broker.core.domain.plan.SinglePlan;
+import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanScheduleTask;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.TaskScheduleTask;
 import org.limbo.flowjob.broker.core.schedule.strategy.ScheduleStrategyFactory;
 import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
@@ -54,6 +55,7 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -82,15 +84,15 @@ public class DomainConverter {
     @Setter(onMethod_ = @Inject)
     private MetaTaskScheduler metaTaskScheduler;
 
-    public Plan toPlan(PlanEntity entity) {
+    public PlanScheduleTask toPlanScheduleTask(PlanEntity entity) {
         // 获取plan 的当前版本
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getCurrentVersion()).orElse(null);
         Verifies.notNull(planInfoEntity, "does not find " + entity.getPlanId() + " plan's info by version--" + entity.getCurrentVersion() + "");
 
-        PlanInfo planInfo;
+        Plan plan;
         PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
         if (PlanType.SINGLE == planType) {
-            planInfo = new SinglePlanInfo(
+            plan = new SinglePlan(
                     planInfoEntity.getPlanId(),
                     planInfoEntity.getPlanInfoId(),
                     TriggerType.parse(planInfoEntity.getTriggerType()),
@@ -100,7 +102,7 @@ public class DomainConverter {
         } else if (PlanType.WORKFLOW == planType) {
             List<JobInfoEntity> jobInfoEntities = jobInfoEntityRepo.findByPlanInfoId(planInfoEntity.getPlanInfoId());
             Verifies.notEmpty(jobInfoEntities, "does not find " + entity.getPlanId() + " plan's job info by version--" + entity.getCurrentVersion() + "");
-            planInfo = new WorkflowPlanInfo(
+            plan = new WorkflowPlan(
                     planInfoEntity.getPlanId(),
                     planInfoEntity.getPlanInfoId(),
                     TriggerType.parse(planInfoEntity.getTriggerType()),
@@ -115,12 +117,11 @@ public class DomainConverter {
         PlanInstanceEntity latelyTrigger = planInstanceEntityRepo.findLatelyTrigger(entity.getPlanId());
         PlanInstanceEntity latelyFeedback = planInstanceEntityRepo.findLatelyFeedback(entity.getPlanId());
 
-        return new Plan(
-                planInfo,
-                toScheduleOption(planInfoEntity),
+        return new PlanScheduleTask(
+                plan,
                 latelyTrigger == null ? null : latelyTrigger.getTriggerAt(),
                 latelyFeedback == null ? null : latelyFeedback.getFeedbackAt(),
-                scheduleStrategyFactory.build(planInfo.planType()),
+                scheduleStrategyFactory.build(plan.planType()),
                 metaTaskScheduler
         );
 
@@ -177,7 +178,7 @@ public class DomainConverter {
         return jobInstance;
     }
 
-    public TaskEntity toTaskEntity(Task task) {
+    public TaskEntity toTaskEntity(Task task, LocalDateTime triggerAt) {
         TaskEntity taskEntity = new TaskEntity();
         taskEntity.setJobInstanceId(task.getJobInstanceId());
         taskEntity.setJobId(task.getJobId());
@@ -187,9 +188,8 @@ public class DomainConverter {
         taskEntity.setStatus(task.getStatus().status);
         taskEntity.setWorkerId(task.getWorkerId());
         taskEntity.setAttributes(task.getAttributes() == null ? "{}" : task.getAttributes().toString());
-        taskEntity.setStartAt(task.getStartAt());
-        taskEntity.setEndAt(task.getEndAt());
         taskEntity.setTaskId(task.getTaskId());
+        taskEntity.setTriggerAt(triggerAt);
         return taskEntity;
     }
 
@@ -201,16 +201,23 @@ public class DomainConverter {
         task.setStatus(TaskStatus.parse(entity.getStatus()));
         task.setWorkerId(entity.getWorkerId());
         task.setAttributes(new Attributes(entity.getAttributes()));
-        task.setStartAt(entity.getStartAt());
-        task.setEndAt(entity.getEndAt());
         task.setPlanId(entity.getPlanId());
         task.setPlanVersion(entity.getPlanInfoId());
 
-        // job
+        // job todo @pq
         JobInfoEntity jobInfoEntity = jobInfoEntityRepo.findByPlanInfoIdAndName(entity.getPlanInfoId(), entity.getJobId());
         task.setDispatchOption(JacksonUtils.parseObject(jobInfoEntity.getDispatchOption(), DispatchOption.class));
         task.setExecutorName(jobInfoEntity.getExecutorName());
         return task;
+    }
+
+    public TaskScheduleTask toTaskScheduleTask(Task task, LocalDateTime triggerAt) {
+        return new TaskScheduleTask(task, triggerAt, scheduleStrategyFactory.build(task.getPlanType()));
+    }
+
+    public TaskScheduleTask toTaskScheduleTask(TaskEntity entity) {
+        Task task = toTask(entity);
+        return new TaskScheduleTask(task, entity.getTriggerAt(), scheduleStrategyFactory.build(task.getPlanType()));
     }
 
     public JobInstanceEntity toJobInstanceEntity(JobInstance jobInstance) {

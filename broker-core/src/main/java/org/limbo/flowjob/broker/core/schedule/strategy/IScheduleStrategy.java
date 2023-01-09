@@ -22,6 +22,7 @@ import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.common.constants.TriggerType;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
@@ -30,7 +31,7 @@ import java.util.Map;
  */
 public interface IScheduleStrategy {
 
-    void schedule(TriggerType triggerType, Plan plan);
+    void schedule(TriggerType triggerType, Plan plan, LocalDateTime triggerAt);
 
     void schedule(Task task);
 

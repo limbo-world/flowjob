@@ -21,8 +21,8 @@ package org.limbo.flowjob.broker.application.plan.component;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
-import org.limbo.flowjob.broker.core.domain.plan.PlanInfo;
-import org.limbo.flowjob.broker.core.domain.plan.SinglePlanInfo;
+import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.broker.core.domain.plan.SinglePlan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.exceptions.JobException;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
@@ -45,14 +45,14 @@ import java.util.List;
 public class SingleJobScheduleStrategy extends AbstractScheduleStrategy {
 
     @Override
-    protected void schedulePlanInfo(TriggerType triggerType, PlanInfo planInfo, LocalDateTime triggerAt) {
-        String planId = planInfo.getPlanId();
-        String version = planInfo.getVersion();
+    protected void schedulePlan(TriggerType triggerType, Plan plan, LocalDateTime triggerAt) {
+        String planId = plan.getPlanId();
+        String version = plan.getVersion();
 
-        SinglePlanInfo singlePlanInfo = (SinglePlanInfo) planInfo;
+        SinglePlan singlePlan = (SinglePlan) plan;
         // 保存 planInstance
         String planInstanceId = savePlanInstanceEntity(planId, version, triggerType, triggerAt);
-        JobInstance jobInstance = newJobInstance(planId, version, planInfo.planType(), planInstanceId, singlePlanInfo.getJobInfo(), TimeUtils.currentLocalDateTime());
+        JobInstance jobInstance = newJobInstance(planId, version, plan.planType(), planInstanceId, singlePlan.getJobInfo(), TimeUtils.currentLocalDateTime());
         scheduleJobInstance(jobInstance);
     }
 
@@ -85,14 +85,14 @@ public class SingleJobScheduleStrategy extends AbstractScheduleStrategy {
         List<Task> tasks;
         switch (jobInstance.getType()) {
             case NORMAL:
-                tasks = taskFactory.create(jobInstance, jobInstance.getTriggerAt(), TaskType.NORMAL);
+                tasks = taskFactory.create(jobInstance, TaskType.NORMAL);
                 break;
             case BROADCAST:
-                tasks = taskFactory.create(jobInstance, jobInstance.getTriggerAt(), TaskType.BROADCAST);
+                tasks = taskFactory.create(jobInstance, TaskType.BROADCAST);
                 break;
             case MAP:
             case MAP_REDUCE:
-                tasks = taskFactory.create(jobInstance, jobInstance.getTriggerAt(), TaskType.SPLIT);
+                tasks = taskFactory.create(jobInstance, TaskType.SPLIT);
                 break;
             default:
                 throw new JobException(jobInstance.getJobId(), MsgConstants.UNKNOWN + " job type:" + jobInstance.getType().type);
@@ -102,7 +102,7 @@ public class SingleJobScheduleStrategy extends AbstractScheduleStrategy {
         if (CollectionUtils.isEmpty(tasks)) {
             handleJobSuccess(jobInstance);
         } else {
-            saveAndScheduleTask(tasks);
+            saveAndScheduleTask(tasks, jobInstance.getTriggerAt());
         }
 
     }

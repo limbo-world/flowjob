@@ -30,6 +30,7 @@ import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
 import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
 import org.limbo.flowjob.common.constants.MsgConstants;
+import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TriggerType;
 
@@ -43,68 +44,40 @@ import java.time.LocalDateTime;
  * @author Brozen
  * @since 2021-07-12
  */
-@Slf4j
 @Getter
 @ToString
-public class Plan extends LoopMetaTask implements Serializable {
+public abstract class Plan {
 
     private static final long serialVersionUID = 5657376836197403211L;
 
     /**
-     * 执行计划ID
+     * 作业执行计划ID
      */
     private final String planId;
 
     /**
-     * 计划信息
+     * 版本
      */
-    private final PlanInfo planInfo;
+    private final String version;
 
-    @Setter(AccessLevel.NONE)
-    @Getter(AccessLevel.NONE)
-    @ToString.Exclude
-    private IScheduleStrategy iScheduleStrategy;
+    /**
+     * 触发类型
+     */
+    private final TriggerType triggerType;
 
-    public Plan(PlanInfo planInfo, ScheduleOption scheduleOption,
-                LocalDateTime lastTriggerAt, LocalDateTime lastFeedbackAt,
-                IScheduleStrategy iScheduleStrategy, MetaTaskScheduler metaTaskScheduler) {
-        super(lastTriggerAt, lastFeedbackAt, scheduleOption, metaTaskScheduler);
-        this.planId = planInfo.getPlanId();
-        this.planInfo = planInfo;
-        this.iScheduleStrategy = iScheduleStrategy;
+    /**
+     * 作业计划调度配置参数
+     */
+    private final ScheduleOption scheduleOption;
+
+    protected Plan(String planId, String version, TriggerType triggerType,
+                   ScheduleOption scheduleOption) {
+        this.planId = planId;
+        this.version = version;
+        this.triggerType = triggerType;
+        this.scheduleOption = scheduleOption;
     }
 
-    @Override
-    public void execute() {
-        ScheduleOption scheduleOption = getScheduleOption();
-        if (scheduleOption == null || scheduleOption.getScheduleType() == null || ScheduleType.UNKNOWN == scheduleOption.getScheduleType()) {
-            log.error("{} scheduleType is {} scheduleOption={}", scheduleId(), MsgConstants.UNKNOWN, scheduleOption);
-            return;
-        }
-        switch (getScheduleOption().getScheduleType()) {
-            case FIXED_RATE:
-            case CRON:
-                executeFixedRate();
-                break;
-            default:
-                // FIXED_DELAY 交由执行完后处理
-                break;
-        }
-    }
-
-    @Override
-    protected void executeTask() {
-        iScheduleStrategy.schedule(TriggerType.SCHEDULE, this);
-    }
-
-    @Override
-    public MetaTaskType getType() {
-        return MetaTaskType.PLAN;
-    }
-
-    @Override
-    public String getMetaId() {
-        return planId + "-" + planInfo.getVersion();
-    }
+    public abstract PlanType planType();
 
 }
