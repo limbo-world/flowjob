@@ -23,6 +23,9 @@ import lombok.Data;
 import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.common.constants.TriggerType;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,6 +40,7 @@ public class JobParam {
     /**
      * 作业类型
      */
+    @NotNull
     @Schema(title = "作业类型")
     private JobType type;
 
@@ -49,12 +53,15 @@ public class JobParam {
     /**
      * 作业分发配置参数
      */
+    @Valid
+    @NotNull
     @Schema(title = "作业分发配置参数")
     private DispatchOptionParam dispatchOption;
 
     /**
      * 执行器名称
      */
+    @NotBlank
     @Schema(title = "执行器名称")
     private String executorName;
 

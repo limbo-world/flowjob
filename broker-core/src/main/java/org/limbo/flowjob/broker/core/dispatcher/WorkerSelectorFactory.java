@@ -47,7 +47,7 @@ public class WorkerSelectorFactory {
     @Setter
     private LBServerStatisticsProvider lbServerStatisticsProvider = LBServerStatisticsProvider.EMPTY_PROVIDER;
 
-    private Map<LoadBalanceType, Supplier<WorkerSelector>> selectors = new EnumMap<>(LoadBalanceType.class);
+    private final Map<LoadBalanceType, Supplier<WorkerSelector>> selectors = new EnumMap<>(LoadBalanceType.class);
 
     public WorkerSelectorFactory() {
         selectors.put(LoadBalanceType.ROUND_ROBIN, () -> new FilteringWorkerSelector(new RoundRobinLBStrategy<>()));

@@ -54,15 +54,15 @@ public class PlanParam implements Serializable {
     /**
      * 计划类型
      */
-    @Schema(title = "计划类型", implementation = Integer.class)
     @NotNull
+    @Schema(title = "计划类型", implementation = Integer.class)
     private PlanType planType;
 
     /**
      * 触发方式
      */
-    @Schema(title = "触发方式", implementation = Integer.class)
     @NotNull
+    @Schema(title = "触发方式", implementation = Integer.class)
     private TriggerType triggerType;
 
     /**
@@ -75,8 +75,9 @@ public class PlanParam implements Serializable {
     /**
      * 此执行计划对应的所有作业
      */
+    @Valid
     @Schema(title = "单任务对应的所有作业")
-    private @Valid JobParam job;
+    private JobParam job;
 
     /**
      * 此执行计划对应的所有作业

@@ -35,7 +35,7 @@ public class ScheduleCalculatorFactory {
     private static final Map<ScheduleType, ScheduleCalculator> scheduleCalculators = new EnumMap<>(ScheduleType.class);
 
     static {
-        scheduleCalculators.put(ScheduleType.NONE, new NeverScheduleCalculator());
+        scheduleCalculators.put(ScheduleType.UNKNOWN, new NeverScheduleCalculator());
         scheduleCalculators.put(ScheduleType.CRON, new CronScheduleCalculator());
         scheduleCalculators.put(ScheduleType.FIXED_DELAY, new FixDelayScheduleCalculator());
         scheduleCalculators.put(ScheduleType.FIXED_RATE, new FixRateScheduleCalculator());

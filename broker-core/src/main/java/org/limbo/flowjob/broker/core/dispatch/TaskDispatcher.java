@@ -26,6 +26,7 @@ import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.exceptions.JobDispatchException;
+import org.limbo.flowjob.broker.core.statistics.WorkerStatisticsRepository;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.common.constants.TaskStatus;
 
@@ -42,8 +43,14 @@ public class TaskDispatcher {
 
     private final WorkerManager workerManager;
 
-    public TaskDispatcher(WorkerManager workerManager) {
+    private final WorkerSelectorFactory workerSelectorFactory;
+
+    private final WorkerStatisticsRepository statisticsRepository;
+
+    public TaskDispatcher(WorkerManager workerManager, WorkerSelectorFactory workerSelectorFactory, WorkerStatisticsRepository statisticsRepository) {
         this.workerManager = workerManager;
+        this.workerSelectorFactory = workerSelectorFactory;
+        this.statisticsRepository = statisticsRepository;
     }
 
     /**
@@ -53,6 +60,10 @@ public class TaskDispatcher {
     public boolean dispatch(Task task) {
         if (log.isDebugEnabled()) {
             log.debug("start dispatch task={}", task);
+        }
+
+        if (task.getStatus() != TaskStatus.DISPATCHING) {
+            throw new JobDispatchException(task.getJobId(), task.getTaskId(), "Cannot startup context due to current status: " + task.getStatus());
         }
 
         if (StringUtils.isBlank(task.getWorkerId())) {
@@ -72,24 +83,17 @@ public class TaskDispatcher {
             // 发送任务到worker，根据worker返回结果，更新状态
             boolean dispatched = worker.sendTask(task);
             if (dispatched) {
-                // 更新状态
-                task.setStatus(TaskStatus.EXECUTING);
-                task.setWorkerId(worker.getId());
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Task dispatch success task={}", task);
-                }
+                onDispatchSucceed(task, worker);
                 return true;
+            } else {
+                onDispatchToWorkerFailed(task, worker);
             }
         } catch (Exception e) {
             log.error("Task dispatch with error task={}", task, e);
         }
 
         // 下发失败
-        task.setStatus(TaskStatus.FAILED);
-        if (log.isDebugEnabled()) {
-            log.debug("Task dispatch fail task={}", task);
-        }
+        onDispatchFailed(task);
         return false;
     }
 
@@ -98,7 +102,7 @@ public class TaskDispatcher {
         if (CollectionUtils.isEmpty(availableWorkers)) {
             return false;
         }
-        WorkerSelector workerSelector = WorkerSelectorFactory.newSelector(task.getDispatchOption().getLoadBalanceType());
+        WorkerSelector workerSelector = workerSelectorFactory.newSelector(task.getDispatchOption().getLoadBalanceType());
         for (int i = 0; i < 3; i++) {
             try {
                 Worker worker = workerSelector.select(task.getDispatchOption(), task.getExecutorName(), availableWorkers);
@@ -109,15 +113,10 @@ public class TaskDispatcher {
                 // 发送任务到worker，根据worker返回结果，更新状态
                 boolean dispatched = worker.sendTask(task);
                 if (dispatched) {
-
-                    // 更新状态
-                    task.setStatus(TaskStatus.EXECUTING);
-                    task.setWorkerId(worker.getId());
-
-                    if (log.isDebugEnabled()) {
-                        log.debug("Task dispatch success task={}", task);
-                    }
+                    onDispatchSucceed(task, worker);
                     return true;
+                } else {
+                    onDispatchToWorkerFailed(task, worker);
                 }
 
                 availableWorkers = availableWorkers.stream().filter(w -> !Objects.equals(w.getId(), worker.getId())).collect(Collectors.toList());
@@ -127,11 +126,46 @@ public class TaskDispatcher {
         }
 
         // 下发失败
-        task.setStatus(TaskStatus.FAILED);
-        if (log.isDebugEnabled()) {
-            log.debug("Task dispatch fail task={}", task);
-        }
+        onDispatchFailed(task);
         return false;
+    }
+
+    /**
+     * 下发任务到 worker 成功时的流程
+     */
+    private void onDispatchSucceed(Task task, Worker worker) {
+        // 更新状态
+        task.setStatus(TaskStatus.EXECUTING);
+        task.setWorkerId(worker.getId());
+
+        // 记录统计数据
+        statisticsRepository.recordTaskDispatched(task, worker);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Task dispatch success task={}", task.getTaskId());
+        }
+    }
+
+
+    /**
+     * 下发任务到 worker 失败时的流程
+     */
+    private void onDispatchToWorkerFailed(Task task, Worker worker) {
+        if (log.isDebugEnabled()) {
+            log.debug("Task dispatch failed: task={} worker={}", task.getTaskId(), worker.getId());
+        }
+    }
+
+
+    /**
+     * 下发任务流程整体失败时的处理逻辑，重试后仍失败会触发此逻辑。
+     */
+    private void onDispatchFailed(Task task) {
+        task.setStatus(TaskStatus.FAILED);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Task dispatch fail task={}", task.getTaskId());
+        }
     }
 
 }

@@ -27,7 +27,7 @@ import org.limbo.flowjob.common.constants.ScheduleType;
 public class NeverScheduleCalculator extends ScheduleCalculator {
 
     public NeverScheduleCalculator() {
-        super(ScheduleType.NONE);
+        super(ScheduleType.UNKNOWN);
     }
 
     /**

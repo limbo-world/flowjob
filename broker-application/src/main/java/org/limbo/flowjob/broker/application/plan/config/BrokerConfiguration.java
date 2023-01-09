@@ -32,7 +32,6 @@ import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
 import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.cluster.WorkerManagerImpl;
 import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
-import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
@@ -41,11 +40,10 @@ import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
 import org.limbo.flowjob.broker.core.schedule.strategy.ScheduleStrategyFactory;
-import org.limbo.flowjob.broker.core.service.IScheduleService;
 import org.limbo.flowjob.broker.core.statistics.WorkerStatisticsRepository;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
-import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.broker.dao.domain.SingletonWorkerStatisticsRepo;
+import org.limbo.flowjob.common.constants.PlanType;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -131,11 +129,8 @@ public class BrokerConfiguration {
      * 用于分发任务
      */
     @Bean
-    public TaskDispatcher taskDispatcher(WorkerSelectorFactory factory, WorkerStatisticsRepository statisticsRepository) {
-        TaskDispatcher dispatcher = new TaskDispatcher();
-        dispatcher.setWorkerSelectorFactory(factory);
-        dispatcher.setStatisticsRepository(statisticsRepository);
-        return dispatcher;
+    public TaskDispatcher taskDispatcher(WorkerManager workerManager, WorkerSelectorFactory factory, WorkerStatisticsRepository statisticsRepository) {
+        return new TaskDispatcher(workerManager, factory, statisticsRepository);
     }
 
     @Bean
@@ -145,11 +140,6 @@ public class BrokerConfiguration {
         strategyMap.put(PlanType.SINGLE, singleJobScheduleStrategy);
         strategyMap.put(PlanType.WORKFLOW, workflowScheduleStrategy);
         return new ScheduleStrategyFactory(strategyMap);
-    }
-
-    @Bean
-    public TaskDispatcher taskDispatcher(WorkerManager workerManager) {
-        return new TaskDispatcher(workerManager);
     }
 
     /**

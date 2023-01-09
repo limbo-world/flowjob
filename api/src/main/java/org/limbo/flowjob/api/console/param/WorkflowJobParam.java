@@ -98,7 +98,6 @@ public class WorkflowJobParam {
     /**
      * 执行失败是否终止 false 会继续执行后续作业
      */
-    @NotNull
     @Schema(title = "执行失败是否终止", description = "false 会继续执行后续作业")
-    private Boolean terminateWithFail;
+    private boolean terminateWithFail = true;
 }
