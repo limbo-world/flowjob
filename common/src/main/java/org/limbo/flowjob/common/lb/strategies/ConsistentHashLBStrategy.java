@@ -35,7 +35,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Brozen
  * @since 2022-09-02
  */
-// todo
 @Slf4j
 public class ConsistentHashLBStrategy<S extends LBServer> extends AbstractLBStrategy<S> {
 

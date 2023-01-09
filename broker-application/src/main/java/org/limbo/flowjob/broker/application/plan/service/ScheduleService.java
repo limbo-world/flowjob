@@ -97,6 +97,9 @@ public class ScheduleService implements IScheduleService {
     private MetaTaskScheduler metaTaskScheduler;
 
     @Setter(onMethod_ = @Inject)
+    private TaskDispatcher taskDispatcher;
+
+    @Setter(onMethod_ = @Inject)
     private PlanInstanceEntityRepo planInstanceEntityRepo;
 
     @Setter(onMethod_ = @Inject)
@@ -179,7 +182,7 @@ public class ScheduleService implements IScheduleService {
         jobInstanceEntityRepo.updateStatusExecuting(task.getJobInstanceId());
 
         // todo 判断是否有 workId 广播 会已经存在 其他应该在这里获取
-        TaskDispatcher.dispatch(task);
+        taskDispatcher.dispatch(task);
 
         if (TaskStatus.FAILED == task.getStatus()) {
             // 下发失败
@@ -236,6 +239,7 @@ public class ScheduleService implements IScheduleService {
                     jobTasks = taskFactory.create(instance, instance.getTriggerAt(), TaskType.NORMAL);
                     break;
                 case BROADCAST:
+                    // FIXME 广播模式下，生成的 Task 应该要重写 LB 配置，重写为指定节点，防止调度到其他节点上去
                     jobTasks = taskFactory.create(instance, instance.getTriggerAt(), TaskType.BROADCAST);
                     break;
                 case MAP:

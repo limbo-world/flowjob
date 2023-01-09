@@ -1,63 +1,64 @@
 ### 新增 plan
-POST http://{{host}}:{{port}}/api/admin/v1/plan
+POST http://{{host}}:{{port}}/api/v1/plan
 Content-Type: application/json
 
 {
-  "planId": "abcdefghijklm",
-  "planDesc": "test",
-  "scheduleOption": {
-    "scheduleType": 1,
-    "scheduleDelay": 1,
-    "scheduleInterval": 3,
-    "scheduleStartAt": "2021-07-26 16:15:00"
-  },
-  "jobInfos": [
-    {
-      "jobId": "1",
-      "jobDesc": "test",
-      "dispatchOption": {
-        "loadBalanceType": 2
-      },
-      "executorOption": {
-        "name": "hello",
-        "type": 1
-      }
-    }
-  ]
+    "description": "round_robin",
+    "triggerType": 2,
+    "planType": 2,
+    "scheduleOption": {
+        "scheduleType": 1,
+        "scheduleDelay": 1,
+        "scheduleInterval": 3,
+        "scheduleStartAt": "2021-07-26 16:15:00"
+    },
+    "jobs": [
+        {
+            "name": "round_robin_job1",
+            "description": "test",
+            "type": 1,
+            "triggerType": 2,
+            "dispatchOption": {
+                "loadBalanceType": 2
+            },
+            "executorName": "hello"
+        }
+    ]
 }
 
 ### 替换 plan
-PUT http://{{host}}:{{port}}/api/admin/v1/plan/abcdefg
+PUT http://{{host}}:{{port}}/api/v1/plan/100001
 Content-Type: application/json
 
 {
-  "planDesc": "test",
-  "scheduleOption": {
-    "scheduleType": 3,
-    "scheduleDelay": 1,
-    "scheduleInterval": 3,
-    "scheduleStartAt": "2021-07-26 16:15:00"
-  },
-  "jobInfos": [
-    {
-      "jobId": "1",
-      "jobDesc": "test",
-      "dispatchOption": {
-        "loadBalanceType": 2
-      },
-      "executorOption": {
-        "name": "hello",
-        "type": 1
-      }
-    }
-  ]
+    "description": "round_robin",
+    "triggerType": 2,
+    "planType": 2,
+    "scheduleOption": {
+        "scheduleType": 2,
+        "scheduleDelay": 1,
+        "scheduleInterval": 60,
+        "scheduleStartAt": "2021-07-26 16:15:00"
+    },
+    "jobs": [
+        {
+            "name": "round_robin_job1",
+            "description": "test",
+            "type": 1,
+            "triggerType": 2,
+            "dispatchOption": {
+                "loadBalanceType": 2
+            },
+            "executorName": "hello"
+        }
+    ]
 }
 
 ### 开启 plan
-PUT http://{{host}}:{{port}}/api/admin/v1/plan/abcdefghijklm/start
+PUT http://{{host}}:{{port}}/api/v1/plan/100001/start
 Content-Type: application/json
 
 ### 停止 plan
-PUT http://{{host}}:{{port}}/api/admin/v1/plan/abcdef/stop
+PUT http://{{host}}:{{port}}/api/v1/plan/100001/stop
 Content-Type: application/json
 
