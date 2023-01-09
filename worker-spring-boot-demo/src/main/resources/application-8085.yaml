@@ -1,0 +1,15 @@
+server:
+  port: 8085
+spring:
+  application:
+    name: job-worker
+
+flowjob:
+  worker:
+    brokers:
+      - http://localhost:8081
+    taskQueueSize: 64
+    tags:
+      - a=b
+      - c=d
+    auto-register: true

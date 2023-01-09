@@ -58,7 +58,6 @@ public enum JobType {
     @Getter
     public final String desc;
 
-    @JsonCreator
     JobType(int type, String desc) {
         this(((byte) type), desc);
     }
@@ -89,6 +88,7 @@ public enum JobType {
     /**
      * 解析上下文状态值
      */
+    @JsonCreator
     public static JobType parse(Number type) {
         if (type == null) {
             return null;

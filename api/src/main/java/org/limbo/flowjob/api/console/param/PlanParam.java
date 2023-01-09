@@ -23,6 +23,8 @@ import lombok.Data;
 import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.TriggerType;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
@@ -66,6 +68,7 @@ public class PlanParam implements Serializable {
     /**
      * 作业计划调度配置参数
      */
+    @NotNull
     @Schema(title = "作业计划调度配置参数")
     private ScheduleOptionParam scheduleOption;
 
@@ -73,12 +76,12 @@ public class PlanParam implements Serializable {
      * 此执行计划对应的所有作业
      */
     @Schema(title = "单任务对应的所有作业")
-    private JobParam job;
+    private @Valid JobParam job;
 
     /**
      * 此执行计划对应的所有作业
      */
     @Schema(title = "工作流对应的所有作业")
-    private List<WorkflowJobParam> workflow;
+    private List<@Valid WorkflowJobParam> workflow;
 
 }
