@@ -54,7 +54,7 @@ public class Task {
     private String planVersion;
 
     /**
-     * 类型 todo @pq
+     * 计划类型
      */
     private PlanType planType;
 
