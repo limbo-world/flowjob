@@ -38,14 +38,10 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, String> {
     PlanEntity selectForUpdate(@Param("planId") String planId);
 
     /**
-     * 根据id找到启动的plan
+     * 修改过的plan
      */
-    List<PlanEntity> findByPlanIdInAndEnabled(List<String> planIds, boolean isEnabled);
-
-    /**
-     * 找到变动的plan
-     */
-    List<PlanEntity> findByPlanIdInAndUpdatedAtAfterAndEnabled(List<String> planIds, LocalDateTime updateTime, boolean isEnabled);
+    @Query(value = "select * from flowjob_plan where plan_id in :planIds and updated_at > : updatedAt and is_enabled = true", nativeQuery = true)
+    List<PlanEntity> loadUpdatedPlans(List<String> planIds, LocalDateTime updatedAt);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanEntity set currentVersion = :newCurrentVersion, recentlyVersion = :newRecentlyVersion " +

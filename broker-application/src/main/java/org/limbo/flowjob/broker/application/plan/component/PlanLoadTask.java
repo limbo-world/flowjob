@@ -69,6 +69,7 @@ public class PlanLoadTask extends AbstractPlanLoadTask {
 
     /**
      * {@inheritDoc}
+     *
      * @return
      */
     @Override
@@ -82,7 +83,7 @@ public class PlanLoadTask extends AbstractPlanLoadTask {
             return Collections.emptyList();
         }
         List<String> planIds = slotEntities.stream().map(PlanSlotEntity::getPlanId).collect(Collectors.toList());
-        List<PlanEntity> planEntities = planEntityRepo.findByPlanIdInAndUpdatedAtAfterAndEnabled(planIds, loadTimePoint,true);
+        List<PlanEntity> planEntities = planEntityRepo.loadUpdatedPlans(planIds, loadTimePoint);
         loadTimePoint = TimeUtils.currentLocalDateTime();
         if (CollectionUtils.isEmpty(planEntities)) {
             return Collections.emptyList();
