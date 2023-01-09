@@ -89,6 +89,7 @@ public class TaskFactory {
             task.setJobId(instance.getJobId());
             task.setPlanVersion(instance.getPlanVersion());
             task.setPlanId(instance.getPlanId());
+            task.setPlanType(instance.getPlanType());
             task.setJobInstanceId(instance.getJobInstanceId());
             task.setStatus(TaskStatus.SCHEDULING);
             task.setDispatchOption(instance.getDispatchOption());

@@ -204,7 +204,11 @@ public class DomainConverter {
         task.setPlanId(entity.getPlanId());
         task.setPlanVersion(entity.getPlanInfoId());
 
-        // job todo @pq
+        // plan
+        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getPlanInfoId()).orElse(null);
+        task.setPlanType(PlanType.parse(planInfoEntity.getPlanType()));
+
+        // job
         JobInfoEntity jobInfoEntity = jobInfoEntityRepo.findByPlanInfoIdAndName(entity.getPlanInfoId(), entity.getJobId());
         task.setDispatchOption(JacksonUtils.parseObject(jobInfoEntity.getDispatchOption(), DispatchOption.class));
         task.setExecutorName(jobInfoEntity.getExecutorName());

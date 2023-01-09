@@ -205,7 +205,7 @@ CREATE TABLE `flowjob_plan_instance`
     `id`               bigint unsigned NOT NULL AUTO_INCREMENT,
     `plan_instance_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `plan_id`          varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `plan_version`     int(8) unsigned NOT NULL,
+    `plan_info_id`     varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `trigger_type`     tinyint                                                NOT NULL,
     `status`           tinyint                                                NOT NULL,
     `trigger_at`       datetime(6) NOT NULL,
