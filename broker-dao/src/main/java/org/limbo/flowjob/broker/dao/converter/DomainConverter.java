@@ -23,6 +23,7 @@ import lombok.Setter;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.SinglePlan;
 import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
@@ -46,6 +47,7 @@ import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TaskStatus;
+import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
@@ -98,7 +100,7 @@ public class DomainConverter {
                     planInfoEntity.getPlanInfoId(),
                     TriggerType.parse(planInfoEntity.getTriggerType()),
                     toScheduleOption(planInfoEntity),
-                    JacksonUtils.parseObject(planInfoEntity.getJobInfo(), JobInfo.class)
+                    JacksonUtils.parseObject(planInfoEntity.getJobInfo(), WorkflowJobInfo.class)
             );
         } else if (PlanType.WORKFLOW == planType) {
             List<JobInfoEntity> jobInfoEntities = jobInfoEntityRepo.findByPlanInfoId(planInfoEntity.getPlanInfoId());
@@ -143,11 +145,11 @@ public class DomainConverter {
      * @param dag 节点关系
      * @return job dag
      */
-    public DAG<JobInfo> toJobDag(String dag, List<JobInfoEntity> jobInfoEntities) {
-        List<JobInfo> jobInfos = JacksonUtils.parseObject(dag, new TypeReference<List<JobInfo>>() {
+    public DAG<WorkflowJobInfo> toJobDag(String dag, List<JobInfoEntity> jobInfoEntities) {
+        List<WorkflowJobInfo> jobInfos = JacksonUtils.parseObject(dag, new TypeReference<List<WorkflowJobInfo>>() {
         });
         Map<String, JobInfoEntity> jobInfoEntityMap = jobInfoEntities.stream().collect(Collectors.toMap(JobInfoEntity::getName, entity -> entity, (entity, entity2) -> entity));
-        for (JobInfo jobInfo : jobInfos) {
+        for (WorkflowJobInfo jobInfo : jobInfos) {
             JobInfoEntity jobInfoEntity = jobInfoEntityMap.get(jobInfo.getName());
             jobInfo.setDescription(jobInfoEntity.getDescription());
             jobInfo.setTriggerType(TriggerType.parse(jobInfoEntity.getTriggerType()));
@@ -199,6 +201,7 @@ public class DomainConverter {
         task.setJobInstanceId(entity.getJobInstanceId());
         task.setJobId(entity.getJobId());
         task.setStatus(TaskStatus.parse(entity.getStatus()));
+        task.setTaskType(TaskType.parse(entity.getType()));
         task.setWorkerId(entity.getWorkerId());
         task.setAttributes(new Attributes(entity.getAttributes()));
         task.setPlanId(entity.getPlanId());
@@ -206,12 +209,19 @@ public class DomainConverter {
 
         // plan
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getPlanInfoId()).orElse(null);
-        task.setPlanType(PlanType.parse(planInfoEntity.getPlanType()));
+        PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
+        task.setPlanType(planType);
 
         // job
-        JobInfoEntity jobInfoEntity = jobInfoEntityRepo.findByPlanInfoIdAndName(entity.getPlanInfoId(), entity.getJobId());
-        task.setDispatchOption(JacksonUtils.parseObject(jobInfoEntity.getDispatchOption(), DispatchOption.class));
-        task.setExecutorName(jobInfoEntity.getExecutorName());
+        if (PlanType.SINGLE == planType) {
+            JobInfo jobInfo = JacksonUtils.parseObject(planInfoEntity.getJobInfo(), JobInfo.class);
+            task.setDispatchOption(jobInfo.getDispatchOption());
+            task.setExecutorName(jobInfo.getExecutorName());
+        } else {
+            JobInfoEntity jobInfoEntity = jobInfoEntityRepo.findByPlanInfoIdAndName(entity.getPlanInfoId(), entity.getJobId());
+            task.setDispatchOption(JacksonUtils.parseObject(jobInfoEntity.getDispatchOption(), DispatchOption.class));
+            task.setExecutorName(jobInfoEntity.getExecutorName());
+        }
         return task;
     }
 

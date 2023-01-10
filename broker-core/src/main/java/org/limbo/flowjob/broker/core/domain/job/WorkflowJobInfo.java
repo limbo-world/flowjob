@@ -33,7 +33,7 @@ import org.limbo.flowjob.common.utils.dag.DAGNode;
 import java.util.Set;
 
 /**
- * 作业的抽象。主要定义了作业领域的的行为方法，属性的访问操作在{@link JobInfo}轻量级领域对象中。
+ * 作业的抽象。主要定义了作业领域的的行为方法，属性的访问操作在{@link WorkflowJobInfo}轻量级领域对象中。
  *
  * @author Brozen
  * @since 2021-05-14
@@ -41,7 +41,25 @@ import java.util.Set;
 @Getter
 @Setter
 @ToString
-public class JobInfo {
+@EqualsAndHashCode(callSuper = true)
+public class WorkflowJobInfo extends DAGNode {
+
+    private static final long serialVersionUID = 5340755318570959476L;
+
+    /**
+     * 名称 视图里面唯一
+     */
+    private String name;
+
+    /**
+     * 描述
+     */
+    private String description;
+
+    /**
+     * 触发类型
+     */
+    private TriggerType triggerType;
 
     /**
      * 类型
@@ -62,5 +80,26 @@ public class JobInfo {
      * 作业执行器配置参数
      */
     private String executorName;
+
+    /**
+     * 执行失败是否终止 false 会继续执行后续作业
+     */
+    private boolean terminateWithFail;
+
+    @JsonCreator
+    public WorkflowJobInfo(@JsonProperty("id") String id, @JsonProperty("childrenIds") Set<String> childrenIds) {
+        super(id, childrenIds);
+        this.name = id;
+    }
+
+    @Override
+    public String getId() {
+        return name;
+    }
+
+    @Override
+    public void setId(String id) {
+        this.name = id;
+    }
 
 }

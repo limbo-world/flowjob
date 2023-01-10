@@ -20,7 +20,7 @@ package org.limbo.flowjob.broker.test.util;
 
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.dag.DAG;
 
@@ -37,17 +37,17 @@ public class DAGTest {
 
     @Test
     public void testNoRoot() {
-        JobInfo jobInfo = job("1", Collections.singleton("2"));
-        JobInfo jobInfo2 = job("2", Collections.singleton("3"));
-        JobInfo jobInfo3 = job("3", Collections.singleton("1"));
+        WorkflowJobInfo jobInfo = job("1", Collections.singleton("2"));
+        WorkflowJobInfo jobInfo2 = job("2", Collections.singleton("3"));
+        WorkflowJobInfo jobInfo3 = job("3", Collections.singleton("1"));
 
-        List<JobInfo> jobInfos = new ArrayList<>();
+        List<WorkflowJobInfo> jobInfos = new ArrayList<>();
         jobInfos.add(jobInfo);
         jobInfos.add(jobInfo2);
         jobInfos.add(jobInfo3);
 
         try {
-            DAG<JobInfo> dag = new DAG<>(jobInfos);
+            DAG<WorkflowJobInfo> dag = new DAG<>(jobInfos);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -55,19 +55,19 @@ public class DAGTest {
 
     @Test
     public void testCyclic() {
-        JobInfo jobInfo = job("1", Collections.singleton("3"));
-        JobInfo jobInfo2 = job("2", Collections.singleton("3"));
-        JobInfo jobInfo3 = job("3", Collections.singleton("4"));
-        JobInfo jobInfo4 = job("4", Collections.singleton("3"));
+        WorkflowJobInfo jobInfo = job("1", Collections.singleton("3"));
+        WorkflowJobInfo jobInfo2 = job("2", Collections.singleton("3"));
+        WorkflowJobInfo jobInfo3 = job("3", Collections.singleton("4"));
+        WorkflowJobInfo jobInfo4 = job("4", Collections.singleton("3"));
 
-        List<JobInfo> jobInfos = new ArrayList<>();
+        List<WorkflowJobInfo> jobInfos = new ArrayList<>();
         jobInfos.add(jobInfo);
         jobInfos.add(jobInfo2);
         jobInfos.add(jobInfo3);
         jobInfos.add(jobInfo4);
 
         try {
-            DAG<JobInfo> dag = new DAG<>(jobInfos);
+            DAG<WorkflowJobInfo> dag = new DAG<>(jobInfos);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -75,19 +75,19 @@ public class DAGTest {
 
     @Test
     public void testNormal() {
-        JobInfo jobInfo1 = job("1", Sets.newHashSet("3", "6"));
-        JobInfo jobInfo2 = job("2", Sets.newHashSet("3", "4"));
+        WorkflowJobInfo jobInfo1 = job("1", Sets.newHashSet("3", "6"));
+        WorkflowJobInfo jobInfo2 = job("2", Sets.newHashSet("3", "4"));
 
-        JobInfo jobInfo6 = job("6", Sets.newHashSet("7"));
-        JobInfo jobInfo3 = job("3", Sets.newHashSet("5"));
-        JobInfo jobInfo4 = job("4", Sets.newHashSet("5"));
+        WorkflowJobInfo jobInfo6 = job("6", Sets.newHashSet("7"));
+        WorkflowJobInfo jobInfo3 = job("3", Sets.newHashSet("5"));
+        WorkflowJobInfo jobInfo4 = job("4", Sets.newHashSet("5"));
 
-        JobInfo jobInfo5 = job("5", Sets.newHashSet("7", "8"));
+        WorkflowJobInfo jobInfo5 = job("5", Sets.newHashSet("7", "8"));
 
-        JobInfo jobInfo7 = job("7", null);
-        JobInfo jobInfo8 = job("8", null);
+        WorkflowJobInfo jobInfo7 = job("7", null);
+        WorkflowJobInfo jobInfo8 = job("8", null);
 
-        List<JobInfo> jobInfos = new ArrayList<>();
+        List<WorkflowJobInfo> jobInfos = new ArrayList<>();
         jobInfos.add(jobInfo1);
         jobInfos.add(jobInfo2);
         jobInfos.add(jobInfo3);
@@ -98,15 +98,15 @@ public class DAGTest {
         jobInfos.add(jobInfo8);
 
         try {
-            DAG<JobInfo> dag = new DAG<>(jobInfos);
-            JobInfo node = dag.getNode("5");
+            DAG<WorkflowJobInfo> dag = new DAG<>(jobInfos);
+            WorkflowJobInfo node = dag.getNode("5");
             Verifies.verify(node.getParentIds().size() == 2 && node.getParentIds().containsAll(Sets.newHashSet("3", "4")));
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
 
-    private JobInfo job(String id, Set<String> childrenIds) {
-        return new JobInfo(id, childrenIds);
+    private WorkflowJobInfo job(String id, Set<String> childrenIds) {
+        return new WorkflowJobInfo(id, childrenIds);
     }
 }

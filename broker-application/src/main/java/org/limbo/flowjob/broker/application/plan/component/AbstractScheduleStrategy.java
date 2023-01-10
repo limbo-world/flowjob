@@ -21,10 +21,11 @@ package org.limbo.flowjob.broker.application.plan.component;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
@@ -157,7 +158,7 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
     @Override
     @Transactional
     public void schedule(Task task) {
-        if (task.getStatus() != TaskStatus.DISPATCHING) {
+        if (task.getStatus() != TaskStatus.SCHEDULING) {
             return;
         }
 
@@ -184,7 +185,8 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
     @Transactional
     public void handleTaskSuccess(Task task, Map<String, Object> resultAttributes) {
         // todo 更新plan上下文
-        int num = taskEntityRepo.updateStatusSuccess(task.getTaskId(), TimeUtils.currentLocalDateTime(), JacksonUtils.toJSONString(resultAttributes));
+        String result = MapUtils.isEmpty(resultAttributes) ? "{}" : JacksonUtils.toJSONString(resultAttributes);
+        int num = taskEntityRepo.updateStatusSuccess(task.getTaskId(), TimeUtils.currentLocalDateTime(), result);
 
         if (num != 1) { // 已经被更新 无需重复处理
             return;
@@ -317,7 +319,7 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
         }
     }
 
-    protected JobInstance newJobInstance(String planId, String planVersion, PlanType planType, String planInstanceId, JobInfo jobInfo, LocalDateTime triggerAt) {
+    protected JobInstance newJobInstance(String planId, String planVersion, PlanType planType, String planInstanceId, WorkflowJobInfo jobInfo, LocalDateTime triggerAt) {
         JobInstance instance = new JobInstance();
         instance.setJobInstanceId(idGenerator.generateId(IDType.JOB_INSTANCE));
         instance.setPlanId(planId);

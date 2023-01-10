@@ -107,10 +107,10 @@ public class RpcParamFactory {
 
     public static TaskFeedbackParam taskFeedbackParam(Throwable ex) {
         TaskFeedbackParam feedbackParam = new TaskFeedbackParam();
-        feedbackParam.setResult((int) ExecuteResult.SUCCEED.result);
+        feedbackParam.setResult(ExecuteResult.SUCCEED.result);
 
         if (ex != null) {
-            feedbackParam.setResult((int) ExecuteResult.FAILED.result);
+            feedbackParam.setResult(ExecuteResult.FAILED.result);
             feedbackParam.setErrorStackTrace(ExceptionUtils.getStackTrace(ex));
         }
         return feedbackParam;

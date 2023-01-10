@@ -20,14 +20,14 @@ package org.limbo.flowjob.broker.core.domain.plan;
 
 import lombok.Getter;
 import lombok.ToString;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.dag.DAG;
 
 /**
- * 计划在具体版本时的数据(值对象)，至少对应一个{@link JobInfo}
+ * 计划在具体版本时的数据(值对象)，至少对应一个{@link WorkflowJobInfo}
  *
  * @author Brozen
  * @since 2021-10-14
@@ -39,10 +39,10 @@ public class WorkflowPlan extends Plan {
     /**
      * 作业计划对应的Job，以DAG数据结构组织
      */
-    private final DAG<JobInfo> dag;
+    private final DAG<WorkflowJobInfo> dag;
 
     public WorkflowPlan(String planId, String version,
-                        TriggerType triggerType, ScheduleOption scheduleOption, DAG<JobInfo> dag) {
+                        TriggerType triggerType, ScheduleOption scheduleOption, DAG<WorkflowJobInfo> dag) {
         super(planId, version, triggerType, scheduleOption);
         this.dag = dag;
     }

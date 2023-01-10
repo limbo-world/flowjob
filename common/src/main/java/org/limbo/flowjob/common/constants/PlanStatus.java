@@ -29,10 +29,10 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum PlanStatus {
     UNKNOWN(ConstantsPool.UNKNOWN, "未知"),
-    SCHEDULING(ConstantsPool.PLAN_STATUS_SUCCEED, "调度中"), // 还没有任务在执行状态
-    EXECUTING(ConstantsPool.PLAN_STATUS_EXECUTING, "执行中"), // 第一个任务切换为执行中的时候
-    SUCCEED(ConstantsPool.PLAN_STATUS_SUCCEED, "执行成功"), // 所有节点都执行成功
-    FAILED(ConstantsPool.PLAN_STATUS_FAILED, "执行异常"), // 有一个节点执行失败，并触发plan的失败场景
+    SCHEDULING(ConstantsPool.SCHEDULE_STATUS_SCHEDULING, "调度中"), // 还没有任务在执行状态
+    EXECUTING(ConstantsPool.SCHEDULE_STATUS_EXECUTING, "执行中"), // 第一个任务切换为执行中的时候
+    SUCCEED(ConstantsPool.SCHEDULE_STATUS_EXECUTE_SUCCEED, "执行成功"), // 所有节点都执行成功
+    FAILED(ConstantsPool.SCHEDULE_STATUS_EXECUTE_FAILED, "执行异常"), // 有一个节点执行失败，并触发plan的失败场景
     ;
 
     @JsonValue

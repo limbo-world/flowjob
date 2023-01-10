@@ -20,7 +20,7 @@ package org.limbo.flowjob.broker.application.plan.component;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
@@ -71,7 +71,7 @@ public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
         // 获取头部节点
         List<JobInstance> rootJobs = new ArrayList<>();
 
-        for (JobInfo jobInfo : workflowPlan.getDag().origins()) {
+        for (WorkflowJobInfo jobInfo : workflowPlan.getDag().origins()) {
             if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
                 rootJobs.add(newJobInstance(planId, version, plan.planType(), planInstanceId, jobInfo, triggerAt));
             }
@@ -104,10 +104,10 @@ public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
 
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(version).orElse(null);
         List<JobInfoEntity> jobInfoEntities = jobInfoEntityRepo.findByPlanInfoId(planInfoEntity.getPlanInfoId());
-        DAG<JobInfo> dag = domainConverter.toJobDag(planInfoEntity.getJobInfo(), jobInfoEntities);
+        DAG<WorkflowJobInfo> dag = domainConverter.toJobDag(planInfoEntity.getJobInfo(), jobInfoEntities);
 
         // 当前节点的子节点
-        List<JobInfo> subJobInfos = dag.subNodes(jobId);
+        List<WorkflowJobInfo> subJobInfos = dag.subNodes(jobId);
 
         if (CollectionUtils.isEmpty(subJobInfos)) {
             // 当前节点为叶子节点 检测 Plan 实例是否已经执行完成
@@ -119,7 +119,7 @@ public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
             LocalDateTime triggerAt = TimeUtils.currentLocalDateTime();
             // 后续作业存在，则检测是否可触发，并继续下发作业
             List<JobInstance> subJobInstances = new ArrayList<>();
-            for (JobInfo subJobInfo : subJobInfos) {
+            for (WorkflowJobInfo subJobInfo : subJobInfos) {
                 // 前置节点已经完成则可以下发
                 if (checkJobsSuccessOrIgnoreError(planInstanceId, dag.preNodes(subJobInfo.getId()))) {
                     subJobInstances.add(newJobInstance(planId, version, PlanType.parse(planInfoEntity.getPlanType()), planInstanceId, subJobInfo, triggerAt));
@@ -195,11 +195,11 @@ public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
     /**
      * 校验 planInstance 下对应 job 的 jobInstance 是否都执行成功 或者失败了但是可以忽略失败
      */
-    private boolean checkJobsSuccessOrIgnoreError(String planInstanceId, List<JobInfo> jobInfos) {
+    private boolean checkJobsSuccessOrIgnoreError(String planInstanceId, List<WorkflowJobInfo> jobInfos) {
         if (CollectionUtils.isEmpty(jobInfos)) {
             return true;
         }
-        Map<String, JobInfo> jobInfoMap = jobInfos.stream().collect(Collectors.toMap(DAGNode::getId, jobInfo -> jobInfo));
+        Map<String, WorkflowJobInfo> jobInfoMap = jobInfos.stream().collect(Collectors.toMap(DAGNode::getId, jobInfo -> jobInfo));
         List<JobInstanceEntity> entities = jobInstanceEntityRepo.findByPlanInstanceIdAndJobIdIn(planInstanceId, new LinkedList<>(jobInfoMap.keySet()));
         if (CollectionUtils.isEmpty(entities) || jobInfos.size() > entities.size()) {
             // 按新流程 job 应该统一创建 不存在有些job还未创建情况的
@@ -211,7 +211,7 @@ public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
                 // 成功的
             } else if (entity.getStatus() == JobStatus.FAILED.status) {
                 // 失败的 看是否忽略失败
-                JobInfo jobInfo = jobInfoMap.get(entity.getJobId());
+                WorkflowJobInfo jobInfo = jobInfoMap.get(entity.getJobId());
                 if (jobInfo.isTerminateWithFail()) {
                     return false;
                 }
