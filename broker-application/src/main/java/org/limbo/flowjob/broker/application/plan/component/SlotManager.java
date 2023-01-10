@@ -47,7 +47,7 @@ public class SlotManager {
     @Setter(onMethod_ = @Inject)
     private NodeManger nodeManger;
 
-    private static final int SLOT_SIZE = 64;
+    public static final int SLOT_SIZE = 64;
 
     /**
      * 计算槽位

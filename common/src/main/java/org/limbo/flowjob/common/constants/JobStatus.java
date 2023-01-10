@@ -32,10 +32,10 @@ import lombok.Getter;
 public enum JobStatus {
 
     UNKNOWN(ConstantsPool.UNKNOWN, "未知"),
-    SCHEDULING(ConstantsPool.JOB_STATUS_SCHEDULING, "调度中"),
-    EXECUTING(ConstantsPool.JOB_STATUS_EXECUTING, "执行中"),
-    SUCCEED(ConstantsPool.JOB_STATUS_SUCCEED, "执行成功"),
-    FAILED(ConstantsPool.JOB_STATUS_FAILED, "执行异常"), // worker拒绝，进入容错策略 失败次数不增加 TERMINATED 作业被手动终止 不再增加一个状态 而是写入 errMsg
+    SCHEDULING(ConstantsPool.SCHEDULE_STATUS_SCHEDULING, "调度中"),
+    EXECUTING(ConstantsPool.SCHEDULE_STATUS_EXECUTING, "执行中"),
+    SUCCEED(ConstantsPool.SCHEDULE_STATUS_EXECUTE_SUCCEED, "执行成功"),
+    FAILED(ConstantsPool.SCHEDULE_STATUS_EXECUTE_FAILED, "执行异常"), // worker拒绝，进入容错策略 失败次数不增加 TERMINATED 作业被手动终止 不再增加一个状态 而是写入 errMsg
     ;
 
 

@@ -18,27 +18,15 @@
 
 package org.limbo.flowjob.broker.core.domain.plan;
 
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.LoopMetaTask;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
-import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
-import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.constants.PlanType;
-import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TriggerType;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-
 /**
- * 执行计划。一个计划{@link Plan}对应至少一个作业{@link JobInfo}
+ * 执行计划。一个计划{@link Plan}对应至少一个作业{@link WorkflowJobInfo}
  * 主要是对plan的管理
  *
  * @author Brozen

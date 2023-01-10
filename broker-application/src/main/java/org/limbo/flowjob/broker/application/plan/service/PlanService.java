@@ -9,8 +9,7 @@ import org.limbo.flowjob.broker.application.plan.component.SlotManager;
 import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.broker.dao.converter.DomainConverter;
+import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
@@ -41,9 +40,6 @@ public class PlanService {
 
     @Setter(onMethod_ = @Inject)
     private PlanEntityRepo planEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private DomainConverter domainConverter;
 
     @Setter(onMethod_ = @Inject)
     private PlanSlotEntityRepo planSlotEntityRepo;
@@ -119,9 +115,9 @@ public class PlanService {
         planInfoEntity.setScheduleCron(scheduleOption.getScheduleCron());
         // job info
         if (PlanType.SINGLE == param.getPlanType()) {
-            planInfoEntity.setJobInfo(JacksonUtils.toJSONString(param.getJob()));
+            planInfoEntity.setJobInfo(JacksonUtils.toJSONString(PlanConverter.covertJob(param.getJob())));
         } else {
-            DAG<JobInfo> workflow = PlanConverter.convertJob(param.getWorkflow());
+            DAG<WorkflowJobInfo> workflow = PlanConverter.convertJob(param.getWorkflow());
             planInfoEntity.setJobInfo(workflow.json());
 
             // 保存jobInfo信息

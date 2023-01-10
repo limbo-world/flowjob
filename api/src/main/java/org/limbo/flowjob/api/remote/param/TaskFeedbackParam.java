@@ -19,7 +19,10 @@
 package org.limbo.flowjob.api.remote.param;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.limbo.flowjob.common.constants.ExecuteResult;
 
 import javax.validation.constraints.NotNull;
@@ -35,6 +38,9 @@ import java.util.Map;
  * @since 2021/7/24
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Schema(title = "作业执行反馈参数")
 public class TaskFeedbackParam {
 
@@ -44,7 +50,7 @@ public class TaskFeedbackParam {
      */
     @NotNull(message = "result can't be null")
     @Schema(description = "执行结果，参考枚举 ExecuteResult")
-    private Integer result;
+    private Byte result;
 
     /**
      * 执行失败时候返回的信息

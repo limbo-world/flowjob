@@ -20,8 +20,7 @@ package org.limbo.flowjob.broker.core.domain.plan;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.constants.PlanStatus;
 import org.limbo.flowjob.common.constants.TriggerType;
@@ -85,7 +84,7 @@ public class PlanInstance implements Serializable {
     /**
      * 执行图
      */
-    private DAG<JobInfo> dag;
+    private DAG<WorkflowJobInfo> dag;
 
     /**
      * 全局上下文 配置 --- 或者job执行中变更 整个plan生命周期内传递

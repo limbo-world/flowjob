@@ -20,13 +20,13 @@ package org.limbo.flowjob.broker.core.domain.plan;
 
 import lombok.Getter;
 import lombok.ToString;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.TriggerType;
 
 /**
- * 计划在具体版本时的数据(值对象)，至少对应一个{@link JobInfo}
+ * 计划在具体版本时的数据(值对象)，至少对应一个{@link WorkflowJobInfo}
  *
  * @author Brozen
  * @since 2021-10-14
@@ -38,10 +38,10 @@ public class SinglePlan extends Plan {
     /**
      * 任务信息
      */
-    private final JobInfo jobInfo;
+    private final WorkflowJobInfo jobInfo;
 
     public SinglePlan(String planId, String version, TriggerType triggerType,
-                      ScheduleOption scheduleOption, JobInfo jobInfo) {
+                      ScheduleOption scheduleOption, WorkflowJobInfo jobInfo) {
         super(planId, version, triggerType, scheduleOption);
         this.jobInfo = jobInfo;
     }
