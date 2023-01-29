@@ -20,8 +20,11 @@ package org.limbo.flowjob.broker.application.plan.component;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.domain.IDType;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
@@ -60,13 +63,15 @@ public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
     protected void schedulePlan(TriggerType triggerType, Plan plan, LocalDateTime triggerAt) {
         String planId = plan.getPlanId();
         String version = plan.getVersion();
-        List<JobInfoEntity> jobInfoEntities = jobInfoEntityRepo.findByPlanInfoId(version);
+        WorkflowPlan workflowPlan = (WorkflowPlan) plan;
+
+        DAG<WorkflowJobInfo> dag = workflowPlan.getDag();
+        List<String> jobIds = dag.nodes().stream().map(DAGNode::getId).collect(Collectors.toList());
+        List<JobInfoEntity> jobInfoEntities = jobInfoEntityRepo.findAllById(jobIds);
         Verifies.notEmpty(jobInfoEntities, "does not find " + planId + " plan's job info by version--" + version + "");
 
         // 保存 planInstance
         String planInstanceId = savePlanInstanceEntity(planId, version, triggerType, triggerAt);
-
-        WorkflowPlan workflowPlan = (WorkflowPlan) plan;
 
         // 获取头部节点
         List<JobInstance> rootJobs = new ArrayList<>();
@@ -100,11 +105,15 @@ public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
         String planId = jobInstance.getPlanId();
         String version = jobInstance.getPlanVersion();
         String planInstanceId = jobInstance.getPlanInstanceId();
-        String jobId = jobInstance.getJobId();
+        JobInfo jobInfo = jobInstance.getJobInfo();
+        String jobId = jobInfo.getId();
 
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(version).orElse(null);
-        List<JobInfoEntity> jobInfoEntities = jobInfoEntityRepo.findByPlanInfoId(planInfoEntity.getPlanInfoId());
-        DAG<WorkflowJobInfo> dag = domainConverter.toJobDag(planInfoEntity.getJobInfo(), jobInfoEntities);
+
+        DAG<WorkflowJobInfo> dag = domainConverter.toJobDag(planInfoEntity.getJobInfo(), null);
+        List<String> jobIds = dag.nodes().stream().map(DAGNode::getId).collect(Collectors.toList());
+        List<JobInfoEntity> jobInfoEntities = jobInfoEntityRepo.findAllById(jobIds);
+        dag = domainConverter.toJobDag(planInfoEntity.getJobInfo(), jobInfoEntities);
 
         // 当前节点的子节点
         List<WorkflowJobInfo> subJobInfos = dag.subNodes(jobId);
@@ -135,7 +144,9 @@ public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
 
     @Override
     public void handleJobFail(JobInstance jobInstance) {
-        if (jobInstance.isTerminateWithFail()) {
+        WorkflowJobInstance workflowJobInstance = (WorkflowJobInstance) jobInstance;
+        WorkflowJobInfo workflowJobInfo = workflowJobInstance.getWorkflowJobInfo();
+        if (workflowJobInfo.isTerminateWithFail()) {
 
             jobInstanceEntityRepo.updateStatusExecuteFail(jobInstance.getJobInstanceId(), MsgConstants.TASK_FAIL);
 
@@ -166,7 +177,8 @@ public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
         for (JobInstance instance : jobInstances) {
             // 根据job类型创建task
             List<Task> jobTasks;
-            switch (instance.getType()) {
+            JobInfo jobInfo = instance.getJobInfo();
+            switch (jobInfo.getType()) {
                 case NORMAL:
                     jobTasks = taskFactory.create(instance, TaskType.NORMAL);
                     break;
@@ -178,7 +190,7 @@ public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
                     jobTasks = taskFactory.create(instance, TaskType.SPLIT);
                     break;
                 default:
-                    throw new JobException(instance.getJobId(), MsgConstants.UNKNOWN + " job type:" + instance.getType().type);
+                    throw new JobException(jobInfo.getId(), MsgConstants.UNKNOWN + " job type:" + jobInfo.getType().type);
             }
 
             // 如果可以创建的任务为空（只有广播任务）
@@ -222,6 +234,19 @@ public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
         }
 
         return true;
+    }
+
+    public JobInstance newJobInstance(String planId, String planVersion, PlanType planType, String planInstanceId, WorkflowJobInfo workflowJobInfo, LocalDateTime triggerAt) {
+        WorkflowJobInstance instance = new WorkflowJobInstance();
+        instance.setJobInstanceId(idGenerator.generateId(IDType.JOB_INSTANCE));
+        instance.setPlanId(planId);
+        instance.setPlanInstanceId(planInstanceId);
+        instance.setPlanVersion(planVersion);
+        instance.setPlanType(planType);
+        instance.setWorkflowJobInfo(workflowJobInfo);
+        instance.setStatus(JobStatus.SCHEDULING);
+        instance.setTriggerAt(triggerAt);
+        return instance;
     }
 
 }

@@ -20,25 +20,34 @@ package org.limbo.flowjob.broker.test.support;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import lombok.Setter;
 import org.limbo.flowjob.api.console.param.DispatchOptionParam;
 import org.limbo.flowjob.api.console.param.PlanParam;
 import org.limbo.flowjob.api.console.param.ScheduleOptionParam;
 import org.limbo.flowjob.api.console.param.WorkflowJobParam;
+import org.limbo.flowjob.broker.core.domain.IDGenerator;
+import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.common.constants.LoadBalanceType;
 import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TriggerType;
+import org.springframework.stereotype.Component;
 
+import javax.inject.Inject;
 import java.time.Duration;
 
 /**
  * @author Devil
  * @since 2022/10/20
  */
+@Component
 public class PlanParamFactory {
 
-    public static PlanParam newFixedRateAddParam() {
+    @Setter(onMethod_ = @Inject)
+    private IDGenerator idGenerator;
+
+    public PlanParam newFixedRateAddParam() {
         PlanParam param = new PlanParam();
         param.setDescription("测试-固定速率");
         param.setTriggerType(TriggerType.SCHEDULE);
@@ -49,15 +58,16 @@ public class PlanParamFactory {
         scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(5));
         param.setScheduleOption(scheduleOptionParam);
 
-        WorkflowJobParam n1 = normalWorkflowJob("1", "hello");
-        n1.setChildren(Sets.newHashSet("2"));
-        WorkflowJobParam n2 = normalWorkflowJob("2", "hello");
+        WorkflowJobParam n1 = normalWorkflowJob(idGenerator.generateId(IDType.JOB_INFO), "hello");
+        WorkflowJobParam n2 = normalWorkflowJob(idGenerator.generateId(IDType.JOB_INFO), "hello");
+
+        n1.setChildren(Sets.newHashSet(n2.getId()));
 
         param.setWorkflow(Lists.newArrayList(n1, n2));
         return param;
     }
 
-    public static PlanParam newFixedRateReplaceParam() {
+    public PlanParam newFixedRateReplaceParam() {
         PlanParam param = new PlanParam();
         param.setDescription("测试-固定速率-replace");
         param.setTriggerType(TriggerType.SCHEDULE);
@@ -68,17 +78,19 @@ public class PlanParamFactory {
         scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(3));
         param.setScheduleOption(scheduleOptionParam);
 
-        WorkflowJobParam n1 = normalWorkflowJob("1", "hello");
-        n1.setChildren(Sets.newHashSet("2"));
-        WorkflowJobParam n2 = normalWorkflowJob("2", "hello");
+        WorkflowJobParam n1 = normalWorkflowJob(idGenerator.generateId(IDType.JOB_INFO), "hello");
+        WorkflowJobParam n2 = normalWorkflowJob(idGenerator.generateId(IDType.JOB_INFO), "hello");
+
+        n1.setChildren(Sets.newHashSet(n2.getId()));
 
         param.setWorkflow(Lists.newArrayList(n1, n2));
         return param;
     }
 
-    public static WorkflowJobParam normalWorkflowJob(String name, String executorName) {
+    public WorkflowJobParam normalWorkflowJob(String id, String executorName) {
         WorkflowJobParam job = new WorkflowJobParam();
-        job.setName(name);
+        job.setId(id);
+        job.setName("test-normal-" + id);
         job.setDescription("test normal");
         job.setType(JobType.NORMAL);
         job.setTriggerType(TriggerType.SCHEDULE);
@@ -92,9 +104,10 @@ public class PlanParamFactory {
         return job;
     }
 
-    public static WorkflowJobParam broadcastWorkflowJob(String name, String executorName) {
+    public static WorkflowJobParam broadcastWorkflowJob(String id, String executorName) {
         WorkflowJobParam job = new WorkflowJobParam();
-        job.setName(name);
+        job.setId(id);
+        job.setName("test-broadcast-" + id);
         job.setDescription("test broadcast");
         job.setType(JobType.BROADCAST);
         job.setDispatchOption(DispatchOptionParam.builder()
@@ -107,9 +120,10 @@ public class PlanParamFactory {
         return job;
     }
 
-    public static WorkflowJobParam mapWorkflowJob(String name, String executorName) {
+    public WorkflowJobParam mapWorkflowJob(String id, String executorName) {
         WorkflowJobParam job = new WorkflowJobParam();
-        job.setName(name);
+        job.setId(id);
+        job.setName("test-map-" + id);
         job.setDescription("test map");
         job.setType(JobType.MAP);
         job.setDispatchOption(DispatchOptionParam.builder()
@@ -122,9 +136,10 @@ public class PlanParamFactory {
         return job;
     }
 
-    public static WorkflowJobParam mapReduceWorkflowJob(String name, String executorName) {
+    public WorkflowJobParam mapReduceWorkflowJob(String id, String executorName) {
         WorkflowJobParam job = new WorkflowJobParam();
-        job.setName(name);
+        job.setId(id);
+        job.setName("test-reduce-" + id);
         job.setDescription("test reduce");
         job.setType(JobType.MAP_REDUCE);
         job.setDispatchOption(DispatchOptionParam.builder()

@@ -75,6 +75,9 @@ public class ScheduleTest {
     @Setter(onMethod_ = @Inject)
     private TaskService taskService;
 
+    @Setter(onMethod_ = @Inject)
+    private PlanParamFactory planParamFactory;
+
     @BeforeEach
     public void before(){
         List<Integer> slots = new ArrayList<>();
@@ -103,9 +106,9 @@ public class ScheduleTest {
     }
 
     @Test
-    @Transactional
+//    @Transactional
     void testTaskSuccess() {
-        PlanParam param = PlanParamFactory.newFixedRateAddParam();
+        PlanParam param = planParamFactory.newFixedRateAddParam();
 
         String id = planService.save(null, param);
         planService.start(id);

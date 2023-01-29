@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.common.utils.json;
+package org.limbo.flowjob.common.utils.dag;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.dag.DAGNode;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -32,6 +33,7 @@ import java.util.List;
  * @author Brozen
  * @since 2022-01-05
  */
+@Deprecated
 public class DagDeserializer extends JsonDeserializer<DAG> {
 
     @Override

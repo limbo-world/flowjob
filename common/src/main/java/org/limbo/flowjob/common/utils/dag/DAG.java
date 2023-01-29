@@ -18,12 +18,14 @@
 
 package org.limbo.flowjob.common.utils.dag;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.introspect.AnnotatedMember;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.common.utils.Verifies;
-import org.limbo.flowjob.common.utils.json.DagDeserializer;
-import org.limbo.flowjob.common.utils.json.DagSerializer;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.io.Serializable;
@@ -39,8 +41,10 @@ import java.util.stream.Collectors;
  * @author Devil
  * @since 2022/8/1
  */
-@JsonSerialize(using = DagSerializer.class)
-@JsonDeserialize(using = DagDeserializer.class)
+@Slf4j
+//@JsonSerialize(using = DagSerializer.class)
+//@JsonDeserialize(using = DagDeserializer.class)
+@ToString
 public class DAG<T extends DAGNode> implements Serializable {
 
     private static final long serialVersionUID = 4746630152041623943L;
@@ -226,7 +230,6 @@ public class DAG<T extends DAGNode> implements Serializable {
         return false;
     }
 
-
     /**
      * 获取 DAG 中所有节点对应的作业
      */
@@ -234,14 +237,28 @@ public class DAG<T extends DAGNode> implements Serializable {
         return new ArrayList<>(nodes.values());
     }
 
+    private static final ObjectMapper mapper = newObjectMapper();
+
+    private static ObjectMapper newObjectMapper() {
+        ObjectMapper mapper = JacksonUtils.newObjectMapper();
+        mapper.setAnnotationIntrospector(new JacksonAnnotationIntrospector() {
+            private static final long serialVersionUID = -4928328580085816946L;
+
+            @Override
+            public boolean hasIgnoreMarker(AnnotatedMember m) {
+                DAGNodeIgnoreField ann = _findAnnotation(m, DAGNodeIgnoreField.class);
+                return ann != null;
+            }
+        });
+        return mapper;
+    }
+
     /**
      * 返回json字符串
      */
-    public String json() {
-        return "[" + nodes.values().stream()
-                .map(node -> "{\"id\":\"" + node.getId() + "\",\"childrenIds\":" + JacksonUtils.toJSONString(node.getChildrenIds()) + "}")
-                .collect(Collectors.joining(","))
-                + "]";
+    public String json() throws JsonProcessingException {
+        return mapper.writeValueAsString(nodes.values());
     }
+
 
 }

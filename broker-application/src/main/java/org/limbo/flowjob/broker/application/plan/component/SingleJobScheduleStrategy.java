@@ -20,13 +20,18 @@ package org.limbo.flowjob.broker.application.plan.component;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.broker.core.domain.IDType;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.core.domain.job.SingleJobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.SinglePlan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.exceptions.JobException;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
+import org.limbo.flowjob.common.constants.JobStatus;
 import org.limbo.flowjob.common.constants.MsgConstants;
+import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
@@ -83,7 +88,8 @@ public class SingleJobScheduleStrategy extends AbstractScheduleStrategy {
 
         // 根据job类型创建task
         List<Task> tasks;
-        switch (jobInstance.getType()) {
+        JobInfo jobInfo = jobInstance.getJobInfo();
+        switch (jobInfo.getType()) {
             case NORMAL:
                 tasks = taskFactory.create(jobInstance, TaskType.NORMAL);
                 break;
@@ -95,7 +101,7 @@ public class SingleJobScheduleStrategy extends AbstractScheduleStrategy {
                 tasks = taskFactory.create(jobInstance, TaskType.SPLIT);
                 break;
             default:
-                throw new JobException(jobInstance.getJobId(), MsgConstants.UNKNOWN + " job type:" + jobInstance.getType().type);
+                throw new JobException(jobInfo.getId(), MsgConstants.UNKNOWN + " job type:" + jobInfo.getType().type);
         }
 
         // 如果可以创建的任务为空（只有为广播任务）
@@ -105,6 +111,19 @@ public class SingleJobScheduleStrategy extends AbstractScheduleStrategy {
             saveAndScheduleTask(tasks, jobInstance.getTriggerAt());
         }
 
+    }
+
+    public JobInstance newJobInstance(String planId, String planVersion, PlanType planType, String planInstanceId, JobInfo jobInfo, LocalDateTime triggerAt) {
+        SingleJobInstance instance = new SingleJobInstance();
+        instance.setJobInstanceId(idGenerator.generateId(IDType.JOB_INSTANCE));
+        instance.setPlanId(planId);
+        instance.setPlanInstanceId(planInstanceId);
+        instance.setPlanVersion(planVersion);
+        instance.setPlanType(planType);
+        instance.setJobInfo(jobInfo);
+        instance.setStatus(JobStatus.SCHEDULING);
+        instance.setTriggerAt(triggerAt);
+        return instance;
     }
 
 }

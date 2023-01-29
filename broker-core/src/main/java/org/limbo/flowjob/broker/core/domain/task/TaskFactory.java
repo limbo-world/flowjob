@@ -22,6 +22,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.common.constants.TaskStatus;
@@ -83,18 +84,19 @@ public class TaskFactory {
         public abstract List<Task> tasks(JobInstance instance);
 
         protected Task initTask(TaskType type, JobInstance instance, String workerId) {
+            JobInfo jobInfo = instance.getJobInfo();
             Task task = new Task();
             task.setTaskId(idGenerator.generateId(IDType.TASK));
             task.setTaskType(type);
-            task.setJobId(instance.getJobId());
+            task.setJobId(jobInfo.getId());
             task.setPlanVersion(instance.getPlanVersion());
             task.setPlanId(instance.getPlanId());
             task.setPlanType(instance.getPlanType());
             task.setJobInstanceId(instance.getJobInstanceId());
             task.setStatus(TaskStatus.SCHEDULING);
-            task.setDispatchOption(instance.getDispatchOption());
-            task.setExecutorName(instance.getExecutorName());
-            task.setAttributes(instance.getAttributes());
+            task.setDispatchOption(jobInfo.getDispatchOption());
+            task.setExecutorName(jobInfo.getExecutorName());
+            task.setAttributes(jobInfo.getAttributes());
             task.setWorkerId(workerId);
             return task;
         }

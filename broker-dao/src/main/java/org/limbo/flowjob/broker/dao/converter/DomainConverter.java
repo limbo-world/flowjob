@@ -20,6 +20,7 @@ package org.limbo.flowjob.broker.dao.converter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
@@ -42,7 +43,6 @@ import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
-import org.limbo.flowjob.common.constants.JobStatus;
 import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.ScheduleType;
@@ -52,6 +52,7 @@ import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
+import org.limbo.flowjob.common.utils.dag.DAGNode;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
@@ -100,10 +101,12 @@ public class DomainConverter {
                     planInfoEntity.getPlanInfoId(),
                     TriggerType.parse(planInfoEntity.getTriggerType()),
                     toScheduleOption(planInfoEntity),
-                    JacksonUtils.parseObject(planInfoEntity.getJobInfo(), WorkflowJobInfo.class)
+                    JacksonUtils.parseObject(planInfoEntity.getJobInfo(), JobInfo.class)
             );
         } else if (PlanType.WORKFLOW == planType) {
-            List<JobInfoEntity> jobInfoEntities = jobInfoEntityRepo.findByPlanInfoId(planInfoEntity.getPlanInfoId());
+            DAG<WorkflowJobInfo> dag = toJobDag(planInfoEntity.getJobInfo(), null);
+            List<String> jobIds = dag.nodes().stream().map(DAGNode::getId).collect(Collectors.toList());
+            List<JobInfoEntity> jobInfoEntities = jobInfoEntityRepo.findAllById(jobIds);
             Verifies.notEmpty(jobInfoEntities, "does not find " + entity.getPlanId() + " plan's job info by version--" + entity.getCurrentVersion() + "");
             plan = new WorkflowPlan(
                     planInfoEntity.getPlanId(),
@@ -148,37 +151,24 @@ public class DomainConverter {
     public DAG<WorkflowJobInfo> toJobDag(String dag, List<JobInfoEntity> jobInfoEntities) {
         List<WorkflowJobInfo> jobInfos = JacksonUtils.parseObject(dag, new TypeReference<List<WorkflowJobInfo>>() {
         });
-        Map<String, JobInfoEntity> jobInfoEntityMap = jobInfoEntities.stream().collect(Collectors.toMap(JobInfoEntity::getName, entity -> entity, (entity, entity2) -> entity));
-        for (WorkflowJobInfo jobInfo : jobInfos) {
-            JobInfoEntity jobInfoEntity = jobInfoEntityMap.get(jobInfo.getName());
-            jobInfo.setDescription(jobInfoEntity.getDescription());
-            jobInfo.setTriggerType(TriggerType.parse(jobInfoEntity.getTriggerType()));
-            jobInfo.setType(JobType.parse(jobInfoEntity.getType()));
-            jobInfo.setAttributes(new Attributes(jobInfoEntity.getAttributes()));
-            jobInfo.setDispatchOption(JacksonUtils.parseObject(jobInfoEntity.getDispatchOption(), DispatchOption.class));
-            jobInfo.setExecutorName(jobInfoEntity.getExecutorName());
-            jobInfo.setTerminateWithFail(jobInfoEntity.getTerminateWithFail());
+        if (CollectionUtils.isNotEmpty(jobInfoEntities)) {
+            Map<String, JobInfoEntity> jobInfoEntityMap = jobInfoEntities.stream().collect(Collectors.toMap(JobInfoEntity::getJobInfoId, entity -> entity, (entity, entity2) -> entity));
+            for (WorkflowJobInfo workflowJobInfo : jobInfos) {
+                JobInfoEntity jobInfoEntity = jobInfoEntityMap.get(workflowJobInfo.getId());
+                workflowJobInfo.setJob(toJobInfo(jobInfoEntity));
+            }
         }
         return new DAG<>(jobInfos);
     }
 
-    public JobInstance toJobInstance(JobInstanceEntity entity, JobInfoEntity jobInfo) {
-        JobInstance jobInstance = new JobInstance();
-        jobInstance.setJobInstanceId(entity.getJobInstanceId());
-        jobInstance.setPlanInstanceId(entity.getPlanInstanceId());
-        jobInstance.setPlanVersion(entity.getPlanInfoId());
-        jobInstance.setPlanId(entity.getPlanId());
-        jobInstance.setJobId(entity.getJobId());
-        jobInstance.setStatus(JobStatus.parse(entity.getStatus()));
-        jobInstance.setStartAt(entity.getStartAt());
-        jobInstance.setEndAt(entity.getEndAt());
-        jobInstance.setAttributes(new Attributes(entity.getAttributes()));
-        jobInstance.setTriggerAt(entity.getTriggerAt());
-        jobInstance.setDispatchOption(JacksonUtils.parseObject(jobInfo.getDispatchOption(), DispatchOption.class));
-        jobInstance.setExecutorName(jobInfo.getExecutorName());
-        jobInstance.setType(JobType.parse(jobInfo.getType()));
-        jobInstance.setTerminateWithFail(jobInfo.getTerminateWithFail());
-        return jobInstance;
+    public JobInfo toJobInfo(JobInfoEntity entity) {
+        JobInfo jobInfo = new JobInfo();
+        jobInfo.setId(entity.getJobInfoId());
+        jobInfo.setType(JobType.parse(entity.getType()));
+        jobInfo.setAttributes(new Attributes(entity.getAttributes()));
+        jobInfo.setDispatchOption(JacksonUtils.parseObject(entity.getDispatchOption(), DispatchOption.class));
+        jobInfo.setExecutorName(entity.getExecutorName());
+        return jobInfo;
     }
 
     public TaskEntity toTaskEntity(Task task) {
@@ -218,7 +208,7 @@ public class DomainConverter {
             task.setDispatchOption(jobInfo.getDispatchOption());
             task.setExecutorName(jobInfo.getExecutorName());
         } else {
-            JobInfoEntity jobInfoEntity = jobInfoEntityRepo.findByPlanInfoIdAndName(entity.getPlanInfoId(), entity.getJobId());
+            JobInfoEntity jobInfoEntity = jobInfoEntityRepo.findById(entity.getJobId()).orElse(null);
             task.setDispatchOption(JacksonUtils.parseObject(jobInfoEntity.getDispatchOption(), DispatchOption.class));
             task.setExecutorName(jobInfoEntity.getExecutorName());
         }
@@ -235,14 +225,15 @@ public class DomainConverter {
     }
 
     public JobInstanceEntity toJobInstanceEntity(JobInstance jobInstance) {
+        JobInfo jobInfo = jobInstance.getJobInfo();
         JobInstanceEntity entity = new JobInstanceEntity();
         entity.setJobInstanceId(jobInstance.getJobInstanceId());
         entity.setPlanInstanceId(jobInstance.getPlanInstanceId());
         entity.setPlanId(jobInstance.getPlanId());
         entity.setPlanInfoId(jobInstance.getPlanVersion());
-        entity.setJobId(jobInstance.getJobId());
+        entity.setJobId(jobInfo.getId());
         entity.setStatus(jobInstance.getStatus().status);
-        entity.setAttributes(JacksonUtils.toJSONString(jobInstance.getAttributes(), JacksonUtils.DEFAULT_NONE_OBJECT));
+        entity.setAttributes(JacksonUtils.toJSONString(jobInfo.getAttributes(), JacksonUtils.DEFAULT_NONE_OBJECT));
         entity.setTriggerAt(jobInstance.getTriggerAt());
         entity.setStartAt(jobInstance.getStartAt());
         entity.setEndAt(jobInstance.getEndAt());
