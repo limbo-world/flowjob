@@ -16,37 +16,30 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.domain;
+package org.limbo.flowjob.broker.core.domain.job;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * @author Devil
- * @since 2022/11/27
+ * @since 2023/1/29
  */
-public enum IDType {
+@Data
+@ToString
+@EqualsAndHashCode(callSuper = true)
+public class WorkflowJobInstance extends JobInstance {
 
-    APP,
+    private static final long serialVersionUID = -2192075155340778512L;
 
-    TENANT,
+    /**
+     * 任务信息
+     */
+    private WorkflowJobInfo workflowJobInfo;
 
-    WORKER,
-
-    WORKER_EXECUTOR,
-
-    WORKER_TAG,
-
-    BROKER,
-
-    PLAN,
-
-    PLAN_INFO,
-
-    JOB_INFO,
-
-    PLAN_INSTANCE,
-
-    JOB_INSTANCE,
-
-    TASK,
-    ;
-
+    @Override
+    public JobInfo getJobInfo() {
+        return workflowJobInfo.getJob();
+    }
 }

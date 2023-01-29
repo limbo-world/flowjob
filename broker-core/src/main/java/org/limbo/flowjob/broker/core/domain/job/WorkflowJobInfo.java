@@ -24,11 +24,10 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
-import org.limbo.flowjob.common.constants.JobType;
+import org.limbo.flowjob.common.constants.NodeType;
 import org.limbo.flowjob.common.constants.TriggerType;
-import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAGNode;
+import org.limbo.flowjob.common.utils.dag.DAGNodeIgnoreField;
 
 import java.util.Set;
 
@@ -44,7 +43,7 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = true)
 public class WorkflowJobInfo extends DAGNode {
 
-    private static final long serialVersionUID = 5340755318570959476L;
+    private static final long serialVersionUID = -702096482598918849L;
 
     /**
      * 名称 视图里面唯一
@@ -57,49 +56,26 @@ public class WorkflowJobInfo extends DAGNode {
     private String description;
 
     /**
+     * 节点类型 todo
+     */
+    private NodeType nodeType;
+
+    /**
      * 触发类型
      */
     private TriggerType triggerType;
-
-    /**
-     * 类型
-     */
-    private JobType type;
-
-    /**
-     * 属性参数
-     */
-    protected Attributes attributes;
-
-    /**
-     * 作业分发配置参数
-     */
-    private DispatchOption dispatchOption;
-
-    /**
-     * 作业执行器配置参数
-     */
-    private String executorName;
 
     /**
      * 执行失败是否终止 false 会继续执行后续作业
      */
     private boolean terminateWithFail;
 
+    @DAGNodeIgnoreField
+    private JobInfo job;
+
     @JsonCreator
     public WorkflowJobInfo(@JsonProperty("id") String id, @JsonProperty("childrenIds") Set<String> childrenIds) {
         super(id, childrenIds);
-        this.name = id;
-    }
-
-    @Override
-    public String getId() {
-        return name;
-    }
-
-    @Override
-    public void setId(String id) {
-        this.name = id;
     }
 
 }

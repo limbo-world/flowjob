@@ -44,10 +44,13 @@ class PlanServiceTest {
     @Setter(onMethod_ = @Inject)
     private PlanService planService;
 
+    @Setter(onMethod_ = @Inject)
+    private PlanParamFactory planParamFactory;
+
     @Test
     @Transactional
     void addFixedRate() {
-        PlanParam param = PlanParamFactory.newFixedRateAddParam();
+        PlanParam param = planParamFactory.newFixedRateAddParam();
 
         String id = planService.save(null, param);
     }
@@ -64,9 +67,9 @@ class PlanServiceTest {
     @Test
     @Transactional
     void replace() {
-        PlanParam param = PlanParamFactory.newFixedRateAddParam();
+        PlanParam param = planParamFactory.newFixedRateAddParam();
         String id = planService.save(null, param);
-        id = planService.save(id, PlanParamFactory.newFixedRateReplaceParam());
+        id = planService.save(id, planParamFactory.newFixedRateReplaceParam());
     }
 
     @Test

@@ -22,11 +22,15 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
-import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.core.domain.job.SingleJobInstance;
+import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
@@ -56,6 +60,8 @@ import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.Verifies;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
+import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
@@ -206,9 +212,7 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
     }
 
     private void afterTaskStatusUpdateSuccess(Task task) {
-        JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.findById(task.getJobInstanceId()).orElse(null);
-        JobInfoEntity jobInfoEntity = jobInfoEntityRepo.findByPlanInfoIdAndName(jobInstanceEntity.getPlanInfoId(), jobInstanceEntity.getJobId());
-        JobInstance jobInstance = domainConverter.toJobInstance(jobInstanceEntity, jobInfoEntity);
+        JobInstance jobInstance = getJobInstance(task.getJobInstanceId());
 
         // 判断状态是不是已经更新 可能已经被其它线程处理 正常来说不可能的
         if (JobStatus.EXECUTING != jobInstance.getStatus()) {
@@ -227,8 +231,8 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
         // 如果所有task都是执行失败 则处理失败
         boolean success = taskEntities.stream().allMatch(entity -> TaskStatus.SUCCEED == TaskStatus.parse(entity.getStatus()));
         if (success) {
-            JobType jobType = JobType.parse(jobInfoEntity.getType());
-            switch (jobType) {
+            JobInfo jobInfo = jobInstance.getJobInfo();
+            switch (jobInfo.getType()) {
                 case NORMAL:
                 case BROADCAST:
                     handleJobSuccess(jobInstance);
@@ -319,22 +323,36 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
         }
     }
 
-    protected JobInstance newJobInstance(String planId, String planVersion, PlanType planType, String planInstanceId, WorkflowJobInfo jobInfo, LocalDateTime triggerAt) {
-        JobInstance instance = new JobInstance();
-        instance.setJobInstanceId(idGenerator.generateId(IDType.JOB_INSTANCE));
-        instance.setPlanId(planId);
-        instance.setPlanInstanceId(planInstanceId);
-        instance.setPlanVersion(planVersion);
-        instance.setPlanType(planType);
-        instance.setJobId(jobInfo.getId());
-        instance.setDispatchOption(jobInfo.getDispatchOption());
-        instance.setExecutorName(jobInfo.getExecutorName());
-        instance.setType(jobInfo.getType());
-        instance.setStatus(JobStatus.SCHEDULING);
-        instance.setTriggerAt(triggerAt);
-        instance.setAttributes(jobInfo.getAttributes());
-        instance.setTerminateWithFail(jobInfo.isTerminateWithFail());
-        return instance;
-    }
 
+    public JobInstance getJobInstance(String id) {
+        JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.findById(id).orElse(null);
+        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(jobInstanceEntity.getPlanInfoId()).orElse(null);
+        JobInfoEntity jobInfoEntity = jobInfoEntityRepo.findById(jobInstanceEntity.getJobId()).orElse(null);
+
+        JobInfo jobInfo = domainConverter.toJobInfo(jobInfoEntity);
+
+        JobInstance jobInstance;
+        PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
+        if (PlanType.SINGLE == planType) {
+            jobInstance = new SingleJobInstance();
+            ((SingleJobInstance) jobInstance).setJobInfo(jobInfo);
+        } else if (PlanType.WORKFLOW == planType) {
+            jobInstance = new WorkflowJobInstance();
+            DAG<WorkflowJobInfo> dag = domainConverter.toJobDag(planInfoEntity.getJobInfo(), null);
+            WorkflowJobInfo workflowJobInfo = dag.getNode(jobInstanceEntity.getJobId());
+            workflowJobInfo.setJob(jobInfo);
+            ((WorkflowJobInstance) jobInstance).setWorkflowJobInfo(workflowJobInfo);
+        } else {
+            throw new IllegalArgumentException("Illegal PlanType in plan:" + planInfoEntity.getPlanId() + " version:" + planInfoEntity.getPlanInfoId());
+        }
+        jobInstance.setJobInstanceId(jobInstanceEntity.getJobInstanceId());
+        jobInstance.setPlanInstanceId(jobInstanceEntity.getPlanInstanceId());
+        jobInstance.setPlanVersion(jobInstanceEntity.getPlanInfoId());
+        jobInstance.setPlanId(jobInstanceEntity.getPlanId());
+        jobInstance.setStatus(JobStatus.parse(jobInstanceEntity.getStatus()));
+        jobInstance.setStartAt(jobInstanceEntity.getStartAt());
+        jobInstance.setEndAt(jobInstanceEntity.getEndAt());
+        jobInstance.setTriggerAt(jobInstanceEntity.getTriggerAt());
+        return jobInstance;
+    }
 }

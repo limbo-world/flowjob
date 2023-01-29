@@ -28,10 +28,6 @@ import java.util.List;
  * @author Devil
  * @since 2022/6/22
  */
-public interface JobInfoEntityRepo extends JpaRepository<JobInfoEntity, Long> {
-
-    List<JobInfoEntity> findByPlanInfoId(String planInfoId);
-
-    JobInfoEntity findByPlanInfoIdAndName(String planInfoId, String name);
+public interface JobInfoEntityRepo extends JpaRepository<JobInfoEntity, String> {
 
 }

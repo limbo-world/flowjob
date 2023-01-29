@@ -18,22 +18,16 @@
 
 package org.limbo.flowjob.broker.core.domain.job;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.common.constants.JobType;
-import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
-import org.limbo.flowjob.common.utils.dag.DAGNode;
-
-import java.util.Set;
 
 /**
  * 作业的抽象。主要定义了作业领域的的行为方法，属性的访问操作在{@link JobInfo}轻量级领域对象中。
+ * 属性修改会对后续调度产生影响
  *
  * @author Brozen
  * @since 2021-05-14
@@ -42,6 +36,8 @@ import java.util.Set;
 @Setter
 @ToString
 public class JobInfo {
+
+    private String id;
 
     /**
      * 类型

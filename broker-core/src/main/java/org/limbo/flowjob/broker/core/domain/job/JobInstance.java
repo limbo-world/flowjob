@@ -21,13 +21,8 @@ package org.limbo.flowjob.broker.core.domain.job;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.common.constants.JobStatus;
-import org.limbo.flowjob.common.constants.JobType;
-import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
-import org.limbo.flowjob.broker.core.schedule.Scheduled;
 import org.limbo.flowjob.common.constants.PlanType;
-import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
-import org.limbo.flowjob.common.utils.attribute.Attributes;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -38,7 +33,7 @@ import java.time.LocalDateTime;
  */
 @Slf4j
 @Data
-public class JobInstance implements Serializable {
+public abstract class JobInstance implements Serializable {
 
     private static final long serialVersionUID = -7913375595969578408L;
 
@@ -51,24 +46,6 @@ public class JobInstance implements Serializable {
     protected String planVersion;
 
     protected PlanType planType;
-
-    protected String jobId;
-
-    protected DispatchOption dispatchOption;
-
-    protected String executorName;
-
-    protected JobType type;
-
-    /**
-     * 已经尝试的次数
-     */
-    protected int retry = 0;
-
-    /**
-     * 状态
-     */
-    protected JobStatus status;
 
     /**
      * 触发时间
@@ -86,21 +63,22 @@ public class JobInstance implements Serializable {
     protected LocalDateTime endAt;
 
     /**
-     * 此次执行的参数 界面配置
+     * 已经尝试的次数
      */
-    protected Attributes attributes;
+    protected int retry = 0;
 
     /**
-     * 执行失败是否终止 false 会继续执行后续作业
+     * 状态
      */
-    private boolean terminateWithFail;
+    protected JobStatus status;
 
     /**
      * 是否需要重试 todo
      */
     public boolean retry() {
-        if (dispatchOption.getRetry() > retry) {
-            setTriggerAt(TimeUtils.currentLocalDateTime().plusSeconds(dispatchOption.getRetryInterval()));
+        JobInfo jobInfo = getJobInfo();
+        if (jobInfo.getDispatchOption().getRetry() > retry) {
+            setTriggerAt(TimeUtils.currentLocalDateTime().plusSeconds(jobInfo.getDispatchOption().getRetryInterval()));
             setJobInstanceId(null);
             setStatus(JobStatus.SCHEDULING);
             return true;
@@ -109,4 +87,5 @@ public class JobInstance implements Serializable {
         }
     }
 
+    public abstract JobInfo getJobInfo();
 }

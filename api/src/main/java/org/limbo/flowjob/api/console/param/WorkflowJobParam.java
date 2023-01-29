@@ -40,10 +40,17 @@ import java.util.Set;
 public class WorkflowJobParam {
 
     /**
+     * id
+     */
+    @NotBlank
+    @Schema(title = "id", description = "视图中唯一")
+    private String id;
+
+    /**
      * 作业名称
      */
     @NotBlank
-    @Schema(title = "作业名称", description = "视图中唯一")
+    @Schema(title = "作业名称")
     private String name;
 
     /**

@@ -20,6 +20,7 @@ package org.limbo.flowjob.broker.core.domain.plan;
 
 import lombok.Getter;
 import lombok.ToString;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.constants.PlanType;
@@ -38,10 +39,10 @@ public class SinglePlan extends Plan {
     /**
      * 任务信息
      */
-    private final WorkflowJobInfo jobInfo;
+    private final JobInfo jobInfo;
 
     public SinglePlan(String planId, String version, TriggerType triggerType,
-                      ScheduleOption scheduleOption, WorkflowJobInfo jobInfo) {
+                      ScheduleOption scheduleOption, JobInfo jobInfo) {
         super(planId, version, triggerType, scheduleOption);
         this.jobInfo = jobInfo;
     }

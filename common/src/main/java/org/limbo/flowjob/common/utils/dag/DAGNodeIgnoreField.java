@@ -16,37 +16,20 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.domain;
+package org.limbo.flowjob.common.utils.dag;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author Devil
- * @since 2022/11/27
+ * @since 2023/1/25
  */
-public enum IDType {
-
-    APP,
-
-    TENANT,
-
-    WORKER,
-
-    WORKER_EXECUTOR,
-
-    WORKER_TAG,
-
-    BROKER,
-
-    PLAN,
-
-    PLAN_INFO,
-
-    JOB_INFO,
-
-    PLAN_INSTANCE,
-
-    JOB_INSTANCE,
-
-    TASK,
-    ;
-
+@Target({ElementType.FIELD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface DAGNodeIgnoreField {
 }

@@ -1,14 +1,16 @@
 package org.limbo.flowjob.broker.application.plan.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.api.console.param.PlanParam;
 import org.limbo.flowjob.api.console.param.ScheduleOptionParam;
-import org.limbo.flowjob.api.console.param.WorkflowJobParam;
 import org.limbo.flowjob.broker.application.plan.component.SlotManager;
 import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
@@ -20,6 +22,7 @@ import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.constants.PlanType;
+import org.limbo.flowjob.common.exception.VerifyException;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -35,6 +38,7 @@ import java.util.Optional;
  * @author Brozen
  * @since 2022-06-11
  */
+@Slf4j
 @Service
 public class PlanService {
 
@@ -55,6 +59,9 @@ public class PlanService {
 
     @Setter(onMethod_ = @Inject)
     private SlotManager slotManager;
+
+    @Setter(onMethod_ = @Inject)
+    private PlanConverter planConverter;
 
     @Transactional
     public String save(String planId, PlanParam param) {
@@ -114,30 +121,27 @@ public class PlanService {
         planInfoEntity.setScheduleInterval(scheduleOption.getScheduleInterval() == null ? 0L : scheduleOption.getScheduleInterval().toMillis());
         planInfoEntity.setScheduleCron(scheduleOption.getScheduleCron());
         // job info
+        List<JobInfoEntity> jobInfoEntities = new ArrayList<>();
         if (PlanType.SINGLE == param.getPlanType()) {
-            planInfoEntity.setJobInfo(JacksonUtils.toJSONString(PlanConverter.covertJob(param.getJob())));
+            JobInfo jobInfo = planConverter.covertJob(param.getJob());
+            jobInfoEntities.add(planConverter.toJobInfoEntity(jobInfo));
+            planInfoEntity.setJobInfo(JacksonUtils.toJSONString(jobInfo));
         } else {
-            DAG<WorkflowJobInfo> workflow = PlanConverter.convertJob(param.getWorkflow());
-            planInfoEntity.setJobInfo(workflow.json());
+            DAG<WorkflowJobInfo> workflow = planConverter.convertJob(param.getWorkflow());
+            try {
+                planInfoEntity.setJobInfo(workflow.json());
+            } catch (JsonProcessingException e) {
+                log.error("To DAG Json failed! dag={}", workflow, e);
+                throw new VerifyException("Dag Node verify fail!");
+            }
 
             // 保存jobInfo信息
-            List<JobInfoEntity> jobInfoEntities = new ArrayList<>();
-            for (WorkflowJobParam jobParam : param.getWorkflow()) {
-                JobInfoEntity jobInfoEntity = new JobInfoEntity();
-                jobInfoEntity.setPlanInfoId(planInfoId);
-                jobInfoEntity.setName(jobParam.getName());
-                jobInfoEntity.setType(jobParam.getType().type);
-                jobInfoEntity.setTriggerType(jobParam.getTriggerType().type);
-                jobInfoEntity.setAttributes(JacksonUtils.toJSONString(jobParam.getAttributes(), JacksonUtils.DEFAULT_NONE_OBJECT));
-                jobInfoEntity.setDispatchOption(JacksonUtils.toJSONString(jobParam.getDispatchOption(), JacksonUtils.DEFAULT_NONE_OBJECT));
-                jobInfoEntity.setExecutorName(jobParam.getExecutorName());
-                jobInfoEntity.setTerminateWithFail(jobParam.isTerminateWithFail());
-
-                jobInfoEntities.add(jobInfoEntity);
+            for (WorkflowJobInfo workflowJobInfo : workflow.nodes()) {
+                jobInfoEntities.add(planConverter.toJobInfoEntity(workflowJobInfo.getJob()));
             }
-            jobInfoEntityRepo.saveAll(jobInfoEntities);
-            jobInfoEntityRepo.flush();
         }
+        jobInfoEntityRepo.saveAll(jobInfoEntities);
+        jobInfoEntityRepo.flush();
 
         // 保存版本信息
         planInfoEntityRepo.saveAndFlush(planInfoEntity);
