@@ -18,7 +18,7 @@ package org.limbo.flowjob.worker.starter.application.converter;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.limbo.flowjob.api.param.TaskSubmitParam;
+import org.limbo.flowjob.api.remote.param.TaskSubmitParam;
 import org.limbo.flowjob.worker.core.domain.MapTask;
 import org.limbo.flowjob.worker.core.domain.ReduceTask;
 import org.limbo.flowjob.worker.core.domain.Task;

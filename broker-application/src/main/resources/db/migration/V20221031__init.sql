@@ -126,7 +126,7 @@ CREATE TABLE `flowjob_plan_info`
     `id`                 bigint(20) unsigned NOT NULL AUTO_INCREMENT,
     `plan_info_id`       varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `plan_id`            varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `plan_version`       int(8) unsigned NOT NULL,
+    `plan_type`          tinyint                                                NOT NULL,
     `trigger_type`       tinyint                                                NOT NULL,
     `schedule_type`      tinyint                                                NOT NULL,
     `schedule_cron`      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
@@ -134,7 +134,8 @@ CREATE TABLE `flowjob_plan_info`
     `schedule_delay`     bigint                                                          DEFAULT NULL,
     `schedule_interval`  bigint                                                          DEFAULT NULL,
     `schedule_start_at`  datetime(6) DEFAULT NULL,
-    `jobs`               text COLLATE utf8mb4_bin,
+    `job_info`           text COLLATE utf8mb4_bin,
+    `name`               varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `description`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `retry`              int                                                             DEFAULT NULL,
     `is_deleted`         bit(1)                                                 NOT NULL DEFAULT 0,
@@ -164,19 +165,15 @@ DROP TABLE IF EXISTS `flowjob_job_info`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flowjob_job_info`
 (
-    `id`                  bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-    `plan_info_id`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-    `name`                varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-    `description`         varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `type`                tinyint                                                NOT NULL,
-    `trigger_type`        tinyint                                                NOT NULL,
-    `attributes`          text COLLATE utf8mb4_bin,
-    `dispatch_option`     varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-    `executor_name`       varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-    `terminate_with_fail` bit(1)                                                 NOT NULL DEFAULT 0,
-    `is_deleted`          bit(1)                                                 NOT NULL DEFAULT 0,
-    `created_at`          datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`          datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `id`              bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+    `job_info_id`     varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `type`            tinyint                                                NOT NULL,
+    `attributes`      text COLLATE utf8mb4_bin,
+    `dispatch_option` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+    `executor_name`   varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+    `is_deleted`      bit(1)                                                 NOT NULL DEFAULT 0,
+    `created_at`      datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`      datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -204,7 +201,7 @@ CREATE TABLE `flowjob_plan_instance`
     `id`               bigint unsigned NOT NULL AUTO_INCREMENT,
     `plan_instance_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `plan_id`          varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `plan_version`     int(8) unsigned NOT NULL,
+    `plan_info_id`     varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `trigger_type`     tinyint                                                NOT NULL,
     `status`           tinyint                                                NOT NULL,
     `trigger_at`       datetime(6) NOT NULL,
@@ -242,7 +239,7 @@ CREATE TABLE `flowjob_job_instance`
     `job_id`           varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `plan_instance_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `plan_id`          varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `plan_version`     int(8) unsigned NOT NULL,
+    `plan_info_id`     varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `trigger_at`       datetime(6) NOT NULL,
     `start_at`         datetime(6) DEFAULT NULL,
     `end_at`           datetime(6) DEFAULT NULL,
@@ -281,9 +278,10 @@ CREATE TABLE `flowjob_task`
     `job_instance_id`   varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `job_id`            varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `plan_id`           varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `plan_version`      int(8) unsigned NOT NULL,
+    `plan_info_id`      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `worker_id`         varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `attributes`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `type`              tinyint                                                NOT NULL,
     `status`            tinyint                                                NOT NULL,
     `start_at`          datetime(6) DEFAULT NULL,
     `end_at`            datetime(6) DEFAULT NULL,
@@ -542,6 +540,10 @@ INSERT INTO flowjob_id(`type`, `current_id`, `step`)
 VALUES ('BROKER', 100000, 1000);
 INSERT INTO flowjob_id(`type`, `current_id`, `step`)
 VALUES ('PLAN', 100000, 1000);
+INSERT INTO flowjob_id(`type`, `current_id`, `step`)
+VALUES ('PLAN_INFO', 100000, 1000);
+INSERT INTO flowjob_id(`type`, `current_id`, `step`)
+VALUES ('JOB_INFO', 100000, 1000);
 INSERT INTO flowjob_id(`type`, `current_id`, `step`)
 VALUES ('PLAN_INSTANCE', 100000, 1000);
 INSERT INTO flowjob_id(`type`, `current_id`, `step`)

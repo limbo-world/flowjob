@@ -19,11 +19,9 @@
 package org.limbo.flowjob.broker.core.worker.rpc;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.api.dto.WorkerAvailableResourceDTO;
-import org.limbo.flowjob.api.dto.WorkerMetricDTO;
-import org.limbo.flowjob.api.param.TaskSubmitParam;
-import org.limbo.flowjob.broker.core.domain.task.MapTask;
-import org.limbo.flowjob.broker.core.domain.task.ReduceTask;
+import org.limbo.flowjob.api.remote.dto.WorkerAvailableResourceDTO;
+import org.limbo.flowjob.api.remote.dto.WorkerMetricDTO;
+import org.limbo.flowjob.api.remote.param.TaskSubmitParam;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
@@ -51,7 +49,7 @@ public class WorkerConverter {
 
     public static TaskSubmitParam toTaskSubmitParam(Task task) {
         TaskSubmitParam taskSubmitParam = new TaskSubmitParam();
-        taskSubmitParam.setTaskId(task.getMetaId());
+        taskSubmitParam.setTaskId(task.getTaskId());
         taskSubmitParam.setPlanId(task.getPlanId());
         taskSubmitParam.setJobId(task.getJobId());
         taskSubmitParam.setJobInstanceId(task.getJobInstanceId());
@@ -59,19 +57,22 @@ public class WorkerConverter {
         taskSubmitParam.setContext(task.getContext() == null ? Collections.emptyMap() : task.getContext().toMap());
         taskSubmitParam.setAttributes(task.getAttributes() == null ? Collections.emptyMap() : task.getAttributes().toMap());
 
-        if (task instanceof MapTask) {
-            MapTask mapTask = (MapTask) task;
-            taskSubmitParam.setMapAttributes(mapTask.getMapAttributes() == null ? Collections.emptyMap() : mapTask.getMapAttributes().toMap());
-        } else if (task instanceof ReduceTask) {
-            ReduceTask reduceTask = (ReduceTask) task;
-            List<Map<String, Object>> reduceAttrs = new LinkedList<>();
-            if (CollectionUtils.isNotEmpty(reduceTask.getReduceAttributes())) {
-                reduceAttrs = reduceTask.getReduceAttributes().stream()
-                        .filter(attrs -> attrs != null && !attrs.isEmpty())
-                        .map(Attributes::toMap)
-                        .collect(Collectors.toList());
-            }
-            taskSubmitParam.setReduceAttributes(reduceAttrs);
+        switch (task.getTaskType()) {
+            case MAP:
+                taskSubmitParam.setMapAttributes(task.getMapAttributes() == null ? Collections.emptyMap() : task.getMapAttributes().toMap());
+                break;
+            case REDUCE:
+                List<Map<String, Object>> reduceAttrs = new LinkedList<>();
+                if (CollectionUtils.isNotEmpty(task.getReduceAttributes())) {
+                    reduceAttrs = task.getReduceAttributes().stream()
+                            .filter(attrs -> attrs != null && !attrs.isEmpty())
+                            .map(Attributes::toMap)
+                            .collect(Collectors.toList());
+                }
+                taskSubmitParam.setReduceAttributes(reduceAttrs);
+                break;
+            default:
+                break;
         }
         return taskSubmitParam;
     }

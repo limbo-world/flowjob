@@ -30,19 +30,11 @@ import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 public interface WorkerRpc {
 
     /**
-     * worker节点心跳检测。
-     *
-     * @return 返回worker节点的指标信息。
-     */
-    @Deprecated // todo 现在由worker发送心跳 这样存在需要token的问题，是否改为broker去发送心跳请求？？？
-//    WorkerMetric ping();
-
-    /**
      * 发送一个作业到worker执行。当worker接受此task后，将触发返回
      * @param task 作业实例
      * @return worker接受task后触发
      */
-    Boolean sendTask(Task task);
+    boolean sendTask(Task task);
 
     /**
      * 解注册此worker，worker的状态将被标记为{@link WorkerStatus#TERMINATED}

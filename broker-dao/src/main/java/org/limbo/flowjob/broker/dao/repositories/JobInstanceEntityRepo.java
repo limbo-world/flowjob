@@ -36,21 +36,21 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
 
     long countByPlanInstanceIdAndStatusIn(Long planInstanceId, List<Byte> statuses);
 
-    @Query(value = "select * from flowjob_job_instance where jobInstance_id = :jobInstanceId for update", nativeQuery = true)
-    JobInstanceEntity selectForUpdate(@Param("jobInstanceId") String jobInstanceId);
+//    @Query(value = "select * from flowjob_job_instance where jobInstance_id = :jobInstanceId for update", nativeQuery = true)
+//    JobInstanceEntity selectForUpdate(@Param("jobInstanceId") String jobInstanceId);
 
     List<JobInstanceEntity> findByPlanInstanceIdAndJobIdIn(String planInstanceId, List<String> jobIds);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update JobInstanceEntity set status = " + ConstantsPool.JOB_STATUS_EXECUTING + " where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.JOB_STATUS_SCHEDULING)
+    @Query(value = "update JobInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING + " where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_SCHEDULING)
     int updateStatusExecuting(@Param("jobInstanceId") String jobInstanceId);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update JobInstanceEntity set status = " + ConstantsPool.JOB_STATUS_SUCCEED + " where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.JOB_STATUS_EXECUTING)
+    @Query(value = "update JobInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTE_SUCCEED + " where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING)
     int updateStatusSuccess(@Param("jobInstanceId") String jobInstanceId);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update JobInstanceEntity set status = " + ConstantsPool.JOB_STATUS_FAILED + ", errorMsg =:errorMsg where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.JOB_STATUS_EXECUTING)
+    @Query(value = "update JobInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTE_FAILED + ", errorMsg =:errorMsg where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING)
     int updateStatusExecuteFail(@Param("jobInstanceId") String jobInstanceId, @Param("errorMsg") String errorMsg);
 
 }

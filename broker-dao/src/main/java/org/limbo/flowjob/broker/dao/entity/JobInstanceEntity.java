@@ -39,7 +39,7 @@ public class JobInstanceEntity extends BaseEntity {
 
     private String planId;
 
-    private Integer planVersion;
+    private String planInfoId;
 
     /**
      * DAG中的jobId

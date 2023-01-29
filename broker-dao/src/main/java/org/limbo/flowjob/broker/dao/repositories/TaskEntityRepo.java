@@ -34,23 +34,23 @@ import java.util.List;
  */
 public interface TaskEntityRepo extends JpaRepository<TaskEntity, String> {
 
-    List<TaskEntity> findByJobInstanceId(String jobInstanceId);
+    List<TaskEntity> findByJobInstanceIdAndType(String jobInstanceId, Byte type);
 
     List<TaskEntity> findByPlanIdInAndStatus(List<String> planIds, Byte status);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update TaskEntity set status = " + ConstantsPool.TASK_STATUS_DISPATCHING + " where taskId = :taskId and status = " + ConstantsPool.TASK_STATUS_SCHEDULING)
+    @Query(value = "update TaskEntity set status = " + ConstantsPool.SCHEDULE_STATUS_DISPATCHING + " where taskId = :taskId and status = " + ConstantsPool.SCHEDULE_STATUS_SCHEDULING)
     int updateStatusDispatching(@Param("taskId") String taskId);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update TaskEntity set status = " + ConstantsPool.TASK_STATUS_EXECUTING + ", workerId = :workerId, startAt = :startAt where taskId = :taskId and status = " + ConstantsPool.TASK_STATUS_DISPATCHING)
-    int updateStatusExecuting(@Param("taskId") String taskId, @Param("workerId") String workerId, @Param("startAt")LocalDateTime startAt);
+    @Query(value = "update TaskEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING + ", workerId = :workerId, startAt = :startAt where taskId = :taskId and status = " + ConstantsPool.SCHEDULE_STATUS_DISPATCHING)
+    int updateStatusExecuting(@Param("taskId") String taskId, @Param("workerId") String workerId, @Param("startAt") LocalDateTime startAt);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update TaskEntity set status = " + ConstantsPool.TASK_STATUS_SUCCEED + ", result = :result, endAt = :endAt where taskId = :taskId and status = " + ConstantsPool.TASK_STATUS_EXECUTING)
-    int updateStatusSuccess(@Param("taskId") String taskId, @Param("endAt")LocalDateTime endAt, @Param("result") String result);
+    @Query(value = "update TaskEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTE_SUCCEED + ", result = :result, endAt = :endAt where taskId = :taskId and status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING)
+    int updateStatusSuccess(@Param("taskId") String taskId, @Param("endAt") LocalDateTime endAt, @Param("result") String result);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update TaskEntity set status = " + ConstantsPool.TASK_STATUS_SUCCEED + ", errorMsg = :errorMsg, errorStackTrace = :errorStack, endAt = :endAt where taskId = :taskId and status = " + ConstantsPool.TASK_STATUS_EXECUTING)
-    int updateStatusFail(@Param("taskId") String taskId, @Param("endAt")LocalDateTime endAt, @Param("errorMsg") String errorMsg, @Param("errorStack") String errorStack);
+    @Query(value = "update TaskEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTE_SUCCEED + ", errorMsg = :errorMsg, errorStackTrace = :errorStack, endAt = :endAt where taskId = :taskId and status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING)
+    int updateStatusFail(@Param("taskId") String taskId, @Param("endAt") LocalDateTime endAt, @Param("errorMsg") String errorMsg, @Param("errorStack") String errorStack);
 }

@@ -20,7 +20,6 @@ package org.limbo.flowjob.common.utils.dag;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -40,6 +39,7 @@ public class DAGNode implements Serializable {
 
     protected Set<String> childrenIds;
 
+    @DAGNodeIgnoreField
     protected int status = DAG.STATUS_INIT;
 
     @JsonCreator

@@ -23,15 +23,11 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
-import org.limbo.flowjob.broker.core.schedule.Scheduled;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
-import org.limbo.flowjob.broker.core.service.IScheduleService;
-import org.limbo.flowjob.broker.core.worker.Worker;
+import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.TaskStatus;
+import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -45,8 +41,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class Task implements MetaTask, Serializable {
-    private static final long serialVersionUID = -9164373359695671417L;
+public class Task {
 
     private String taskId;
 
@@ -56,7 +51,17 @@ public class Task implements MetaTask, Serializable {
 
     private String planId;
 
-    private Integer planVersion;
+    private String planVersion;
+
+    /**
+     * 计划类型
+     */
+    private PlanType planType;
+
+    /**
+     * 类型
+     */
+    private TaskType taskType;
 
     /**
      * 状态
@@ -69,11 +74,6 @@ public class Task implements MetaTask, Serializable {
     private String workerId;
 
     /**
-     * 可下发的worker
-     */
-    private List<Worker> availableWorkers;
-
-    /**
      * 全局上下文
      */
     private Attributes context;
@@ -82,21 +82,6 @@ public class Task implements MetaTask, Serializable {
      * 对应job配置的属性
      */
     private Attributes attributes;
-
-    /**
-     * 期望的触发时间
-     */
-    private LocalDateTime triggerAt;
-
-    /**
-     * 开始时间
-     */
-    private LocalDateTime startAt;
-
-    /**
-     * 结束时间
-     */
-    private LocalDateTime endAt;
 
     /**
      * 下发参数
@@ -108,26 +93,14 @@ public class Task implements MetaTask, Serializable {
      */
     private String executorName;
 
-    private IScheduleService iScheduleService;
+    /**
+     * map属性
+     */
+    private Attributes mapAttributes;
 
-    @Override
-    public void execute() {
-        iScheduleService.schedule(this);
-    }
-
-    @Override
-    public MetaTaskType getType() {
-        return MetaTaskType.TASK;
-    }
-
-    @Override
-    public String getMetaId() {
-        return taskId;
-    }
-
-    @Override
-    public LocalDateTime scheduleAt() {
-        return triggerAt;
-    }
+    /**
+     * reduce属性
+     */
+    private List<Attributes> reduceAttributes;
 
 }

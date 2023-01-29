@@ -19,7 +19,7 @@ package org.limbo.flowjob.worker.starter.application.services;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.api.param.TaskSubmitParam;
+import org.limbo.flowjob.api.remote.param.TaskSubmitParam;
 import org.limbo.flowjob.worker.core.domain.Task;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.starter.application.converter.TaskConverter;

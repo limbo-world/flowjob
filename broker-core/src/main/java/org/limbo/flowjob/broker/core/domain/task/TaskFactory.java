@@ -18,20 +18,17 @@
 
 package org.limbo.flowjob.broker.core.domain.task;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
-import org.limbo.flowjob.broker.core.service.IScheduleService;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
-import org.limbo.flowjob.common.utils.time.TimeUtils;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -51,14 +48,14 @@ public class TaskFactory {
 
     private final WorkerManager workerManager;
 
+    private final TaskManager taskManager;
+
     private final IDGenerator idGenerator;
 
-    private final IScheduleService iScheduleService;
-
-    public TaskFactory(WorkerManager workerManager, IDGenerator idGenerator, IScheduleService iScheduleService) {
+    public TaskFactory(WorkerManager workerManager, TaskManager taskManager, IDGenerator idGenerator) {
         this.workerManager = workerManager;
+        this.taskManager = taskManager;
         this.idGenerator = idGenerator;
-        this.iScheduleService = iScheduleService;
 
         creators = new EnumMap<>(TaskType.class);
 
@@ -69,24 +66,12 @@ public class TaskFactory {
         creators.put(TaskType.SPLIT, new SplitTaskCreator());
     }
 
-    public List<Task> create(JobInstance instance, LocalDateTime triggerAt, TaskType taskType) {
+    public List<Task> create(JobInstance instance, TaskType taskType) {
         TaskCreator creator = creators.get(taskType);
         if (creator == null) {
             return Collections.emptyList();
         }
-        return creator.tasks(instance, triggerAt);
-    }
-
-    // todo
-    /**
-     * 获取上个任务
-     */
-    private List<TaskResult> preJobTaskResults(JobInstance instance) {
-        // 获取上个节点
-        instance.getJobId();
-
-        // 获取所有task
-        return null;
+        return creator.tasks(instance);
     }
 
     /**
@@ -96,21 +81,24 @@ public class TaskFactory {
 
         public abstract TaskType getType();
 
-        public abstract List<Task> tasks(JobInstance instance, LocalDateTime triggerAt);
+        public abstract List<Task> tasks(JobInstance instance);
 
-        protected void initTask(Task task, JobInstance instance, LocalDateTime triggerAt, List<Worker> availableWorkers) {
-            task.setJobId(instance.getJobId());
-            task.setTriggerAt(triggerAt);
-            task.setTriggerAt(TimeUtils.currentLocalDateTime());
+        protected Task initTask(TaskType type, JobInstance instance, String workerId) {
+            JobInfo jobInfo = instance.getJobInfo();
+            Task task = new Task();
+            task.setTaskId(idGenerator.generateId(IDType.TASK));
+            task.setTaskType(type);
+            task.setJobId(jobInfo.getId());
             task.setPlanVersion(instance.getPlanVersion());
             task.setPlanId(instance.getPlanId());
+            task.setPlanType(instance.getPlanType());
             task.setJobInstanceId(instance.getJobInstanceId());
-            task.setStatus(TaskStatus.DISPATCHING);
-            task.setDispatchOption(instance.getDispatchOption());
-            task.setExecutorName(instance.getExecutorName());
-            task.setIScheduleService(iScheduleService);
-            task.setAttributes(instance.getAttributes());
-            task.setAvailableWorkers(availableWorkers);
+            task.setStatus(TaskStatus.SCHEDULING);
+            task.setDispatchOption(jobInfo.getDispatchOption());
+            task.setExecutorName(jobInfo.getExecutorName());
+            task.setAttributes(jobInfo.getAttributes());
+            task.setWorkerId(workerId);
+            return task;
         }
 
     }
@@ -121,10 +109,8 @@ public class TaskFactory {
     public class NormalTaskCreator extends TaskCreator {
 
         @Override
-        public List<Task> tasks(JobInstance instance, LocalDateTime triggerAt) {
-            Task task = new Task();
-            task.setTaskId(idGenerator.generateId(IDType.TASK));
-            initTask(task, instance, triggerAt, workerManager.availableWorkers());
+        public List<Task> tasks(JobInstance instance) {
+            Task task = initTask(TaskType.NORMAL, instance, null);
             return Collections.singletonList(task);
         }
 
@@ -143,16 +129,14 @@ public class TaskFactory {
     public class BroadcastTaskCreator extends TaskCreator {
 
         @Override
-        public List<Task> tasks(JobInstance instance, LocalDateTime triggerAt) {
+        public List<Task> tasks(JobInstance instance) {
             List<Worker> workers = workerManager.availableWorkers();
             if (CollectionUtils.isEmpty(workers)) {
                 return Collections.emptyList();
             }
             List<Task> tasks = new ArrayList<>();
             for (Worker worker : workers) {
-                Task task = new Task();
-                task.setTaskId(idGenerator.generateId(IDType.TASK));
-                initTask(task, instance, triggerAt, Lists.newArrayList(worker));
+                Task task = initTask(TaskType.BROADCAST, instance, worker.getId());
                 tasks.add(task);
             }
             return tasks;
@@ -174,10 +158,8 @@ public class TaskFactory {
     public class SplitTaskCreator extends TaskCreator {
 
         @Override
-        public List<Task> tasks(JobInstance instance, LocalDateTime triggerAt) {
-            Task task = new Task();
-            task.setTaskId(idGenerator.generateId(IDType.TASK));
-            initTask(task, instance, triggerAt, workerManager.availableWorkers());
+        public List<Task> tasks(JobInstance instance) {
+            Task task = initTask(TaskType.SPLIT, instance, null);
             return Collections.singletonList(task);
         }
 
@@ -198,14 +180,11 @@ public class TaskFactory {
     public class MapTaskCreator extends TaskCreator {
 
         @Override
-        public List<Task> tasks(JobInstance instance, LocalDateTime triggerAt) {
-            TaskResult taskResult = preJobTaskResults(instance).get(0);
-            List<Worker> workers = workerManager.availableWorkers();
+        public List<Task> tasks(JobInstance instance) {
+            TaskResult taskResult = taskManager.getTaskResults(instance.getJobInstanceId(), TaskType.SPLIT).get(0);
             List<Task> tasks = new ArrayList<>();
             for (Map<String, Object> attribute : taskResult.getSubTaskAttributes()) {
-                MapTask task = new MapTask();
-                task.setTaskId(idGenerator.generateId(IDType.TASK));
-                initTask(task, instance, triggerAt, workers);
+                Task task = initTask(TaskType.MAP, instance, null);
                 task.setMapAttributes(new Attributes(attribute));
                 tasks.add(task);
             }
@@ -228,16 +207,13 @@ public class TaskFactory {
     public class ReduceTaskCreator extends TaskCreator {
 
         @Override
-        public List<Task> tasks(JobInstance instance, LocalDateTime triggerAt) {
-            List<TaskResult> taskResults = preJobTaskResults(instance);
+        public List<Task> tasks(JobInstance instance) {
+            List<TaskResult> taskResults = taskManager.getTaskResults(instance.getJobInstanceId(), TaskType.MAP);
             List<Attributes> reduceAttributes = new ArrayList<>();
             for (TaskResult taskResult : taskResults) {
                 reduceAttributes.add(new Attributes(taskResult.getResultAttributes()));
             }
-
-            ReduceTask task = new ReduceTask();
-            task.setTaskId(idGenerator.generateId(IDType.TASK));
-            initTask(task, instance, triggerAt, workerManager.availableWorkers());
+            Task task = initTask(TaskType.REDUCE, instance, null);
             task.setReduceAttributes(reduceAttributes);
             return Collections.singletonList(task);
         }

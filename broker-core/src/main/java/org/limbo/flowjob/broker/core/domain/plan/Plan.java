@@ -18,103 +18,54 @@
 
 package org.limbo.flowjob.broker.core.domain.plan;
 
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
-import lombok.extern.java.Log;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.LoopMetaTask;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
-import org.limbo.flowjob.broker.core.service.IScheduleService;
-
-import java.io.Serializable;
-import java.time.LocalDateTime;
+import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
+import org.limbo.flowjob.common.constants.PlanType;
+import org.limbo.flowjob.common.constants.TriggerType;
 
 /**
- * 执行计划。一个计划{@link Plan}对应至少一个作业{@link JobInfo}
+ * 执行计划。一个计划{@link Plan}对应至少一个作业{@link WorkflowJobInfo}
  * 主要是对plan的管理
  *
  * @author Brozen
  * @since 2021-07-12
  */
 @Getter
-@Setter
 @ToString
-public class Plan extends LoopMetaTask implements Serializable {
+public abstract class Plan {
 
     private static final long serialVersionUID = 5657376836197403211L;
 
     /**
-     * 执行计划ID
+     * 作业执行计划ID
      */
-    private String planId;
+    private final String planId;
 
     /**
-     * 当前版本
+     * 版本
      */
-    private Integer currentVersion;
+    private final String version;
 
     /**
-     * 最新版本
+     * 触发类型
      */
-    private Integer recentlyVersion;
+    private final TriggerType triggerType;
 
     /**
-     * 当前版本的Plan数据
+     * 作业计划调度配置参数
      */
-    private PlanInfo info;
+    private final ScheduleOption scheduleOption;
 
-    /**
-     * 是否已启用
-     */
-    private boolean enabled;
-
-    @Setter(AccessLevel.NONE)
-    @Getter(AccessLevel.NONE)
-    @ToString.Exclude
-    private IScheduleService iScheduleService;
-
-    public Plan(String planId, Integer currentVersion, Integer recentlyVersion, PlanInfo info, boolean enabled,
-                LocalDateTime lastTriggerAt, LocalDateTime lastFeedbackAt,
-                IScheduleService iScheduleService, MetaTaskScheduler metaTaskScheduler) {
-        super(lastTriggerAt, lastFeedbackAt, info.getScheduleOption(), metaTaskScheduler);
+    protected Plan(String planId, String version, TriggerType triggerType,
+                   ScheduleOption scheduleOption) {
         this.planId = planId;
-        this.currentVersion = currentVersion;
-        this.recentlyVersion = recentlyVersion;
-        this.info = info;
-        this.enabled = enabled;
-        this.iScheduleService = iScheduleService;
+        this.version = version;
+        this.triggerType = triggerType;
+        this.scheduleOption = scheduleOption;
     }
 
-    @Override
-    public void execute() {
-
-        switch (getScheduleOption().getScheduleType()) {
-            case FIXED_RATE:
-            case CRON:
-                executeFixedRate();
-                break;
-            default:
-                // FIXED_DELAY 交由执行完后处理
-                break;
-        }
-    }
-
-    @Override
-    protected void executeTask() {
-        iScheduleService.schedule(this);
-    }
-
-    @Override
-    public MetaTaskType getType() {
-        return MetaTaskType.PLAN;
-    }
-
-    @Override
-    public String getMetaId() {
-        return planId + "-" + currentVersion;
-    }
+    public abstract PlanType planType();
 
 }

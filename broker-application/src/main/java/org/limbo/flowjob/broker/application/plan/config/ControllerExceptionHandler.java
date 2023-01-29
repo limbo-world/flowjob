@@ -17,11 +17,18 @@
 package org.limbo.flowjob.broker.application.plan.config;
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.api.dto.ResponseDTO;
+import org.limbo.flowjob.api.remote.dto.ResponseDTO;
 import org.limbo.flowjob.common.exception.VerifyException;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Brozen
@@ -42,7 +49,26 @@ public class ControllerExceptionHandler {
 
 
     /**
-     * 处理JSR303参数校验错误
+     * 参数绑定异常，JSR303 校验失败时可能会抛出此异常
+     */
+    @ExceptionHandler(value = BindException.class)
+    public ResponseDTO<?> handleBindException(BindException e) {
+        BindingResult result = e.getBindingResult();
+        if (!result.hasErrors()) {
+            log.error("Arguments bind error", e);
+            return ResponseDTO.builder().badRequest(e.getMessage()).build();
+        }
+
+        String msg = result.getFieldErrors().stream()
+                .map(error -> error.getField() + " " + error.getDefaultMessage())
+                .collect(Collectors.joining("\n"));
+
+        return ResponseDTO.builder().badRequest("Arguments error: \n" + msg).build();
+    }
+
+
+    /**
+     * 处理 JSR303 参数校验错误，WebFlux 框架下。
      */
     @ExceptionHandler(WebExchangeBindException.class)
     public ResponseDTO<?> handleValidateFailedException(WebExchangeBindException e) {

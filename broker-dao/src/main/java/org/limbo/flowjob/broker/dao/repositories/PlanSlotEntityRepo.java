@@ -31,4 +31,6 @@ public interface PlanSlotEntityRepo extends JpaRepository<PlanSlotEntity, Long> 
 
     List<PlanSlotEntity> findBySlotIn(List<Integer> slots);
 
+    PlanSlotEntity findByPlanId(String planId);
+
 }

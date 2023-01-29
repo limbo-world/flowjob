@@ -35,6 +35,12 @@ import java.util.List;
 public interface WorkerManager {
 
     /**
+     * 根据workerId获取worker
+     * @return 返回worker
+     */
+    Worker get(String workerId);
+
+    /**
      * 注册一个worker，并为worker生成唯一ID
      * @param worker worker节点
      * @return 返回worker

@@ -31,32 +31,32 @@ public enum TaskStatus {
     /**
      * unknown 不应该出现
      */
-    UNKNOWN(ConstantsPool.STATUS_UNKNOWN, "未知"),
+    UNKNOWN(ConstantsPool.UNKNOWN, "未知"),
 
     /**
      * 任务刚创建，还在调度中
      */
-    SCHEDULING(ConstantsPool.TASK_STATUS_SCHEDULING, "调度中"),
+    SCHEDULING(ConstantsPool.SCHEDULE_STATUS_SCHEDULING, "调度中"),
 
     /**
      * 任务尝试下发给worker
      */
-    DISPATCHING(ConstantsPool.TASK_STATUS_DISPATCHING, "下发中"),
+    DISPATCHING(ConstantsPool.SCHEDULE_STATUS_DISPATCHING, "下发中"),
 
     /**
      * 任务已下发给worker成功，正在执行中
      */
-    EXECUTING(ConstantsPool.TASK_STATUS_EXECUTING, "执行中"),
+    EXECUTING(ConstantsPool.SCHEDULE_STATUS_EXECUTING, "执行中"),
 
     /**
      * 执行成功
      */
-    SUCCEED(ConstantsPool.TASK_STATUS_SUCCEED, "执行成功"),
+    SUCCEED(ConstantsPool.SCHEDULE_STATUS_EXECUTE_SUCCEED, "执行成功"),
 
     /**
      * 执行失败
      */
-    FAILED(ConstantsPool.TASK_STATUS_FAILED, "执行失败"),
+    FAILED(ConstantsPool.SCHEDULE_STATUS_EXECUTE_FAILED, "执行失败"),
     ;
 
     @JsonValue
