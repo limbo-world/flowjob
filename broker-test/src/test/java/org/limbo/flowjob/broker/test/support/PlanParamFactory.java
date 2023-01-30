@@ -32,6 +32,7 @@ import org.limbo.flowjob.common.constants.LoadBalanceType;
 import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TriggerType;
+import org.limbo.flowjob.common.utils.UUIDUtils;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -49,6 +50,7 @@ public class PlanParamFactory {
 
     public PlanParam newFixedRateAddParam() {
         PlanParam param = new PlanParam();
+        param.setName(UUIDUtils.randomID());
         param.setDescription("测试-固定速率");
         param.setTriggerType(TriggerType.SCHEDULE);
         param.setPlanType(PlanType.WORKFLOW);
@@ -69,6 +71,7 @@ public class PlanParamFactory {
 
     public PlanParam newFixedRateReplaceParam() {
         PlanParam param = new PlanParam();
+        param.setName(UUIDUtils.randomID());
         param.setDescription("测试-固定速率-replace");
         param.setTriggerType(TriggerType.SCHEDULE);
         param.setPlanType(PlanType.WORKFLOW);

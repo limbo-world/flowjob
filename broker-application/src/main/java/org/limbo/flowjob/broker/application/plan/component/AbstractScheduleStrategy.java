@@ -168,6 +168,7 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
             return;
         }
 
+        task.setStatus(TaskStatus.DISPATCHING);
         int num = taskEntityRepo.updateStatusDispatching(task.getTaskId());
         if (num < 1) {
             return; // 可能多个节点操作同个task

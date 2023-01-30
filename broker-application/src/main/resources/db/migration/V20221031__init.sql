@@ -95,6 +95,7 @@ CREATE TABLE `flowjob_plan`
     `app_id`           varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `current_version`  int(8) unsigned NOT NULL,
     `recently_version` int(8) unsigned NOT NULL,
+    `name`             varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `is_enabled`       bit(1)                                                          DEFAULT NULL,
     `is_deleted`       bit(1)                                                 NOT NULL DEFAULT 0,
     `created_at`       datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,

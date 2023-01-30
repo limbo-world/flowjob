@@ -21,7 +21,7 @@ package org.limbo.flowjob.broker.application.plan.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Setter;
-import org.limbo.flowjob.api.remote.dto.ResponseDTO;
+import org.limbo.flowjob.api.ResponseDTO;
 import org.limbo.flowjob.api.remote.dto.WorkerRegisterDTO;
 import org.limbo.flowjob.api.remote.param.TaskFeedbackParam;
 import org.limbo.flowjob.api.remote.param.WorkerHeartbeatParam;

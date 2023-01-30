@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.api.remote.dto;
+package org.limbo.flowjob.api;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -70,7 +70,7 @@ public class ResponseDTO<T> {
      * 请求是否成功
      * @return
      */
-    public boolean isOk() {
+    public boolean success() {
         return this.code == HttpStatus.SC_OK;
     }
 

@@ -20,7 +20,7 @@ package org.limbo.flowjob.broker.core.worker.rpc;
 
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.common.constants.Protocol;
-import org.limbo.flowjob.api.remote.dto.ResponseDTO;
+import org.limbo.flowjob.api.ResponseDTO;
 import org.limbo.flowjob.broker.core.exceptions.WorkerException;
 import org.limbo.flowjob.broker.core.worker.Worker;
 
@@ -63,7 +63,7 @@ public abstract class AbstractWorkerRpc implements WorkerRpc {
 
     public <T> T getResponseData(Supplier<ResponseDTO<T>> supplier) {
         ResponseDTO<T> response = supplier.get();
-        if (response == null || !response.isOk()) {
+        if (response == null || !response.success()) {
             String msg = response == null ? "response is empty" : String.format("code:%s msg:%s", response.getCode(), response.getMessage());
             throw new WorkerException(workerId, msg);
         }

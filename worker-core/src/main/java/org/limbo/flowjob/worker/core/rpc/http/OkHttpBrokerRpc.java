@@ -31,7 +31,7 @@ import okhttp3.Response;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.remote.constants.WorkerHeaders;
 import org.limbo.flowjob.api.remote.dto.BrokerTopologyDTO;
-import org.limbo.flowjob.api.remote.dto.ResponseDTO;
+import org.limbo.flowjob.api.ResponseDTO;
 import org.limbo.flowjob.api.remote.dto.WorkerRegisterDTO;
 import org.limbo.flowjob.api.remote.param.TaskFeedbackParam;
 import org.limbo.flowjob.api.remote.param.WorkerRegisterParam;
@@ -122,7 +122,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
         ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + "/api/v1/rpc/worker", param, new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
         });
 
-        if (response == null || !response.isOk()) {
+        if (response == null || !response.success()) {
             String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
             throw new RegisterFailException("Worker register failed: " + msg);
         }
@@ -169,7 +169,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
         ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + "/api/v1/rpc/worker/" + workerId + "/heartbeat", RpcParamFactory.heartbeatParam(worker), new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
         });
 
-        if (response == null || !response.isOk()) {
+        if (response == null || !response.success()) {
             String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
             throw new RegisterFailException("Worker heartbeat failed: " + msg);
         }
@@ -213,7 +213,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
         ResponseDTO<Void> response = executePost(BASE_URL + "/api/v1/rpc/worker/task/" + taskId + "/feedback", feedbackParam, new TypeReference<ResponseDTO<Void>>() {
         });
 
-        if (response == null || !response.isOk()) {
+        if (response == null || !response.success()) {
             String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
             throw new RegisterFailException("Worker feedback Task failed: " + msg);
         }
