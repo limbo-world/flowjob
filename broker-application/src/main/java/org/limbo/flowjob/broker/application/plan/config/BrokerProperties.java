@@ -15,7 +15,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class BrokerProperties extends BrokerConfig {
 
     /**
-     * 是否启用 worker
+     * 是否启动 broker
      */
     private boolean enabled = true;
 

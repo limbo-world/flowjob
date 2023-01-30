@@ -34,7 +34,7 @@ import java.util.List;
  * @since 2021/7/24
  */
 @Data
-@Schema(title = "计划参数")
+@Schema(title = "任务参数")
 public class PlanParam implements Serializable {
 
     private static final long serialVersionUID = 3349688739542837391L;
@@ -42,20 +42,20 @@ public class PlanParam implements Serializable {
     /**
      * 计划名称
      */
-    @Schema(title = "计划名称")
+    @Schema(title = "任务名称")
     private String name;
 
     /**
      * 计划描述
      */
-    @Schema(title = "计划描述")
+    @Schema(title = "任务描述")
     private String description;
 
     /**
      * 计划类型
      */
     @NotNull
-    @Schema(title = "计划类型", implementation = Integer.class)
+    @Schema(title = "任务类型", implementation = Integer.class)
     private PlanType planType;
 
     /**
@@ -69,7 +69,7 @@ public class PlanParam implements Serializable {
      * 作业计划调度配置参数
      */
     @NotNull
-    @Schema(title = "作业计划调度配置参数")
+    @Schema(title = "调度配置参数")
     private ScheduleOptionParam scheduleOption;
 
     /**

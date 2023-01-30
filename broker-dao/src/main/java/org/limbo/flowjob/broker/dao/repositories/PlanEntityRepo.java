@@ -20,6 +20,7 @@ package org.limbo.flowjob.broker.dao.repositories;
 
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -32,7 +33,7 @@ import java.util.List;
  * @author Devil
  * @since 2022/6/22
  */
-public interface PlanEntityRepo extends JpaRepository<PlanEntity, String> {
+public interface PlanEntityRepo extends JpaRepository<PlanEntity, String>, JpaSpecificationExecutor<PlanEntity> {
 
     @Query(value = "select * from flowjob_plan where plan_id = :planId for update", nativeQuery = true)
     PlanEntity selectForUpdate(@Param("planId") String planId);
@@ -44,10 +45,11 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, String> {
     List<PlanEntity> loadUpdatedPlans(@Param("planIds") List<String> planIds, @Param("updatedAt") LocalDateTime updatedAt);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanEntity set currentVersion = :newCurrentVersion, recentlyVersion = :newRecentlyVersion " +
-            "where planId = :planId and currentVersion = :currentVersion and recentlyVersion = :recentlyVersion")
+    @Query(value = "update PlanEntity set currentVersion = :newCurrentVersion, recentlyVersion = :newRecentlyVersion, name = :name" +
+            " where planId = :planId and currentVersion = :currentVersion and recentlyVersion = :recentlyVersion")
     int updateVersion(@Param("newCurrentVersion") String newCurrentVersion,
                       @Param("newRecentlyVersion") String newRecentlyVersion,
+                      @Param("name") String name,
                       @Param("planId") String planId,
                       @Param("currentVersion") String currentVersion,
                       @Param("recentlyVersion") String recentlyVersion);

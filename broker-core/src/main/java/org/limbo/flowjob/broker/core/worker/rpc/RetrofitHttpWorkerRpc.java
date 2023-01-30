@@ -18,7 +18,7 @@ package org.limbo.flowjob.broker.core.worker.rpc;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.limbo.flowjob.api.remote.constants.HttpWorkerApi;
-import org.limbo.flowjob.api.remote.dto.ResponseDTO;
+import org.limbo.flowjob.api.ResponseDTO;
 import org.limbo.flowjob.api.remote.param.TaskSubmitParam;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.exceptions.WorkerException;

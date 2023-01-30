@@ -3,11 +3,16 @@ package org.limbo.flowjob.broker.application.plan.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.api.PageDTO;
 import org.limbo.flowjob.api.console.param.PlanParam;
+import org.limbo.flowjob.api.console.param.PlanQueryParam;
 import org.limbo.flowjob.api.console.param.ScheduleOptionParam;
+import org.limbo.flowjob.api.console.vo.PlanVO;
 import org.limbo.flowjob.broker.application.plan.component.SlotManager;
 import org.limbo.flowjob.broker.application.plan.converter.PlanConverter;
+import org.limbo.flowjob.broker.application.plan.support.JpaHelper;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
@@ -26,13 +31,20 @@ import org.limbo.flowjob.common.exception.VerifyException;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Predicate;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author Brozen
@@ -85,6 +97,7 @@ public class PlanService {
             planEntity.setRecentlyVersion(planInfoId);
             planEntity.setEnabled(false);
             planEntity.setPlanId(planId);
+            planEntity.setName(param.getName());
 
             planEntity = planEntityRepo.saveAndFlush(planEntity);
 
@@ -99,7 +112,7 @@ public class PlanService {
             Verifies.notNull(planEntity, "plan is null id:" + planId);
 
             // 更新 Plan 版本信息
-            int effected = planEntityRepo.updateVersion(planInfoId, planInfoId, planId, planEntity.getCurrentVersion(), planEntity.getRecentlyVersion());
+            int effected = planEntityRepo.updateVersion(planInfoId, planInfoId, param.getName(), planId, planEntity.getCurrentVersion(), planEntity.getRecentlyVersion());
             if (effected <= 0) {
                 throw new IllegalStateException("更新Plan版本失败");
             }
@@ -187,5 +200,55 @@ public class PlanService {
         // 停用计划
         return planEntityRepo.updateEnable(planEntity.getPlanId(), true, false) == 1;
     }
+
+    public PageDTO<PlanVO> page(PlanQueryParam param) {
+        Specification<PlanEntity> sf = (root, query, cb) -> {
+            //用于添加所有查询条件
+            List<Predicate> p = new ArrayList<>();
+            if (StringUtils.isNotBlank(param.getName())) {
+                Predicate p3 = cb.like(root.get("name").as(String.class), param.getName() + "%");
+                p.add(p3);
+            }
+            Predicate[] pre = new Predicate[p.size()];
+            Predicate and = cb.and(p.toArray(pre));
+            query.where(and);
+
+            //设置排序
+            List<Order> orders = new ArrayList<>();
+            orders.add(cb.desc(root.get("planId")));
+            return query.orderBy(orders).getRestriction();
+        };
+        Pageable pageable = JpaHelper.pageable(param);
+        Page<PlanEntity> queryResult = planEntityRepo.findAll(sf, pageable);
+        List<PlanEntity> planEntities = queryResult.getContent();
+        PageDTO<PlanVO> page = PageDTO.convertByPage(param);
+        page.setTotal(queryResult.getTotalElements());
+        if (CollectionUtils.isNotEmpty(planEntities)) {
+            List<PlanInfoEntity> planInfoEntities = planInfoEntityRepo.findAllById(planEntities.stream().map(PlanEntity::getCurrentVersion).collect(Collectors.toList()));
+            Map<String, PlanInfoEntity> planInfoEntityMap = planInfoEntities.stream().collect(Collectors.toMap(PlanInfoEntity::getPlanInfoId, e -> e));
+            page.setData(planEntities.stream().map(planEntity -> {
+                PlanInfoEntity planInfoEntity = planInfoEntityMap.get(planEntity.getCurrentVersion());
+                PlanVO vo = new PlanVO();
+                vo.setPlanId(planEntity.getPlanId());
+                vo.setCurrentVersion(planEntity.getCurrentVersion());
+                vo.setRecentlyVersion(planEntity.getRecentlyVersion());
+                vo.setEnabled(planEntity.isEnabled());
+                vo.setName(planInfoEntity.getName());
+                vo.setDescription(planInfoEntity.getDescription());
+                vo.setPlanType(planInfoEntity.getPlanType());
+                vo.setScheduleType(planInfoEntity.getScheduleType());
+                vo.setTriggerType(planInfoEntity.getTriggerType());
+                vo.setScheduleStartAt(planInfoEntity.getScheduleStartAt());
+                vo.setScheduleDelay(planInfoEntity.getScheduleDelay());
+                vo.setScheduleInterval(planInfoEntity.getScheduleInterval());
+                vo.setScheduleCron(planInfoEntity.getScheduleCron());
+                vo.setScheduleCronType(planInfoEntity.getScheduleCronType());
+                vo.setRetry(planInfoEntity.getRetry());
+                return vo;
+            }).collect(Collectors.toList()));
+        }
+        return page;
+    }
+
 
 }

@@ -55,6 +55,11 @@ public class PlanEntity extends BaseEntity {
     @Column(name = "is_enabled")
     private boolean enabled;
 
+    /**
+     * 冗余字段，用于查询
+     */
+    private String name;
+
     @Override
     public Object getUid() {
         return planId;

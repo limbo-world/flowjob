@@ -5,19 +5,19 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.limbo.flowjob.api.PageDTO;
+import org.limbo.flowjob.api.PageParam;
+import org.limbo.flowjob.api.ResponseDTO;
 import org.limbo.flowjob.api.console.param.PlanParam;
-import org.limbo.flowjob.api.remote.dto.ResponseDTO;
+import org.limbo.flowjob.api.console.param.PlanQueryParam;
+import org.limbo.flowjob.api.console.vo.PlanVO;
 import org.limbo.flowjob.broker.application.plan.service.PlanService;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -78,6 +78,15 @@ public class PlanController {
     @PutMapping("/{planId}/stop")
     public ResponseDTO<Boolean> stop(@PathVariable("planId") String planId) {
         return ResponseDTO.<Boolean>builder().ok(planService.stop(planId)).build();
+    }
+
+    /**
+     * 计划列表
+     */
+    @Operation(summary = "计划列表")
+    @GetMapping
+    public ResponseDTO<PageDTO<PlanVO>> page(PlanQueryParam param) {
+        return ResponseDTO.<PageDTO<PlanVO>>builder().ok(planService.page(param)).build();
     }
 
 }
