@@ -1,5 +1,8 @@
 package org.limbo.flowjob.common.lb;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+
 import java.util.Collections;
 import java.util.Map;
 
@@ -7,6 +10,8 @@ import java.util.Map;
  * @author Brozen
  * @since 2022-12-14
  */
+@AllArgsConstructor
+@Builder(builderClassName = "Builder")
 public class RPCInvocation implements Invocation {
 
     /**
@@ -14,10 +19,11 @@ public class RPCInvocation implements Invocation {
      */
     private final String path;
 
+    /**
+     * 负载均衡参数
+     */
+    private final Map<String, String> lbParameters;
 
-    public RPCInvocation(String path) {
-        this.path = path;
-    }
 
     /**
      * {@inheritDoc}
@@ -35,7 +41,7 @@ public class RPCInvocation implements Invocation {
      */
     @Override
     public Map<String, String> getLBParameters() {
-        return Collections.emptyMap();
+        return Collections.unmodifiableMap(lbParameters);
     }
 
 }

@@ -105,7 +105,8 @@ public class TaskDispatcher {
         WorkerSelector workerSelector = workerSelectorFactory.newSelector(task.getDispatchOption().getLoadBalanceType());
         for (int i = 0; i < 3; i++) {
             try {
-                Worker worker = workerSelector.select(task.getDispatchOption(), task.getExecutorName(), availableWorkers);
+                SimpleWorkerSelectArguments args = new SimpleWorkerSelectArguments(task);
+                Worker worker = workerSelector.select(args, availableWorkers);
                 if (worker == null) {
                     return false;
                 }
@@ -129,6 +130,7 @@ public class TaskDispatcher {
         onDispatchFailed(task);
         return false;
     }
+
 
     /**
      * 下发任务到 worker 成功时的流程
