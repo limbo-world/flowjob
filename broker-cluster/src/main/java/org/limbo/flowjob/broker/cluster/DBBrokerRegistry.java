@@ -58,7 +58,7 @@ public class DBBrokerRegistry implements NodeRegistry {
     @Setter(onMethod_ = @Inject)
     private IDGenerator idGenerator;
 
-    // todo 考虑移除
+    // todo v1 考虑移除
     @Setter(onMethod_ = @Inject)
     private BrokerConfig config;
 

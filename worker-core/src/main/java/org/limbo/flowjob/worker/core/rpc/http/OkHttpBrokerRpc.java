@@ -29,9 +29,8 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.api.remote.constants.WorkerHeaders;
-import org.limbo.flowjob.api.remote.dto.BrokerTopologyDTO;
 import org.limbo.flowjob.api.ResponseDTO;
+import org.limbo.flowjob.api.remote.dto.BrokerTopologyDTO;
 import org.limbo.flowjob.api.remote.dto.WorkerRegisterDTO;
 import org.limbo.flowjob.api.remote.param.TaskFeedbackParam;
 import org.limbo.flowjob.api.remote.param.WorkerRegisterParam;
@@ -78,9 +77,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
 
     private static final Protocol DEFAULT_PROTOCOL = Protocol.HTTP;
 
-    private static String workerId = "";
-
-    private static String token = "";
+    private String workerId = "";
 
     public OkHttpBrokerRpc(LBServerRepository<BrokerNode> repository, LBStrategy<BrokerNode> strategy) {
         this.repository = repository;
@@ -105,7 +102,6 @@ public class OkHttpBrokerRpc implements BrokerRpc {
 
         // 注册成功，更新 broker 节点拓扑
         if (result != null) {
-            token = result.getToken();
             workerId = result.getWorkerId();
             updateBrokerTopology(result.getBrokerTopology());
         } else {
@@ -177,7 +173,6 @@ public class OkHttpBrokerRpc implements BrokerRpc {
         // 更新 broker 节点拓扑
         if (response.getData() != null) {
             WorkerRegisterDTO data = response.getData();
-            token = data.getToken(); // todo 并发情况是否有问题？？？ 心跳是否应该返回token并更新？
             updateBrokerTopology(data.getBrokerTopology());
         }
     }
@@ -231,7 +226,6 @@ public class OkHttpBrokerRpc implements BrokerRpc {
         Request request = new Request.Builder()
                 .url(url)
                 .header(HttpHeaders.CONTENT_TYPE, JSON_UTF_8)
-                .header(WorkerHeaders.TOKEN_HEADER, token)
                 .post(body).build();
         Call call = client.newCall(request);
 

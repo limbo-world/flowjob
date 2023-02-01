@@ -56,7 +56,7 @@ public class WorkflowJobInfo extends DAGNode {
     private String description;
 
     /**
-     * 节点类型 todo
+     * 节点类型 todo ???
      */
     private NodeType nodeType;
 

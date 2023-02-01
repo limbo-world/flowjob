@@ -25,7 +25,6 @@ import java.io.Serializable;
 
 /**
  * worker所属租户信息参数
- * TODO 待实现
  *
  * @author Brozen
  * @since 2021-06-10

@@ -31,6 +31,7 @@ import org.limbo.flowjob.common.lb.RPCInvocation;
 import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -75,7 +76,7 @@ public class LoadBalanceInterceptor<S extends LBServer> implements Interceptor {
 
         List<S> servers = repository.listAliveServers();
         for (int i = 1; i <= retryCount; i++) {
-            Optional<S> optional = strategy.select(servers, new RPCInvocation(oldUrl.url().getPath()));
+            Optional<S> optional = strategy.select(servers, new RPCInvocation(oldUrl.url().getPath(), new HashMap<>()));
             if (!optional.isPresent()) {
                 log.warn("No available alive servers after 10 tries from load balancer");
                 throw new IllegalStateException("Can't get alive broker");

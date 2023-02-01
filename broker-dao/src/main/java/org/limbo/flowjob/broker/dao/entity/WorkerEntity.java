@@ -54,7 +54,7 @@ public class WorkerEntity extends BaseEntity {
     /**
      * 所属应用
      */
-    private Long appId;
+    private String appId;
 
     /**
      * 名称 唯一

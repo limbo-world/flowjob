@@ -70,15 +70,6 @@ public class RetrofitHttpWorkerRpc extends HttpWorkerRpc {
 
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void unregister() {
-        // TODO ???
-    }
-
-
-    /**
      * Worker HTTP 协议通信接口
      */
     interface RetrofitWorkerApi {

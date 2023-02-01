@@ -81,7 +81,7 @@ public class PlanConverter {
         JobInfo jobInfo = new JobInfo();
         jobInfo.setId(param.getId());
         jobInfo.setType(param.getType());
-//        jobInfo.setAttributes(); todo
+//        jobInfo.setAttributes(); todo v1
         jobInfo.setDispatchOption(convertJobDispatchOption(param.getDispatchOption()));
         jobInfo.setExecutorName(param.getExecutorName());
         workflowJobInfo.setJob(jobInfo);
@@ -114,7 +114,7 @@ public class PlanConverter {
                 .ramRequirement(param.getRamRequirement())
                 .retry(param.getRetry())
                 .retryInterval(param.getRetryInterval())
-                .tagFilter(null) // TODO
+                .tagFilter(null) // TODO v1
                 .build();
     }
 

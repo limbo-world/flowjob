@@ -191,7 +191,7 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
     @Override
     @Transactional
     public void handleTaskSuccess(Task task, Map<String, Object> resultAttributes) {
-        // todo 更新plan上下文
+        // todo v1 更新plan上下文
         String result = MapUtils.isEmpty(resultAttributes) ? "{}" : JacksonUtils.toJSONString(resultAttributes);
         int num = taskEntityRepo.updateStatusSuccess(task.getTaskId(), TimeUtils.currentLocalDateTime(), result);
 

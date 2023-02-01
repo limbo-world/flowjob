@@ -18,13 +18,10 @@ package org.limbo.flowjob.broker.application.plan.service;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.time.DateUtils;
-import org.limbo.flowjob.api.remote.constants.WorkerHeaders;
 import org.limbo.flowjob.api.remote.dto.WorkerRegisterDTO;
 import org.limbo.flowjob.api.remote.param.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.remote.param.WorkerRegisterParam;
 import org.limbo.flowjob.broker.application.plan.converter.WorkerConverter;
-import org.limbo.flowjob.broker.application.plan.support.TokenHelper;
 import org.limbo.flowjob.broker.application.plan.support.WorkerFactory;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
@@ -38,7 +35,6 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.Date;
 import java.util.Optional;
 
 /**
@@ -67,7 +63,7 @@ public class WorkerService {
      */
     @Transactional(rollbackOn = Throwable.class)
     public WorkerRegisterDTO register(WorkerRegisterParam options) {
-        // TODO 租户鉴权
+        // TODO ??? 租户鉴权
 
         // 校验 protocol
         String protocolName = options.getUrl().getProtocol();
@@ -94,8 +90,7 @@ public class WorkerService {
         workerRepository.save(worker);
         log.info("worker registered " + worker);
 
-        String token = TokenHelper.workerToken(worker.getId(), WorkerHeaders.TOKEN_KEY, DateUtils.addHours(new Date(), 2));
-        return WorkerConverter.toRegisterDTO(token, worker, nodeManger.allAlive());
+        return WorkerConverter.toRegisterDTO(worker, nodeManger.allAlive());
     }
 
     /**
@@ -116,8 +111,7 @@ public class WorkerService {
             log.debug("receive heartbeat from " + workerId);
         }
 
-        String token = TokenHelper.workerToken(worker.getId(), WorkerHeaders.TOKEN_KEY, DateUtils.addHours(new Date(), 2));
-        return WorkerConverter.toRegisterDTO(token, worker, nodeManger.allAlive());
+        return WorkerConverter.toRegisterDTO(worker, nodeManger.allAlive());
     }
 
 }

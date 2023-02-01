@@ -101,7 +101,6 @@ public class WorkerEntityConverter {
      */
     public WorkerEntity toWorkerEntity(Worker worker) {
         WorkerEntity po = new WorkerEntity();
-        po.setAppId(0L); // todo 待增加
         po.setWorkerId(worker.getId());
         po.setName(worker.getName());
         po.setProtocol(worker.getRpcBaseUrl().getProtocol());

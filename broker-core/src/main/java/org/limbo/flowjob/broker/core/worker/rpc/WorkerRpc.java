@@ -36,11 +36,6 @@ public interface WorkerRpc {
      */
     boolean sendTask(Task task);
 
-    /**
-     * 解注册此worker，worker的状态将被标记为{@link WorkerStatus#TERMINATED}
-     */
-    void unregister();
-
     String workerId();
 
     Protocol protocol();
