@@ -93,7 +93,7 @@ public class LFULBStrategy<S extends LBServer> extends AbstractLBStrategy<S> {
                 .collect(Collectors.toSet());
 
         List<LBServerStatistics> statistics = statisticsProvider.getStatistics(serverIds, this.interval);
-        if (CollectionUtils.isNotEmpty(statistics)) {
+        if (CollectionUtils.isEmpty(statistics)) {
             return Optional.empty();
         }
 

@@ -20,6 +20,7 @@ package org.limbo.flowjob.common.lb.strategies;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.common.lb.AbstractLBStrategy;
 import org.limbo.flowjob.common.lb.Invocation;
 import org.limbo.flowjob.common.lb.LBServer;
@@ -37,6 +38,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 public class ConsistentHashLBStrategy<S extends LBServer> extends AbstractLBStrategy<S> {
+
+    /**
+     * 通过某个参数进行 Hash 计算
+     */
+    public static final String HASH_PARAM_NAME = "consistentHash.hashParamName";
 
     /**
      * 一致性哈希算法中，计算 LBServer 虚拟节点时的分片数量。默认 160。
@@ -100,7 +106,12 @@ public class ConsistentHashLBStrategy<S extends LBServer> extends AbstractLBStra
          * 选择一个服务，根据入参 Invocation 的 hashcode 计算。
          */
         public Optional<SERVER> select(Invocation invocation) {
-            long hashcode = invocation.hashCode();
+            Map<String, String> parameters = invocation.getLBParameters();
+            String paramName = parameters.get(HASH_PARAM_NAME);
+            Object hashObj = StringUtils.isNotBlank(paramName) ? parameters.get(paramName) : null;
+            hashObj = hashObj == null ? invocation : hashObj;
+
+            long hashcode = hashObj.hashCode();
             Map.Entry<Long, SERVER> entry = virtualServers.ceilingEntry(hashcode);
             if (entry == null) {
                 entry = virtualServers.firstEntry();

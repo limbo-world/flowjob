@@ -44,25 +44,24 @@ public class FilteringWorkerSelector implements WorkerSelector {
 
     /**
      * {@inheritDoc}
-     * @param dispatchOption 下发参数
-     * @param executorName   执行器名称
-     * @param workers        待下发上下文可用的worker
+     * @param args worker 选择参数
+     * @param workers 待下发上下文可用的worker
      * @return
      */
     @Override
-    public Worker select(DispatchOption dispatchOption, String executorName, List<Worker> workers) {
+    public Worker select(WorkerSelectArgument args, List<Worker> workers) {
         if (CollectionUtils.isEmpty(workers)) {
             return null;
         }
 
         // 过滤 Worker
-        List<Worker> availableWorkers = filterWorkers(dispatchOption, executorName, workers);
+        List<Worker> availableWorkers = filterWorkers(args, workers);
         if (CollectionUtils.isEmpty(availableWorkers)) {
             return null;
         }
 
         // 从过滤出的 worker 中，选择合适的
-        return doSelect(executorName, availableWorkers);
+        return doSelect(args, availableWorkers);
     }
 
 
@@ -72,8 +71,9 @@ public class FilteringWorkerSelector implements WorkerSelector {
      * 1. executor 过滤
      * 2. tag 过滤
      */
-    protected List<Worker> filterWorkers(DispatchOption dispatchOption, String executorName, List<Worker> workers) {
-
+    protected List<Worker> filterWorkers(WorkerSelectArgument args, List<Worker> workers) {
+        DispatchOption dispatchOption = args.getDispatchOption();
+        String executorName = args.getExecutorName();
         List<Worker> availableWorkers = new ArrayList<>();
 
         // 过滤出有指定 executor 的 Worker
@@ -110,11 +110,14 @@ public class FilteringWorkerSelector implements WorkerSelector {
      * 执行 Worker 选择逻辑，这里默认使用负载均衡策略来代理选择逻辑。
      * PS：单独抽取一个方法，方便扩展。
      *
-     * @param executorName 执行器名称
+     * @param args 执行器名称
      * @param workers 待下发上下文可用的worker
      */
-    protected Worker doSelect(String executorName, List<Worker> workers) {
-        RPCInvocation lbInvocation = new RPCInvocation(executorName);
+    protected Worker doSelect(WorkerSelectArgument args, List<Worker> workers) {
+        RPCInvocation lbInvocation = RPCInvocation.builder()
+                .path(args.getExecutorName())
+                .lbParameters(args.getAttributes())
+                .build();
         return strategy.select(workers, lbInvocation).orElse(null);
     }
 

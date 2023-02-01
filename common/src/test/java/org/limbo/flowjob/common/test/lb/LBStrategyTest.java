@@ -1,5 +1,6 @@
 package org.limbo.flowjob.common.test.lb;
 
+import com.google.common.collect.Maps;
 import org.junit.Before;
 import org.junit.Test;
 import org.limbo.flowjob.common.lb.RPCInvocation;
@@ -32,7 +33,7 @@ public class LBStrategyTest {
         RoundRobinLBStrategy<IntegerLBServer> strategy = new RoundRobinLBStrategy<>();
 
         for (int i = 0; i < 200; i++) {
-            strategy.select(servers, new RPCInvocation("test"))
+            strategy.select(servers, new RPCInvocation("test", Maps.newHashMap()))
                     .ifPresent(server -> System.out.println("get " + server.getServerId()));
         }
     }
@@ -49,7 +50,7 @@ public class LBStrategyTest {
         );
 
         for (int i = 0; i < 1000; i++) {
-            strategy.select(servers, new RPCInvocation("test"))
+            strategy.select(servers, new RPCInvocation("test", Maps.newHashMap()))
                     .ifPresent(server -> System.out.println("get " + server.getServerId()));
         }
     }

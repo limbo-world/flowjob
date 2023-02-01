@@ -41,10 +41,9 @@ public interface WorkerSelector {
     /**
      * 选择作业上下文应当下发给的worker。
      *
-     * @param dispatchOption 下发参数
-     * @param executorName   执行器名称
-     * @param workers        待下发上下文可用的worker
+     * @param args worker 选择参数
+     * @param workers 待下发上下文可用的worker
      */
-    Worker select(DispatchOption dispatchOption, String executorName, List<Worker> workers);
+    Worker select(WorkerSelectArgument args, List<Worker> workers);
 
 }

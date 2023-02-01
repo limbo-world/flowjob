@@ -63,14 +63,6 @@ public class Attributes implements Serializable {
         return attributes.get(key);
     }
 
-    /**
-     * 根据key获取value列表中的第一个值
-     * @param key 属性key
-     * @return 属性values中的第一个
-     */
-    public Object getFirst(String key) {
-        return attributes.getOrDefault(key, null);
-    }
 
     /**
      * 将属性转换为Map形式。此方法返回attribute的快照，修改快照将不会对JobAttribute本身造成任何影响。
