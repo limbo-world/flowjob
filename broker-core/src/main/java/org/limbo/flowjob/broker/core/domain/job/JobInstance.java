@@ -73,7 +73,7 @@ public abstract class JobInstance implements Serializable {
     protected JobStatus status;
 
     /**
-     * 是否需要重试 todo
+     * 是否需要重试 todo v1
      */
     public boolean retry() {
         JobInfo jobInfo = getJobInfo();

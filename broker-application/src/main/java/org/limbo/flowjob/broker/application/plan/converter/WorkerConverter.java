@@ -19,13 +19,13 @@ package org.limbo.flowjob.broker.application.plan.converter;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.api.remote.dto.BrokerDTO;
+import org.limbo.flowjob.api.remote.dto.BrokerTopologyDTO;
 import org.limbo.flowjob.api.remote.dto.WorkerRegisterDTO;
 import org.limbo.flowjob.api.remote.param.WorkerExecutorRegisterParam;
 import org.limbo.flowjob.api.remote.param.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.remote.param.WorkerRegisterParam;
 import org.limbo.flowjob.api.remote.param.WorkerResourceParam;
-import org.limbo.flowjob.api.remote.dto.BrokerDTO;
-import org.limbo.flowjob.api.remote.dto.BrokerTopologyDTO;
 import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
@@ -75,7 +75,7 @@ public class WorkerConverter {
     public static WorkerMetric toWorkerMetric(WorkerRegisterParam options) {
         WorkerResourceParam resource = options.getAvailableResource();
         return WorkerMetric.builder()
-                .executingJobs(Lists.newArrayList()) // TODO 是否需要记录执行中的作业？
+                .executingJobs(Lists.newArrayList()) // TODO ??? 是否需要记录执行中的作业？
                 .availableResource(new WorkerAvailableResource(
                         resource.getAvailableCpu(),
                         resource.getAvailableRAM(),
@@ -92,7 +92,7 @@ public class WorkerConverter {
     public static WorkerMetric toWorkerMetric(WorkerHeartbeatParam options) {
         WorkerResourceParam resource = options.getAvailableResource();
         return WorkerMetric.builder()
-                .executingJobs(Lists.newArrayList()) // TODO 是否需要记录？
+                .executingJobs(Lists.newArrayList()) // TODO ??? 是否需要记录？
                 .availableResource(new WorkerAvailableResource(
                         resource.getAvailableCpu(),
                         resource.getAvailableRAM(),
@@ -134,9 +134,8 @@ public class WorkerConverter {
     /**
      * Worker 注册结果
      */
-    public static WorkerRegisterDTO toRegisterDTO(String token, Worker worker, Collection<Node> nodes) {
+    public static WorkerRegisterDTO toRegisterDTO(Worker worker, Collection<Node> nodes) {
         WorkerRegisterDTO registerResult = new WorkerRegisterDTO();
-        registerResult.setToken(token);
         registerResult.setWorkerId(worker.getId());
         registerResult.setBrokerTopology(toBrokerTopologyDTO(nodes));
         return registerResult;

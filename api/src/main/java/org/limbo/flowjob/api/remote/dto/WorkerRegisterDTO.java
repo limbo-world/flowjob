@@ -21,6 +21,8 @@ package org.limbo.flowjob.api.remote.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * worker注册结果
  *
@@ -30,12 +32,6 @@ import lombok.Data;
 @Data
 @Schema(title = "worker注册结果")
 public class WorkerRegisterDTO {
-
-    /**
-     * 会话token
-     */
-    @Schema(description = "会话token")
-    private String token;
 
     /**
      * 工作节点 ID

@@ -31,12 +31,11 @@ import java.util.List;
 @Data
 public class BrokerTopologyDTO {
 
-    /**
-     * Broker 当前的部署拓扑形式：单节点、主从、集群、主从+集群
-     * todo
-     */
-    @Schema(description = "Broker 当前的部署拓扑形式：单节点、主从、集群、主从+集群")
-    private Integer mode;
+//    /**
+//     * Broker 当前的部署拓扑形式：单节点、主从、集群、主从+集群
+//     */
+//    @Schema(description = "Broker 当前的部署拓扑形式：单节点、主从、集群、主从+集群")
+//    private Integer mode;
 
     /**
      * broker节点列表，主从模式下，列表中仅包括一个主节点
