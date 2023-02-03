@@ -22,6 +22,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
+import org.limbo.flowjob.broker.core.dispatch.RetryOption;
 import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
@@ -45,6 +46,16 @@ public class JobInfo {
     private JobType type;
 
     /**
+     * 作业执行器配置参数
+     */
+    private String executorName;
+
+    /**
+     * 重试参数
+     */
+    private RetryOption retryOption;
+
+    /**
      * 属性参数
      */
     protected Attributes attributes;
@@ -53,10 +64,5 @@ public class JobInfo {
      * 作业分发配置参数
      */
     private DispatchOption dispatchOption;
-
-    /**
-     * 作业执行器配置参数
-     */
-    private String executorName;
 
 }
