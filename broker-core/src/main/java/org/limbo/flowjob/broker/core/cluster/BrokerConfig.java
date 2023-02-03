@@ -48,8 +48,8 @@ public class BrokerConfig {
     protected long heartbeatInterval = 2000;
 
     /**
-     * 心跳超时时间，秒
+     * 心跳超时时间，毫秒
      */
-    protected long heartbeatTimeout = 10;
+    protected long heartbeatTimeout = 10000;
 
 }
