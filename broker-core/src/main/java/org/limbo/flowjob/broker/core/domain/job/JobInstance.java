@@ -22,7 +22,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.common.constants.JobStatus;
 import org.limbo.flowjob.common.constants.PlanType;
-import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -63,29 +62,9 @@ public abstract class JobInstance implements Serializable {
     protected LocalDateTime endAt;
 
     /**
-     * 已经尝试的次数
-     */
-    protected int retry = 0;
-
-    /**
      * 状态
      */
     protected JobStatus status;
-
-    /**
-     * 是否需要重试 todo v1
-     */
-    public boolean retry() {
-        JobInfo jobInfo = getJobInfo();
-        if (jobInfo.getDispatchOption().getRetry() > retry) {
-            setTriggerAt(TimeUtils.currentLocalDateTime().plusSeconds(jobInfo.getDispatchOption().getRetryInterval()));
-            setJobInstanceId(null);
-            setStatus(JobStatus.SCHEDULING);
-            return true;
-        } else {
-            return false;
-        }
-    }
 
     public abstract JobInfo getJobInfo();
 }

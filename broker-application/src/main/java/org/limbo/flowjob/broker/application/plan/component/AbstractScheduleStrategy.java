@@ -34,6 +34,7 @@ import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
+import org.limbo.flowjob.broker.core.exceptions.JobException;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
@@ -68,6 +69,8 @@ import org.limbo.flowjob.common.utils.time.TimeUtils;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -284,7 +287,71 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
 
     public abstract void handleJobSuccess(JobInstance jobInstance);
 
-    public abstract void handleJobFail(JobInstance jobInstance);
+    @Transactional
+    public void handleJobFail(JobInstance jobInstance) {
+        jobInstanceEntityRepo.updateStatusExecuteFail(jobInstance.getJobInstanceId(), MsgConstants.TASK_FAIL);
+        if (needRetry(jobInstance)) {
+            JobInfo jobInfo = jobInstance.getJobInfo();
+            jobInstance.setTriggerAt(TimeUtils.currentLocalDateTime().plusSeconds(jobInfo.getDispatchOption().getRetryInterval()));
+            jobInstance.setJobInstanceId(null);
+            jobInstance.setStatus(JobStatus.SCHEDULING);
+            scheduleJobInstances(Collections.singletonList(jobInstance), TimeUtils.currentLocalDateTime());
+        } else {
+            planInstanceEntityRepo.fail(jobInstance.getPlanInstanceId(), TimeUtils.currentLocalDateTime());
+        }
+    }
+
+    public boolean needRetry(JobInstance jobInstance) {
+        JobInfo jobInfo = jobInstance.getJobInfo();
+        // 查询已经失败的记录数
+        long retry = jobInstanceEntityRepo.countByPlanInstanceIdAndJobId(jobInstance.getPlanInstanceId(), jobInfo.getId());
+        return jobInfo.getDispatchOption().getRetry() > retry;
+    }
+
+    /**
+     * 调度jobInstance
+     */
+    @Transactional
+    public void scheduleJobInstances(List<JobInstance> jobInstances, LocalDateTime triggerAt) {
+        if (CollectionUtils.isEmpty(jobInstances)) {
+            return;
+        }
+
+        // 保存 jobInstance
+        List<JobInstanceEntity> jobInstanceEntities = jobInstances.stream().map(domainConverter::toJobInstanceEntity).collect(Collectors.toList());
+        jobInstanceEntityRepo.saveAll(jobInstanceEntities);
+        jobInstanceEntityRepo.flush();
+
+        List<Task> tasks = new ArrayList<>();
+        for (JobInstance instance : jobInstances) {
+            // 根据job类型创建task
+            List<Task> jobTasks;
+            JobInfo jobInfo = instance.getJobInfo();
+            switch (jobInfo.getType()) {
+                case NORMAL:
+                    jobTasks = taskFactory.create(instance, TaskType.NORMAL);
+                    break;
+                case BROADCAST:
+                    jobTasks = taskFactory.create(instance, TaskType.BROADCAST);
+                    break;
+                case MAP:
+                case MAP_REDUCE:
+                    jobTasks = taskFactory.create(instance, TaskType.SPLIT);
+                    break;
+                default:
+                    throw new JobException(jobInfo.getId(), MsgConstants.UNKNOWN + " job type:" + jobInfo.getType().type);
+            }
+
+            // 如果可以创建的任务为空（只有广播任务）
+            if (CollectionUtils.isEmpty(jobTasks)) {
+                handleJobSuccess(instance);
+            } else {
+                tasks.addAll(jobTasks);
+            }
+        }
+
+        saveAndScheduleTask(tasks, triggerAt);
+    }
 
     /**
      * 生成新的计划调度记录
@@ -323,7 +390,6 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
             }
         }
     }
-
 
     public JobInstance getJobInstance(String id) {
         JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.findById(id).orElse(null);
