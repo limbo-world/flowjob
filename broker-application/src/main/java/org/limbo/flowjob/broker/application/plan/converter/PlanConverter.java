@@ -114,7 +114,7 @@ public class PlanConverter {
                 .ramRequirement(param.getRamRequirement())
                 .retry(param.getRetry())
                 .retryInterval(param.getRetryInterval())
-                .tagFilter(null) // TODO v1
+                .tagFilters(null) // TODO v1
                 .build();
     }
 

@@ -19,6 +19,7 @@
 package org.limbo.flowjob.broker.core.dispatcher;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.dispatch.TagFilterOption;
 import org.limbo.flowjob.broker.core.worker.Worker;
@@ -27,6 +28,7 @@ import org.limbo.flowjob.common.lb.LBStrategy;
 import org.limbo.flowjob.common.lb.RPCInvocation;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -55,7 +57,11 @@ public class FilteringWorkerSelector implements WorkerSelector {
         }
 
         // 过滤 Worker
-        List<Worker> availableWorkers = filterWorkers(args, workers);
+        String executorName = args.getExecutorName();
+        List<Worker> availableWorkers = filterExecutor(executorName, workers);
+        DispatchOption dispatchOption = args.getDispatchOption();
+        List<TagFilterOption> tagFilters = dispatchOption.getTagFilters();
+        availableWorkers = filterTags(tagFilters, availableWorkers);
         if (CollectionUtils.isEmpty(availableWorkers)) {
             return null;
         }
@@ -64,45 +70,49 @@ public class FilteringWorkerSelector implements WorkerSelector {
         return doSelect(args, availableWorkers);
     }
 
+    /**
+     * filter by executor name
+     */
+    protected List<Worker> filterExecutor(String executorName, List<Worker> workers) {
+        if (StringUtils.isBlank(executorName)) {
+            return Collections.emptyList();
+        }
+        return workers.stream()
+                .filter(worker -> {
+                    List<WorkerExecutor> executors = worker.getExecutors();
+                    if (CollectionUtils.isEmpty(executors)) {
+                        return false;
+                    }
+                    // 判断是否有对应的执行器
+                    for (WorkerExecutor executor : executors) {
+                        if (executor.getName().equals(executorName)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                })
+                .collect(Collectors.toList());
+    }
 
     /**
-     * 过滤 Worker，从入参 worker 列表中选择合适的 Worker 作为 LB 策略的候选项。
-     * 目前过滤条件有：
-     * 1. executor 过滤
-     * 2. tag 过滤
+     * filter by tags
      */
-    protected List<Worker> filterWorkers(WorkerSelectArgument args, List<Worker> workers) {
-        DispatchOption dispatchOption = args.getDispatchOption();
-        String executorName = args.getExecutorName();
-        List<Worker> availableWorkers = new ArrayList<>();
-
-        // 过滤出有指定 executor 的 Worker
-        WORKER:
-        for (Worker worker : workers) {
-            List<WorkerExecutor> executors = worker.getExecutors();
-            if (CollectionUtils.isEmpty(executors)) {
-                continue;
-            }
-            // 判断是否有对应的执行器
-            for (WorkerExecutor executor : executors) {
-                if (executor.getName().equals(executorName)) {
-                    availableWorkers.add(worker);
-                    continue WORKER;
-                }
-            }
+    protected List<Worker> filterTags(List<TagFilterOption> tagFilters, List<Worker> workers) {
+        if (CollectionUtils.isEmpty(tagFilters)) {
+            return workers;
         }
-
-        // TODO ??? 根据 CPU、内存剩余资源过滤
-
-        // 根据标签过滤
-        TagFilterOption tagFilter = dispatchOption.getTagFilter();
-        if (tagFilter != null) {
-            availableWorkers = availableWorkers.stream()
-                    .filter(tagFilter.asPredicate())
-                    .collect(Collectors.toList());
+        List<Worker> availableWorkers = new ArrayList<>(workers);
+        for (TagFilterOption tagFilter : tagFilters) {
+            availableWorkers = availableWorkers.stream().filter(tagFilter.asPredicate()).collect(Collectors.toList());
         }
-
         return availableWorkers;
+    }
+
+    /**
+     * todo ??? filter by worker queue/CPU/memory
+     */
+    protected List<Worker> filterResources() {
+        return null;
     }
 
 
