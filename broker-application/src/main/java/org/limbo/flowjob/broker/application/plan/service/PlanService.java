@@ -136,7 +136,7 @@ public class PlanService {
         // job info
         List<JobInfoEntity> jobInfoEntities = new ArrayList<>();
         if (PlanType.SINGLE == param.getPlanType()) {
-            JobInfo jobInfo = planConverter.covertJob(param.getJob());
+            JobInfo jobInfo = planConverter.covertJob(idGenerator.generateId(IDType.JOB_INFO), param.getJob());
             jobInfoEntities.add(planConverter.toJobInfoEntity(jobInfo));
             planInfoEntity.setJobInfo(JacksonUtils.toJSONString(jobInfo));
         } else {

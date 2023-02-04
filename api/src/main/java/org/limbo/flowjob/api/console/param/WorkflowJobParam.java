@@ -20,6 +20,7 @@ package org.limbo.flowjob.api.console.param;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.common.constants.TriggerType;
@@ -36,8 +37,9 @@ import java.util.Set;
  * @since 2021/7/24
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Schema(title = "作业参数")
-public class WorkflowJobParam {
+public class WorkflowJobParam extends JobParam {
 
     /**
      * id
@@ -66,41 +68,11 @@ public class WorkflowJobParam {
     private Set<String> children;
 
     /**
-     * 作业类型
-     */
-    @NotNull
-    @Schema(title = "作业类型")
-    private JobType type;
-
-    /**
      * 触发类型
      */
     @NotNull
     @Schema(title = "触发类型")
     private TriggerType triggerType;
-
-    /**
-     * 属性参数
-     */
-    @Valid
-    @NotEmpty
-    @Schema(title = "属性参数")
-    private Map<String, Object> attributes;
-
-    /**
-     * 作业分发配置参数
-     */
-    @Valid
-    @NotNull
-    @Schema(title = "作业分发配置参数")
-    private DispatchOptionParam dispatchOption;
-
-    /**
-     * 执行器名称
-     */
-    @NotBlank
-    @Schema(title = "执行器名称")
-    private String executorName;
 
     /**
      * 执行失败是否终止 false 会继续执行后续作业

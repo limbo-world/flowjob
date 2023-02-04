@@ -106,7 +106,7 @@ public class ScheduleTest {
     }
 
     @Test
-//    @Transactional
+    @Transactional
     void testTaskSuccess() {
         PlanParam param = planParamFactory.newFixedRateAddParam();
 
@@ -119,7 +119,7 @@ public class ScheduleTest {
         Plan plan = planScheduleTask.getPlan();
         scheduleStrategyFactory.build(plan.planType()).schedule(plan.getTriggerType(), plan, TimeUtils.currentLocalDateTime());
         // 处理task 执行
-        while (true) {
+        while (true) { // 处理所有节点
             List<TaskEntity> taskEntities = taskEntityRepo.findByPlanIdInAndStatus(Collections.singletonList(id), TaskStatus.EXECUTING.status);
             if (CollectionUtils.isEmpty(taskEntities)) {
                 break;
@@ -129,8 +129,16 @@ public class ScheduleTest {
                         .result(ExecuteResult.SUCCEED.result)
                         .build()
                 );
+
+                checkTaskFinish(taskEntity.getTaskId(), TaskStatus.SUCCEED);
             }
         }
+    }
+
+    private void checkTaskFinish(String id, TaskStatus status) {
+        TaskEntity task = taskEntityRepo.findById(id).orElse(null);
+        assert task != null;
+        assert TaskStatus.parse(task.getStatus()) == status;
     }
 
 }

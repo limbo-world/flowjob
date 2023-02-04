@@ -180,7 +180,9 @@ public class DomainConverter {
         taskEntity.setType(task.getTaskType().type);
         taskEntity.setStatus(task.getStatus().status);
         taskEntity.setWorkerId(task.getWorkerId());
+        taskEntity.setExecutorName(task.getExecutorName());
         taskEntity.setAttributes(task.getAttributes() == null ? "{}" : task.getAttributes().toString());
+        taskEntity.setDispatchOption(JacksonUtils.toJSONString(task.getDispatchOption()));
         taskEntity.setTaskId(task.getTaskId());
         return taskEntity;
     }
@@ -193,25 +195,11 @@ public class DomainConverter {
         task.setStatus(TaskStatus.parse(entity.getStatus()));
         task.setTaskType(TaskType.parse(entity.getType()));
         task.setWorkerId(entity.getWorkerId());
+        task.setExecutorName(entity.getExecutorName());
         task.setAttributes(new Attributes(entity.getAttributes()));
         task.setPlanId(entity.getPlanId());
         task.setPlanVersion(entity.getPlanInfoId());
-
-        // plan
-        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getPlanInfoId()).orElse(null);
-        PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
-        task.setPlanType(planType);
-
-        // job
-        if (PlanType.SINGLE == planType) {
-            JobInfo jobInfo = JacksonUtils.parseObject(planInfoEntity.getJobInfo(), JobInfo.class);
-            task.setDispatchOption(jobInfo.getDispatchOption());
-            task.setExecutorName(jobInfo.getExecutorName());
-        } else {
-            JobInfoEntity jobInfoEntity = jobInfoEntityRepo.findById(entity.getJobId()).orElse(null);
-            task.setDispatchOption(JacksonUtils.parseObject(jobInfoEntity.getDispatchOption(), DispatchOption.class));
-            task.setExecutorName(jobInfoEntity.getExecutorName());
-        }
+        task.setDispatchOption(JacksonUtils.parseObject(entity.getDispatchOption(), DispatchOption.class));
         return task;
     }
 

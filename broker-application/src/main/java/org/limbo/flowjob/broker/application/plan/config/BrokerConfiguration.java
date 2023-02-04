@@ -25,6 +25,7 @@ import org.limbo.flowjob.broker.application.plan.component.SingleJobScheduleStra
 import org.limbo.flowjob.broker.application.plan.component.TaskStatusCheckTask;
 import org.limbo.flowjob.broker.application.plan.component.WorkflowScheduleStrategy;
 import org.limbo.flowjob.broker.application.plan.support.NodeMangerImpl;
+import org.limbo.flowjob.broker.cluster.DBBrokerRegistry;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
@@ -199,6 +200,11 @@ public class BrokerConfiguration {
                 TimeUnit.SECONDS,
                 new ArrayBlockingQueue<>(1024),
                 new ThreadPoolExecutor.CallerRunsPolicy());
+    }
+
+    @Bean
+    public DBBrokerRegistry brokerRegistry(BrokerConfig config) {
+        return new DBBrokerRegistry(1000, config.getHeartbeatInterval(), config.getHeartbeatTimeout());
     }
 
 }

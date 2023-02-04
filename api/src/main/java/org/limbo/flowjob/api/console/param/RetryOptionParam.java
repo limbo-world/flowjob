@@ -19,54 +19,32 @@
 package org.limbo.flowjob.api.console.param;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import org.limbo.flowjob.common.constants.JobType;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import java.util.Map;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Devil
  * @since 2021/7/24
  */
 @Data
-@Schema(title = "作业参数")
-public class JobParam {
+@Schema(title = "作业重试参数")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class RetryOptionParam {
 
     /**
-     * 作业类型
+     * 重试次数
      */
-    @NotNull
-    @Schema(title = "作业类型")
-    private JobType type;
+    @Schema(title = "重试次数")
+    private Integer retry;
 
     /**
-     * 属性参数
+     * 重试间隔
      */
-    @Schema(title = "属性参数")
-    private Map<String, Object> attributes;
-
-    /**
-     * 作业分发重试参数
-     */
-    @Schema(title = "作业分发重试参数")
-    private RetryOptionParam retryOption;
-
-    /**
-     * 作业分发配置参数
-     */
-    @Valid
-    @NotNull
-    @Schema(title = "作业分发配置参数")
-    private DispatchOptionParam dispatchOption;
-
-    /**
-     * 执行器名称
-     */
-    @NotBlank
-    @Schema(title = "执行器名称")
-    private String executorName;
+    @Schema(title = "重试间隔-秒")
+    private Integer retryInterval;
 
 }

@@ -4,11 +4,12 @@ import com.google.common.collect.Lists;
 import lombok.Setter;
 import org.limbo.flowjob.api.console.param.DispatchOptionParam;
 import org.limbo.flowjob.api.console.param.JobParam;
+import org.limbo.flowjob.api.console.param.RetryOptionParam;
 import org.limbo.flowjob.api.console.param.ScheduleOptionParam;
 import org.limbo.flowjob.api.console.param.WorkflowJobParam;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
+import org.limbo.flowjob.broker.core.dispatch.RetryOption;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
-import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
@@ -48,11 +49,12 @@ public class PlanConverter {
         return jobInfoEntity;
     }
 
-    public JobInfo covertJob(JobParam jobParam) {
+    public JobInfo covertJob(String id, JobParam jobParam) {
         JobInfo jobInfo = new JobInfo();
-        jobInfo.setId(idGenerator.generateId(IDType.JOB_INFO));
+        jobInfo.setId(id);
         jobInfo.setType(jobParam.getType());
         jobInfo.setAttributes(new Attributes(jobParam.getAttributes()));
+        jobInfo.setRetryOption(convertToRetryOption(jobParam.getRetryOption()));
         jobInfo.setDispatchOption(convertJobDispatchOption(jobParam.getDispatchOption()));
         jobInfo.setExecutorName(jobParam.getExecutorName());
         return jobInfo;
@@ -78,12 +80,7 @@ public class PlanConverter {
         workflowJobInfo.setTriggerType(param.getTriggerType());
         workflowJobInfo.setTerminateWithFail(param.isTerminateWithFail());
 
-        JobInfo jobInfo = new JobInfo();
-        jobInfo.setId(param.getId());
-        jobInfo.setType(param.getType());
-//        jobInfo.setAttributes(); todo v1
-        jobInfo.setDispatchOption(convertJobDispatchOption(param.getDispatchOption()));
-        jobInfo.setExecutorName(param.getExecutorName());
+        JobInfo jobInfo = covertJob(param.getId(), param);
         workflowJobInfo.setJob(jobInfo);
         return workflowJobInfo;
     }
@@ -103,6 +100,18 @@ public class PlanConverter {
         );
     }
 
+    /**
+     * 生成作业重试参数
+     */
+    public RetryOption convertToRetryOption(RetryOptionParam param) {
+        if (param == null) {
+            return new RetryOption();
+        }
+        return RetryOption.builder()
+                .retry(param.getRetry())
+                .retryInterval(param.getRetryInterval())
+                .build();
+    }
 
     /**
      * 生成作业分发参数
