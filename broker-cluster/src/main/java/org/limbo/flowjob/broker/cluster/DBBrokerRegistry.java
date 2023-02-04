@@ -22,7 +22,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeEvent;
 import org.limbo.flowjob.broker.core.cluster.NodeListener;
 import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
@@ -33,7 +32,6 @@ import org.limbo.flowjob.broker.dao.repositories.BrokerEntityRepo;
 import org.limbo.flowjob.common.utils.time.Formatters;
 import org.limbo.flowjob.common.utils.time.TimeFormateUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
-import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.time.LocalDateTime;
@@ -49,7 +47,6 @@ import java.util.TimerTask;
  * @since 2022/7/15
  */
 @Slf4j
-@Component
 public class DBBrokerRegistry implements NodeRegistry {
 
     @Setter(onMethod_ = @Inject)
@@ -58,21 +55,33 @@ public class DBBrokerRegistry implements NodeRegistry {
     @Setter(onMethod_ = @Inject)
     private IDGenerator idGenerator;
 
-    // todo v1 考虑移除
-    @Setter(onMethod_ = @Inject)
-    private BrokerConfig config;
+    /**
+     * 心跳超时时间，毫秒
+     */
+    private long heartbeatTimeout = 10000;
+
+    /**
+     * 心跳时间间隔，毫秒
+     */
+    private long heartbeatInterval = 2000;
 
     /**
      * 状态检查任务间隔，毫秒
      */
     private long nodeStatusCheckInterval = 1000;
 
+    public DBBrokerRegistry(long nodeStatusCheckInterval, long heartbeatInterval, long heartbeatTimeout) {
+        this.nodeStatusCheckInterval = nodeStatusCheckInterval;
+        this.heartbeatInterval = heartbeatInterval;
+        this.heartbeatTimeout = heartbeatTimeout;
+    }
+
     private final List<NodeListener> listeners = new ArrayList<>();
 
     @Override
     public void register(String name, String host, int port) {
         // 开启定时任务 维持心跳
-        new Timer().schedule(new HeartbeatTask(name, host, port), 0, config.getHeartbeatInterval());
+        new Timer().schedule(new HeartbeatTask(name, host, port), 0, heartbeatInterval);
 
         // 开启定时任务，监听broker心跳情况
         new Timer().schedule(new NodeOnlineCheckTask(), 0, nodeStatusCheckInterval);
@@ -125,7 +134,7 @@ public class DBBrokerRegistry implements NodeRegistry {
 
         private static final String TASK_NAME = "[NodeOnlineCheckTask]";
 
-        LocalDateTime lastCheckTime = TimeUtils.currentLocalDateTime().plusSeconds(-config.getHeartbeatTimeout());
+        LocalDateTime lastCheckTime = TimeUtils.currentLocalDateTime().plusSeconds(-getSecond(heartbeatTimeout));
 
         @Override
         public void run() {
@@ -158,13 +167,13 @@ public class DBBrokerRegistry implements NodeRegistry {
 
         private static final String TASK_NAME = "[NodeOfflineCheckTask]";
 
-        LocalDateTime lastCheckTime = TimeUtils.currentLocalDateTime().plusSeconds(-2 * config.getHeartbeatTimeout());
+        LocalDateTime lastCheckTime = TimeUtils.currentLocalDateTime().plusSeconds(-2 * getSecond(heartbeatTimeout));
 
         @Override
         public void run() {
             try {
                 LocalDateTime startTime = lastCheckTime;
-                LocalDateTime endTime = TimeUtils.currentLocalDateTime().plusSeconds(-config.getHeartbeatTimeout());
+                LocalDateTime endTime = TimeUtils.currentLocalDateTime().plusSeconds(-getSecond(heartbeatTimeout));
                 if (log.isDebugEnabled()) {
                     log.debug("{} checkOffline start:{} end:{}", TASK_NAME, TimeFormateUtils.format(startTime, Formatters.YMD_HMS), TimeFormateUtils.format(endTime, Formatters.YMD_HMS));
                 }
@@ -184,6 +193,10 @@ public class DBBrokerRegistry implements NodeRegistry {
                 log.error("{} check fail", TASK_NAME, e);
             }
         }
+    }
+
+    public long getSecond(long time) {
+        return time / 1000;
     }
 
 }

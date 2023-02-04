@@ -23,6 +23,7 @@ import com.google.common.collect.Sets;
 import lombok.Setter;
 import org.limbo.flowjob.api.console.param.DispatchOptionParam;
 import org.limbo.flowjob.api.console.param.PlanParam;
+import org.limbo.flowjob.api.console.param.RetryOptionParam;
 import org.limbo.flowjob.api.console.param.ScheduleOptionParam;
 import org.limbo.flowjob.api.console.param.WorkflowJobParam;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
@@ -97,9 +98,12 @@ public class PlanParamFactory {
         job.setDescription("test normal");
         job.setType(JobType.NORMAL);
         job.setTriggerType(TriggerType.SCHEDULE);
-        job.setDispatchOption(DispatchOptionParam.builder()
+        job.setRetryOption(RetryOptionParam.builder()
                 .retry(2)
                 .retryInterval(3)
+                .build()
+        );
+        job.setDispatchOption(DispatchOptionParam.builder()
                 .loadBalanceType(LoadBalanceType.RANDOM)
                 .build()
         );
@@ -113,9 +117,12 @@ public class PlanParamFactory {
         job.setName("test-broadcast-" + id);
         job.setDescription("test broadcast");
         job.setType(JobType.BROADCAST);
-        job.setDispatchOption(DispatchOptionParam.builder()
+        job.setRetryOption(RetryOptionParam.builder()
                 .retry(2)
                 .retryInterval(3)
+                .build()
+        );
+        job.setDispatchOption(DispatchOptionParam.builder()
                 .loadBalanceType(LoadBalanceType.ROUND_ROBIN)
                 .build()
         );
@@ -129,9 +136,12 @@ public class PlanParamFactory {
         job.setName("test-map-" + id);
         job.setDescription("test map");
         job.setType(JobType.MAP);
-        job.setDispatchOption(DispatchOptionParam.builder()
+        job.setRetryOption(RetryOptionParam.builder()
                 .retry(2)
                 .retryInterval(3)
+                .build()
+        );
+        job.setDispatchOption(DispatchOptionParam.builder()
                 .loadBalanceType(LoadBalanceType.LEAST_RECENTLY_USED)
                 .build()
         );
@@ -145,9 +155,12 @@ public class PlanParamFactory {
         job.setName("test-reduce-" + id);
         job.setDescription("test reduce");
         job.setType(JobType.MAP_REDUCE);
-        job.setDispatchOption(DispatchOptionParam.builder()
+        job.setRetryOption(RetryOptionParam.builder()
                 .retry(2)
                 .retryInterval(3)
+                .build()
+        );
+        job.setDispatchOption(DispatchOptionParam.builder()
                 .loadBalanceType(LoadBalanceType.LEAST_RECENTLY_USED)
                 .build()
         );

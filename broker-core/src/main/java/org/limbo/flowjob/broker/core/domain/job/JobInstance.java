@@ -77,8 +77,8 @@ public abstract class JobInstance implements Serializable {
      */
     public boolean retry() {
         JobInfo jobInfo = getJobInfo();
-        if (jobInfo.getDispatchOption().getRetry() > retry) {
-            setTriggerAt(TimeUtils.currentLocalDateTime().plusSeconds(jobInfo.getDispatchOption().getRetryInterval()));
+        if (jobInfo.getRetryOption().getRetry() > retry) {
+            setTriggerAt(TimeUtils.currentLocalDateTime().plusSeconds(jobInfo.getRetryOption().getRetryInterval()));
             setJobInstanceId(null);
             setStatus(JobStatus.SCHEDULING);
             return true;

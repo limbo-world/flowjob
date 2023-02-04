@@ -16,40 +16,40 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.cluster;
+package org.limbo.flowjob.broker.core.dispatch;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.io.Serializable;
 
 /**
- * @author Devil
- * @since 2022/7/21
+ * 重试参数
+ *
+ * @author KaiFengCai
+ * @since 2023/2/3
  */
 @Data
-public class BrokerConfig {
+@Setter(AccessLevel.NONE)
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(builderClassName = "Builder", toBuilder = true)
+public class RetryOption implements Serializable {
+
+    private static final long serialVersionUID = 630495010234490541L;
 
     /**
-     * broker的唯一标识
+     * 重试次数
      */
-    protected String name;
+    private Integer retry = 0;
 
     /**
-     * 提供给worker的服务的 host
+     * 重试间隔
      */
-    protected String host;
-
-    /**
-     * 提供给worker的服务 port
-     */
-    protected Integer port;
-
-    /**
-     * 心跳时间间隔，毫秒
-     */
-    protected long heartbeatInterval = 2000;
-
-    /**
-     * 心跳超时时间，毫秒
-     */
-    protected long heartbeatTimeout = 10000;
+    private Integer retryInterval = 0;
 
 }
