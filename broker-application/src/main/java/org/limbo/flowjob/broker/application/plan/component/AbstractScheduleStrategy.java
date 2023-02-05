@@ -22,7 +22,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
@@ -53,7 +52,6 @@ import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.limbo.flowjob.common.constants.JobStatus;
-import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.constants.PlanStatus;
 import org.limbo.flowjob.common.constants.PlanType;
@@ -61,7 +59,6 @@ import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.Verifies;
-import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
@@ -235,6 +232,7 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
         // 如果所有task都是执行失败 则处理失败
         boolean success = taskEntities.stream().allMatch(entity -> TaskStatus.SUCCEED == TaskStatus.parse(entity.getStatus()));
         if (success) {
+            // 判断当前 job 类型 进行后续处理
             JobInfo jobInfo = jobInstance.getJobInfo();
             switch (jobInfo.getType()) {
                 case NORMAL:
@@ -292,7 +290,7 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
         jobInstanceEntityRepo.updateStatusExecuteFail(jobInstance.getJobInstanceId(), MsgConstants.TASK_FAIL);
         if (needRetry(jobInstance)) {
             JobInfo jobInfo = jobInstance.getJobInfo();
-            jobInstance.setTriggerAt(TimeUtils.currentLocalDateTime().plusSeconds(jobInfo.getDispatchOption().getRetryInterval()));
+            jobInstance.setTriggerAt(TimeUtils.currentLocalDateTime().plusSeconds(jobInfo.getRetryOption().getRetryInterval()));
             jobInstance.setJobInstanceId(null);
             jobInstance.setStatus(JobStatus.SCHEDULING);
             scheduleJobInstances(Collections.singletonList(jobInstance), TimeUtils.currentLocalDateTime());
@@ -305,7 +303,7 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
         JobInfo jobInfo = jobInstance.getJobInfo();
         // 查询已经失败的记录数
         long retry = jobInstanceEntityRepo.countByPlanInstanceIdAndJobId(jobInstance.getPlanInstanceId(), jobInfo.getId());
-        return jobInfo.getDispatchOption().getRetry() > retry;
+        return jobInfo.getRetryOption().getRetry() > retry;
     }
 
     /**

@@ -1,7 +1,6 @@
 package org.limbo.flowjob.broker.application.plan.converter;
 
 import com.google.common.collect.Lists;
-import lombok.Setter;
 import org.limbo.flowjob.api.console.param.DispatchOptionParam;
 import org.limbo.flowjob.api.console.param.JobParam;
 import org.limbo.flowjob.api.console.param.RetryOptionParam;
@@ -9,7 +8,6 @@ import org.limbo.flowjob.api.console.param.ScheduleOptionParam;
 import org.limbo.flowjob.api.console.param.WorkflowJobParam;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.dispatch.RetryOption;
-import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
@@ -19,18 +17,15 @@ import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.List;
 
 /**
+ *
  * @author Brozen
  * @since 2022-06-11
  */
 @Component
 public class PlanConverter {
-
-    @Setter(onMethod_ = @Inject)
-    private IDGenerator idGenerator;
 
     /**
      * 生成更新计划 JobDAG
@@ -121,8 +116,6 @@ public class PlanConverter {
                 .loadBalanceType(param.getLoadBalanceType())
                 .cpuRequirement(param.getCpuRequirement())
                 .ramRequirement(param.getRamRequirement())
-                .retry(param.getRetry())
-                .retryInterval(param.getRetryInterval())
                 .tagFilters(null) // TODO v1
                 .build();
     }
