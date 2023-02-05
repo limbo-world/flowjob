@@ -30,6 +30,7 @@ import org.limbo.flowjob.common.constants.LoadBalanceType;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 作业分发配置，值对象
@@ -64,21 +65,6 @@ public class DispatchOption implements Serializable {
     /**
      * tag 过滤器配置
      */
-    private TagFilterOption tagFilter;
-
-//    @JsonCreator // @JsonProperty("scheduleType") 不去掉mapstruct会用set方式，比较奇怪
-//    public DispatchOption(@JsonProperty("loadBalanceType") LoadBalanceType loadBalanceType,
-//                          @JsonProperty("retry") Integer retry,
-//                          @JsonProperty("retryInterval") Integer retryInterval,
-//                          @JsonProperty("cpuRequirement") BigDecimal cpuRequirement,
-//                          @JsonProperty("ramRequirement") BigDecimal ramRequirement,
-//                          @JsonProperty("tagFilterOption") TagFilterOption tagFilter) {
-//        this.loadBalanceType = loadBalanceType;
-//        this.cpuRequirement = cpuRequirement == null ? BigDecimal.ZERO : cpuRequirement;
-//        this.ramRequirement = ramRequirement == null ? BigDecimal.ZERO : ramRequirement;
-//        this.retry = retry == null ? 0 : retry;
-//        this.retryInterval = retryInterval == null ? 0 : retryInterval;
-//        this.tagFilter = tagFilter;
-//    }
+    private List<TagFilterOption> tagFilters;
 
 }

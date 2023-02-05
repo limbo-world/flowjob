@@ -27,15 +27,11 @@ import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
-import org.limbo.flowjob.broker.core.domain.task.Task;
-import org.limbo.flowjob.broker.core.exceptions.JobException;
 import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.common.constants.JobStatus;
-import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.constants.PlanType;
-import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.dag.DAG;
@@ -45,7 +41,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -147,61 +142,10 @@ public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
         WorkflowJobInstance workflowJobInstance = (WorkflowJobInstance) jobInstance;
         WorkflowJobInfo workflowJobInfo = workflowJobInstance.getWorkflowJobInfo();
         if (workflowJobInfo.isTerminateWithFail()) {
-
-            jobInstanceEntityRepo.updateStatusExecuteFail(jobInstance.getJobInstanceId(), MsgConstants.TASK_FAIL);
-
-            if (jobInstance.retry()) {
-                scheduleJobInstances(Collections.singletonList(jobInstance), TimeUtils.currentLocalDateTime());
-            } else {
-                planInstanceEntityRepo.fail(jobInstance.getPlanInstanceId(), TimeUtils.currentLocalDateTime());
-            }
+            super.handleJobFail(jobInstance);
         } else {
             handleJobSuccess(jobInstance);
         }
-    }
-
-    /**
-     * 调度jobInstance
-     */
-    private void scheduleJobInstances(List<JobInstance> jobInstances, LocalDateTime triggerAt) {
-        if (CollectionUtils.isEmpty(jobInstances)) {
-            return;
-        }
-
-        // 保存 jobInstance
-        List<JobInstanceEntity> jobInstanceEntities = jobInstances.stream().map(domainConverter::toJobInstanceEntity).collect(Collectors.toList());
-        jobInstanceEntityRepo.saveAll(jobInstanceEntities);
-        jobInstanceEntityRepo.flush();
-
-        List<Task> tasks = new ArrayList<>();
-        for (JobInstance instance : jobInstances) {
-            // 根据job类型创建task
-            List<Task> jobTasks;
-            JobInfo jobInfo = instance.getJobInfo();
-            switch (jobInfo.getType()) {
-                case NORMAL:
-                    jobTasks = taskFactory.create(instance, TaskType.NORMAL);
-                    break;
-                case BROADCAST:
-                    jobTasks = taskFactory.create(instance, TaskType.BROADCAST);
-                    break;
-                case MAP:
-                case MAP_REDUCE:
-                    jobTasks = taskFactory.create(instance, TaskType.SPLIT);
-                    break;
-                default:
-                    throw new JobException(jobInfo.getId(), MsgConstants.UNKNOWN + " job type:" + jobInfo.getType().type);
-            }
-
-            // 如果可以创建的任务为空（只有广播任务）
-            if (CollectionUtils.isEmpty(jobTasks)) {
-                handleJobSuccess(instance);
-            } else {
-                tasks.addAll(jobTasks);
-            }
-        }
-
-        saveAndScheduleTask(tasks, triggerAt);
     }
 
     /**

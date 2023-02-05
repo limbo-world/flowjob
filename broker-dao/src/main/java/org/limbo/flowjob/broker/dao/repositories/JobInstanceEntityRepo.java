@@ -41,6 +41,8 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
 
     List<JobInstanceEntity> findByPlanInstanceIdAndJobIdIn(String planInstanceId, List<String> jobIds);
 
+    long countByPlanInstanceIdAndJobId(String planInstanceId, String jobId);
+
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING + " where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_SCHEDULING)
     int updateStatusExecuting(@Param("jobInstanceId") String jobInstanceId);

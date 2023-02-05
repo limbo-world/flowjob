@@ -50,7 +50,7 @@ public enum LoadBalanceType {
     ROUND_ROBIN(2, "轮询"),
 
     /**
-     * 指定节点。通过标签，让作业指定下发到某个worker执行。
+     * 指定节点，让作业指定下发到某个worker执行。
      */
     APPOINT(3, "指定节点"),
 
