@@ -95,6 +95,11 @@ public class Worker implements WorkerRpc, LBServer {
     @Setter
     private WorkerMetric metric;
 
+    /**
+     * 是否启用
+     */
+    private boolean enabled;
+
     public void setId(String id) {
         this.id = id;
     }

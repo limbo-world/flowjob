@@ -32,7 +32,6 @@ import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
-import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
 import org.limbo.flowjob.common.constants.WorkerStatus;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Component;
@@ -74,6 +73,7 @@ public class WorkerEntityConverter {
                 .name(po.getName())
                 .rpcBaseUrl(workerRpcBaseUrl(po))
                 .status(WorkerStatus.parse(po.getStatus()))
+                .enabled(po.isEnabled())
                 .tags(tags)
                 .executors(executors)
                 .metric(metric)
@@ -107,6 +107,7 @@ public class WorkerEntityConverter {
         po.setHost(worker.getRpcBaseUrl().getHost());
         po.setPort(worker.getRpcBaseUrl().getPort());
         po.setStatus(worker.getStatus().status);
+        po.setEnabled(true);
         po.setDeleted(false);
         return po;
     }

@@ -82,6 +82,12 @@ public class WorkerEntity extends BaseEntity {
      */
     private Byte status;
 
+    /**
+     * 是否启用 不启用则不会进行任务下发
+     */
+    @Column(name = "is_enabled")
+    private boolean enabled;
+
     @Override
     public Object getUid() {
         return workerId;

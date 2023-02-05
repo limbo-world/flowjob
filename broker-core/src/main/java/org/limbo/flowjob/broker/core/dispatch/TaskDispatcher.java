@@ -21,13 +21,13 @@ package org.limbo.flowjob.broker.core.dispatch;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
 import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.exceptions.JobDispatchException;
 import org.limbo.flowjob.broker.core.statistics.WorkerStatisticsRepository;
 import org.limbo.flowjob.broker.core.worker.Worker;
+import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.common.constants.TaskStatus;
 
 import java.util.List;
@@ -41,14 +41,14 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TaskDispatcher {
 
-    private final WorkerManager workerManager;
+    private final WorkerRepository workerRepository;
 
     private final WorkerSelectorFactory workerSelectorFactory;
 
     private final WorkerStatisticsRepository statisticsRepository;
 
-    public TaskDispatcher(WorkerManager workerManager, WorkerSelectorFactory workerSelectorFactory, WorkerStatisticsRepository statisticsRepository) {
-        this.workerManager = workerManager;
+    public TaskDispatcher(WorkerRepository workerRepository, WorkerSelectorFactory workerSelectorFactory, WorkerStatisticsRepository statisticsRepository) {
+        this.workerRepository = workerRepository;
         this.workerSelectorFactory = workerSelectorFactory;
         this.statisticsRepository = statisticsRepository;
     }
@@ -74,8 +74,8 @@ public class TaskDispatcher {
     }
 
     private boolean dispatchWithWorkerId(Task task) {
-        Worker worker = workerManager.get(task.getWorkerId());
-        if (worker == null) {
+        Worker worker = workerRepository.get(task.getWorkerId());
+        if (worker == null || !worker.isAlive() || !worker.isEnabled()) {
             return false;
         }
 
@@ -98,7 +98,7 @@ public class TaskDispatcher {
     }
 
     private boolean dispatchNoWorker(Task task) {
-        List<Worker> availableWorkers = workerManager.availableWorkers();
+        List<Worker> availableWorkers = workerRepository.listAvailableWorkers();
         if (CollectionUtils.isEmpty(availableWorkers)) {
             return false;
         }
