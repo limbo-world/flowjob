@@ -88,7 +88,6 @@ public class TaskFactory {
             Task task = new Task();
             task.setTaskId(idGenerator.generateId(IDType.TASK));
             task.setTaskType(type);
-            task.setJobId(jobInfo.getId());
             task.setPlanVersion(instance.getPlanVersion());
             task.setPlanId(instance.getPlanId());
             task.setPlanType(instance.getPlanType());

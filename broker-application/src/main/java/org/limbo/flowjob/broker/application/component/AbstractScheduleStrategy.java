@@ -37,14 +37,12 @@ import org.limbo.flowjob.broker.core.exceptions.JobException;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
-import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
-import org.limbo.flowjob.broker.dao.repositories.JobInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
@@ -106,9 +104,6 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
 
     @Setter(onMethod_ = @Inject)
     protected PlanInfoEntityRepo planInfoEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
-    protected JobInfoEntityRepo jobInfoEntityRepo;
 
     @Setter(onMethod_ = @Inject)
     protected TaskDispatcher taskDispatcher;
@@ -392,21 +387,17 @@ public abstract class AbstractScheduleStrategy implements IScheduleStrategy {
     public JobInstance getJobInstance(String id) {
         JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.findById(id).orElse(null);
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(jobInstanceEntity.getPlanInfoId()).orElse(null);
-        JobInfoEntity jobInfoEntity = jobInfoEntityRepo.findById(jobInstanceEntity.getJobId()).orElse(null);
-
-        JobInfo jobInfo = domainConverter.toJobInfo(jobInfoEntity);
 
         JobInstance jobInstance;
         PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
         if (PlanType.SINGLE == planType) {
             jobInstance = new SingleJobInstance();
+            JobInfo jobInfo = JacksonUtils.parseObject(planInfoEntity.getJobInfo(), JobInfo.class);
             ((SingleJobInstance) jobInstance).setJobInfo(jobInfo);
         } else if (PlanType.WORKFLOW == planType) {
             jobInstance = new WorkflowJobInstance();
-            DAG<WorkflowJobInfo> dag = domainConverter.toJobDag(planInfoEntity.getJobInfo(), null);
-            WorkflowJobInfo workflowJobInfo = dag.getNode(jobInstanceEntity.getJobId());
-            workflowJobInfo.setJob(jobInfo);
-            ((WorkflowJobInstance) jobInstance).setWorkflowJobInfo(workflowJobInfo);
+            DAG<WorkflowJobInfo> dag = domainConverter.toJobDag(planInfoEntity.getJobInfo());
+            ((WorkflowJobInstance) jobInstance).setWorkflowJobInfo(dag.getNode(jobInstanceEntity.getJobId()));
         } else {
             throw new IllegalArgumentException("Illegal PlanType in plan:" + planInfoEntity.getPlanId() + " version:" + planInfoEntity.getPlanInfoId());
         }

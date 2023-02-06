@@ -35,11 +35,9 @@ import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
-import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
-import org.limbo.flowjob.broker.dao.repositories.JobInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
@@ -80,9 +78,6 @@ public class PlanService {
 
     @Setter(onMethod_ = @Inject)
     private PlanInfoEntityRepo planInfoEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private JobInfoEntityRepo jobInfoEntityRepo;
 
     @Setter(onMethod_ = @Inject)
     private IDGenerator idGenerator;
@@ -152,10 +147,8 @@ public class PlanService {
         planInfoEntity.setScheduleInterval(scheduleOption.getScheduleInterval() == null ? 0L : scheduleOption.getScheduleInterval().toMillis());
         planInfoEntity.setScheduleCron(scheduleOption.getScheduleCron());
         // job info
-        List<JobInfoEntity> jobInfoEntities = new ArrayList<>();
         if (PlanType.SINGLE == param.getPlanType()) {
             JobInfo jobInfo = planConverter.covertJob(idGenerator.generateId(IDType.JOB_INFO), param.getJob());
-            jobInfoEntities.add(planConverter.toJobInfoEntity(jobInfo));
             planInfoEntity.setJobInfo(JacksonUtils.toJSONString(jobInfo));
         } else {
             DAG<WorkflowJobInfo> workflow = planConverter.convertJob(param.getWorkflow());
@@ -165,14 +158,7 @@ public class PlanService {
                 log.error("To DAG Json failed! dag={}", workflow, e);
                 throw new VerifyException("Dag Node verify fail!");
             }
-
-            // 保存jobInfo信息
-            for (WorkflowJobInfo workflowJobInfo : workflow.nodes()) {
-                jobInfoEntities.add(planConverter.toJobInfoEntity(workflowJobInfo.getJob()));
-            }
         }
-        jobInfoEntityRepo.saveAll(jobInfoEntities);
-        jobInfoEntityRepo.flush();
 
         // 保存版本信息
         planInfoEntityRepo.saveAndFlush(planInfoEntity);

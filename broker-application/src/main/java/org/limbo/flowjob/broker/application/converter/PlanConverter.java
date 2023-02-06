@@ -29,10 +29,8 @@ import org.limbo.flowjob.broker.core.dispatch.RetryOption;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
-import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
-import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -50,16 +48,6 @@ public class PlanConverter {
      */
     public DAG<WorkflowJobInfo> convertJob(List<WorkflowJobParam> jobParams) {
         return new DAG<>(convertJobs(jobParams));
-    }
-
-    public JobInfoEntity toJobInfoEntity(JobInfo jobInfo) {
-        JobInfoEntity jobInfoEntity = new JobInfoEntity();
-        jobInfoEntity.setJobInfoId(jobInfo.getId());
-        jobInfoEntity.setType(jobInfo.getType().type);
-        jobInfoEntity.setAttributes(JacksonUtils.toJSONString(jobInfo.getAttributes(), JacksonUtils.DEFAULT_NONE_OBJECT));
-        jobInfoEntity.setDispatchOption(JacksonUtils.toJSONString(jobInfo.getDispatchOption(), JacksonUtils.DEFAULT_NONE_OBJECT));
-        jobInfoEntity.setExecutorName(jobInfo.getExecutorName());
-        return jobInfoEntity;
     }
 
     public JobInfo covertJob(String id, JobParam jobParam) {

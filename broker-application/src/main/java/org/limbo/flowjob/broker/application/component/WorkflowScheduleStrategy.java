@@ -27,13 +27,11 @@ import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
-import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.common.constants.JobStatus;
 import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.TriggerType;
-import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.dag.DAGNode;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
@@ -60,11 +58,6 @@ public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
         String version = plan.getVersion();
         WorkflowPlan workflowPlan = (WorkflowPlan) plan;
 
-        DAG<WorkflowJobInfo> dag = workflowPlan.getDag();
-        List<String> jobIds = dag.nodes().stream().map(DAGNode::getId).collect(Collectors.toList());
-        List<JobInfoEntity> jobInfoEntities = jobInfoEntityRepo.findAllById(jobIds);
-        Verifies.notEmpty(jobInfoEntities, "does not find " + planId + " plan's job info by version--" + version + "");
-
         // 保存 planInstance
         String planInstanceId = savePlanInstanceEntity(planId, version, triggerType, triggerAt);
 
@@ -83,16 +76,6 @@ public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
         }
     }
 
-    public WorkflowPlan toPlanInfo(PlanInfoEntity entity, List<JobInfoEntity> jobInfoEntities) {
-        return new WorkflowPlan(
-                entity.getPlanId(),
-                entity.getPlanInfoId(),
-                TriggerType.parse(entity.getTriggerType()),
-                domainConverter.toScheduleOption(entity),
-                domainConverter.toJobDag(entity.getJobInfo(), jobInfoEntities)
-        );
-    }
-
     @Override
     public void handleJobSuccess(JobInstance jobInstance) {
         jobInstanceEntityRepo.updateStatusSuccess(jobInstance.getJobInstanceId());
@@ -105,11 +88,7 @@ public class WorkflowScheduleStrategy extends AbstractScheduleStrategy {
 
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(version).orElse(null);
 
-        DAG<WorkflowJobInfo> dag = domainConverter.toJobDag(planInfoEntity.getJobInfo(), null);
-        List<String> jobIds = dag.nodes().stream().map(DAGNode::getId).collect(Collectors.toList());
-        List<JobInfoEntity> jobInfoEntities = jobInfoEntityRepo.findAllById(jobIds);
-        dag = domainConverter.toJobDag(planInfoEntity.getJobInfo(), jobInfoEntities);
-
+        DAG<WorkflowJobInfo> dag = domainConverter.toJobDag(planInfoEntity.getJobInfo());
         // 当前节点的子节点
         List<WorkflowJobInfo> subJobInfos = dag.subNodes(jobId);
 
