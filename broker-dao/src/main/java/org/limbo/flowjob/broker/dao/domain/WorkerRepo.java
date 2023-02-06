@@ -104,6 +104,7 @@ public class WorkerRepo implements WorkerRepository {
 
     /**
      * {@inheritDoc}
+     *
      * @param worker worker节点
      */
     @Override
@@ -126,7 +127,7 @@ public class WorkerRepo implements WorkerRepository {
         if (StringUtils.isBlank(id)) {
             return null;
         }
-        return workerEntityRepo.findById(id)
+        return workerEntityRepo.findByWorkerIdAndDeleted(id, false)
                 .map(this::toWorkerWithLazyInit)
                 .orElse(null);
     }
@@ -137,7 +138,7 @@ public class WorkerRepo implements WorkerRepository {
             return null;
         }
 
-        return workerEntityRepo.findByName(name)
+        return workerEntityRepo.findByNameAndDeleted(name, false)
                 .map(this::toWorkerWithLazyInit)
                 .orElse(null);
     }
@@ -150,7 +151,7 @@ public class WorkerRepo implements WorkerRepository {
      */
     @Override
     public List<Worker> listAvailableWorkers() {
-        return workerEntityRepo.findByStatusAndDeleted(WorkerStatus.RUNNING.status, false)
+        return workerEntityRepo.findByStatusAndEnabledAndDeleted(WorkerStatus.RUNNING.status, true, false)
                 .stream()
                 .map(this::toWorkerWithLazyInit)
                 .collect(Collectors.toList());
@@ -161,6 +162,9 @@ public class WorkerRepo implements WorkerRepository {
      * 将 Worker 持久化对象转为领域模型，并为其中的属性设置为懒加载。
      */
     private Worker toWorkerWithLazyInit(WorkerEntity worker) {
+        if (worker == null) {
+            return null;
+        }
         String workerId = worker.getWorkerId();
         return converter.toWorker(worker,
                 converter.toTags(tagEntityRepo.findByWorkerId(workerId)),
@@ -177,7 +181,7 @@ public class WorkerRepo implements WorkerRepository {
      */
     @Override
     public void delete(String id) {
-        Optional<WorkerEntity> workerEntityOptional = workerEntityRepo.findById(id);
+        Optional<WorkerEntity> workerEntityOptional = workerEntityRepo.findByWorkerIdAndDeleted(id, false);
         if (workerEntityOptional.isPresent()) {
             WorkerEntity workerEntity = workerEntityOptional.get();
             workerEntity.setDeleted(true);

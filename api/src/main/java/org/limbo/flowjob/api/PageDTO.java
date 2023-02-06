@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -88,7 +89,7 @@ public class PageDTO<T> {
     }
 
     public List<T> getData() {
-        return data == null ? new ArrayList<>() : data;
+        return data == null ? Collections.emptyList() : data;
     }
 
     public static <V> PageDTO<V> convertByPage(PageParam page) {

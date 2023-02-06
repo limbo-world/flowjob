@@ -9,12 +9,6 @@ spring:
     baseline-on-migrate: true
     baseline-version: 0
 
-flowjob:
-  broker:
-    name: b1
-    host: 127.0.0.1
-    port: 8081
-
 # log
 logging:
   config: classpath:log4j2.xml

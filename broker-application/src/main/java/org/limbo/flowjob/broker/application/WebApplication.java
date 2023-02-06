@@ -16,33 +16,38 @@
  *
  */
 
-package org.limbo.flowjob.broker.test;
+package org.limbo.flowjob.broker.application;
 
-import org.limbo.flowjob.broker.application.WebApplication;
 import org.limbo.flowjob.broker.application.config.BrokerConfiguration;
-import org.springframework.boot.SpringApplication;
+import org.limbo.flowjob.broker.application.config.WebConfiguration;
+import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
- * @author Devil
- * @since 2022/6/22
+ * @author Brozen
+ * @since 2021-06-01
  */
 @SpringBootApplication
 @Import({
+        WebConfiguration.class,
         BrokerConfiguration.class,
 })
-@ComponentScan(basePackages = "org.limbo.flowjob.broker", excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = {WebApplication.class})})
+@ComponentScan(basePackages = "org.limbo.flowjob.broker")
 @EntityScan(basePackages = "org.limbo.flowjob.broker.dao.entity")
 @EnableJpaRepositories(value = {"org.limbo.flowjob.broker.dao.repositories", "org.limbo.flowjob.broker.dao.domain"})
-public class SpringTestApplication {
+public class WebApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(SpringTestApplication.class);
+        new SpringApplicationBuilder()
+                .web(WebApplicationType.SERVLET)
+                .sources(WebApplication.class)
+                .build()
+                .run(args);
     }
 
 }

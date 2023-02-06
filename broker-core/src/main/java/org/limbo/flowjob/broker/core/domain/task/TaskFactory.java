@@ -19,12 +19,12 @@
 package org.limbo.flowjob.broker.core.domain.task;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.core.cluster.WorkerManager;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.worker.Worker;
+import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
@@ -46,14 +46,14 @@ public class TaskFactory {
      */
     private final Map<TaskType, TaskCreator> creators;
 
-    private final WorkerManager workerManager;
+    private final WorkerRepository workerRepository;
 
     private final TaskManager taskManager;
 
     private final IDGenerator idGenerator;
 
-    public TaskFactory(WorkerManager workerManager, TaskManager taskManager, IDGenerator idGenerator) {
-        this.workerManager = workerManager;
+    public TaskFactory(WorkerRepository workerRepository, TaskManager taskManager, IDGenerator idGenerator) {
+        this.workerRepository = workerRepository;
         this.taskManager = taskManager;
         this.idGenerator = idGenerator;
 
@@ -130,7 +130,7 @@ public class TaskFactory {
 
         @Override
         public List<Task> tasks(JobInstance instance) {
-            List<Worker> workers = workerManager.availableWorkers();
+            List<Worker> workers = workerRepository.listAvailableWorkers();
             if (CollectionUtils.isEmpty(workers)) {
                 return Collections.emptyList();
             }

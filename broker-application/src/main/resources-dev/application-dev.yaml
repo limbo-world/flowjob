@@ -6,7 +6,7 @@ flowjob:
     name: b1
     host: 127.0.0.1
     port: 8081
-    enabled: true
+    enabled: false
 
 spring:
   # DB

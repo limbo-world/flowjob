@@ -56,8 +56,8 @@ class WorkerRepoTest {
 
     @Test
     void findWorker() {
-        List<WorkerEntity> byStatusAndDeleted = workerEntityRepo.findByStatusAndDeleted(WorkerStatus.RUNNING.status, false);
-        for (WorkerEntity workerEntity : byStatusAndDeleted) {
+        List<WorkerEntity> workerEntities = workerEntityRepo.findByStatusAndEnabledAndDeleted(WorkerStatus.RUNNING.status, true, false);
+        for (WorkerEntity workerEntity : workerEntities) {
             System.out.println(workerEntity.getId() + " " + workerEntity.getStatus() + workerEntity.isDeleted());
         }
     }

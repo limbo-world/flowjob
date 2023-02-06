@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.limbo.flowjob.api.console.param.PlanParam;
-import org.limbo.flowjob.broker.application.plan.service.PlanService;
+import org.limbo.flowjob.broker.application.service.PlanService;
 import org.limbo.flowjob.broker.test.support.PlanParamFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -48,7 +48,7 @@ class PlanServiceTest {
     private PlanParamFactory planParamFactory;
 
     @Test
-    @Transactional
+//    @Transactional
     void addFixedRate() {
         PlanParam param = planParamFactory.newFixedRateAddParam();
 
