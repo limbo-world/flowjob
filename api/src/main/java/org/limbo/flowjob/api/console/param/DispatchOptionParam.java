@@ -27,6 +27,7 @@ import org.limbo.flowjob.common.constants.LoadBalanceType;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * @author Devil
@@ -57,5 +58,8 @@ public class DispatchOptionParam {
      */
     @Schema(title = "所需的内存GB数", description = "小于等于0表示此作业未定义内存需求")
     private BigDecimal ramRequirement;
+
+    @Schema(title = "标签过滤", description = "根据指定标签过滤")
+    private List<TagFilterParam> tagFilters;
 
 }

@@ -20,6 +20,7 @@ import lombok.Builder;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.worker.Worker;
+import org.limbo.flowjob.common.constants.TagFilterCondition;
 
 import java.util.List;
 import java.util.Map;
@@ -49,7 +50,7 @@ public class TagFilterOption {
     /**
      * 匹配条件
      */
-    public final Condition condition;
+    public final TagFilterCondition condition;
 
 
     /**
@@ -81,36 +82,6 @@ public class TagFilterOption {
                     return false;
             }
         };
-    }
-
-
-    enum Condition {
-
-        /**
-         * 存在指定名称的标签
-         */
-        EXISTS,
-
-        /**
-         * 不存在指定名称的标签
-         */
-        NOT_EXISTS,
-
-        /**
-         * 存在指定名称的标签且匹配指定值
-         */
-        MUST_MATCH_VALUE,
-
-        /**
-         * 存在指定名称的标签，且不匹配指定值
-         */
-        MUST_NOT_MATCH_VALUE,
-
-        /**
-         * 存在指定名称的标签且匹配正则表达式
-         */
-        MUST_MATCH_VALUE_REGEX
-
     }
 
 }
