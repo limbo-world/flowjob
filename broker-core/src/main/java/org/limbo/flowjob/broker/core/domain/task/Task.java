@@ -23,12 +23,10 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
-import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -54,14 +52,9 @@ public class Task {
     private String planVersion;
 
     /**
-     * 计划类型
-     */
-    private PlanType planType;
-
-    /**
      * 类型
      */
-    private TaskType taskType;
+    private TaskType type;
 
     /**
      * 状态
@@ -74,16 +67,6 @@ public class Task {
     private String workerId;
 
     /**
-     * 全局上下文
-     */
-    private Attributes context;
-
-    /**
-     * 对应job配置的属性
-     */
-    private Attributes attributes;
-
-    /**
      * 下发参数
      */
     private DispatchOption dispatchOption;
@@ -92,6 +75,16 @@ public class Task {
      * 执行器参数
      */
     private String executorName;
+
+    /**
+     * 全局上下文
+     */
+    private Attributes context;
+
+    /**
+     * 对应job配置的属性
+     */
+    private Attributes attributes;
 
     /**
      * map属性

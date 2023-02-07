@@ -18,7 +18,7 @@ package org.limbo.flowjob.worker.starter.processor;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.worker.core.executor.ExecuteContext;
+import org.limbo.flowjob.worker.core.domain.Task;
 import org.limbo.flowjob.worker.core.executor.TaskExecutor;
 import org.limbo.flowjob.worker.starter.processor.event.ExecutorScannedEvent;
 import org.limbo.flowjob.worker.starter.processor.event.WorkerReadyEvent;
@@ -65,12 +65,12 @@ public class ExecutorMethodProcessor implements SmartInitializingSingleton,
     private static final Method M_RUN;
     static {
         try {
-            M_RUN = TaskExecutor.class.getMethod("run", ExecuteContext.class);
+            M_RUN = TaskExecutor.class.getMethod("run", Task.class);
             if (M_RUN.getReturnType() != Void.TYPE) {
                 throw new NoSuchMethodException();
             }
         } catch (NoSuchMethodException e) {
-            throw new IllegalStateException("Can't find \"void run(ExecutorContext c)\" method in " +
+            throw new IllegalStateException("Can't find \"void run(Task task)\" method in " +
                     "org.limbo.flowjob.worker.core.executor.ExecuteContext");
         }
     }
@@ -199,7 +199,9 @@ public class ExecutorMethodProcessor implements SmartInitializingSingleton,
             MethodIntrospector.MetadataLookup<Executor> lookup = method ->
                     AnnotatedElementUtils.findMergedAnnotation(method, Executor.class);
             annotatedMethods = MethodIntrospector.selectMethods(beanType, lookup);
-        } catch (Exception ignore) { }
+        } catch (Exception ignore) {
+            // todo
+        }
 
         // 根据 Bean 类型、@Executor 方法判断是否忽略 Bean
         if (!beanIsTaskExecutor && MapUtils.isEmpty(annotatedMethods)) {

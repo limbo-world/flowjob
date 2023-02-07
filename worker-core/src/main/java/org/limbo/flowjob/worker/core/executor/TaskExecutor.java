@@ -17,6 +17,8 @@
 package org.limbo.flowjob.worker.core.executor;
 
 
+import org.limbo.flowjob.worker.core.domain.Task;
+
 /**
  * 任务执行器
  *
@@ -27,9 +29,9 @@ public interface TaskExecutor {
 
     /**
      * 运行执行器
-     * @param context 任务执行上下文
+     * @param task 任务执行上下文
      */
-    void run(ExecuteContext context);
+    void run(Task task);
 
 
     /**

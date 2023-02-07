@@ -24,6 +24,7 @@ import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.TriggerType;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 
 /**
@@ -41,9 +42,9 @@ public class WorkflowPlan extends Plan {
      */
     private final DAG<WorkflowJobInfo> dag;
 
-    public WorkflowPlan(String planId, String version,
-                        TriggerType triggerType, ScheduleOption scheduleOption, DAG<WorkflowJobInfo> dag) {
-        super(planId, version, triggerType, scheduleOption);
+    public WorkflowPlan(String planId, String version, TriggerType triggerType,
+                        ScheduleOption scheduleOption, DAG<WorkflowJobInfo> dag) {
+        super(planId, version, PlanType.WORKFLOW, triggerType, scheduleOption);
         this.dag = dag;
     }
 

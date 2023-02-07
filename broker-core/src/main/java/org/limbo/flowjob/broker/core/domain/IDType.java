@@ -40,8 +40,6 @@ public enum IDType {
 
     PLAN_INFO,
 
-    JOB_INFO,
-
     PLAN_INSTANCE,
 
     JOB_INSTANCE,

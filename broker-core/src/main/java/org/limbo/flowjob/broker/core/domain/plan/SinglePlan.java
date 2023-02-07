@@ -25,6 +25,7 @@ import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.TriggerType;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
 
 /**
  * 计划在具体版本时的数据(值对象)，至少对应一个{@link WorkflowJobInfo}
@@ -43,7 +44,7 @@ public class SinglePlan extends Plan {
 
     public SinglePlan(String planId, String version, TriggerType triggerType,
                       ScheduleOption scheduleOption, JobInfo jobInfo) {
-        super(planId, version, triggerType, scheduleOption);
+        super(planId, version, PlanType.SINGLE, triggerType, scheduleOption);
         this.jobInfo = jobInfo;
     }
 

@@ -19,6 +19,8 @@
 package org.limbo.flowjob.api.remote.param;
 
 import lombok.Data;
+import org.limbo.flowjob.common.constants.LoadBalanceType;
+import org.limbo.flowjob.common.constants.TaskType;
 
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
@@ -43,6 +45,8 @@ public class TaskSubmitParam implements Serializable {
     private String jobId;
 
     private String jobInstanceId;
+
+    private TaskType type;
 
     /**
      * 执行器的名称

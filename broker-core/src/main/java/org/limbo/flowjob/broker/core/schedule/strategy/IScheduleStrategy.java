@@ -35,7 +35,7 @@ public interface IScheduleStrategy {
 
     void schedule(Task task);
 
-    void handleTaskSuccess(Task task, Map<String, Object> resultAttributes);
+    void handleTaskSuccess(Task task, Map<String, Object> context, Object result);
 
     void handleTaskFail(Task task, String errorMsg, String errorStackTrace);
 

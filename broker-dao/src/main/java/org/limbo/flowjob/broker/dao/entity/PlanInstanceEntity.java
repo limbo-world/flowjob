@@ -56,6 +56,11 @@ public class PlanInstanceEntity extends BaseEntity {
     private LocalDateTime triggerAt;
 
     /**
+     * 此次执行的参数
+     */
+    private String context;
+
+    /**
      * 执行开始时间
      */
     private LocalDateTime startAt;

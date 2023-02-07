@@ -53,11 +53,12 @@ public class WorkerConverter {
         taskSubmitParam.setPlanId(task.getPlanId());
         taskSubmitParam.setJobId(task.getJobId());
         taskSubmitParam.setJobInstanceId(task.getJobInstanceId());
+        taskSubmitParam.setType(task.getType());
         taskSubmitParam.setExecutorName(task.getExecutorName());
         taskSubmitParam.setContext(task.getContext() == null ? Collections.emptyMap() : task.getContext().toMap());
         taskSubmitParam.setAttributes(task.getAttributes() == null ? Collections.emptyMap() : task.getAttributes().toMap());
 
-        switch (task.getTaskType()) {
+        switch (task.getType()) {
             case MAP:
                 taskSubmitParam.setMapAttributes(task.getMapAttributes() == null ? Collections.emptyMap() : task.getMapAttributes().toMap());
                 break;

@@ -32,6 +32,7 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -105,9 +106,11 @@ public class RpcParamFactory {
         return heartbeatParam;
     }
 
-    public static TaskFeedbackParam taskFeedbackParam(Throwable ex) {
+    public static TaskFeedbackParam taskFeedbackParam(Map<String, Object> context, Object result, Throwable ex) {
         TaskFeedbackParam feedbackParam = new TaskFeedbackParam();
         feedbackParam.setResult(ExecuteResult.SUCCEED.result);
+        feedbackParam.setContext(context);
+        feedbackParam.setResultData(result);
 
         if (ex != null) {
             feedbackParam.setResult(ExecuteResult.FAILED.result);

@@ -17,8 +17,8 @@
 package org.limbo.flowjob.worker.core.domain;
 
 import lombok.Data;
+import org.limbo.flowjob.common.constants.TaskType;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,6 +36,8 @@ public class Task {
 
     private String jobInstanceId;
 
+    private TaskType type;
+
     /**
      * 执行器的名称
      */
@@ -51,8 +53,21 @@ public class Task {
      */
     private Map<String, Object> attributes;
 
-    public String getId() {
-        return planId + "-" + jobId + "-" + jobInstanceId + "-" + taskId;
+    /**
+     * 结果数据
+     */
+    private Object result;
+
+    public Object getContextValue(String key) {
+        return context.get(key);
+    }
+
+    public Object setContextValue(String key, Object value) {
+        return context.put(key, value);
+    }
+
+    public Object getAttribute(String key) {
+        return attributes.get(key);
     }
 
 }

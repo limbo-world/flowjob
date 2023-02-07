@@ -16,8 +16,6 @@
 
 package org.limbo.flowjob.worker.starter.application.converter;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.limbo.flowjob.api.remote.param.TaskSubmitParam;
 import org.limbo.flowjob.worker.core.domain.MapTask;
 import org.limbo.flowjob.worker.core.domain.ReduceTask;
@@ -36,17 +34,22 @@ import java.util.stream.Collectors;
 @Component
 public class TaskConverter {
 
-
     /**
      * Task 提交参数转为 Task
      */
     public Task task(TaskSubmitParam param) {
-        if (MapUtils.isNotEmpty(param.getMapAttributes())) {
-            return mapTask(param);
-        } else if (CollectionUtils.isNotEmpty(param.getReduceAttributes())) {
-            return reduceTask(param);
-        } else {
-            return normalTask(param);
+        switch (param.getType()) {
+            case NORMAL:
+            case BROADCAST:
+            case SPLIT:
+                return normalTask(param);
+            case MAP:
+                return mapTask(param);
+            case REDUCE:
+                return reduceTask(param);
+            default:
+                // todo
+                return null;
         }
     }
 
@@ -56,6 +59,7 @@ public class TaskConverter {
         task.setPlanId(param.getPlanId());
         task.setJobId(param.getJobId());
         task.setJobInstanceId(param.getJobInstanceId());
+        task.setType(param.getType());
         task.setExecutorName(param.getExecutorName());
         task.setContext(param.getContext());
         task.setAttributes(param.getAttributes());
@@ -69,6 +73,7 @@ public class TaskConverter {
         task.setPlanId(param.getPlanId());
         task.setJobId(param.getJobId());
         task.setJobInstanceId(param.getJobInstanceId());
+        task.setType(param.getType());
         task.setExecutorName(param.getExecutorName());
         task.setContext(param.getContext());
         task.setAttributes(param.getAttributes());
@@ -86,6 +91,7 @@ public class TaskConverter {
         task.setPlanId(param.getPlanId());
         task.setJobId(param.getJobId());
         task.setJobInstanceId(param.getJobInstanceId());
+        task.setType(param.getType());
         task.setExecutorName(param.getExecutorName());
         task.setContext(param.getContext());
         task.setAttributes(param.getAttributes());

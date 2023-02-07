@@ -32,7 +32,7 @@ import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanScheduleTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.TaskScheduleTask;
-import org.limbo.flowjob.broker.core.schedule.strategy.ScheduleStrategyFactory;
+import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
@@ -73,7 +73,7 @@ public class DomainConverter {
     private PlanInstanceEntityRepo planInstanceEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private ScheduleStrategyFactory scheduleStrategyFactory;
+    private IScheduleStrategy scheduleStrategy;
 
     @Setter(onMethod_ = @Inject)
     private MetaTaskScheduler metaTaskScheduler;
@@ -113,7 +113,7 @@ public class DomainConverter {
                 plan,
                 latelyTrigger == null ? null : latelyTrigger.getTriggerAt(),
                 latelyFeedback == null ? null : latelyFeedback.getFeedbackAt(),
-                scheduleStrategyFactory.build(plan.planType()),
+                scheduleStrategy,
                 metaTaskScheduler
         );
 
@@ -146,23 +146,26 @@ public class DomainConverter {
         taskEntity.setJobId(task.getJobId());
         taskEntity.setPlanId(task.getPlanId());
         taskEntity.setPlanInfoId(task.getPlanVersion());
-        taskEntity.setType(task.getTaskType().type);
+        taskEntity.setType(task.getType().type);
         taskEntity.setStatus(task.getStatus().status);
         taskEntity.setWorkerId(task.getWorkerId());
         taskEntity.setExecutorName(task.getExecutorName());
-        taskEntity.setAttributes(task.getAttributes() == null ? "{}" : task.getAttributes().toString());
+        taskEntity.setAttributes(task.getAttributes() == null ? JacksonUtils.DEFAULT_NONE_OBJECT : task.getAttributes().toString());
         taskEntity.setDispatchOption(JacksonUtils.toJSONString(task.getDispatchOption()));
         taskEntity.setTaskId(task.getTaskId());
         return taskEntity;
     }
 
     public Task toTask(TaskEntity entity) {
+        if (entity == null) {
+            return null;
+        }
         Task task = new Task();
         task.setTaskId(entity.getTaskId());
         task.setJobInstanceId(entity.getJobInstanceId());
         task.setJobId(entity.getJobId());
         task.setStatus(TaskStatus.parse(entity.getStatus()));
-        task.setTaskType(TaskType.parse(entity.getType()));
+        task.setType(TaskType.parse(entity.getType()));
         task.setWorkerId(entity.getWorkerId());
         task.setExecutorName(entity.getExecutorName());
         task.setAttributes(new Attributes(entity.getAttributes()));
@@ -173,23 +176,23 @@ public class DomainConverter {
     }
 
     public TaskScheduleTask toTaskScheduleTask(Task task, LocalDateTime triggerAt) {
-        return new TaskScheduleTask(task, triggerAt, scheduleStrategyFactory.build(task.getPlanType()));
+        return new TaskScheduleTask(task, triggerAt, scheduleStrategy);
     }
 
     public TaskScheduleTask toTaskScheduleTask(TaskEntity entity) {
         Task task = toTask(entity);
-        return new TaskScheduleTask(task, TimeUtils.currentLocalDateTime(), scheduleStrategyFactory.build(task.getPlanType()));
+        return new TaskScheduleTask(task, TimeUtils.currentLocalDateTime(), scheduleStrategy);
     }
 
     public JobInstanceEntity toJobInstanceEntity(JobInstance jobInstance) {
         JobInfo jobInfo = jobInstance.getJobInfo();
         JobInstanceEntity entity = new JobInstanceEntity();
+        entity.setJobId(jobInfo.getId());
         entity.setJobInstanceId(jobInstance.getJobInstanceId());
         entity.setPlanInstanceId(jobInstance.getPlanInstanceId());
         entity.setPlanId(jobInstance.getPlanId());
         entity.setPlanInfoId(jobInstance.getPlanVersion());
         entity.setStatus(jobInstance.getStatus().status);
-        entity.setAttributes(JacksonUtils.toJSONString(jobInfo.getAttributes(), JacksonUtils.DEFAULT_NONE_OBJECT));
         entity.setTriggerAt(jobInstance.getTriggerAt());
         entity.setStartAt(jobInstance.getStartAt());
         entity.setEndAt(jobInstance.getEndAt());

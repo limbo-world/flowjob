@@ -24,7 +24,6 @@ import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
-import org.limbo.flowjob.broker.core.schedule.strategy.ScheduleStrategyFactory;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 
@@ -48,19 +47,19 @@ public abstract class AbstractTaskStatusCheckTask extends FixDelayMetaTask {
 
     private final WorkerRepository workerRepository;
 
-    private final ScheduleStrategyFactory scheduleStrategyFactory;
+    private final IScheduleStrategy scheduleStrategy;
 
     protected AbstractTaskStatusCheckTask(Duration interval,
                                           BrokerConfig config,
                                           NodeManger nodeManger,
                                           MetaTaskScheduler metaTaskScheduler,
                                           WorkerRepository workerRepository,
-                                          ScheduleStrategyFactory scheduleStrategyFactory) {
+                                          IScheduleStrategy scheduleStrategy) {
         super(interval, metaTaskScheduler);
         this.config = config;
         this.nodeManger = nodeManger;
         this.workerRepository = workerRepository;
-        this.scheduleStrategyFactory = scheduleStrategyFactory;
+        this.scheduleStrategy = scheduleStrategy;
     }
 
 
@@ -85,7 +84,6 @@ public abstract class AbstractTaskStatusCheckTask extends FixDelayMetaTask {
                 Task task = scheduleTask.getTask();
                 Worker worker = workerRepository.get(task.getWorkerId());
                 if (worker == null || !worker.isAlive()) {
-                    IScheduleStrategy scheduleStrategy = scheduleStrategyFactory.build(task.getPlanType());
                     scheduleStrategy.handleTaskFail(task, String.format("worker %s is offline", task.getWorkerId()), "");
                 }
             }

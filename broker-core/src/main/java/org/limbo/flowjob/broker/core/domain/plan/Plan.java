@@ -49,6 +49,11 @@ public abstract class Plan {
     private final String version;
 
     /**
+     * 类型
+     */
+    private final PlanType type;
+
+    /**
      * 触发类型
      */
     private final TriggerType triggerType;
@@ -58,10 +63,11 @@ public abstract class Plan {
      */
     private final ScheduleOption scheduleOption;
 
-    protected Plan(String planId, String version, TriggerType triggerType,
+    protected Plan(String planId, String version, PlanType type, TriggerType triggerType,
                    ScheduleOption scheduleOption) {
         this.planId = planId;
         this.version = version;
+        this.type = type;
         this.triggerType = triggerType;
         this.scheduleOption = scheduleOption;
     }

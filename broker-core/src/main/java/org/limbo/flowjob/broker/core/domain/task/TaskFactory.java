@@ -87,14 +87,15 @@ public class TaskFactory {
             JobInfo jobInfo = instance.getJobInfo();
             Task task = new Task();
             task.setTaskId(idGenerator.generateId(IDType.TASK));
-            task.setTaskType(type);
+            task.setJobId(jobInfo.getId());
+            task.setType(type);
             task.setPlanVersion(instance.getPlanVersion());
             task.setPlanId(instance.getPlanId());
-            task.setPlanType(instance.getPlanType());
             task.setJobInstanceId(instance.getJobInstanceId());
             task.setStatus(TaskStatus.SCHEDULING);
             task.setDispatchOption(jobInfo.getDispatchOption());
             task.setExecutorName(jobInfo.getExecutorName());
+            task.setContext(instance.getContext());
             task.setAttributes(jobInfo.getAttributes());
             task.setWorkerId(workerId);
             return task;

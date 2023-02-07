@@ -23,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.remote.param.TaskFeedbackParam;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
-import org.limbo.flowjob.broker.core.schedule.strategy.ScheduleStrategyFactory;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
@@ -49,7 +48,7 @@ public class TaskService {
     private DomainConverter domainConverter;
 
     @Setter(onMethod_ = @Inject)
-    private ScheduleStrategyFactory scheduleStrategyFactory;
+    private IScheduleStrategy scheduleStrategy;
 
     /**
      * Worker任务执行反馈
@@ -65,16 +64,13 @@ public class TaskService {
         }
 
         TaskEntity taskEntity = taskEntityRepo.findById(taskId).orElse(null);
-        Verifies.notNull(taskEntity, "task is null");
+        Verifies.notNull(taskEntity, "task is null id:" + taskId);
 
         Task task = domainConverter.toTask(taskEntity);
 
-        IScheduleStrategy scheduleStrategy = scheduleStrategyFactory.build(task.getPlanType());
-
-
         switch (result) {
             case SUCCEED:
-                scheduleStrategy.handleTaskSuccess(task, param.getResultAttributes());
+                scheduleStrategy.handleTaskSuccess(task, param.getContext(), param.getResultData());
                 break;
 
             case FAILED:

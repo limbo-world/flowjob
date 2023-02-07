@@ -19,8 +19,8 @@ package org.limbo.flowjob.worker.starter.application.executors;
 import org.limbo.flowjob.common.exception.VerifyException;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.worker.core.domain.Task;
-import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.executor.TaskExecutor;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
@@ -30,21 +30,21 @@ import java.io.IOException;
  * @author Brozen
  * @since 2022-09-11
  */
+@Component
 public class ShellExecutor implements TaskExecutor {
 
     private static final String NAME = "bashShell";
 
     /**
      * {@inheritDoc}
-     * @param context 任务执行上下文
+     * @param task 执行的任务
      */
     @Override
-    public void run(ExecuteContext context) {
-        Task task = context.getTask();
+    public void run(Task task) {
         String shellName = task.getExecutorName();
-        Object scriptObj = task.getContext().get("script");
+        Object scriptObj = task.getAttribute("script");
 
-        if (scriptObj == null || !(scriptObj instanceof String)) {
+        if (!(scriptObj instanceof String)) {
             throw new VerifyException("\"script\" is null or not a String");
         }
         String script = (String) scriptObj;

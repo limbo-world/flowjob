@@ -39,6 +39,7 @@ import org.limbo.flowjob.common.constants.Protocol;
 import org.limbo.flowjob.common.lb.LBServerRepository;
 import org.limbo.flowjob.common.lb.LBStrategy;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
+import org.limbo.flowjob.worker.core.domain.Task;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.rpc.BrokerNode;
@@ -185,7 +186,8 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      */
     @Override
     public void feedbackTaskSucceed(ExecuteContext context) {
-        doFeedbackTask(context.getTask().getTaskId(), RpcParamFactory.taskFeedbackParam(null));
+        Task task = context.getTask();
+        doFeedbackTask(task.getTaskId(), RpcParamFactory.taskFeedbackParam(task.getContext(), task.getResult(), null));
     }
 
 
@@ -197,7 +199,8 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      */
     @Override
     public void feedbackTaskFailed(ExecuteContext context, @Nullable Throwable ex) {
-        doFeedbackTask(context.getTask().getTaskId(), RpcParamFactory.taskFeedbackParam(ex));
+        Task task = context.getTask();
+        doFeedbackTask(context.getTask().getTaskId(), RpcParamFactory.taskFeedbackParam(task.getContext(), task.getResult(), ex));
     }
 
 

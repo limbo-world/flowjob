@@ -63,7 +63,7 @@ public class ExecuteContext implements Runnable {
     /**
      * 任务执行状态
      */
-    private AtomicReference<Status> status;
+    private final AtomicReference<Status> status;
 
     public ExecuteContext(TaskRepository taskRepository, TaskExecutor executor, BrokerRpc brokerRpc, Task task) {
         this.taskRepository = taskRepository;
@@ -87,7 +87,7 @@ public class ExecuteContext implements Runnable {
 
         try {
             // 执行任务
-            executor.run(this);
+            executor.run(task);
 
             // 执行成功
             this.status.set(Status.SUCCEED);

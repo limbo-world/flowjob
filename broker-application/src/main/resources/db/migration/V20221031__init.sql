@@ -158,39 +158,6 @@ UNLOCK
 TABLES;
 
 --
--- Table structure for table `flowjob_job_info`
---
-
-DROP TABLE IF EXISTS `flowjob_job_info`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `flowjob_job_info`
-(
-    `id`              bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-    `job_info_id`     varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `type`            tinyint                                                NOT NULL,
-    `attributes`      text COLLATE utf8mb4_bin,
-    `dispatch_option` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-    `executor_name`   varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-    `is_deleted`      bit(1)                                                 NOT NULL DEFAULT 0,
-    `created_at`      datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`      datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `flowjob_job_info`
---
-
-LOCK
-TABLES `flowjob_job_info` WRITE;
-/*!40000 ALTER TABLE `flowjob_job_info` DISABLE KEYS */;
-/*!40000 ALTER TABLE `flowjob_job_info` ENABLE KEYS */;
-UNLOCK
-TABLES;
-
---
 -- Table structure for table `flowjob_plan_instance`
 --
 
@@ -206,6 +173,7 @@ CREATE TABLE `flowjob_plan_instance`
     `trigger_type`     tinyint                                                NOT NULL,
     `status`           tinyint                                                NOT NULL,
     `trigger_at`       datetime(6) NOT NULL,
+    `context`          varchar(255) COLLATE utf8mb4_bin                                DEFAULT NULL,
     `start_at`         datetime(6) DEFAULT NULL,
     `feedback_at`      datetime(6) DEFAULT NULL,
     `is_deleted`       bit(1)                                                 NOT NULL DEFAULT 0,
@@ -244,7 +212,6 @@ CREATE TABLE `flowjob_job_instance`
     `trigger_at`       datetime(6) NOT NULL,
     `start_at`         datetime(6) DEFAULT NULL,
     `end_at`           datetime(6) DEFAULT NULL,
-    `attributes`       varchar(255) COLLATE utf8mb4_bin                                DEFAULT NULL,
     `status`           tinyint                                                NOT NULL,
     `error_msg`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `is_deleted`       bit(1)                                                 NOT NULL DEFAULT 0,
@@ -546,8 +513,6 @@ INSERT INTO flowjob_id(`type`, `current_id`, `step`)
 VALUES ('PLAN', 100000, 1000);
 INSERT INTO flowjob_id(`type`, `current_id`, `step`)
 VALUES ('PLAN_INFO', 100000, 1000);
-INSERT INTO flowjob_id(`type`, `current_id`, `step`)
-VALUES ('JOB_INFO', 100000, 1000);
 INSERT INTO flowjob_id(`type`, `current_id`, `step`)
 VALUES ('PLAN_INSTANCE', 100000, 1000);
 INSERT INTO flowjob_id(`type`, `current_id`, `step`)
