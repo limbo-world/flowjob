@@ -32,7 +32,8 @@ import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanScheduleTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.TaskScheduleTask;
-import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
+import org.limbo.flowjob.broker.core.schedule.strategy.IPlanScheduleStrategy;
+import org.limbo.flowjob.broker.core.schedule.strategy.ITaskScheduleStrategy;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
@@ -73,7 +74,10 @@ public class DomainConverter {
     private PlanInstanceEntityRepo planInstanceEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private IScheduleStrategy scheduleStrategy;
+    private IPlanScheduleStrategy planScheduleStrategy;
+
+    @Setter(onMethod_ = @Inject)
+    private ITaskScheduleStrategy taskScheduleStrategy;
 
     @Setter(onMethod_ = @Inject)
     private MetaTaskScheduler metaTaskScheduler;
@@ -113,7 +117,7 @@ public class DomainConverter {
                 plan,
                 latelyTrigger == null ? null : latelyTrigger.getTriggerAt(),
                 latelyFeedback == null ? null : latelyFeedback.getFeedbackAt(),
-                scheduleStrategy,
+                planScheduleStrategy,
                 metaTaskScheduler
         );
 
@@ -150,7 +154,8 @@ public class DomainConverter {
         taskEntity.setStatus(task.getStatus().status);
         taskEntity.setWorkerId(task.getWorkerId());
         taskEntity.setExecutorName(task.getExecutorName());
-        taskEntity.setAttributes(task.getAttributes() == null ? JacksonUtils.DEFAULT_NONE_OBJECT : task.getAttributes().toString());
+        taskEntity.setJobAttributes(task.getJobAttributes() == null ? JacksonUtils.DEFAULT_NONE_OBJECT : task.getJobAttributes().toString());
+        taskEntity.setTaskAttributes(task.getTaskAttributes() == null ? JacksonUtils.DEFAULT_NONE_OBJECT : JacksonUtils.toJSONString(task.getTaskAttributes()));
         taskEntity.setDispatchOption(JacksonUtils.toJSONString(task.getDispatchOption()));
         taskEntity.setTaskId(task.getTaskId());
         return taskEntity;
@@ -160,15 +165,17 @@ public class DomainConverter {
         if (entity == null) {
             return null;
         }
+        TaskType type = TaskType.parse(entity.getType());
         Task task = new Task();
         task.setTaskId(entity.getTaskId());
         task.setJobInstanceId(entity.getJobInstanceId());
         task.setJobId(entity.getJobId());
         task.setStatus(TaskStatus.parse(entity.getStatus()));
-        task.setType(TaskType.parse(entity.getType()));
+        task.setType(type);
         task.setWorkerId(entity.getWorkerId());
         task.setExecutorName(entity.getExecutorName());
-        task.setAttributes(new Attributes(entity.getAttributes()));
+        task.setJobAttributes(new Attributes(entity.getJobAttributes()));
+        task.setTaskAttributes(type, entity.getTaskAttributes());
         task.setPlanId(entity.getPlanId());
         task.setPlanVersion(entity.getPlanInfoId());
         task.setDispatchOption(JacksonUtils.parseObject(entity.getDispatchOption(), DispatchOption.class));
@@ -176,12 +183,12 @@ public class DomainConverter {
     }
 
     public TaskScheduleTask toTaskScheduleTask(Task task, LocalDateTime triggerAt) {
-        return new TaskScheduleTask(task, triggerAt, scheduleStrategy);
+        return new TaskScheduleTask(task, triggerAt, taskScheduleStrategy);
     }
 
     public TaskScheduleTask toTaskScheduleTask(TaskEntity entity) {
         Task task = toTask(entity);
-        return new TaskScheduleTask(task, TimeUtils.currentLocalDateTime(), scheduleStrategy);
+        return new TaskScheduleTask(task, TimeUtils.currentLocalDateTime(), taskScheduleStrategy);
     }
 
     public JobInstanceEntity toJobInstanceEntity(JobInstance jobInstance) {

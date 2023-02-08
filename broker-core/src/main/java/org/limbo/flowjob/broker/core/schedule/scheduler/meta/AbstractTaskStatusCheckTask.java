@@ -23,7 +23,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.task.Task;
-import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
+import org.limbo.flowjob.broker.core.schedule.strategy.ITaskResultStrategy;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 
@@ -47,14 +47,14 @@ public abstract class AbstractTaskStatusCheckTask extends FixDelayMetaTask {
 
     private final WorkerRepository workerRepository;
 
-    private final IScheduleStrategy scheduleStrategy;
+    private final ITaskResultStrategy scheduleStrategy;
 
     protected AbstractTaskStatusCheckTask(Duration interval,
                                           BrokerConfig config,
                                           NodeManger nodeManger,
                                           MetaTaskScheduler metaTaskScheduler,
                                           WorkerRepository workerRepository,
-                                          IScheduleStrategy scheduleStrategy) {
+                                          ITaskResultStrategy scheduleStrategy) {
         super(interval, metaTaskScheduler);
         this.config = config;
         this.nodeManger = nodeManger;
@@ -84,7 +84,7 @@ public abstract class AbstractTaskStatusCheckTask extends FixDelayMetaTask {
                 Task task = scheduleTask.getTask();
                 Worker worker = workerRepository.get(task.getWorkerId());
                 if (worker == null || !worker.isAlive()) {
-                    scheduleStrategy.handleTaskFail(task, String.format("worker %s is offline", task.getWorkerId()), "");
+                    scheduleStrategy.handleFail(task, String.format("worker %s is offline", task.getWorkerId()), "");
                 }
             }
         }

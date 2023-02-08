@@ -18,6 +18,7 @@ package org.limbo.flowjob.worker.core.executor;
 
 
 import org.limbo.flowjob.common.constants.TaskType;
+import org.limbo.flowjob.worker.core.domain.ReduceTask;
 import org.limbo.flowjob.worker.core.domain.Task;
 
 /**
@@ -31,7 +32,7 @@ public interface MapReduceTaskExecutor extends MapTaskExecutor {
     @Override
     default void run(Task task) {
         if (TaskType.REDUCE == task.getType()) {
-            reduce(task);
+            reduce((ReduceTask) task);
         } else {
             MapTaskExecutor.super.run(task);
         }
@@ -41,6 +42,6 @@ public interface MapReduceTaskExecutor extends MapTaskExecutor {
      * 处理reduce任务
      * @param task 任务执行上下文
      */
-    void reduce(Task task);
+    void reduce(ReduceTask task);
 
 }

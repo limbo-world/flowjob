@@ -69,9 +69,14 @@ public class TaskEntity extends BaseEntity {
     private String executorName;
 
     /**
-     * 此次执行的参数
+     * 此次执行的job参数
      */
-    private String attributes;
+    private String jobAttributes;
+
+    /**
+     * 此次执行的task参数
+     */
+    private String taskAttributes;
 
     /**
      * 作业分发配置参数

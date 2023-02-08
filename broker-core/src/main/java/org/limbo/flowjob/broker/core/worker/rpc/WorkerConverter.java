@@ -56,7 +56,7 @@ public class WorkerConverter {
         taskSubmitParam.setType(task.getType());
         taskSubmitParam.setExecutorName(task.getExecutorName());
         taskSubmitParam.setContext(task.getContext() == null ? Collections.emptyMap() : task.getContext().toMap());
-        taskSubmitParam.setAttributes(task.getAttributes() == null ? Collections.emptyMap() : task.getAttributes().toMap());
+        taskSubmitParam.setAttributes(task.getJobAttributes() == null ? Collections.emptyMap() : task.getJobAttributes().toMap());
 
         switch (task.getType()) {
             case MAP:

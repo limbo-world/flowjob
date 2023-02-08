@@ -18,8 +18,9 @@
 
 package org.limbo.flowjob.worker.demo.executors;
 
-import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.worker.core.domain.MapTask;
+import org.limbo.flowjob.worker.core.domain.ReduceTask;
 import org.limbo.flowjob.worker.core.domain.Task;
 import org.limbo.flowjob.worker.core.executor.MapReduceTaskExecutor;
 import org.springframework.stereotype.Component;
@@ -37,25 +38,37 @@ import java.util.Map;
 @Component
 public class MapReduceExecutorDemo implements MapReduceTaskExecutor {
 
+    private static final String KEY = "k";
+
     @Override
     public List<Map<String, Object>> split(Task task) {
         List<Map<String, Object>> result = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             Map<String, Object> taskParam = new HashMap<>();
-            taskParam.put("t" + i, i);
+            taskParam.put(KEY, i);
             result.add(taskParam);
         }
         return result;
     }
 
     @Override
-    public Map<String, Object> map(Task task) {
-        return null;
+    public Map<String, Object> map(MapTask task) {
+        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> mapAttributes = task.getMapAttributes();
+        int v = (int) mapAttributes.get(KEY);
+        result.put(KEY, v + 100);
+        return result;
     }
 
     @Override
-    public void reduce(Task task) {
-
+    public void reduce(ReduceTask task) {
+        List<Map<String, Object>> reduceAttributes = task.getReduceAttributes();
+        int sum = 0;
+        for (Map<String, Object> reduceAttribute : reduceAttributes) {
+            int v = (int) reduceAttribute.get(KEY);
+            sum += v;
+        }
+        log.info("sum = {}", sum);
     }
 
 }

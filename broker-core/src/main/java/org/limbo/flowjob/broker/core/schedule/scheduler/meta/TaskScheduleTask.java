@@ -4,7 +4,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.ToString;
 import org.limbo.flowjob.broker.core.domain.task.Task;
-import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
+import org.limbo.flowjob.broker.core.schedule.strategy.ITaskScheduleStrategy;
 
 import java.time.LocalDateTime;
 
@@ -25,9 +25,9 @@ public class TaskScheduleTask implements MetaTask {
 
     @Getter(AccessLevel.NONE)
     @ToString.Exclude
-    private final IScheduleStrategy iScheduleStrategy;
+    private final ITaskScheduleStrategy iScheduleStrategy;
 
-    public TaskScheduleTask(Task task, LocalDateTime triggerAt, IScheduleStrategy iScheduleStrategy) {
+    public TaskScheduleTask(Task task, LocalDateTime triggerAt, ITaskScheduleStrategy iScheduleStrategy) {
         this.task = task;
         this.triggerAt = triggerAt;
         this.iScheduleStrategy = iScheduleStrategy;

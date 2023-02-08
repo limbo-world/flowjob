@@ -35,7 +35,7 @@ import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanScheduleTask;
-import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
+import org.limbo.flowjob.broker.core.schedule.strategy.IPlanScheduleStrategy;
 import org.limbo.flowjob.broker.core.worker.rpc.WorkerConverter;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
@@ -59,6 +59,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,7 +75,7 @@ public class ScheduleTest {
     private PlanService planService;
 
     @Setter(onMethod_ = @Inject)
-    private IScheduleStrategy scheduleStrategy;
+    private IPlanScheduleStrategy planScheduleStrategy;
 
     @MockBean
     private TaskDispatcher taskDispatcher;
@@ -190,7 +191,7 @@ public class ScheduleTest {
         PlanScheduleTask planScheduleTask = domainConverter.toPlanScheduleTask(planEntity);
         // 调度plan 生成 task 并下发
         Plan plan = planScheduleTask.getPlan();
-        scheduleStrategy.schedule(plan.getTriggerType(), plan, TimeUtils.currentLocalDateTime());
+        planScheduleStrategy.schedule(plan.getTriggerType(), plan, TimeUtils.currentLocalDateTime());
 
         try {
             // 等待执行完成

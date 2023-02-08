@@ -66,7 +66,7 @@ public class SimpleWorkerSelectArguments implements WorkerSelectArgument {
     public Map<String, String> getAttributes() {
         Map<String, String> attr = new HashMap<>();
         putStringEntry(attr, task.getContext());
-        putStringEntry(attr, task.getAttributes());
+        putStringEntry(attr, task.getJobAttributes());
 
         Attributes mapAttrs = task.getMapAttributes();
         if (mapAttrs != null) {

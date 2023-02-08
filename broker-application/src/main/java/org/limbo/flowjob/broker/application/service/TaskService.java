@@ -22,7 +22,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.remote.param.TaskFeedbackParam;
 import org.limbo.flowjob.broker.core.domain.task.Task;
-import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
+import org.limbo.flowjob.broker.core.schedule.strategy.ITaskResultStrategy;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
@@ -31,7 +31,6 @@ import org.limbo.flowjob.common.utils.Verifies;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 
 /**
  * @author Devil
@@ -48,7 +47,7 @@ public class TaskService {
     private DomainConverter domainConverter;
 
     @Setter(onMethod_ = @Inject)
-    private IScheduleStrategy scheduleStrategy;
+    private ITaskResultStrategy taskResultStrategy;
 
     /**
      * Worker任务执行反馈
@@ -56,7 +55,6 @@ public class TaskService {
      * @param taskId 任务id
      * @param param  反馈参数
      */
-    @Transactional
     public void taskFeedback(String taskId, TaskFeedbackParam param) {
         ExecuteResult result = ExecuteResult.parse(param.getResult());
         if (log.isDebugEnabled()) {
@@ -70,11 +68,11 @@ public class TaskService {
 
         switch (result) {
             case SUCCEED:
-                scheduleStrategy.handleTaskSuccess(task, param.getContext(), param.getResultData());
+                taskResultStrategy.handleSuccess(task, param.getContext(), param.getResultData());
                 break;
 
             case FAILED:
-                scheduleStrategy.handleTaskFail(task, param.getErrorMsg(), param.getErrorStackTrace());
+                taskResultStrategy.handleFail(task, param.getErrorMsg(), param.getErrorStackTrace());
                 break;
 
             case TERMINATED:

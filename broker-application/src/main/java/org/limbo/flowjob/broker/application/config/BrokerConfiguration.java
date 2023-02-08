@@ -36,7 +36,7 @@ import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
 import org.limbo.flowjob.broker.core.domain.task.TaskManager;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
+import org.limbo.flowjob.broker.core.schedule.strategy.ITaskResultStrategy;
 import org.limbo.flowjob.broker.core.statistics.WorkerStatisticsRepository;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.domain.SingletonWorkerStatisticsRepo;
@@ -146,7 +146,7 @@ public class BrokerConfiguration {
                                         NodeManger nodeManger,
                                         MetaTaskScheduler metaTaskScheduler,
                                         WorkerRepository workerRepository,
-                                        IScheduleStrategy scheduleStrategy) {
+                                        ITaskResultStrategy scheduleStrategy) {
         return new TaskStatusCheckTask(
                 Duration.ofMillis(brokerProperties.getStatusCheckInterval()),
                 config,

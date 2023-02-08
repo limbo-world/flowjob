@@ -36,7 +36,6 @@ import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -133,7 +132,7 @@ public class PlanConverter {
 
     public List<TagFilterOption> covertTagFilterOption(List<TagFilterParam> params) {
         if (CollectionUtils.isEmpty(params)) {
-            return Collections.emptyList();
+            return null;
         }
         return params.stream().map(param -> TagFilterOption.builder()
                 .tagName(param.getTagName())

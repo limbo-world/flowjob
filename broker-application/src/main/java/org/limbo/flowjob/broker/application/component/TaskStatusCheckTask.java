@@ -25,7 +25,7 @@ import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.AbstractTaskStatusCheckTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.TaskScheduleTask;
-import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
+import org.limbo.flowjob.broker.core.schedule.strategy.ITaskResultStrategy;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
@@ -66,7 +66,7 @@ public class TaskStatusCheckTask extends AbstractTaskStatusCheckTask {
                                NodeManger nodeManger,
                                MetaTaskScheduler metaTaskScheduler,
                                WorkerRepository workerRepository,
-                               IScheduleStrategy scheduleStrategy) {
+                               ITaskResultStrategy scheduleStrategy) {
         super(interval, config, nodeManger, metaTaskScheduler, workerRepository, scheduleStrategy);
     }
 
