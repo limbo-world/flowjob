@@ -86,7 +86,7 @@ public class Task {
     /**
      * 全局上下文
      */
-    private Attributes context;
+    private Attributes context = new Attributes();
 
     /**
      * 对应job配置的属性
@@ -98,6 +98,13 @@ public class Task {
      */
     @Setter(AccessLevel.NONE)
     private Object taskAttributes;
+
+    public void setContext(Attributes context) {
+        if (context == null) {
+            return;
+        }
+        this.context = context;
+    }
 
     public void setTaskAttributes(TaskType type, String json) {
         if (StringUtils.isBlank(json)) {

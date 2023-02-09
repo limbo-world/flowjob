@@ -187,7 +187,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
     @Override
     public void feedbackTaskSucceed(ExecuteContext context) {
         Task task = context.getTask();
-        doFeedbackTask(task.getTaskId(), RpcParamFactory.taskFeedbackParam(task.getContext(), task.getResult(), null));
+        doFeedbackTask(task.getTaskId(), RpcParamFactory.taskFeedbackParam(task.getContext(), task.getJobAttributes(), task.getResult(), null));
     }
 
 
@@ -200,7 +200,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
     @Override
     public void feedbackTaskFailed(ExecuteContext context, @Nullable Throwable ex) {
         Task task = context.getTask();
-        doFeedbackTask(context.getTask().getTaskId(), RpcParamFactory.taskFeedbackParam(task.getContext(), task.getResult(), ex));
+        doFeedbackTask(context.getTask().getTaskId(), RpcParamFactory.taskFeedbackParam(task.getContext(), task.getJobAttributes(), task.getResult(), ex));
     }
 
 

@@ -16,30 +16,16 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.component;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.TaskScheduleTask;
-
-import java.util.List;
+package org.limbo.flowjob.common.constants;
 
 /**
  * @author Devil
- * @since 2023/2/8
+ * @since 2023/2/6
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Slf4j
-public class ScheduleStrategyContext {
+public interface TaskResultKeys {
 
-    private MetaTaskScheduler metaTaskScheduler;
+    String SUB_TASKS = "subTasks";
 
-    private List<TaskScheduleTask> requireScheduleTasks;
+    String CONTEXT = "context";
+
 }

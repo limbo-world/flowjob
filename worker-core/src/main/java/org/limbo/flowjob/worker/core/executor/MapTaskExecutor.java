@@ -17,7 +17,6 @@
 package org.limbo.flowjob.worker.core.executor;
 
 
-import org.limbo.flowjob.worker.core.domain.MapTask;
 import org.limbo.flowjob.worker.core.domain.Task;
 
 import java.util.List;
@@ -38,7 +37,7 @@ public interface MapTaskExecutor extends TaskExecutor {
                 task.setResult(split(task));
                 break;
             case MAP:
-                task.setResult(map((MapTask) task));
+                task.setResult(map(task));
                 break;
             default:
                 break;
@@ -47,14 +46,14 @@ public interface MapTaskExecutor extends TaskExecutor {
 
     /**
      * 切分创建多个子task
-     * @param task 任务执行上下文
+     * @param task 任务
      */
     List<Map<String, Object>> split(Task task);
 
     /**
      * 处理map分片任务
-     * @param task 任务执行上下文
+     * @param task 任务
      */
-    Map<String, Object> map(MapTask task);
+    Map<String, Object> map(Task task);
 
 }

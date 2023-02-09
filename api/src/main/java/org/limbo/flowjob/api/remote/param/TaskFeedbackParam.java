@@ -69,6 +69,12 @@ public class TaskFeedbackParam {
     private Map<String, Object> context = new HashMap<>();
 
     /**
+     * 更新后的节点参数
+     */
+    @Schema(description = "更新后的节点参数")
+    private Map<String, Object> jobAttributes = new HashMap<>();
+
+    /**
      * 返回的数据
      */
     @Schema(description = "返回的数据")

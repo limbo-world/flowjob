@@ -58,6 +58,11 @@ public class JobInstanceEntity extends BaseEntity {
     private String errorMsg;
 
     /**
+     * 执行上下文
+     */
+    private String context;
+
+    /**
      * 调度触发时间
      */
     private LocalDateTime triggerAt;

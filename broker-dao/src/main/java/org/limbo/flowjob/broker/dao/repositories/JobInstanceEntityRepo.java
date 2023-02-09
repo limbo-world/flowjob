@@ -25,6 +25,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -44,15 +45,15 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
     long countByPlanInstanceIdAndJobId(String planInstanceId, String jobId);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update JobInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING + " where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_SCHEDULING)
-    int updateStatusExecuting(@Param("jobInstanceId") String jobInstanceId);
+    @Query(value = "update JobInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING + ", startAt = :startAt where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_SCHEDULING)
+    int executing(@Param("jobInstanceId") String jobInstanceId, @Param("startAt") LocalDateTime startAt);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update JobInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTE_SUCCEED + " where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING)
-    int updateStatusSuccess(@Param("jobInstanceId") String jobInstanceId);
+    @Query(value = "update JobInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTE_SUCCEED + ", context = :context, endAt = :endAt where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING)
+    int success(@Param("jobInstanceId") String jobInstanceId, @Param("endAt") LocalDateTime endAt, @Param("context") String context);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTE_FAILED + ", errorMsg =:errorMsg where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING)
-    int updateStatusExecuteFail(@Param("jobInstanceId") String jobInstanceId, @Param("errorMsg") String errorMsg);
+    int fail(@Param("jobInstanceId") String jobInstanceId, @Param("errorMsg") String errorMsg);
 
 }

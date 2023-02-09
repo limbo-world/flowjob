@@ -42,7 +42,7 @@ public class ShellExecutor implements TaskExecutor {
     @Override
     public void run(Task task) {
         String shellName = task.getExecutorName();
-        Object scriptObj = task.getAttribute("script");
+        Object scriptObj = task.getJobAttribute("script");
 
         if (!(scriptObj instanceof String)) {
             throw new VerifyException("\"script\" is null or not a String");

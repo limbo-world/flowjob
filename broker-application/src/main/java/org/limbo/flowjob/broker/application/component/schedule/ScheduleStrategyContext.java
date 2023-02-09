@@ -16,24 +16,33 @@
  *
  */
 
-package org.limbo.flowjob.worker.core.domain;
+package org.limbo.flowjob.broker.application.component.schedule;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.TaskScheduleTask;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Devil
- * @since 2022/11/16
+ * @since 2023/2/8
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class ReduceTask extends Task {
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Slf4j
+public class ScheduleStrategyContext {
+
+    public static final ThreadLocal<ScheduleStrategyContext> CURRENT = new ThreadLocal<>();
 
     /**
-     * reduce时候使用的
+     * 调度中产生的需要后续下发的task
      */
-    private List<Map<String, Object>> reduceAttributes;
+    private List<TaskScheduleTask> requireScheduleTasks;
+
 }

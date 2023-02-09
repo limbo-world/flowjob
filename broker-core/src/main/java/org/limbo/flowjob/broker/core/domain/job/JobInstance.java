@@ -58,6 +58,11 @@ public abstract class JobInstance implements Serializable {
     private Attributes context;
 
     /**
+     * job 节点动态参数
+     */
+    private Attributes jobAttributes;
+
+    /**
      * 开始时间
      */
     protected LocalDateTime startAt;

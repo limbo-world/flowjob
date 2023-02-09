@@ -20,15 +20,13 @@ package org.limbo.flowjob.broker.core.schedule.strategy;
 
 import org.limbo.flowjob.broker.core.domain.task.Task;
 
-import java.util.Map;
-
 /**
  * @author Devil
  * @since 2023/2/8
  */
 public interface ITaskResultStrategy {
 
-    void handleSuccess(Task task, Map<String, Object> context, Object result);
+    void handleSuccess(Task task, Object result);
 
     void handleFail(Task task, String errorMsg, String errorStackTrace);
 

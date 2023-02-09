@@ -138,7 +138,7 @@ public class DomainConverter {
      * @param dag 节点关系
      * @return job dag
      */
-    public DAG<WorkflowJobInfo> toJobDag(String dag) {
+    public static DAG<WorkflowJobInfo> toJobDag(String dag) {
         List<WorkflowJobInfo> jobInfos = JacksonUtils.parseObject(dag, new TypeReference<List<WorkflowJobInfo>>() {
         });
         return new DAG<>(jobInfos);
@@ -155,7 +155,7 @@ public class DomainConverter {
         taskEntity.setWorkerId(task.getWorkerId());
         taskEntity.setExecutorName(task.getExecutorName());
         taskEntity.setJobAttributes(task.getJobAttributes() == null ? JacksonUtils.DEFAULT_NONE_OBJECT : task.getJobAttributes().toString());
-        taskEntity.setTaskAttributes(task.getTaskAttributes() == null ? JacksonUtils.DEFAULT_NONE_OBJECT : JacksonUtils.toJSONString(task.getTaskAttributes()));
+        taskEntity.setTaskAttributes(JacksonUtils.toJSONString(task.getTaskAttributes()));
         taskEntity.setDispatchOption(JacksonUtils.toJSONString(task.getDispatchOption()));
         taskEntity.setTaskId(task.getTaskId());
         return taskEntity;
@@ -191,7 +191,7 @@ public class DomainConverter {
         return new TaskScheduleTask(task, TimeUtils.currentLocalDateTime(), taskScheduleStrategy);
     }
 
-    public JobInstanceEntity toJobInstanceEntity(JobInstance jobInstance) {
+    public static JobInstanceEntity toJobInstanceEntity(JobInstance jobInstance) {
         JobInfo jobInfo = jobInstance.getJobInfo();
         JobInstanceEntity entity = new JobInstanceEntity();
         entity.setJobId(jobInfo.getId());
@@ -200,6 +200,7 @@ public class DomainConverter {
         entity.setPlanId(jobInstance.getPlanId());
         entity.setPlanInfoId(jobInstance.getPlanVersion());
         entity.setStatus(jobInstance.getStatus().status);
+        entity.setContext(jobInstance.getContext().toString());
         entity.setTriggerAt(jobInstance.getTriggerAt());
         entity.setStartAt(jobInstance.getStartAt());
         entity.setEndAt(jobInstance.getEndAt());

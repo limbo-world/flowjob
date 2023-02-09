@@ -59,7 +59,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -115,7 +114,11 @@ public class ScheduleTest {
             public Void answer(InvocationOnMock invocationOnMock) {
                 Object[] arguments = invocationOnMock.getArguments();
                 ExecuteContext context = (ExecuteContext) arguments[0];
-                TaskFeedbackParam taskFeedbackParam = RpcParamFactory.taskFeedbackParam(context.getTask().getContext(), context.getTask().getResult(), null);
+                TaskFeedbackParam taskFeedbackParam = RpcParamFactory.taskFeedbackParam(context.getTask().getContext(),
+                        context.getTask().getJobAttributes(),
+                        context.getTask().getResult(),
+                        null
+                );
                 workerRpcController.feedback(context.getTask().getTaskId(), taskFeedbackParam);
                 return null;
             }

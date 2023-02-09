@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.component;
+package org.limbo.flowjob.broker.application.component.schedule;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,6 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -56,8 +55,8 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
     }
 
     @Override
-    public void handleSuccess(Task task, Map<String, Object> context, Object result) {
-        executeWithAspect(unused -> scheduleStrategyHelper.handleSuccess(task, context, result));
+    public void handleSuccess(Task task, Object result) {
+        executeWithAspect(unused -> scheduleStrategyHelper.handleSuccess(task, result));
     }
 
     @Override
@@ -81,6 +80,9 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
         clearStrategyContext();
     }
 
+    /**
+     * 放在事务外，防止下发和执行很快但是task下发完需要很久的情况，这样前面的任务执行返回后由于事务未提交，会提示找不到task
+     */
     public void scheduleTasks() {
         ScheduleStrategyContext scheduleStrategyContext = getStrategyContext();
         if (scheduleStrategyContext == null || CollectionUtils.isEmpty(scheduleStrategyContext.getRequireScheduleTasks())) {
@@ -90,7 +92,7 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
             try {
                 metaTaskScheduler.schedule(task);
             } catch (Exception e) {
-                // 调度失败 不要影响事务，事务提交后 由task的状态检查任务去修复task的执行情况
+                // 由task的状态检查任务去修复task的执行情况
                 log.error("task schedule fail! task={}", task, e);
             }
         }
@@ -98,16 +100,16 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
 
     private ScheduleStrategyContext newStrategyContext() {
         ScheduleStrategyContext strategyContext = new ScheduleStrategyContext();
-        ScheduleStrategyHelper.STRATEGY_CONTEXT.set(strategyContext);
+        ScheduleStrategyContext.CURRENT.set(strategyContext);
         return strategyContext;
     }
 
     private void clearStrategyContext() {
-        ScheduleStrategyHelper.STRATEGY_CONTEXT.remove();
+        ScheduleStrategyContext.CURRENT.remove();
     }
 
     private ScheduleStrategyContext getStrategyContext() {
-        return ScheduleStrategyHelper.STRATEGY_CONTEXT.get();
+        return ScheduleStrategyContext.CURRENT.get();
     }
 
 }

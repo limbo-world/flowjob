@@ -69,6 +69,11 @@ public class TaskEntity extends BaseEntity {
     private String executorName;
 
     /**
+     * 执行上下文
+     */
+    private String context;
+
+    /**
      * 此次执行的job参数
      */
     private String jobAttributes;

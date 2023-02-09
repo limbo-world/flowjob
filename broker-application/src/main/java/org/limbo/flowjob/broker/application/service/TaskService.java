@@ -28,6 +28,7 @@ import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.limbo.flowjob.common.constants.ExecuteResult;
 import org.limbo.flowjob.common.utils.Verifies;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -68,7 +69,9 @@ public class TaskService {
 
         switch (result) {
             case SUCCEED:
-                taskResultStrategy.handleSuccess(task, param.getContext(), param.getResultData());
+                task.setContext(new Attributes(param.getContext()));
+                task.setJobAttributes(new Attributes(param.getJobAttributes()));
+                taskResultStrategy.handleSuccess(task, param.getResultData());
                 break;
 
             case FAILED:

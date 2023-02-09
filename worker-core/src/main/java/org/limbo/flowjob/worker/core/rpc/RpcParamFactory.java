@@ -106,10 +106,11 @@ public class RpcParamFactory {
         return heartbeatParam;
     }
 
-    public static TaskFeedbackParam taskFeedbackParam(Map<String, Object> context, Object result, Throwable ex) {
+    public static TaskFeedbackParam taskFeedbackParam(Map<String, Object> context, Map<String, Object> jobAttributes, Object result, Throwable ex) {
         TaskFeedbackParam feedbackParam = new TaskFeedbackParam();
         feedbackParam.setResult(ExecuteResult.SUCCEED.result);
         feedbackParam.setContext(context);
+        feedbackParam.setJobAttributes(jobAttributes);
         feedbackParam.setResultData(result);
 
         if (ex != null) {

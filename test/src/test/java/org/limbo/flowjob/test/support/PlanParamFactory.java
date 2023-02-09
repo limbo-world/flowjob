@@ -32,10 +32,12 @@ import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.UUIDUtils;
+import org.limbo.flowjob.common.utils.dag.DAGNode;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -131,6 +133,9 @@ public class PlanParamFactory {
                 .loadBalanceType(LoadBalanceType.RANDOM)
                 .build()
         );
+        Map<String, Object> attr = new HashMap<>();
+        attr.put("num", 1);
+        job.setAttributes(attr);
         job.setExecutorName(executorName);
         return job;
     }
@@ -154,6 +159,8 @@ public class PlanParamFactory {
         Map<String, Object> attributes = new HashMap<>();
         attributes.put("rid", UUIDUtils.shortRandomID());
         attributes.put("time", TimeUtils.currentInstant().getEpochSecond());
+        attributes.put("num", 1);
+        attributes.put("node", new DAGNode("1", new HashSet<>()));
         job.setAttributes(attributes);
         job.setExecutorName(executorName);
         return job;

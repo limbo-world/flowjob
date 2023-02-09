@@ -96,7 +96,7 @@ public class TaskFactory {
             task.setDispatchOption(jobInfo.getDispatchOption());
             task.setExecutorName(jobInfo.getExecutorName());
             task.setContext(instance.getContext());
-            task.setJobAttributes(jobInfo.getAttributes());
+            task.setJobAttributes(instance.getJobAttributes());
             task.setWorkerId(workerId);
             return task;
         }
