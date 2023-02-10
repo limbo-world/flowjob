@@ -35,11 +35,9 @@ import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
-import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
-import org.limbo.flowjob.broker.dao.repositories.JobInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
@@ -82,9 +80,6 @@ public class PlanService {
     private PlanInfoEntityRepo planInfoEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private JobInfoEntityRepo jobInfoEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
     private IDGenerator idGenerator;
 
     @Setter(onMethod_ = @Inject)
@@ -97,13 +92,22 @@ public class PlanService {
     public String save(String planId, PlanParam param) {
 
         Verifies.verify(param.getPlanType() != null && PlanType.UNKNOWN != param.getPlanType(), MsgConstants.UNKNOWN + " Plan Type");
+
+        PlanInfoEntity planInfoEntity = new PlanInfoEntity();
         if (PlanType.SINGLE == param.getPlanType()) {
             Verifies.notNull(param.getJob(), "Job can't be null with Single Plan Type");
+            JobInfo jobInfo = planConverter.covertJob("0", param.getJob());
+            planInfoEntity.setJobInfo(JacksonUtils.toJSONString(jobInfo));
         } else {
             Verifies.notEmpty(param.getWorkflow(), "Workflow can't be empty with Workflow Plan Type");
+            DAG<WorkflowJobInfo> workflow = planConverter.convertJob(param.getWorkflow());
+            try {
+                planInfoEntity.setJobInfo(workflow.json());
+            } catch (JsonProcessingException e) {
+                log.error("To DAG Json failed! dag={}", workflow, e);
+                throw new VerifyException("Dag Node verify fail!");
+            }
         }
-
-        // 视图属性 todo v1 校验dag不为空 且内部节点不能重复 none 类型 检查有 api方式的最初节点 非此类型要检查有 schedule 的最初节点 感觉好像也没必要，用户自己保证
 
         String planInfoId = idGenerator.generateId(IDType.PLAN_INFO);
 
@@ -136,7 +140,6 @@ public class PlanService {
             }
         }
 
-        PlanInfoEntity planInfoEntity = new PlanInfoEntity();
         // base info
         planInfoEntity.setPlanId(planId);
         planInfoEntity.setPlanInfoId(planInfoId);
@@ -151,28 +154,6 @@ public class PlanService {
         planInfoEntity.setScheduleDelay(scheduleOption.getScheduleDelay() == null ? 0L : scheduleOption.getScheduleDelay().toMillis());
         planInfoEntity.setScheduleInterval(scheduleOption.getScheduleInterval() == null ? 0L : scheduleOption.getScheduleInterval().toMillis());
         planInfoEntity.setScheduleCron(scheduleOption.getScheduleCron());
-        // job info
-        List<JobInfoEntity> jobInfoEntities = new ArrayList<>();
-        if (PlanType.SINGLE == param.getPlanType()) {
-            JobInfo jobInfo = planConverter.covertJob(idGenerator.generateId(IDType.JOB_INFO), param.getJob());
-            jobInfoEntities.add(planConverter.toJobInfoEntity(jobInfo));
-            planInfoEntity.setJobInfo(JacksonUtils.toJSONString(jobInfo));
-        } else {
-            DAG<WorkflowJobInfo> workflow = planConverter.convertJob(param.getWorkflow());
-            try {
-                planInfoEntity.setJobInfo(workflow.json());
-            } catch (JsonProcessingException e) {
-                log.error("To DAG Json failed! dag={}", workflow, e);
-                throw new VerifyException("Dag Node verify fail!");
-            }
-
-            // 保存jobInfo信息
-            for (WorkflowJobInfo workflowJobInfo : workflow.nodes()) {
-                jobInfoEntities.add(planConverter.toJobInfoEntity(workflowJobInfo.getJob()));
-            }
-        }
-        jobInfoEntityRepo.saveAll(jobInfoEntities);
-        jobInfoEntityRepo.flush();
 
         // 保存版本信息
         planInfoEntityRepo.saveAndFlush(planInfoEntity);

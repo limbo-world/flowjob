@@ -14,7 +14,7 @@
         <module>broker-cluster</module>
         <module>broker-dao</module>
         <module>broker-application</module>
-        <module>broker-test</module>
+        <module>test</module>
         <module>worker-core</module>
         <module>worker-spring-boot-starter</module>
         <module>worker-spring-boot-demo</module>

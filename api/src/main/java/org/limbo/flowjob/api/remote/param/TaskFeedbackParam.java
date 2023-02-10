@@ -27,8 +27,6 @@ import org.limbo.flowjob.common.constants.ExecuteResult;
 
 import javax.validation.constraints.NotNull;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -71,15 +69,15 @@ public class TaskFeedbackParam {
     private Map<String, Object> context = new HashMap<>();
 
     /**
-     * 子任务属性
+     * 更新后的节点参数
      */
-    @Schema(description = "子任务属性")
-    private List<Map<String, Object>> subTaskAttributes = new LinkedList<>();
+    @Schema(description = "更新后的节点参数")
+    private Map<String, Object> jobAttributes = new HashMap<>();
 
     /**
      * 返回的数据
      */
     @Schema(description = "返回的数据")
-    private Map<String, Object> resultAttributes = new HashMap<>();
+    private Object resultData;
 
 }

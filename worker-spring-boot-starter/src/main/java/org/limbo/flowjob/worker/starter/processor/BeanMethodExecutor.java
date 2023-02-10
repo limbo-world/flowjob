@@ -19,7 +19,6 @@ package org.limbo.flowjob.worker.starter.processor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.worker.core.domain.Task;
-import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.executor.TaskExecutor;
 
 import java.lang.reflect.Method;
@@ -62,12 +61,12 @@ public class BeanMethodExecutor implements TaskExecutor {
 
     /**
      * {@inheritDoc}
-     * @param context 任务执行上下文
+     * @param task 执行的任务
      */
     @Override
-    public void run(ExecuteContext context) {
+    public void run(Task task) {
         try {
-            Object[] args = parseArgs(context);
+            Object[] args = parseArgs(task);
             this.method.invoke(this.bean, args);
         } catch (ReflectiveOperationException e) {
             log.error("Invoke @Executor method error, bean={}, method={}, executorName={}",
@@ -78,9 +77,9 @@ public class BeanMethodExecutor implements TaskExecutor {
 
 
     /**
-     * 解析方法入参，目前支持两种类型的入参：ExecuteContext、Task
+     * 解析方法入参，目前支持两种类型的入参：Task
      */
-    private Object[] parseArgs(ExecuteContext context) {
+    private Object[] parseArgs(Task task) {
         Class<?>[] argTypes = this.method.getParameterTypes();
         if (argTypes.length == 0) {
             return new Object[0];
@@ -89,10 +88,8 @@ public class BeanMethodExecutor implements TaskExecutor {
         Object[] args = new Object[argTypes.length];
         for (int i = 0; i < argTypes.length; i++) {
             Class<?> type = argTypes[i];
-            if (ExecuteContext.class.isAssignableFrom(type)) {
-                args[i] = context;
-            } else if (Task.class.isAssignableFrom(type)) {
-                args[i] = context.getTask();
+            if (Task.class.isAssignableFrom(type)) {
+                args[i] = task;
             } else {
                 args[i] = null;
             }

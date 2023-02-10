@@ -53,14 +53,14 @@ public class JobInstanceEntity extends BaseEntity {
     private Byte status;
 
     /**
-     * 此次执行的参数
-     */
-    private String attributes;
-
-    /**
      * 错误信息
      */
     private String errorMsg;
+
+    /**
+     * 执行上下文
+     */
+    private String context;
 
     /**
      * 调度触发时间

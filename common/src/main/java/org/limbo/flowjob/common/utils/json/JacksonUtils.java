@@ -24,6 +24,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.common.utils.time.Formatters;
 
 import java.text.SimpleDateFormat;
@@ -87,7 +88,9 @@ public class JacksonUtils {
      * 将对象转换为JSON字符串
      */
     public static <T> String toJSONString(T t) {
-        Objects.requireNonNull(t);
+        if (t == null) {
+            return "";
+        }
         try {
             return mapper.writeValueAsString(t);
         } catch (JsonProcessingException e) {
@@ -114,7 +117,9 @@ public class JacksonUtils {
      * 解析JSON字符串为指定类型
      */
     public static <T> T parseObject(String json, Class<T> type) {
-        Objects.requireNonNull(json);
+        if (StringUtils.isBlank(json)) {
+            return null;
+        }
         Objects.requireNonNull(type);
         try {
             return mapper.readValue(json, type);
@@ -128,7 +133,9 @@ public class JacksonUtils {
      * 解析JSON字符串为指定类型，可以指定泛型以及多重嵌套泛型。
      */
     public static <T> T parseObject(String json, TypeReference<T> type) {
-        Objects.requireNonNull(json);
+        if (StringUtils.isBlank(json)) {
+            return null;
+        }
         Objects.requireNonNull(type);
         try {
             return mapper.readValue(json, type);

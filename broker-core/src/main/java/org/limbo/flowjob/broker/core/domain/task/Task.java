@@ -18,18 +18,23 @@
 
 package org.limbo.flowjob.broker.core.domain.task;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
-import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 作业执行上下文
@@ -54,14 +59,9 @@ public class Task {
     private String planVersion;
 
     /**
-     * 计划类型
-     */
-    private PlanType planType;
-
-    /**
      * 类型
      */
-    private TaskType taskType;
+    private TaskType type;
 
     /**
      * 状态
@@ -74,16 +74,6 @@ public class Task {
     private String workerId;
 
     /**
-     * 全局上下文
-     */
-    private Attributes context;
-
-    /**
-     * 对应job配置的属性
-     */
-    private Attributes attributes;
-
-    /**
      * 下发参数
      */
     private DispatchOption dispatchOption;
@@ -94,13 +84,63 @@ public class Task {
     private String executorName;
 
     /**
-     * map属性
+     * 全局上下文
      */
-    private Attributes mapAttributes;
+    private Attributes context = new Attributes();
 
     /**
-     * reduce属性
+     * 对应job配置的属性
      */
-    private List<Attributes> reduceAttributes;
+    private Attributes jobAttributes;
+
+    /**
+     * task参数属性
+     */
+    @Setter(AccessLevel.NONE)
+    private Object taskAttributes;
+
+    public void setContext(Attributes context) {
+        if (context == null) {
+            return;
+        }
+        this.context = context;
+    }
+
+    public void setTaskAttributes(TaskType type, String json) {
+        if (StringUtils.isBlank(json)) {
+            return;
+        }
+        if (TaskType.REDUCE == type) {
+            List<Attributes> attrs = new ArrayList<>();
+            List<Map<String, Object>> list = JacksonUtils.parseObject(json, new TypeReference<List<Map<String, Object>>>() {
+            });
+            if (CollectionUtils.isNotEmpty(list)) {
+                for (Map<String, Object> map : list) {
+                    attrs.add(new Attributes(map));
+                }
+            }
+            this.taskAttributes = attrs;
+        } else {
+            Map<String, Object> map = JacksonUtils.parseObject(json, new TypeReference<Map<String, Object>>() {
+            });
+            this.taskAttributes = new Attributes(map);
+        }
+    }
+
+    public Attributes getMapAttributes() {
+        return (Attributes) taskAttributes;
+    }
+
+    public void setMapAttributes(Attributes mapAttributes) {
+        this.taskAttributes = mapAttributes;
+    }
+
+    public List<Attributes> getReduceAttributes() {
+        return (List<Attributes>) taskAttributes;
+    }
+
+    public void setReduceAttributes(List<Attributes> reduceAttributes) {
+        this.taskAttributes = reduceAttributes;
+    }
 
 }

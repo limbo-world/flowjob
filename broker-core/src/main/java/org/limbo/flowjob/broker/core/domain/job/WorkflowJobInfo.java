@@ -46,7 +46,7 @@ public class WorkflowJobInfo extends DAGNode {
     private static final long serialVersionUID = -702096482598918849L;
 
     /**
-     * 名称 视图里面唯一
+     * 名称
      */
     private String name;
 
@@ -70,7 +70,6 @@ public class WorkflowJobInfo extends DAGNode {
      */
     private boolean terminateWithFail;
 
-    @DAGNodeIgnoreField
     private JobInfo job;
 
     @JsonCreator

@@ -18,14 +18,11 @@
 
 package org.limbo.flowjob.broker.application.config;
 
-import com.google.common.collect.Maps;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.application.component.BrokerStarter;
 import org.limbo.flowjob.broker.application.component.PlanLoadTask;
-import org.limbo.flowjob.broker.application.component.SingleJobScheduleStrategy;
 import org.limbo.flowjob.broker.application.component.TaskStatusCheckTask;
-import org.limbo.flowjob.broker.application.component.WorkflowScheduleStrategy;
 import org.limbo.flowjob.broker.application.support.NodeMangerImpl;
 import org.limbo.flowjob.broker.cluster.DBBrokerRegistry;
 import org.limbo.flowjob.broker.core.cluster.Broker;
@@ -39,12 +36,10 @@ import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
 import org.limbo.flowjob.broker.core.domain.task.TaskManager;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
-import org.limbo.flowjob.broker.core.schedule.strategy.ScheduleStrategyFactory;
+import org.limbo.flowjob.broker.core.schedule.strategy.ITaskResultStrategy;
 import org.limbo.flowjob.broker.core.statistics.WorkerStatisticsRepository;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.domain.SingletonWorkerStatisticsRepo;
-import org.limbo.flowjob.common.constants.PlanType;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -53,7 +48,6 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.inject.Inject;
 import java.time.Duration;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -126,15 +120,6 @@ public class BrokerConfiguration {
         return new TaskDispatcher(workerRepository, factory, statisticsRepository);
     }
 
-    @Bean
-    public ScheduleStrategyFactory scheduleStrategyFactory(SingleJobScheduleStrategy singleJobScheduleStrategy,
-                                                           WorkflowScheduleStrategy workflowScheduleStrategy) {
-        EnumMap<PlanType, IScheduleStrategy> strategyMap = Maps.newEnumMap(PlanType.class);
-        strategyMap.put(PlanType.SINGLE, singleJobScheduleStrategy);
-        strategyMap.put(PlanType.WORKFLOW, workflowScheduleStrategy);
-        return new ScheduleStrategyFactory(strategyMap);
-    }
-
     /**
      * 元任务调度器
      */
@@ -161,14 +146,14 @@ public class BrokerConfiguration {
                                         NodeManger nodeManger,
                                         MetaTaskScheduler metaTaskScheduler,
                                         WorkerRepository workerRepository,
-                                        ScheduleStrategyFactory scheduleStrategyFactory) {
+                                        ITaskResultStrategy scheduleStrategy) {
         return new TaskStatusCheckTask(
                 Duration.ofMillis(brokerProperties.getStatusCheckInterval()),
                 config,
                 nodeManger,
                 metaTaskScheduler,
                 workerRepository,
-                scheduleStrategyFactory
+                scheduleStrategy
         );
     }
 

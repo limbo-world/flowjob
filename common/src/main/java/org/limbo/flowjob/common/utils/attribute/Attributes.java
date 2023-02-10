@@ -18,8 +18,10 @@
 
 package org.limbo.flowjob.common.utils.attribute;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.io.Serializable;
@@ -39,6 +41,7 @@ public class Attributes implements Serializable {
     /**
      * 内部数据结构
      */
+    @JsonValue
     protected Map<String, Object> attributes;
 
     public Attributes() {
@@ -46,10 +49,15 @@ public class Attributes implements Serializable {
     }
 
     public Attributes(String attr) {
-        this.attributes = JacksonUtils.parseObject(attr, new TypeReference<Map<String, Object>>() {
-        });
+        if (StringUtils.isBlank(attr)) {
+            this.attributes = new HashMap<>();
+        } else {
+            this.attributes = JacksonUtils.parseObject(attr, new TypeReference<Map<String, Object>>() {
+            });
+        }
     }
 
+    @JsonCreator
     public Attributes(Map<String, Object> attributes) {
         this.attributes = attributes == null ? new HashMap<>() : new HashMap<>(attributes);
     }
@@ -68,13 +76,21 @@ public class Attributes implements Serializable {
      * 将属性转换为Map形式。此方法返回attribute的快照，修改快照将不会对JobAttribute本身造成任何影响。
      * @return 属性k-v Map。
      */
-    @JsonValue
     public Map<String, Object> toMap() {
         return new HashMap<>(attributes);
     }
 
     public boolean isEmpty() {
         return attributes.isEmpty();
+    }
+
+    public void put(Attributes attr) {
+        if (attr == null) {
+            return;
+        }
+        for (Map.Entry<String, Object> entry : attr.toMap().entrySet()) {
+            put(entry.getKey(), entry.getValue());
+        }
     }
 
     /**

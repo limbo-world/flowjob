@@ -17,46 +17,30 @@
 package org.limbo.flowjob.worker.core.executor;
 
 
+import org.limbo.flowjob.common.constants.TaskType;
+import org.limbo.flowjob.worker.core.domain.Task;
+
 /**
  * 任务执行器
  *
  * @author Devil
  * @since 2021/7/24
  */
-public interface MapReduceTaskExecutor {
+public interface MapReduceTaskExecutor extends MapTaskExecutor {
 
-    /**
-     * 切分创建多个子task
-     * @param context 任务执行上下文
-     */
-    void split(ExecuteContext context);
-
-    /**
-     * 处理map分片任务
-     * @param context 任务执行上下文
-     */
-    void map(ExecuteContext context);
+    @Override
+    default void run(Task task) {
+        if (TaskType.REDUCE == task.getType()) {
+            reduce(task);
+        } else {
+            MapTaskExecutor.super.run(task);
+        }
+    }
 
     /**
      * 处理reduce任务
-     * @param context 任务执行上下文
+     * @param task 任务
      */
-    void reduce(ExecuteContext context);
-
-
-    /**
-     * 执行器名称，默认为执行器类的类名
-     */
-    default String getName() {
-        return this.getClass().getSimpleName();
-    }
-
-
-    /**
-     * 执行器描述，默认为执行器类的类全名
-     */
-    default String getDescription() {
-        return this.getClass().getName();
-    }
+    void reduce(Task task);
 
 }

@@ -22,17 +22,16 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.remote.param.TaskFeedbackParam;
 import org.limbo.flowjob.broker.core.domain.task.Task;
-import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
-import org.limbo.flowjob.broker.core.schedule.strategy.ScheduleStrategyFactory;
+import org.limbo.flowjob.broker.core.schedule.strategy.ITaskResultStrategy;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.limbo.flowjob.common.constants.ExecuteResult;
 import org.limbo.flowjob.common.utils.Verifies;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 
 /**
  * @author Devil
@@ -49,7 +48,7 @@ public class TaskService {
     private DomainConverter domainConverter;
 
     @Setter(onMethod_ = @Inject)
-    private ScheduleStrategyFactory scheduleStrategyFactory;
+    private ITaskResultStrategy taskResultStrategy;
 
     /**
      * Worker任务执行反馈
@@ -57,7 +56,6 @@ public class TaskService {
      * @param taskId 任务id
      * @param param  反馈参数
      */
-    @Transactional
     public void taskFeedback(String taskId, TaskFeedbackParam param) {
         ExecuteResult result = ExecuteResult.parse(param.getResult());
         if (log.isDebugEnabled()) {
@@ -65,20 +63,19 @@ public class TaskService {
         }
 
         TaskEntity taskEntity = taskEntityRepo.findById(taskId).orElse(null);
-        Verifies.notNull(taskEntity, "task is null");
+        Verifies.notNull(taskEntity, "task is null id:" + taskId);
 
         Task task = domainConverter.toTask(taskEntity);
 
-        IScheduleStrategy scheduleStrategy = scheduleStrategyFactory.build(task.getPlanType());
-
-
         switch (result) {
             case SUCCEED:
-                scheduleStrategy.handleTaskSuccess(task, param.getResultAttributes());
+                task.setContext(new Attributes(param.getContext()));
+                task.setJobAttributes(new Attributes(param.getJobAttributes()));
+                taskResultStrategy.handleSuccess(task, param.getResultData());
                 break;
 
             case FAILED:
-                scheduleStrategy.handleTaskFail(task, param.getErrorMsg(), param.getErrorStackTrace());
+                taskResultStrategy.handleFail(task, param.getErrorMsg(), param.getErrorStackTrace());
                 break;
 
             case TERMINATED:

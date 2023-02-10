@@ -6,7 +6,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
-import org.limbo.flowjob.broker.core.schedule.strategy.IScheduleStrategy;
+import org.limbo.flowjob.broker.core.schedule.strategy.IPlanScheduleStrategy;
 import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TriggerType;
@@ -25,10 +25,10 @@ public class PlanScheduleTask extends LoopMetaTask {
 
     @Getter(AccessLevel.NONE)
     @ToString.Exclude
-    private final IScheduleStrategy iScheduleStrategy;
+    private final IPlanScheduleStrategy iScheduleStrategy;
 
     public PlanScheduleTask(Plan plan, LocalDateTime lastTriggerAt, LocalDateTime lastFeedbackAt,
-                            IScheduleStrategy iScheduleStrategy, MetaTaskScheduler metaTaskScheduler) {
+                            IPlanScheduleStrategy iScheduleStrategy, MetaTaskScheduler metaTaskScheduler) {
         super(lastTriggerAt, lastFeedbackAt, plan.getScheduleOption(), metaTaskScheduler);
         this.plan = plan;
         this.iScheduleStrategy = iScheduleStrategy;

@@ -20,7 +20,6 @@ package org.limbo.flowjob.broker.dao.converter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Setter;
-import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
@@ -33,17 +32,15 @@ import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanScheduleTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.TaskScheduleTask;
-import org.limbo.flowjob.broker.core.schedule.strategy.ScheduleStrategyFactory;
-import org.limbo.flowjob.broker.dao.entity.JobInfoEntity;
+import org.limbo.flowjob.broker.core.schedule.strategy.IPlanScheduleStrategy;
+import org.limbo.flowjob.broker.core.schedule.strategy.ITaskScheduleStrategy;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
-import org.limbo.flowjob.broker.dao.repositories.JobInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
-import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TaskStatus;
@@ -52,7 +49,6 @@ import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
-import org.limbo.flowjob.common.utils.dag.DAGNode;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
@@ -61,8 +57,6 @@ import javax.inject.Inject;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 基础信息转换 静态方法
@@ -77,13 +71,13 @@ public class DomainConverter {
     private PlanInfoEntityRepo planInfoEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private JobInfoEntityRepo jobInfoEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
     private PlanInstanceEntityRepo planInstanceEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private ScheduleStrategyFactory scheduleStrategyFactory;
+    private IPlanScheduleStrategy planScheduleStrategy;
+
+    @Setter(onMethod_ = @Inject)
+    private ITaskScheduleStrategy taskScheduleStrategy;
 
     @Setter(onMethod_ = @Inject)
     private MetaTaskScheduler metaTaskScheduler;
@@ -104,16 +98,12 @@ public class DomainConverter {
                     JacksonUtils.parseObject(planInfoEntity.getJobInfo(), JobInfo.class)
             );
         } else if (PlanType.WORKFLOW == planType) {
-            DAG<WorkflowJobInfo> dag = toJobDag(planInfoEntity.getJobInfo(), null);
-            List<String> jobIds = dag.nodes().stream().map(DAGNode::getId).collect(Collectors.toList());
-            List<JobInfoEntity> jobInfoEntities = jobInfoEntityRepo.findAllById(jobIds);
-            Verifies.notEmpty(jobInfoEntities, "does not find " + entity.getPlanId() + " plan's job info by version--" + entity.getCurrentVersion() + "");
             plan = new WorkflowPlan(
                     planInfoEntity.getPlanId(),
                     planInfoEntity.getPlanInfoId(),
                     TriggerType.parse(planInfoEntity.getTriggerType()),
                     toScheduleOption(planInfoEntity),
-                    toJobDag(planInfoEntity.getJobInfo(), jobInfoEntities)
+                    toJobDag(planInfoEntity.getJobInfo())
             );
         } else {
             throw new IllegalArgumentException("Illegal PlanType in plan:" + entity.getPlanId() + " version:" + entity.getCurrentVersion());
@@ -127,7 +117,7 @@ public class DomainConverter {
                 plan,
                 latelyTrigger == null ? null : latelyTrigger.getTriggerAt(),
                 latelyFeedback == null ? null : latelyFeedback.getFeedbackAt(),
-                scheduleStrategyFactory.build(plan.planType()),
+                planScheduleStrategy,
                 metaTaskScheduler
         );
 
@@ -148,27 +138,10 @@ public class DomainConverter {
      * @param dag 节点关系
      * @return job dag
      */
-    public DAG<WorkflowJobInfo> toJobDag(String dag, List<JobInfoEntity> jobInfoEntities) {
+    public static DAG<WorkflowJobInfo> toJobDag(String dag) {
         List<WorkflowJobInfo> jobInfos = JacksonUtils.parseObject(dag, new TypeReference<List<WorkflowJobInfo>>() {
         });
-        if (CollectionUtils.isNotEmpty(jobInfoEntities)) {
-            Map<String, JobInfoEntity> jobInfoEntityMap = jobInfoEntities.stream().collect(Collectors.toMap(JobInfoEntity::getJobInfoId, entity -> entity, (entity, entity2) -> entity));
-            for (WorkflowJobInfo workflowJobInfo : jobInfos) {
-                JobInfoEntity jobInfoEntity = jobInfoEntityMap.get(workflowJobInfo.getId());
-                workflowJobInfo.setJob(toJobInfo(jobInfoEntity));
-            }
-        }
         return new DAG<>(jobInfos);
-    }
-
-    public JobInfo toJobInfo(JobInfoEntity entity) {
-        JobInfo jobInfo = new JobInfo();
-        jobInfo.setId(entity.getJobInfoId());
-        jobInfo.setType(JobType.parse(entity.getType()));
-        jobInfo.setAttributes(new Attributes(entity.getAttributes()));
-        jobInfo.setDispatchOption(JacksonUtils.parseObject(entity.getDispatchOption(), DispatchOption.class));
-        jobInfo.setExecutorName(entity.getExecutorName());
-        return jobInfo;
     }
 
     public TaskEntity toTaskEntity(Task task) {
@@ -177,26 +150,32 @@ public class DomainConverter {
         taskEntity.setJobId(task.getJobId());
         taskEntity.setPlanId(task.getPlanId());
         taskEntity.setPlanInfoId(task.getPlanVersion());
-        taskEntity.setType(task.getTaskType().type);
+        taskEntity.setType(task.getType().type);
         taskEntity.setStatus(task.getStatus().status);
         taskEntity.setWorkerId(task.getWorkerId());
         taskEntity.setExecutorName(task.getExecutorName());
-        taskEntity.setAttributes(task.getAttributes() == null ? "{}" : task.getAttributes().toString());
+        taskEntity.setJobAttributes(task.getJobAttributes() == null ? JacksonUtils.DEFAULT_NONE_OBJECT : task.getJobAttributes().toString());
+        taskEntity.setTaskAttributes(JacksonUtils.toJSONString(task.getTaskAttributes()));
         taskEntity.setDispatchOption(JacksonUtils.toJSONString(task.getDispatchOption()));
         taskEntity.setTaskId(task.getTaskId());
         return taskEntity;
     }
 
     public Task toTask(TaskEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+        TaskType type = TaskType.parse(entity.getType());
         Task task = new Task();
         task.setTaskId(entity.getTaskId());
         task.setJobInstanceId(entity.getJobInstanceId());
         task.setJobId(entity.getJobId());
         task.setStatus(TaskStatus.parse(entity.getStatus()));
-        task.setTaskType(TaskType.parse(entity.getType()));
+        task.setType(type);
         task.setWorkerId(entity.getWorkerId());
         task.setExecutorName(entity.getExecutorName());
-        task.setAttributes(new Attributes(entity.getAttributes()));
+        task.setJobAttributes(new Attributes(entity.getJobAttributes()));
+        task.setTaskAttributes(type, entity.getTaskAttributes());
         task.setPlanId(entity.getPlanId());
         task.setPlanVersion(entity.getPlanInfoId());
         task.setDispatchOption(JacksonUtils.parseObject(entity.getDispatchOption(), DispatchOption.class));
@@ -204,24 +183,24 @@ public class DomainConverter {
     }
 
     public TaskScheduleTask toTaskScheduleTask(Task task, LocalDateTime triggerAt) {
-        return new TaskScheduleTask(task, triggerAt, scheduleStrategyFactory.build(task.getPlanType()));
+        return new TaskScheduleTask(task, triggerAt, taskScheduleStrategy);
     }
 
     public TaskScheduleTask toTaskScheduleTask(TaskEntity entity) {
         Task task = toTask(entity);
-        return new TaskScheduleTask(task, TimeUtils.currentLocalDateTime(), scheduleStrategyFactory.build(task.getPlanType()));
+        return new TaskScheduleTask(task, TimeUtils.currentLocalDateTime(), taskScheduleStrategy);
     }
 
-    public JobInstanceEntity toJobInstanceEntity(JobInstance jobInstance) {
+    public static JobInstanceEntity toJobInstanceEntity(JobInstance jobInstance) {
         JobInfo jobInfo = jobInstance.getJobInfo();
         JobInstanceEntity entity = new JobInstanceEntity();
+        entity.setJobId(jobInfo.getId());
         entity.setJobInstanceId(jobInstance.getJobInstanceId());
         entity.setPlanInstanceId(jobInstance.getPlanInstanceId());
         entity.setPlanId(jobInstance.getPlanId());
         entity.setPlanInfoId(jobInstance.getPlanVersion());
-        entity.setJobId(jobInfo.getId());
         entity.setStatus(jobInstance.getStatus().status);
-        entity.setAttributes(JacksonUtils.toJSONString(jobInfo.getAttributes(), JacksonUtils.DEFAULT_NONE_OBJECT));
+        entity.setContext(jobInstance.getContext().toString());
         entity.setTriggerAt(jobInstance.getTriggerAt());
         entity.setStartAt(jobInstance.getStartAt());
         entity.setEndAt(jobInstance.getEndAt());

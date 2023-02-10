@@ -22,6 +22,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.common.constants.JobStatus;
 import org.limbo.flowjob.common.constants.PlanType;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -50,6 +51,16 @@ public abstract class JobInstance implements Serializable {
      * 触发时间
      */
     protected LocalDateTime triggerAt;
+
+    /**
+     * 全局上下文
+     */
+    private Attributes context;
+
+    /**
+     * job 节点动态参数
+     */
+    private Attributes jobAttributes;
 
     /**
      * 开始时间

@@ -43,7 +43,7 @@ public class SinglePlan extends Plan {
 
     public SinglePlan(String planId, String version, TriggerType triggerType,
                       ScheduleOption scheduleOption, JobInfo jobInfo) {
-        super(planId, version, triggerType, scheduleOption);
+        super(planId, version, PlanType.SINGLE, triggerType, scheduleOption);
         this.jobInfo = jobInfo;
     }
 
