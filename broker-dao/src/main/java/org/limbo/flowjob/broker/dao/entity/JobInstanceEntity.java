@@ -77,6 +77,11 @@ public class JobInstanceEntity extends BaseEntity {
      */
     private LocalDateTime endAt;
 
+    /**
+     * 数据版本
+     */
+    private Integer version;
+
     @Override
     public Object getUid() {
         return jobInstanceId;

@@ -143,7 +143,7 @@ public class PlanService {
         // base info
         planInfoEntity.setPlanId(planId);
         planInfoEntity.setPlanInfoId(planInfoId);
-        planInfoEntity.setPlanType(param.getPlanType().status);
+//        planInfoEntity.setPlanType(param.getPlanType().status);  todo
         planInfoEntity.setName(param.getName());
         planInfoEntity.setDescription(param.getDescription());
         planInfoEntity.setTriggerType(param.getTriggerType().type);

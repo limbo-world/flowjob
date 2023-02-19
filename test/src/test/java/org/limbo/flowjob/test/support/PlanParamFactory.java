@@ -61,13 +61,34 @@ public class PlanParamFactory {
         if (PlanType.SINGLE == planType) {
             param.setJob(newJob("MapReduceExecutorDemo", JobType.MAP_REDUCE));
         } else {
-            WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "MapReduceExecutorDemo", JobType.MAP_REDUCE);
-            WorkflowJobParam n2 = newWorkflowJob(UUIDUtils.shortRandomID(), "MapReduceExecutorDemo", JobType.MAP_REDUCE);
+            WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "MapReduceExecutorDemo", JobType.MAP_REDUCE, TriggerType.SCHEDULE);
+            WorkflowJobParam n2 = newWorkflowJob(UUIDUtils.shortRandomID(), "MapReduceExecutorDemo", JobType.MAP_REDUCE, TriggerType.SCHEDULE);
 
             n1.setChildren(Sets.newHashSet(n2.getId()));
 
             param.setWorkflow(Lists.newArrayList(n1, n2));
         }
+        return param;
+    }
+
+    public static PlanParam newWorkflowParam(TriggerType triggerType) {
+        PlanParam param = new PlanParam();
+        param.setName(UUIDUtils.randomID());
+        param.setDescription("测试-固定速率");
+        param.setTriggerType(TriggerType.SCHEDULE);
+        param.setPlanType(PlanType.WORKFLOW);
+
+        ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
+        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE);
+        scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(5));
+        param.setScheduleOption(scheduleOptionParam);
+
+        WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "MapReduceExecutorDemo", JobType.MAP_REDUCE, triggerType);
+        WorkflowJobParam n2 = newWorkflowJob(UUIDUtils.shortRandomID(), "MapReduceExecutorDemo", JobType.MAP_REDUCE, triggerType);
+
+        n1.setChildren(Sets.newHashSet(n2.getId()));
+
+        param.setWorkflow(Lists.newArrayList(n1, n2));
         return param;
     }
 
@@ -86,8 +107,8 @@ public class PlanParamFactory {
         if (PlanType.SINGLE == planType) {
             param.setJob(newJob("hello", JobType.NORMAL));
         } else {
-            WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL);
-            WorkflowJobParam n2 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL);
+            WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
+            WorkflowJobParam n2 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
 
             n1.setChildren(Sets.newHashSet(n2.getId()));
 
@@ -109,10 +130,10 @@ public class PlanParamFactory {
         param.setScheduleOption(scheduleOptionParam);
 
         if (PlanType.SINGLE == planType) {
-
+            param.setJob(newJob("hello", JobType.NORMAL));
         } else {
-            WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL);
-            WorkflowJobParam n2 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL);
+            WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
+            WorkflowJobParam n2 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
 
             n1.setChildren(Sets.newHashSet(n2.getId()));
 
@@ -140,13 +161,13 @@ public class PlanParamFactory {
         return job;
     }
 
-    public static WorkflowJobParam newWorkflowJob(String id, String executorName, JobType type) {
+    public static WorkflowJobParam newWorkflowJob(String id, String executorName, JobType type, TriggerType triggerType) {
         WorkflowJobParam job = new WorkflowJobParam();
         job.setId(id);
         job.setName(executorName + "-" + id);
         job.setDescription(job.getName());
         job.setType(type);
-        job.setTriggerType(TriggerType.SCHEDULE);
+        job.setTriggerType(triggerType);
         job.setRetryOption(RetryOptionParam.builder()
                 .retry(2)
                 .retryInterval(3)

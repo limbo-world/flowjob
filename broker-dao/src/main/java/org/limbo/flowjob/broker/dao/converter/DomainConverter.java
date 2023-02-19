@@ -83,6 +83,22 @@ public class DomainConverter {
     private MetaTaskScheduler metaTaskScheduler;
 
     public PlanScheduleTask toPlanScheduleTask(PlanEntity entity) {
+        Plan plan = toPlan(entity);
+        // 获取最近一次调度的planInstance和最近一次结束的planInstance
+        PlanInstanceEntity latelyTrigger = planInstanceEntityRepo.findLatelyTrigger(entity.getPlanId());
+        PlanInstanceEntity latelyFeedback = planInstanceEntityRepo.findLatelyFeedback(entity.getPlanId());
+
+        return new PlanScheduleTask(
+                plan,
+                latelyTrigger == null ? null : latelyTrigger.getTriggerAt(),
+                latelyFeedback == null ? null : latelyFeedback.getFeedbackAt(),
+                planScheduleStrategy,
+                metaTaskScheduler
+        );
+
+    }
+
+    public Plan toPlan(PlanEntity entity) {
         // 获取plan 的当前版本
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getCurrentVersion()).orElse(null);
         Verifies.notNull(planInfoEntity, "does not find " + entity.getPlanId() + " plan's info by version--" + entity.getCurrentVersion() + "");
@@ -108,19 +124,7 @@ public class DomainConverter {
         } else {
             throw new IllegalArgumentException("Illegal PlanType in plan:" + entity.getPlanId() + " version:" + entity.getCurrentVersion());
         }
-
-        // 获取最近一次调度的planInstance和最近一次结束的planInstance
-        PlanInstanceEntity latelyTrigger = planInstanceEntityRepo.findLatelyTrigger(entity.getPlanId());
-        PlanInstanceEntity latelyFeedback = planInstanceEntityRepo.findLatelyFeedback(entity.getPlanId());
-
-        return new PlanScheduleTask(
-                plan,
-                latelyTrigger == null ? null : latelyTrigger.getTriggerAt(),
-                latelyFeedback == null ? null : latelyFeedback.getFeedbackAt(),
-                planScheduleStrategy,
-                metaTaskScheduler
-        );
-
+        return plan;
     }
 
     public ScheduleOption toScheduleOption(PlanInfoEntity entity) {
@@ -150,6 +154,7 @@ public class DomainConverter {
         taskEntity.setJobId(task.getJobId());
         taskEntity.setPlanId(task.getPlanId());
         taskEntity.setPlanInfoId(task.getPlanVersion());
+        taskEntity.setPlanInstanceId(task.getPlanInstanceId());
         taskEntity.setType(task.getType().type);
         taskEntity.setStatus(task.getStatus().status);
         taskEntity.setWorkerId(task.getWorkerId());
@@ -177,6 +182,7 @@ public class DomainConverter {
         task.setJobAttributes(new Attributes(entity.getJobAttributes()));
         task.setTaskAttributes(type, entity.getTaskAttributes());
         task.setPlanId(entity.getPlanId());
+        task.setPlanInstanceId(entity.getPlanInstanceId());
         task.setPlanVersion(entity.getPlanInfoId());
         task.setDispatchOption(JacksonUtils.parseObject(entity.getDispatchOption(), DispatchOption.class));
         return task;

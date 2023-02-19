@@ -54,6 +54,10 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
         executeWithAspect(unused -> scheduleStrategyHelper.schedule(triggerType, plan, triggerAt));
     }
 
+    public void scheduleJob(String planId, String planInstanceId, String jobId) {
+        executeWithAspect(unused -> scheduleStrategyHelper.scheduleJob(planId, planInstanceId, jobId));
+    }
+
     @Override
     public void handleSuccess(Task task, Object result) {
         executeWithAspect(unused -> scheduleStrategyHelper.handleSuccess(task, result));
@@ -71,24 +75,23 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
 
     public void executeWithAspect(Consumer<Void> consumer) {
         // new context
-        newStrategyContext();
+        ScheduleStrategyContext.create();
         // do real
         consumer.accept(null);
         // do after
         scheduleTasks();
         // clear context
-        clearStrategyContext();
+        ScheduleStrategyContext.clear();
     }
 
     /**
      * 放在事务外，防止下发和执行很快但是task下发完需要很久的情况，这样前面的任务执行返回后由于事务未提交，会提示找不到task
      */
     public void scheduleTasks() {
-        ScheduleStrategyContext scheduleStrategyContext = getStrategyContext();
-        if (scheduleStrategyContext == null || CollectionUtils.isEmpty(scheduleStrategyContext.getRequireScheduleTasks())) {
+        if (CollectionUtils.isEmpty(ScheduleStrategyContext.waitScheduleTasks())) {
             return;
         }
-        for (TaskScheduleTask task : scheduleStrategyContext.getRequireScheduleTasks()) {
+        for (TaskScheduleTask task : ScheduleStrategyContext.waitScheduleTasks()) {
             try {
                 metaTaskScheduler.schedule(task);
             } catch (Exception e) {
@@ -96,20 +99,6 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
                 log.error("task schedule fail! task={}", task, e);
             }
         }
-    }
-
-    private ScheduleStrategyContext newStrategyContext() {
-        ScheduleStrategyContext strategyContext = new ScheduleStrategyContext();
-        ScheduleStrategyContext.CURRENT.set(strategyContext);
-        return strategyContext;
-    }
-
-    private void clearStrategyContext() {
-        ScheduleStrategyContext.CURRENT.remove();
-    }
-
-    private ScheduleStrategyContext getStrategyContext() {
-        return ScheduleStrategyContext.CURRENT.get();
     }
 
 }

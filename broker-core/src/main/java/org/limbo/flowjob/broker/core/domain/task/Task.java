@@ -56,6 +56,8 @@ public class Task {
 
     private String planId;
 
+    private String planInstanceId;
+
     private String planVersion;
 
     /**

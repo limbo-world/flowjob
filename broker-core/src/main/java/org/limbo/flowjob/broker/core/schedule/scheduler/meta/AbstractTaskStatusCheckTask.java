@@ -73,6 +73,7 @@ public abstract class AbstractTaskStatusCheckTask extends FixDelayMetaTask {
         List<TaskScheduleTask> dispatchingTasks = loadDispatchingTasks();
         if (CollectionUtils.isNotEmpty(dispatchingTasks)) {
             for (TaskScheduleTask scheduleTask : dispatchingTasks) {
+                // todo v1 判断job下是否有失败的
                 scheduleTask.execute();
             }
         }

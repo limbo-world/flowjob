@@ -36,7 +36,6 @@ import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
 import org.limbo.flowjob.broker.core.exceptions.JobException;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.TaskScheduleTask;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
@@ -120,6 +119,8 @@ public class ScheduleStrategyHelper {
     @Setter(onMethod_ = @Inject)
     private JobInstanceHelper jobInstanceHelper;
 
+    public static String PLAN_INSTANCE_ID = null; // todo v1 rm
+
     @Transactional
     public void schedule(TriggerType triggerType, Plan plan, LocalDateTime triggerAt) {
         String planId = plan.getPlanId();
@@ -127,6 +128,7 @@ public class ScheduleStrategyHelper {
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(plan.getVersion()).orElse(null);
         Verifies.notNull(planInfoEntity, "does not find " + planId + " plan's info by version--" + plan.getVersion() + "");
 
+        // todo v1 性能问题 ???
         PlanEntity planEntity = planEntityRepo.selectForUpdate(planId);
         // 任务是由之前时间创建的 调度时候如果版本改变 可能会有调度时间的变化本次就无需执行
         // 比如 5s 执行一次 分别在 5s 10s 15s 在11s的时候内存里下次执行为 15s 此时修改为 2s 执行一次 那么重新加载plan后应该为 12s 14s 所以15s这次可以跳过
@@ -158,7 +160,7 @@ public class ScheduleStrategyHelper {
 
         // 保存 plan 实例
         String planInstanceId = savePlanInstanceEntity(planId, plan.getVersion(), triggerType, triggerAt);
-
+        PLAN_INSTANCE_ID = planInstanceId;
         // 调度逻辑
         if (PlanType.SINGLE == plan.getType()) {
 
@@ -189,6 +191,29 @@ public class ScheduleStrategyHelper {
     }
 
     @Transactional
+    public void scheduleJob(String planId, String planInstanceId, String jobId) {
+        PlanEntity planEntity = planEntityRepo.findById(planId).orElse(null);
+        Verifies.notNull(planEntity, "plan is not exist id:" + planId);
+
+        Plan plan = domainConverter.toPlan(planEntity);
+        if (PlanType.WORKFLOW != plan.getType()) {
+            return;
+        }
+        WorkflowPlan workflowPlan = (WorkflowPlan) plan;
+        DAG<WorkflowJobInfo> dag = workflowPlan.getDag();
+        WorkflowJobInfo jobInfo = dag.getNode(jobId);
+        LocalDateTime triggerAt = TimeUtils.currentLocalDateTime();
+        JobInstance jobInstance = jobInstanceHelper.newWorkflowJobInstance(plan.getPlanId(), plan.getVersion(), plan.getType(), planInstanceId, new Attributes(), jobInfo, triggerAt);
+
+        // todo v1 对于下发的 jobinstance 需要加锁处理 防止重复创建
+
+        // 前置节点已经完成则可以下发
+        if (checkJobsSuccessOrIgnoreError(planInstanceId, dag.preNodes(jobInfo.getId()))) {
+            scheduleJobInstances(Collections.singletonList(jobInstance), triggerAt);
+        }
+    }
+
+    @Transactional
     public void schedule(Task task) {
         if (task.getStatus() != TaskStatus.SCHEDULING) {
             return;
@@ -201,8 +226,10 @@ public class ScheduleStrategyHelper {
         }
 
         // 下面两个可能会被其他task更新 但是这是正常的
-        planInstanceEntityRepo.executing(task.getPlanId(), TimeUtils.currentLocalDateTime());
-        jobInstanceEntityRepo.executing(task.getJobInstanceId(), TimeUtils.currentLocalDateTime());
+        JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.findById(task.getJobInstanceId()).orElse(null);
+        jobInstanceEntityRepo.executing(task.getJobInstanceId(), TimeUtils.currentLocalDateTime(), jobInstanceEntity.getVersion());
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(task.getPlanInstanceId()).orElse(null);
+        planInstanceEntityRepo.executing(task.getPlanInstanceId(), TimeUtils.currentLocalDateTime(), planInstanceEntity.getVersion());
 
         boolean dispatched = taskDispatcher.dispatch(task);
         if (dispatched) {
@@ -330,12 +357,17 @@ public class ScheduleStrategyHelper {
     }
 
     private void handleJobSuccess(JobInstance jobInstance) {
-        if (PlanType.SINGLE == jobInstance.getPlanType()) {
-            jobInstanceEntityRepo.success(jobInstance.getJobInstanceId(), TimeUtils.currentLocalDateTime(), jobInstance.getContext().toString());
-            planInstanceEntityRepo.success(jobInstance.getPlanInstanceId(), TimeUtils.currentLocalDateTime());
-        } else {
-            jobInstanceEntityRepo.success(jobInstance.getJobInstanceId(), TimeUtils.currentLocalDateTime(), jobInstance.getContext().toString());
+        JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.findById(jobInstance.getJobInstanceId()).orElse(null);
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(jobInstance.getPlanInstanceId()).orElse(null);
 
+        int num = jobInstanceEntityRepo.success(jobInstance.getJobInstanceId(), TimeUtils.currentLocalDateTime(), jobInstance.getContext().toString(), jobInstanceEntity.getVersion());
+        if (num < 1) {
+            return; // 被其他更新
+        }
+
+        if (PlanType.SINGLE == jobInstance.getPlanType()) {
+            planInstanceEntityRepo.success(jobInstance.getPlanInstanceId(), TimeUtils.currentLocalDateTime(), planInstanceEntity.getVersion());
+        } else {
             String planId = jobInstance.getPlanId();
             String version = jobInstance.getPlanVersion();
             String planInstanceId = jobInstance.getPlanInstanceId();
@@ -352,7 +384,7 @@ public class ScheduleStrategyHelper {
                 // 当前节点为叶子节点 检测 Plan 实例是否已经执行完成
                 // 1. 所有节点都已经成功或者失败 2. 这里只关心plan的成功更新，失败是在task回调
                 if (checkJobsSuccessOrIgnoreError(planInstanceId, dag.lasts())) {
-                    planInstanceEntityRepo.success(planInstanceId, TimeUtils.currentLocalDateTime());
+                    planInstanceEntityRepo.success(planInstanceId, TimeUtils.currentLocalDateTime(), planInstanceEntity.getVersion());
                 }
             } else {
                 LocalDateTime triggerAt = TimeUtils.currentLocalDateTime();
@@ -418,7 +450,8 @@ public class ScheduleStrategyHelper {
         }
 
         // job 执行失败 先判断是否需要重试 再做后续处理
-        jobInstanceEntityRepo.fail(jobInstance.getJobInstanceId(), MsgConstants.TASK_FAIL);
+        JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.findById(jobInstance.getJobInstanceId()).orElse(null);
+        jobInstanceEntityRepo.fail(jobInstance.getJobInstanceId(), MsgConstants.TASK_FAIL, jobInstanceEntity.getVersion());
         if (jobInstanceHelper.needRetry(jobInstance)) {
             JobInfo jobInfo = jobInstance.getJobInfo();
             jobInstance.setTriggerAt(TimeUtils.currentLocalDateTime().plusSeconds(jobInfo.getRetryOption().getRetryInterval()));
@@ -426,7 +459,8 @@ public class ScheduleStrategyHelper {
             jobInstance.setStatus(JobStatus.SCHEDULING);
             scheduleJobInstances(Collections.singletonList(jobInstance), TimeUtils.currentLocalDateTime());
         } else {
-            planInstanceEntityRepo.fail(jobInstance.getPlanInstanceId(), TimeUtils.currentLocalDateTime());
+            PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(jobInstance.getPlanInstanceId()).orElse(null);
+            planInstanceEntityRepo.fail(jobInstance.getPlanInstanceId(), TimeUtils.currentLocalDateTime(), planInstanceEntity.getVersion());
         }
     }
 
@@ -502,12 +536,11 @@ public class ScheduleStrategyHelper {
         taskEntityRepo.saveAll(taskEntities);
         taskEntityRepo.flush();
 
-        List<TaskScheduleTask> scheduleTasks = tasks.stream().map(task -> domainConverter.toTaskScheduleTask(task, triggerAt)).collect(Collectors.toList());
-
-        ScheduleStrategyContext strategyContext = ScheduleStrategyContext.CURRENT.get();
-        strategyContext.setRequireScheduleTasks(scheduleTasks);
+        ScheduleStrategyContext.waitScheduleTasks(tasks.stream()
+                .map(task -> domainConverter.toTaskScheduleTask(task, triggerAt))
+                .collect(Collectors.toList())
+        );
     }
-
 
 
 }

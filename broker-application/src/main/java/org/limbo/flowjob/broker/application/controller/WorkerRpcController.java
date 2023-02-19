@@ -26,6 +26,7 @@ import org.limbo.flowjob.api.remote.dto.WorkerRegisterDTO;
 import org.limbo.flowjob.api.remote.param.TaskFeedbackParam;
 import org.limbo.flowjob.api.remote.param.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.remote.param.WorkerRegisterParam;
+import org.limbo.flowjob.broker.application.component.schedule.ScheduleStrategy;
 import org.limbo.flowjob.broker.application.service.TaskService;
 import org.limbo.flowjob.broker.application.service.WorkerService;
 import org.springframework.validation.annotation.Validated;
@@ -54,6 +55,9 @@ public class WorkerRpcController {
     @Setter(onMethod_ = @Inject)
     private TaskService taskService;
 
+    @Setter(onMethod_ = @Inject)
+    private ScheduleStrategy scheduleStrategy;
+
     /**
      * worker注册
      */
@@ -63,7 +67,6 @@ public class WorkerRpcController {
         return ResponseDTO.<WorkerRegisterDTO>builder().ok(workerService.register(param)).build();
     }
 
-
     /**
      * worker心跳
      */
@@ -72,6 +75,18 @@ public class WorkerRpcController {
     public ResponseDTO<WorkerRegisterDTO> heartbeat(@Validated @NotNull(message = "no workerId") @PathVariable("workerId") String workerId,
                                                     @Valid @RequestBody WorkerHeartbeatParam heartbeatOption) {
         return ResponseDTO.<WorkerRegisterDTO>builder().ok(workerService.heartbeat(workerId, heartbeatOption)).build();
+    }
+
+    /**
+     * 触发对应job调度 todo v1 触发plan
+     */
+    @Operation(summary = "触发对应job调度")
+    @PostMapping("/plan/{planId}/instance/{planInstanceId}/job/{jobId}/schedule")
+    public ResponseDTO<Void> scheduleJob(@Validated @NotNull(message = "no taskId") @PathVariable("planId") String planId,
+                                      @Validated @NotNull(message = "no planInstanceId") @PathVariable("planInstanceId") String planInstanceId,
+                                      @Validated @NotNull(message = "no jobId") @PathVariable("jobId") String jobId) {
+        scheduleStrategy.scheduleJob(planId, planInstanceId, jobId);
+        return ResponseDTO.<Void>builder().ok().build();
     }
 
     /**

@@ -35,6 +35,8 @@ public class Task {
 
     private String planId;
 
+    private String planInstanceId;
+
     private String jobId;
 
     private String jobInstanceId;

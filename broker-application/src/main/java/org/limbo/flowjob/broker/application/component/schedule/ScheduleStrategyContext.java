@@ -18,31 +18,45 @@
 
 package org.limbo.flowjob.broker.application.component.schedule;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.TaskScheduleTask;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
  * @author Devil
  * @since 2023/2/8
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Slf4j
+@Data
 public class ScheduleStrategyContext {
 
-    public static final ThreadLocal<ScheduleStrategyContext> CURRENT = new ThreadLocal<>();
+    private static final ThreadLocal<ScheduleStrategyContext> CURRENT = new ThreadLocal<>();
 
     /**
      * 调度中产生的需要后续下发的task
      */
-    private List<TaskScheduleTask> requireScheduleTasks;
+    private List<TaskScheduleTask> waitScheduleTasks;
 
+
+    public static ScheduleStrategyContext create() {
+        ScheduleStrategyContext strategyContext = new ScheduleStrategyContext();
+        CURRENT.set(strategyContext);
+        return strategyContext;
+    }
+
+    public static void clear() {
+        CURRENT.remove();
+    }
+
+    public static List<TaskScheduleTask> waitScheduleTasks() {
+        ScheduleStrategyContext context = CURRENT.get();
+        return context == null || context.getWaitScheduleTasks() == null ? Collections.emptyList() : context.getWaitScheduleTasks();
+    }
+
+    public static void waitScheduleTasks(List<TaskScheduleTask> tasks) {
+        CURRENT.get().setWaitScheduleTasks(tasks);
+    }
 }

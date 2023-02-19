@@ -65,6 +65,11 @@ public class PlanInstanceEntity extends BaseEntity {
      */
     private LocalDateTime feedbackAt;
 
+    /**
+     * 数据版本
+     */
+    private Integer version;
+
     @Override
     public Object getUid() {
         return planInstanceId;

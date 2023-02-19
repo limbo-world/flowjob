@@ -51,6 +51,7 @@ public class WorkerConverter {
         TaskSubmitParam taskSubmitParam = new TaskSubmitParam();
         taskSubmitParam.setTaskId(task.getTaskId());
         taskSubmitParam.setPlanId(task.getPlanId());
+        taskSubmitParam.setPlanInstanceId(task.getPlanInstanceId());
         taskSubmitParam.setJobId(task.getJobId());
         taskSubmitParam.setJobInstanceId(task.getJobInstanceId());
         taskSubmitParam.setType(task.getType());

@@ -27,10 +27,13 @@ import org.limbo.flowjob.api.console.param.PlanParam;
 import org.limbo.flowjob.api.remote.param.TaskFeedbackParam;
 import org.limbo.flowjob.api.remote.param.TaskSubmitParam;
 import org.limbo.flowjob.broker.application.component.SlotManager;
+import org.limbo.flowjob.broker.application.component.schedule.ScheduleStrategyHelper;
 import org.limbo.flowjob.broker.application.controller.WorkerRpcController;
 import org.limbo.flowjob.broker.application.service.PlanService;
 import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
+import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
@@ -41,8 +44,11 @@ import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.limbo.flowjob.common.constants.JobStatus;
 import org.limbo.flowjob.common.constants.PlanType;
+import org.limbo.flowjob.common.constants.TriggerType;
+import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.limbo.flowjob.test.support.PlanParamFactory;
 import org.limbo.flowjob.worker.core.domain.Worker;
@@ -86,6 +92,9 @@ public class ScheduleTest {
     private PlanEntityRepo planEntityRepo;
 
     @Setter(onMethod_ = @Inject)
+    private TaskEntityRepo taskEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
     private DomainConverter domainConverter;
 
     @MockBean
@@ -105,7 +114,7 @@ public class ScheduleTest {
     private WorkerRpcController workerRpcController;
 
     @BeforeEach
-    public void before(){
+    public void before() {
         // mock work rpc
         Mockito.doAnswer((Answer<Void>) m -> null).when(brokerRpc).register(Mockito.any(Worker.class));
         Mockito.doAnswer((Answer<Void>) m -> null).when(brokerRpc).heartbeat(Mockito.any(Worker.class));
@@ -141,7 +150,6 @@ public class ScheduleTest {
 
                 TaskSubmitParam taskSubmitParam = WorkerConverter.toTaskSubmitParam(task);
                 workerService.receive(taskSubmitParam);
-
                 return true;
             }
         }).when(taskDispatcher).dispatch(Mockito.any(Task.class));
@@ -162,31 +170,37 @@ public class ScheduleTest {
 //    @Transactional --- 加上 由于不落表 只在当前事务内 和 before 里面的产生冲突 before 里面获取不到数据
     void testNormalWorkflowPlanSuccess() {
         PlanParam param = PlanParamFactory.newFixedRateAddParam(PlanType.WORKFLOW);
-        saveAndExecutePlan(param, 2, 0);
+        saveAndExecutePlan(TriggerType.SCHEDULE, param, 2, 2, 0);
     }
 
     @Test
 //    @Transactional
     void testNormalSinglePlanSuccess() {
         PlanParam param = PlanParamFactory.newFixedRateAddParam(PlanType.SINGLE);
-        saveAndExecutePlan(param, 1, 0);
+        saveAndExecutePlan(TriggerType.SCHEDULE, param, 1, 1, 0);
     }
 
     @Test
 //    @Transactional
     void testMapReduceWorkflowPlanSuccess() {
         PlanParam param = PlanParamFactory.newMapReduceAddParam(PlanType.WORKFLOW);
-        saveAndExecutePlan(param, 2, 0);
+        saveAndExecutePlan(TriggerType.SCHEDULE, param, 2, 2, 0);
     }
 
     @Test
 //    @Transactional
     void testMapReduceSinglePlanSuccess() {
         PlanParam param = PlanParamFactory.newMapReduceAddParam(PlanType.SINGLE);
-        saveAndExecutePlan(param, 1, 0);
+        saveAndExecutePlan(TriggerType.SCHEDULE, param, 1, 1, 0);
     }
 
-    private void saveAndExecutePlan(PlanParam param, int expectSuccess, int expectFail) {
+    @Test
+    void testApiPlanSuccess() {
+        PlanParam param = PlanParamFactory.newWorkflowParam(TriggerType.API);
+        saveAndExecutePlan(TriggerType.SCHEDULE, param, 2, 2, 0);
+    }
+
+    private void saveAndExecutePlan(TriggerType triggerType, PlanParam param, int total, int expectSuccess, int expectFail) {
         String id = planService.save(null, param);
         planService.start(id);
 
@@ -194,24 +208,34 @@ public class ScheduleTest {
         PlanScheduleTask planScheduleTask = domainConverter.toPlanScheduleTask(planEntity);
         // 调度plan 生成 task 并下发
         Plan plan = planScheduleTask.getPlan();
-        planScheduleStrategy.schedule(plan.getTriggerType(), plan, TimeUtils.currentLocalDateTime());
+        planScheduleStrategy.schedule(triggerType, plan, TimeUtils.currentLocalDateTime());
 
-        try {
-            // 等待执行完成
-            Thread.sleep(5000);
+        long finished = 0;
+        long success = 0;
+        long failed = 0;
+        while (finished < total) {
+            success = jobInstanceEntityRepo.countByPlanIdAndStatusIn(id, Lists.newArrayList(JobStatus.SUCCEED.status));
+            failed = jobInstanceEntityRepo.countByPlanIdAndStatusIn(id, Lists.newArrayList(JobStatus.FAILED.status));
+            finished = success + failed;
 
-            long executing = jobInstanceEntityRepo.countByPlanIdAndStatusIn(id, Lists.newArrayList(JobStatus.SCHEDULING.status, JobStatus.EXECUTING.status));
-            assert executing == 0;
-
-            long success = jobInstanceEntityRepo.countByPlanIdAndStatusIn(id, Lists.newArrayList(JobStatus.SUCCEED.status));
-            assert success == expectSuccess;
-
-            long failed = jobInstanceEntityRepo.countByPlanIdAndStatusIn(id, Lists.newArrayList(JobStatus.FAILED.status));
-            assert failed == expectFail;
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            if (PlanType.WORKFLOW == plan.getType()) {
+                WorkflowPlan workflowPlan = (WorkflowPlan) plan;
+                DAG<WorkflowJobInfo> dag = workflowPlan.getDag();
+                List<WorkflowJobInfo> nodes = dag.nodes();
+                for (WorkflowJobInfo jobInfo : nodes) {
+                    if (TriggerType.API == jobInfo.getTriggerType()) {
+                        workerRpcController.scheduleJob(id, ScheduleStrategyHelper.PLAN_INSTANCE_ID, jobInfo.getId());
+                    }
+                }
+            }
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
+        assert success == expectSuccess;
+        assert failed == expectFail;
     }
 
 }

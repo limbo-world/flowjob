@@ -42,6 +42,8 @@ public class TaskSubmitParam implements Serializable {
 
     private String planId;
 
+    private String planInstanceId;
+
     private String jobId;
 
     private String jobInstanceId;

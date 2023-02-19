@@ -39,6 +39,7 @@ public class TaskConverter {
         Task task = new Task();
         task.setTaskId(param.getTaskId());
         task.setPlanId(param.getPlanId());
+        task.setPlanInstanceId(param.getPlanId());
         task.setJobId(param.getJobId());
         task.setJobInstanceId(param.getJobInstanceId());
         task.setType(param.getType());

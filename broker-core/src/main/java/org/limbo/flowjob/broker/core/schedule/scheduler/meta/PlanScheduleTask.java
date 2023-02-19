@@ -37,6 +37,13 @@ public class PlanScheduleTask extends LoopMetaTask {
 
     @Override
     public void execute() {
+        if (plan == null) {
+            log.error("{} plan is null", scheduleId());
+            return;
+        }
+        if (TriggerType.SCHEDULE != plan.getTriggerType()) {
+            return;
+        }
         ScheduleOption scheduleOption = getScheduleOption();
         if (scheduleOption == null || scheduleOption.getScheduleType() == null || ScheduleType.UNKNOWN == scheduleOption.getScheduleType()) {
             log.error("{} scheduleType is {} scheduleOption={}", scheduleId(), MsgConstants.UNKNOWN, scheduleOption);
