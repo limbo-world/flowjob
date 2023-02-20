@@ -75,7 +75,7 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
 
     public void executeWithAspect(Consumer<Void> consumer) {
         // new context
-        ScheduleStrategyContext.create();
+        ScheduleStrategyContext.set();
         // do real
         consumer.accept(null);
         // do after

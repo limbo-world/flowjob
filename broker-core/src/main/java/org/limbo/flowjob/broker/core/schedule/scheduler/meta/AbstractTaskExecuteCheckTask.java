@@ -37,7 +37,7 @@ import java.util.List;
  * 2. worker服务假死
  * 3. worker完成task调用broker的接口失败
  */
-public abstract class AbstractTaskStatusCheckTask extends FixDelayMetaTask {
+public abstract class AbstractTaskExecuteCheckTask extends FixDelayMetaTask {
 
     @Getter
     protected final BrokerConfig config;
@@ -49,12 +49,12 @@ public abstract class AbstractTaskStatusCheckTask extends FixDelayMetaTask {
 
     private final ITaskResultStrategy scheduleStrategy;
 
-    protected AbstractTaskStatusCheckTask(Duration interval,
-                                          BrokerConfig config,
-                                          NodeManger nodeManger,
-                                          MetaTaskScheduler metaTaskScheduler,
-                                          WorkerRepository workerRepository,
-                                          ITaskResultStrategy scheduleStrategy) {
+    protected AbstractTaskExecuteCheckTask(Duration interval,
+                                           BrokerConfig config,
+                                           NodeManger nodeManger,
+                                           MetaTaskScheduler metaTaskScheduler,
+                                           WorkerRepository workerRepository,
+                                           ITaskResultStrategy scheduleStrategy) {
         super(interval, metaTaskScheduler);
         this.config = config;
         this.nodeManger = nodeManger;
@@ -68,14 +68,6 @@ public abstract class AbstractTaskStatusCheckTask extends FixDelayMetaTask {
         // 判断自己是否存在 --- 可能由于心跳异常导致不存活
         if (!nodeManger.alive(config.getName())) {
             return;
-        }
-
-        List<TaskScheduleTask> dispatchingTasks = loadDispatchingTasks();
-        if (CollectionUtils.isNotEmpty(dispatchingTasks)) {
-            for (TaskScheduleTask scheduleTask : dispatchingTasks) {
-                // todo v1 判断job下是否有失败的
-                scheduleTask.execute();
-            }
         }
 
         List<TaskScheduleTask> executingTasks = loadExecutingTasks();
@@ -92,22 +84,17 @@ public abstract class AbstractTaskStatusCheckTask extends FixDelayMetaTask {
     }
 
     /**
-     * 加载下发中的 task。
-     */
-    protected abstract List<TaskScheduleTask> loadDispatchingTasks();
-
-    /**
      * 加载执行中的 task。
      */
     protected abstract List<TaskScheduleTask> loadExecutingTasks();
 
     @Override
     public MetaTaskType getType() {
-        return MetaTaskType.TASK_STATUS_CHECK;
+        return MetaTaskType.TASK_EXECUTE_CHECK;
     }
 
     @Override
     public String getMetaId() {
-        return "TaskStatusCheckTask";
+        return "TaskExecuteCheckTask";
     }
 }

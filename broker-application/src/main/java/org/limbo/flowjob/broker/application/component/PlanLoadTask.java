@@ -28,9 +28,7 @@ import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanScheduleTask;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
-import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.common.utils.time.DateTimeUtils;
 import org.limbo.flowjob.common.utils.time.Formatters;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
@@ -41,7 +39,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 获取可以下发的plan 创建对应的 PlanInstance 进行调度
@@ -53,9 +50,6 @@ public class PlanLoadTask extends AbstractPlanLoadTask {
     private PlanEntityRepo planEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private PlanSlotEntityRepo planSlotEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
     private DomainConverter domainConverter;
 
     @Setter(onMethod_ = @Inject)
@@ -63,8 +57,8 @@ public class PlanLoadTask extends AbstractPlanLoadTask {
 
     private LocalDateTime loadTimePoint = DateTimeUtils.parse("2000-01-01 00:00:00", Formatters.YMD_HMS);
 
-    public PlanLoadTask(Duration interval, BrokerConfig config, NodeManger nodeManger, MetaTaskScheduler scheduler) {
-        super(interval, config, nodeManger, scheduler);
+    public PlanLoadTask(BrokerConfig config, NodeManger nodeManger, MetaTaskScheduler scheduler) {
+        super(Duration.ofSeconds(1), config, nodeManger, scheduler);
     }
 
     /**
@@ -74,15 +68,10 @@ public class PlanLoadTask extends AbstractPlanLoadTask {
      */
     @Override
     protected List<PlanScheduleTask> loadTasks() {
-        List<Integer> slots = slotManager.slots();
-        if (CollectionUtils.isEmpty(slots)) {
+        List<String> planIds = slotManager.planIds();
+        if (CollectionUtils.isEmpty(planIds)) {
             return Collections.emptyList();
         }
-        List<PlanSlotEntity> slotEntities = planSlotEntityRepo.findBySlotIn(slots);
-        if (CollectionUtils.isEmpty(slotEntities)) {
-            return Collections.emptyList();
-        }
-        List<String> planIds = slotEntities.stream().map(PlanSlotEntity::getPlanId).collect(Collectors.toList());
         List<PlanEntity> planEntities = planEntityRepo.loadUpdatedPlans(planIds, loadTimePoint);
         loadTimePoint = TimeUtils.currentLocalDateTime();
         if (CollectionUtils.isEmpty(planEntities)) {

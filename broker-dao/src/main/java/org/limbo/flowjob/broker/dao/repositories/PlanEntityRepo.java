@@ -41,7 +41,7 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, String>, JpaSp
     /**
      * 修改过的plan
      */
-    @Query(value = "select * from flowjob_plan where plan_id in :planIds and updated_at > :updatedAt and is_enabled = true and is_deleted = false", nativeQuery = true)
+    @Query(value = "select * from flowjob_plan where plan_id in :planIds and updated_at >= :updatedAt and is_enabled = true and is_deleted = false", nativeQuery = true)
     List<PlanEntity> loadUpdatedPlans(@Param("planIds") List<String> planIds, @Param("updatedAt") LocalDateTime updatedAt);
 
     @Modifying(clearAutomatically = true)

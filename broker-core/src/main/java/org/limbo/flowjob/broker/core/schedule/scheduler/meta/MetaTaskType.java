@@ -32,7 +32,9 @@ public enum MetaTaskType {
 
     TASK,
 
-    TASK_STATUS_CHECK,
+    TASK_DISPATCH_CHECK,
+
+    TASK_EXECUTE_CHECK,
     ;
 
     public static MetaTaskType parse(String value) {

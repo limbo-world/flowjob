@@ -21,7 +21,6 @@ package org.limbo.flowjob.broker.application.component.schedule;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.application.component.SlotManager;
 import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
@@ -41,13 +40,11 @@ import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
-import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.limbo.flowjob.common.constants.JobStatus;
 import org.limbo.flowjob.common.constants.MsgConstants;
@@ -111,12 +108,6 @@ public class ScheduleStrategyHelper {
     private TaskDispatcher taskDispatcher;
 
     @Setter(onMethod_ = @Inject)
-    private SlotManager slotManager;
-
-    @Setter(onMethod_ = @Inject)
-    private PlanSlotEntityRepo planSlotEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
     private JobInstanceHelper jobInstanceHelper;
 
     public static String PLAN_INSTANCE_ID = null; // todo v1 rm
@@ -134,19 +125,6 @@ public class ScheduleStrategyHelper {
         // 比如 5s 执行一次 分别在 5s 10s 15s 在11s的时候内存里下次执行为 15s 此时修改为 2s 执行一次 那么重新加载plan后应该为 12s 14s 所以15s这次可以跳过
         if (!Objects.equals(plan.getVersion(), planEntity.getCurrentVersion())) {
             log.info("plan:{} version {} change to {}", plan.getPlanId(), plan.getVersion(), planEntity.getCurrentVersion());
-            return;
-        }
-
-        // 判断是否由当前节点执行
-        List<Integer> slots = slotManager.slots();
-        if (CollectionUtils.isEmpty(slots)) {
-            return;
-        }
-        PlanSlotEntity planSlotEntity = planSlotEntityRepo.findByPlanId(planId);
-        if (planSlotEntity == null) {
-            return;
-        }
-        if (!slots.contains(planSlotEntity.getSlot())) {
             return;
         }
 

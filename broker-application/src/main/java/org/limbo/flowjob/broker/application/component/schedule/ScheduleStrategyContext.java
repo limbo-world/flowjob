@@ -41,10 +41,9 @@ public class ScheduleStrategyContext {
     private List<TaskScheduleTask> waitScheduleTasks;
 
 
-    public static ScheduleStrategyContext create() {
+    public static void set() {
         ScheduleStrategyContext strategyContext = new ScheduleStrategyContext();
         CURRENT.set(strategyContext);
-        return strategyContext;
     }
 
     public static void clear() {

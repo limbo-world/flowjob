@@ -37,13 +37,4 @@ public class BrokerProperties extends BrokerConfig {
      */
     private boolean enabled = true;
 
-    /**
-     * 重分配间隔 毫秒
-     */
-    private long rebalanceInterval = 10000;
-    /**
-     * 状态检查间隔 毫秒
-     */
-    private long statusCheckInterval = 10000;
-
 }

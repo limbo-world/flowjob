@@ -22,7 +22,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.application.component.BrokerStarter;
 import org.limbo.flowjob.broker.application.component.PlanLoadTask;
-import org.limbo.flowjob.broker.application.component.TaskStatusCheckTask;
+import org.limbo.flowjob.broker.application.component.TaskDispatchCheckTask;
 import org.limbo.flowjob.broker.application.support.NodeMangerImpl;
 import org.limbo.flowjob.broker.cluster.DBBrokerRegistry;
 import org.limbo.flowjob.broker.core.cluster.Broker;
@@ -47,7 +47,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.inject.Inject;
-import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -134,7 +133,7 @@ public class BrokerConfiguration {
      */
     @Bean
     public MetaTask planScheduleMetaTask(BrokerConfig config, NodeManger nodeManger, MetaTaskScheduler metaTaskScheduler) {
-        return new PlanLoadTask(Duration.ofMillis(brokerProperties.getRebalanceInterval()), config, nodeManger, metaTaskScheduler);
+        return new PlanLoadTask(config, nodeManger, metaTaskScheduler);
     }
 
 
@@ -147,8 +146,7 @@ public class BrokerConfiguration {
                                         MetaTaskScheduler metaTaskScheduler,
                                         WorkerRepository workerRepository,
                                         ITaskResultStrategy scheduleStrategy) {
-        return new TaskStatusCheckTask(
-                Duration.ofMillis(brokerProperties.getStatusCheckInterval()),
+        return new TaskDispatchCheckTask(
                 config,
                 nodeManger,
                 metaTaskScheduler,

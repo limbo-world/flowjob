@@ -22,15 +22,13 @@ import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.AbstractTaskStatusCheckTask;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.AbstractTaskExecuteCheckTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.TaskScheduleTask;
 import org.limbo.flowjob.broker.core.schedule.strategy.ITaskResultStrategy;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
-import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
-import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.limbo.flowjob.common.constants.TaskStatus;
 
@@ -47,13 +45,10 @@ import java.util.stream.Collectors;
  * 2. worker服务假死
  * 3. worker完成task调用broker的接口失败
  */
-public class TaskStatusCheckTask extends AbstractTaskStatusCheckTask {
+public class TaskExecuteCheckTask extends AbstractTaskExecuteCheckTask {
 
     @Setter(onMethod_ = @Inject)
     private TaskEntityRepo taskEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private PlanSlotEntityRepo planSlotEntityRepo;
 
     @Setter(onMethod_ = @Inject)
     private DomainConverter domainConverter;
@@ -61,43 +56,25 @@ public class TaskStatusCheckTask extends AbstractTaskStatusCheckTask {
     @Setter(onMethod_ = @Inject)
     private SlotManager slotManager;
 
-    public TaskStatusCheckTask(Duration interval,
-                               BrokerConfig config,
-                               NodeManger nodeManger,
-                               MetaTaskScheduler metaTaskScheduler,
-                               WorkerRepository workerRepository,
-                               ITaskResultStrategy scheduleStrategy) {
-        super(interval, config, nodeManger, metaTaskScheduler, workerRepository, scheduleStrategy);
-    }
-
-
-    @Override
-    protected List<TaskScheduleTask> loadDispatchingTasks() {
-        List<String> planIds = loadPlanIds();
-        List<TaskEntity> taskEntities = taskEntityRepo.findByPlanIdInAndStatus(planIds, TaskStatus.DISPATCHING.status);
-        return taskEntities.stream().map(entity -> domainConverter.toTaskScheduleTask(entity)).collect(Collectors.toList());
+    public TaskExecuteCheckTask(BrokerConfig config,
+                                NodeManger nodeManger,
+                                MetaTaskScheduler metaTaskScheduler,
+                                WorkerRepository workerRepository,
+                                ITaskResultStrategy scheduleStrategy) {
+        super(Duration.ofSeconds(5), config, nodeManger, metaTaskScheduler, workerRepository, scheduleStrategy);
     }
 
     @Override
     protected List<TaskScheduleTask> loadExecutingTasks() {
-        List<String> planIds = loadPlanIds();
+        List<String> planIds = slotManager.planIds();
+        if (CollectionUtils.isEmpty(planIds)) {
+            return Collections.emptyList();
+        }
         List<TaskEntity> taskEntities = taskEntityRepo.findByPlanIdInAndStatus(planIds, TaskStatus.EXECUTING.status);
+        if (CollectionUtils.isEmpty(taskEntities)) {
+            return Collections.emptyList();
+        }
         return taskEntities.stream().map(entity -> domainConverter.toTaskScheduleTask(entity)).collect(Collectors.toList());
-    }
-
-    private List<String> loadPlanIds() {
-        List<Integer> slots = slotManager.slots();
-        if (CollectionUtils.isEmpty(slots)) {
-            return Collections.emptyList();
-        }
-        List<PlanSlotEntity> slotEntities = planSlotEntityRepo.findBySlotIn(slots);
-        if (CollectionUtils.isEmpty(slotEntities)) {
-            return Collections.emptyList();
-        }
-
-        return slotEntities.stream()
-                .map(PlanSlotEntity::getPlanId)
-                .collect(Collectors.toList());
     }
 
 }
