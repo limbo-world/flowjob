@@ -131,9 +131,7 @@ public class PlanService {
             planSlotEntityRepo.saveAndFlush(planSlotEntity);
         } else {
             // update
-            PlanEntity planEntity = planEntityRepo.findById(planId).orElse(null);
-            Verifies.notNull(planEntity, "plan is null id:" + planId);
-
+            planEntityRepo.findById(planId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN + planId));
             // 更新 Plan 版本信息
             int effected = planEntityRepo.updateVersion(planInfoId, planInfoId, param.getName(), planId, param.getCurrentVersion(), param.getRecentlyVersion());
             if (effected < 1) {

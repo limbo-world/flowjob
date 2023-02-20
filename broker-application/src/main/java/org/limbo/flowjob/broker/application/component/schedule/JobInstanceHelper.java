@@ -32,7 +32,9 @@ import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.common.constants.JobStatus;
+import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.constants.PlanType;
+import org.limbo.flowjob.common.exception.VerifyException;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -58,8 +60,10 @@ public class JobInstanceHelper {
     private IDGenerator idGenerator;
 
     public JobInstance getJobInstance(String id) {
-        JobInstanceEntity entity = jobInstanceEntityRepo.findById(id).orElse(null);
-        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getPlanInfoId()).orElse(null);
+        JobInstanceEntity entity = jobInstanceEntityRepo.findById(id)
+                .orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_JOB_INSTANCE + id));
+        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getPlanInfoId())
+                .orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INSTANCE + entity.getPlanId()));
 
         JobInstance jobInstance;
         PlanType planType = PlanType.parse(planInfoEntity.getPlanType());

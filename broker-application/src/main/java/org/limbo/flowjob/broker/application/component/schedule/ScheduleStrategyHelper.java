@@ -53,6 +53,7 @@ import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.common.constants.TriggerType;
+import org.limbo.flowjob.common.exception.VerifyException;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
@@ -170,8 +171,7 @@ public class ScheduleStrategyHelper {
 
     @Transactional
     public void scheduleJob(String planId, String planInstanceId, String jobId) {
-        PlanEntity planEntity = planEntityRepo.findById(planId).orElse(null);
-        Verifies.notNull(planEntity, "plan is not exist id:" + planId);
+        PlanEntity planEntity = planEntityRepo.findById(planId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN + planId));
 
         Plan plan = domainConverter.toPlan(planEntity);
         if (PlanType.WORKFLOW != plan.getType()) {
@@ -204,9 +204,11 @@ public class ScheduleStrategyHelper {
         }
 
         // 下面两个可能会被其他task更新 但是这是正常的
-        JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.findById(task.getJobInstanceId()).orElse(null);
+        JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.findById(task.getJobInstanceId())
+                .orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_JOB_INSTANCE + task.getJobInstanceId()));
         jobInstanceEntityRepo.executing(task.getJobInstanceId(), TimeUtils.currentLocalDateTime(), jobInstanceEntity.getVersion());
-        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(task.getPlanInstanceId()).orElse(null);
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(task.getPlanInstanceId())
+                .orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INSTANCE + task.getPlanInstanceId()));
         planInstanceEntityRepo.executing(task.getPlanInstanceId(), TimeUtils.currentLocalDateTime(), planInstanceEntity.getVersion());
 
         boolean dispatched = taskDispatcher.dispatch(task);
@@ -335,8 +337,10 @@ public class ScheduleStrategyHelper {
     }
 
     private void handleJobSuccess(JobInstance jobInstance) {
-        JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.findById(jobInstance.getJobInstanceId()).orElse(null);
-        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(jobInstance.getPlanInstanceId()).orElse(null);
+        JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.findById(jobInstance.getJobInstanceId())
+                .orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_JOB_INSTANCE + jobInstance.getJobInstanceId()));
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(jobInstance.getPlanInstanceId())
+                .orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INSTANCE + jobInstance.getPlanInstanceId()));
 
         int num = jobInstanceEntityRepo.success(jobInstance.getJobInstanceId(), TimeUtils.currentLocalDateTime(), jobInstance.getContext().toString(), jobInstanceEntity.getVersion());
         if (num < 1) {
@@ -400,18 +404,16 @@ public class ScheduleStrategyHelper {
             return false;
         }
         for (JobInstanceEntity entity : entities) {
-            if (entity.getStatus() == JobStatus.SUCCEED.status) {
-                // 成功的
-            } else if (entity.getStatus() == JobStatus.FAILED.status) {
+            if (entity.getStatus() == JobStatus.FAILED.status) {
                 // 失败的 看是否忽略失败
                 WorkflowJobInfo jobInfo = jobInfoMap.get(entity.getJobId());
                 if (jobInfo.isTerminateWithFail()) {
                     return false;
                 }
-            } else {
-                // 执行中
-                return false;
+            } else if (entity.getStatus() != JobStatus.SUCCEED.status) {
+                return false; // 执行中
             }
+            // 其他情况为 成功
         }
 
         return true;
@@ -428,7 +430,8 @@ public class ScheduleStrategyHelper {
         }
 
         // job 执行失败 先判断是否需要重试 再做后续处理
-        JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.findById(jobInstance.getJobInstanceId()).orElse(null);
+        JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.findById(jobInstance.getJobInstanceId())
+                .orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_JOB_INSTANCE + jobInstance.getJobInstanceId()));
         jobInstanceEntityRepo.fail(jobInstance.getJobInstanceId(), MsgConstants.TASK_FAIL, jobInstanceEntity.getVersion());
         if (jobInstanceHelper.needRetry(jobInstance)) {
             JobInfo jobInfo = jobInstance.getJobInfo();
@@ -437,7 +440,8 @@ public class ScheduleStrategyHelper {
             jobInstance.setStatus(JobStatus.SCHEDULING);
             scheduleJobInstances(Collections.singletonList(jobInstance), TimeUtils.currentLocalDateTime());
         } else {
-            PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(jobInstance.getPlanInstanceId()).orElse(null);
+            PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(jobInstance.getPlanInstanceId())
+                    .orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INSTANCE + jobInstance.getPlanInstanceId()));
             planInstanceEntityRepo.fail(jobInstance.getPlanInstanceId(), TimeUtils.currentLocalDateTime(), planInstanceEntity.getVersion());
         }
     }
