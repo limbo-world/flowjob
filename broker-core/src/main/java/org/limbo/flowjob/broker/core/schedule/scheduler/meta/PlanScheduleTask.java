@@ -49,6 +49,9 @@ public class PlanScheduleTask extends LoopMetaTask {
             log.error("{} scheduleType is {} scheduleOption={}", scheduleId(), MsgConstants.UNKNOWN, scheduleOption);
             return;
         }
+
+        // 调度前先判断 plan 是否已经进行了版本变更
+
         switch (getScheduleOption().getScheduleType()) {
             case FIXED_RATE:
             case CRON:

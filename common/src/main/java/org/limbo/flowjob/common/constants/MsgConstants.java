@@ -38,4 +38,6 @@ public interface MsgConstants {
 
     String CANT_FIND_PLAN = "can't find plan by id:";
 
+    String CANT_FIND_PLAN_INFO = "can't find plan info by version:";
+
 }

@@ -27,7 +27,6 @@ import org.limbo.flowjob.api.console.param.PlanParam;
 import org.limbo.flowjob.api.remote.param.TaskFeedbackParam;
 import org.limbo.flowjob.api.remote.param.TaskSubmitParam;
 import org.limbo.flowjob.broker.application.component.SlotManager;
-import org.limbo.flowjob.broker.application.component.schedule.ScheduleStrategyHelper;
 import org.limbo.flowjob.broker.application.controller.WorkerRpcController;
 import org.limbo.flowjob.broker.application.service.PlanService;
 import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
@@ -113,6 +112,8 @@ public class ScheduleTest {
     @Setter(onMethod_ = @Inject)
     private WorkerRpcController workerRpcController;
 
+    private static String PLAN_INSTANCE_ID = null;
+
     @BeforeEach
     public void before() {
         // mock work rpc
@@ -129,6 +130,8 @@ public class ScheduleTest {
                         null
                 );
                 workerRpcController.feedback(context.getTask().getTaskId(), taskFeedbackParam);
+
+                PLAN_INSTANCE_ID = context.getTask().getPlanInstanceId();
                 return null;
             }
         }).when(brokerRpc).feedbackTaskSucceed(Mockito.any(ExecuteContext.class));
@@ -224,7 +227,7 @@ public class ScheduleTest {
                 List<WorkflowJobInfo> nodes = dag.nodes();
                 for (WorkflowJobInfo jobInfo : nodes) {
                     if (TriggerType.API == jobInfo.getTriggerType()) {
-                        workerRpcController.scheduleJob(id, ScheduleStrategyHelper.PLAN_INSTANCE_ID, jobInfo.getId());
+                        workerRpcController.scheduleJob(id, PLAN_INSTANCE_ID, jobInfo.getId());
                     }
                 }
             }

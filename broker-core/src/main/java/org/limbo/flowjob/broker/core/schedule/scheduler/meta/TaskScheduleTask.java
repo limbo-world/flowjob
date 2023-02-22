@@ -3,6 +3,7 @@ package org.limbo.flowjob.broker.core.schedule.scheduler.meta;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.schedule.strategy.ITaskScheduleStrategy;
 
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
  * @author pengqi
  * @date 2023/1/9
  */
+@Slf4j
 public class TaskScheduleTask implements MetaTask {
 
     @Getter
@@ -35,7 +37,11 @@ public class TaskScheduleTask implements MetaTask {
 
     @Override
     public void execute() {
-        iScheduleStrategy.schedule(task);
+        try {
+            iScheduleStrategy.schedule(task);
+        } catch (Exception e) {
+            log.error("task {} schedule fail", task.getTaskId(), e);
+        }
     }
 
     @Override

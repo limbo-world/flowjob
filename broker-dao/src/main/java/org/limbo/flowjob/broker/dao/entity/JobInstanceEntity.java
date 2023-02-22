@@ -82,6 +82,11 @@ public class JobInstanceEntity extends BaseEntity {
      */
     private Integer version;
 
+    /**
+     * 失败是否终止
+     */
+    private Boolean terminateWithFail;
+
     @Override
     public Object getUid() {
         return jobInstanceId;

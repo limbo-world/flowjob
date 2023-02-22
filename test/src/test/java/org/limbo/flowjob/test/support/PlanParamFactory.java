@@ -83,7 +83,7 @@ public class PlanParamFactory {
         scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(5));
         param.setScheduleOption(scheduleOptionParam);
 
-        WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "MapReduceExecutorDemo", JobType.MAP_REDUCE, triggerType);
+        WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "MapReduceExecutorDemo", JobType.MAP_REDUCE, TriggerType.SCHEDULE);
         WorkflowJobParam n2 = newWorkflowJob(UUIDUtils.shortRandomID(), "MapReduceExecutorDemo", JobType.MAP_REDUCE, triggerType);
 
         n1.setChildren(Sets.newHashSet(n2.getId()));

@@ -18,6 +18,7 @@
 
 package org.limbo.flowjob.broker.dao.repositories;
 
+import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.common.constants.ConstantsPool;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -32,6 +33,9 @@ import java.time.LocalDateTime;
  * @since 2022/6/24
  */
 public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity, String> {
+
+    @Query(value = "select * from flowjob_plan_instance where plan_instance_id = :planInstanceId for update", nativeQuery = true)
+    PlanInstanceEntity selectForUpdate(@Param("planInstanceId") String planInstanceId);
 
     PlanInstanceEntity findByPlanIdAndTriggerAtAndTriggerType(String planId, LocalDateTime triggerAt, Byte triggerType);
 

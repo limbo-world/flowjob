@@ -19,6 +19,7 @@
 package org.limbo.flowjob.test.util;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.junit.jupiter.api.Test;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixRateMetaTask;
@@ -27,6 +28,8 @@ import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * @author Devil
@@ -34,6 +37,18 @@ import java.time.Duration;
  */
 @Slf4j
 class MetaTaskTest {
+
+    @Test
+    void testTime() {
+        LocalDateTime startAt = LocalDateTime.of(2022, 12, 21, 13, 2, 58, 851);
+        Duration delay = Duration.ZERO;
+        long startScheduleAt = startAt.toInstant(TimeUtils.zoneOffset()).toEpochMilli();
+        System.out.println(startScheduleAt);
+        System.out.println(startAt.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")));
+        long l = startScheduleAt + delay.toMillis();
+        System.out.println(l);
+        System.out.println(DateFormatUtils.ISO_8601_EXTENDED_DATETIME_FORMAT.format(l));
+    }
 
     @Test
     void testFixDelay() throws InterruptedException {

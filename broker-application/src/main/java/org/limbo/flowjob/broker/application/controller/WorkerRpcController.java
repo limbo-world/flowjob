@@ -111,7 +111,7 @@ public class WorkerRpcController {
     public ResponseDTO<Void> scheduleJob(@Validated @NotNull(message = "no planId") @PathVariable("planId") String planId,
                                       @Validated @NotNull(message = "no planInstanceId") @PathVariable("planInstanceId") String planInstanceId,
                                       @Validated @NotNull(message = "no jobId") @PathVariable("jobId") String jobId) {
-        scheduleStrategy.scheduleJob(planId, planInstanceId, jobId);
+        scheduleStrategy.apiScheduleWorkflowJob(planId, planInstanceId, jobId);
         return ResponseDTO.<Void>builder().ok().build();
     }
 
