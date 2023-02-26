@@ -38,6 +38,9 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, String>, JpaSp
     @Query(value = "select * from flowjob_plan where plan_id = :planId for update", nativeQuery = true)
     PlanEntity selectForUpdate(@Param("planId") String planId);
 
+    @Query(value = "select * from flowjob_plan where plan_id in :planIds and is_enabled = true and is_deleted = false", nativeQuery = true)
+    List<PlanEntity> loadPlans(@Param("planIds") List<String> planIds);
+
     /**
      * 修改过的plan
      */

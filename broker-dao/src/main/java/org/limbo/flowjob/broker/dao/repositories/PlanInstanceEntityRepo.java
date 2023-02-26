@@ -18,7 +18,6 @@
 
 package org.limbo.flowjob.broker.dao.repositories;
 
-import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.common.constants.ConstantsPool;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -27,6 +26,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author Devil
@@ -39,6 +39,8 @@ public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity
 
     PlanInstanceEntity findByPlanIdAndTriggerAtAndTriggerType(String planId, LocalDateTime triggerAt, Byte triggerType);
 
+    List<PlanInstanceEntity> findByPlanIdInAndTriggerAtLessThanEqualAndStatus(List<String> planIds, LocalDateTime triggerAt, Byte status);
+
     @Query(value = "select * from flowjob_plan_instance where plan_id = :planId order by trigger_at desc limit 1", nativeQuery = true)
     PlanInstanceEntity findLatelyTrigger(@Param("planId") String planId);
 
@@ -46,17 +48,17 @@ public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity
     PlanInstanceEntity findLatelyFeedback(@Param("planId") String planId);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING + ", startAt = :startAt, version = version + 1 " +
-            "where planInstanceId = :planInstanceId and version =:version and status = " + ConstantsPool.SCHEDULE_STATUS_SCHEDULING)
-    int executing(@Param("planInstanceId") String planInstanceId, @Param("startAt") LocalDateTime startAt, @Param("version") Integer version);
+    @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING + ", startAt = :startAt " +
+            " where planInstanceId = :planInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_SCHEDULING)
+    int executing(@Param("planInstanceId") String planInstanceId, @Param("startAt") LocalDateTime startAt);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTE_SUCCEED + ", feedbackAt = :feedbackAt, version = version + 1 " +
-            "where planInstanceId = :planInstanceId and version =:version and status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING)
-    int success(@Param("planInstanceId") String planInstanceId, @Param("feedbackAt") LocalDateTime feedbackAt, @Param("version") Integer version);
+    @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTE_SUCCEED + ", feedbackAt = :feedbackAt " +
+            " where planInstanceId = :planInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING)
+    int success(@Param("planInstanceId") String planInstanceId, @Param("feedbackAt") LocalDateTime feedbackAt);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTE_FAILED + ", feedbackAt = :feedbackAt, version = version + 1 " +
-            "where planInstanceId = :planInstanceId and version =:version and status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING)
-    int fail(@Param("planInstanceId") String planInstanceId, @Param("feedbackAt") LocalDateTime feedbackAt, @Param("version") Integer version);
+    @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTE_FAILED + ", feedbackAt = :feedbackAt " +
+            " where planInstanceId = :planInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING)
+    int fail(@Param("planInstanceId") String planInstanceId, @Param("feedbackAt") LocalDateTime feedbackAt);
 }

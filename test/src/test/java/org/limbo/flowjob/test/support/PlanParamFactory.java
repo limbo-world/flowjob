@@ -101,7 +101,33 @@ public class PlanParamFactory {
 
         ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
         scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE);
-        scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(5));
+        scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(3));
+        param.setScheduleOption(scheduleOptionParam);
+
+        if (PlanType.SINGLE == planType) {
+            param.setJob(newJob("hello", JobType.NORMAL));
+        } else {
+            WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
+            WorkflowJobParam n2 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
+
+            n1.setChildren(Sets.newHashSet(n2.getId()));
+
+            param.setWorkflow(Lists.newArrayList(n1, n2));
+        }
+        return param;
+    }
+
+
+    public static PlanParam newFixedDelayAddParam(PlanType planType) {
+        PlanParam param = new PlanParam();
+        param.setName(UUIDUtils.randomID());
+        param.setDescription("测试-固定延迟");
+        param.setTriggerType(TriggerType.SCHEDULE);
+        param.setPlanType(planType);
+
+        ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
+        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_DELAY);
+        scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(3));
         param.setScheduleOption(scheduleOptionParam);
 
         if (PlanType.SINGLE == planType) {

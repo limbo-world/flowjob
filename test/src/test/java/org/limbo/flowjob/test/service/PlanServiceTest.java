@@ -34,6 +34,8 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 
 /**
+ * 修改 application 里面 broker 和 worker 的 enable 为false
+ *
  * @author Devil
  * @since 2022/9/2
  */
@@ -46,9 +48,16 @@ class PlanServiceTest {
     private PlanService planService;
 
     @Test
-    @Transactional
+//    @Transactional
     void addFixedRate() {
         PlanParam param = PlanParamFactory.newFixedRateAddParam(PlanType.WORKFLOW);
+        planService.save(null, param);
+    }
+
+    @Test
+    @Transactional
+    void addFixedDelay() {
+        PlanParam param = PlanParamFactory.newFixedDelayAddParam(PlanType.WORKFLOW);
         planService.save(null, param);
     }
 

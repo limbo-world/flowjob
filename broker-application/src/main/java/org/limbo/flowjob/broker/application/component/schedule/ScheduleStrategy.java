@@ -22,11 +22,8 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.broker.core.domain.IDGenerator;
-import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
-import org.limbo.flowjob.broker.core.domain.job.SingleJobInstance;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.SinglePlan;
@@ -69,9 +66,6 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
     private PlanEntityRepo planEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private IDGenerator idGenerator;
-
-    @Setter(onMethod_ = @Inject)
     private DomainConverter domainConverter;
 
     @Setter(onMethod_ = @Inject)
@@ -86,40 +80,48 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
     @Override
     public void schedule(TriggerType triggerType, Plan plan, LocalDateTime triggerAt) {
         executeWithAspect(unused -> {
-            String planId = plan.getPlanId();
-
             // 悲观锁快速释放，不阻塞后续任务
-            String planInstanceId = scheduleStrategyHelper.lockAndSavePlanInstance(planId, plan.getVersion(), triggerType, triggerAt);
+            String planInstanceId = scheduleStrategyHelper.lockAndSavePlanInstance(plan, triggerType, triggerAt);
             if (StringUtils.isBlank(planInstanceId)) {
                 return;
             }
 
             // 调度逻辑
-            List<JobInstance> jobInstances = new ArrayList<>();
-            if (PlanType.SINGLE == plan.getType()) {
-
-                JobInfo jobInfo = ((SinglePlan) plan).getJobInfo();
-                String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
-                SingleJobInstance jobInstance = new SingleJobInstance();
-                jobInstance.setJobInstanceId(jobInstanceId);
-                jobInstance.setJobInfo(jobInfo);
-                jobInstanceHelper.wrapJobInstance(jobInstance, plan.getPlanId(), plan.getVersion(), plan.getType(), planInstanceId, new Attributes(), jobInfo.getAttributes(), triggerAt);
-                jobInstances.add(jobInstance);
-
-            } else {
-
-                // 获取头部节点
-                for (WorkflowJobInfo jobInfo : ((WorkflowPlan) plan).getDag().origins()) {
-                    if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
-                        jobInstances.add(jobInstanceHelper.newWorkflowJobInstance(plan.getPlanId(), plan.getVersion(), plan.getType(), planInstanceId, new Attributes(), jobInfo, triggerAt));
-                    }
-                }
-            }
-
+            List<JobInstance> jobInstances = newJobInstancesByPlan(plan, planInstanceId, triggerAt);
             if (CollectionUtils.isNotEmpty(jobInstances)) {
                 scheduleStrategyHelper.saveAndScheduleJobInstances(jobInstances, triggerAt);
             }
         });
+    }
+
+    public void schedulePlanInstance(String planId, String planInstanceId, LocalDateTime triggerAt) {
+        executeWithAspect(unused -> {
+            PlanEntity planEntity = planEntityRepo.findById(planId).orElse(null);
+            Plan plan = domainConverter.toPlan(planEntity);
+            List<JobInstance> jobInstances = newJobInstancesByPlan(plan, planInstanceId, triggerAt);
+            if (CollectionUtils.isNotEmpty(jobInstances)) {
+                scheduleStrategyHelper.saveAndScheduleJobInstances(jobInstances, triggerAt);
+            }
+        });
+    }
+
+    private List<JobInstance> newJobInstancesByPlan(Plan plan, String planInstanceId, LocalDateTime triggerAt) {
+        List<JobInstance> jobInstances = new ArrayList<>();
+        if (PlanType.SINGLE == plan.getType()) {
+            JobInfo jobInfo = ((SinglePlan) plan).getJobInfo();
+            JobInstance jobInstance = jobInstanceHelper.newSingleJobInstance(plan.getPlanId(), plan.getVersion(), planInstanceId, new Attributes(), jobInfo, triggerAt);
+            jobInstances.add(jobInstance);
+
+        } else {
+
+            // 获取头部节点
+            for (WorkflowJobInfo jobInfo : ((WorkflowPlan) plan).getDag().origins()) {
+                if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
+                    jobInstances.add(jobInstanceHelper.newWorkflowJobInstance(plan.getPlanId(), plan.getVersion(), planInstanceId, new Attributes(), jobInfo, triggerAt));
+                }
+            }
+        }
+        return jobInstances;
     }
 
     public void apiScheduleWorkflowJob(String planId, String planInstanceId, String jobId) {

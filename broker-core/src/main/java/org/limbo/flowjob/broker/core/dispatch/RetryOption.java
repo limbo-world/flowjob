@@ -48,7 +48,7 @@ public class RetryOption implements Serializable {
     private Integer retry = 0;
 
     /**
-     * 重试间隔
+     * 重试间隔 秒
      */
     private Integer retryInterval = 0;
 

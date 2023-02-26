@@ -21,8 +21,6 @@ package org.limbo.flowjob.broker.application.config;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.application.component.BrokerStarter;
-import org.limbo.flowjob.broker.application.component.PlanLoadTask;
-import org.limbo.flowjob.broker.application.component.TaskDispatchCheckTask;
 import org.limbo.flowjob.broker.application.support.NodeMangerImpl;
 import org.limbo.flowjob.broker.cluster.DBBrokerRegistry;
 import org.limbo.flowjob.broker.core.cluster.Broker;
@@ -36,7 +34,6 @@ import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
 import org.limbo.flowjob.broker.core.domain.task.TaskManager;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.core.schedule.strategy.ITaskResultStrategy;
 import org.limbo.flowjob.broker.core.statistics.WorkerStatisticsRepository;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.domain.SingletonWorkerStatisticsRepo;
@@ -125,34 +122,6 @@ public class BrokerConfiguration {
     @Bean
     public MetaTaskScheduler metaTaskScheduler() {
         return new MetaTaskScheduler();
-    }
-
-
-    /**
-     * 元任务：Plan 加载与调度
-     */
-    @Bean
-    public MetaTask planScheduleMetaTask(BrokerConfig config, NodeManger nodeManger, MetaTaskScheduler metaTaskScheduler) {
-        return new PlanLoadTask(config, nodeManger, metaTaskScheduler);
-    }
-
-
-    /**
-     * 元任务：Task 状态检查，判断任务是否失败
-     */
-    @Bean
-    public MetaTask taskStatusCheckTask(BrokerConfig config,
-                                        NodeManger nodeManger,
-                                        MetaTaskScheduler metaTaskScheduler,
-                                        WorkerRepository workerRepository,
-                                        ITaskResultStrategy scheduleStrategy) {
-        return new TaskDispatchCheckTask(
-                config,
-                nodeManger,
-                metaTaskScheduler,
-                workerRepository,
-                scheduleStrategy
-        );
     }
 
     @Bean

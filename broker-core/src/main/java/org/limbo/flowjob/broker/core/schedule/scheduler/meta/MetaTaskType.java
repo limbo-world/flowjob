@@ -30,6 +30,10 @@ public enum MetaTaskType {
 
     PLAN_LOAD,
 
+    UPDATED_PLAN_LOAD,
+
+    PLAN_EXECUTE_CHECK,
+
     TASK,
 
     TASK_DISPATCH_CHECK,

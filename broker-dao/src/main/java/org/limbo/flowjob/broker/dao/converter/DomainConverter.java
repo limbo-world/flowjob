@@ -127,7 +127,7 @@ public class DomainConverter {
         return plan;
     }
 
-    public ScheduleOption toScheduleOption(PlanInfoEntity entity) {
+    public static ScheduleOption toScheduleOption(PlanInfoEntity entity) {
         return new ScheduleOption(
                 ScheduleType.parse(entity.getScheduleType()),
                 entity.getScheduleStartAt(),
@@ -148,7 +148,7 @@ public class DomainConverter {
         return new DAG<>(jobInfos);
     }
 
-    public TaskEntity toTaskEntity(Task task) {
+    public static TaskEntity toTaskEntity(Task task) {
         TaskEntity taskEntity = new TaskEntity();
         taskEntity.setJobInstanceId(task.getJobInstanceId());
         taskEntity.setJobId(task.getJobId());
@@ -166,7 +166,7 @@ public class DomainConverter {
         return taskEntity;
     }
 
-    public Task toTask(TaskEntity entity) {
+    public static Task toTask(TaskEntity entity) {
         if (entity == null) {
             return null;
         }
@@ -210,6 +210,7 @@ public class DomainConverter {
         entity.setTriggerAt(jobInstance.getTriggerAt());
         entity.setStartAt(jobInstance.getStartAt());
         entity.setEndAt(jobInstance.getEndAt());
+        entity.setTerminateWithFail(jobInstance.isTerminateWithFail());
         return entity;
     }
 

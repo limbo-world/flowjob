@@ -22,15 +22,19 @@ import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.AbstractTaskExecuteCheckTask;
+import org.limbo.flowjob.broker.core.domain.task.Task;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.TaskScheduleTask;
 import org.limbo.flowjob.broker.core.schedule.strategy.ITaskResultStrategy;
+import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.limbo.flowjob.common.constants.TaskStatus;
+import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.time.Duration;
@@ -45,7 +49,8 @@ import java.util.stream.Collectors;
  * 2. worker服务假死
  * 3. worker完成task调用broker的接口失败
  */
-public class TaskExecuteCheckTask extends AbstractTaskExecuteCheckTask {
+@Component
+public class TaskExecuteCheckTask extends FixDelayMetaTask {
 
     @Setter(onMethod_ = @Inject)
     private TaskEntityRepo taskEntityRepo;
@@ -56,16 +61,46 @@ public class TaskExecuteCheckTask extends AbstractTaskExecuteCheckTask {
     @Setter(onMethod_ = @Inject)
     private SlotManager slotManager;
 
-    public TaskExecuteCheckTask(BrokerConfig config,
-                                NodeManger nodeManger,
-                                MetaTaskScheduler metaTaskScheduler,
-                                WorkerRepository workerRepository,
-                                ITaskResultStrategy scheduleStrategy) {
-        super(Duration.ofSeconds(5), config, nodeManger, metaTaskScheduler, workerRepository, scheduleStrategy);
+    @Setter(onMethod_ = @Inject)
+    private BrokerConfig config;
+
+    @Setter(onMethod_ = @Inject)
+    private NodeManger nodeManger;
+
+    @Setter(onMethod_ = @Inject)
+    private WorkerRepository workerRepository;
+
+    @Setter(onMethod_ = @Inject)
+    private ITaskResultStrategy scheduleStrategy;
+
+    public TaskExecuteCheckTask(MetaTaskScheduler metaTaskScheduler) {
+        super(Duration.ofSeconds(5), metaTaskScheduler);
     }
 
     @Override
-    protected List<TaskScheduleTask> loadExecutingTasks() {
+    protected void executeTask() {
+        // 判断自己是否存在 --- 可能由于心跳异常导致不存活
+        if (!nodeManger.alive(config.getName())) {
+            return;
+        }
+
+        List<TaskScheduleTask> executingTasks = loadExecutingTasks();
+        if (CollectionUtils.isNotEmpty(executingTasks)) {
+            // 获取长时间为执行中的task 判断worker是否已经宕机
+            for (TaskScheduleTask scheduleTask : executingTasks) {
+                Task task = scheduleTask.getTask();
+                Worker worker = workerRepository.get(task.getWorkerId());
+                if (worker == null || !worker.isAlive()) {
+                    scheduleStrategy.handleFail(task, String.format("worker %s is offline", task.getWorkerId()), "");
+                }
+            }
+        }
+    }
+
+    /**
+     * 加载执行中的 task。
+     */
+    private List<TaskScheduleTask> loadExecutingTasks() {
         List<String> planIds = slotManager.planIds();
         if (CollectionUtils.isEmpty(planIds)) {
             return Collections.emptyList();
@@ -75,6 +110,16 @@ public class TaskExecuteCheckTask extends AbstractTaskExecuteCheckTask {
             return Collections.emptyList();
         }
         return taskEntities.stream().map(entity -> domainConverter.toTaskScheduleTask(entity)).collect(Collectors.toList());
+    }
+
+    @Override
+    public MetaTaskType getType() {
+        return MetaTaskType.TASK_EXECUTE_CHECK;
+    }
+
+    @Override
+    public String getMetaId() {
+        return "TaskExecuteCheckTask";
     }
 
 }

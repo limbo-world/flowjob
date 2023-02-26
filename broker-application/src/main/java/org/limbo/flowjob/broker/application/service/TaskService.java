@@ -45,9 +45,6 @@ public class TaskService {
     private TaskEntityRepo taskEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private DomainConverter domainConverter;
-
-    @Setter(onMethod_ = @Inject)
     private ITaskResultStrategy taskResultStrategy;
 
     /**
@@ -65,7 +62,7 @@ public class TaskService {
         TaskEntity taskEntity = taskEntityRepo.findById(taskId).orElse(null);
         Verifies.notNull(taskEntity, "task is null id:" + taskId);
 
-        Task task = domainConverter.toTask(taskEntity);
+        Task task = DomainConverter.toTask(taskEntity);
 
         switch (result) {
             case SUCCEED:

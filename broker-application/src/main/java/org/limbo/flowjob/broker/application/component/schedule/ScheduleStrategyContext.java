@@ -41,6 +41,7 @@ public class ScheduleStrategyContext {
     private List<TaskScheduleTask> waitScheduleTasks;
 
 
+
     public static void set() {
         ScheduleStrategyContext strategyContext = new ScheduleStrategyContext();
         CURRENT.set(strategyContext);
