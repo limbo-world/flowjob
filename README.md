@@ -49,7 +49,6 @@
 ## 参与贡献
 
 如果你对本项目有任何建议或想加入我们的，可以通过下面方式：，欢迎提交 issues 进行指正。
-对于文中我没有涉及到知识点，欢迎提交 PR。
 - 报告 issue: [github issues](https://github.com/limbo-world/flowjob/issues)
 - 提交PR：[github PR](https://github.com/limbo-world/flowjob/pulls)
-- 联系我们：ysodevilo@gmail.com
+- 加入我们：ysodevilo@gmail.com
