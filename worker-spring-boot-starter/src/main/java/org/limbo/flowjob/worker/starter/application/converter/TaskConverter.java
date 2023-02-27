@@ -17,6 +17,7 @@
 package org.limbo.flowjob.worker.starter.application.converter;
 
 import org.limbo.flowjob.api.remote.param.TaskSubmitParam;
+import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.worker.core.domain.Task;
 import org.springframework.stereotype.Component;
 
@@ -36,17 +37,18 @@ public class TaskConverter {
      * Task 提交参数转为 Task
      */
     public Task task(TaskSubmitParam param) {
+        TaskType taskType = TaskType.parse(param.getType());
         Task task = new Task();
         task.setTaskId(param.getTaskId());
         task.setPlanId(param.getPlanId());
         task.setPlanInstanceId(param.getPlanId());
         task.setJobId(param.getJobId());
         task.setJobInstanceId(param.getJobInstanceId());
-        task.setType(param.getType());
+        task.setType(taskType);
         task.setExecutorName(param.getExecutorName());
         task.setContext(param.getContext());
         task.setJobAttributes(param.getAttributes());
-        switch (param.getType()) {
+        switch (taskType) {
             case MAP:
                 task.setMapAttributes(param.getMapAttributes());
                 break;

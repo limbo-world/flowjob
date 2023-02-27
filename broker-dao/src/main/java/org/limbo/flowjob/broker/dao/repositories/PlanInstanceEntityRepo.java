@@ -39,6 +39,9 @@ public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity
 
     PlanInstanceEntity findByPlanIdAndTriggerAtAndTriggerType(String planId, LocalDateTime triggerAt, Byte triggerType);
 
+    @Query(value = "select * from flowjob_plan_instance where plan_id = :planId and schedule_type =: scheduleType order by trigger_at desc limit 1", nativeQuery = true)
+    PlanInstanceEntity findLastByScheduleType(String planId, Byte scheduleType);
+
     List<PlanInstanceEntity> findByPlanIdInAndTriggerAtLessThanEqualAndStatus(List<String> planIds, LocalDateTime triggerAt, Byte status);
 
     @Query(value = "select * from flowjob_plan_instance where plan_id = :planId order by trigger_at desc limit 1", nativeQuery = true)

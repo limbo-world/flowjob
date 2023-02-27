@@ -35,6 +35,7 @@ import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -85,6 +86,7 @@ public class WorkerConverter {
                         resource.getAvailableRAM(),
                         resource.getAvailableQueueLimit()
                 ))
+                .lastHeartbeatAt(TimeUtils.currentLocalDateTime())
                 .build();
     }
 
@@ -102,6 +104,7 @@ public class WorkerConverter {
                         resource.getAvailableRAM(),
                         resource.getAvailableQueueLimit()
                 ))
+                .lastHeartbeatAt(TimeUtils.currentLocalDateTime())
                 .build();
     }
 

@@ -39,6 +39,9 @@ public enum MetaTaskType {
     TASK_DISPATCH_CHECK,
 
     TASK_EXECUTE_CHECK,
+
+    WORKER_OFFLINE,
+
     ;
 
     public static MetaTaskType parse(String value) {

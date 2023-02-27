@@ -67,12 +67,15 @@ public class TaskDispatcher {
         }
 
         if (StringUtils.isBlank(task.getWorkerId())) {
-            return dispatchWithWorkerId(task);
+            return dispatchWithWorkerSelect(task);
         } else {
-            return dispatchNoWorker(task);
+            return dispatchWithWorkerId(task);
         }
     }
 
+    /**
+     *  指定 worker 的任务
+     */
     private boolean dispatchWithWorkerId(Task task) {
         Worker worker = workerRepository.get(task.getWorkerId());
         if (worker == null || !worker.isAlive() || !worker.isEnabled()) {
@@ -97,7 +100,10 @@ public class TaskDispatcher {
         return false;
     }
 
-    private boolean dispatchNoWorker(Task task) {
+    /**
+     * 需要worker选择的任务
+     */
+    private boolean dispatchWithWorkerSelect(Task task) {
         List<Worker> availableWorkers = workerRepository.listAvailableWorkers();
         if (CollectionUtils.isEmpty(availableWorkers)) {
             return false;

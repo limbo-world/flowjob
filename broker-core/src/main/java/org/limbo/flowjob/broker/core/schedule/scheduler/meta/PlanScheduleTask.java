@@ -50,15 +50,15 @@ public class PlanScheduleTask extends LoopMetaTask {
             return;
         }
 
-        // 调度前先判断 plan 是否已经进行了版本变更
-
         switch (getScheduleOption().getScheduleType()) {
             case FIXED_RATE:
             case CRON:
                 executeFixedRate();
                 break;
+            case FIXED_DELAY:
+                executeTask();
+                break;
             default:
-                // FIXED_DELAY 交由执行完后处理
                 break;
         }
     }

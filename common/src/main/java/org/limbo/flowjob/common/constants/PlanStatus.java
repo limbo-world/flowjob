@@ -86,4 +86,11 @@ public enum PlanStatus {
         return UNKNOWN;
     }
 
+    /**
+     * 是否已完成
+     */
+    public boolean isCompleted() {
+        return this == SUCCEED || this == FAILED;
+    }
+
 }

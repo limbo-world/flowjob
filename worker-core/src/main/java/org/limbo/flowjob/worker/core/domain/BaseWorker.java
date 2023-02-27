@@ -201,23 +201,28 @@ public class BaseWorker implements Worker {
     public void start(Duration heartbeatPeriod) {
         Objects.requireNonNull(heartbeatPeriod);
 
+        // 重复检测
+        if (!status.compareAndSet(WorkerStatus.IDLE, WorkerStatus.INITIALIZING)) {
+            return;
+        }
+
         Worker worker = this;
 
         Timer startTimer = new Timer();
         TimerTask startTask = new TimerTask() {
             @Override
             public void run() {
-                // 重复检测
-                if (!status.compareAndSet(WorkerStatus.IDLE, WorkerStatus.INITIALIZING)) {
+                // 状态检测
+                if (WorkerStatus.INITIALIZING != status.get()) {
                     startTimer.cancel();
                     return;
                 }
-
                 // 注册
                 try {
                     registerSelfToBroker();
                 } catch (Exception e) {
                     log.error("Register to broker has error", e);
+                    return;
                 }
 
                 // 启动心跳
@@ -236,7 +241,7 @@ public class BaseWorker implements Worker {
                 threadPool = new ThreadPoolExecutor(
                         resource.concurrency(), resource.concurrency(),
                         5, TimeUnit.SECONDS, queue,
-                        new NamedThreadFactory("FlowjobWorkerTaskExecutor"),
+                        new NamedThreadFactory("FlowJobWorkerTaskExecutor"),
                         (r, e) -> {
                             throw new RejectedExecutionException();
                         }
@@ -244,6 +249,7 @@ public class BaseWorker implements Worker {
 
                 // 更新为运行中
                 status.compareAndSet(WorkerStatus.INITIALIZING, WorkerStatus.RUNNING);
+                log.info("worker start!");
             }
         };
 
@@ -264,7 +270,7 @@ public class BaseWorker implements Worker {
             throw e;
         }
 
-        log.info("register success !");
+        log.info("register success!");
     }
 
 

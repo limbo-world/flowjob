@@ -21,6 +21,9 @@ package org.limbo.flowjob.broker.dao.repositories;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +32,7 @@ import java.util.Optional;
  * @author Devil
  * @since 2022/6/24
  */
-public interface WorkerEntityRepo extends JpaRepository<WorkerEntity, String>,JpaSpecificationExecutor<WorkerEntity> {
+public interface WorkerEntityRepo extends JpaRepository<WorkerEntity, String>, JpaSpecificationExecutor<WorkerEntity> {
 
     Optional<WorkerEntity> findByWorkerIdAndDeleted(String id, boolean deleted);
 
@@ -39,5 +42,9 @@ public interface WorkerEntityRepo extends JpaRepository<WorkerEntity, String>,Jp
      * 根据状态查询未删除worker
      */
     List<WorkerEntity> findByStatusAndEnabledAndDeleted(Byte status, boolean enabled, boolean deleted);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "update WorkerEntity set status = :newStatus where workerId = :workerId and status = :oldStatus ")
+    int updateStatus(@Param("workerId") String workerId, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus);
 
 }

@@ -25,6 +25,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.time.LocalDateTime;
 
 /**
  * @author Brozen
@@ -72,7 +73,7 @@ public class WorkerMetricEntity extends BaseEntity {
     /**
      * 上次心跳上报时间戳，毫秒
      */
-    private Long lastHeartbeatAt;
+    private LocalDateTime lastHeartbeatAt;
 
     @Override
     public Object getUid() {
