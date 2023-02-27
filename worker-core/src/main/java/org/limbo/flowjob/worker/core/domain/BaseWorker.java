@@ -38,6 +38,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -199,40 +201,54 @@ public class BaseWorker implements Worker {
     public void start(Duration heartbeatPeriod) {
         Objects.requireNonNull(heartbeatPeriod);
 
-        // 重复检测
-        if (!this.status.compareAndSet(WorkerStatus.IDLE, WorkerStatus.RUNNING)) {
-            return;
-        }
+        Worker worker = this;
 
-        // 注册
-        try {
-            registerSelfToBroker();
-        } catch (RuntimeException e) {
-            this.status.set(WorkerStatus.TERMINATED);
-            throw e;
-        }
-
-        // 启动心跳
-        if (this.pacemaker == null) {
-            this.pacemaker = new WorkerHeartbeat(this, Duration.ofSeconds(1));
-        }
-        this.pacemaker.start();
-
-        // 初始化线程池
-        BlockingQueue<Runnable> queue;
-        if (this.resource.queueSize() == 0) {
-            queue = new SynchronousQueue<>();
-        } else {
-            queue = new ArrayBlockingQueue<>(this.resource.queueSize());
-        }
-        this.threadPool = new ThreadPoolExecutor(
-                this.resource.concurrency(), this.resource.concurrency(),
-                5, TimeUnit.SECONDS, queue,
-                new NamedThreadFactory("FlowjobWorkerTaskExecutor"),
-                (r, e) -> {
-                    throw new RejectedExecutionException();
+        Timer startTimer = new Timer();
+        TimerTask startTask = new TimerTask() {
+            @Override
+            public void run() {
+                // 重复检测
+                if (!status.compareAndSet(WorkerStatus.IDLE, WorkerStatus.INITIALIZING)) {
+                    startTimer.cancel();
+                    return;
                 }
-        );
+
+                // 注册
+                try {
+                    registerSelfToBroker();
+                } catch (Exception e) {
+                    log.error("Register to broker has error", e);
+                }
+
+                // 启动心跳
+                if (pacemaker == null) {
+                    pacemaker = new WorkerHeartbeat(worker, Duration.ofSeconds(1));
+                }
+                pacemaker.start();
+
+                // 初始化线程池
+                BlockingQueue<Runnable> queue;
+                if (resource.queueSize() == 0) {
+                    queue = new SynchronousQueue<>();
+                } else {
+                    queue = new ArrayBlockingQueue<>(resource.queueSize());
+                }
+                threadPool = new ThreadPoolExecutor(
+                        resource.concurrency(), resource.concurrency(),
+                        5, TimeUnit.SECONDS, queue,
+                        new NamedThreadFactory("FlowjobWorkerTaskExecutor"),
+                        (r, e) -> {
+                            throw new RejectedExecutionException();
+                        }
+                );
+
+                // 更新为运行中
+                status.compareAndSet(WorkerStatus.INITIALIZING, WorkerStatus.RUNNING);
+            }
+        };
+
+        startTimer.scheduleAtFixedRate(startTask, 0, 3000);
+
     }
 
 

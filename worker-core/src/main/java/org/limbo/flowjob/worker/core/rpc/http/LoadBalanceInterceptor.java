@@ -24,6 +24,7 @@ import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.common.lb.LBServer;
 import org.limbo.flowjob.common.lb.LBServerRepository;
 import org.limbo.flowjob.common.lb.LBStrategy;
@@ -57,7 +58,7 @@ public class LoadBalanceInterceptor<S extends LBServer> implements Interceptor {
     /**
      * 重试次数
      */
-    private volatile int retryCount = 10;
+    private volatile int retryCount = 5;
 
     public LoadBalanceInterceptor(LBServerRepository<S> repository, LBStrategy<S> strategy) {
         this.repository = repository;
@@ -75,10 +76,14 @@ public class LoadBalanceInterceptor<S extends LBServer> implements Interceptor {
         HttpUrl oldUrl = originalRequest.url();
 
         List<S> servers = repository.listAliveServers();
+        if (CollectionUtils.isEmpty(servers)) {
+            throw new IllegalStateException("No alive servers!");
+        }
         for (int i = 1; i <= retryCount; i++) {
-            Optional<S> optional = strategy.select(servers, new RPCInvocation(oldUrl.url().getPath(), new HashMap<>()));
+            String path = oldUrl.url().getPath(); // http://host:port/path
+            Optional<S> optional = strategy.select(servers, new RPCInvocation(path, new HashMap<>()));
             if (!optional.isPresent()) {
-                log.warn("No available alive servers after 10 tries from load balancer");
+                log.warn("No available alive servers after " + i + " tries from load balancer");
                 throw new IllegalStateException("Can't get alive broker");
             }
             S select = optional.get();
