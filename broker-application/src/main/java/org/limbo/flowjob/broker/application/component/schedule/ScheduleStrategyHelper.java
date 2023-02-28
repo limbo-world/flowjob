@@ -126,6 +126,8 @@ public class ScheduleStrategyHelper {
 
         PlanEntity planEntity = planEntityRepo.selectForUpdate(planId);
         Verifies.notNull(planEntity, MsgConstants.CANT_FIND_PLAN + planId);
+        Verifies.verify(!planEntity.isDeleted(), "plan:" + planId + " is deleted!");
+        Verifies.verify(planEntity.isEnabled(), "plan:" + planId + " is not enabled!");
         // 任务是由之前时间创建的 调度时候如果版本改变 可能会有调度时间的变化本次就无需执行
         // 比如 5s 执行一次 分别在 5s 10s 15s 在11s的时候内存里下次执行为 15s 此时修改为 2s 执行一次 那么重新加载plan后应该为 12s 14s 所以15s这次可以跳过
         Verifies.verify(Objects.equals(version, planEntity.getCurrentVersion()), MessageFormat.format("plan:{0} version {1} change to {2}", planId, version, planEntity.getCurrentVersion()));
@@ -293,13 +295,14 @@ public class ScheduleStrategyHelper {
         }
 
         JobInfo jobInfo = jobInstance.getJobInfo();
+        String planInstanceId = jobInstance.getPlanInstanceId();
         // 是否需要重试
-        long retry = jobInstanceEntityRepo.countByPlanInstanceIdAndJobId(jobInstance.getPlanInstanceId(), jobInfo.getId());
+        long retry = jobInstanceEntityRepo.countByPlanInstanceIdAndJobId(planInstanceId, jobInfo.getId());
         if (jobInfo.getRetryOption().getRetry() > retry) {
             jobInstanceHelper.retryReset(jobInstance, jobInfo.getRetryOption().getRetryInterval());
             saveAndScheduleJobInstances(Collections.singletonList(jobInstance), TimeUtils.currentLocalDateTime());
         } else {
-            planInstanceEntityRepo.fail(jobInstance.getPlanInstanceId(), TimeUtils.currentLocalDateTime());
+            handlerPlanComplete(planInstanceId, false);
         }
     }
 
@@ -350,7 +353,7 @@ public class ScheduleStrategyHelper {
         String planInstanceId = jobInstance.getPlanInstanceId();
 
         if (PlanType.SINGLE == jobInstance.getPlanType()) {
-            planInstanceEntityRepo.success(planInstanceId, TimeUtils.currentLocalDateTime());
+            handlerPlanComplete(planInstanceId, true);
         } else {
             String planId = jobInstance.getPlanId();
             String version = jobInstance.getPlanVersion();
@@ -367,7 +370,7 @@ public class ScheduleStrategyHelper {
                 // 当前节点为叶子节点 检测 Plan 实例是否已经执行完成
                 // 1. 所有节点都已经成功或者失败 2. 这里只关心plan的成功更新，失败是在task回调
                 if (checkJobsSuccessOrIgnoreError(planInstanceId, dag.lasts())) {
-                    planInstanceEntityRepo.success(planInstanceId, TimeUtils.currentLocalDateTime());
+                    handlerPlanComplete(planInstanceId, true);
                 }
             } else {
                 LocalDateTime triggerAt = TimeUtils.currentLocalDateTime();
@@ -386,6 +389,14 @@ public class ScheduleStrategyHelper {
                 }
 
             }
+        }
+    }
+
+    public void handlerPlanComplete(String planInstanceId, boolean success) {
+        if (success) {
+            planInstanceEntityRepo.success(planInstanceId, TimeUtils.currentLocalDateTime());
+        } else {
+            planInstanceEntityRepo.fail(planInstanceId, TimeUtils.currentLocalDateTime());
         }
     }
 
