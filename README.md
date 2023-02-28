@@ -10,6 +10,12 @@
 * Broker：中心节点，负责任务的调度。
 * Worker：工作节点，主要负责任务的具体执行。
 * Console：通过Broker提供的Api，进行任务创建/更新等一些管控操作。
+* Registry：注册中心，目前使用DB做为注册中心。提供了对应接口，可以基于其它组件如zk、nacos等进行灵活的封装。
+* Datasource：数据库用于持久化运行数据
+
+<div align="center">
+<img src="docs/flowjob-framework.png" alt="framework" title="framework"/>
+</div>
 
 ### 调度类型
 
