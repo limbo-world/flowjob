@@ -31,4 +31,15 @@ public interface MsgConstants {
     String TASK_FAIL = "task fail";
 
     String DISPATCH_FAIL = "dispatch fail";
+
+    String TERMINATE_BY_OTHER_JOB = "terminate by other job";
+
+    String CANT_FIND_JOB_INSTANCE = "can't find job instance by id:";
+
+    String CANT_FIND_PLAN_INSTANCE = "can't find plan instance by id:";
+
+    String CANT_FIND_PLAN = "can't find plan by id:";
+
+    String CANT_FIND_PLAN_INFO = "can't find plan info by version:";
+
 }

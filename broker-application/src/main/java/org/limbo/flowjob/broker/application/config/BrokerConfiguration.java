@@ -21,10 +21,8 @@ package org.limbo.flowjob.broker.application.config;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.application.component.BrokerStarter;
-import org.limbo.flowjob.broker.application.component.PlanLoadTask;
-import org.limbo.flowjob.broker.application.component.TaskStatusCheckTask;
 import org.limbo.flowjob.broker.application.support.NodeMangerImpl;
-import org.limbo.flowjob.broker.cluster.DBBrokerRegistry;
+import org.limbo.flowjob.broker.application.component.DBBrokerRegistry;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
@@ -36,7 +34,6 @@ import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
 import org.limbo.flowjob.broker.core.domain.task.TaskManager;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.core.schedule.strategy.ITaskResultStrategy;
 import org.limbo.flowjob.broker.core.statistics.WorkerStatisticsRepository;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.domain.SingletonWorkerStatisticsRepo;
@@ -47,7 +44,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.inject.Inject;
-import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -126,35 +122,6 @@ public class BrokerConfiguration {
     @Bean
     public MetaTaskScheduler metaTaskScheduler() {
         return new MetaTaskScheduler();
-    }
-
-
-    /**
-     * 元任务：Plan 加载与调度
-     */
-    @Bean
-    public MetaTask planScheduleMetaTask(BrokerConfig config, NodeManger nodeManger, MetaTaskScheduler metaTaskScheduler) {
-        return new PlanLoadTask(Duration.ofMillis(brokerProperties.getRebalanceInterval()), config, nodeManger, metaTaskScheduler);
-    }
-
-
-    /**
-     * 元任务：Task 状态检查，判断任务是否失败
-     */
-    @Bean
-    public MetaTask taskStatusCheckTask(BrokerConfig config,
-                                        NodeManger nodeManger,
-                                        MetaTaskScheduler metaTaskScheduler,
-                                        WorkerRepository workerRepository,
-                                        ITaskResultStrategy scheduleStrategy) {
-        return new TaskStatusCheckTask(
-                Duration.ofMillis(brokerProperties.getStatusCheckInterval()),
-                config,
-                nodeManger,
-                metaTaskScheduler,
-                workerRepository,
-                scheduleStrategy
-        );
     }
 
     @Bean

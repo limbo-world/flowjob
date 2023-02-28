@@ -24,12 +24,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.api.remote.param.WorkerExecutorRegisterParam;
 import org.limbo.flowjob.api.remote.param.WorkerRegisterParam;
 import org.limbo.flowjob.api.remote.param.WorkerResourceParam;
-import org.limbo.flowjob.common.constants.WorkerStatus;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
+import org.limbo.flowjob.common.constants.WorkerStatus;
 import org.limbo.flowjob.common.utils.UUIDUtils;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -43,6 +44,7 @@ public class WorkerFactory {
 
     /**
      * 生成新的worker，根据注册参数创建
+     *
      * @param options worker 注册参数
      * @return worker领域对象
      */
@@ -68,11 +70,15 @@ public class WorkerFactory {
     }
 
     private static WorkerMetric metric(List<String> executingJobs, WorkerResourceParam availableResource) {
-        return new WorkerMetric(executingJobs, new WorkerAvailableResource(
-                availableResource.getAvailableCpu(),
-                availableResource.getAvailableRAM(),
-                availableResource.getAvailableQueueLimit()
-        ));
+        return new WorkerMetric(
+                executingJobs,
+                new WorkerAvailableResource(
+                        availableResource.getAvailableCpu(),
+                        availableResource.getAvailableRAM(),
+                        availableResource.getAvailableQueueLimit()
+                ),
+                TimeUtils.currentLocalDateTime()
+        );
     }
 
 }

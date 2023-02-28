@@ -42,6 +42,7 @@ import org.limbo.flowjob.common.lb.strategies.LFULBStrategy;
 import org.limbo.flowjob.common.lb.strategies.LRULBStrategy;
 import org.limbo.flowjob.common.lb.strategies.RandomLBStrategy;
 import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -87,7 +88,8 @@ public class WorkerDispatcherTest {
                 .tags(new HashMap<>())
                 .metric(new WorkerMetric(
                         Lists.newArrayList(),
-                        new WorkerAvailableResource(4f, 8f, 10)
+                        new WorkerAvailableResource(4f, 8f, 10),
+                        TimeUtils.currentLocalDateTime()
                 ))
                 .build();
     }

@@ -18,11 +18,14 @@
 
 package org.limbo.flowjob.api.remote.param;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.limbo.flowjob.common.constants.ExecuteResult;
 import org.limbo.flowjob.common.constants.LoadBalanceType;
 import org.limbo.flowjob.common.constants.TaskType;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -42,11 +45,19 @@ public class TaskSubmitParam implements Serializable {
 
     private String planId;
 
+    private String planInstanceId;
+
     private String jobId;
 
     private String jobInstanceId;
 
-    private TaskType type;
+    /**
+     * Task类型
+     * @see TaskType
+     */
+    @NotNull(message = "type can't be null")
+    @Schema(description = "Task类型")
+    private Byte type;
 
     /**
      * 执行器的名称

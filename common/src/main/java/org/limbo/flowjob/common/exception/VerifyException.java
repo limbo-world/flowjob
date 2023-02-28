@@ -18,6 +18,8 @@
 
 package org.limbo.flowjob.common.exception;
 
+import java.util.function.Supplier;
+
 /**
  * @author Brozen
  * @since 1.0
@@ -34,4 +36,11 @@ public class VerifyException extends RuntimeException {
         super(message, cause);
     }
 
+    public static Supplier<VerifyException> supplier(String message) {
+        return () -> new VerifyException(message);
+    }
+
+    public static Supplier<VerifyException> supplier(String message, Throwable cause) {
+        return () -> new VerifyException(message, cause);
+    }
 }

@@ -16,19 +16,31 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.schedule.scheduler.meta;
+package org.limbo.flowjob.broker.application.component;
 
-import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.task.Task;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.TaskScheduleTask;
 import org.limbo.flowjob.broker.core.schedule.strategy.ITaskResultStrategy;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
+import org.limbo.flowjob.broker.dao.converter.DomainConverter;
+import org.limbo.flowjob.broker.dao.entity.TaskEntity;
+import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
+import org.limbo.flowjob.common.constants.TaskStatus;
+import org.springframework.stereotype.Component;
 
+import javax.inject.Inject;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * task 如果长时间执行中没有进行反馈 需要对其进行状态检查
@@ -37,44 +49,39 @@ import java.util.List;
  * 2. worker服务假死
  * 3. worker完成task调用broker的接口失败
  */
-public abstract class AbstractTaskStatusCheckTask extends FixDelayMetaTask {
+@Component
+public class TaskExecuteCheckTask extends FixDelayMetaTask {
 
-    @Getter
-    protected final BrokerConfig config;
+    @Setter(onMethod_ = @Inject)
+    private TaskEntityRepo taskEntityRepo;
 
-    @Getter
-    protected final NodeManger nodeManger;
+    @Setter(onMethod_ = @Inject)
+    private DomainConverter domainConverter;
 
-    private final WorkerRepository workerRepository;
+    @Setter(onMethod_ = @Inject)
+    private SlotManager slotManager;
 
-    private final ITaskResultStrategy scheduleStrategy;
+    @Setter(onMethod_ = @Inject)
+    private BrokerConfig config;
 
-    protected AbstractTaskStatusCheckTask(Duration interval,
-                                          BrokerConfig config,
-                                          NodeManger nodeManger,
-                                          MetaTaskScheduler metaTaskScheduler,
-                                          WorkerRepository workerRepository,
-                                          ITaskResultStrategy scheduleStrategy) {
-        super(interval, metaTaskScheduler);
-        this.config = config;
-        this.nodeManger = nodeManger;
-        this.workerRepository = workerRepository;
-        this.scheduleStrategy = scheduleStrategy;
+    @Setter(onMethod_ = @Inject)
+    private NodeManger nodeManger;
+
+    @Setter(onMethod_ = @Inject)
+    private WorkerRepository workerRepository;
+
+    @Setter(onMethod_ = @Inject)
+    private ITaskResultStrategy scheduleStrategy;
+
+    public TaskExecuteCheckTask(MetaTaskScheduler metaTaskScheduler) {
+        super(Duration.ofSeconds(5), metaTaskScheduler);
     }
-
 
     @Override
     protected void executeTask() {
         // 判断自己是否存在 --- 可能由于心跳异常导致不存活
         if (!nodeManger.alive(config.getName())) {
             return;
-        }
-
-        List<TaskScheduleTask> dispatchingTasks = loadDispatchingTasks();
-        if (CollectionUtils.isNotEmpty(dispatchingTasks)) {
-            for (TaskScheduleTask scheduleTask : dispatchingTasks) {
-                scheduleTask.execute();
-            }
         }
 
         List<TaskScheduleTask> executingTasks = loadExecutingTasks();
@@ -91,22 +98,28 @@ public abstract class AbstractTaskStatusCheckTask extends FixDelayMetaTask {
     }
 
     /**
-     * 加载下发中的 task。
-     */
-    protected abstract List<TaskScheduleTask> loadDispatchingTasks();
-
-    /**
      * 加载执行中的 task。
      */
-    protected abstract List<TaskScheduleTask> loadExecutingTasks();
+    private List<TaskScheduleTask> loadExecutingTasks() {
+        List<String> planIds = slotManager.planIds();
+        if (CollectionUtils.isEmpty(planIds)) {
+            return Collections.emptyList();
+        }
+        List<TaskEntity> taskEntities = taskEntityRepo.findByPlanIdInAndStatus(planIds, TaskStatus.EXECUTING.status);
+        if (CollectionUtils.isEmpty(taskEntities)) {
+            return Collections.emptyList();
+        }
+        return taskEntities.stream().map(entity -> domainConverter.toTaskScheduleTask(entity)).collect(Collectors.toList());
+    }
 
     @Override
     public MetaTaskType getType() {
-        return MetaTaskType.TASK_STATUS_CHECK;
+        return MetaTaskType.TASK_EXECUTE_CHECK;
     }
 
     @Override
     public String getMetaId() {
-        return "TaskStatusCheckTask";
+        return "TaskExecuteCheckTask";
     }
+
 }

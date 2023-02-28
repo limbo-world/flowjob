@@ -77,5 +77,7 @@ public abstract class JobInstance implements Serializable {
      */
     protected JobStatus status;
 
+    protected boolean terminateWithFail = true;
+
     public abstract JobInfo getJobInfo();
 }

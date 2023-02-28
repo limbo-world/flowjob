@@ -83,6 +83,22 @@ public class DomainConverter {
     private MetaTaskScheduler metaTaskScheduler;
 
     public PlanScheduleTask toPlanScheduleTask(PlanEntity entity) {
+        Plan plan = toPlan(entity);
+        // 获取最近一次调度的planInstance和最近一次结束的planInstance
+        PlanInstanceEntity latelyTrigger = planInstanceEntityRepo.findLatelyTrigger(entity.getPlanId());
+        PlanInstanceEntity latelyFeedback = planInstanceEntityRepo.findLatelyFeedback(entity.getPlanId());
+
+        return new PlanScheduleTask(
+                plan,
+                latelyTrigger == null ? null : latelyTrigger.getTriggerAt(),
+                latelyFeedback == null ? null : latelyFeedback.getFeedbackAt(),
+                planScheduleStrategy,
+                metaTaskScheduler
+        );
+
+    }
+
+    public Plan toPlan(PlanEntity entity) {
         // 获取plan 的当前版本
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getCurrentVersion()).orElse(null);
         Verifies.notNull(planInfoEntity, "does not find " + entity.getPlanId() + " plan's info by version--" + entity.getCurrentVersion() + "");
@@ -108,22 +124,10 @@ public class DomainConverter {
         } else {
             throw new IllegalArgumentException("Illegal PlanType in plan:" + entity.getPlanId() + " version:" + entity.getCurrentVersion());
         }
-
-        // 获取最近一次调度的planInstance和最近一次结束的planInstance
-        PlanInstanceEntity latelyTrigger = planInstanceEntityRepo.findLatelyTrigger(entity.getPlanId());
-        PlanInstanceEntity latelyFeedback = planInstanceEntityRepo.findLatelyFeedback(entity.getPlanId());
-
-        return new PlanScheduleTask(
-                plan,
-                latelyTrigger == null ? null : latelyTrigger.getTriggerAt(),
-                latelyFeedback == null ? null : latelyFeedback.getFeedbackAt(),
-                planScheduleStrategy,
-                metaTaskScheduler
-        );
-
+        return plan;
     }
 
-    public ScheduleOption toScheduleOption(PlanInfoEntity entity) {
+    public static ScheduleOption toScheduleOption(PlanInfoEntity entity) {
         return new ScheduleOption(
                 ScheduleType.parse(entity.getScheduleType()),
                 entity.getScheduleStartAt(),
@@ -144,12 +148,13 @@ public class DomainConverter {
         return new DAG<>(jobInfos);
     }
 
-    public TaskEntity toTaskEntity(Task task) {
+    public static TaskEntity toTaskEntity(Task task) {
         TaskEntity taskEntity = new TaskEntity();
         taskEntity.setJobInstanceId(task.getJobInstanceId());
         taskEntity.setJobId(task.getJobId());
         taskEntity.setPlanId(task.getPlanId());
         taskEntity.setPlanInfoId(task.getPlanVersion());
+        taskEntity.setPlanInstanceId(task.getPlanInstanceId());
         taskEntity.setType(task.getType().type);
         taskEntity.setStatus(task.getStatus().status);
         taskEntity.setWorkerId(task.getWorkerId());
@@ -161,7 +166,7 @@ public class DomainConverter {
         return taskEntity;
     }
 
-    public Task toTask(TaskEntity entity) {
+    public static Task toTask(TaskEntity entity) {
         if (entity == null) {
             return null;
         }
@@ -177,6 +182,7 @@ public class DomainConverter {
         task.setJobAttributes(new Attributes(entity.getJobAttributes()));
         task.setTaskAttributes(type, entity.getTaskAttributes());
         task.setPlanId(entity.getPlanId());
+        task.setPlanInstanceId(entity.getPlanInstanceId());
         task.setPlanVersion(entity.getPlanInfoId());
         task.setDispatchOption(JacksonUtils.parseObject(entity.getDispatchOption(), DispatchOption.class));
         return task;
@@ -204,6 +210,7 @@ public class DomainConverter {
         entity.setTriggerAt(jobInstance.getTriggerAt());
         entity.setStartAt(jobInstance.getStartAt());
         entity.setEndAt(jobInstance.getEndAt());
+        entity.setTerminateWithFail(jobInstance.isTerminateWithFail());
         return entity;
     }
 

@@ -24,6 +24,7 @@ public enum WorkerStatus {
 
 
     IDLE,
+    INITIALIZING,
     RUNNING,
     TERMINATING,
     TERMINATED

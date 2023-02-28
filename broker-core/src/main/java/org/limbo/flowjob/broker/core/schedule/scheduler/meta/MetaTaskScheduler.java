@@ -19,8 +19,10 @@ package org.limbo.flowjob.broker.core.schedule.scheduler.meta;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.schedule.scheduler.HashedWheelTimerScheduler;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -43,23 +45,19 @@ public class MetaTaskScheduler extends HashedWheelTimerScheduler<MetaTask> {
 
     @Override
     public void schedule(MetaTask task) {
+        String scheduleId = task.scheduleId();
         try {
-            if (isScheduling(task.scheduleId())) {
+            if (isScheduling(scheduleId)) {
                 return;
             }
 
             // 放入缓存
-            scheduling.get(task.getType()).put(task.scheduleId(), task);
+            scheduling.get(task.getType()).put(scheduleId, task);
 
             calAndSchedule(task);
         } catch (Exception e) {
-            log.error("Meta task [{}] execute failed", task.scheduleId(), e);
+            log.error("Meta task [{}] execute failed", scheduleId, e);
         }
-    }
-
-    @Override
-    protected void afterExecute(MetaTask task) {
-        unschedule(task.scheduleId());
     }
 
     @Override
@@ -82,8 +80,8 @@ public class MetaTaskScheduler extends HashedWheelTimerScheduler<MetaTask> {
     /**
      * 返回调度中的数据
      */
-    public Collection<MetaTask> getSchedulingByType(MetaTaskType type) {
-        return scheduling.get(type).values();
+    public List<MetaTask> getSchedulingByType(MetaTaskType type) {
+        return new ArrayList<>(scheduling.get(type).values());
     }
 
 }

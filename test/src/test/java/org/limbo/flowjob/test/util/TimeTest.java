@@ -35,7 +35,7 @@ public class TimeTest {
 
     @Test
     public void test() {
-        HashedWheelTimer hashedWheelTimer = new HashedWheelTimer(NamedThreadFactory.newInstance(this.getClass().getSimpleName() + "-timer-"));
+        HashedWheelTimer hashedWheelTimer = new HashedWheelTimer(NamedThreadFactory.newInstance(this.getClass().getSimpleName()));
         hashedWheelTimer.newTimeout(new TimerTask() {
             @Override
             public void run(Timeout timeout) throws Exception {

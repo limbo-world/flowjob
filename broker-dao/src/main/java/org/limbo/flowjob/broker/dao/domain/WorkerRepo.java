@@ -34,6 +34,7 @@ import org.limbo.flowjob.broker.dao.repositories.WorkerExecutorEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerMetricEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerTagEntityRepo;
 import org.limbo.flowjob.common.constants.WorkerStatus;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
@@ -66,6 +67,11 @@ public class WorkerRepo implements WorkerRepository {
     private WorkerEntityConverter converter;
 
     /**
+     * worker 心跳过期时间
+     */
+    public static final Long HEARTBEAT_EXPIRE_INTERVAL = 3L;
+
+    /**
      * {@inheritDoc}
      *
      * @param worker worker节点
@@ -77,6 +83,7 @@ public class WorkerRepo implements WorkerRepository {
 
         WorkerEntity entity = converter.toWorkerEntity(worker);
         Objects.requireNonNull(entity);
+        entity.setUpdatedAt(TimeUtils.currentLocalDateTime());
         workerEntityRepo.saveAndFlush(entity);
 
         // Metric 存储
@@ -154,6 +161,15 @@ public class WorkerRepo implements WorkerRepository {
         return workerEntityRepo.findByStatusAndEnabledAndDeleted(WorkerStatus.RUNNING.status, true, false)
                 .stream()
                 .map(this::toWorkerWithLazyInit)
+                .filter(worker -> {
+                    // 处理心跳过期的
+                    if (worker.getMetric().getLastHeartbeatAt().isBefore(TimeUtils.currentLocalDateTime().plusSeconds(-HEARTBEAT_EXPIRE_INTERVAL))) {
+                        workerEntityRepo.updateStatus(worker.getId(), WorkerStatus.RUNNING.status, WorkerStatus.TERMINATED.status);
+                        return false;
+                    } else {
+                        return true;
+                    }
+                })
                 .collect(Collectors.toList());
     }
 

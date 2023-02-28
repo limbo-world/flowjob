@@ -19,12 +19,8 @@
 package org.limbo.flowjob.broker.core.worker.rpc;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.api.remote.dto.WorkerAvailableResourceDTO;
-import org.limbo.flowjob.api.remote.dto.WorkerMetricDTO;
 import org.limbo.flowjob.api.remote.param.TaskSubmitParam;
 import org.limbo.flowjob.broker.core.domain.task.Task;
-import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
-import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
 import java.util.Collections;
@@ -39,21 +35,14 @@ import java.util.stream.Collectors;
  */
 public class WorkerConverter {
 
-    public static WorkerMetric toDO(WorkerMetricDTO dto) {
-        return new WorkerMetric(dto.getExecutingJobs(), toDO(dto.getAvailableResource()));
-    }
-
-    public static WorkerAvailableResource toDO(WorkerAvailableResourceDTO dto) {
-        return new WorkerAvailableResource(dto.getAvailableCpu(), dto.getAvailableRam(), dto.getAvailableQueueLimit());
-    }
-
     public static TaskSubmitParam toTaskSubmitParam(Task task) {
         TaskSubmitParam taskSubmitParam = new TaskSubmitParam();
         taskSubmitParam.setTaskId(task.getTaskId());
         taskSubmitParam.setPlanId(task.getPlanId());
+        taskSubmitParam.setPlanInstanceId(task.getPlanInstanceId());
         taskSubmitParam.setJobId(task.getJobId());
         taskSubmitParam.setJobInstanceId(task.getJobInstanceId());
-        taskSubmitParam.setType(task.getType());
+        taskSubmitParam.setType(task.getType().type);
         taskSubmitParam.setExecutorName(task.getExecutorName());
         taskSubmitParam.setContext(task.getContext() == null ? Collections.emptyMap() : task.getContext().toMap());
         taskSubmitParam.setAttributes(task.getJobAttributes() == null ? Collections.emptyMap() : task.getJobAttributes().toMap());

@@ -93,15 +93,4 @@ public abstract class ScheduleCalculator {
         return delay != null ? startScheduleAt + delay.toMillis() : startScheduleAt;
     }
 
-
-    public static void main(String[] args) {
-        LocalDateTime startAt = LocalDateTime.of(2022, 12, 21, 13, 2, 58, 851);
-        Duration delay = Duration.ZERO;
-        long startScheduleAt = startAt.toInstant(TimeUtils.zoneOffset()).toEpochMilli();
-        System.out.println(startScheduleAt);
-        System.out.println(startAt.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")));
-        long l = delay != null ? startScheduleAt + delay.toMillis() : startScheduleAt;
-        System.out.println(l);
-        System.out.println(DateFormatUtils.ISO_8601_EXTENDED_DATETIME_FORMAT.format(l));
-    }
 }

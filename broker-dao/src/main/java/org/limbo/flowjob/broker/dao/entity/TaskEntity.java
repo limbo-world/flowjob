@@ -44,6 +44,8 @@ public class TaskEntity extends BaseEntity {
 
     private String planId;
 
+    private String planInstanceId;
+
     private String planInfoId;
 
     /**

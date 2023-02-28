@@ -112,6 +112,7 @@ public class PlanService {
         String planInfoId = idGenerator.generateId(IDType.PLAN_INFO);
 
         if (StringUtils.isBlank(planId)) {
+            // create
             planId = idGenerator.generateId(IDType.PLAN);
 
             PlanEntity planEntity = new PlanEntity();
@@ -129,14 +130,12 @@ public class PlanService {
             planSlotEntity.setPlanId(planEntity.getPlanId());
             planSlotEntityRepo.saveAndFlush(planSlotEntity);
         } else {
-            PlanEntity planEntity = planEntityRepo.findById(planId).orElse(null);
-
-            Verifies.notNull(planEntity, "plan is null id:" + planId);
-
+            // update
+            planEntityRepo.findById(planId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN + planId));
             // 更新 Plan 版本信息
-            int effected = planEntityRepo.updateVersion(planInfoId, planInfoId, param.getName(), planId, planEntity.getCurrentVersion(), planEntity.getRecentlyVersion());
-            if (effected <= 0) {
-                throw new IllegalStateException("更新Plan版本失败");
+            int effected = planEntityRepo.updateVersion(planInfoId, planInfoId, param.getName(), planId, param.getCurrentVersion(), param.getRecentlyVersion());
+            if (effected < 1) {
+                throw new IllegalStateException("并发操作，更新Plan版本失败");
             }
         }
 

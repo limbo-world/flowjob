@@ -85,4 +85,14 @@ public class PlanParam implements Serializable {
     @Schema(title = "工作流对应的所有作业")
     private List<@Valid WorkflowJobParam> workflow;
 
+    /**
+     * 本次操作时，plan的当前版本
+     */
+    private String currentVersion;
+
+    /**
+     * 本次操作时，plan的最新版本
+     */
+    private String recentlyVersion;
+
 }

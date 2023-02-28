@@ -30,9 +30,18 @@ public enum MetaTaskType {
 
     PLAN_LOAD,
 
+    UPDATED_PLAN_LOAD,
+
+    PLAN_EXECUTE_CHECK,
+
     TASK,
 
-    TASK_STATUS_CHECK,
+    TASK_DISPATCH_CHECK,
+
+    TASK_EXECUTE_CHECK,
+
+    WORKER_OFFLINE,
+
     ;
 
     public static MetaTaskType parse(String value) {

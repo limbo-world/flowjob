@@ -20,9 +20,12 @@ package org.limbo.flowjob.broker.application.component;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
+import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
+import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -46,6 +49,9 @@ public class SlotManager {
 
     @Setter(onMethod_ = @Inject)
     private NodeManger nodeManger;
+
+    @Setter(onMethod_ = @Inject)
+    private PlanSlotEntityRepo planSlotEntityRepo;
 
     public static final int SLOT_SIZE = 64;
 
@@ -86,6 +92,24 @@ public class SlotManager {
         }
         log.info("find slots:{}", slots);
         return slots;
+    }
+
+    /**
+     * 获取当前节点对应的planId
+     */
+    public List<String> planIds() {
+        List<Integer> slots = slots();
+        if (CollectionUtils.isEmpty(slots)) {
+            return Collections.emptyList();
+        }
+        List<PlanSlotEntity> slotEntities = planSlotEntityRepo.findBySlotIn(slots);
+        if (CollectionUtils.isEmpty(slotEntities)) {
+            return Collections.emptyList();
+        }
+
+        return slotEntities.stream()
+                .map(PlanSlotEntity::getPlanId)
+                .collect(Collectors.toList());
     }
 
 }

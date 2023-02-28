@@ -26,7 +26,7 @@ import java.time.LocalDateTime;
  * @author Devil
  * @since 2022/8/8
  */
-public interface Calculated extends Scheduled {
+public interface Calculated {
 
     /**
      * 获取调度配置

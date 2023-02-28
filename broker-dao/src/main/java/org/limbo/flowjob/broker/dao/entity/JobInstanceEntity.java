@@ -77,6 +77,11 @@ public class JobInstanceEntity extends BaseEntity {
      */
     private LocalDateTime endAt;
 
+    /**
+     * 失败是否终止
+     */
+    private Boolean terminateWithFail;
+
     @Override
     public Object getUid() {
         return jobInstanceId;

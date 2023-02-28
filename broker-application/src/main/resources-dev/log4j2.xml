@@ -19,7 +19,7 @@
         <logger name="org.springframework.web" level="DEBUG" />
         <logger name="com.netflix.discovery" level="INFO" />
         <logger name="org.springframework.cloud.client.discovery" level="INFO" />
-        <Root level="DEBUG">
+        <Root level="Error">
 <!--        <Root level="INFO">-->
             <AppenderRef ref="Console" />
         </Root>

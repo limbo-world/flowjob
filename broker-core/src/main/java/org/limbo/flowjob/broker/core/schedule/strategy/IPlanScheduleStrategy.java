@@ -29,6 +29,12 @@ import java.time.LocalDateTime;
  */
 public interface IPlanScheduleStrategy {
 
+    /**
+     * 创建plan和相关job等信息
+     * @param triggerType PlanScheduleTask 为调度触发 还可能是api触发执行
+     * @param plan
+     * @param triggerAt
+     */
     void schedule(TriggerType triggerType, Plan plan, LocalDateTime triggerAt);
 
 }

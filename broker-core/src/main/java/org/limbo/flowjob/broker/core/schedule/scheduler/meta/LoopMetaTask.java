@@ -69,13 +69,13 @@ public abstract class LoopMetaTask implements MetaTask, Calculated {
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ToString.Exclude
-    private ScheduleCalculator scheduleCalculator;
+    protected ScheduleCalculator scheduleCalculator;
 
     @JsonIgnore
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ToString.Exclude
-    private MetaTaskScheduler metaTaskScheduler;
+    protected MetaTaskScheduler metaTaskScheduler;
 
     protected LoopMetaTask(LocalDateTime lastTriggerAt, LocalDateTime lastFeedbackAt, ScheduleOption scheduleOption, MetaTaskScheduler metaTaskScheduler) {
         this.lastTriggerAt = lastTriggerAt;
@@ -104,27 +104,23 @@ public abstract class LoopMetaTask implements MetaTask, Calculated {
     }
 
     protected void executeFixedRate() {
-        try {
-            lastTriggerAt = triggerAt;
-            triggerAt = nextTriggerAt;
-            nextTriggerAt = calNextTriggerAt();
-            metaTaskScheduler.schedule(this);
-            executeTask();
-        } finally {
-            lastFeedbackAt = TimeUtils.currentLocalDateTime();
-        }
+        lastTriggerAt = triggerAt;
+        triggerAt = nextTriggerAt;
+        nextTriggerAt = calNextTriggerAt();
+        metaTaskScheduler.unschedule(scheduleId());
+        metaTaskScheduler.schedule(this);
+        executeTask();
+        lastFeedbackAt = TimeUtils.currentLocalDateTime();
     }
 
     protected void executeFixedDelay() {
-        try {
-            lastTriggerAt = triggerAt;
-            triggerAt = nextTriggerAt;
-            executeTask();
-        } finally {
-            lastFeedbackAt = TimeUtils.currentLocalDateTime();
-            nextTriggerAt = calNextTriggerAt();
-            metaTaskScheduler.schedule(this);
-        }
+        lastTriggerAt = triggerAt;
+        triggerAt = nextTriggerAt;
+        executeTask();
+        lastFeedbackAt = TimeUtils.currentLocalDateTime();
+        nextTriggerAt = calNextTriggerAt();
+        metaTaskScheduler.unschedule(scheduleId());
+        metaTaskScheduler.schedule(this);
     }
 
     /**
@@ -176,8 +172,4 @@ public abstract class LoopMetaTask implements MetaTask, Calculated {
         return scheduleCalculator;
     }
 
-    @Override
-    public String scheduleId() {
-        return MetaTask.super.scheduleId() + "-" + scheduleAt();
-    }
 }

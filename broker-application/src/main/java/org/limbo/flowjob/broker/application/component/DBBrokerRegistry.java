@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.cluster;
+package org.limbo.flowjob.broker.application.component;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;

@@ -37,18 +37,28 @@ public class PlanScheduleTask extends LoopMetaTask {
 
     @Override
     public void execute() {
+        if (plan == null) {
+            log.error("{} plan is null", scheduleId());
+            return;
+        }
+        if (TriggerType.SCHEDULE != plan.getTriggerType()) {
+            return;
+        }
         ScheduleOption scheduleOption = getScheduleOption();
         if (scheduleOption == null || scheduleOption.getScheduleType() == null || ScheduleType.UNKNOWN == scheduleOption.getScheduleType()) {
             log.error("{} scheduleType is {} scheduleOption={}", scheduleId(), MsgConstants.UNKNOWN, scheduleOption);
             return;
         }
+
         switch (getScheduleOption().getScheduleType()) {
             case FIXED_RATE:
             case CRON:
                 executeFixedRate();
                 break;
+            case FIXED_DELAY:
+                executeTask();
+                break;
             default:
-                // FIXED_DELAY 交由执行完后处理
                 break;
         }
     }

@@ -107,6 +107,7 @@ public class WorkerEntityConverter {
         po.setHost(worker.getRpcBaseUrl().getHost());
         po.setPort(worker.getRpcBaseUrl().getPort());
         po.setStatus(worker.getStatus().status);
+        po.setAppId(""); // todo
         po.setEnabled(true);
         po.setDeleted(false);
         return po;
@@ -125,6 +126,7 @@ public class WorkerEntityConverter {
                 ))
                 .executingJobs(JacksonUtils.parseObject(metric.getExecutingJobs(), new TypeReference<List<String>>() {
                 }))
+                .lastHeartbeatAt(metric.getLastHeartbeatAt())
                 .build();
     }
 
@@ -146,6 +148,7 @@ public class WorkerEntityConverter {
 
         // 执行中的任务
         po.setExecutingJobs(JacksonUtils.toJSONString(vo.getExecutingJobs()));
+        po.setLastHeartbeatAt(vo.getLastHeartbeatAt());
 
         return po;
     }

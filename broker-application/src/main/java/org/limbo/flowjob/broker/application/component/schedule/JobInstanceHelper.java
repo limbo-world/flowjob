@@ -32,10 +32,13 @@ import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.common.constants.JobStatus;
+import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.constants.PlanType;
+import org.limbo.flowjob.common.exception.VerifyException;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -58,58 +61,71 @@ public class JobInstanceHelper {
     private IDGenerator idGenerator;
 
     public JobInstance getJobInstance(String id) {
-        JobInstanceEntity entity = jobInstanceEntityRepo.findById(id).orElse(null);
-        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getPlanInfoId()).orElse(null);
+        JobInstanceEntity entity = jobInstanceEntityRepo.findById(id)
+                .orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_JOB_INSTANCE + id));
+        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getPlanInfoId())
+                .orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INSTANCE + entity.getPlanId()));
 
         JobInstance jobInstance;
         PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
         if (PlanType.SINGLE == planType) {
-            jobInstance = new SingleJobInstance();
             JobInfo jobInfo = JacksonUtils.parseObject(planInfoEntity.getJobInfo(), JobInfo.class);
-            ((SingleJobInstance) jobInstance).setJobInfo(jobInfo);
+            jobInstance = newSingleJobInstance(entity.getPlanId(), entity.getPlanInfoId(), entity.getPlanInstanceId(),
+                    new Attributes(entity.getContext()), jobInfo, entity.getTriggerAt());
         } else if (PlanType.WORKFLOW == planType) {
-            jobInstance = new WorkflowJobInstance();
             DAG<WorkflowJobInfo> dag = DomainConverter.toJobDag(planInfoEntity.getJobInfo());
-            ((WorkflowJobInstance) jobInstance).setWorkflowJobInfo(dag.getNode(entity.getJobId()));
+            WorkflowJobInfo workflowJobInfo = dag.getNode(entity.getJobId());
+            jobInstance = newWorkflowJobInstance(entity.getPlanId(), entity.getPlanInfoId(), entity.getPlanInstanceId(),
+                    new Attributes(entity.getContext()), workflowJobInfo, entity.getTriggerAt());
+
         } else {
             throw new IllegalArgumentException("Illegal PlanType in plan:" + planInfoEntity.getPlanId() + " version:" + planInfoEntity.getPlanInfoId());
         }
-        JobInfo jobInfo = jobInstance.getJobInfo();
         jobInstance.setJobInstanceId(entity.getJobInstanceId());
-        wrapJobInstance(jobInstance, entity.getPlanId(), entity.getPlanInfoId(), planType,
-                entity.getPlanInstanceId(), new Attributes(entity.getContext()), jobInfo.getAttributes(), entity.getTriggerAt()
-        );
         jobInstance.setStatus(JobStatus.parse(entity.getStatus()));
         jobInstance.setStartAt(entity.getStartAt());
         jobInstance.setEndAt(entity.getEndAt());
         return jobInstance;
     }
 
-    public boolean needRetry(JobInstance jobInstance) {
-        JobInfo jobInfo = jobInstance.getJobInfo();
-        // 查询已经失败的记录数
-        long retry = jobInstanceEntityRepo.countByPlanInstanceIdAndJobId(jobInstance.getPlanInstanceId(), jobInfo.getId());
-        return jobInfo.getRetryOption().getRetry() > retry;
+    /**
+     * 设置为 retry 状态
+     */
+    public void retryReset(JobInstance jobInstance, Integer retryInterval) {
+        jobInstance.setTriggerAt(TimeUtils.currentLocalDateTime().plusSeconds(retryInterval));
+        jobInstance.setJobInstanceId(idGenerator.generateId(IDType.JOB_INSTANCE));
+        jobInstance.setStatus(JobStatus.SCHEDULING);
     }
 
-    public JobInstance newWorkflowJobInstance(String planId, String planVersion, PlanType planType, String planInstanceId,
+    public JobInstance newSingleJobInstance(String planId, String planVersion, String planInstanceId,
+                                              Attributes context, JobInfo jobInfo, LocalDateTime triggerAt) {
+        String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
+        SingleJobInstance instance = new SingleJobInstance();
+        instance.setJobInstanceId(jobInstanceId);
+        instance.setJobInfo(jobInfo);
+        instance.setPlanType(PlanType.SINGLE);
+        wrapJobInstance(instance, planId, planVersion, planInstanceId, context, jobInfo.getAttributes(), triggerAt);
+        return instance;
+    }
+
+    public JobInstance newWorkflowJobInstance(String planId, String planVersion, String planInstanceId,
                                               Attributes context, WorkflowJobInfo workflowJobInfo, LocalDateTime triggerAt) {
         JobInfo job = workflowJobInfo.getJob();
         String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
         WorkflowJobInstance instance = new WorkflowJobInstance();
         instance.setJobInstanceId(jobInstanceId);
         instance.setWorkflowJobInfo(workflowJobInfo);
-        wrapJobInstance(instance, planId, planVersion, planType, planInstanceId, context, job.getAttributes(), triggerAt);
+        instance.setTerminateWithFail(workflowJobInfo.isTerminateWithFail());
+        instance.setPlanType(PlanType.WORKFLOW);
+        wrapJobInstance(instance, planId, planVersion, planInstanceId, context, job.getAttributes(), triggerAt);
         return instance;
     }
 
-    public void wrapJobInstance(JobInstance instance, String planId, String planVersion, PlanType planType,
-                                String planInstanceId, Attributes context, Attributes jobAttributes, LocalDateTime triggerAt) {
-
+    private void wrapJobInstance(JobInstance instance, String planId, String planVersion, String planInstanceId,
+                                 Attributes context, Attributes jobAttributes, LocalDateTime triggerAt) {
         instance.setPlanId(planId);
         instance.setPlanInstanceId(planInstanceId);
         instance.setPlanVersion(planVersion);
-        instance.setPlanType(planType);
         instance.setStatus(JobStatus.SCHEDULING);
         instance.setTriggerAt(triggerAt);
         instance.setContext(context == null ? new Attributes() : context);

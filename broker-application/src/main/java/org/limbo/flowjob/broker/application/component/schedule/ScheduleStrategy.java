@@ -21,18 +21,37 @@ package org.limbo.flowjob.broker.application.component.schedule;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.broker.core.domain.plan.SinglePlan;
+import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.TaskScheduleTask;
 import org.limbo.flowjob.broker.core.schedule.strategy.IPlanScheduleStrategy;
 import org.limbo.flowjob.broker.core.schedule.strategy.ITaskResultStrategy;
 import org.limbo.flowjob.broker.core.schedule.strategy.ITaskScheduleStrategy;
+import org.limbo.flowjob.broker.dao.converter.DomainConverter;
+import org.limbo.flowjob.broker.dao.entity.PlanEntity;
+import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
+import org.limbo.flowjob.common.constants.MsgConstants;
+import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.TriggerType;
+import org.limbo.flowjob.common.exception.VerifyException;
+import org.limbo.flowjob.common.utils.Verifies;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
+import org.limbo.flowjob.common.utils.dag.DAG;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -44,6 +63,15 @@ import java.util.function.Consumer;
 public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStrategy, ITaskResultStrategy {
 
     @Setter(onMethod_ = @Inject)
+    private PlanEntityRepo planEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private DomainConverter domainConverter;
+
+    @Setter(onMethod_ = @Inject)
+    private JobInstanceHelper jobInstanceHelper;
+
+    @Setter(onMethod_ = @Inject)
     private MetaTaskScheduler metaTaskScheduler;
 
     @Setter(onMethod_ = @Inject)
@@ -51,7 +79,73 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
 
     @Override
     public void schedule(TriggerType triggerType, Plan plan, LocalDateTime triggerAt) {
-        executeWithAspect(unused -> scheduleStrategyHelper.schedule(triggerType, plan, triggerAt));
+        executeWithAspect(unused -> {
+            // 悲观锁快速释放，不阻塞后续任务
+            String planInstanceId = scheduleStrategyHelper.lockAndSavePlanInstance(plan, triggerType, triggerAt);
+            if (StringUtils.isBlank(planInstanceId)) {
+                return;
+            }
+
+            // 调度逻辑
+            List<JobInstance> jobInstances = newJobInstancesByPlan(plan, planInstanceId, triggerAt);
+            if (CollectionUtils.isNotEmpty(jobInstances)) {
+                scheduleStrategyHelper.saveAndScheduleJobInstances(jobInstances, triggerAt);
+            }
+        });
+    }
+
+    public void schedulePlanInstance(String planId, String planInstanceId, LocalDateTime triggerAt) {
+        executeWithAspect(unused -> {
+            PlanEntity planEntity = planEntityRepo.findById(planId).orElse(null);
+            Plan plan = domainConverter.toPlan(planEntity);
+            List<JobInstance> jobInstances = newJobInstancesByPlan(plan, planInstanceId, triggerAt);
+            if (CollectionUtils.isNotEmpty(jobInstances)) {
+                scheduleStrategyHelper.saveAndScheduleJobInstances(jobInstances, triggerAt);
+            }
+        });
+    }
+
+    private List<JobInstance> newJobInstancesByPlan(Plan plan, String planInstanceId, LocalDateTime triggerAt) {
+        List<JobInstance> jobInstances = new ArrayList<>();
+        if (PlanType.SINGLE == plan.getType()) {
+            JobInfo jobInfo = ((SinglePlan) plan).getJobInfo();
+            JobInstance jobInstance = jobInstanceHelper.newSingleJobInstance(plan.getPlanId(), plan.getVersion(), planInstanceId, new Attributes(), jobInfo, triggerAt);
+            jobInstances.add(jobInstance);
+
+        } else {
+
+            // 获取头部节点
+            for (WorkflowJobInfo jobInfo : ((WorkflowPlan) plan).getDag().origins()) {
+                if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
+                    jobInstances.add(jobInstanceHelper.newWorkflowJobInstance(plan.getPlanId(), plan.getVersion(), planInstanceId, new Attributes(), jobInfo, triggerAt));
+                }
+            }
+        }
+        return jobInstances;
+    }
+
+    public void apiScheduleWorkflowJob(String planId, String planInstanceId, String jobId) {
+        executeWithAspect(unused -> {
+            PlanEntity planEntity = planEntityRepo.findById(planId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN + planId));
+
+            Plan plan = domainConverter.toPlan(planEntity);
+            Verifies.verify(PlanType.WORKFLOW == plan.getType(), "only workflow plan can schedule by api");
+
+            WorkflowPlan workflowPlan = (WorkflowPlan) plan;
+            DAG<WorkflowJobInfo> dag = workflowPlan.getDag();
+            WorkflowJobInfo jobInfo = dag.getNode(jobId);
+
+            Verifies.verify(TriggerType.API == jobInfo.getTriggerType(), "only api triggerType job can schedule by api");
+
+            LocalDateTime triggerAt = TimeUtils.currentLocalDateTime();
+
+            Verifies.verify(scheduleStrategyHelper.checkJobsSuccessOrIgnoreError(planInstanceId, dag.preNodes(jobInfo.getId())), "previous job is not complete, please wait!");
+
+            JobInstance jobInstance = scheduleStrategyHelper.lockAndSaveWorkflowJobInstance(plan, planInstanceId, jobInfo, triggerAt);
+
+            // 前置节点已经完成则可以下发
+            scheduleStrategyHelper.scheduleJobInstances(Collections.singletonList(jobInstance), triggerAt);
+        });
     }
 
     @Override
@@ -70,25 +164,27 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
     }
 
     public void executeWithAspect(Consumer<Void> consumer) {
-        // new context
-        newStrategyContext();
-        // do real
-        consumer.accept(null);
-        // do after
-        scheduleTasks();
-        // clear context
-        clearStrategyContext();
+        try {
+            // new context
+            ScheduleStrategyContext.set();
+            // do real
+            consumer.accept(null);
+            // do after
+            scheduleTasks();
+        } finally {
+            // clear context
+            ScheduleStrategyContext.clear();
+        }
     }
 
     /**
      * 放在事务外，防止下发和执行很快但是task下发完需要很久的情况，这样前面的任务执行返回后由于事务未提交，会提示找不到task
      */
     public void scheduleTasks() {
-        ScheduleStrategyContext scheduleStrategyContext = getStrategyContext();
-        if (scheduleStrategyContext == null || CollectionUtils.isEmpty(scheduleStrategyContext.getRequireScheduleTasks())) {
+        if (CollectionUtils.isEmpty(ScheduleStrategyContext.waitScheduleTasks())) {
             return;
         }
-        for (TaskScheduleTask task : scheduleStrategyContext.getRequireScheduleTasks()) {
+        for (TaskScheduleTask task : ScheduleStrategyContext.waitScheduleTasks()) {
             try {
                 metaTaskScheduler.schedule(task);
             } catch (Exception e) {
@@ -96,20 +192,6 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
                 log.error("task schedule fail! task={}", task, e);
             }
         }
-    }
-
-    private ScheduleStrategyContext newStrategyContext() {
-        ScheduleStrategyContext strategyContext = new ScheduleStrategyContext();
-        ScheduleStrategyContext.CURRENT.set(strategyContext);
-        return strategyContext;
-    }
-
-    private void clearStrategyContext() {
-        ScheduleStrategyContext.CURRENT.remove();
-    }
-
-    private ScheduleStrategyContext getStrategyContext() {
-        return ScheduleStrategyContext.CURRENT.get();
     }
 
 }

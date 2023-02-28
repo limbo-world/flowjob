@@ -19,36 +19,37 @@
 package org.limbo.flowjob.broker.application.component;
 
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanScheduleTask;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.TaskScheduleTask;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
-import org.limbo.flowjob.broker.dao.entity.PlanEntity;
-import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
+import org.limbo.flowjob.broker.dao.entity.TaskEntity;
+import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
+import org.limbo.flowjob.common.constants.TaskStatus;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * 获取plan下发
- * 相比update的任务比较久
- * 此任务主要为防止 plan 调度中异常导致 在时间轮中丢失
+ * task 如果长时间执行中没有进行反馈 需要对其进行状态检查
+ * 可能导致task没有完成的原因
+ * 1. worker服务真实下线
+ * 2. worker服务假死
+ * 3. worker完成task调用broker的接口失败
  */
-@Slf4j
 @Component
-public class PlanLoadTask extends FixDelayMetaTask {
+public class TaskDispatchCheckTask extends FixDelayMetaTask {
 
     @Setter(onMethod_ = @Inject)
-    private PlanEntityRepo planEntityRepo;
+    private TaskEntityRepo taskEntityRepo;
 
     @Setter(onMethod_ = @Inject)
     private DomainConverter domainConverter;
@@ -62,64 +63,51 @@ public class PlanLoadTask extends FixDelayMetaTask {
     @Setter(onMethod_ = @Inject)
     private NodeManger nodeManger;
 
-    public PlanLoadTask(MetaTaskScheduler scheduler) {
-        super(Duration.ofSeconds(1), scheduler);
+    public TaskDispatchCheckTask(MetaTaskScheduler metaTaskScheduler) {
+        super(Duration.ofSeconds(1), metaTaskScheduler);
     }
 
-    /**
-     * 执行元任务，从 DB 加载一批待调度的 Plan，放到调度器中去。
-     */
     @Override
     protected void executeTask() {
-        try {
-            // 判断自己是否存在 --- 可能由于心跳异常导致不存活
-            if (!nodeManger.alive(config.getName())) {
-                return;
-            }
+        // 判断自己是否存在 --- 可能由于心跳异常导致不存活
+        if (!nodeManger.alive(config.getName())) {
+            return;
+        }
 
-            // 调度当前时间以及未来的任务
-            List<PlanScheduleTask> plans = loadTasks();
-
-            // 重新调度 新增/版本变更的plan
-            if (CollectionUtils.isNotEmpty(plans)) {
-                for (PlanScheduleTask plan : plans) {
-                    metaTaskScheduler.schedule(plan);
-                }
+        List<TaskScheduleTask> dispatchingTasks = loadDispatchingTasks();
+        if (CollectionUtils.isEmpty(dispatchingTasks)) {
+            return;
+        }
+        if (CollectionUtils.isNotEmpty(dispatchingTasks)) {
+            for (TaskScheduleTask scheduleTask : dispatchingTasks) {
+                scheduleTask.execute();
             }
-        } catch (Exception e) {
-            log.error("{} load and schedule plan task fail", scheduleId(), e);
         }
     }
 
-
     /**
-     * 加载触发时间在指定时间之前的 Plan。
+     * 加载下发中的 task。
      */
-    private List<PlanScheduleTask> loadTasks() {
+    private List<TaskScheduleTask> loadDispatchingTasks() {
         List<String> planIds = slotManager.planIds();
         if (CollectionUtils.isEmpty(planIds)) {
             return Collections.emptyList();
         }
-        List<PlanEntity> planEntities = planEntityRepo.loadPlans(planIds);
-        if (CollectionUtils.isEmpty(planEntities)) {
+        List<TaskEntity> taskEntities = taskEntityRepo.findByPlanIdInAndStatus(planIds, TaskStatus.DISPATCHING.status);
+        if (CollectionUtils.isEmpty(taskEntities)) {
             return Collections.emptyList();
         }
-        List<PlanScheduleTask> plans = new ArrayList<>();
-        for (PlanEntity planEntity : planEntities) {
-            plans.add(domainConverter.toPlanScheduleTask(planEntity));
-        }
-        return plans;
+        return taskEntities.stream().map(entity -> domainConverter.toTaskScheduleTask(entity)).collect(Collectors.toList());
     }
-
 
     @Override
     public MetaTaskType getType() {
-        return MetaTaskType.PLAN_LOAD;
+        return MetaTaskType.TASK_DISPATCH_CHECK;
     }
 
     @Override
     public String getMetaId() {
-        return "PlanLoadTask";
+        return "TaskDispatchCheckTask";
     }
 
 }

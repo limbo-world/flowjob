@@ -30,22 +30,25 @@ import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanScheduleTask;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
+import org.limbo.flowjob.common.utils.time.DateTimeUtils;
+import org.limbo.flowjob.common.utils.time.Formatters;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * 获取plan下发
- * 相比update的任务比较久
- * 此任务主要为防止 plan 调度中异常导致 在时间轮中丢失
+ * 获取更新的plan下发
+ * 此任务间隔短 方便随时获取更新数据
  */
 @Slf4j
 @Component
-public class PlanLoadTask extends FixDelayMetaTask {
+public class UpdatedPlanLoadTask extends FixDelayMetaTask {
 
     @Setter(onMethod_ = @Inject)
     private PlanEntityRepo planEntityRepo;
@@ -62,7 +65,9 @@ public class PlanLoadTask extends FixDelayMetaTask {
     @Setter(onMethod_ = @Inject)
     private NodeManger nodeManger;
 
-    public PlanLoadTask(MetaTaskScheduler scheduler) {
+    private LocalDateTime loadTimePoint = DateTimeUtils.parse("2000-01-01 00:00:00", Formatters.YMD_HMS);
+
+    public UpdatedPlanLoadTask(MetaTaskScheduler scheduler) {
         super(Duration.ofSeconds(1), scheduler);
     }
 
@@ -100,7 +105,8 @@ public class PlanLoadTask extends FixDelayMetaTask {
         if (CollectionUtils.isEmpty(planIds)) {
             return Collections.emptyList();
         }
-        List<PlanEntity> planEntities = planEntityRepo.loadPlans(planIds);
+        List<PlanEntity> planEntities = planEntityRepo.loadUpdatedPlans(planIds, loadTimePoint);
+        loadTimePoint = TimeUtils.currentLocalDateTime();
         if (CollectionUtils.isEmpty(planEntities)) {
             return Collections.emptyList();
         }
@@ -114,12 +120,12 @@ public class PlanLoadTask extends FixDelayMetaTask {
 
     @Override
     public MetaTaskType getType() {
-        return MetaTaskType.PLAN_LOAD;
+        return MetaTaskType.UPDATED_PLAN_LOAD;
     }
 
     @Override
     public String getMetaId() {
-        return "PlanLoadTask";
+        return "UpdatedPlanLoadTask";
     }
 
 }

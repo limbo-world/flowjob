@@ -38,6 +38,7 @@ import java.time.LocalDateTime;
  */
 @Slf4j
 @Data
+@Deprecated
 public class PlanInstance implements Serializable {
 
     private static final long serialVersionUID = 1837382860200548371L;
