@@ -208,7 +208,7 @@ public class ScheduleTest {
         planService.start(id);
 
         PlanEntity planEntity = planEntityRepo.findById(id).orElse(null);
-        PlanScheduleTask planScheduleTask = domainConverter.toPlanScheduleTask(planEntity);
+        PlanScheduleTask planScheduleTask = domainConverter.toPlanScheduleTask(planEntity, triggerType);
         // 调度plan 生成 task 并下发
         Plan plan = planScheduleTask.getPlan();
         planScheduleStrategy.schedule(triggerType, plan, TimeUtils.currentLocalDateTime());

@@ -55,7 +55,7 @@ class PlanServiceTest {
     }
 
     @Test
-    @Transactional
+//    @Transactional
     void addFixedDelay() {
         PlanParam param = PlanParamFactory.newFixedDelayAddParam(PlanType.WORKFLOW);
         planService.save(null, param);

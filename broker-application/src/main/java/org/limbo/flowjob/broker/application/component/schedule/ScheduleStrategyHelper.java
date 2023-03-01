@@ -33,6 +33,7 @@ import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
 import org.limbo.flowjob.broker.core.exceptions.JobException;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
@@ -120,7 +121,7 @@ public class ScheduleStrategyHelper {
     private JobInstanceHelper jobInstanceHelper;
 
     @Transactional
-    public String lockAndSavePlanInstance(Plan plan, TriggerType triggerType, LocalDateTime triggerAt) {
+    public PlanInstanceEntity lockAndSavePlanInstance(Plan plan, TriggerType triggerType, LocalDateTime triggerAt) {
         String planId = plan.getPlanId();
         String version = plan.getVersion();
 
@@ -144,15 +145,29 @@ public class ScheduleStrategyHelper {
             PlanSlotEntity planSlotEntity = planSlotEntityRepo.findByPlanId(planId);
             Verifies.notNull(planSlotEntity, "plan's slot is null id:" + planId);
             Verifies.verify(slots.contains(planSlotEntity.getSlot()), MessageFormat.format("plan {0} is not in this broker", planId));
+
+            // 校验是否重复创建
+            PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findLatelyTrigger(planId, planInfoEntity.getPlanInfoId(), planInfoEntity.getScheduleType(), triggerType.type);
+            ScheduleType scheduleType = ScheduleType.parse(planInfoEntity.getScheduleType());
+            switch (scheduleType) {
+                case FIXED_RATE:
+                case CRON:
+                    Verifies.verify(planInstanceEntity == null || !triggerAt.isEqual(planInstanceEntity.getTriggerAt()),
+                            MessageFormat.format("Duplicate create PlanInstance,triggerAt:{0} planId[{1}] Version[{2}] oldPlanInstance[{3}]",
+                                    triggerAt, planId, version, JacksonUtils.toJSONString(planInstanceEntity))
+                    );
+                    break;
+                case FIXED_DELAY:
+                    Verifies.verify(planInstanceEntity == null || (!triggerAt.isEqual(planInstanceEntity.getTriggerAt()) && PlanStatus.parse(planInstanceEntity.getStatus()).isCompleted()),
+                            MessageFormat.format("Please wait last PlanInstance[{0}] complete.Plan[{1}] Version[{2}]",
+                                    JacksonUtils.toJSONString(planInstanceEntity), planId, version)
+                    );
+                    break;
+                default:
+                    throw new VerifyException(MsgConstants.UNKNOWN + " scheduleType " + planInfoEntity.getScheduleType());
+            }
         }
 
-        // 如果是 FIXED_DELAY 的需要判断是否有对应类型的已经在执行
-        if (planInfoEntity.getScheduleType() != null && ScheduleType.FIXED_DELAY.type == planInfoEntity.getScheduleType()) {
-            PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findLastByScheduleType(planId, ScheduleType.FIXED_DELAY.type);
-            Verifies.verify(planInstanceEntity == null || PlanStatus.parse(planInstanceEntity.getStatus()).isCompleted(),
-                    MessageFormat.format("Please wait last PlanInstance[{0}] complete.Plan[{1}] Version[{2}]", planInstanceEntity.getPlanInstanceId(), planId, version)
-            );
-        }
 
         String planInstanceId = idGenerator.generateId(IDType.PLAN_INSTANCE);
         PlanInstanceEntity planInstanceEntity = new PlanInstanceEntity();
@@ -164,7 +179,7 @@ public class ScheduleStrategyHelper {
         planInstanceEntity.setScheduleType(planInfoEntity.getScheduleType());
         planInstanceEntity.setTriggerAt(triggerAt);
         planInstanceEntityRepo.saveAndFlush(planInstanceEntity);
-        return planInstanceId;
+        return planInstanceEntity;
     }
 
     @Transactional
@@ -397,6 +412,11 @@ public class ScheduleStrategyHelper {
             planInstanceEntityRepo.success(planInstanceId, TimeUtils.currentLocalDateTime());
         } else {
             planInstanceEntityRepo.fail(planInstanceId, TimeUtils.currentLocalDateTime());
+        }
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(planInstanceId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INSTANCE + planInstanceId));
+        if (ScheduleType.FIXED_DELAY == ScheduleType.parse(planInstanceEntity.getScheduleType())) {
+            // 如果为 FIXED_DELAY 更新 plan  使得 UpdatedPlanLoadTask 进行重新加载
+            planEntityRepo.updateTime(planInstanceEntity.getPlanId(), TimeUtils.currentLocalDateTime());
         }
     }
 

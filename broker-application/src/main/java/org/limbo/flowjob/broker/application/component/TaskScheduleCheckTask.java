@@ -22,10 +22,11 @@ import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
+import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.TaskScheduleTask;
+import org.limbo.flowjob.broker.core.schedule.strategy.ITaskScheduleStrategy;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
@@ -46,13 +47,10 @@ import java.util.stream.Collectors;
  * 3. worker完成task调用broker的接口失败
  */
 @Component
-public class TaskDispatchCheckTask extends FixDelayMetaTask {
+public class TaskScheduleCheckTask extends FixDelayMetaTask {
 
     @Setter(onMethod_ = @Inject)
     private TaskEntityRepo taskEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private DomainConverter domainConverter;
 
     @Setter(onMethod_ = @Inject)
     private SlotManager slotManager;
@@ -63,7 +61,10 @@ public class TaskDispatchCheckTask extends FixDelayMetaTask {
     @Setter(onMethod_ = @Inject)
     private NodeManger nodeManger;
 
-    public TaskDispatchCheckTask(MetaTaskScheduler metaTaskScheduler) {
+    @Setter(onMethod_ = @Inject)
+    private ITaskScheduleStrategy iScheduleStrategy;
+
+    public TaskScheduleCheckTask(MetaTaskScheduler metaTaskScheduler) {
         super(Duration.ofSeconds(1), metaTaskScheduler);
     }
 
@@ -74,30 +75,28 @@ public class TaskDispatchCheckTask extends FixDelayMetaTask {
             return;
         }
 
-        List<TaskScheduleTask> dispatchingTasks = loadDispatchingTasks();
+        List<Task> dispatchingTasks = loadDispatchingTasks();
         if (CollectionUtils.isEmpty(dispatchingTasks)) {
             return;
         }
-        if (CollectionUtils.isNotEmpty(dispatchingTasks)) {
-            for (TaskScheduleTask scheduleTask : dispatchingTasks) {
-                scheduleTask.execute();
-            }
+        for (Task task : dispatchingTasks) {
+            iScheduleStrategy.schedule(task);
         }
     }
 
     /**
      * 加载下发中的 task。
      */
-    private List<TaskScheduleTask> loadDispatchingTasks() {
+    private List<Task> loadDispatchingTasks() {
         List<String> planIds = slotManager.planIds();
         if (CollectionUtils.isEmpty(planIds)) {
             return Collections.emptyList();
         }
-        List<TaskEntity> taskEntities = taskEntityRepo.findByPlanIdInAndStatus(planIds, TaskStatus.DISPATCHING.status);
+        List<TaskEntity> taskEntities = taskEntityRepo.findByPlanIdInAndStatus(planIds, TaskStatus.SCHEDULING.status);
         if (CollectionUtils.isEmpty(taskEntities)) {
             return Collections.emptyList();
         }
-        return taskEntities.stream().map(entity -> domainConverter.toTaskScheduleTask(entity)).collect(Collectors.toList());
+        return taskEntities.stream().map(DomainConverter::toTask).collect(Collectors.toList());
     }
 
     @Override

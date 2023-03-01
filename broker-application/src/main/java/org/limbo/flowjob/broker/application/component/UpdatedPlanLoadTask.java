@@ -30,6 +30,7 @@ import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanScheduleTask;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
+import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.time.DateTimeUtils;
 import org.limbo.flowjob.common.utils.time.Formatters;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
@@ -112,7 +113,7 @@ public class UpdatedPlanLoadTask extends FixDelayMetaTask {
         }
         List<PlanScheduleTask> plans = new ArrayList<>();
         for (PlanEntity planEntity : planEntities) {
-            plans.add(domainConverter.toPlanScheduleTask(planEntity));
+            plans.add(domainConverter.toPlanScheduleTask(planEntity, TriggerType.SCHEDULE));
         }
         return plans;
     }

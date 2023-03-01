@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.schedule.scheduler.HashedWheelTimerScheduler;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +60,14 @@ public class MetaTaskScheduler extends HashedWheelTimerScheduler<MetaTask> {
     }
 
     @Override
+    protected void afterExecute(MetaTask scheduled, Throwable t) {
+        super.afterExecute(scheduled, t);
+        if (t != null) {
+            unschedule(scheduled.scheduleId());
+        }
+    }
+
+    @Override
     public void unschedule(String id) {
         Map<String, MetaTask> metaTaskMap = scheduling.get(getType(id));
         metaTaskMap.remove(id);
@@ -72,6 +79,7 @@ public class MetaTaskScheduler extends HashedWheelTimerScheduler<MetaTask> {
         return metaTaskMap.containsKey(id);
     }
 
+
     private MetaTaskType getType(String scheduleId) {
         String[] split = scheduleId.split("-");
         return MetaTaskType.parse(split[0]);
@@ -82,6 +90,18 @@ public class MetaTaskScheduler extends HashedWheelTimerScheduler<MetaTask> {
      */
     public List<MetaTask> getSchedulingByType(MetaTaskType type) {
         return new ArrayList<>(scheduling.get(type).values());
+    }
+
+    public void reschedule(MetaTask task) {
+        String scheduleId = task.scheduleId();
+        try {
+            if (!isScheduling(scheduleId)) {
+                return;
+            }
+            calAndSchedule(task);
+        } catch (Exception e) {
+            log.error("Meta task [{}] reschedule failed", scheduleId, e);
+        }
     }
 
 }

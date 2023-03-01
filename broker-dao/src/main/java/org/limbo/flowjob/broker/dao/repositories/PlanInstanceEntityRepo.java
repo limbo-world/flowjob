@@ -39,16 +39,17 @@ public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity
 
     PlanInstanceEntity findByPlanIdAndTriggerAtAndTriggerType(String planId, LocalDateTime triggerAt, Byte triggerType);
 
-    @Query(value = "select * from flowjob_plan_instance where plan_id = :planId and schedule_type =: scheduleType order by trigger_at desc limit 1", nativeQuery = true)
-    PlanInstanceEntity findLastByScheduleType(String planId, Byte scheduleType);
-
     List<PlanInstanceEntity> findByPlanIdInAndTriggerAtLessThanEqualAndStatus(List<String> planIds, LocalDateTime triggerAt, Byte status);
 
-    @Query(value = "select * from flowjob_plan_instance where plan_id = :planId order by trigger_at desc limit 1", nativeQuery = true)
-    PlanInstanceEntity findLatelyTrigger(@Param("planId") String planId);
+    @Query(value = "select * from flowjob_plan_instance " +
+            "where plan_id = :planId and schedule_type = :scheduleType and trigger_type = :triggerType and plan_info_id =:planInfoId " +
+            "order by trigger_at desc limit 1", nativeQuery = true)
+    PlanInstanceEntity findLatelyTrigger(@Param("planId") String planId, @Param("planInfoId") String planInfoId, @Param("scheduleType") Byte scheduleType, @Param("triggerType") Byte triggerType);
 
-    @Query(value = "select * from flowjob_plan_instance where plan_id = :planId order by feedback_at desc limit 1", nativeQuery = true)
-    PlanInstanceEntity findLatelyFeedback(@Param("planId") String planId);
+    @Query(value = "select * from flowjob_plan_instance " +
+            "where plan_id = :planId and schedule_type = :scheduleType and trigger_type = :triggerType and plan_info_id =:planInfoId " +
+            "order by feedback_at desc limit 1", nativeQuery = true)
+    PlanInstanceEntity findLatelyFeedback(@Param("planId") String planId, @Param("planInfoId") String planInfoId, @Param("scheduleType") Byte scheduleType, @Param("triggerType") Byte triggerType);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING + ", startAt = :startAt " +

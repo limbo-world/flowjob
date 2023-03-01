@@ -56,6 +56,7 @@ public abstract class HashedWheelTimerScheduler<T extends Scheduled> implements 
 
         // 在timer上调度作业执行
         this.timer.newTimeout(timeout -> {
+            Throwable thrown = null;
             try {
                 // 已经取消调度了，则不再重新调度作业
                 if (!isScheduling(scheduled.scheduleId())) {
@@ -66,8 +67,13 @@ public abstract class HashedWheelTimerScheduler<T extends Scheduled> implements 
 
             } catch (Exception e) {
                 log.error("[HashedWheelTimerScheduler] schedule fail id:{}", scheduled.scheduleId(), e);
+                thrown = e;
+            } finally {
+                afterExecute(scheduled, thrown);
             }
         }, delay, TimeUnit.MILLISECONDS);
     }
+
+    protected void afterExecute(T scheduled, Throwable t) { }
 
 }
