@@ -58,8 +58,7 @@ class MetaTaskTest {
 
             @Override
             protected void executeTask() {
-//                log.info("execute lastTriggerAt:{} lastFeedbackAt:{} triggerAt:{} time: {} nextTriggerAt:{} ", lastTriggerAt, lastFeedbackAt, triggerAt, TimeUtils.currentLocalDateTime(), nextTriggerAt);
-                log.info("execute {} start triggerAt:{} time:{}", scheduleId(), getTriggerAt(), TimeUtils.currentLocalDateTime());
+                log.info("execute {} start triggerAt:{} time:{}", scheduleId(), getLastTriggerAt(), TimeUtils.currentLocalDateTime());
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
@@ -90,8 +89,7 @@ class MetaTaskTest {
 
             @Override
             protected void executeTask() {
-//                log.info("execute lastTriggerAt:{} lastFeedbackAt:{} triggerAt:{} time: {} nextTriggerAt:{} ", lastTriggerAt, lastFeedbackAt, triggerAt, TimeUtils.currentLocalDateTime(), nextTriggerAt);
-                log.info("execute {} start triggerAt:{} time:{}", scheduleId(), getTriggerAt(), TimeUtils.currentLocalDateTime());
+                log.info("execute {} start triggerAt:{} time:{}", scheduleId(), getLastTriggerAt(), TimeUtils.currentLocalDateTime());
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {

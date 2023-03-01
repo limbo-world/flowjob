@@ -20,6 +20,7 @@ package org.limbo.flowjob.broker.dao.converter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
@@ -41,12 +42,13 @@ import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
+import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TaskStatus;
 import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.common.constants.TriggerType;
-import org.limbo.flowjob.common.utils.Verifies;
+import org.limbo.flowjob.common.exception.VerifyException;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -56,6 +58,7 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
@@ -64,6 +67,7 @@ import java.util.List;
  * @author Devil
  * @since 2022/8/11
  */
+@Slf4j
 @Component
 public class DomainConverter {
 
@@ -82,16 +86,20 @@ public class DomainConverter {
     @Setter(onMethod_ = @Inject)
     private MetaTaskScheduler metaTaskScheduler;
 
-    public PlanScheduleTask toPlanScheduleTask(PlanEntity entity) {
+    public PlanScheduleTask toPlanScheduleTask(PlanEntity entity, TriggerType triggerType) {
         Plan plan = toPlan(entity);
         // 获取最近一次调度的planInstance和最近一次结束的planInstance
-        PlanInstanceEntity latelyTrigger = planInstanceEntityRepo.findLatelyTrigger(entity.getPlanId());
-        PlanInstanceEntity latelyFeedback = planInstanceEntityRepo.findLatelyFeedback(entity.getPlanId());
+        ScheduleOption scheduleOption = plan.getScheduleOption();
+        PlanInstanceEntity latelyTrigger = planInstanceEntityRepo.findLatelyTrigger(entity.getPlanId(), plan.getVersion(), scheduleOption.getScheduleType().type, triggerType.type);
+        PlanInstanceEntity latelyFeedback = planInstanceEntityRepo.findLatelyFeedback(entity.getPlanId(), plan.getVersion(), scheduleOption.getScheduleType().type, triggerType.type);
+
+        LocalDateTime latelyTriggerAt = latelyTrigger == null || latelyTrigger.getTriggerAt() == null ? null : latelyTrigger.getTriggerAt().truncatedTo(ChronoUnit.SECONDS);
+        LocalDateTime latelyFeedbackAt = latelyFeedback == null || latelyFeedback.getFeedbackAt() == null ? null : latelyFeedback.getFeedbackAt().truncatedTo(ChronoUnit.SECONDS);
 
         return new PlanScheduleTask(
                 plan,
-                latelyTrigger == null ? null : latelyTrigger.getTriggerAt(),
-                latelyFeedback == null ? null : latelyFeedback.getFeedbackAt(),
+                latelyTriggerAt,
+                latelyFeedbackAt,
                 planScheduleStrategy,
                 metaTaskScheduler
         );
@@ -100,8 +108,8 @@ public class DomainConverter {
 
     public Plan toPlan(PlanEntity entity) {
         // 获取plan 的当前版本
-        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getCurrentVersion()).orElse(null);
-        Verifies.notNull(planInfoEntity, "does not find " + entity.getPlanId() + " plan's info by version--" + entity.getCurrentVersion() + "");
+        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getCurrentVersion())
+                .orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INFO + entity.getCurrentVersion()));
 
         Plan plan;
         PlanType planType = PlanType.parse(planInfoEntity.getPlanType());

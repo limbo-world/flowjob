@@ -49,11 +49,6 @@ public abstract class LoopMetaTask implements MetaTask, Calculated {
     private LocalDateTime lastTriggerAt;
 
     /**
-     * 当前任务触发时间
-     */
-    private LocalDateTime triggerAt;
-
-    /**
      * 下次任务触发时间
      */
     private LocalDateTime nextTriggerAt;
@@ -64,6 +59,11 @@ public abstract class LoopMetaTask implements MetaTask, Calculated {
     private LocalDateTime lastFeedbackAt;
 
     private final ScheduleOption scheduleOption;
+
+//    /**
+//     * 是否终止
+//     */
+//    protected boolean terminated;
 
     @JsonIgnore
     @Getter(AccessLevel.NONE)
@@ -104,23 +104,19 @@ public abstract class LoopMetaTask implements MetaTask, Calculated {
     }
 
     protected void executeFixedRate() {
-        lastTriggerAt = triggerAt;
-        triggerAt = nextTriggerAt;
+        lastTriggerAt = nextTriggerAt;
         nextTriggerAt = calNextTriggerAt();
-        metaTaskScheduler.unschedule(scheduleId());
-        metaTaskScheduler.schedule(this);
+        metaTaskScheduler.reschedule(this);
         executeTask();
         lastFeedbackAt = TimeUtils.currentLocalDateTime();
     }
 
     protected void executeFixedDelay() {
-        lastTriggerAt = triggerAt;
-        triggerAt = nextTriggerAt;
+        lastTriggerAt = nextTriggerAt;
         executeTask();
         lastFeedbackAt = TimeUtils.currentLocalDateTime();
         nextTriggerAt = calNextTriggerAt();
-        metaTaskScheduler.unschedule(scheduleId());
-        metaTaskScheduler.schedule(this);
+        metaTaskScheduler.reschedule(this);
     }
 
     /**
@@ -145,15 +141,14 @@ public abstract class LoopMetaTask implements MetaTask, Calculated {
 
     @Override
     public LocalDateTime lastTriggerAt() {
-        // 只有 fixRate会被用到 对于本模型来说 就是当前触发时间
-        return triggerAt;
+        return lastTriggerAt;
     }
 
     /**
      * 下次触发时间
      */
     public LocalDateTime calNextTriggerAt() {
-        Long calculate = lazyInitTriggerCalculator().calculate(this); // 这里获取到的是毫秒 转为秒
+        Long calculate = lazyInitTriggerCalculator().calculate(this);
         return TimeUtils.toLocalDateTime(calculate);
     }
 

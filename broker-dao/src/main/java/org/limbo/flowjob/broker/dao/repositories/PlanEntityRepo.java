@@ -61,4 +61,8 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, String>, JpaSp
     @Query(value = "update PlanEntity set enabled = :newValue where planId = :planId and enabled = :oldValue")
     int updateEnable(@Param("planId") String planId, @Param("oldValue") boolean oldValue, @Param("newValue") boolean newValue);
 
+    @Modifying(clearAutomatically = true)
+    @Query(value = "update flowjob_plan set updated_at = :updatedAt where plan_id = :planId and is_enabled = true and is_deleted = false", nativeQuery = true)
+    int updateTime(@Param("planId") String planId, @Param("updatedAt") LocalDateTime updatedAt);
+
 }
