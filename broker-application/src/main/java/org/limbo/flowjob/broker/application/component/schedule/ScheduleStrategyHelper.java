@@ -33,7 +33,6 @@ import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
 import org.limbo.flowjob.broker.core.exceptions.JobException;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
@@ -77,6 +76,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
+ * 看了下代码，这个只能在 ScheduleStrategy 中使用，否则一些上下文无法释放可能导致内存泄露
+ *
  * @author Devil
  * @since 2023/1/4
  */
@@ -186,10 +187,9 @@ public class ScheduleStrategyHelper {
     public JobInstance lockAndSaveWorkflowJobInstance(Plan plan, String planInstanceId, WorkflowJobInfo jobInfo, LocalDateTime triggerAt) {
         planInstanceEntityRepo.selectForUpdate(planInstanceId);
 
-        long count = jobInstanceEntityRepo.countByPlanInstanceIdAndJobId(planInstanceId, jobInfo.getJob().getId());
-        if (count > 0) {
-            return null;
-        }
+        String jobId = jobInfo.getJob().getId();
+        long count = jobInstanceEntityRepo.countByPlanInstanceIdAndJobId(planInstanceId, jobId);
+        Verifies.verify(count <= 0, MessageFormat.format("Job[{0}] in PlanInstance[{1}] is already create", jobId, planInstanceId));
 
         JobInstance jobInstance = jobInstanceHelper.newWorkflowJobInstance(plan.getPlanId(), plan.getVersion(), planInstanceId, new Attributes(), jobInfo, triggerAt);
         jobInstanceEntityRepo.saveAndFlush(DomainConverter.toJobInstanceEntity(jobInstance));
