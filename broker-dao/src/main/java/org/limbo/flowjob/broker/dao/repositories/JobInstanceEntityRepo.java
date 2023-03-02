@@ -35,7 +35,7 @@ import java.util.List;
  */
 public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, String> {
 
-    long countByPlanIdAndStatusIn(String planId, List<Byte> statuses);
+    long countByPlanInstanceIdAndStatusIn(String planInstanceId, List<Byte> statuses);
 
 //    @Query(value = "select * from flowjob_job_instance where jobInstance_id = :jobInstanceId for update", nativeQuery = true)
 //    JobInstanceEntity selectForUpdate(@Param("jobInstanceId") String jobInstanceId);

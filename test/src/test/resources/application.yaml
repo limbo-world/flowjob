@@ -34,7 +34,7 @@ flowjob:
   broker:
     enabled: false
   worker:
-    enabled: false
+    enabled: true
     brokers:
       - http://localhost:8081
     taskQueueSize: 64

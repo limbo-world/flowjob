@@ -40,6 +40,7 @@ import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanScheduleTask;
 import org.limbo.flowjob.broker.core.schedule.strategy.IPlanScheduleStrategy;
 import org.limbo.flowjob.broker.core.worker.rpc.WorkerConverter;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
+import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
@@ -47,6 +48,7 @@ import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.limbo.flowjob.common.constants.JobStatus;
 import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.TriggerType;
+import org.limbo.flowjob.common.exception.VerifyException;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.limbo.flowjob.test.support.PlanParamFactory;
@@ -130,8 +132,6 @@ public class ScheduleTest {
                         null
                 );
                 workerRpcController.feedback(context.getTask().getTaskId(), taskFeedbackParam);
-
-                PLAN_INSTANCE_ID = context.getTask().getPlanInstanceId();
                 return null;
             }
         }).when(brokerRpc).feedbackTaskSucceed(Mockito.any(ExecuteContext.class));
@@ -153,6 +153,8 @@ public class ScheduleTest {
 
                 TaskSubmitParam taskSubmitParam = WorkerConverter.toTaskSubmitParam(task);
                 workerService.receive(taskSubmitParam);
+
+                PLAN_INSTANCE_ID = taskSubmitParam.getPlanInstanceId();
                 return true;
             }
         }).when(taskDispatcher).dispatch(Mockito.any(Task.class));
@@ -217,8 +219,8 @@ public class ScheduleTest {
         long success = 0;
         long failed = 0;
         while (finished < total) {
-            success = jobInstanceEntityRepo.countByPlanIdAndStatusIn(id, Lists.newArrayList(JobStatus.SUCCEED.status));
-            failed = jobInstanceEntityRepo.countByPlanIdAndStatusIn(id, Lists.newArrayList(JobStatus.FAILED.status));
+            success = jobInstanceEntityRepo.countByPlanInstanceIdAndStatusIn(PLAN_INSTANCE_ID, Lists.newArrayList(JobStatus.SUCCEED.status));
+            failed = jobInstanceEntityRepo.countByPlanInstanceIdAndStatusIn(PLAN_INSTANCE_ID, Lists.newArrayList(JobStatus.FAILED.status));
             finished = success + failed;
 
             if (PlanType.WORKFLOW == plan.getType()) {
@@ -227,7 +229,13 @@ public class ScheduleTest {
                 List<WorkflowJobInfo> nodes = dag.nodes();
                 for (WorkflowJobInfo jobInfo : nodes) {
                     if (TriggerType.API == jobInfo.getTriggerType()) {
-                        workerRpcController.scheduleJob(id, PLAN_INSTANCE_ID, jobInfo.getId());
+                        try {
+                            workerRpcController.scheduleJob(id, PLAN_INSTANCE_ID, jobInfo.getId());
+                        } catch (VerifyException e) {
+                            if ("".equals(e.getMessage())) {
+                                // 不处理
+                            }
+                        }
                     }
                 }
             }

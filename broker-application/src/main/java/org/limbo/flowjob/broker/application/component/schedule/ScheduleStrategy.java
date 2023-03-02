@@ -122,6 +122,9 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
         return jobInstances;
     }
 
+    /**
+     * api 方式下发 工作流中的 节点任务
+     */
     public void apiScheduleWorkflowJob(String planId, String planInstanceId, String jobId) {
         executeWithAspect(unused -> {
             PlanEntity planEntity = planEntityRepo.findById(planId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN + planId));
