@@ -16,14 +16,12 @@
 
 package org.limbo.flowjob.broker.core.schedule;
 
-import org.apache.commons.lang3.time.DateFormatUtils;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 /**
  * 调度时间计算策略，用于计算下次触发调度时间戳
@@ -66,9 +64,8 @@ public abstract class ScheduleCalculator {
     public Long calculate(Calculated calculated) {
         // 计算第一次调度
         if (calculated.lastTriggerAt() == null) {
-            ScheduleOption scheduleOption = calculated.scheduleOption();
             Instant nowInstant = TimeUtils.currentInstant();
-            long startScheduleAt = calculateStartScheduleTimestamp(scheduleOption);
+            long startScheduleAt = calculateStartScheduleTimestamp(calculated.scheduleOption());
             return Math.max(startScheduleAt, nowInstant.getEpochSecond());
         }
 

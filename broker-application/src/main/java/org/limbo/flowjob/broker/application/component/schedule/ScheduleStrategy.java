@@ -36,6 +36,7 @@ import org.limbo.flowjob.broker.core.schedule.strategy.ITaskResultStrategy;
 import org.limbo.flowjob.broker.core.schedule.strategy.ITaskScheduleStrategy;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.constants.PlanType;
@@ -81,15 +82,12 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
     public void schedule(TriggerType triggerType, Plan plan, LocalDateTime triggerAt) {
         executeWithAspect(unused -> {
             // 悲观锁快速释放，不阻塞后续任务
-            String planInstanceId = scheduleStrategyHelper.lockAndSavePlanInstance(plan, triggerType, triggerAt);
-            if (StringUtils.isBlank(planInstanceId)) {
-                return;
-            }
+            PlanInstanceEntity planInstanceEntity = scheduleStrategyHelper.lockAndSavePlanInstance(plan, triggerType, triggerAt);
 
             // 调度逻辑
-            List<JobInstance> jobInstances = newJobInstancesByPlan(plan, planInstanceId, triggerAt);
+            List<JobInstance> jobInstances = newJobInstancesByPlan(plan, planInstanceEntity.getPlanInstanceId(), planInstanceEntity.getTriggerAt());
             if (CollectionUtils.isNotEmpty(jobInstances)) {
-                scheduleStrategyHelper.saveAndScheduleJobInstances(jobInstances, triggerAt);
+                scheduleStrategyHelper.saveAndScheduleJobInstances(jobInstances, planInstanceEntity.getTriggerAt());
             }
         });
     }
@@ -124,6 +122,9 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
         return jobInstances;
     }
 
+    /**
+     * api 方式下发 工作流中的 节点任务
+     */
     public void apiScheduleWorkflowJob(String planId, String planInstanceId, String jobId) {
         executeWithAspect(unused -> {
             PlanEntity planEntity = planEntityRepo.findById(planId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN + planId));

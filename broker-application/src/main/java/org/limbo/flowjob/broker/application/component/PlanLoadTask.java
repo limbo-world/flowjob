@@ -30,6 +30,7 @@ import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanScheduleTask;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
+import org.limbo.flowjob.common.constants.TriggerType;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -79,12 +80,11 @@ public class PlanLoadTask extends FixDelayMetaTask {
 
             // 调度当前时间以及未来的任务
             List<PlanScheduleTask> plans = loadTasks();
-
-            // 重新调度 新增/版本变更的plan
-            if (CollectionUtils.isNotEmpty(plans)) {
-                for (PlanScheduleTask plan : plans) {
-                    metaTaskScheduler.schedule(plan);
-                }
+            if (CollectionUtils.isEmpty(plans)) {
+                return;
+            }
+            for (PlanScheduleTask plan : plans) {
+                metaTaskScheduler.schedule(plan);
             }
         } catch (Exception e) {
             log.error("{} load and schedule plan task fail", scheduleId(), e);
@@ -106,7 +106,7 @@ public class PlanLoadTask extends FixDelayMetaTask {
         }
         List<PlanScheduleTask> plans = new ArrayList<>();
         for (PlanEntity planEntity : planEntities) {
-            plans.add(domainConverter.toPlanScheduleTask(planEntity));
+            plans.add(domainConverter.toPlanScheduleTask(planEntity, TriggerType.SCHEDULE));
         }
         return plans;
     }

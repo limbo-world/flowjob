@@ -76,6 +76,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
+ * 看了下代码，这个只能在 ScheduleStrategy 中使用，否则一些上下文无法释放可能导致内存泄露
+ *
  * @author Devil
  * @since 2023/1/4
  */
@@ -120,12 +122,14 @@ public class ScheduleStrategyHelper {
     private JobInstanceHelper jobInstanceHelper;
 
     @Transactional
-    public String lockAndSavePlanInstance(Plan plan, TriggerType triggerType, LocalDateTime triggerAt) {
+    public PlanInstanceEntity lockAndSavePlanInstance(Plan plan, TriggerType triggerType, LocalDateTime triggerAt) {
         String planId = plan.getPlanId();
         String version = plan.getVersion();
 
         PlanEntity planEntity = planEntityRepo.selectForUpdate(planId);
         Verifies.notNull(planEntity, MsgConstants.CANT_FIND_PLAN + planId);
+        Verifies.verify(!planEntity.isDeleted(), "plan:" + planId + " is deleted!");
+        Verifies.verify(planEntity.isEnabled(), "plan:" + planId + " is not enabled!");
         // 任务是由之前时间创建的 调度时候如果版本改变 可能会有调度时间的变化本次就无需执行
         // 比如 5s 执行一次 分别在 5s 10s 15s 在11s的时候内存里下次执行为 15s 此时修改为 2s 执行一次 那么重新加载plan后应该为 12s 14s 所以15s这次可以跳过
         Verifies.verify(Objects.equals(version, planEntity.getCurrentVersion()), MessageFormat.format("plan:{0} version {1} change to {2}", planId, version, planEntity.getCurrentVersion()));
@@ -142,15 +146,29 @@ public class ScheduleStrategyHelper {
             PlanSlotEntity planSlotEntity = planSlotEntityRepo.findByPlanId(planId);
             Verifies.notNull(planSlotEntity, "plan's slot is null id:" + planId);
             Verifies.verify(slots.contains(planSlotEntity.getSlot()), MessageFormat.format("plan {0} is not in this broker", planId));
+
+            // 校验是否重复创建
+            PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findLatelyTrigger(planId, planInfoEntity.getPlanInfoId(), planInfoEntity.getScheduleType(), triggerType.type);
+            ScheduleType scheduleType = ScheduleType.parse(planInfoEntity.getScheduleType());
+            switch (scheduleType) {
+                case FIXED_RATE:
+                case CRON:
+                    Verifies.verify(planInstanceEntity == null || !triggerAt.isEqual(planInstanceEntity.getTriggerAt()),
+                            MessageFormat.format("Duplicate create PlanInstance,triggerAt:{0} planId[{1}] Version[{2}] oldPlanInstance[{3}]",
+                                    triggerAt, planId, version, JacksonUtils.toJSONString(planInstanceEntity))
+                    );
+                    break;
+                case FIXED_DELAY:
+                    Verifies.verify(planInstanceEntity == null || (!triggerAt.isEqual(planInstanceEntity.getTriggerAt()) && PlanStatus.parse(planInstanceEntity.getStatus()).isCompleted()),
+                            MessageFormat.format("Please wait last PlanInstance[{0}] complete.Plan[{1}] Version[{2}]",
+                                    JacksonUtils.toJSONString(planInstanceEntity), planId, version)
+                    );
+                    break;
+                default:
+                    throw new VerifyException(MsgConstants.UNKNOWN + " scheduleType " + planInfoEntity.getScheduleType());
+            }
         }
 
-        // 如果是 FIXED_DELAY 的需要判断是否有对应类型的已经在执行
-        if (planInfoEntity.getScheduleType() != null && ScheduleType.FIXED_DELAY.type == planInfoEntity.getScheduleType()) {
-            PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findLastByScheduleType(planId, ScheduleType.FIXED_DELAY.type);
-            Verifies.verify(planInstanceEntity == null || PlanStatus.parse(planInstanceEntity.getStatus()).isCompleted(),
-                    MessageFormat.format("Please wait last PlanInstance[{0}] complete.Plan[{1}] Version[{2}]", planInstanceEntity.getPlanInstanceId(), planId, version)
-            );
-        }
 
         String planInstanceId = idGenerator.generateId(IDType.PLAN_INSTANCE);
         PlanInstanceEntity planInstanceEntity = new PlanInstanceEntity();
@@ -162,7 +180,7 @@ public class ScheduleStrategyHelper {
         planInstanceEntity.setScheduleType(planInfoEntity.getScheduleType());
         planInstanceEntity.setTriggerAt(triggerAt);
         planInstanceEntityRepo.saveAndFlush(planInstanceEntity);
-        return planInstanceId;
+        return planInstanceEntity;
     }
 
     @Transactional
@@ -293,13 +311,14 @@ public class ScheduleStrategyHelper {
         }
 
         JobInfo jobInfo = jobInstance.getJobInfo();
+        String planInstanceId = jobInstance.getPlanInstanceId();
         // 是否需要重试
-        long retry = jobInstanceEntityRepo.countByPlanInstanceIdAndJobId(jobInstance.getPlanInstanceId(), jobInfo.getId());
+        long retry = jobInstanceEntityRepo.countByPlanInstanceIdAndJobId(planInstanceId, jobInfo.getId());
         if (jobInfo.getRetryOption().getRetry() > retry) {
             jobInstanceHelper.retryReset(jobInstance, jobInfo.getRetryOption().getRetryInterval());
             saveAndScheduleJobInstances(Collections.singletonList(jobInstance), TimeUtils.currentLocalDateTime());
         } else {
-            planInstanceEntityRepo.fail(jobInstance.getPlanInstanceId(), TimeUtils.currentLocalDateTime());
+            handlerPlanComplete(planInstanceId, false);
         }
     }
 
@@ -350,7 +369,7 @@ public class ScheduleStrategyHelper {
         String planInstanceId = jobInstance.getPlanInstanceId();
 
         if (PlanType.SINGLE == jobInstance.getPlanType()) {
-            planInstanceEntityRepo.success(planInstanceId, TimeUtils.currentLocalDateTime());
+            handlerPlanComplete(planInstanceId, true);
         } else {
             String planId = jobInstance.getPlanId();
             String version = jobInstance.getPlanVersion();
@@ -367,7 +386,7 @@ public class ScheduleStrategyHelper {
                 // 当前节点为叶子节点 检测 Plan 实例是否已经执行完成
                 // 1. 所有节点都已经成功或者失败 2. 这里只关心plan的成功更新，失败是在task回调
                 if (checkJobsSuccessOrIgnoreError(planInstanceId, dag.lasts())) {
-                    planInstanceEntityRepo.success(planInstanceId, TimeUtils.currentLocalDateTime());
+                    handlerPlanComplete(planInstanceId, true);
                 }
             } else {
                 LocalDateTime triggerAt = TimeUtils.currentLocalDateTime();
@@ -386,6 +405,19 @@ public class ScheduleStrategyHelper {
                 }
 
             }
+        }
+    }
+
+    public void handlerPlanComplete(String planInstanceId, boolean success) {
+        if (success) {
+            planInstanceEntityRepo.success(planInstanceId, TimeUtils.currentLocalDateTime());
+        } else {
+            planInstanceEntityRepo.fail(planInstanceId, TimeUtils.currentLocalDateTime());
+        }
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(planInstanceId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INSTANCE + planInstanceId));
+        if (ScheduleType.FIXED_DELAY == ScheduleType.parse(planInstanceEntity.getScheduleType())) {
+            // 如果为 FIXED_DELAY 更新 plan  使得 UpdatedPlanLoadTask 进行重新加载
+            planEntityRepo.updateTime(planInstanceEntity.getPlanId(), TimeUtils.currentLocalDateTime());
         }
     }
 
