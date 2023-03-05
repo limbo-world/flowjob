@@ -33,7 +33,7 @@ import java.time.LocalDateTime;
  */
 @Slf4j
 @Data
-public abstract class JobInstance implements Serializable {
+public class JobInstance implements Serializable {
 
     private static final long serialVersionUID = -7913375595969578408L;
 
@@ -77,7 +77,13 @@ public abstract class JobInstance implements Serializable {
      */
     protected JobStatus status;
 
-    protected boolean terminateWithFail = true;
+    /**
+     * 任务信息
+     */
+    private JobInfo jobInfo;
 
-    public abstract JobInfo getJobInfo();
+    /**
+     * 失败是否终止
+     */
+    private boolean terminateWithFail = true;
 }

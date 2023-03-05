@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -106,7 +107,7 @@ public class DAG<T extends DAGNode> implements Serializable {
             for (String childrenId : node.getChildrenIds()) {
                 T t = nodes.get(childrenId);
                 Verifies.notNull(t, "node " + node.getId() + " child " + childrenId + " is not exist");
-                t.addParent(node.getId());
+                t.getParentIds().add(node.getId());
             }
         });
 
@@ -125,8 +126,9 @@ public class DAG<T extends DAGNode> implements Serializable {
         Verifies.notEmpty(lasts, "leaf nodes ie empty");
 
         // 是否有环
+        Map<String, Integer> nodeStatuesMap = new HashMap<>();
         for (String root : origins) {
-            Verifies.verify(!hasCyclic(nodes.get(root)), "jobs has cyclic");
+            Verifies.verify(!hasCyclic(nodes.get(root), nodeStatuesMap), "jobs has cyclic");
         }
     }
 
@@ -205,28 +207,28 @@ public class DAG<T extends DAGNode> implements Serializable {
      * 深度优先搜索
      *
      * @param node
-     * @return @D 返回的是啥？
+     * @return 如果有环返回true
      */
-    public boolean hasCyclic(DAGNode node) {
+    public boolean hasCyclic(DAGNode node, Map<String, Integer> nodeStatuesMap) {
         // 表示当前节点已被标记
-        node.setStatus(STATUS_VISITED);
+        nodeStatuesMap.put(node.getId(), STATUS_VISITED);
         // 如果不存在子节点 则表示此顶点不再有出度 返回父节点
         if (CollectionUtils.isNotEmpty(node.getChildrenIds())) {
             // 遍历子节点
             for (String childId : node.getChildrenIds()) {
                 DAGNode child = nodes.get(childId);
-                if (child == null || STATUS_FILTER == child.getStatus()) {
+                if (child == null || Objects.equals(STATUS_FILTER, nodeStatuesMap.get(childId))) {
                     continue;
                 }
-                if (STATUS_VISITED == child.getStatus()) {
+                if (Objects.equals(STATUS_VISITED, nodeStatuesMap.get(childId))) {
                     return true;
                 }
-                if (hasCyclic(child)) {
+                if (hasCyclic(child, nodeStatuesMap)) {
                     return true;
                 }
             }
         }
-        node.setStatus(STATUS_FILTER);
+        nodeStatuesMap.put(node.getId(), STATUS_FILTER);
         return false;
     }
 

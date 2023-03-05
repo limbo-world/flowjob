@@ -26,6 +26,7 @@ import org.limbo.flowjob.common.utils.dag.DAGNode;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -35,8 +36,11 @@ import java.util.Set;
  */
 public class DAGTest {
 
+    /**
+     * 成环，导致没有root
+     */
     @Test
-    public void testNoRoot() {
+    void testNoRoot() {
         DAGNode jobInfo = job("1", Collections.singleton("2"));
         DAGNode jobInfo2 = job("2", Collections.singleton("3"));
         DAGNode jobInfo3 = job("3", Collections.singleton("1"));
@@ -53,18 +57,23 @@ public class DAGTest {
         }
     }
 
+    /**
+     * 有root，后续成环
+     */
     @Test
-    public void testCyclic() {
+    void testCyclic() {
         DAGNode jobInfo = job("1", Collections.singleton("3"));
         DAGNode jobInfo2 = job("2", Collections.singleton("3"));
         DAGNode jobInfo3 = job("3", Collections.singleton("4"));
-        DAGNode jobInfo4 = job("4", Collections.singleton("3"));
+        DAGNode jobInfo4 = job("4", Sets.newHashSet("3", "5"));
+        DAGNode jobInfo5 = job("5", Collections.emptySet());
 
         List<DAGNode> jobInfos = new ArrayList<>();
         jobInfos.add(jobInfo);
         jobInfos.add(jobInfo2);
         jobInfos.add(jobInfo3);
         jobInfos.add(jobInfo4);
+        jobInfos.add(jobInfo5);
 
         try {
             DAG<DAGNode> dag = new DAG<>(jobInfos);
@@ -73,8 +82,11 @@ public class DAGTest {
         }
     }
 
+    /**
+     * 无环
+     */
     @Test
-    public void testNormal() {
+    void testNormal() {
         DAGNode jobInfo1 = job("1", Sets.newHashSet("3", "6"));
         DAGNode jobInfo2 = job("2", Sets.newHashSet("3", "4"));
 
@@ -106,8 +118,24 @@ public class DAGTest {
         }
     }
 
-    private DAGNode job(String id, Set<String> childrenIds) {
-        return new DAGNode(id, childrenIds);
+    public static DAGNode job(String id, Set<String> childrenIds) {
+        Set<String> parentIds = new HashSet<>();
+        return new DAGNode() {
+            @Override
+            public String getId() {
+                return id;
+            }
+
+            @Override
+            public Set<String> getParentIds() {
+                return parentIds;
+            }
+
+            @Override
+            public Set<String> getChildrenIds() {
+                return childrenIds;
+            }
+        };
     }
 
 }
