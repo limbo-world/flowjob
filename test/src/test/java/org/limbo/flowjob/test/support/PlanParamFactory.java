@@ -32,8 +32,8 @@ import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.constants.ScheduleType;
 import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.UUIDUtils;
-import org.limbo.flowjob.common.utils.dag.DAGNode;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
+import org.limbo.flowjob.test.util.DAGTest;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -207,7 +207,7 @@ public class PlanParamFactory {
         attributes.put("rid", UUIDUtils.shortRandomID());
         attributes.put("time", TimeUtils.currentInstant().getEpochSecond());
         attributes.put("num", 1);
-        attributes.put("node", new DAGNode("1", new HashSet<>()));
+        attributes.put("node", DAGTest.job("1", new HashSet<>()));
         job.setAttributes(attributes);
         job.setExecutorName(executorName);
         return job;

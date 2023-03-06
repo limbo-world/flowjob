@@ -64,7 +64,7 @@ public class PlanLoadTask extends FixDelayMetaTask {
     private NodeManger nodeManger;
 
     public PlanLoadTask(MetaTaskScheduler scheduler) {
-        super(Duration.ofSeconds(1), scheduler);
+        super(Duration.ofSeconds(30), scheduler);
     }
 
     /**

@@ -187,11 +187,12 @@ public class ScheduleStrategyHelper {
     public JobInstance lockAndSaveWorkflowJobInstance(Plan plan, String planInstanceId, WorkflowJobInfo jobInfo, LocalDateTime triggerAt) {
         planInstanceEntityRepo.selectForUpdate(planInstanceId);
 
-        String jobId = jobInfo.getJob().getId();
-        long count = jobInstanceEntityRepo.countByPlanInstanceIdAndJobId(planInstanceId, jobId);
-        Verifies.verify(count <= 0, MessageFormat.format("Job[{0}] in PlanInstance[{1}] is already create", jobId, planInstanceId));
+        long count = jobInstanceEntityRepo.countByPlanInstanceIdAndJobId(planInstanceId, jobInfo.getId());
+        if (count > 0) {
+            return null;
+        }
 
-        JobInstance jobInstance = jobInstanceHelper.newWorkflowJobInstance(plan.getPlanId(), plan.getVersion(), planInstanceId, new Attributes(), jobInfo, triggerAt);
+        JobInstance jobInstance = jobInstanceHelper.newJobInstance(plan.getPlanId(), plan.getVersion(), PlanType.WORKFLOW, planInstanceId, new Attributes(), jobInfo, triggerAt);
         jobInstanceEntityRepo.saveAndFlush(DomainConverter.toJobInstanceEntity(jobInstance));
         return jobInstance;
     }
@@ -394,7 +395,7 @@ public class ScheduleStrategyHelper {
                 for (WorkflowJobInfo subJobInfo : subJobInfos) {
                     // 前置节点已经完成则可以下发
                     if (checkJobsSuccessOrIgnoreError(planInstanceId, dag.preNodes(subJobInfo.getId()))) {
-                        JobInstance subJobInstance = jobInstanceHelper.newWorkflowJobInstance(planId, version, planInstanceId, jobInstance.getContext(), subJobInfo, triggerAt);
+                        JobInstance subJobInstance = jobInstanceHelper.newJobInstance(planId, version, PlanType.WORKFLOW, planInstanceId, jobInstance.getContext(), subJobInfo, triggerAt);
                         subJobInstances.add(subJobInstance);
                     }
                 }

@@ -107,7 +107,7 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
         List<JobInstance> jobInstances = new ArrayList<>();
         if (PlanType.SINGLE == plan.getType()) {
             JobInfo jobInfo = ((SinglePlan) plan).getJobInfo();
-            JobInstance jobInstance = jobInstanceHelper.newSingleJobInstance(plan.getPlanId(), plan.getVersion(), planInstanceId, new Attributes(), jobInfo, triggerAt);
+            JobInstance jobInstance = jobInstanceHelper.newJobInstance(plan.getPlanId(), plan.getVersion(), PlanType.SINGLE, planInstanceId, new Attributes(), jobInfo, triggerAt);
             jobInstances.add(jobInstance);
 
         } else {
@@ -115,7 +115,7 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
             // 获取头部节点
             for (WorkflowJobInfo jobInfo : ((WorkflowPlan) plan).getDag().origins()) {
                 if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
-                    jobInstances.add(jobInstanceHelper.newWorkflowJobInstance(plan.getPlanId(), plan.getVersion(), planInstanceId, new Attributes(), jobInfo, triggerAt));
+                    jobInstances.add(jobInstanceHelper.newJobInstance(plan.getPlanId(), plan.getVersion(), PlanType.WORKFLOW, planInstanceId, new Attributes(), jobInfo, triggerAt));
                 }
             }
         }

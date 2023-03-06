@@ -23,9 +23,7 @@ import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
-import org.limbo.flowjob.broker.core.domain.job.SingleJobInstance;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
-import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInstance;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
@@ -70,12 +68,12 @@ public class JobInstanceHelper {
         PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
         if (PlanType.SINGLE == planType) {
             JobInfo jobInfo = JacksonUtils.parseObject(planInfoEntity.getJobInfo(), JobInfo.class);
-            jobInstance = newSingleJobInstance(entity.getPlanId(), entity.getPlanInfoId(), entity.getPlanInstanceId(),
+            jobInstance = newJobInstance(entity.getPlanId(), entity.getPlanInfoId(), PlanType.SINGLE, entity.getPlanInstanceId(),
                     new Attributes(entity.getContext()), jobInfo, entity.getTriggerAt());
         } else if (PlanType.WORKFLOW == planType) {
             DAG<WorkflowJobInfo> dag = DomainConverter.toJobDag(planInfoEntity.getJobInfo());
             WorkflowJobInfo workflowJobInfo = dag.getNode(entity.getJobId());
-            jobInstance = newWorkflowJobInstance(entity.getPlanId(), entity.getPlanInfoId(), entity.getPlanInstanceId(),
+            jobInstance = newJobInstance(entity.getPlanId(), entity.getPlanInfoId(), PlanType.WORKFLOW, entity.getPlanInstanceId(),
                     new Attributes(entity.getContext()), workflowJobInfo, entity.getTriggerAt());
 
         } else {
@@ -97,38 +95,24 @@ public class JobInstanceHelper {
         jobInstance.setStatus(JobStatus.SCHEDULING);
     }
 
-    public JobInstance newSingleJobInstance(String planId, String planVersion, String planInstanceId,
-                                              Attributes context, JobInfo jobInfo, LocalDateTime triggerAt) {
+    public JobInstance newJobInstance(String planId, String planVersion, PlanType planType, String planInstanceId,
+                                      Attributes context, JobInfo jobInfo, LocalDateTime triggerAt) {
         String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
-        SingleJobInstance instance = new SingleJobInstance();
+        JobInstance instance = new JobInstance();
         instance.setJobInstanceId(jobInstanceId);
         instance.setJobInfo(jobInfo);
-        instance.setPlanType(PlanType.SINGLE);
-        wrapJobInstance(instance, planId, planVersion, planInstanceId, context, jobInfo.getAttributes(), triggerAt);
-        return instance;
-    }
-
-    public JobInstance newWorkflowJobInstance(String planId, String planVersion, String planInstanceId,
-                                              Attributes context, WorkflowJobInfo workflowJobInfo, LocalDateTime triggerAt) {
-        JobInfo job = workflowJobInfo.getJob();
-        String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
-        WorkflowJobInstance instance = new WorkflowJobInstance();
-        instance.setJobInstanceId(jobInstanceId);
-        instance.setWorkflowJobInfo(workflowJobInfo);
-        instance.setTerminateWithFail(workflowJobInfo.isTerminateWithFail());
-        instance.setPlanType(PlanType.WORKFLOW);
-        wrapJobInstance(instance, planId, planVersion, planInstanceId, context, job.getAttributes(), triggerAt);
-        return instance;
-    }
-
-    private void wrapJobInstance(JobInstance instance, String planId, String planVersion, String planInstanceId,
-                                 Attributes context, Attributes jobAttributes, LocalDateTime triggerAt) {
+        instance.setPlanType(planType);
+        if (PlanType.WORKFLOW == planType) {
+            WorkflowJobInfo workflowJobInfo = (WorkflowJobInfo) jobInfo;
+            instance.setTerminateWithFail(workflowJobInfo.isTerminateWithFail());
+        }
         instance.setPlanId(planId);
         instance.setPlanInstanceId(planInstanceId);
         instance.setPlanVersion(planVersion);
         instance.setStatus(JobStatus.SCHEDULING);
         instance.setTriggerAt(triggerAt);
         instance.setContext(context == null ? new Attributes() : context);
-        instance.setJobAttributes(jobAttributes == null ? new Attributes() : jobAttributes);
+        instance.setJobAttributes(jobInfo.getAttributes() == null ? new Attributes() : jobInfo.getAttributes());
+        return instance;
     }
 }

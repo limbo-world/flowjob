@@ -79,15 +79,18 @@ public class PlanConverter {
      * 生成单个作业
      */
     public WorkflowJobInfo convertJob(WorkflowJobParam param) {
-        WorkflowJobInfo workflowJobInfo = new WorkflowJobInfo(param.getId(), param.getChildren());
-        workflowJobInfo.setName(param.getName());
-        workflowJobInfo.setDescription(param.getDescription());
-        workflowJobInfo.setTriggerType(param.getTriggerType());
-        workflowJobInfo.setTerminateWithFail(param.isTerminateWithFail());
-
-        JobInfo jobInfo = covertJob(param.getId(), param);
-        workflowJobInfo.setJob(jobInfo);
-        return workflowJobInfo;
+        WorkflowJobInfo jobInfo = new WorkflowJobInfo();
+        jobInfo.setId(param.getId());
+        jobInfo.setName(param.getName());
+        jobInfo.setDescription(param.getDescription());
+        jobInfo.setTriggerType(param.getTriggerType());
+        jobInfo.setTerminateWithFail(param.isTerminateWithFail());
+        jobInfo.setType(param.getType());
+        jobInfo.setAttributes(new Attributes(param.getAttributes()));
+        jobInfo.setRetryOption(convertToRetryOption(param.getRetryOption()));
+        jobInfo.setDispatchOption(convertJobDispatchOption(param.getDispatchOption()));
+        jobInfo.setExecutorName(param.getExecutorName());
+        return jobInfo;
     }
 
 

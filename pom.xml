@@ -6,7 +6,7 @@
 
     <groupId>org.limbo.flowjob</groupId>
     <artifactId>flowjob</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <modules>
         <module>api</module>
         <module>common</module>
@@ -88,42 +88,37 @@
             <!-- BOM Start-->
             <dependency>
                 <groupId>org.limbo.flowjob</groupId>
-                <artifactId>api</artifactId>
+                <artifactId>flowjob-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.limbo.flowjob</groupId>
-                <artifactId>broker-core</artifactId>
+                <artifactId>flowjob-broker-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.limbo.flowjob</groupId>
-                <artifactId>common</artifactId>
+                <artifactId>flowjob-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.limbo.flowjob</groupId>
-                <artifactId>broker-dao</artifactId>
+                <artifactId>flowjob-broker-dao</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.limbo.flowjob</groupId>
-                <artifactId>api</artifactId>
+                <artifactId>flowjob-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.limbo.flowjob</groupId>
-                <artifactId>broker-application</artifactId>
+                <artifactId>flowjob-worker-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.limbo.flowjob</groupId>
-                <artifactId>worker-core</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.limbo.flowjob</groupId>
-                <artifactId>worker-spring-boot-starter</artifactId>
+                <artifactId>flowjob-worker-spring-boot-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!-- BOM End-->

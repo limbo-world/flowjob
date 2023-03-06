@@ -18,8 +18,6 @@
 
 package org.limbo.flowjob.broker.core.domain.job;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,8 +25,8 @@ import lombok.ToString;
 import org.limbo.flowjob.common.constants.NodeType;
 import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.dag.DAGNode;
-import org.limbo.flowjob.common.utils.dag.DAGNodeIgnoreField;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -41,7 +39,7 @@ import java.util.Set;
 @Setter
 @ToString
 @EqualsAndHashCode(callSuper = true)
-public class WorkflowJobInfo extends DAGNode {
+public class WorkflowJobInfo extends JobInfo implements DAGNode {
 
     private static final long serialVersionUID = -702096482598918849L;
 
@@ -70,11 +68,18 @@ public class WorkflowJobInfo extends DAGNode {
      */
     private boolean terminateWithFail;
 
-    private JobInfo job;
+    private Set<String> parentIds = new HashSet<>();
 
-    @JsonCreator
-    public WorkflowJobInfo(@JsonProperty("id") String id, @JsonProperty("childrenIds") Set<String> childrenIds) {
-        super(id, childrenIds);
+    private Set<String> childrenIds = new HashSet<>();
+
+    @Override
+    public Set<String> getParentIds() {
+        return parentIds;
+    }
+
+    @Override
+    public Set<String> getChildrenIds() {
+        return childrenIds;
     }
 
 }
