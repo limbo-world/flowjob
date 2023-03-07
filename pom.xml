@@ -4,9 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.limbo.flowjob</groupId>
+    <groupId>io.github.limbo-world</groupId>
     <artifactId>flowjob</artifactId>
     <version>1.0.0</version>
+    <packaging>pom</packaging>
+    <description>flow-job调度框架</description>
+
     <modules>
         <module>api</module>
         <module>common</module>
@@ -18,9 +21,6 @@
         <module>worker-spring-boot-starter</module>
         <module>worker-spring-boot-demo</module>
     </modules>
-    <packaging>pom</packaging>
-
-    <description>flow-job调度框架</description>
 
     <organization>
         <name>Limbo Studio</name>
@@ -62,8 +62,7 @@
     </developers>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <java.version>1.8</java.version>
         <spring.boot>2.4.6</spring.boot>
         <spring.doc>1.5.6</spring.doc>
         <swagger>2.1.7</swagger>
@@ -87,37 +86,37 @@
         <dependencies>
             <!-- BOM Start-->
             <dependency>
-                <groupId>org.limbo.flowjob</groupId>
+                <groupId>io.github.limbo-world</groupId>
                 <artifactId>flowjob-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.limbo.flowjob</groupId>
+                <groupId>io.github.limbo-world</groupId>
                 <artifactId>flowjob-broker-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.limbo.flowjob</groupId>
+                <groupId>io.github.limbo-world</groupId>
                 <artifactId>flowjob-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.limbo.flowjob</groupId>
+                <groupId>io.github.limbo-world</groupId>
                 <artifactId>flowjob-broker-dao</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.limbo.flowjob</groupId>
+                <groupId>io.github.limbo-world</groupId>
                 <artifactId>flowjob-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.limbo.flowjob</groupId>
+                <groupId>io.github.limbo-world</groupId>
                 <artifactId>flowjob-worker-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.limbo.flowjob</groupId>
+                <groupId>io.github.limbo-world</groupId>
                 <artifactId>flowjob-worker-spring-boot-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -242,25 +241,6 @@
                 <version>${guava}</version>
             </dependency>
 
-            <!-- jwt -->
-            <dependency>
-                <groupId>com.auth0</groupId>
-                <artifactId>java-jwt</artifactId>
-                <version>3.10.3</version>
-            </dependency>
-
-            <!-- flyway -->
-            <dependency>
-                <groupId>org.flywaydb</groupId>
-                <artifactId>flyway-core</artifactId>
-                <version>8.5.13</version>
-            </dependency>
-            <dependency>
-                <groupId>org.flywaydb</groupId>
-                <artifactId>flyway-mysql</artifactId>
-                <version>8.5.13</version>
-            </dependency>
-
             <!-- 单元测试 -->
             <dependency>
                 <groupId>junit</groupId>
@@ -278,6 +258,74 @@
         </dependencies>
     </dependencyManagement>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.2</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <testSource>${java.version}</testSource>
+                    <testTarget>${java.version}</testTarget>
+                </configuration>
+            </plugin>
+            <!-- 生成源码 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <failOnError>false</failOnError>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
+    <distributionManagement>
+        <repository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 
 </project>
