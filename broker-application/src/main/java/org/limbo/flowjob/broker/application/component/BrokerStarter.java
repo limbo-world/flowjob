@@ -18,6 +18,7 @@
 
 package org.limbo.flowjob.broker.application.component;
 
+import lombok.Setter;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
@@ -29,6 +30,8 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
+import javax.inject.Inject;
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -37,16 +40,16 @@ import java.util.List;
  */
 public class BrokerStarter extends Broker implements ApplicationEventPublisherAware, ApplicationListener<ContextRefreshedEvent> {
 
-    private final MetaTaskScheduler metaTaskScheduler;
+    @Setter(onMethod_ = @Inject)
+    private MetaTaskScheduler metaTaskScheduler;
 
-    private final List<MetaTask> metaTasks;
+    @Setter(onMethod_ = @Inject)
+    private List<MetaTask> metaTasks;
 
     private ApplicationEventPublisher eventPublisher;
 
-    public BrokerStarter(BrokerConfig config, NodeRegistry registry, NodeManger manger, MetaTaskScheduler metaTaskScheduler, List<MetaTask> metaTasks) {
-        super(config, registry, manger);
-        this.metaTaskScheduler = metaTaskScheduler;
-        this.metaTasks = metaTasks;
+    public BrokerStarter(String name, URL baseUrl, NodeRegistry registry, NodeManger manger) {
+        super(name, baseUrl, registry, manger);
     }
 
     @Override

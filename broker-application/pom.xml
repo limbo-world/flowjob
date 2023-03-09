@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>flowjob</artifactId>
-        <groupId>org.limbo.flowjob</groupId>
-        <version>1.0.0</version>
+        <groupId>io.github.limbo-world</groupId>
+        <version>${flowjob.deploy.version}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>flowjob-broker-application</artifactId>
@@ -18,12 +18,9 @@
     <dependencies>
         <!-- 内部依赖 -->
         <dependency>
-            <groupId>org.limbo.flowjob</groupId>
-            <artifactId>flowjob-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.limbo.flowjob</groupId>
+            <groupId>io.github.limbo-world</groupId>
             <artifactId>flowjob-broker-dao</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- SpringBoot Web 服务 -->
@@ -58,6 +55,7 @@
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
+            <version>3.10.3</version>
         </dependency>
 
         <!-- logger begin -->

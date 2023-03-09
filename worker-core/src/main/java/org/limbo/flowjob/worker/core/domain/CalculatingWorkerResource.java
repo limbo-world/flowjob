@@ -49,7 +49,7 @@ public class CalculatingWorkerResource extends AbstractWorkerResources {
     /**
      * Worker 资源计算器
      */
-    private WorkerResourcesCalculator calculator;
+    private final WorkerResourcesCalculator calculator;
 
     /**
      * 定时计算任务

@@ -1,7 +1,6 @@
 # 简介
 
-**flowjob**主要用于搭建统一的任务调度平台，方便各个业务方进行接入使用。
-项目在设计的时候，考虑了扩展性、稳定性、伸缩性等相关问题，可以作为公司的任务调度中间件被使用。
+**flowjob**主要用于搭建统一的任务调度平台，方便各个业务方进行接入使用。 项目在设计的时候，考虑了扩展性、稳定性、伸缩性等相关问题，可以作为公司的任务调度中间件被使用。
 
 ## 功能介绍
 
@@ -52,9 +51,78 @@
 * Map：分为split和map两个步骤。split的时候进行任务拆分，map则对每个拆分任务进行执行。
 * MapReduce：相比于Map多了Reduce过程，可以对所有Map任务的执行结果进行一个汇总。
 
-## 参与贡献
+# 使用帮助
+
+## Server部署
+
+### 环境要求
+
+- JDK8
+- Mysql
+
+### Step1: 数据库配置
+
+目前使用`flywaydb`动态地进行数据初始化操作
+
+| 配置项                | 说明   |
+|--------------------|------|
+| spring.datasource.url | 连接地址 |
+| spring.datasource.username | 账号   |
+| spring.datasource.password | 密码   |
+
+### Step2: 服务打包
+
+根据需要修改配置
+
+| 配置项                                     | 说明                                                                                   |
+|-----------------------------------------|--------------------------------------------------------------------------------------|
+| flowjob.broker.name                     | 节点名称，保持全局唯一。默认不配置自动生成即可 |
+| flowjob.broker.host                     | 提供给worker的服务的 host。可以是域名或 IP 地址，如不填写则自动发现本机非 127.0.0.1 的地址。多网卡场景下，建议显式配置 host。       |
+| flowjob.broker.port                     | 提供给worker的服务 port 如果未指定此配置，则尝试使用 ${server.port} 配置；如 ${server.port} 配置也不存在，则使用 8080， |
+| flowjob.broker.scheme                   | RPC 通信协议类型。默认为 http。于worker保持一致                                                      |
+| flowjob.broker.heartbeat-interval       | broker心跳时间间隔，毫秒。默认2000                                                               |
+| flowjob.broker.heartbeat-timeout        | broker心跳超时时间，毫秒。默认5000                                                               |
+| flowjob.broker.worker.heartbeat-timeout | worker心跳超时时间，毫秒。默认5000                                                               |
+
+项目根目录下，执行如下命令打包编译，通过`-P`参数指定环境，如开发环境为`-P dev`
+
+```
+mvn clean package -Dmaven.test.skip=true -P dev
+```
+
+## Worker部署
+
+对于需要使用worker的Web应用（宿主应用），可以参考[Demo](https://github.com/limbo-world/flowjob/tree/master/worker-spring-boot-demo)。
+
+
+### Step1: 添加依赖
+
+对于`Maven`项目
+
+```
+<dependency>
+    <groupId>io.github.limbo-world</groupId>
+    <artifactId>flowjob-worker-spring-boot-starter</artifactId>
+    <version>1.0.1</version>
+</dependency>
+```
+
+### Step2: 修改配置
+
+| 配置项                      | 说明                                                                          |
+|--------------------------|-----------------------------------------------------------------------------|
+| flowjob.worker.name      | 节点名称，保持全局唯一。默认不配置自动生成即可                                                     |
+| flowjob.worker.scheme    | RPC 通信协议类型。默认为 http。于broker保持一致                                             |
+| flowjob.worker.host      | RPC host。可以是域名或 IP 地址，如不填写则自动发现本机非 127.0.0.1 的地址。多网卡场景下，建议显式配置 host。        |
+| flowjob.worker.port      | RPC port 如果未指定此配置，则尝试使用 ${server.port} 配置；如 ${server.port} 配置也不存在，则使用 8080， |
+| flowjob.worker.brokers   | Broker节点地址，可配置多个，参考DEMO中的配置                                                 |
+| flowjob.worker.heartbeat | Worker 向 Broker 发送心跳请求的间隔，默认 2 秒。                                           |
+| flowjob.worker.tags      | 标签，k=v形式                                                                    |
+
+# 参与贡献
 
 如果你对本项目有任何建议或想加入我们的，可以通过下面方式：，欢迎提交 issues 进行指正。
+
 - 报告 issue: [github issues](https://github.com/limbo-world/flowjob/issues)
 - 提交PR：[github PR](https://github.com/limbo-world/flowjob/pulls)
 - 加入我们：ysodevilo@gmail.com

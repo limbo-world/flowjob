@@ -19,6 +19,7 @@ package org.limbo.flowjob.worker.core.domain;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.common.utils.SHAUtils;
 import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.executor.NamedThreadFactory;
@@ -27,7 +28,6 @@ import org.limbo.flowjob.worker.core.executor.TaskRepository;
 import org.limbo.flowjob.worker.core.rpc.BrokerRpc;
 import org.limbo.flowjob.worker.core.rpc.exceptions.BrokerRpcException;
 import org.limbo.flowjob.worker.core.rpc.exceptions.RegisterFailException;
-import org.limbo.flowjob.worker.core.utils.SHAUtils;
 import org.limbo.flowjob.worker.core.utils.collections.MultiValueMap;
 import org.limbo.flowjob.worker.core.utils.collections.MutableMultiValueMap;
 

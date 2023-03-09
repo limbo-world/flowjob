@@ -22,24 +22,27 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>flowjob</artifactId>
-        <groupId>org.limbo.flowjob</groupId>
-        <version>1.0.0</version>
+        <groupId>io.github.limbo-world</groupId>
+        <version>${flowjob.deploy.version}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>test</artifactId>
+
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
 
     <dependencies>
         <dependency>
-            <groupId>org.limbo.flowjob</groupId>
+            <groupId>io.github.limbo-world</groupId>
             <artifactId>flowjob-broker-application</artifactId>
-            <version>1.0.0</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.limbo.flowjob</groupId>
+            <groupId>io.github.limbo-world</groupId>
             <artifactId>flowjob-worker-spring-boot-demo</artifactId>
-            <version>1.0.0</version>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- test -->

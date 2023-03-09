@@ -18,9 +18,15 @@
 
 package org.limbo.flowjob.broker.core.cluster;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.common.constants.MsgConstants;
+import org.limbo.flowjob.common.utils.SHAUtils;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
+
+import java.net.URL;
+import java.util.Objects;
 
 /**
  * @author Devil
@@ -29,14 +35,21 @@ import org.limbo.flowjob.common.utils.json.JacksonUtils;
 @Slf4j
 public abstract class Broker {
 
-    protected final BrokerConfig config;
+    @Getter
+    protected String name;
+
+    @Getter
+    protected URL rpcBaseURL;
 
     protected final NodeRegistry registry;
 
     protected final NodeManger manger;
 
-    public Broker(BrokerConfig config, NodeRegistry registry, NodeManger manger) {
-        this.config = config;
+    public Broker(String name, URL baseURL, NodeRegistry registry, NodeManger manger) {
+        Objects.requireNonNull(baseURL, "URL can't be null");
+
+        this.name = StringUtils.isBlank(name) ? SHAUtils.sha1AndHex(baseURL.toString()).toUpperCase() : name;
+        this.rpcBaseURL = baseURL;
         this.registry = registry;
         this.manger = manger;
     }
@@ -46,9 +59,9 @@ public abstract class Broker {
      */
     public void start() {
         // 将自己先注册上去
-        manger.online(new Node(config.getName(), config.getHost(), config.getPort()));
+        manger.online(new Node(name, rpcBaseURL.getHost(), rpcBaseURL.getPort()));
         // 节点注册 用于集群感知
-        registry.register(config.getName(), config.getHost(), config.getPort());
+        registry.register(name, rpcBaseURL.getHost(), rpcBaseURL.getPort());
         // 节点变更通知
         registry.subscribe(event -> {
             switch (event.getType()) {

@@ -20,7 +20,7 @@ package org.limbo.flowjob.broker.application.component;
 
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
+import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
@@ -62,7 +62,7 @@ public class TaskExecuteCheckTask extends FixDelayMetaTask {
     private SlotManager slotManager;
 
     @Setter(onMethod_ = @Inject)
-    private BrokerConfig config;
+    private Broker broker;
 
     @Setter(onMethod_ = @Inject)
     private NodeManger nodeManger;
@@ -80,7 +80,7 @@ public class TaskExecuteCheckTask extends FixDelayMetaTask {
     @Override
     protected void executeTask() {
         // 判断自己是否存在 --- 可能由于心跳异常导致不存活
-        if (!nodeManger.alive(config.getName())) {
+        if (!nodeManger.alive(broker.getName())) {
             return;
         }
 

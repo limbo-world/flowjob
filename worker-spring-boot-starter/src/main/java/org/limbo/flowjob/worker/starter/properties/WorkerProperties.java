@@ -17,6 +17,7 @@
 package org.limbo.flowjob.worker.starter.properties;
 
 import lombok.Data;
+import org.limbo.flowjob.common.constants.RpcScheme;
 import org.limbo.flowjob.worker.starter.processor.event.WorkerReadyEvent;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -50,7 +51,7 @@ public class WorkerProperties {
     /**
      * worker 注册时，向 broker 提交的 RPC 通信协议类型。默认为 http。
      */
-    private WorkerScheme scheme = WorkerScheme.http;
+    private RpcScheme scheme = RpcScheme.http;
 
     /**
      * worker 注册时，向 broker 提交的 RPC 通信 host，可以是域名或 IP 地址，如不填写则自动发现本机非 127.0.0.1 的地址。
@@ -65,9 +66,9 @@ public class WorkerProperties {
     private Integer port = null;
 
     /**
-     * Worker 向 Broker 发送心跳请求的间隔，默认 5 秒。
+     * Worker 向 Broker 发送心跳请求的间隔，默认 2 秒。
      */
-    private Duration heartbeat = Duration.ofSeconds(5);
+    private Duration heartbeat = Duration.ofSeconds(2);
 
     /**
      * 任务执行并发数量。worker 将允许同时执行的任务个数，同时执行的任务数量超出此限制后，后续接收的任务将放入积压队列中。默认为系统 CPU 核数。

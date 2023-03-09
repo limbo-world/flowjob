@@ -20,9 +20,10 @@ package org.limbo.flowjob.broker.application.config;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.application.component.BrokerStarter;
-import org.limbo.flowjob.broker.application.support.NodeMangerImpl;
 import org.limbo.flowjob.broker.application.component.DBBrokerRegistry;
+import org.limbo.flowjob.broker.application.support.NodeMangerImpl;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
@@ -32,19 +33,22 @@ import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
 import org.limbo.flowjob.broker.core.domain.task.TaskManager;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.statistics.WorkerStatisticsRepository;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.domain.SingletonWorkerStatisticsRepo;
+import org.limbo.flowjob.common.utils.NetUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.Assert;
 
 import javax.inject.Inject;
-import java.util.List;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -65,15 +69,24 @@ public class BrokerConfiguration {
     @Setter(onMethod_ = @Inject)
     private NodeRegistry brokerRegistry;
 
+    @Setter(onMethod_ = @Value("${server.port:8080}"))
+    private Integer httpServerPort;
+
     /**
      * worker 管理，持久化等
-     *
-     * @param metaTasks 下面定义的MetaTask的bean
      */
     @Bean
     @ConditionalOnProperty(prefix = "flowjob.broker", value = "enabled", havingValue = "true", matchIfMissing = true)
-    public Broker brokerNode(NodeManger nodeManger, MetaTaskScheduler metaTaskScheduler, List<MetaTask> metaTasks) {
-        return new BrokerStarter(brokerProperties, brokerRegistry, nodeManger, metaTaskScheduler, metaTasks);
+    public Broker broker(NodeManger nodeManger) throws MalformedURLException {
+        Integer port = brokerProperties.getPort() != null ? brokerProperties.getPort() : httpServerPort;
+        // 优先使用指定的 host，如未指定则自动寻找本机 IP
+        String host = brokerProperties.getHost();
+        if (StringUtils.isEmpty(host)) {
+            host = NetUtils.getLocalIp();
+        }
+        Assert.isTrue(port > 0, "port must be a positive integer in range 1 ~ 65534");
+        URL baseUrl = new URL(brokerProperties.getScheme().name(), host, port, "");
+        return new BrokerStarter(brokerProperties.getName(), baseUrl, brokerRegistry, nodeManger);
     }
 
     @Bean

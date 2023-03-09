@@ -31,10 +31,7 @@ spring:
     baseline-on-migrate: true
 
 flowjob:
-  broker:
-    enabled: false
   worker:
-    enabled: true
     brokers:
       - http://localhost:8081
     taskQueueSize: 64

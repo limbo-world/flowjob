@@ -16,19 +16,14 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.config;
-
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+package org.limbo.flowjob.common.constants;
 
 /**
- * @author Devil
- * @since 2021/7/30
+ * @author Brozen
+ * @since 2022-09-07
  */
-@EqualsAndHashCode(callSuper = true)
-@Data
-@ConfigurationProperties(prefix = "flowjob.broker")
-public class BrokerProperties extends BrokerConfig {
+public enum RpcScheme {
+
+    http, https
+
 }

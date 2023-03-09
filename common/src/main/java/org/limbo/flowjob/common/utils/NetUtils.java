@@ -18,6 +18,8 @@
 
 package org.limbo.flowjob.common.utils;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.Enumeration;
@@ -27,6 +29,7 @@ import java.util.regex.Pattern;
  * @author Devil
  * @since 2021/7/24
  */
+@Slf4j
 public class NetUtils {
 
     public static final String LOCAL_HOST = "127.0.0.1";
@@ -36,25 +39,31 @@ public class NetUtils {
 
     private static volatile InetAddress LOCAL_ADDRESS = null;
 
+
     public static String getLocalIp() {
-        InetAddress address = getLocalAddress();
+        InetAddress address = findFirstNonLoopbackAddress();
         return address == null ? LOCAL_HOST : address.getHostAddress();
     }
 
+
     /**
-     * 遍历本地网卡，返回第一个合理的IP。
+     * 遍历本地网卡，返回第一个非回环地址、非虚拟网卡地址、状态是启动的网卡的 IP。
      *
      * @return 本地网卡IP
      */
-    public static InetAddress getLocalAddress() {
-        if (LOCAL_ADDRESS != null)
+    public static synchronized InetAddress findFirstNonLoopbackAddress() {
+        if (LOCAL_ADDRESS != null) {
             return LOCAL_ADDRESS;
-        InetAddress localAddress = getLocalAddress0();
-        LOCAL_ADDRESS = localAddress;
-        return localAddress;
+        }
+        LOCAL_ADDRESS = findFirstNonLoopbackAddress0();
+        return LOCAL_ADDRESS;
     }
 
-    private static InetAddress getLocalAddress0() {
+
+    /**
+     * 找到本地机器的网卡 IP
+     */
+    private static InetAddress findFirstNonLoopbackAddress0() {
         InetAddress localAddress = null;
         try {
             localAddress = InetAddress.getLocalHost();
@@ -62,8 +71,9 @@ public class NetUtils {
                 return localAddress;
             }
         } catch (Exception e) {
-//            logger.warn("Failed to retriving ip address, " + e.getMessage(), e);
+            log.warn("Failed to retriving ip address, " + e.getMessage(), e);
         }
+
         try {
             Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
             if (interfaces != null) {
@@ -73,6 +83,7 @@ public class NetUtils {
                         if (network.isLoopback() || network.isVirtual() || !network.isUp()) {
                             continue;
                         }
+
                         Enumeration<InetAddress> addresses = network.getInetAddresses();
                         while (addresses.hasMoreElements()) {
                             try {
@@ -81,18 +92,19 @@ public class NetUtils {
                                     return address;
                                 }
                             } catch (Exception e) {
-//                                logger.warn("Failed to retriving ip address, " + e.getMessage(), e);
+                                log.warn("Failed to retriving ip address, " + e.getMessage(), e);
                             }
                         }
                     } catch (Exception e) {
-//                        logger.warn("Failed to retriving ip address, " + e.getMessage(), e);
+                        log.warn("Failed to retriving ip address, " + e.getMessage(), e);
                     }
                 }
             }
         } catch (Exception e) {
-//            logger.warn("Failed to retriving ip address, " + e.getMessage(), e);
+            log.warn("Failed to retriving ip address, " + e.getMessage(), e);
         }
-//        logger.error("Could not get local host ip address, will use 127.0.0.1 instead.");
+
+        log.error("Could not get local host ip address, will use 127.0.0.1 instead.");
         return localAddress;
     }
 
