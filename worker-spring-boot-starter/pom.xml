@@ -23,11 +23,10 @@
     <parent>
         <artifactId>flowjob</artifactId>
         <groupId>io.github.limbo-world</groupId>
-        <version>1.0.0</version>
+        <version>${flowjob.deploy.version}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>flowjob-worker-spring-boot-starter</artifactId>
-    <version>${flowjob.worker.spring.boot.starter.version}</version>
 
     <properties>
         <spring-boot.version>2.4.6</spring-boot.version>

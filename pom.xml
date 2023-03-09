@@ -6,7 +6,7 @@
 
     <groupId>io.github.limbo-world</groupId>
     <artifactId>flowjob</artifactId>
-    <version>1.0.0</version>
+    <version>${flowjob.deploy.version}</version>
     <packaging>pom</packaging>
     <description>flow-job调度框架</description>
 
@@ -63,12 +63,7 @@
 
     <properties>
         <java.version>1.8</java.version>
-
-        <flowjob.api.version>1.0.1</flowjob.api.version>
-        <flowjob.common.version>1.0.1</flowjob.common.version>
-        <flowjob.worker.core.version>1.0.1</flowjob.worker.core.version>
-        <flowjob.worker.spring.boot.starter.version>1.0.1</flowjob.worker.spring.boot.starter.version>
-
+        <flowjob.deploy.version>1.0.1</flowjob.deploy.version>
         <spring.boot>2.4.6</spring.boot>
         <spring.doc>1.5.6</spring.doc>
         <swagger>2.1.7</swagger>
@@ -94,22 +89,22 @@
             <dependency>
                 <groupId>io.github.limbo-world</groupId>
                 <artifactId>flowjob-common</artifactId>
-                <version>${flowjob.common.version}</version>
+                <version>${flowjob.deploy.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.limbo-world</groupId>
                 <artifactId>flowjob-api</artifactId>
-                <version>${flowjob.api.version}</version>
+                <version>${flowjob.deploy.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.limbo-world</groupId>
                 <artifactId>flowjob-worker-core</artifactId>
-                <version>${flowjob.worker.core.version}</version>
+                <version>${flowjob.deploy.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.limbo-world</groupId>
                 <artifactId>flowjob-worker-spring-boot-starter</artifactId>
-                <version>${flowjob.worker.spring.boot.starter.version}</version>
+                <version>${flowjob.deploy.version}</version>
             </dependency>
             <!-- BOM End-->
 
