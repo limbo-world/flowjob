@@ -21,7 +21,7 @@ package org.limbo.flowjob.broker.application.component;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
+import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
@@ -58,7 +58,7 @@ public class PlanLoadTask extends FixDelayMetaTask {
     private SlotManager slotManager;
 
     @Setter(onMethod_ = @Inject)
-    private BrokerConfig config;
+    private Broker broker;
 
     @Setter(onMethod_ = @Inject)
     private NodeManger nodeManger;
@@ -74,7 +74,7 @@ public class PlanLoadTask extends FixDelayMetaTask {
     protected void executeTask() {
         try {
             // 判断自己是否存在 --- 可能由于心跳异常导致不存活
-            if (!nodeManger.alive(config.getName())) {
+            if (!nodeManger.alive(broker.getName())) {
                 return;
             }
 

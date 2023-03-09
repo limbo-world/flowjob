@@ -22,7 +22,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.application.component.schedule.ScheduleStrategy;
-import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
+import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
@@ -44,8 +44,10 @@ import java.util.List;
 @Component
 public class PlanInstanceExecuteCheckTask extends FixDelayMetaTask {
 
-    private BrokerConfig config;
+    @Setter(onMethod_ = @Inject)
+    private Broker broker;
 
+    @Setter(onMethod_ = @Inject)
     private NodeManger nodeManger;
 
     @Setter(onMethod_ = @Inject)
@@ -59,16 +61,14 @@ public class PlanInstanceExecuteCheckTask extends FixDelayMetaTask {
 
     private static final long INTERVAL = 30;
 
-    public PlanInstanceExecuteCheckTask(BrokerConfig config, NodeManger nodeManger, MetaTaskScheduler scheduler) {
+    public PlanInstanceExecuteCheckTask(MetaTaskScheduler scheduler) {
         super(Duration.ofSeconds(INTERVAL), scheduler);
-        this.config = config;
-        this.nodeManger = nodeManger;
     }
 
     @Override
     protected void executeTask() {
         // 判断自己是否存在 --- 可能由于心跳异常导致不存活
-        if (!nodeManger.alive(config.getName())) {
+        if (!nodeManger.alive(broker.getName())) {
             return;
         }
 

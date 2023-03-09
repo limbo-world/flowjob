@@ -63,6 +63,12 @@
 
     <properties>
         <java.version>1.8</java.version>
+
+        <flowjob.api.version>1.0.1</flowjob.api.version>
+        <flowjob.common.version>1.0.1</flowjob.common.version>
+        <flowjob.worker.core.version>1.0.1</flowjob.worker.core.version>
+        <flowjob.worker.spring.boot.starter.version>1.0.1</flowjob.worker.spring.boot.starter.version>
+
         <spring.boot>2.4.6</spring.boot>
         <spring.doc>1.5.6</spring.doc>
         <swagger>2.1.7</swagger>
@@ -87,38 +93,23 @@
             <!-- BOM Start-->
             <dependency>
                 <groupId>io.github.limbo-world</groupId>
-                <artifactId>flowjob-api</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.github.limbo-world</groupId>
-                <artifactId>flowjob-broker-core</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.github.limbo-world</groupId>
                 <artifactId>flowjob-common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.github.limbo-world</groupId>
-                <artifactId>flowjob-broker-dao</artifactId>
-                <version>${project.version}</version>
+                <version>${flowjob.common.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.limbo-world</groupId>
                 <artifactId>flowjob-api</artifactId>
-                <version>${project.version}</version>
+                <version>${flowjob.api.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.limbo-world</groupId>
                 <artifactId>flowjob-worker-core</artifactId>
-                <version>${project.version}</version>
+                <version>${flowjob.worker.core.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.limbo-world</groupId>
                 <artifactId>flowjob-worker-spring-boot-starter</artifactId>
-                <version>${project.version}</version>
+                <version>${flowjob.worker.spring.boot.starter.version}</version>
             </dependency>
             <!-- BOM End-->
 

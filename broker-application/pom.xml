@@ -19,11 +19,8 @@
         <!-- 内部依赖 -->
         <dependency>
             <groupId>io.github.limbo-world</groupId>
-            <artifactId>flowjob-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.github.limbo-world</groupId>
             <artifactId>flowjob-broker-dao</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- SpringBoot Web 服务 -->

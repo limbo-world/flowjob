@@ -1,12 +1,5 @@
-server:
-  port: 8081
-
-flowjob:
-  broker:
-    name: b1
-    host: 127.0.0.1
-    port: 8081
-    enabled: true
+#server:
+#  port: 8081
 
 spring:
   # DB

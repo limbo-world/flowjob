@@ -9,6 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>flowjob-api</artifactId>
+    <version>${flowjob.api.version}</version>
 
     <dependencies>
         <dependency>

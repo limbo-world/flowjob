@@ -19,6 +19,7 @@
 package org.limbo.flowjob.broker.core.cluster;
 
 import lombok.Data;
+import org.limbo.flowjob.common.constants.RpcScheme;
 
 /**
  * @author Devil
@@ -28,19 +29,31 @@ import lombok.Data;
 public class BrokerConfig {
 
     /**
-     * broker的唯一标识
+     * 是否启动 broker
+     */
+    private boolean enabled = true;
+
+    /**
+     * broker的唯一标识，建议不配置
      */
     protected String name;
 
     /**
-     * 提供给worker的服务的 host
+     * 提供给worker的服务的 host。可以是域名或 IP 地址，如不填写则自动发现本机非 127.0.0.1 的地址。
+     * 多网卡场景下，建议显式配置 host。
      */
     protected String host;
 
     /**
      * 提供给worker的服务 port
+     * 如果未指定此配置，则尝试使用 ${server.port} 配置；如 ${server.port} 配置也不存在，则使用 8080，
      */
     protected Integer port;
+
+    /**
+     * RPC 通信协议类型。默认为 http。
+     */
+    private RpcScheme scheme = RpcScheme.http;
 
     /**
      * 心跳时间间隔，毫秒
@@ -50,6 +63,6 @@ public class BrokerConfig {
     /**
      * 心跳超时时间，毫秒
      */
-    protected long heartbeatTimeout = 10000;
+    protected long heartbeatTimeout = 5000;
 
 }

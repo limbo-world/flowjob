@@ -36,13 +36,13 @@
         <dependency>
             <groupId>io.github.limbo-world</groupId>
             <artifactId>flowjob-broker-application</artifactId>
-            <version>1.0.0</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.github.limbo-world</groupId>
             <artifactId>flowjob-worker-spring-boot-demo</artifactId>
-            <version>1.0.0</version>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- test -->

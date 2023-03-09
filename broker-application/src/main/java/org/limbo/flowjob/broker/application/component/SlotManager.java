@@ -21,7 +21,7 @@ package org.limbo.flowjob.broker.application.component;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
+import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
@@ -29,6 +29,7 @@ import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -45,7 +46,7 @@ import java.util.stream.Collectors;
 public class SlotManager {
 
     @Setter(onMethod_ = @Inject)
-    private BrokerConfig brokerConfig;
+    private Broker broker;
 
     @Setter(onMethod_ = @Inject)
     private NodeManger nodeManger;
@@ -70,18 +71,22 @@ public class SlotManager {
     public List<Integer> slots() {
         List<Node> sortedNodes = nodeManger.allAlive().stream().sorted(Comparator.comparing(Node::getHost).thenComparingInt(Node::getPort)).collect(Collectors.toList());
 
+        URL rpcBaseURL = broker.getRpcBaseURL();
+        String host = rpcBaseURL.getHost();
+        Integer port = rpcBaseURL.getPort();
+
         // 判断自己所在的id位置
         int mark = -1;
         for (int i = 0; i < sortedNodes.size(); i++) {
             Node node = sortedNodes.get(i);
-            if (Objects.equals(brokerConfig.getHost(), node.getHost()) && Objects.equals(brokerConfig.getPort(), node.getPort())) {
+            if (Objects.equals(host, node.getHost()) && Objects.equals(port, node.getPort())) {
                 mark = i;
                 break;
             }
         }
 
         if (mark < 0) {
-            log.warn("can't find in alive nodes host:{} port:{}", brokerConfig.getHost(), brokerConfig.getPort());
+            log.warn("can't find in alive nodes host:{} port:{}", host, port);
             return Collections.emptyList();
         }
 

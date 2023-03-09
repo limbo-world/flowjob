@@ -33,7 +33,7 @@ import org.limbo.flowjob.worker.core.rpc.BaseLBServerRepository;
 import org.limbo.flowjob.worker.core.rpc.BrokerNode;
 import org.limbo.flowjob.worker.core.rpc.BrokerRpc;
 import org.limbo.flowjob.worker.core.rpc.http.OkHttpBrokerRpc;
-import org.limbo.flowjob.worker.core.utils.NetUtils;
+import org.limbo.flowjob.common.utils.NetUtils;
 import org.limbo.flowjob.worker.starter.SpringDelegatedWorker;
 import org.limbo.flowjob.worker.starter.processor.ExecutorMethodProcessor;
 import org.limbo.flowjob.worker.starter.properties.WorkerProperties;
@@ -63,11 +63,9 @@ import java.util.stream.Collectors;
 @EnableConfigurationProperties(WorkerProperties.class)
 public class WorkerAutoConfiguration {
 
-    private static final int DEFAULT_HTTP_SERVER_PORT = 8080;
-
     private final WorkerProperties workerProps;
 
-    @Setter(onMethod_ = @Value("${server.port}"))
+    @Setter(onMethod_ = @Value("${server.port:8080}"))
     private Integer httpServerPort = null;
 
     public WorkerAutoConfiguration(WorkerProperties workerProps) {
@@ -91,8 +89,7 @@ public class WorkerAutoConfiguration {
     @Bean
     public Worker httpWorker(WorkerResources resources, BrokerRpc rpc) throws MalformedURLException {
         // 优先使用 SpringMVC 或 SpringWebflux 设置的端口号
-        Integer port = httpServerPort != null ? httpServerPort : workerProps.getPort();
-        port = port == null ? DEFAULT_HTTP_SERVER_PORT : port;
+        Integer port = workerProps.getPort() != null ? workerProps.getPort() : httpServerPort;
 
         // 优先使用指定的 host，如未指定则自动寻找本机 IP
         String host = workerProps.getHost();

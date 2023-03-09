@@ -18,6 +18,7 @@
 
 package org.limbo.flowjob.broker.dao.domain;
 
+import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +36,7 @@ import org.limbo.flowjob.broker.dao.repositories.WorkerMetricEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerTagEntityRepo;
 import org.limbo.flowjob.common.constants.WorkerStatus;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
@@ -67,9 +69,11 @@ public class WorkerRepo implements WorkerRepository {
     private WorkerEntityConverter converter;
 
     /**
-     * worker 心跳过期时间
+     * worker 心跳过期时间 毫秒
      */
-    public static final Long HEARTBEAT_EXPIRE_INTERVAL = 3L;
+    @Getter
+    @Value("${flowjob.broker.worker.heartbeat-timeout:5000}")
+    private long heartbeatExpireInterval;
 
     /**
      * {@inheritDoc}
@@ -150,7 +154,6 @@ public class WorkerRepo implements WorkerRepository {
                 .orElse(null);
     }
 
-
     /**
      * {@inheritDoc}
      *
@@ -163,7 +166,7 @@ public class WorkerRepo implements WorkerRepository {
                 .map(this::toWorkerWithLazyInit)
                 .filter(worker -> {
                     // 处理心跳过期的
-                    if (worker.getMetric().getLastHeartbeatAt().isBefore(TimeUtils.currentLocalDateTime().plusSeconds(-HEARTBEAT_EXPIRE_INTERVAL))) {
+                    if (worker.getMetric().getLastHeartbeatAt().isBefore(TimeUtils.currentLocalDateTime().plusSeconds(-heartbeatExpireInterval / 1000))) {
                         workerEntityRepo.updateStatus(worker.getId(), WorkerStatus.RUNNING.status, WorkerStatus.TERMINATED.status);
                         return false;
                     } else {

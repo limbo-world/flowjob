@@ -26,8 +26,8 @@
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>flowjob-worker-core</artifactId>
+    <version>${flowjob.worker.core.version}</version>
 
     <properties>
         <oshi>3.12.2</oshi>
@@ -37,6 +37,10 @@
         <dependency>
             <groupId>io.github.limbo-world</groupId>
             <artifactId>flowjob-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.limbo-world</groupId>
+            <artifactId>flowjob-common</artifactId>
         </dependency>
 
         <dependency>
