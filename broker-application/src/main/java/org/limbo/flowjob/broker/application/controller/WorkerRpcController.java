@@ -52,7 +52,7 @@ import javax.validation.constraints.NotNull;
  * @author Brozen
  * @since 2021-06-10
  */
-@Tag(name = "对worker提供的相关接口")
+@Tag(name = "worker remote rpc")
 @RestController
 @RequestMapping("/api/v1/rpc/worker")
 public class WorkerRpcController {

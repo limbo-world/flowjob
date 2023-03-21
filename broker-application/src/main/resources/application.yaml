@@ -21,8 +21,8 @@ springdoc:
     path: /api-docs.html
   api-docs:
     path: /api-docs
-  group-configs:
-    - group: admin
-      pathsToMatch: /api/admin/**
-    - group: sdk
-      pathsToMatch: /api/sdk/**
+#  group-configs:
+#    - group: admin
+#      pathsToMatch: /api/admin/**
+#    - group: sdk
+#      pathsToMatch: /api/sdk/**

@@ -36,7 +36,7 @@ import javax.inject.Inject;
  * @author Devil
  * @since 2021/7/24
  */
-@Tag(name = "worker api")
+@Tag(name = "worker console api")
 @RestController
 @RequestMapping("/api/v1/worker")
 public class WorkerController {

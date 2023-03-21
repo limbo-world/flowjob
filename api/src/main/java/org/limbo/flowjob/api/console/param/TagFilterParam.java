@@ -39,16 +39,16 @@ public class TagFilterParam {
     /**
      * 标签名
      */
-    public String tagName;
+    private String tagName;
 
     /**
      * 标签值
      */
-    public String tagValue;
+    private String tagValue;
 
     /**
      * 匹配条件
      */
-    public TagFilterCondition condition;
+    private TagFilterCondition condition;
 
 }

@@ -46,7 +46,7 @@ import javax.validation.constraints.NotBlank;
  * @author Devil
  * @since 2021/7/24
  */
-@Tag(name = "plan api")
+@Tag(name = "plan console api")
 @RestController
 @RequestMapping("/api/v1/plan")
 public class PlanController {
