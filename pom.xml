@@ -11,15 +11,15 @@
     <description>flow-job调度框架</description>
 
     <modules>
-        <module>api</module>
-        <module>common</module>
-        <module>broker-core</module>
-        <module>broker-dao</module>
-        <module>broker-application</module>
-        <module>test</module>
-        <module>worker-core</module>
-        <module>worker-spring-boot-starter</module>
-        <module>worker-spring-boot-demo</module>
+        <module>flowjob-api</module>
+        <module>flowjob-common</module>
+        <module>flowjob-test</module>
+        <module>flowjob-broker-core</module>
+        <module>flowjob-broker-dao</module>
+        <module>flowjob-broker-application</module>
+        <module>flowjob-worker-core</module>
+        <module>flowjob-worker-spring-boot-starter</module>
+        <module>flowjob-worker-spring-boot-demo</module>
     </modules>
 
     <organization>
