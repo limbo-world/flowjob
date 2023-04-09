@@ -16,10 +16,11 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.component;
+package org.limbo.flowjob.broker.application.component.task;
 
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.broker.application.component.SlotManager;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.task.Task;
@@ -49,23 +50,28 @@ import java.util.stream.Collectors;
 @Component
 public class TaskScheduleCheckTask extends FixDelayMetaTask {
 
-    @Setter(onMethod_ = @Inject)
-    private TaskEntityRepo taskEntityRepo;
+    private final TaskEntityRepo taskEntityRepo;
 
-    @Setter(onMethod_ = @Inject)
-    private SlotManager slotManager;
+    private final SlotManager slotManager;
 
-    @Setter(onMethod_ = @Inject)
-    private Broker broker;
+    private final Broker broker;
 
-    @Setter(onMethod_ = @Inject)
-    private NodeManger nodeManger;
+    private final NodeManger nodeManger;
 
-    @Setter(onMethod_ = @Inject)
-    private ITaskScheduleStrategy iScheduleStrategy;
+    private final ITaskScheduleStrategy iScheduleStrategy;
 
-    public TaskScheduleCheckTask(MetaTaskScheduler metaTaskScheduler) {
+    public TaskScheduleCheckTask(MetaTaskScheduler metaTaskScheduler,
+                                 TaskEntityRepo taskEntityRepo,
+                                 SlotManager slotManager,
+                                 Broker broker,
+                                 NodeManger nodeManger,
+                                 ITaskScheduleStrategy iScheduleStrategy) {
         super(Duration.ofSeconds(1), metaTaskScheduler);
+        this.taskEntityRepo = taskEntityRepo;
+        this.slotManager = slotManager;
+        this.broker = broker;
+        this.nodeManger = nodeManger;
+        this.iScheduleStrategy = iScheduleStrategy;
     }
 
     @Override

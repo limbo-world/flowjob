@@ -49,10 +49,8 @@ import java.util.TimerTask;
 @Slf4j
 public class DBBrokerRegistry implements NodeRegistry {
 
-    @Setter(onMethod_ = @Inject)
     private BrokerEntityRepo brokerEntityRepo;
 
-    @Setter(onMethod_ = @Inject)
     private IDGenerator idGenerator;
 
     /**
@@ -70,10 +68,13 @@ public class DBBrokerRegistry implements NodeRegistry {
      */
     private long nodeStatusCheckInterval = 1000;
 
-    public DBBrokerRegistry(long nodeStatusCheckInterval, long heartbeatInterval, long heartbeatTimeout) {
+    public DBBrokerRegistry(long nodeStatusCheckInterval, long heartbeatInterval, long heartbeatTimeout,
+                            BrokerEntityRepo brokerEntityRepo, IDGenerator idGenerator) {
         this.nodeStatusCheckInterval = nodeStatusCheckInterval;
         this.heartbeatInterval = heartbeatInterval;
         this.heartbeatTimeout = heartbeatTimeout;
+        this.brokerEntityRepo = brokerEntityRepo;
+        this.idGenerator = idGenerator;
     }
 
     private final List<NodeListener> listeners = new ArrayList<>();

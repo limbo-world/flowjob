@@ -16,10 +16,11 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.component;
+package org.limbo.flowjob.broker.application.component.task;
 
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.broker.application.component.SlotManager;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.task.Task;
@@ -52,29 +53,36 @@ import java.util.stream.Collectors;
 @Component
 public class TaskExecuteCheckTask extends FixDelayMetaTask {
 
-    @Setter(onMethod_ = @Inject)
-    private TaskEntityRepo taskEntityRepo;
+    private final TaskEntityRepo taskEntityRepo;
 
-    @Setter(onMethod_ = @Inject)
-    private DomainConverter domainConverter;
+    private final DomainConverter domainConverter;
 
-    @Setter(onMethod_ = @Inject)
-    private SlotManager slotManager;
+    private final SlotManager slotManager;
 
-    @Setter(onMethod_ = @Inject)
-    private Broker broker;
+    private final Broker broker;
 
-    @Setter(onMethod_ = @Inject)
-    private NodeManger nodeManger;
+    private final NodeManger nodeManger;
 
-    @Setter(onMethod_ = @Inject)
-    private WorkerRepository workerRepository;
+    private final WorkerRepository workerRepository;
 
-    @Setter(onMethod_ = @Inject)
-    private ITaskResultStrategy scheduleStrategy;
+    private final ITaskResultStrategy scheduleStrategy;
 
-    public TaskExecuteCheckTask(MetaTaskScheduler metaTaskScheduler) {
+    public TaskExecuteCheckTask(MetaTaskScheduler metaTaskScheduler,
+                                TaskEntityRepo taskEntityRepo,
+                                DomainConverter domainConverter,
+                                SlotManager slotManager,
+                                Broker broker,
+                                NodeManger nodeManger,
+                                WorkerRepository workerRepository,
+                                ITaskResultStrategy scheduleStrategy) {
         super(Duration.ofSeconds(5), metaTaskScheduler);
+        this.taskEntityRepo = taskEntityRepo;
+        this.domainConverter = domainConverter;
+        this.slotManager = slotManager;
+        this.broker = broker;
+        this.nodeManger = nodeManger;
+        this.workerRepository = workerRepository;
+        this.scheduleStrategy = scheduleStrategy;
     }
 
     @Override

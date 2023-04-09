@@ -18,7 +18,7 @@
 
 package org.limbo.flowjob.broker.application;
 
-import org.limbo.flowjob.broker.application.config.BrokerConfiguration;
+import org.limbo.flowjob.broker.application.config.BrokerAutoConfiguration;
 import org.limbo.flowjob.broker.application.config.WebConfiguration;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -35,7 +35,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @SpringBootApplication
 @Import({
         WebConfiguration.class,
-        BrokerConfiguration.class,
+        BrokerAutoConfiguration.class,
 })
 @ComponentScan(basePackages = "org.limbo.flowjob.broker")
 @EntityScan(basePackages = "org.limbo.flowjob.broker.dao.entity")

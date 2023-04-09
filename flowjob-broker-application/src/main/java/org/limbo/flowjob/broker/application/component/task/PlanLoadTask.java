@@ -16,11 +16,12 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.component;
+package org.limbo.flowjob.broker.application.component.task;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.broker.application.component.SlotManager;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
@@ -48,23 +49,28 @@ import java.util.List;
 @Component
 public class PlanLoadTask extends FixDelayMetaTask {
 
-    @Setter(onMethod_ = @Inject)
-    private PlanEntityRepo planEntityRepo;
+    private final PlanEntityRepo planEntityRepo;
 
-    @Setter(onMethod_ = @Inject)
-    private DomainConverter domainConverter;
+    private final DomainConverter domainConverter;
 
-    @Setter(onMethod_ = @Inject)
-    private SlotManager slotManager;
+    private final SlotManager slotManager;
 
-    @Setter(onMethod_ = @Inject)
-    private Broker broker;
+    private final Broker broker;
 
-    @Setter(onMethod_ = @Inject)
-    private NodeManger nodeManger;
+    private final NodeManger nodeManger;
 
-    public PlanLoadTask(MetaTaskScheduler scheduler) {
+    public PlanLoadTask(MetaTaskScheduler scheduler,
+                        PlanEntityRepo planEntityRepo,
+                        DomainConverter domainConverter,
+                        SlotManager slotManager,
+                        Broker broker,
+                        NodeManger nodeManger) {
         super(Duration.ofSeconds(30), scheduler);
+        this.planEntityRepo = planEntityRepo;
+        this.domainConverter = domainConverter;
+        this.slotManager = slotManager;
+        this.broker = broker;
+        this.nodeManger = nodeManger;
     }
 
     /**

@@ -101,9 +101,10 @@ public class Lockable<T> {
 
             case WRITE:
                 runInWriteLock(operation);
+                break;
 
             default:
-                throw new IllegalArgumentException("未知的加锁模式：" + mode);
+                throw new IllegalArgumentException("Unknown Lock Mode: " + mode);
         }
     }
 
@@ -112,7 +113,7 @@ public class Lockable<T> {
      * 在申请写锁后执行操作
      */
     protected void runInWriteLock(Consumer<T> operation) {
-        Objects.requireNonNull(operation, "operation");
+        Objects.requireNonNull(operation, "operation is null");
         ReentrantReadWriteLock.WriteLock writeLock = writeLock();
         writeLock.lock();
         try {
@@ -127,7 +128,7 @@ public class Lockable<T> {
      * 在申请读锁后执行操作
      */
     protected void runInReadLock(Consumer<T> operation) {
-        Objects.requireNonNull(operation, "operation");
+        Objects.requireNonNull(operation, "operation is null");
         ReentrantReadWriteLock.ReadLock readLock = readLock();
         readLock.lock();
         try {
@@ -163,7 +164,7 @@ public class Lockable<T> {
      * 在申请写锁后执行操作，并返回
      */
     protected <R> R invokeInWriteLock(Function<T, R> operation) {
-        Objects.requireNonNull(operation, "operation");
+        Objects.requireNonNull(operation, "operation is null");
         ReentrantReadWriteLock.WriteLock writeLock = writeLock();
         writeLock.lock();
         try {
@@ -178,7 +179,7 @@ public class Lockable<T> {
      * 在申请读锁后执行操作，并返回
      */
     protected <R> R invokeInReadLock(Function<T, R> operation) {
-        Objects.requireNonNull(operation, "operation");
+        Objects.requireNonNull(operation, "operation is null");
         ReentrantReadWriteLock.ReadLock readLock = readLock();
         readLock.lock();
         try {

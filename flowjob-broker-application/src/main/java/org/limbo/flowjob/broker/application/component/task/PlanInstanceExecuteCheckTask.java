@@ -16,11 +16,11 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.component;
+package org.limbo.flowjob.broker.application.component.task;
 
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.broker.application.component.SlotManager;
 import org.limbo.flowjob.broker.application.component.schedule.ScheduleStrategy;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
@@ -33,7 +33,6 @@ import org.limbo.flowjob.common.constants.PlanStatus;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.time.Duration;
 import java.util.List;
 
@@ -44,25 +43,30 @@ import java.util.List;
 @Component
 public class PlanInstanceExecuteCheckTask extends FixDelayMetaTask {
 
-    @Setter(onMethod_ = @Inject)
-    private Broker broker;
+    private final Broker broker;
 
-    @Setter(onMethod_ = @Inject)
-    private NodeManger nodeManger;
+    private final NodeManger nodeManger;
 
-    @Setter(onMethod_ = @Inject)
-    private PlanInstanceEntityRepo planInstanceEntityRepo;
+    private final PlanInstanceEntityRepo planInstanceEntityRepo;
 
-    @Setter(onMethod_ = @Inject)
-    private ScheduleStrategy scheduleStrategy;
+    private final ScheduleStrategy scheduleStrategy;
 
-    @Setter(onMethod_ = @Inject)
-    private SlotManager slotManager;
+    private final SlotManager slotManager;
 
     private static final long INTERVAL = 30;
 
-    public PlanInstanceExecuteCheckTask(MetaTaskScheduler scheduler) {
+    public PlanInstanceExecuteCheckTask(MetaTaskScheduler scheduler,
+                                        Broker broker,
+                                        NodeManger nodeManger,
+                                        PlanInstanceEntityRepo planInstanceEntityRepo,
+                                        ScheduleStrategy scheduleStrategy,
+                                        SlotManager slotManager) {
         super(Duration.ofSeconds(INTERVAL), scheduler);
+        this.broker = broker;
+        this.nodeManger = nodeManger;
+        this.planInstanceEntityRepo = planInstanceEntityRepo;
+        this.scheduleStrategy = scheduleStrategy;
+        this.slotManager = slotManager;
     }
 
     @Override

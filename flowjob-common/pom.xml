@@ -73,11 +73,5 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
 
-        <!-- 单元测试 -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 </project>

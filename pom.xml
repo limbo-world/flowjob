@@ -76,8 +76,6 @@
         <jsr330>1</jsr330>
         <commons.io>2.6</commons.io>
         <commons.collections4>4.4</commons.collections4>
-        <junit>4.13.1</junit>
-        <mockito>3.6.28</mockito>
         <commons.lang3>3.11</commons.lang3>
         <guava>31.1-jre</guava>
         <cron>9.1.6</cron>
@@ -225,20 +223,6 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava}</version>
-            </dependency>
-
-            <!-- 单元测试 -->
-            <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>${junit}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.mockito</groupId>
-                <artifactId>mockito-core</artifactId>
-                <version>${mockito}</version>
-                <scope>test</scope>
             </dependency>
 
         </dependencies>
