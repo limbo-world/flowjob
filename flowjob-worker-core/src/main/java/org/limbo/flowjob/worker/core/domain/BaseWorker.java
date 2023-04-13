@@ -232,12 +232,9 @@ public class BaseWorker implements Worker {
                 pacemaker.start();
 
                 // 初始化线程池
-                BlockingQueue<Runnable> queue;
-                if (resource.queueSize() == 0) {
-                    queue = new SynchronousQueue<>();
-                } else {
-                    queue = new ArrayBlockingQueue<>(resource.queueSize());
-                }
+                BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(resource.queueSize() <= 0 ?
+                        resource.concurrency() : resource.queueSize()
+                );
                 threadPool = new ThreadPoolExecutor(
                         resource.concurrency(), resource.concurrency(),
                         5, TimeUnit.SECONDS, queue,
