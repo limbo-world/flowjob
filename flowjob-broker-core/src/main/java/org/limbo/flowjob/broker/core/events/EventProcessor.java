@@ -16,13 +16,10 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.support;
+package org.limbo.flowjob.broker.core.events;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.core.events.Event;
-import org.limbo.flowjob.broker.core.events.EventPublisher;
-import org.limbo.flowjob.broker.core.events.EventTopic;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,7 +35,7 @@ import java.util.Map;
 @Slf4j
 public class EventProcessor implements EventPublisher {
 
-    private final Map<EventTopic, List<EventListener>> subscribers = new HashMap<>();
+    private final Map<String/* topic */, List<EventListener>> subscribers = new HashMap<>();
 
     @Override
     public void publish(Event event) {
@@ -54,7 +51,9 @@ public class EventProcessor implements EventPublisher {
      * 注册订阅监听
      */
     public void subscribe(EventListener listener) {
-        subscribers.computeIfAbsent(listener.topic(), planEventTopic -> new ArrayList<>()).add(listener);
+        for (String topic : listener.topics()) {
+            subscribers.computeIfAbsent(topic, planEventTopic -> new ArrayList<>()).add(listener);
+        }
     }
 
 }

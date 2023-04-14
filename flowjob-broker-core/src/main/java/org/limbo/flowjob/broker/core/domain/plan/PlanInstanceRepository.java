@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,31 +14,14 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.broker.core.dispatcher;
-
-import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
-
-import java.util.Map;
+package org.limbo.flowjob.broker.core.domain.plan;
 
 /**
- * @author Brozen
- * @since 2023-02-01
+ * @author Devil
+ * @since 2023-04-09
  */
-public interface WorkerSelectArgument {
+public interface PlanInstanceRepository {
 
-    /**
-     * 执行器名称
-     */
-    String getExecutorName();
-
-    /**
-     * 下发配置项
-     */
-    DispatchOption getDispatchOption();
-
-    /**
-     * 附加参数
-     */
-    Map<String, String> getAttributes();
+    void save(PlanInstance planInstance);
 
 }

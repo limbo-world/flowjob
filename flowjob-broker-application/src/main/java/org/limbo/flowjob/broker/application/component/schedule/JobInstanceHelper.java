@@ -36,7 +36,6 @@ import org.limbo.flowjob.common.exception.VerifyException;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
-import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -84,15 +83,6 @@ public class JobInstanceHelper {
         jobInstance.setStartAt(entity.getStartAt());
         jobInstance.setEndAt(entity.getEndAt());
         return jobInstance;
-    }
-
-    /**
-     * 设置为 retry 状态
-     */
-    public void retryReset(JobInstance jobInstance, Integer retryInterval) {
-        jobInstance.setTriggerAt(TimeUtils.currentLocalDateTime().plusSeconds(retryInterval));
-        jobInstance.setJobInstanceId(idGenerator.generateId(IDType.JOB_INSTANCE));
-        jobInstance.setStatus(JobStatus.SCHEDULING);
     }
 
     public JobInstance newJobInstance(String planId, String planVersion, PlanType planType, String planInstanceId,

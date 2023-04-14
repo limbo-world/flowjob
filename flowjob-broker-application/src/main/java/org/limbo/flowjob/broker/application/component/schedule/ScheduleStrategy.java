@@ -21,11 +21,14 @@ package org.limbo.flowjob.broker.application.component.schedule;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.broker.core.domain.IDGenerator;
+import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
+import org.limbo.flowjob.broker.core.domain.plan.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.domain.plan.SinglePlan;
 import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
@@ -36,7 +39,6 @@ import org.limbo.flowjob.broker.core.schedule.strategy.ITaskResultStrategy;
 import org.limbo.flowjob.broker.core.schedule.strategy.ITaskScheduleStrategy;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
-import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.constants.PlanType;
@@ -78,32 +80,49 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
     @Setter(onMethod_ = @Inject)
     private ScheduleStrategyHelper scheduleStrategyHelper;
 
+    @Setter(onMethod_ = @Inject)
+    private PlanInstanceRepository planInstanceRepository;
+
+    @Setter(onMethod_ = @Inject)
+    private IDGenerator idGenerator;
+
     @Override
     public void schedule(TriggerType triggerType, Plan plan, LocalDateTime triggerAt) {
         executeWithAspect(unused -> {
             // 悲观锁快速释放，不阻塞后续任务
-            PlanInstanceEntity planInstanceEntity = scheduleStrategyHelper.lockAndSavePlanInstance(plan, triggerType, triggerAt);
+            String planInstanceId = idGenerator.generateId(IDType.PLAN_INSTANCE);
+            PlanInstance planInstance = PlanInstance.builder()
+                    .planInstanceId(planInstanceId)
+                    .triggerType(triggerType)
+                    .plan(plan)
+                    .triggerAt(triggerAt)
+                    .build();
+            planInstanceRepository.save(planInstance);
 
             // 调度逻辑
-            List<JobInstance> jobInstances = newJobInstancesByPlan(plan, planInstanceEntity.getPlanInstanceId(), planInstanceEntity.getTriggerAt());
-            if (CollectionUtils.isNotEmpty(jobInstances)) {
-                scheduleStrategyHelper.saveAndScheduleJobInstances(jobInstances, planInstanceEntity.getTriggerAt());
-            }
-        });
-    }
-
-    public void schedulePlanInstance(String planId, String planInstanceId, LocalDateTime triggerAt) {
-        executeWithAspect(unused -> {
-            PlanEntity planEntity = planEntityRepo.findById(planId).orElse(null);
-            Plan plan = domainConverter.toPlan(planEntity);
-            List<JobInstance> jobInstances = newJobInstancesByPlan(plan, planInstanceId, triggerAt);
+            List<JobInstance> jobInstances = newJobInstancesByPlan(planInstance, triggerAt);
             if (CollectionUtils.isNotEmpty(jobInstances)) {
                 scheduleStrategyHelper.saveAndScheduleJobInstances(jobInstances, triggerAt);
             }
         });
     }
 
-    private List<JobInstance> newJobInstancesByPlan(Plan plan, String planInstanceId, LocalDateTime triggerAt) {
+    /**
+     * 调度 PlanInstance
+     */
+    public void schedulePlanInstance(PlanInstance planInstance) {
+        executeWithAspect(unused -> {
+            LocalDateTime triggerAt = planInstance.getTriggerAt();
+            List<JobInstance> jobInstances = newJobInstancesByPlan(planInstance, triggerAt);
+            if (CollectionUtils.isNotEmpty(jobInstances)) {
+                scheduleStrategyHelper.saveAndScheduleJobInstances(jobInstances, triggerAt);
+            }
+        });
+    }
+
+    private List<JobInstance> newJobInstancesByPlan(PlanInstance planInstance, LocalDateTime triggerAt) {
+        Plan plan = planInstance.getPlan();
+        String planInstanceId = planInstance.getPlanInstanceId();
         List<JobInstance> jobInstances = new ArrayList<>();
         if (PlanType.SINGLE == plan.getType()) {
             JobInfo jobInfo = ((SinglePlan) plan).getJobInfo();

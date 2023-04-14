@@ -16,15 +16,13 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.support;
+package org.limbo.flowjob.broker.core.events;
 
-import org.limbo.flowjob.broker.core.events.Event;
-import org.limbo.flowjob.broker.core.events.EventTopic;
-
+import java.util.List;
 import java.util.function.Consumer;
 
 public interface EventListener extends Consumer<Event> {
 
-    EventTopic topic();
+    List<String> topics();
 
 }

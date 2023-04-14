@@ -20,9 +20,11 @@ package org.limbo.flowjob.broker.core.domain.job;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.common.constants.JobStatus;
 import org.limbo.flowjob.common.constants.PlanType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -86,4 +88,13 @@ public class JobInstance implements Serializable {
      * 失败是否终止
      */
     private boolean terminateWithFail = true;
+
+    /**
+     * 设置为 retry 状态
+     */
+    public void retryReset(String id, Integer retryInterval) {
+        this.triggerAt = TimeUtils.currentLocalDateTime().plusSeconds(retryInterval);
+        this.jobInstanceId = id;
+        this.status = JobStatus.SCHEDULING;
+    }
 }

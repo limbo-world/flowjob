@@ -18,7 +18,6 @@
 
 package org.limbo.flowjob.broker.application.component.task;
 
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.application.component.SlotManager;
@@ -34,7 +33,6 @@ import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.common.constants.TriggerType;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;

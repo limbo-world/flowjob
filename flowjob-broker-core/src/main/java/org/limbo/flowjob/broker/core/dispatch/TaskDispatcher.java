@@ -21,8 +21,6 @@ package org.limbo.flowjob.broker.core.dispatch;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.broker.core.dispatcher.WorkerSelector;
-import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.exceptions.JobDispatchException;
 import org.limbo.flowjob.broker.core.statistics.WorkerStatisticsRepository;
@@ -43,11 +41,11 @@ public class TaskDispatcher {
 
     private final WorkerRepository workerRepository;
 
-    private final WorkerSelectorFactory workerSelectorFactory;
+    private final DispatchOption.WorkerSelectorFactory workerSelectorFactory;
 
     private final WorkerStatisticsRepository statisticsRepository;
 
-    public TaskDispatcher(WorkerRepository workerRepository, WorkerSelectorFactory workerSelectorFactory, WorkerStatisticsRepository statisticsRepository) {
+    public TaskDispatcher(WorkerRepository workerRepository, DispatchOption.WorkerSelectorFactory workerSelectorFactory, WorkerStatisticsRepository statisticsRepository) {
         this.workerRepository = workerRepository;
         this.workerSelectorFactory = workerSelectorFactory;
         this.statisticsRepository = statisticsRepository;
@@ -108,7 +106,7 @@ public class TaskDispatcher {
         if (CollectionUtils.isEmpty(availableWorkers)) {
             return false;
         }
-        WorkerSelector workerSelector = workerSelectorFactory.newSelector(task.getDispatchOption().getLoadBalanceType());
+        DispatchOption.WorkerSelector workerSelector = workerSelectorFactory.newSelector(task.getDispatchOption().getLoadBalanceType());
         for (int i = 0; i < 3; i++) {
             try {
                 SimpleWorkerSelectArguments args = new SimpleWorkerSelectArguments(task);

@@ -17,7 +17,6 @@
 package org.limbo.flowjob.broker.core.dispatch;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectArgument;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
@@ -29,7 +28,7 @@ import java.util.Map;
  * @author Brozen
  * @since 2023-02-01
  */
-public class SimpleWorkerSelectArguments implements WorkerSelectArgument {
+public class SimpleWorkerSelectArguments implements DispatchOption.WorkerSelectArgument {
 
     private final Task task;
 

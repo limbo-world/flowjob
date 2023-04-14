@@ -27,8 +27,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
-import org.limbo.flowjob.broker.core.dispatcher.FilteringWorkerSelector;
-import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectArgument;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
@@ -97,7 +95,7 @@ public class WorkerDispatcherTest {
 
     @Test
     public void testRoundRobin() {
-        FilteringWorkerSelector selector = new FilteringWorkerSelector(new RoundRobinLBStrategy<>());
+        DispatchOption.FilteringWorkerSelector selector = new DispatchOption.FilteringWorkerSelector(new RoundRobinLBStrategy<>());
 
         Worker w1 = selector.select(new MockWorkerSelectArgument(), workers);
         assert w1.getId().equals("Worker1");
@@ -110,7 +108,7 @@ public class WorkerDispatcherTest {
 
     @Test
     public void testRandom() {
-        FilteringWorkerSelector selector = new FilteringWorkerSelector(new RandomLBStrategy<>());
+        DispatchOption.FilteringWorkerSelector selector = new DispatchOption.FilteringWorkerSelector(new RandomLBStrategy<>());
         assert selector.select(new MockWorkerSelectArgument(), workers) != null;
         assert selector.select(new MockWorkerSelectArgument(), workers) != null;
         assert selector.select(new MockWorkerSelectArgument(), workers) != null;
@@ -124,7 +122,7 @@ public class WorkerDispatcherTest {
                 new MockLBServerStatistics("Worker2", Instant.EPOCH, 1)
         );
         MockWorkerStatisticsProvider provider = new MockWorkerStatisticsProvider(statistics);
-        FilteringWorkerSelector selector = new FilteringWorkerSelector(new LFULBStrategy<>(provider));
+        DispatchOption.FilteringWorkerSelector selector = new DispatchOption.FilteringWorkerSelector(new LFULBStrategy<>(provider));
 
         Worker w1 = selector.select(new MockWorkerSelectArgument(), workers);
         assert w1.getId().equals("Worker2");
@@ -138,7 +136,7 @@ public class WorkerDispatcherTest {
                 new MockLBServerStatistics("Worker2", Instant.EPOCH, 1)
         );
         MockWorkerStatisticsProvider provider = new MockWorkerStatisticsProvider(statistics);
-        FilteringWorkerSelector selector = new FilteringWorkerSelector(new LRULBStrategy<>(provider));
+        DispatchOption.FilteringWorkerSelector selector = new DispatchOption.FilteringWorkerSelector(new LRULBStrategy<>(provider));
 
         Worker w1 = selector.select(new MockWorkerSelectArgument(), workers);
         assert w1.getId().equals("Worker2");
@@ -147,7 +145,7 @@ public class WorkerDispatcherTest {
 
     @Test
     public void testAppoint() {
-        FilteringWorkerSelector selector = new FilteringWorkerSelector(new AppointLBStrategy<>());
+        DispatchOption.FilteringWorkerSelector selector = new DispatchOption.FilteringWorkerSelector(new AppointLBStrategy<>());
         MockWorkerSelectArgument args = new MockWorkerSelectArgument();
 
         args.getAttributes().put(AppointLBStrategy.PARAM_BY_SERVER_ID, "Worker1");
@@ -162,7 +160,7 @@ public class WorkerDispatcherTest {
 
     @Test
     public void testConsistentHash() {
-        FilteringWorkerSelector selector = new FilteringWorkerSelector(new ConsistentHashLBStrategy<>());
+        DispatchOption.FilteringWorkerSelector selector = new DispatchOption.FilteringWorkerSelector(new ConsistentHashLBStrategy<>());
         MockWorkerSelectArgument args = new MockWorkerSelectArgument();
         args.getAttributes().put(ConsistentHashLBStrategy.HASH_PARAM_NAME, "hashKey");
         args.getAttributes().put("hashKey", "123");
@@ -179,7 +177,7 @@ public class WorkerDispatcherTest {
 
 
     @Setter
-    static class MockWorkerSelectArgument implements WorkerSelectArgument {
+    static class MockWorkerSelectArgument implements DispatchOption.WorkerSelectArgument {
 
         private String executorName = "hello";
 

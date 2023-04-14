@@ -24,12 +24,18 @@ import org.limbo.flowjob.broker.application.component.SlotManager;
 import org.limbo.flowjob.broker.application.component.schedule.ScheduleStrategy;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
+import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
+import org.limbo.flowjob.broker.dao.converter.DomainConverter;
+import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
+import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.common.constants.PlanStatus;
+import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
 
@@ -47,6 +53,10 @@ public class PlanInstanceExecuteCheckTask extends FixDelayMetaTask {
 
     private final NodeManger nodeManger;
 
+    private final PlanEntityRepo planEntityRepo;
+
+    private final DomainConverter domainConverter;
+
     private final PlanInstanceEntityRepo planInstanceEntityRepo;
 
     private final ScheduleStrategy scheduleStrategy;
@@ -59,6 +69,8 @@ public class PlanInstanceExecuteCheckTask extends FixDelayMetaTask {
                                         Broker broker,
                                         NodeManger nodeManger,
                                         PlanInstanceEntityRepo planInstanceEntityRepo,
+                                        PlanEntityRepo planEntityRepo,
+                                        DomainConverter domainConverter,
                                         ScheduleStrategy scheduleStrategy,
                                         SlotManager slotManager) {
         super(Duration.ofSeconds(INTERVAL), scheduler);
@@ -67,6 +79,8 @@ public class PlanInstanceExecuteCheckTask extends FixDelayMetaTask {
         this.planInstanceEntityRepo = planInstanceEntityRepo;
         this.scheduleStrategy = scheduleStrategy;
         this.slotManager = slotManager;
+        this.planEntityRepo = planEntityRepo;
+        this.domainConverter = domainConverter;
     }
 
     @Override
@@ -87,7 +101,16 @@ public class PlanInstanceExecuteCheckTask extends FixDelayMetaTask {
             return;
         }
         for (PlanInstanceEntity entity : list) {
-            scheduleStrategy.schedulePlanInstance(entity.getPlanId(), entity.getPlanInstanceId(), entity.getTriggerAt());
+
+            PlanEntity planEntity = planEntityRepo.findById(entity.getPlanId()).orElse(null);
+            Plan plan = domainConverter.toPlan(planEntity);
+            PlanInstance planInstance = PlanInstance.builder()
+                    .planInstanceId(entity.getPlanInstanceId())
+                    .plan(plan)
+                    .triggerType(TriggerType.parse(entity.getTriggerType()))
+                    .triggerAt(entity.getTriggerAt())
+                    .build();
+            scheduleStrategy.schedulePlanInstance(planInstance);
         }
     }
 

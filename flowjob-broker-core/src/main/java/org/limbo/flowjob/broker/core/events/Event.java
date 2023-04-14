@@ -43,7 +43,7 @@ public class Event implements Serializable {
      * 事件主题，可以用来区分事件
      */
     @Getter
-    private final EventTopic topic;
+    private final String topic;
 
     /**
      * 事件源，事件触发的地方，可以是服务、领域等
@@ -51,11 +51,11 @@ public class Event implements Serializable {
     @Getter
     private final Object source;
 
-    public Event(Object source, EventTopic topic) {
-        this(UUIDUtils.randomID(), source, topic);
+    public Event(Object source, String topic) {
+        this(UUIDUtils.randomID(), topic, source);
     }
 
-    public Event(String id, Object source, EventTopic topic) {
+    public Event(String id, String topic, Object source) {
         this.id = id;
         this.source = source;
         this.topic = topic;

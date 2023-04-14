@@ -18,14 +18,12 @@
 
 package org.limbo.flowjob.broker.core.domain.plan;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
-import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
-import org.limbo.flowjob.common.constants.PlanStatus;
 import org.limbo.flowjob.common.constants.TriggerType;
-import org.limbo.flowjob.common.utils.attribute.Attributes;
-import org.limbo.flowjob.common.utils.dag.DAG;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -38,58 +36,19 @@ import java.time.LocalDateTime;
  */
 @Slf4j
 @Data
-@Deprecated
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PlanInstance implements Serializable {
 
     private static final long serialVersionUID = 1837382860200548371L;
 
     private String planInstanceId;
 
-    private String planId;
+    private Plan plan;
 
-    /**
-     * 计划的版本
-     */
-    private String version;
-
-    /**
-     * 计划调度状态
-     */
-    private PlanStatus status;
-
-    /**
-     * 触发类型，触发本次 Plan 的方式
-     */
     private TriggerType triggerType;
 
-    /**
-     * 作业计划调度配置参数
-     */
-    private ScheduleOption scheduleOption;
-
-    /**
-     * 期望的调度触发时间
-     */
     private LocalDateTime triggerAt;
-
-    /**
-     * 执行开始时间
-     */
-    private LocalDateTime startAt;
-
-    /**
-     * 执行结束时间
-     */
-    private LocalDateTime feedbackAt;
-
-    /**
-     * 执行图
-     */
-    private DAG<WorkflowJobInfo> dag;
-
-    /**
-     * 全局上下文 配置 --- 或者job执行中变更 整个plan生命周期内传递
-     */
-    private Attributes context;
 
 }

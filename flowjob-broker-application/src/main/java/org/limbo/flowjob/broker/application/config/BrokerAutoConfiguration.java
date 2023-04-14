@@ -28,8 +28,8 @@ import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
+import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
-import org.limbo.flowjob.broker.core.dispatcher.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
 import org.limbo.flowjob.broker.core.domain.task.TaskManager;
@@ -119,8 +119,8 @@ public class BrokerAutoConfiguration {
      * 用于生成 Worker 选择器，内部封装了 LB 算法的调用。
      */
     @Bean
-    public WorkerSelectorFactory workerSelectorFactory(WorkerStatisticsRepository statisticsRepository) {
-        WorkerSelectorFactory factory = new WorkerSelectorFactory();
+    public DispatchOption.WorkerSelectorFactory workerSelectorFactory(WorkerStatisticsRepository statisticsRepository) {
+        DispatchOption.WorkerSelectorFactory factory = new DispatchOption.WorkerSelectorFactory();
         factory.setLbServerStatisticsProvider(statisticsRepository);
         return factory;
     }
@@ -130,7 +130,7 @@ public class BrokerAutoConfiguration {
      * 用于分发任务
      */
     @Bean
-    public TaskDispatcher taskDispatcher(WorkerRepository workerRepository, WorkerSelectorFactory factory, WorkerStatisticsRepository statisticsRepository) {
+    public TaskDispatcher taskDispatcher(WorkerRepository workerRepository, DispatchOption.WorkerSelectorFactory factory, WorkerStatisticsRepository statisticsRepository) {
         return new TaskDispatcher(workerRepository, factory, statisticsRepository);
     }
 
