@@ -38,14 +38,13 @@ import javax.inject.Inject;
  */
 @Tag(name = "worker console api")
 @RestController
-@RequestMapping("/api/v1/worker")
 public class WorkerController {
 
     @Setter(onMethod_ = @Inject)
     private WorkerService workerService;
 
     @Operation(summary = "worker list")
-    @GetMapping
+    @GetMapping("/api/v1/worker")
     public ResponseDTO<PageDTO<WorkerVO>> page(WorkerQueryParam param) {
         return ResponseDTO.<PageDTO<WorkerVO>>builder().ok(workerService.page(param)).build();
     }

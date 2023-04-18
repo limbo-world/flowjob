@@ -48,7 +48,6 @@ import javax.validation.constraints.NotBlank;
  */
 @Tag(name = "plan console api")
 @RestController
-@RequestMapping("/api/v1/plan")
 public class PlanController {
 
     @Setter(onMethod_ = @Inject)
@@ -58,7 +57,7 @@ public class PlanController {
      * 新增计划
      */
     @Operation(summary = "新增计划")
-    @PostMapping
+    @PostMapping("/api/v1/plan")
     public ResponseDTO<String> add(@Validated @RequestBody PlanParam options) {
         return ResponseDTO.<String>builder()
                 .ok(planService.save(null, options))
@@ -72,7 +71,7 @@ public class PlanController {
     @Parameters({
             @Parameter(name = "planId", in = ParameterIn.PATH, description = "计划ID")
     })
-    @PutMapping("/{planId}")
+    @PutMapping("/api/v1/plan/{planId}")
     public ResponseDTO<String> replace(@NotBlank(message = "ID不能为空") @PathVariable("planId") String planId,
                                            @Validated @RequestBody PlanParam options) {
         return ResponseDTO.<String>builder()
@@ -84,7 +83,7 @@ public class PlanController {
      * 启动计划
      */
     @Operation(summary = "启动计划")
-    @PutMapping("/{planId}/start")
+    @PutMapping("/api/v1/plan/{planId}/start")
     public ResponseDTO<Boolean> start(@PathVariable("planId") String planId) {
         return ResponseDTO.<Boolean>builder().ok(planService.start(planId)).build();
     }
@@ -93,7 +92,7 @@ public class PlanController {
      * 停止计划
      */
     @Operation(summary = "停止计划")
-    @PutMapping("/{planId}/stop")
+    @PutMapping("/api/v1/plan/{planId}/stop")
     public ResponseDTO<Boolean> stop(@PathVariable("planId") String planId) {
         return ResponseDTO.<Boolean>builder().ok(planService.stop(planId)).build();
     }
@@ -102,7 +101,7 @@ public class PlanController {
      * 计划列表
      */
     @Operation(summary = "计划列表")
-    @GetMapping
+    @GetMapping("/api/v1/plan")
     public ResponseDTO<PageDTO<PlanVO>> page(PlanQueryParam param) {
         return ResponseDTO.<PageDTO<PlanVO>>builder().ok(planService.page(param)).build();
     }
