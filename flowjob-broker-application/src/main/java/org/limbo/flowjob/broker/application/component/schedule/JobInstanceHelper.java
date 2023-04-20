@@ -94,7 +94,7 @@ public class JobInstanceHelper {
         instance.setPlanType(planType);
         if (PlanType.WORKFLOW == planType) {
             WorkflowJobInfo workflowJobInfo = (WorkflowJobInfo) jobInfo;
-            instance.setTerminateWithFail(workflowJobInfo.isTerminateWithFail());
+            instance.setContinueWhenFail(workflowJobInfo.isContinueWhenFail());
         }
         instance.setPlanId(planId);
         instance.setPlanInstanceId(planInstanceId);

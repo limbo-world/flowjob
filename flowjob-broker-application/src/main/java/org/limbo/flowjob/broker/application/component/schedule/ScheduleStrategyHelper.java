@@ -107,9 +107,10 @@ public class ScheduleStrategyHelper {
     private IDGenerator idGenerator;
 
     @Transactional
-    public JobInstance lockAndSaveWorkflowJobInstance(Plan plan, String planInstanceId, WorkflowJobInfo jobInfo, LocalDateTime triggerAt) {
+    public JobInstance lockAndSaveJobInstance(Plan plan, String planInstanceId, WorkflowJobInfo jobInfo, LocalDateTime triggerAt) {
         planInstanceEntityRepo.selectForUpdate(planInstanceId);
 
+        // 判断是否已经被创建
         long count = jobInstanceEntityRepo.countByPlanInstanceIdAndJobId(planInstanceId, jobInfo.getId());
         if (count > 0) {
             return null;
@@ -136,7 +137,7 @@ public class ScheduleStrategyHelper {
             }
             entities = entities.stream().sorted((o1, o2) -> (int) (o2.getId() - o1.getId())).collect(Collectors.toList());
             JobInstanceEntity latest = entities.get(0);
-            if (JobStatus.FAILED.getStatus() == latest.getStatus() && BooleanUtils.isTrue(latest.getTerminateWithFail())) {
+            if (JobStatus.FAILED.getStatus() == latest.getStatus() && BooleanUtils.isTrue(latest.getContinueWhenFail())) {
                 handleFail(task, MsgConstants.TERMINATE_BY_OTHER_JOB, null);
                 break;
             }
@@ -223,7 +224,7 @@ public class ScheduleStrategyHelper {
         }
 
         JobInstance jobInstance = jobInstanceHelper.getJobInstance(task.getJobInstanceId());
-        if (!jobInstance.isTerminateWithFail()) {
+        if (jobInstance.isContinueWhenFail()) {
             handleJobSuccess(jobInstance);
             return;
         }
@@ -315,7 +316,7 @@ public class ScheduleStrategyHelper {
             if (CollectionUtils.isEmpty(subJobInfos)) {
                 // 当前节点为叶子节点 检测 Plan 实例是否已经执行完成
                 // 1. 所有节点都已经成功或者失败 2. 这里只关心plan的成功更新，失败是在task回调
-                if (checkJobsSuccessOrIgnoreError(planInstanceId, dag.lasts())) {
+                if (checkJobsSuccess(planInstanceId, dag.lasts(), true)) {
                     handlerPlanComplete(planInstanceId, true);
                 }
             } else {
@@ -324,7 +325,7 @@ public class ScheduleStrategyHelper {
                 List<JobInstance> subJobInstances = new ArrayList<>();
                 for (WorkflowJobInfo subJobInfo : subJobInfos) {
                     // 前置节点已经完成则可以下发
-                    if (checkJobsSuccessOrIgnoreError(planInstanceId, dag.preNodes(subJobInfo.getId()))) {
+                    if (checkJobsSuccess(planInstanceId, dag.preNodes(subJobInfo.getId()), true)) {
                         JobInstance subJobInstance = jobInstanceHelper.newJobInstance(planId, version, PlanType.WORKFLOW, planInstanceId, jobInstance.getContext(), subJobInfo, triggerAt);
                         subJobInstances.add(subJobInstance);
                     }
@@ -353,8 +354,9 @@ public class ScheduleStrategyHelper {
 
     /**
      * 校验 planInstance 下对应 job 的 jobInstance 是否都执行成功 或者失败了但是可以忽略失败
+     * @param checkContinueWhenFail 和 continueWithFail 同时 true，当job执行失败，会认为执行成功
      */
-    public boolean checkJobsSuccessOrIgnoreError(String planInstanceId, List<WorkflowJobInfo> jobInfos) {
+    public boolean checkJobsSuccess(String planInstanceId, List<WorkflowJobInfo> jobInfos, boolean checkContinueWhenFail) {
         if (CollectionUtils.isEmpty(jobInfos)) {
             return true;
         }
@@ -367,15 +369,14 @@ public class ScheduleStrategyHelper {
         }
         for (JobInstanceEntity entity : entities) {
             if (entity.getStatus() == JobStatus.FAILED.status) {
-                // 失败的 看是否忽略失败
                 WorkflowJobInfo jobInfo = jobInfoMap.get(entity.getJobId());
-                if (jobInfo.isTerminateWithFail()) {
+                if (!checkContinueWhenFail || !jobInfo.isContinueWhenFail()) {
                     return false;
                 }
+
             } else if (entity.getStatus() != JobStatus.SUCCEED.status) {
                 return false; // 执行中
             }
-            // 其他情况为 成功
         }
 
         return true;

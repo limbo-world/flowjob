@@ -110,7 +110,7 @@ public class BrokerAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(WorkerStatisticsRepository.class)
-    public WorkerStatisticsRepository WorkerStatisticsRepository() {
+    public WorkerStatisticsRepository workerStatisticsRepository() {
         return new SingletonWorkerStatisticsRepo();
     }
 

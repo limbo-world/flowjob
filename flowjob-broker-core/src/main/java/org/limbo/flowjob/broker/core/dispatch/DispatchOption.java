@@ -28,6 +28,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
+import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
 import org.limbo.flowjob.common.constants.LoadBalanceType;
 import org.limbo.flowjob.common.constants.MsgConstants;
 import org.limbo.flowjob.common.lb.LBServerStatisticsProvider;
@@ -100,7 +101,8 @@ public class DispatchOption implements Serializable {
 
         /**
          * {@inheritDoc}
-         * @param args worker 选择参数
+         *
+         * @param args    worker 选择参数
          * @param workers 待下发上下文可用的worker
          * @return
          */
@@ -116,6 +118,7 @@ public class DispatchOption implements Serializable {
             DispatchOption dispatchOption = args.getDispatchOption();
             List<TagFilterOption> tagFilters = dispatchOption.getTagFilters();
             availableWorkers = filterTags(tagFilters, availableWorkers);
+            availableWorkers = filterResources(availableWorkers);
             if (CollectionUtils.isEmpty(availableWorkers)) {
                 return null;
             }
@@ -163,10 +166,25 @@ public class DispatchOption implements Serializable {
         }
 
         /**
-         * todo ??? filter by worker queue/CPU/memory
+         * filter by worker queue/CPU/memory
          */
-        protected List<Worker> filterResources() {
-            return null;
+        protected List<Worker> filterResources(List<Worker> workers) {
+            if (CollectionUtils.isEmpty(workers)) {
+                return Collections.emptyList();
+            }
+            return workers.stream().filter(worker -> {
+                WorkerAvailableResource availableResource = worker.getMetric().getAvailableResource();
+                if (availableResource.getAvailableQueueLimit() <= 0) {
+                    return false;
+                }
+                if (availableResource.getAvailableCpu() <= 0) {
+                    return false;
+                }
+                if (availableResource.getAvailableRam() <= 0) {
+                    return false;
+                }
+                return true;
+            }).collect(Collectors.toList());
         }
 
 
@@ -174,7 +192,7 @@ public class DispatchOption implements Serializable {
          * 执行 Worker 选择逻辑，这里默认使用负载均衡策略来代理选择逻辑。
          * PS：单独抽取一个方法，方便扩展。
          *
-         * @param args 执行器名称
+         * @param args    执行器名称
          * @param workers 待下发上下文可用的worker
          */
         protected Worker doSelect(WorkerSelectArgument args, List<Worker> workers) {
@@ -229,7 +247,7 @@ public class DispatchOption implements Serializable {
         /**
          * 选择作业上下文应当下发给的worker。
          *
-         * @param args worker 选择参数
+         * @param args    worker 选择参数
          * @param workers 待下发上下文可用的worker
          */
         Worker select(WorkerSelectArgument args, List<Worker> workers);

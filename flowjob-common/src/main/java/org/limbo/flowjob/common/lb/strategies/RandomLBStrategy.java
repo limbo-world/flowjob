@@ -31,7 +31,6 @@ import java.util.concurrent.ThreadLocalRandom;
  * @author Brozen
  * @since 2022-09-02
  */
-// todo ??? 考虑权重/优先级？
 @Slf4j
 public class RandomLBStrategy<S extends LBServer> extends AbstractLBStrategy<S> {
 

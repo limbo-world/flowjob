@@ -21,14 +21,9 @@ package org.limbo.flowjob.api.console.param;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NonNull;
-import org.limbo.flowjob.common.constants.JobType;
 import org.limbo.flowjob.common.constants.TriggerType;
 
-import java.util.Map;
-import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Set;
 
@@ -75,8 +70,8 @@ public class WorkflowJobParam extends JobParam {
     private TriggerType triggerType;
 
     /**
-     * 执行失败是否终止 false 会继续执行后续作业
+     * 执行失败是否继续 true 会继续执行后续作业
      */
-    @Schema(title = "执行失败是否终止", description = "false 会继续执行后续作业")
-    private boolean terminateWithFail = true;
+    @Schema(title = "执行失败是否继续", description = "true 会继续执行后续作业")
+    private boolean continueWhenFail = false;
 }

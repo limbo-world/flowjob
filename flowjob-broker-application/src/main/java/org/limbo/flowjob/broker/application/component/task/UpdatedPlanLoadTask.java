@@ -18,7 +18,6 @@
 
 package org.limbo.flowjob.broker.application.component.task;
 
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.application.component.SlotManager;
@@ -35,9 +34,9 @@ import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.time.DateTimeUtils;
 import org.limbo.flowjob.common.utils.time.Formatters;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -68,7 +67,7 @@ public class UpdatedPlanLoadTask extends FixDelayMetaTask {
                                PlanEntityRepo planEntityRepo,
                                DomainConverter domainConverter,
                                SlotManager slotManager,
-                               Broker broker,
+                               @Lazy Broker broker,
                                NodeManger nodeManger) {
         super(Duration.ofSeconds(1), scheduler);
         this.planEntityRepo = planEntityRepo;

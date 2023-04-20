@@ -85,9 +85,9 @@ public class JobInstance implements Serializable {
     private JobInfo jobInfo;
 
     /**
-     * 失败是否终止
+     * 失败是否继续
      */
-    private boolean terminateWithFail = true;
+    private boolean continueWhenFail;
 
     /**
      * 设置为 retry 状态

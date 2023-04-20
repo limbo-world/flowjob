@@ -37,6 +37,7 @@ import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.common.constants.PlanStatus;
 import org.limbo.flowjob.common.constants.TriggerType;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -66,7 +67,7 @@ public class PlanInstanceExecuteCheckTask extends FixDelayMetaTask {
     private static final long INTERVAL = 30;
 
     public PlanInstanceExecuteCheckTask(MetaTaskScheduler scheduler,
-                                        Broker broker,
+                                        @Lazy Broker broker,
                                         NodeManger nodeManger,
                                         PlanInstanceEntityRepo planInstanceEntityRepo,
                                         PlanEntityRepo planEntityRepo,

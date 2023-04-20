@@ -29,13 +29,7 @@ import lombok.Getter;
  * @since 2021-05-16
  */
 public enum NodeType {
-    /**
-     * 调用api触发
-     */
     JOB(1, "job"),
-    /**
-     * 通过调度触发
-     */
     PLAN(2, "plan"),
 
     ;

@@ -305,8 +305,6 @@ public class BaseWorker implements Worker {
                 "Worker's queue is full, limit: " + availableQueueSize
         );
 
-        // TODO ??? 检测资源余量是否充足：cpu/ram/queue
-
         // 存储任务，并判断是否重复接收任务
         ExecuteContext context = new ExecuteContext(taskRepository, executor, brokerRpc, task);
         if (!taskRepository.save(context)) {

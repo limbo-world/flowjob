@@ -218,7 +218,7 @@ public class DomainConverter {
         entity.setTriggerAt(jobInstance.getTriggerAt());
         entity.setStartAt(jobInstance.getStartAt());
         entity.setEndAt(jobInstance.getEndAt());
-        entity.setTerminateWithFail(jobInstance.isTerminateWithFail());
+        entity.setContinueWhenFail(jobInstance.isContinueWhenFail());
         return entity;
     }
 

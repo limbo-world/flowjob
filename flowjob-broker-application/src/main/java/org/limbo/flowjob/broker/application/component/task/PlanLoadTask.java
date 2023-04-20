@@ -31,6 +31,7 @@ import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.common.constants.TriggerType;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -61,7 +62,7 @@ public class PlanLoadTask extends FixDelayMetaTask {
                         PlanEntityRepo planEntityRepo,
                         DomainConverter domainConverter,
                         SlotManager slotManager,
-                        Broker broker,
+                        @Lazy Broker broker,
                         NodeManger nodeManger) {
         super(Duration.ofSeconds(30), scheduler);
         this.planEntityRepo = planEntityRepo;

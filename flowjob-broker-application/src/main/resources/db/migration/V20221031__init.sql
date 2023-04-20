@@ -208,25 +208,25 @@ DROP TABLE IF EXISTS `flowjob_job_instance`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flowjob_job_instance`
 (
-    `id`                  bigint unsigned NOT NULL AUTO_INCREMENT,
-    `job_instance_id`     varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `job_id`              varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `plan_instance_id`    varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `plan_id`             varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `plan_info_id`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `trigger_at`          datetime(6) NOT NULL,
-    `context`             varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `start_at`            datetime(6) DEFAULT NULL,
-    `end_at`              datetime(6) DEFAULT NULL,
-    `status`              tinyint                                                NOT NULL,
-    `error_msg`           varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `terminate_with_fail` bit(1)                                                 NOT NULL DEFAULT 1,
-    `is_deleted`          bit(1)                                                 NOT NULL DEFAULT 0,
-    `created_at`          datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`          datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `id`                 bigint unsigned NOT NULL AUTO_INCREMENT,
+    `job_instance_id`    varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `job_id`             varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `plan_instance_id`   varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `plan_id`            varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `plan_info_id`       varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `trigger_at`         datetime(6) NOT NULL,
+    `context`            varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `start_at`           datetime(6) DEFAULT NULL,
+    `end_at`             datetime(6) DEFAULT NULL,
+    `status`             tinyint                                                NOT NULL,
+    `error_msg`          varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `continue_when_fail` bit(1)                                                 NOT NULL DEFAULT 0,
+    `is_deleted`         bit(1)                                                 NOT NULL DEFAULT 0,
+    `created_at`         datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`         datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    KEY                   `idx_id` (`job_instance_id`),
-    KEY                   `idx_plan_instance_job` (`plan_instance_id`, `job_id`)
+    KEY                  `idx_id` (`job_instance_id`),
+    KEY                  `idx_plan_instance_job` (`plan_instance_id`, `job_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

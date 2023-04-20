@@ -18,7 +18,6 @@
 
 package org.limbo.flowjob.broker.application.component.task;
 
-import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.application.component.SlotManager;
 import org.limbo.flowjob.broker.core.cluster.Broker;
@@ -32,9 +31,9 @@ import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.limbo.flowjob.common.constants.TaskStatus;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -63,7 +62,7 @@ public class TaskScheduleCheckTask extends FixDelayMetaTask {
     public TaskScheduleCheckTask(MetaTaskScheduler metaTaskScheduler,
                                  TaskEntityRepo taskEntityRepo,
                                  SlotManager slotManager,
-                                 Broker broker,
+                                 @Lazy Broker broker,
                                  NodeManger nodeManger,
                                  ITaskScheduleStrategy iScheduleStrategy) {
         super(Duration.ofSeconds(1), metaTaskScheduler);

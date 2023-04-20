@@ -37,9 +37,9 @@ import java.util.List;
  */
 public class BrokerStarter extends Broker implements ApplicationEventPublisherAware, ApplicationListener<ContextRefreshedEvent> {
 
-    private MetaTaskScheduler metaTaskScheduler;
+    private final MetaTaskScheduler metaTaskScheduler;
 
-    private List<MetaTask> metaTasks;
+    private final List<MetaTask> metaTasks;
 
     private ApplicationEventPublisher eventPublisher;
 

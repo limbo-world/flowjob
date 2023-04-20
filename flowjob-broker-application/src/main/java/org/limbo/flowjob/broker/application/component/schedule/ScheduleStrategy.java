@@ -142,9 +142,9 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
     }
 
     /**
-     * api 方式下发 工作流中的 节点任务
+     * api 方式下发节点任务
      */
-    public void apiScheduleWorkflowJob(String planId, String planInstanceId, String jobId) {
+    public void apiScheduleJob(String planId, String planInstanceId, String jobId) {
         executeWithAspect(unused -> {
             PlanEntity planEntity = planEntityRepo.findById(planId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN + planId));
 
@@ -155,13 +155,14 @@ public class ScheduleStrategy implements IPlanScheduleStrategy, ITaskScheduleStr
             DAG<WorkflowJobInfo> dag = workflowPlan.getDag();
             WorkflowJobInfo jobInfo = dag.getNode(jobId);
 
+            // todo 无法重新调度 需要判断是重试还是触发调度中的任务
             Verifies.verify(TriggerType.API == jobInfo.getTriggerType(), "only api triggerType job can schedule by api");
 
             LocalDateTime triggerAt = TimeUtils.currentLocalDateTime();
 
-            Verifies.verify(scheduleStrategyHelper.checkJobsSuccessOrIgnoreError(planInstanceId, dag.preNodes(jobInfo.getId())), "previous job is not complete, please wait!");
+            Verifies.verify(scheduleStrategyHelper.checkJobsSuccess(planInstanceId, dag.preNodes(jobInfo.getId()), true), "previous job is not complete, please wait!");
 
-            JobInstance jobInstance = scheduleStrategyHelper.lockAndSaveWorkflowJobInstance(plan, planInstanceId, jobInfo, triggerAt);
+            JobInstance jobInstance = scheduleStrategyHelper.lockAndSaveJobInstance(plan, planInstanceId, jobInfo, triggerAt);
 
             // 前置节点已经完成则可以下发
             scheduleStrategyHelper.scheduleJobInstances(Collections.singletonList(jobInstance), triggerAt);

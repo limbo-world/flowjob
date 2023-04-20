@@ -84,7 +84,7 @@ public class PlanConverter {
         jobInfo.setName(param.getName());
         jobInfo.setDescription(param.getDescription());
         jobInfo.setTriggerType(param.getTriggerType());
-        jobInfo.setTerminateWithFail(param.isTerminateWithFail());
+        jobInfo.setContinueWhenFail(param.isContinueWhenFail());
         jobInfo.setType(param.getType());
         jobInfo.setAttributes(new Attributes(param.getAttributes()));
         jobInfo.setRetryOption(convertToRetryOption(param.getRetryOption()));

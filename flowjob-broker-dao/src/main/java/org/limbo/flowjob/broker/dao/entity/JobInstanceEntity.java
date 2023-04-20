@@ -80,7 +80,7 @@ public class JobInstanceEntity extends BaseEntity {
     /**
      * 失败是否终止
      */
-    private Boolean terminateWithFail;
+    private Boolean continueWhenFail;
 
     @Override
     public Object getUid() {

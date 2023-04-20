@@ -64,9 +64,11 @@ public class WorkflowJobInfo extends JobInfo implements DAGNode {
     private TriggerType triggerType;
 
     /**
-     * 执行失败是否终止 false 会继续执行后续作业
+     * 执行失败是否继续
+     * true  会继续执行后续作业
+     * false 终止环节
      */
-    private boolean terminateWithFail;
+    private boolean continueWhenFail;
 
     private Set<String> parentIds = new HashSet<>();
 
