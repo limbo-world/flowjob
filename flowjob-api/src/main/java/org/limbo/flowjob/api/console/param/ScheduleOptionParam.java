@@ -23,8 +23,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.limbo.flowjob.common.constants.ScheduleType;
-import org.limbo.flowjob.common.constants.TriggerType;
+import org.limbo.flowjob.api.constants.ScheduleType;
 
 import javax.validation.constraints.NotNull;
 import java.time.Duration;
@@ -43,10 +42,11 @@ public class ScheduleOptionParam {
 
     /**
      * 调度方式
+     * @see ScheduleType
      */
     @Schema(title = "调度方式", implementation = Integer.class)
     @NotNull
-    private ScheduleType scheduleType;
+    private Integer scheduleType;
 
     /**
      * 调度开始时间，从此时间开始执行调度。

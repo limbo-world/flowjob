@@ -18,7 +18,7 @@
 
 package org.limbo.flowjob.broker.core.domain.task;
 
-import org.limbo.flowjob.common.constants.TaskType;
+import org.limbo.flowjob.api.constants.TaskType;
 
 import java.util.List;
 

@@ -25,7 +25,6 @@ import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.io.Serializable;
@@ -106,7 +105,9 @@ public class DAG<T extends DAGNode> implements Serializable {
             // 判断childrenId是否都有对应节点 设置父id
             for (String childrenId : node.getChildrenIds()) {
                 T t = nodes.get(childrenId);
-                Verifies.notNull(t, "node " + node.getId() + " child " + childrenId + " is not exist");
+                if (t == null) {
+                    throw new IllegalArgumentException("node " + node.getId() + " child " + childrenId + " is not exist");
+                }
                 t.getParentIds().add(node.getId());
             }
         });
@@ -122,13 +123,19 @@ public class DAG<T extends DAGNode> implements Serializable {
                 }
             }
         });
-        Verifies.notEmpty(origins, "root nodes ie empty");
-        Verifies.notEmpty(lasts, "leaf nodes ie empty");
+        if (CollectionUtils.isEmpty(origins)) {
+            throw new IllegalArgumentException("root nodes ie empty");
+        }
+        if (CollectionUtils.isEmpty(lasts)) {
+            throw new IllegalArgumentException("leaf nodes ie empty");
+        }
 
         // 是否有环
         Map<String, Integer> nodeStatuesMap = new HashMap<>();
         for (String root : origins) {
-            Verifies.verify(!hasCyclic(nodes.get(root), nodeStatuesMap), "jobs has cyclic");
+            if (hasCyclic(nodes.get(root), nodeStatuesMap)) {
+                throw new IllegalArgumentException("jobs has cyclic");
+            }
         }
     }
 
@@ -145,14 +152,7 @@ public class DAG<T extends DAGNode> implements Serializable {
      * 获取叶子节点 也就是最后执行的节点
      */
     public List<T> lasts() {
-        List<T> result = new ArrayList<>();
-        if (CollectionUtils.isEmpty(lasts)) {
-            return result;
-        }
-        for (String id : lasts) {
-            result.add(nodes.get(id));
-        }
-        return result;
+        return lasts.stream().map(nodeId -> nodes.get(nodeId)).collect(Collectors.toList());
     }
 
 
@@ -160,14 +160,7 @@ public class DAG<T extends DAGNode> implements Serializable {
      * 获取所有根节点
      */
     public List<T> origins() {
-        List<T> result = new ArrayList<>();
-        if (CollectionUtils.isEmpty(origins)) {
-            return result;
-        }
-        for (String root : origins) {
-            result.add(nodes.get(root));
-        }
-        return result;
+        return origins.stream().map(nodeId -> nodes.get(nodeId)).collect(Collectors.toList());
     }
 
 
@@ -206,7 +199,7 @@ public class DAG<T extends DAGNode> implements Serializable {
     /**
      * 深度优先搜索
      *
-     * @param node
+     * @param node 搜索出发节点
      * @return 如果有环返回true
      */
     public boolean hasCyclic(DAGNode node, Map<String, Integer> nodeStatuesMap) {

@@ -17,6 +17,7 @@
 package org.limbo.flowjob.broker.core.dispatch;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
@@ -31,6 +32,8 @@ import java.util.Map;
 public class SimpleWorkerSelectArguments implements DispatchOption.WorkerSelectArgument {
 
     private final Task task;
+
+    private final String LB_PREFIX = "worker.lb.";
 
     public SimpleWorkerSelectArguments(Task task) {
         this.task = task;
@@ -83,7 +86,12 @@ public class SimpleWorkerSelectArguments implements DispatchOption.WorkerSelectA
 
     private void putStringEntry(Map<String, String> attrMap, Attributes attr) {
         attr.toMap().entrySet().stream()
+                .filter(entry -> StringUtils.isNotBlank(entry.getKey()) && entry.getValue() != null)
+                .filter(entry -> entry.getKey().startsWith(LB_PREFIX))
                 .filter(entry -> entry.getValue() instanceof String)
-                .forEach(entry -> attrMap.put(entry.getKey(), (String) entry.getValue()));
+                .forEach(entry -> {
+                    String value = (String) entry.getValue();
+                    attrMap.put(entry.getKey(), value.replace(LB_PREFIX, ""));
+                });
     }
 }

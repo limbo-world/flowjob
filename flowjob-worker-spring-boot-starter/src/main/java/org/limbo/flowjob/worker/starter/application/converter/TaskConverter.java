@@ -17,7 +17,7 @@
 package org.limbo.flowjob.worker.starter.application.converter;
 
 import org.limbo.flowjob.api.remote.param.TaskSubmitParam;
-import org.limbo.flowjob.common.constants.TaskType;
+import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.worker.core.domain.Task;
 import org.springframework.stereotype.Component;
 

@@ -19,7 +19,7 @@
 package org.limbo.flowjob.broker.core.worker.rpc;
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.common.constants.Protocol;
+import org.limbo.flowjob.api.constants.Protocol;
 import org.limbo.flowjob.api.ResponseDTO;
 import org.limbo.flowjob.broker.core.exceptions.WorkerException;
 import org.limbo.flowjob.broker.core.worker.Worker;

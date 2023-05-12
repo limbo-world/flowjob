@@ -20,7 +20,7 @@ import lombok.Builder;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.worker.Worker;
-import org.limbo.flowjob.common.constants.TagFilterCondition;
+import org.limbo.flowjob.api.constants.TagFilterCondition;
 
 import java.util.List;
 import java.util.Map;

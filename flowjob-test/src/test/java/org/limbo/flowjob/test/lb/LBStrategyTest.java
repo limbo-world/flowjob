@@ -19,10 +19,9 @@
 package org.limbo.flowjob.test.lb;
 
 import com.google.common.collect.Maps;
-import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.limbo.flowjob.common.lb.RPCInvocation;
+import org.limbo.flowjob.common.rpc.RPCInvocation;
 import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
 
 import java.util.List;

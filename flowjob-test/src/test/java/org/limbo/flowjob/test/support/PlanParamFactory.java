@@ -26,11 +26,11 @@ import org.limbo.flowjob.api.console.param.PlanParam;
 import org.limbo.flowjob.api.console.param.RetryOptionParam;
 import org.limbo.flowjob.api.console.param.ScheduleOptionParam;
 import org.limbo.flowjob.api.console.param.WorkflowJobParam;
-import org.limbo.flowjob.common.constants.JobType;
-import org.limbo.flowjob.common.constants.LoadBalanceType;
-import org.limbo.flowjob.common.constants.PlanType;
-import org.limbo.flowjob.common.constants.ScheduleType;
-import org.limbo.flowjob.common.constants.TriggerType;
+import org.limbo.flowjob.api.constants.JobType;
+import org.limbo.flowjob.api.constants.LoadBalanceType;
+import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.ScheduleType;
+import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.common.utils.UUIDUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.limbo.flowjob.test.util.DAGTest;
@@ -50,15 +50,15 @@ public class PlanParamFactory {
         PlanParam param = new PlanParam();
         param.setName(UUIDUtils.randomID());
         param.setDescription("测试-固定速率");
-        param.setTriggerType(TriggerType.SCHEDULE);
-        param.setPlanType(planType);
+        param.setTriggerType(TriggerType.SCHEDULE.type);
+        param.setPlanType(planType.type);
 
         ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
-        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE);
+        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE.type);
         scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(5));
         param.setScheduleOption(scheduleOptionParam);
 
-        if (PlanType.SINGLE == planType) {
+        if (PlanType.NORMAL == planType) {
             param.setJob(newJob("MapReduceExecutorDemo", JobType.MAP_REDUCE));
         } else {
             WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "MapReduceExecutorDemo", JobType.MAP_REDUCE, TriggerType.SCHEDULE);
@@ -75,11 +75,11 @@ public class PlanParamFactory {
         PlanParam param = new PlanParam();
         param.setName(UUIDUtils.randomID());
         param.setDescription("测试-固定速率");
-        param.setTriggerType(TriggerType.SCHEDULE);
-        param.setPlanType(PlanType.WORKFLOW);
+        param.setTriggerType(TriggerType.SCHEDULE.type);
+        param.setPlanType(PlanType.WORKFLOW.type);
 
         ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
-        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE);
+        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE.type);
         scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(5));
         param.setScheduleOption(scheduleOptionParam);
 
@@ -96,15 +96,15 @@ public class PlanParamFactory {
         PlanParam param = new PlanParam();
         param.setName(UUIDUtils.randomID());
         param.setDescription("测试-固定速率");
-        param.setTriggerType(TriggerType.SCHEDULE);
-        param.setPlanType(planType);
+        param.setTriggerType(TriggerType.SCHEDULE.type);
+        param.setPlanType(planType.type);
 
         ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
-        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE);
+        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE.type);
         scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(3));
         param.setScheduleOption(scheduleOptionParam);
 
-        if (PlanType.SINGLE == planType) {
+        if (PlanType.NORMAL == planType) {
             param.setJob(newJob("hello", JobType.NORMAL));
         } else {
             WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
@@ -122,15 +122,15 @@ public class PlanParamFactory {
         PlanParam param = new PlanParam();
         param.setName(UUIDUtils.randomID());
         param.setDescription("测试-固定延迟");
-        param.setTriggerType(TriggerType.SCHEDULE);
-        param.setPlanType(planType);
+        param.setTriggerType(TriggerType.SCHEDULE.type);
+        param.setPlanType(planType.type);
 
         ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
-        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_DELAY);
+        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_DELAY.type);
         scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(3));
         param.setScheduleOption(scheduleOptionParam);
 
-        if (PlanType.SINGLE == planType) {
+        if (PlanType.NORMAL == planType) {
             param.setJob(newJob("hello", JobType.NORMAL));
         } else {
             WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
@@ -147,15 +147,15 @@ public class PlanParamFactory {
         PlanParam param = new PlanParam();
         param.setName(UUIDUtils.randomID());
         param.setDescription("测试-固定速率-replace");
-        param.setTriggerType(TriggerType.SCHEDULE);
-        param.setPlanType(planType);
+        param.setTriggerType(TriggerType.SCHEDULE.type);
+        param.setPlanType(planType.type);
 
         ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
-        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE);
+        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE.type);
         scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(3));
         param.setScheduleOption(scheduleOptionParam);
 
-        if (PlanType.SINGLE == planType) {
+        if (PlanType.NORMAL == planType) {
             param.setJob(newJob("hello", JobType.NORMAL));
         } else {
             WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
@@ -170,14 +170,14 @@ public class PlanParamFactory {
 
     public static JobParam newJob(String executorName, JobType type) {
         JobParam job = new JobParam();
-        job.setType(type);
+        job.setType(type.type);
         job.setRetryOption(RetryOptionParam.builder()
                 .retry(2)
                 .retryInterval(3)
                 .build()
         );
         job.setDispatchOption(DispatchOptionParam.builder()
-                .loadBalanceType(LoadBalanceType.RANDOM)
+                .loadBalanceType(LoadBalanceType.RANDOM.type)
                 .build()
         );
         Map<String, Object> attr = new HashMap<>();
@@ -192,15 +192,15 @@ public class PlanParamFactory {
         job.setId(id);
         job.setName(executorName + "-" + id);
         job.setDescription(job.getName());
-        job.setType(type);
-        job.setTriggerType(triggerType);
+        job.setType(type.type);
+        job.setTriggerType(triggerType.type);
         job.setRetryOption(RetryOptionParam.builder()
                 .retry(2)
                 .retryInterval(3)
                 .build()
         );
         job.setDispatchOption(DispatchOptionParam.builder()
-                .loadBalanceType(LoadBalanceType.RANDOM)
+                .loadBalanceType(LoadBalanceType.RANDOM.type)
                 .build()
         );
         Map<String, Object> attributes = new HashMap<>();

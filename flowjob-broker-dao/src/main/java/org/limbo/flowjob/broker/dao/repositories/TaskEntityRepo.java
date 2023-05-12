@@ -19,7 +19,7 @@
 package org.limbo.flowjob.broker.dao.repositories;
 
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
-import org.limbo.flowjob.common.constants.ConstantsPool;
+import org.limbo.flowjob.api.constants.ConstantsPool;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -34,9 +34,9 @@ import java.util.List;
  */
 public interface TaskEntityRepo extends JpaRepository<TaskEntity, String> {
 
-    List<TaskEntity> findByJobInstanceIdAndType(String jobInstanceId, Byte type);
+    List<TaskEntity> findByJobInstanceIdAndType(String jobInstanceId, Integer type);
 
-    List<TaskEntity> findByPlanIdInAndStatus(List<String> planIds, Byte status);
+    List<TaskEntity> findByPlanIdInAndStatus(List<String> planIds, Integer status);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update TaskEntity " +
@@ -60,5 +60,5 @@ public interface TaskEntityRepo extends JpaRepository<TaskEntity, String> {
     @Query(value = "update TaskEntity " +
             " set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTE_FAILED + ", errorMsg = :errorMsg, errorStackTrace = :errorStack, endAt = :endAt " +
             " where taskId = :taskId and status = :curStatus")
-    int fail(@Param("taskId") String taskId, @Param("curStatus") Byte curStatus, @Param("endAt") LocalDateTime endAt, @Param("errorMsg") String errorMsg, @Param("errorStack") String errorStack);
+    int fail(@Param("taskId") String taskId, @Param("curStatus") Integer curStatus, @Param("endAt") LocalDateTime endAt, @Param("errorMsg") String errorMsg, @Param("errorStack") String errorStack);
 }

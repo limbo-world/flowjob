@@ -19,7 +19,7 @@
 package org.limbo.flowjob.broker.dao.repositories;
 
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
-import org.limbo.flowjob.common.constants.ConstantsPool;
+import org.limbo.flowjob.api.constants.ConstantsPool;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -37,19 +37,19 @@ public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity
     @Query(value = "select * from flowjob_plan_instance where plan_instance_id = :planInstanceId for update", nativeQuery = true)
     PlanInstanceEntity selectForUpdate(@Param("planInstanceId") String planInstanceId);
 
-    PlanInstanceEntity findByPlanIdAndTriggerAtAndTriggerType(String planId, LocalDateTime triggerAt, Byte triggerType);
+    PlanInstanceEntity findByPlanIdAndTriggerAtAndTriggerType(String planId, LocalDateTime triggerAt, Integer triggerType);
 
-    List<PlanInstanceEntity> findByPlanIdInAndTriggerAtLessThanEqualAndStatus(List<String> planIds, LocalDateTime triggerAt, Byte status);
+    List<PlanInstanceEntity> findByPlanIdInAndTriggerAtLessThanEqualAndStatus(List<String> planIds, LocalDateTime triggerAt, Integer status);
 
     @Query(value = "select * from flowjob_plan_instance " +
             "where plan_id = :planId and schedule_type = :scheduleType and trigger_type = :triggerType and plan_info_id =:planInfoId " +
             "order by trigger_at desc limit 1", nativeQuery = true)
-    PlanInstanceEntity findLatelyTrigger(@Param("planId") String planId, @Param("planInfoId") String planInfoId, @Param("scheduleType") Byte scheduleType, @Param("triggerType") Byte triggerType);
+    PlanInstanceEntity findLatelyTrigger(@Param("planId") String planId, @Param("planInfoId") String planInfoId, @Param("scheduleType") Integer scheduleType, @Param("triggerType") Integer triggerType);
 
     @Query(value = "select * from flowjob_plan_instance " +
             "where plan_id = :planId and schedule_type = :scheduleType and trigger_type = :triggerType and plan_info_id =:planInfoId " +
             "order by feedback_at desc limit 1", nativeQuery = true)
-    PlanInstanceEntity findLatelyFeedback(@Param("planId") String planId, @Param("planInfoId") String planInfoId, @Param("scheduleType") Byte scheduleType, @Param("triggerType") Byte triggerType);
+    PlanInstanceEntity findLatelyFeedback(@Param("planId") String planId, @Param("planInfoId") String planInfoId, @Param("scheduleType") Integer scheduleType, @Param("triggerType") Integer triggerType);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING + ", startAt = :startAt " +

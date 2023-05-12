@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.limbo.flowjob.api.constants.JobStatus;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -48,9 +49,14 @@ public class JobInstanceEntity extends BaseEntity {
 
     /**
      * 状态
-     * @see org.limbo.flowjob.common.constants.JobStatus
+     * @see JobStatus
      */
-    private Byte status;
+    private Integer status;
+
+    /**
+     * 当前是第几次重试
+     */
+    private Integer retryTimes;
 
     /**
      * 错误信息
@@ -76,11 +82,6 @@ public class JobInstanceEntity extends BaseEntity {
      * 执行结束时间
      */
     private LocalDateTime endAt;
-
-    /**
-     * 失败是否终止
-     */
-    private Boolean continueWhenFail;
 
     @Override
     public Object getUid() {

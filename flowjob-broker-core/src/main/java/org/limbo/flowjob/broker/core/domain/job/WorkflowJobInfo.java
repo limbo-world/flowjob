@@ -22,8 +22,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.limbo.flowjob.common.constants.NodeType;
-import org.limbo.flowjob.common.constants.TriggerType;
+import org.limbo.flowjob.api.constants.NodeType;
 import org.limbo.flowjob.common.utils.dag.DAGNode;
 
 import java.util.HashSet;
@@ -57,11 +56,6 @@ public class WorkflowJobInfo extends JobInfo implements DAGNode {
      * 节点类型 todo ???
      */
     private NodeType nodeType;
-
-    /**
-     * 触发类型
-     */
-    private TriggerType triggerType;
 
     /**
      * 执行失败是否继续

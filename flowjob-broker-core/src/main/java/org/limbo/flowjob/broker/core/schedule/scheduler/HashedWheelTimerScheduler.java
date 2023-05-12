@@ -45,8 +45,8 @@ public abstract class HashedWheelTimerScheduler<T extends Scheduled> implements 
     /**
      * 使用指定执行器构造一个调度器，该调度器基于哈希时间轮算法。
      */
-    protected HashedWheelTimerScheduler() {
-        this.timer = new HashedWheelTimer(NamedThreadFactory.newInstance(this.getClass().getSimpleName()));
+    protected HashedWheelTimerScheduler(long tickDuration, TimeUnit unit) {
+        this.timer = new HashedWheelTimer(NamedThreadFactory.newInstance(this.getClass().getSimpleName()), tickDuration, unit);
     }
 
     protected void calAndSchedule(T scheduled) {

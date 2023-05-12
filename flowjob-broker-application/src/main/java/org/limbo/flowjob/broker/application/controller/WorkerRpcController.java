@@ -22,26 +22,20 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Setter;
 import org.limbo.flowjob.api.ResponseDTO;
+import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.remote.dto.WorkerRegisterDTO;
 import org.limbo.flowjob.api.remote.param.TaskFeedbackParam;
 import org.limbo.flowjob.api.remote.param.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.remote.param.WorkerRegisterParam;
-import org.limbo.flowjob.broker.application.component.schedule.ScheduleStrategy;
-import org.limbo.flowjob.broker.application.service.TaskService;
+import org.limbo.flowjob.broker.application.schedule.ScheduleStrategy;
 import org.limbo.flowjob.broker.application.service.WorkerService;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.dao.converter.DomainConverter;
-import org.limbo.flowjob.broker.dao.entity.PlanEntity;
-import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
-import org.limbo.flowjob.common.constants.MsgConstants;
-import org.limbo.flowjob.common.constants.TriggerType;
-import org.limbo.flowjob.common.exception.VerifyException;
+import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
@@ -60,22 +54,16 @@ public class WorkerRpcController {
     private WorkerService workerService;
 
     @Setter(onMethod_ = @Inject)
-    private TaskService taskService;
-
-    @Setter(onMethod_ = @Inject)
     private ScheduleStrategy scheduleStrategy;
 
     @Setter(onMethod_ = @Inject)
-    private DomainConverter domainConverter;
-
-    @Setter(onMethod_ = @Inject)
-    private PlanEntityRepo planEntityRepo;
+    private PlanRepository planRepository;
 
     /**
      * worker注册
      */
     @Operation(summary = "worker注册")
-    @PostMapping("/api/v1/rpc/worker")
+    @PostMapping("/api/rpc/v1/worker")
     public ResponseDTO<WorkerRegisterDTO> register(@Validated @RequestBody WorkerRegisterParam param) {
         return ResponseDTO.<WorkerRegisterDTO>builder().ok(workerService.register(param)).build();
     }
@@ -84,33 +72,31 @@ public class WorkerRpcController {
      * worker心跳
      */
     @Operation(summary = "worker心跳")
-    @PostMapping("/api/v1/rpc/worker/{workerId}/heartbeat")
+    @PostMapping("/api/rpc/v1/worker/{workerId}/heartbeat")
     public ResponseDTO<WorkerRegisterDTO> heartbeat(@Validated @NotNull(message = "no workerId") @PathVariable("workerId") String workerId,
                                                     @Valid @RequestBody WorkerHeartbeatParam heartbeatOption) {
         return ResponseDTO.<WorkerRegisterDTO>builder().ok(workerService.heartbeat(workerId, heartbeatOption)).build();
     }
 
     /**
-     * api 触发对应plan
+     * api 触发对应plan调度
      */
-    @Operation(summary = "触发对应job调度")
-    @PostMapping("/api/v1/rpc/worker/plan/{planId}/schedule")
+    @Operation(summary = "触发对应plan调度")
+    @PostMapping("/api/rpc/v1/worker/plan/{planId}/schedule")
     public ResponseDTO<Void> scheduleJob(@Validated @NotNull(message = "no planId") @PathVariable("planId") String planId) {
-        PlanEntity planEntity = planEntityRepo.findById(planId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN + planId));
-        Plan plan = domainConverter.toPlan(planEntity);
+        Plan plan = planRepository.get(planId);
         scheduleStrategy.schedule(TriggerType.API, plan, TimeUtils.currentLocalDateTime());
         return ResponseDTO.<Void>builder().ok().build();
     }
 
     /**
-     * api 触发对应job调度
+     * api 触发对应planInstanceId下的job调度 目前只有workflow类型会用到
      */
     @Operation(summary = "触发对应job调度")
-    @PostMapping("/api/v1/rpc/worker/plan/{planId}/instance/{planInstanceId}/job/{jobId}/schedule")
-    public ResponseDTO<Void> scheduleJob(@Validated @NotNull(message = "no planId") @PathVariable("planId") String planId,
-                                      @Validated @NotNull(message = "no planInstanceId") @PathVariable("planInstanceId") String planInstanceId,
-                                      @Validated @NotNull(message = "no jobId") @PathVariable("jobId") String jobId) {
-        scheduleStrategy.apiScheduleJob(planId, planInstanceId, jobId);
+    @PostMapping("/api/rpc/v1/worker/plan-instance/{planInstanceId}/job/{jobId}/schedule")
+    public ResponseDTO<Void> scheduleJob(@Validated @NotNull(message = "no planInstanceId") @PathVariable("planInstanceId") String planInstanceId,
+                                         @Validated @NotNull(message = "no jobId") @PathVariable("jobId") String jobId) {
+        scheduleStrategy.scheduleJob(planInstanceId, jobId, false);
         return ResponseDTO.<Void>builder().ok().build();
     }
 
@@ -118,10 +104,10 @@ public class WorkerRpcController {
      * 任务执行反馈接口
      */
     @Operation(summary = "任务执行反馈接口")
-    @PostMapping("/api/v1/rpc/worker/task/{taskId}/feedback")
+    @PostMapping("/api/rpc/v1/worker/task/{taskId}/feedback")
     public ResponseDTO<Void> feedback(@Validated @NotNull(message = "no taskId") @PathVariable("taskId") String taskId,
                                       @Valid @RequestBody TaskFeedbackParam feedback) {
-        taskService.taskFeedback(taskId, feedback);
+        scheduleStrategy.taskFeedback(taskId, feedback);
         return ResponseDTO.<Void>builder().ok().build();
     }
 

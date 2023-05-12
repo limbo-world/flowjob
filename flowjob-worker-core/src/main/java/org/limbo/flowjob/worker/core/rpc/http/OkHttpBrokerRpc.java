@@ -34,8 +34,8 @@ import org.limbo.flowjob.api.remote.dto.BrokerTopologyDTO;
 import org.limbo.flowjob.api.remote.dto.WorkerRegisterDTO;
 import org.limbo.flowjob.api.remote.param.TaskFeedbackParam;
 import org.limbo.flowjob.api.remote.param.WorkerRegisterParam;
-import org.limbo.flowjob.common.constants.MsgConstants;
-import org.limbo.flowjob.common.constants.Protocol;
+import org.limbo.flowjob.api.constants.MsgConstants;
+import org.limbo.flowjob.api.constants.Protocol;
 import org.limbo.flowjob.common.lb.LBServerRepository;
 import org.limbo.flowjob.common.lb.LBStrategy;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -137,7 +137,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
 
         // 移除接口返回中不存在的，这批节点已经下线
         Set<HttpUrl> realtime = topo.getBrokers().stream()
-                .map(b -> new HttpUrl.Builder().scheme(DEFAULT_PROTOCOL.protocol).host(b.getHost()).port(b.getPort()).build())
+                .map(b -> new HttpUrl.Builder().scheme(DEFAULT_PROTOCOL.value).host(b.getHost()).port(b.getPort()).build())
                 .collect(Collectors.toSet());
         List<BrokerNode> brokerNodes = repository.listAliveServers().stream().filter(b -> realtime.contains(HttpUrl.get(b.getUrl()))).collect(Collectors.toList());
 

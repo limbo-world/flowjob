@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.broker.core.worker;
 
-import org.limbo.flowjob.common.constants.WorkerStatus;
+import org.limbo.flowjob.api.constants.WorkerStatus;
 
 import javax.annotation.Nullable;
 import java.util.List;

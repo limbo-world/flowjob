@@ -20,11 +20,11 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.common.constants.Protocol;
+import org.limbo.flowjob.api.constants.Protocol;
 import org.limbo.flowjob.common.lb.LBServerRepository;
 import org.limbo.flowjob.common.lb.LBStrategy;
 import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
-import org.limbo.flowjob.common.utils.Verifies;
+import org.limbo.flowjob.common.utils.NetUtils;
 import org.limbo.flowjob.worker.core.domain.BaseWorker;
 import org.limbo.flowjob.worker.core.domain.CalculatingWorkerResource;
 import org.limbo.flowjob.worker.core.domain.Worker;
@@ -33,7 +33,6 @@ import org.limbo.flowjob.worker.core.rpc.BaseLBServerRepository;
 import org.limbo.flowjob.worker.core.rpc.BrokerNode;
 import org.limbo.flowjob.worker.core.rpc.BrokerRpc;
 import org.limbo.flowjob.worker.core.rpc.http.OkHttpBrokerRpc;
-import org.limbo.flowjob.common.utils.NetUtils;
 import org.limbo.flowjob.worker.starter.SpringDelegatedWorker;
 import org.limbo.flowjob.worker.starter.processor.ExecutorMethodProcessor;
 import org.limbo.flowjob.worker.starter.properties.WorkerProperties;
@@ -127,7 +126,9 @@ public class WorkerAutoConfiguration {
     @ConditionalOnMissingBean(BrokerRpc.class)
     public BrokerRpc brokerRpc(LBServerRepository<BrokerNode> brokerLoadBalancer, LBStrategy<BrokerNode> strategy) {
         List<URL> brokers = workerProps.getBrokers();
-        Verifies.notEmpty(brokers, "No brokers configured");
+        if (CollectionUtils.isEmpty(brokers)) {
+            throw new IllegalArgumentException("No brokers configured");
+        }
 
         // HTTP、HTTPS 协议
         String brokerProtocol = brokers.get(0).getProtocol();

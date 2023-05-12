@@ -34,6 +34,8 @@ public enum MetaTaskType {
 
     PLAN_EXECUTE_CHECK,
 
+    JOB_EXECUTE_CHECK,
+
     TASK,
 
     TASK_DISPATCH_CHECK,

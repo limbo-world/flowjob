@@ -24,7 +24,7 @@ import org.limbo.flowjob.api.remote.param.WorkerExecutorRegisterParam;
 import org.limbo.flowjob.api.remote.param.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.remote.param.WorkerRegisterParam;
 import org.limbo.flowjob.api.remote.param.WorkerResourceParam;
-import org.limbo.flowjob.common.constants.ExecuteResult;
+import org.limbo.flowjob.api.constants.ExecuteResult;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.domain.WorkerResources;
 

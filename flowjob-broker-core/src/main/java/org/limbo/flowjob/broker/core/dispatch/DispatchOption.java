@@ -29,11 +29,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
-import org.limbo.flowjob.common.constants.LoadBalanceType;
-import org.limbo.flowjob.common.constants.MsgConstants;
+import org.limbo.flowjob.api.constants.LoadBalanceType;
+import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.common.lb.LBServerStatisticsProvider;
 import org.limbo.flowjob.common.lb.LBStrategy;
-import org.limbo.flowjob.common.lb.RPCInvocation;
+import org.limbo.flowjob.common.rpc.RPCInvocation;
 import org.limbo.flowjob.common.lb.strategies.AppointLBStrategy;
 import org.limbo.flowjob.common.lb.strategies.ConsistentHashLBStrategy;
 import org.limbo.flowjob.common.lb.strategies.LFULBStrategy;
@@ -209,7 +209,7 @@ public class DispatchOption implements Serializable {
      * @author Brozen
      * @since 2023-02-01
      */
-    public static interface WorkerSelectArgument {
+    public interface WorkerSelectArgument {
 
         /**
          * 执行器名称

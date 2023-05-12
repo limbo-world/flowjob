@@ -21,7 +21,7 @@ package org.limbo.flowjob.api.console.param;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.limbo.flowjob.common.constants.TriggerType;
+import org.limbo.flowjob.api.constants.TriggerType;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -64,10 +64,11 @@ public class WorkflowJobParam extends JobParam {
 
     /**
      * 触发类型
+     * @see TriggerType
      */
     @NotNull
     @Schema(title = "触发类型")
-    private TriggerType triggerType;
+    private Integer triggerType;
 
     /**
      * 执行失败是否继续 true 会继续执行后续作业

@@ -21,9 +21,10 @@ package org.limbo.flowjob.broker.core.domain.job;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.dispatch.RetryOption;
-import org.limbo.flowjob.common.constants.JobType;
+import org.limbo.flowjob.api.constants.JobType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
 /**
@@ -44,6 +45,11 @@ public class JobInfo {
      * 类型
      */
     private JobType type;
+
+    /**
+     * 触发类型
+     */
+    private TriggerType triggerType = TriggerType.SCHEDULE;
 
     /**
      * 作业执行器配置参数

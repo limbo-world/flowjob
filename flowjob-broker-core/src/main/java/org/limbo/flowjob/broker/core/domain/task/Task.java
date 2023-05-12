@@ -27,11 +27,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
-import org.limbo.flowjob.common.constants.TaskStatus;
-import org.limbo.flowjob.common.constants.TaskType;
+import org.limbo.flowjob.api.constants.TaskStatus;
+import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -84,6 +85,8 @@ public class Task {
      * 执行器参数
      */
     private String executorName;
+
+    private LocalDateTime triggerAt;
 
     /**
      * 全局上下文

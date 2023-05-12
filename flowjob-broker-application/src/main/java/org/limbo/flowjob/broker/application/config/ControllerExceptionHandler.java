@@ -20,7 +20,7 @@ package org.limbo.flowjob.broker.application.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.ResponseDTO;
-import org.limbo.flowjob.common.exception.VerifyException;
+import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ExceptionHandler;

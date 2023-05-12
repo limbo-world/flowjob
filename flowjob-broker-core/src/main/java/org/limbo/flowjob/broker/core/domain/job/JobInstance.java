@@ -20,9 +20,8 @@ package org.limbo.flowjob.broker.core.domain.job;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.core.domain.IDType;
-import org.limbo.flowjob.common.constants.JobStatus;
-import org.limbo.flowjob.common.constants.PlanType;
+import org.limbo.flowjob.api.constants.JobStatus;
+import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
@@ -39,20 +38,25 @@ public class JobInstance implements Serializable {
 
     private static final long serialVersionUID = -7913375595969578408L;
 
-    protected String jobInstanceId;
+    private String jobInstanceId;
 
-    protected String planInstanceId;
+    private String planInstanceId;
 
-    protected String planId;
+    private String planId;
 
-    protected String planVersion;
+    private String planVersion;
 
-    protected PlanType planType;
+    private PlanType planType;
+
+    /**
+     * 当前是第几次重试
+     */
+    private int retryTimes = 1;
 
     /**
      * 触发时间
      */
-    protected LocalDateTime triggerAt;
+    private LocalDateTime triggerAt;
 
     /**
      * 全局上下文
@@ -67,17 +71,17 @@ public class JobInstance implements Serializable {
     /**
      * 开始时间
      */
-    protected LocalDateTime startAt;
+    private LocalDateTime startAt;
 
     /**
      * 结束时间
      */
-    protected LocalDateTime endAt;
+    private LocalDateTime endAt;
 
     /**
      * 状态
      */
-    protected JobStatus status;
+    private JobStatus status;
 
     /**
      * 任务信息
@@ -85,16 +89,23 @@ public class JobInstance implements Serializable {
     private JobInfo jobInfo;
 
     /**
-     * 失败是否继续
-     */
-    private boolean continueWhenFail;
-
-    /**
      * 设置为 retry 状态
      */
     public void retryReset(String id, Integer retryInterval) {
+        if (!canRetry()) {
+            throw new IllegalArgumentException("retry times limit");
+        }
         this.triggerAt = TimeUtils.currentLocalDateTime().plusSeconds(retryInterval);
         this.jobInstanceId = id;
         this.status = JobStatus.SCHEDULING;
     }
+
+    /**
+     * 是否能重试
+     * @return 是否能重试
+     */
+    public boolean canRetry() {
+        return retryTimes >= jobInfo.getRetryOption().getRetry();
+    }
+
 }

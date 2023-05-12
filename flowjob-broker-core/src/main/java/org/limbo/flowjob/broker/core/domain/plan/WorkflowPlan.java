@@ -22,9 +22,8 @@ import lombok.Getter;
 import lombok.ToString;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
-import org.limbo.flowjob.common.constants.PlanType;
-import org.limbo.flowjob.common.constants.TriggerType;
-import org.limbo.flowjob.common.utils.attribute.Attributes;
+import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.common.utils.dag.DAG;
 
 /**

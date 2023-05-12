@@ -32,10 +32,16 @@ import org.limbo.flowjob.broker.core.dispatch.TagFilterOption;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
+import org.limbo.flowjob.api.constants.JobType;
+import org.limbo.flowjob.api.constants.LoadBalanceType;
+import org.limbo.flowjob.api.constants.ScheduleType;
+import org.limbo.flowjob.api.constants.TagFilterCondition;
+import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,7 +63,7 @@ public class PlanConverter {
     public JobInfo covertJob(String id, JobParam jobParam) {
         JobInfo jobInfo = new JobInfo();
         jobInfo.setId(id);
-        jobInfo.setType(jobParam.getType());
+        jobInfo.setType(JobType.parse(jobParam.getType()));
         jobInfo.setAttributes(new Attributes(jobParam.getAttributes()));
         jobInfo.setRetryOption(convertToRetryOption(jobParam.getRetryOption()));
         jobInfo.setDispatchOption(convertJobDispatchOption(jobParam.getDispatchOption()));
@@ -83,9 +89,9 @@ public class PlanConverter {
         jobInfo.setId(param.getId());
         jobInfo.setName(param.getName());
         jobInfo.setDescription(param.getDescription());
-        jobInfo.setTriggerType(param.getTriggerType());
+        jobInfo.setTriggerType(TriggerType.parse(param.getTriggerType()));
         jobInfo.setContinueWhenFail(param.isContinueWhenFail());
-        jobInfo.setType(param.getType());
+        jobInfo.setType(JobType.parse(param.getType()));
         jobInfo.setAttributes(new Attributes(param.getAttributes()));
         jobInfo.setRetryOption(convertToRetryOption(param.getRetryOption()));
         jobInfo.setDispatchOption(convertJobDispatchOption(param.getDispatchOption()));
@@ -99,7 +105,7 @@ public class PlanConverter {
      */
     public ScheduleOption convertScheduleOption(ScheduleOptionParam param) {
         return new ScheduleOption(
-                param.getScheduleType(),
+                ScheduleType.parse(param.getScheduleType()),
                 param.getScheduleStartAt(),
                 param.getScheduleDelay(),
                 param.getScheduleInterval(),
@@ -126,7 +132,7 @@ public class PlanConverter {
      */
     public DispatchOption convertJobDispatchOption(DispatchOptionParam param) {
         return DispatchOption.builder()
-                .loadBalanceType(param.getLoadBalanceType())
+                .loadBalanceType(LoadBalanceType.parse(param.getLoadBalanceType()))
                 .cpuRequirement(param.getCpuRequirement())
                 .ramRequirement(param.getRamRequirement())
                 .tagFilters(covertTagFilterOption(param.getTagFilters()))
@@ -135,12 +141,12 @@ public class PlanConverter {
 
     public List<TagFilterOption> covertTagFilterOption(List<TagFilterParam> params) {
         if (CollectionUtils.isEmpty(params)) {
-            return null;
+            return Collections.emptyList();
         }
         return params.stream().map(param -> TagFilterOption.builder()
                 .tagName(param.getTagName())
                 .tagValue(param.getTagValue())
-                .condition(param.getCondition())
+                .condition(TagFilterCondition.parse(param.getCondition()))
                 .build()).collect(Collectors.toList());
     }
 

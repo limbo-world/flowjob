@@ -17,7 +17,7 @@
 package org.limbo.flowjob.worker.starter.properties;
 
 import lombok.Data;
-import org.limbo.flowjob.common.constants.RpcScheme;
+import org.limbo.flowjob.api.constants.RpcScheme;
 import org.limbo.flowjob.worker.starter.processor.event.WorkerReadyEvent;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -76,7 +76,7 @@ public class WorkerProperties {
     private int taskConcurrency = Runtime.getRuntime().availableProcessors();
 
     /**
-     * 任务积压队列容量。如积压队列已满，则 worker 无法继续接收任务。默认积压队列为 0，即不启用积压队列。
+     * 任务积压队列容量。如积压队列已满，则 worker 无法继续接收任务。为0情况下队列数大小等于任务执行并发数。
      */
     private int taskQueueSize = 0;
 

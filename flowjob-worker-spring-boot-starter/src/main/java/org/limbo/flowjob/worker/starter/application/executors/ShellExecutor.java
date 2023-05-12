@@ -16,8 +16,7 @@
 
 package org.limbo.flowjob.worker.starter.application.executors;
 
-import org.limbo.flowjob.common.exception.VerifyException;
-import org.limbo.flowjob.common.utils.Verifies;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.worker.core.domain.Task;
 import org.limbo.flowjob.worker.core.executor.TaskExecutor;
 import org.springframework.stereotype.Component;
@@ -45,10 +44,12 @@ public class ShellExecutor implements TaskExecutor {
         Object scriptObj = task.getJobAttribute("script");
 
         if (!(scriptObj instanceof String)) {
-            throw new VerifyException("\"script\" is null or not a String");
+            throw new IllegalArgumentException("\"script\" is null or not a String");
         }
         String script = (String) scriptObj;
-        Verifies.notBlank(script, "\"script\" is blank");
+        if (StringUtils.isBlank(script)) {
+            throw new IllegalArgumentException("\"script\" is blank");
+        }
 
         String finalScript = shellName + "\n" + script;
 

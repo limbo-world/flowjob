@@ -23,7 +23,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.limbo.flowjob.common.constants.LoadBalanceType;
+import org.limbo.flowjob.api.constants.LoadBalanceType;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
@@ -42,10 +42,11 @@ public class DispatchOptionParam {
 
     /**
      * 负载方式
+     * @see LoadBalanceType
      */
     @NotNull
     @Schema(title = "负载方式", implementation = Integer.class)
-    private LoadBalanceType loadBalanceType;
+    private Integer loadBalanceType;
 
     /**
      * 所需的CPU核心数，小于等于0表示此作业未定义CPU需求。在分发作业时，会根据此方法返回的CPU核心需求数量来检测一个worker是否有能力执行此作业。

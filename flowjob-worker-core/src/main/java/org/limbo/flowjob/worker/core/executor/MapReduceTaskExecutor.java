@@ -17,7 +17,7 @@
 package org.limbo.flowjob.worker.core.executor;
 
 
-import org.limbo.flowjob.common.constants.TaskType;
+import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.worker.core.domain.Task;
 
 /**

@@ -20,7 +20,7 @@ package org.limbo.flowjob.test.util;
 
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
-import org.limbo.flowjob.common.utils.Verifies;
+import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.dag.DAGNode;
 

@@ -25,7 +25,7 @@ import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
 import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerExecutorEntityRepo;
-import org.limbo.flowjob.common.constants.WorkerStatus;
+import org.limbo.flowjob.api.constants.WorkerStatus;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;

@@ -26,7 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.limbo.flowjob.api.console.param.PlanParam;
 import org.limbo.flowjob.broker.application.service.PlanService;
 import org.limbo.flowjob.test.support.PlanParamFactory;
-import org.limbo.flowjob.common.constants.PlanType;
+import org.limbo.flowjob.api.constants.PlanType;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 

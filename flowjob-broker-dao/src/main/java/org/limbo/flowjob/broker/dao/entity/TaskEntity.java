@@ -5,8 +5,8 @@ import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
-import org.limbo.flowjob.common.constants.TaskStatus;
-import org.limbo.flowjob.common.constants.TaskType;
+import org.limbo.flowjob.api.constants.TaskStatus;
+import org.limbo.flowjob.api.constants.TaskType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -57,13 +57,13 @@ public class TaskEntity extends BaseEntity {
      * 类型
      * @see TaskType
      */
-    private Byte type;
+    private Integer type;
 
     /**
      * 状态
      * @see TaskStatus
      */
-    private Byte status;
+    private Integer status;
 
     /**
      * 执行器名称

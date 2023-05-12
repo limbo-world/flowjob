@@ -18,7 +18,7 @@ package org.limbo.flowjob.worker.core.domain;
 
 import lombok.Data;
 import org.apache.commons.collections4.MapUtils;
-import org.limbo.flowjob.common.constants.TaskType;
+import org.limbo.flowjob.api.constants.TaskType;
 
 import java.util.HashMap;
 import java.util.List;

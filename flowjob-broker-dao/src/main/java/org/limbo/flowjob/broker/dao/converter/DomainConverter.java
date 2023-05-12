@@ -19,46 +19,30 @@
 package org.limbo.flowjob.broker.dao.converter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.core.domain.plan.SinglePlan;
+import org.limbo.flowjob.broker.core.domain.plan.NormalPlan;
 import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanScheduleTask;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.TaskScheduleTask;
-import org.limbo.flowjob.broker.core.schedule.strategy.IPlanScheduleStrategy;
-import org.limbo.flowjob.broker.core.schedule.strategy.ITaskScheduleStrategy;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
-import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
-import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
-import org.limbo.flowjob.common.constants.MsgConstants;
-import org.limbo.flowjob.common.constants.PlanType;
-import org.limbo.flowjob.common.constants.ScheduleType;
-import org.limbo.flowjob.common.constants.TaskStatus;
-import org.limbo.flowjob.common.constants.TaskType;
-import org.limbo.flowjob.common.constants.TriggerType;
-import org.limbo.flowjob.common.exception.VerifyException;
+import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.ScheduleType;
+import org.limbo.flowjob.api.constants.TaskStatus;
+import org.limbo.flowjob.api.constants.TaskType;
+import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
-import org.limbo.flowjob.common.utils.time.TimeUtils;
-import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
@@ -68,53 +52,13 @@ import java.util.List;
  * @since 2022/8/11
  */
 @Slf4j
-@Component
 public class DomainConverter {
 
-    @Setter(onMethod_ = @Inject)
-    private PlanInfoEntityRepo planInfoEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private PlanInstanceEntityRepo planInstanceEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private IPlanScheduleStrategy planScheduleStrategy;
-
-    @Setter(onMethod_ = @Inject)
-    private ITaskScheduleStrategy taskScheduleStrategy;
-
-    @Setter(onMethod_ = @Inject)
-    private MetaTaskScheduler metaTaskScheduler;
-
-    public PlanScheduleTask toPlanScheduleTask(PlanEntity entity, TriggerType triggerType) {
-        Plan plan = toPlan(entity);
-        // 获取最近一次调度的planInstance和最近一次结束的planInstance
-        ScheduleOption scheduleOption = plan.getScheduleOption();
-        PlanInstanceEntity latelyTrigger = planInstanceEntityRepo.findLatelyTrigger(entity.getPlanId(), plan.getVersion(), scheduleOption.getScheduleType().type, triggerType.type);
-        PlanInstanceEntity latelyFeedback = planInstanceEntityRepo.findLatelyFeedback(entity.getPlanId(), plan.getVersion(), scheduleOption.getScheduleType().type, triggerType.type);
-
-        LocalDateTime latelyTriggerAt = latelyTrigger == null || latelyTrigger.getTriggerAt() == null ? null : latelyTrigger.getTriggerAt().truncatedTo(ChronoUnit.SECONDS);
-        LocalDateTime latelyFeedbackAt = latelyFeedback == null || latelyFeedback.getFeedbackAt() == null ? null : latelyFeedback.getFeedbackAt().truncatedTo(ChronoUnit.SECONDS);
-
-        return new PlanScheduleTask(
-                plan,
-                latelyTriggerAt,
-                latelyFeedbackAt,
-                planScheduleStrategy,
-                metaTaskScheduler
-        );
-
-    }
-
-    public Plan toPlan(PlanEntity entity) {
-        // 获取plan 的当前版本
-        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getCurrentVersion())
-                .orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INFO + entity.getCurrentVersion()));
-
+    public static Plan toPlan(PlanEntity entity, PlanInfoEntity planInfoEntity) {
         Plan plan;
         PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
-        if (PlanType.SINGLE == planType) {
-            plan = new SinglePlan(
+        if (PlanType.NORMAL == planType) {
+            plan = new NormalPlan(
                     planInfoEntity.getPlanId(),
                     planInfoEntity.getPlanInfoId(),
                     TriggerType.parse(planInfoEntity.getTriggerType()),
@@ -196,20 +140,12 @@ public class DomainConverter {
         return task;
     }
 
-    public TaskScheduleTask toTaskScheduleTask(Task task, LocalDateTime triggerAt) {
-        return new TaskScheduleTask(task, triggerAt, taskScheduleStrategy);
-    }
-
-    public TaskScheduleTask toTaskScheduleTask(TaskEntity entity) {
-        Task task = toTask(entity);
-        return new TaskScheduleTask(task, TimeUtils.currentLocalDateTime(), taskScheduleStrategy);
-    }
-
     public static JobInstanceEntity toJobInstanceEntity(JobInstance jobInstance) {
         JobInfo jobInfo = jobInstance.getJobInfo();
         JobInstanceEntity entity = new JobInstanceEntity();
         entity.setJobId(jobInfo.getId());
         entity.setJobInstanceId(jobInstance.getJobInstanceId());
+        entity.setRetryTimes(jobInstance.getRetryTimes());
         entity.setPlanInstanceId(jobInstance.getPlanInstanceId());
         entity.setPlanId(jobInstance.getPlanId());
         entity.setPlanInfoId(jobInstance.getPlanVersion());
@@ -218,7 +154,6 @@ public class DomainConverter {
         entity.setTriggerAt(jobInstance.getTriggerAt());
         entity.setStartAt(jobInstance.getStartAt());
         entity.setEndAt(jobInstance.getEndAt());
-        entity.setContinueWhenFail(jobInstance.isContinueWhenFail());
         return entity;
     }
 

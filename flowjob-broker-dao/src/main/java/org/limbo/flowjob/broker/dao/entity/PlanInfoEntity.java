@@ -20,9 +20,9 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
-import org.limbo.flowjob.common.constants.PlanType;
-import org.limbo.flowjob.common.constants.ScheduleType;
-import org.limbo.flowjob.common.constants.TriggerType;
+import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.ScheduleType;
+import org.limbo.flowjob.api.constants.TriggerType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -74,19 +74,19 @@ public class PlanInfoEntity extends BaseEntity {
      * 计划作业类型
      * @see PlanType
      */
-    private Byte planType;
+    private Integer planType;
 
     /**
      * 计划作业调度方式
      * @see ScheduleType
      */
-    private Byte scheduleType;
+    private Integer scheduleType;
 
     /**
      * 计划作业调度方式
      * @see TriggerType
      */
-    private Byte triggerType;
+    private Integer triggerType;
 
     /**
      * 从何时开始调度作业

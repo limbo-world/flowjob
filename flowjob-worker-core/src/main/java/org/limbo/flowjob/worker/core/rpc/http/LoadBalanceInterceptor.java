@@ -28,7 +28,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.common.lb.LBServer;
 import org.limbo.flowjob.common.lb.LBServerRepository;
 import org.limbo.flowjob.common.lb.LBStrategy;
-import org.limbo.flowjob.common.lb.RPCInvocation;
+import org.limbo.flowjob.common.rpc.RPCInvocation;
 import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
 
 import java.io.IOException;

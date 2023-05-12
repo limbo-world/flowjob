@@ -27,7 +27,10 @@ import org.limbo.flowjob.api.console.param.PlanParam;
 import org.limbo.flowjob.api.remote.param.TaskFeedbackParam;
 import org.limbo.flowjob.api.remote.param.TaskSubmitParam;
 import org.limbo.flowjob.broker.application.component.SlotManager;
+import org.limbo.flowjob.broker.application.schedule.ScheduleStrategy;
+import org.limbo.flowjob.broker.application.task.PlanScheduleTask;
 import org.limbo.flowjob.broker.application.controller.WorkerRpcController;
+import org.limbo.flowjob.broker.application.converter.MetaTaskConverter;
 import org.limbo.flowjob.broker.application.service.PlanService;
 import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
@@ -36,19 +39,14 @@ import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.PlanScheduleTask;
-import org.limbo.flowjob.broker.core.schedule.strategy.IPlanScheduleStrategy;
 import org.limbo.flowjob.broker.core.worker.rpc.WorkerConverter;
-import org.limbo.flowjob.broker.dao.converter.DomainConverter;
-import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
-import org.limbo.flowjob.common.constants.JobStatus;
-import org.limbo.flowjob.common.constants.PlanType;
-import org.limbo.flowjob.common.constants.TriggerType;
-import org.limbo.flowjob.common.exception.VerifyException;
+import org.limbo.flowjob.api.constants.JobStatus;
+import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.TriggerType;
+import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.limbo.flowjob.test.support.PlanParamFactory;
@@ -81,7 +79,7 @@ public class ScheduleTest {
     private PlanService planService;
 
     @Setter(onMethod_ = @Inject)
-    private IPlanScheduleStrategy planScheduleStrategy;
+    private ScheduleStrategy scheduleStrategy;
 
     @MockBean
     private TaskDispatcher taskDispatcher;
@@ -93,10 +91,7 @@ public class ScheduleTest {
     private PlanEntityRepo planEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private TaskEntityRepo taskEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private DomainConverter domainConverter;
+    private MetaTaskConverter metaTaskConverter;
 
     @MockBean
     protected MetaTaskScheduler metaTaskScheduler;
@@ -180,8 +175,8 @@ public class ScheduleTest {
 
     @Test
 //    @Transactional
-    void testNormalSinglePlanSuccess() {
-        PlanParam param = PlanParamFactory.newFixedRateAddParam(PlanType.SINGLE);
+    void testNormalPlanSuccess() {
+        PlanParam param = PlanParamFactory.newFixedRateAddParam(PlanType.NORMAL);
         saveAndExecutePlan(TriggerType.SCHEDULE, param, 1, 1, 0);
     }
 
@@ -194,8 +189,8 @@ public class ScheduleTest {
 
     @Test
 //    @Transactional
-    void testMapReduceSinglePlanSuccess() {
-        PlanParam param = PlanParamFactory.newMapReduceAddParam(PlanType.SINGLE);
+    void testMapReducePlanSuccess() {
+        PlanParam param = PlanParamFactory.newMapReduceAddParam(PlanType.NORMAL);
         saveAndExecutePlan(TriggerType.SCHEDULE, param, 1, 1, 0);
     }
 
@@ -210,10 +205,10 @@ public class ScheduleTest {
         planService.start(id);
 
         PlanEntity planEntity = planEntityRepo.findById(id).orElse(null);
-        PlanScheduleTask planScheduleTask = domainConverter.toPlanScheduleTask(planEntity, triggerType);
+        PlanScheduleTask planScheduleTask = metaTaskConverter.toPlanScheduleTask(planEntity.getPlanId(), triggerType);
         // 调度plan 生成 task 并下发
         Plan plan = planScheduleTask.getPlan();
-        planScheduleStrategy.schedule(triggerType, plan, TimeUtils.currentLocalDateTime());
+        scheduleStrategy.schedule(triggerType, plan, TimeUtils.currentLocalDateTime());
 
         long finished = 0;
         long success = 0;
@@ -230,7 +225,7 @@ public class ScheduleTest {
                 for (WorkflowJobInfo jobInfo : nodes) {
                     if (TriggerType.API == jobInfo.getTriggerType()) {
                         try {
-                            workerRpcController.scheduleJob(id, PLAN_INSTANCE_ID, jobInfo.getId());
+                            workerRpcController.scheduleJob(PLAN_INSTANCE_ID, jobInfo.getId());
                         } catch (VerifyException e) {
                             if ("".equals(e.getMessage())) {
                                 // 不处理

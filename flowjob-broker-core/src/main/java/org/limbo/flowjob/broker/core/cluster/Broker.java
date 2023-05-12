@@ -21,7 +21,7 @@ package org.limbo.flowjob.broker.core.cluster;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.common.constants.MsgConstants;
+import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.common.utils.SHAUtils;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
@@ -83,7 +83,14 @@ public abstract class Broker {
             }
         });
         log.info("broker start!!!~~~");
+
+        afterStart();
     }
+
+    /**
+     * Broker启动的主要事件执行后，后置处理
+     */
+    protected abstract void afterStart();
 
     /**
      * 停止

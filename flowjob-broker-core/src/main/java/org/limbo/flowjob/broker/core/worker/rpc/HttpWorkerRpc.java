@@ -56,11 +56,11 @@ public abstract class HttpWorkerRpc extends AbstractWorkerRpc {
      */
     private URL baseUrl() {
         try {
-            return new URL(protocol().protocol, host(), port(), "");
+            return new URL(protocol().value, host(), port(), "");
         } catch (MalformedURLException ignore) {
-            log.error("wrong RPC param：protocol={} host={} port={}", protocol().protocol, host(), port());
+            log.error("wrong RPC param：protocol={} host={} port={}", protocol().value, host(), port());
             throw new IllegalArgumentException("wrong RPC param：protocol="
-                    + protocol().protocol + " host=" + host() + " port=" + port());
+                    + protocol().value + " host=" + host() + " port=" + port());
         }
     }
 
@@ -71,7 +71,7 @@ public abstract class HttpWorkerRpc extends AbstractWorkerRpc {
     private URL toURL(String api) {
         return URL_CACHE.computeIfAbsent(api, newApi -> {
             try {
-                return new URL(protocol().protocol, host(), port(), newApi);
+                return new URL(protocol().value, host(), port(), newApi);
             } catch (MalformedURLException ignore) {
                 log.error("unexpected URL form while worker RPC：{}", newApi);
                 throw new IllegalArgumentException("unexpected URL form while worker RPC：" + newApi);

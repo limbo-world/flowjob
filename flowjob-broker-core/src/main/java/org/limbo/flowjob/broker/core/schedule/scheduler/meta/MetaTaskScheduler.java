@@ -24,6 +24,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Brozen
@@ -34,8 +35,8 @@ public class MetaTaskScheduler extends HashedWheelTimerScheduler<MetaTask> {
 
     private final Map<MetaTaskType, Map<String, MetaTask>> scheduling;
 
-    public MetaTaskScheduler() {
-        super();
+    public MetaTaskScheduler(long tickDuration, TimeUnit unit) {
+        super(tickDuration, unit);
         this.scheduling = new EnumMap<>(MetaTaskType.class);
         for (MetaTaskType type : MetaTaskType.values()) {
             this.scheduling.put(type, new ConcurrentHashMap<>());

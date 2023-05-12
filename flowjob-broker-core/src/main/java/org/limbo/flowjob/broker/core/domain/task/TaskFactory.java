@@ -19,16 +19,18 @@
 package org.limbo.flowjob.broker.core.domain.task;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.api.constants.TaskStatus;
+import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
-import org.limbo.flowjob.common.constants.TaskStatus;
-import org.limbo.flowjob.common.constants.TaskType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -83,7 +85,7 @@ public class TaskFactory {
 
         public abstract List<Task> tasks(JobInstance instance);
 
-        protected Task initTask(TaskType type, JobInstance instance, String workerId) {
+        protected Task initTask(TaskType type, JobInstance instance, String workerId, LocalDateTime triggerAt) {
             JobInfo jobInfo = instance.getJobInfo();
             Task task = new Task();
             task.setTaskId(idGenerator.generateId(IDType.TASK));
@@ -99,6 +101,7 @@ public class TaskFactory {
             task.setContext(instance.getContext());
             task.setJobAttributes(instance.getJobAttributes());
             task.setWorkerId(workerId);
+            task.setTriggerAt(triggerAt);
             return task;
         }
 
@@ -111,7 +114,7 @@ public class TaskFactory {
 
         @Override
         public List<Task> tasks(JobInstance instance) {
-            Task task = initTask(TaskType.NORMAL, instance, null);
+            Task task = initTask(TaskType.NORMAL, instance, null, instance.getTriggerAt());
             return Collections.singletonList(task);
         }
 
@@ -137,7 +140,7 @@ public class TaskFactory {
             }
             List<Task> tasks = new ArrayList<>();
             for (Worker worker : workers) {
-                Task task = initTask(TaskType.BROADCAST, instance, worker.getId());
+                Task task = initTask(TaskType.BROADCAST, instance, worker.getId(), instance.getTriggerAt());
                 tasks.add(task);
             }
             return tasks;
@@ -160,7 +163,7 @@ public class TaskFactory {
 
         @Override
         public List<Task> tasks(JobInstance instance) {
-            Task task = initTask(TaskType.SPLIT, instance, null);
+            Task task = initTask(TaskType.SPLIT, instance, null, instance.getTriggerAt());
             return Collections.singletonList(task);
         }
 
@@ -185,7 +188,7 @@ public class TaskFactory {
             TaskResult taskResult = taskManager.getTaskResults(instance.getJobInstanceId(), TaskType.SPLIT).get(0);
             List<Task> tasks = new ArrayList<>();
             for (Map<String, Object> attribute : taskResult.getSubTaskAttributes()) {
-                Task task = initTask(TaskType.MAP, instance, null);
+                Task task = initTask(TaskType.MAP, instance, null, TimeUtils.currentLocalDateTime());
                 task.setMapAttributes(new Attributes(attribute));
                 tasks.add(task);
             }
@@ -214,7 +217,7 @@ public class TaskFactory {
             for (TaskResult taskResult : taskResults) {
                 reduceAttributes.add(new Attributes(taskResult.getResultAttributes()));
             }
-            Task task = initTask(TaskType.REDUCE, instance, null);
+            Task task = initTask(TaskType.REDUCE, instance, null, TimeUtils.currentLocalDateTime());
             task.setReduceAttributes(reduceAttributes);
             return Collections.singletonList(task);
         }

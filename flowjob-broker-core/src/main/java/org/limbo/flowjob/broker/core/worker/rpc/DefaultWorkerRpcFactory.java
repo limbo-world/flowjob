@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.broker.core.worker.rpc;
 
-import org.limbo.flowjob.common.constants.Protocol;
+import org.limbo.flowjob.api.constants.Protocol;
 import org.limbo.flowjob.broker.core.worker.Worker;
 
 import java.net.URL;

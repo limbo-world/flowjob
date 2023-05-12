@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
-import org.limbo.flowjob.common.constants.ScheduleType;
+import org.limbo.flowjob.api.constants.ScheduleType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -44,18 +44,18 @@ public class PlanInstanceEntity extends BaseEntity {
     /**
      * 状态
      */
-    private Byte status;
+    private Integer status;
 
     /**
      * 触发类型
      */
-    private Byte triggerType;
+    private Integer triggerType;
 
     /**
      * 计划作业调度方式
      * @see ScheduleType
      */
-    private Byte scheduleType;
+    private Integer scheduleType;
 
     /**
      * 期望的调度触发时间

@@ -20,12 +20,7 @@ package org.limbo.flowjob.api.console.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.limbo.flowjob.common.constants.PlanType;
-import org.limbo.flowjob.common.constants.ScheduleType;
-import org.limbo.flowjob.common.constants.TriggerType;
-import org.limbo.flowjob.common.constants.WorkerStatus;
-
-import java.time.LocalDateTime;
+import org.limbo.flowjob.api.constants.WorkerStatus;
 
 /**
  * @author KaiFengCai
@@ -55,7 +50,7 @@ public class WorkerVO {
      * @see WorkerStatus
      */
     @Schema(title = "节点状态")
-    private Byte status;
+    private Integer status;
 
     /**
      * 是否启用 不启用则不会进行任务下发

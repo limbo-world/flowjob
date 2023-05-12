@@ -41,10 +41,10 @@ public interface WorkerEntityRepo extends JpaRepository<WorkerEntity, String>, J
     /**
      * 根据状态查询未删除worker
      */
-    List<WorkerEntity> findByStatusAndEnabledAndDeleted(Byte status, boolean enabled, boolean deleted);
+    List<WorkerEntity> findByStatusAndEnabledAndDeleted(Integer status, boolean enabled, boolean deleted);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update WorkerEntity set status = :newStatus where workerId = :workerId and status = :oldStatus ")
-    int updateStatus(@Param("workerId") String workerId, @Param("oldStatus") Byte oldStatus, @Param("newStatus") Byte newStatus);
+    int updateStatus(@Param("workerId") String workerId, @Param("oldStatus") Integer oldStatus, @Param("newStatus") Integer newStatus);
 
 }

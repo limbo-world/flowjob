@@ -20,7 +20,7 @@ package org.limbo.flowjob.api.console.param;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.limbo.flowjob.common.constants.JobType;
+import org.limbo.flowjob.api.constants.JobType;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -37,10 +37,11 @@ public class JobParam {
 
     /**
      * 作业类型
+     * @see JobType
      */
     @NotNull
     @Schema(title = "作业类型")
-    private JobType type;
+    private Integer type;
 
     /**
      * 属性参数

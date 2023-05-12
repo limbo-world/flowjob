@@ -19,7 +19,7 @@
 package org.limbo.flowjob.broker.core.cluster;
 
 import lombok.Data;
-import org.limbo.flowjob.common.constants.RpcScheme;
+import org.limbo.flowjob.api.constants.RpcScheme;
 
 /**
  * @author Devil

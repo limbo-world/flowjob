@@ -23,7 +23,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.limbo.flowjob.common.constants.TagFilterCondition;
+import org.limbo.flowjob.api.constants.TagFilterCondition;
 
 /**
  * @author Devil
@@ -48,7 +48,8 @@ public class TagFilterParam {
 
     /**
      * 匹配条件
+     * @see TagFilterCondition
      */
-    private TagFilterCondition condition;
+    private Integer condition;
 
 }

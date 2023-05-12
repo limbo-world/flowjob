@@ -18,10 +18,10 @@
 
 package org.limbo.flowjob.worker.starter.application.controllers;
 
+import com.google.common.base.VerifyException;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.api.constants.HttpStatus;
 import org.limbo.flowjob.api.ResponseDTO;
-import org.limbo.flowjob.common.exception.VerifyException;
+import org.limbo.flowjob.api.constants.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.support.WebExchangeBindException;
 

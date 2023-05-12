@@ -20,11 +20,10 @@ package org.limbo.flowjob.api.console.param;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.limbo.flowjob.common.constants.PlanType;
-import org.limbo.flowjob.common.constants.TriggerType;
+import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.TriggerType;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
@@ -53,17 +52,19 @@ public class PlanParam implements Serializable {
 
     /**
      * 计划类型
+     * @see PlanType
      */
     @NotNull
     @Schema(title = "任务类型", implementation = Integer.class)
-    private PlanType planType;
+    private Integer planType;
 
     /**
      * 触发方式
+     * @see TriggerType
      */
     @NotNull
     @Schema(title = "触发方式", implementation = Integer.class)
-    private TriggerType triggerType;
+    private Integer triggerType;
 
     /**
      * 作业计划调度配置参数

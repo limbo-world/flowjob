@@ -28,6 +28,8 @@ import org.limbo.flowjob.broker.core.schedule.Calculated;
 import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.core.schedule.calculator.ScheduleCalculatorFactory;
+import org.limbo.flowjob.api.constants.MsgConstants;
+import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.LocalDateTime;
@@ -90,6 +92,11 @@ public abstract class LoopMetaTask implements MetaTask, Calculated {
      */
     @Override
     public void execute() {
+        if (scheduleOption == null || scheduleOption.getScheduleType() == null || ScheduleType.UNKNOWN == scheduleOption.getScheduleType()) {
+            log.error("{} scheduleType is {} scheduleOption={}", scheduleId(), MsgConstants.UNKNOWN, scheduleOption);
+            return;
+        }
+
         switch (scheduleOption.getScheduleType()) {
             case FIXED_RATE:
             case CRON:

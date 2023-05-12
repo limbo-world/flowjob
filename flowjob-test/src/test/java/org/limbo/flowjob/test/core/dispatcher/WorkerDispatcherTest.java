@@ -31,7 +31,7 @@ import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
-import org.limbo.flowjob.common.constants.WorkerStatus;
+import org.limbo.flowjob.api.constants.WorkerStatus;
 import org.limbo.flowjob.common.lb.LBServerStatistics;
 import org.limbo.flowjob.common.lb.LBServerStatisticsProvider;
 import org.limbo.flowjob.common.lb.strategies.AppointLBStrategy;

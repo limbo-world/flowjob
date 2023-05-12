@@ -30,6 +30,7 @@ import org.limbo.flowjob.common.utils.time.TimeUtils;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Devil
@@ -37,6 +38,8 @@ import java.time.format.DateTimeFormatter;
  */
 @Slf4j
 class MetaTaskTest {
+
+    MetaTaskScheduler metaTaskScheduler = new MetaTaskScheduler(1000L, TimeUnit.SECONDS);
 
     @Test
     void testTime() {
@@ -53,7 +56,6 @@ class MetaTaskTest {
     @Test
     void testFixDelay() throws InterruptedException {
         log.info("start test {}", TimeUtils.currentLocalDateTime());
-        MetaTaskScheduler metaTaskScheduler = new MetaTaskScheduler();
         metaTaskScheduler.schedule(new FixDelayMetaTask(Duration.ofMillis(5000), metaTaskScheduler) {
 
             @Override
@@ -84,7 +86,6 @@ class MetaTaskTest {
     @Test
     void testFixRate() throws InterruptedException {
         log.info("start test {}", TimeUtils.currentLocalDateTime());
-        MetaTaskScheduler metaTaskScheduler = new MetaTaskScheduler();
         metaTaskScheduler.schedule(new FixRateMetaTask(Duration.ofMillis(5000), metaTaskScheduler) {
 
             @Override

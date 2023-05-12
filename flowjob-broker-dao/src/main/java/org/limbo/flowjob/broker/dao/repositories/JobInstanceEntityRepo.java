@@ -18,8 +18,10 @@
 
 package org.limbo.flowjob.broker.dao.repositories;
 
+import org.limbo.flowjob.api.constants.ConstantsPool;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
-import org.limbo.flowjob.common.constants.ConstantsPool;
+import org.limbo.flowjob.broker.dao.entity.PlanEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -35,16 +37,16 @@ import java.util.List;
  */
 public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, String> {
 
-    long countByPlanInstanceIdAndStatusIn(String planInstanceId, List<Byte> statuses);
-
-//    @Query(value = "select * from flowjob_job_instance where jobInstance_id = :jobInstanceId for update", nativeQuery = true)
-//    JobInstanceEntity selectForUpdate(@Param("jobInstanceId") String jobInstanceId);
+    long countByPlanInstanceIdAndStatusIn(String planInstanceId, List<Integer> statuses);
 
     List<JobInstanceEntity> findByPlanInstanceIdAndJobIdIn(String planInstanceId, List<String> jobIds);
 
-    long countByPlanInstanceIdAndJobId(String planInstanceId, String jobId);
+    List<JobInstanceEntity> findByPlanIdInAndTriggerAtLessThanEqualAndStatus(List<String> planIds, LocalDateTime triggerAt, Integer status);
 
     List<JobInstanceEntity> findByPlanInstanceId(String planInstanceId);
+
+    @Query(value = "select * from flowjob_job_instance where plan_instance_id = :planInstanceId and  job_id = :jobId order by trigger_at desc limit 1", nativeQuery = true)
+    JobInstanceEntity findByLatest(@Param("planInstanceId") String planInstanceId, @Param("jobId") String jobId);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity " +

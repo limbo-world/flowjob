@@ -5,17 +5,13 @@
     <parent>
         <artifactId>flowjob</artifactId>
         <groupId>io.github.limbo-world</groupId>
-        <version>${flowjob.deploy.version}</version>
+        <version>1.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>flowjob-api</artifactId>
+    <version>1.1.0</version>
 
     <dependencies>
-        <dependency>
-            <groupId>io.github.limbo-world</groupId>
-            <artifactId>flowjob-common</artifactId>
-        </dependency>
-
         <!-- validation -->
         <dependency>
             <groupId>javax.validation</groupId>
@@ -29,6 +25,29 @@
             <artifactId>swagger-annotations</artifactId>
             <scope>provided</scope>
         </dependency>
+
+        <!-- json -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
+
+        <!-- utils -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+        </dependency>
+
+        <!-- lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>

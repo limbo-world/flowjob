@@ -23,7 +23,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.limbo.flowjob.common.constants.ExecuteResult;
+import org.limbo.flowjob.api.constants.ExecuteResult;
 
 import javax.validation.constraints.NotNull;
 import java.util.HashMap;
@@ -48,7 +48,7 @@ public class TaskFeedbackParam {
      */
     @NotNull(message = "result can't be null")
     @Schema(description = "执行结果，参考枚举 ExecuteResult")
-    private Byte result;
+    private Integer result;
 
     /**
      * 执行失败时候返回的信息

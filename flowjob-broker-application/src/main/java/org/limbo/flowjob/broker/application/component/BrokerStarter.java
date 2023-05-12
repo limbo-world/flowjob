@@ -51,9 +51,7 @@ public class BrokerStarter extends Broker implements ApplicationEventPublisherAw
     }
 
     @Override
-    public void start() {
-        super.start();
-
+    protected void afterStart() {
         // 启动所有元任务调度
         metaTasks.forEach(metaTaskScheduler::schedule);
 

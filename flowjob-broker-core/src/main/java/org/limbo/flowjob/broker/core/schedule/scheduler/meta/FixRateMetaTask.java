@@ -17,7 +17,7 @@
 package org.limbo.flowjob.broker.core.schedule.scheduler.meta;
 
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
-import org.limbo.flowjob.common.constants.ScheduleType;
+import org.limbo.flowjob.api.constants.ScheduleType;
 
 import java.time.Duration;
 

@@ -17,6 +17,7 @@
 package org.limbo.flowjob.worker.core.executor;
 
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.worker.core.domain.Task;
 
 import java.util.List;
@@ -34,7 +35,15 @@ public interface MapTaskExecutor extends TaskExecutor {
     default void run(Task task) {
         switch (task.getType()) {
             case SPLIT:
-                task.setResult(split(task));
+                List<Map<String, Object>> subTasks = split(task);
+                if (CollectionUtils.isEmpty(subTasks)) {
+                    throw new IllegalArgumentException("sub task empty");
+                }
+                int maxSize = 100;
+                if (subTasks.size() > maxSize) {
+                    throw new IllegalArgumentException("sub task size > " + maxSize);
+                }
+                task.setResult(subTasks);
                 break;
             case MAP:
                 task.setResult(map(task));

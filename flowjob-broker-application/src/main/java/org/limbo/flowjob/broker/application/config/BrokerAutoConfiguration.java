@@ -53,9 +53,6 @@ import javax.inject.Inject;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -135,33 +132,11 @@ public class BrokerAutoConfiguration {
     }
 
     /**
-     * 元任务调度器
+     * 元任务调度器 目前支持秒级任务
      */
     @Bean
     public MetaTaskScheduler metaTaskScheduler() {
-        return new MetaTaskScheduler();
-    }
-
-    @Bean
-    public ExecutorService planSchedulePool() {
-        return new ThreadPoolExecutor(
-                Runtime.getRuntime().availableProcessors() * 4,
-                Runtime.getRuntime().availableProcessors() * 4,
-                60,
-                TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(256),
-                new ThreadPoolExecutor.CallerRunsPolicy());
-    }
-
-    @Bean
-    public ExecutorService taskSchedulePool() {
-        return new ThreadPoolExecutor(
-                Runtime.getRuntime().availableProcessors() * 8,
-                Runtime.getRuntime().availableProcessors() * 8,
-                60,
-                TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(1024),
-                new ThreadPoolExecutor.CallerRunsPolicy());
+        return new MetaTaskScheduler(1000L, TimeUnit.MILLISECONDS);
     }
 
     @Bean

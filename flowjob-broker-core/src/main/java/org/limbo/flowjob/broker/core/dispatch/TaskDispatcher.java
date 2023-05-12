@@ -26,7 +26,7 @@ import org.limbo.flowjob.broker.core.exceptions.JobDispatchException;
 import org.limbo.flowjob.broker.core.statistics.WorkerStatisticsRepository;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
-import org.limbo.flowjob.common.constants.TaskStatus;
+import org.limbo.flowjob.api.constants.TaskStatus;
 
 import java.util.List;
 import java.util.Objects;

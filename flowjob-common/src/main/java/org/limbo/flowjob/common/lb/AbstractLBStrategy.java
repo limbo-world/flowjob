@@ -21,7 +21,6 @@ package org.limbo.flowjob.common.lb;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Optional;
 

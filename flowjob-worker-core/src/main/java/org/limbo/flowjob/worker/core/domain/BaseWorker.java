@@ -20,7 +20,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.common.utils.SHAUtils;
-import org.limbo.flowjob.common.utils.Verifies;
 import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.executor.NamedThreadFactory;
 import org.limbo.flowjob.worker.core.executor.TaskExecutor;
@@ -46,7 +45,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -115,7 +113,7 @@ public class BaseWorker implements Worker {
      */
     public BaseWorker(String name, URL baseURL, WorkerResources resource, BrokerRpc brokerRpc) {
         Objects.requireNonNull(baseURL, "URL can't be null");
-        Verifies.notNull(brokerRpc, "remote client can't be null");
+        Objects.requireNonNull(brokerRpc, "remote client can't be null");
 
         this.name = StringUtils.isBlank(name) ? SHAUtils.sha1AndHex(baseURL.toString()).toUpperCase() : name;
         this.rpcBaseURL = baseURL;
@@ -169,8 +167,10 @@ public class BaseWorker implements Worker {
      */
     @Override
     public void addExecutor(TaskExecutor executor) {
-        Verifies.notNull(executor, "Executor can't be null");
-        Verifies.notBlank(executor.getName());
+        Objects.requireNonNull(executor, "Executor can't be null");
+        if (StringUtils.isBlank(executor.getName())) {
+            throw new IllegalArgumentException("Executor.Name can't be null");
+        }
         this.executors.put(executor.getName(), executor);
     }
 
@@ -296,14 +296,13 @@ public class BaseWorker implements Worker {
 
         // 找到执行器，校验是否存在
         TaskExecutor executor = executors.get(task.getExecutorName());
-        Verifies.notNull(executor, "Unsupported executor: " + task.getExecutorName());
+        Objects.requireNonNull(executor, "Unsupported executor: " + task.getExecutorName());
 
         TaskRepository taskRepository = this.resource.taskRepository();
         int availableQueueSize = this.resource.availableQueueSize();
-        Verifies.verify(
-                taskRepository.count() < availableQueueSize,
-                "Worker's queue is full, limit: " + availableQueueSize
-        );
+        if (taskRepository.count() >= availableQueueSize) {
+            throw new IllegalArgumentException("Worker's queue is full, limit: " + availableQueueSize);
+        }
 
         // 存储任务，并判断是否重复接收任务
         ExecuteContext context = new ExecuteContext(taskRepository, executor, brokerRpc, task);

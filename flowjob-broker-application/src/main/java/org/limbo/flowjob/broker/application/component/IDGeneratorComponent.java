@@ -26,8 +26,8 @@ import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.dao.entity.IdEntity;
 import org.limbo.flowjob.broker.dao.repositories.IdEntityRepo;
-import org.limbo.flowjob.common.constants.MsgConstants;
-import org.limbo.flowjob.common.utils.Verifies;
+import org.limbo.flowjob.api.constants.MsgConstants;
+import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
