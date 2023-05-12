@@ -1,0 +1,28 @@
+spring:
+  profiles:
+    active: dev
+
+  application:
+    name: flowjob-broker
+
+  flyway:
+    baseline-on-migrate: true # 线上可能由于DDL权限等问题，需要关闭flyway功能
+    baseline-version: 0
+
+# log
+logging:
+  config: classpath:log4j2.xml
+
+# 配置 https://springdoc.org/#springdoc-openapi-core-properties
+# 注解 https://springdoc.org/#migrating-from-springfox
+# 访问 http://server:port/api-docs.html
+springdoc:
+  swagger-ui:
+    path: /api-docs.html
+  api-docs:
+    path: /api-docs
+#  group-configs:
+#    - group: admin
+#      pathsToMatch: /api/admin/**
+#    - group: sdk
+#      pathsToMatch: /api/sdk/**

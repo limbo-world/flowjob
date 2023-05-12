@@ -6,20 +6,20 @@
 
     <groupId>io.github.limbo-world</groupId>
     <artifactId>flowjob</artifactId>
-    <version>${flowjob.deploy.version}</version>
+    <version>1.1.0</version>
     <packaging>pom</packaging>
     <description>flow-job调度框架</description>
 
     <modules>
-        <module>api</module>
-        <module>common</module>
-        <module>broker-core</module>
-        <module>broker-dao</module>
-        <module>broker-application</module>
-        <module>test</module>
-        <module>worker-core</module>
-        <module>worker-spring-boot-starter</module>
-        <module>worker-spring-boot-demo</module>
+        <module>flowjob-api</module>
+        <module>flowjob-common</module>
+        <module>flowjob-test</module>
+        <module>flowjob-broker-core</module>
+        <module>flowjob-broker-dao</module>
+        <module>flowjob-broker-application</module>
+        <module>flowjob-worker-core</module>
+        <module>flowjob-worker-spring-boot-starter</module>
+        <module>flowjob-worker-spring-boot-demo</module>
     </modules>
 
     <organization>
@@ -63,7 +63,6 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <flowjob.deploy.version>1.0.1</flowjob.deploy.version>
         <spring.boot>2.4.6</spring.boot>
         <spring.doc>1.5.6</spring.doc>
         <swagger>2.1.7</swagger>
@@ -76,8 +75,6 @@
         <jsr330>1</jsr330>
         <commons.io>2.6</commons.io>
         <commons.collections4>4.4</commons.collections4>
-        <junit>4.13.1</junit>
-        <mockito>3.6.28</mockito>
         <commons.lang3>3.11</commons.lang3>
         <guava>31.1-jre</guava>
         <cron>9.1.6</cron>
@@ -89,22 +86,12 @@
             <dependency>
                 <groupId>io.github.limbo-world</groupId>
                 <artifactId>flowjob-common</artifactId>
-                <version>${flowjob.deploy.version}</version>
+                <version>1.1.0</version>
             </dependency>
             <dependency>
                 <groupId>io.github.limbo-world</groupId>
                 <artifactId>flowjob-api</artifactId>
-                <version>${flowjob.deploy.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.github.limbo-world</groupId>
-                <artifactId>flowjob-worker-core</artifactId>
-                <version>${flowjob.deploy.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.github.limbo-world</groupId>
-                <artifactId>flowjob-worker-spring-boot-starter</artifactId>
-                <version>${flowjob.deploy.version}</version>
+                <version>1.1.0</version>
             </dependency>
             <!-- BOM End-->
 
@@ -225,20 +212,6 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava}</version>
-            </dependency>
-
-            <!-- 单元测试 -->
-            <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>${junit}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.mockito</groupId>
-                <artifactId>mockito-core</artifactId>
-                <version>${mockito}</version>
-                <scope>test</scope>
             </dependency>
 
         </dependencies>
