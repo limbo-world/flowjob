@@ -48,7 +48,7 @@ public class TaskFeedbackParam {
      */
     @NotNull(message = "result can't be null")
     @Schema(description = "执行结果，参考枚举 ExecuteResult")
-    private Integer result;
+    private ExecuteResult result;
 
     /**
      * 执行失败时候返回的信息

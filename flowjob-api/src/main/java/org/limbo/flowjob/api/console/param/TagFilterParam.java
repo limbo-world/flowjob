@@ -50,6 +50,6 @@ public class TagFilterParam {
      * 匹配条件
      * @see TagFilterCondition
      */
-    private Integer condition;
+    private TagFilterCondition condition;
 
 }

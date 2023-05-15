@@ -24,8 +24,6 @@ package org.limbo.flowjob.api.remote.constants;
  */
 public interface HttpWorkerApi {
 
-    String API_PING = "/api/worker/v1/ping";
-
-    String API_SEND_TASK = "/api/v1/rpc/worker/task";
+    String API_SEND_TASK = "/api/rpc/v1/task";
 
 }

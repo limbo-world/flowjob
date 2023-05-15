@@ -41,7 +41,7 @@ public class JobParam {
      */
     @NotNull
     @Schema(title = "作业类型")
-    private Integer type;
+    private JobType type;
 
     /**
      * 属性参数

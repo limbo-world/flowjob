@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.api.console.vo;
+package org.limbo.flowjob.api.console.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -32,7 +32,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @Schema(title = "任务对象")
-public class PlanVO {
+public class PlanDTO {
 
     @Schema(title = "id")
     private String planId;

@@ -46,7 +46,7 @@ public class ScheduleOptionParam {
      */
     @Schema(title = "调度方式", implementation = Integer.class)
     @NotNull
-    private Integer scheduleType;
+    private ScheduleType scheduleType;
 
     /**
      * 调度开始时间，从此时间开始执行调度。

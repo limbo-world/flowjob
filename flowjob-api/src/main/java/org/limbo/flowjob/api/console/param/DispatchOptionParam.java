@@ -46,7 +46,7 @@ public class DispatchOptionParam {
      */
     @NotNull
     @Schema(title = "负载方式", implementation = Integer.class)
-    private Integer loadBalanceType;
+    private LoadBalanceType loadBalanceType;
 
     /**
      * 所需的CPU核心数，小于等于0表示此作业未定义CPU需求。在分发作业时，会根据此方法返回的CPU核心需求数量来检测一个worker是否有能力执行此作业。

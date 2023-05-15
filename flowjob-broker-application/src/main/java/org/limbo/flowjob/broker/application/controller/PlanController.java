@@ -28,7 +28,7 @@ import org.limbo.flowjob.api.PageDTO;
 import org.limbo.flowjob.api.ResponseDTO;
 import org.limbo.flowjob.api.console.param.PlanParam;
 import org.limbo.flowjob.api.console.param.PlanQueryParam;
-import org.limbo.flowjob.api.console.vo.PlanVO;
+import org.limbo.flowjob.api.console.dto.PlanDTO;
 import org.limbo.flowjob.broker.application.service.PlanService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,7 +36,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
@@ -102,8 +101,8 @@ public class PlanController {
      */
     @Operation(summary = "计划列表")
     @GetMapping("/api/v1/plan")
-    public ResponseDTO<PageDTO<PlanVO>> page(PlanQueryParam param) {
-        return ResponseDTO.<PageDTO<PlanVO>>builder().ok(planService.page(param)).build();
+    public ResponseDTO<PageDTO<PlanDTO>> page(PlanQueryParam param) {
+        return ResponseDTO.<PageDTO<PlanDTO>>builder().ok(planService.page(param)).build();
     }
 
 }

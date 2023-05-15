@@ -132,7 +132,7 @@ public class PlanConverter {
      */
     public DispatchOption convertJobDispatchOption(DispatchOptionParam param) {
         return DispatchOption.builder()
-                .loadBalanceType(LoadBalanceType.parse(param.getLoadBalanceType()))
+                .loadBalanceType(param.getLoadBalanceType())
                 .cpuRequirement(param.getCpuRequirement())
                 .ramRequirement(param.getRamRequirement())
                 .tagFilters(covertTagFilterOption(param.getTagFilters()))

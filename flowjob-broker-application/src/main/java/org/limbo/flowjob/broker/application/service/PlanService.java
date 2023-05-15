@@ -27,7 +27,7 @@ import org.limbo.flowjob.api.PageDTO;
 import org.limbo.flowjob.api.console.param.PlanParam;
 import org.limbo.flowjob.api.console.param.PlanQueryParam;
 import org.limbo.flowjob.api.console.param.ScheduleOptionParam;
-import org.limbo.flowjob.api.console.vo.PlanVO;
+import org.limbo.flowjob.api.console.dto.PlanDTO;
 import org.limbo.flowjob.broker.application.component.SlotManager;
 import org.limbo.flowjob.broker.application.converter.PlanConverter;
 import org.limbo.flowjob.broker.application.support.JpaHelper;
@@ -201,7 +201,7 @@ public class PlanService {
         return planEntityRepo.updateEnable(planEntity.getPlanId(), true, false) == 1;
     }
 
-    public PageDTO<PlanVO> page(PlanQueryParam param) {
+    public PageDTO<PlanDTO> page(PlanQueryParam param) {
         Specification<PlanEntity> sf = (root, query, cb) -> {
             //用于添加所有查询条件
             List<Predicate> p = new ArrayList<>();
@@ -221,14 +221,14 @@ public class PlanService {
         Pageable pageable = JpaHelper.pageable(param);
         Page<PlanEntity> queryResult = planEntityRepo.findAll(sf, pageable);
         List<PlanEntity> planEntities = queryResult.getContent();
-        PageDTO<PlanVO> page = PageDTO.convertByPage(param);
+        PageDTO<PlanDTO> page = PageDTO.convertByPage(param);
         page.setTotal(queryResult.getTotalElements());
         if (CollectionUtils.isNotEmpty(planEntities)) {
             List<PlanInfoEntity> planInfoEntities = planInfoEntityRepo.findAllById(planEntities.stream().map(PlanEntity::getCurrentVersion).collect(Collectors.toList()));
             Map<String, PlanInfoEntity> planInfoEntityMap = planInfoEntities.stream().collect(Collectors.toMap(PlanInfoEntity::getPlanInfoId, e -> e));
             page.setData(planEntities.stream().map(planEntity -> {
                 PlanInfoEntity planInfoEntity = planInfoEntityMap.get(planEntity.getCurrentVersion());
-                PlanVO vo = new PlanVO();
+                PlanDTO vo = new PlanDTO();
                 vo.setPlanId(planEntity.getPlanId());
                 vo.setCurrentVersion(planEntity.getCurrentVersion());
                 vo.setRecentlyVersion(planEntity.getRecentlyVersion());

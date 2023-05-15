@@ -56,7 +56,7 @@ public class PlanParam implements Serializable {
      */
     @NotNull
     @Schema(title = "任务类型", implementation = Integer.class)
-    private Integer planType;
+    private PlanType planType;
 
     /**
      * 触发方式
@@ -64,7 +64,7 @@ public class PlanParam implements Serializable {
      */
     @NotNull
     @Schema(title = "触发方式", implementation = Integer.class)
-    private Integer triggerType;
+    private TriggerType triggerType;
 
     /**
      * 作业计划调度配置参数

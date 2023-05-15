@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.api.console.vo;
+package org.limbo.flowjob.api.console.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -28,7 +28,7 @@ import org.limbo.flowjob.api.constants.WorkerStatus;
  */
 @Data
 @Schema(title = "Worker")
-public class WorkerVO {
+public class WorkerDTO {
 
     @Schema(title = "id")
     private String workerId;

@@ -21,7 +21,7 @@ package org.limbo.flowjob.broker.application.converter;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.api.console.vo.WorkerVO;
+import org.limbo.flowjob.api.console.dto.WorkerDTO;
 import org.limbo.flowjob.api.remote.dto.BrokerDTO;
 import org.limbo.flowjob.api.remote.dto.BrokerTopologyDTO;
 import org.limbo.flowjob.api.remote.dto.WorkerRegisterDTO;
@@ -158,16 +158,16 @@ public class WorkerConverter {
         return brokerTopologyDTO;
     }
 
-    public static WorkerVO toVO(WorkerEntity workerEntity) {
-        WorkerVO workerVO = new WorkerVO();
-        workerVO.setWorkerId(workerEntity.getWorkerId());
-        workerVO.setName(workerEntity.getName());
-        workerVO.setProtocol(workerEntity.getProtocol());
-        workerVO.setHost(workerEntity.getHost());
-        workerVO.setPort(workerEntity.getPort());
-        workerVO.setStatus(workerEntity.getStatus());
-        workerVO.setEnabled(workerEntity.isEnabled());
-        return workerVO;
+    public static WorkerDTO toVO(WorkerEntity workerEntity) {
+        WorkerDTO workerDTO = new WorkerDTO();
+        workerDTO.setWorkerId(workerEntity.getWorkerId());
+        workerDTO.setName(workerEntity.getName());
+        workerDTO.setProtocol(workerEntity.getProtocol());
+        workerDTO.setHost(workerEntity.getHost());
+        workerDTO.setPort(workerEntity.getPort());
+        workerDTO.setStatus(workerEntity.getStatus());
+        workerDTO.setEnabled(workerEntity.isEnabled());
+        return workerDTO;
     }
 
 }

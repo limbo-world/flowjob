@@ -24,10 +24,9 @@ import lombok.Setter;
 import org.limbo.flowjob.api.PageDTO;
 import org.limbo.flowjob.api.ResponseDTO;
 import org.limbo.flowjob.api.console.param.WorkerQueryParam;
-import org.limbo.flowjob.api.console.vo.WorkerVO;
+import org.limbo.flowjob.api.console.dto.WorkerDTO;
 import org.limbo.flowjob.broker.application.service.WorkerService;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
@@ -45,8 +44,8 @@ public class WorkerController {
 
     @Operation(summary = "worker list")
     @GetMapping("/api/v1/worker")
-    public ResponseDTO<PageDTO<WorkerVO>> page(WorkerQueryParam param) {
-        return ResponseDTO.<PageDTO<WorkerVO>>builder().ok(workerService.page(param)).build();
+    public ResponseDTO<PageDTO<WorkerDTO>> page(WorkerQueryParam param) {
+        return ResponseDTO.<PageDTO<WorkerDTO>>builder().ok(workerService.page(param)).build();
     }
 
 }

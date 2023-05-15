@@ -24,7 +24,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.api.PageDTO;
 import org.limbo.flowjob.api.console.param.WorkerQueryParam;
-import org.limbo.flowjob.api.console.vo.WorkerVO;
+import org.limbo.flowjob.api.console.dto.WorkerDTO;
 import org.limbo.flowjob.api.remote.dto.WorkerRegisterDTO;
 import org.limbo.flowjob.api.remote.param.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.remote.param.WorkerRegisterParam;
@@ -135,7 +135,7 @@ public class WorkerService {
         return WorkerConverter.toRegisterDTO(worker, nodeManger.allAlive());
     }
 
-    public PageDTO<WorkerVO> page(WorkerQueryParam param) {
+    public PageDTO<WorkerDTO> page(WorkerQueryParam param) {
         Specification<WorkerEntity> sf = (root, query, cb) -> {
             //用于添加所有查询条件
             List<Predicate> p = new ArrayList<>();
@@ -156,7 +156,7 @@ public class WorkerService {
         Pageable pageable = JpaHelper.pageable(param);
         Page<WorkerEntity> queryResult = workerEntityRepo.findAll(sf, pageable);
         List<WorkerEntity> entities = queryResult.getContent();
-        PageDTO<WorkerVO> page = PageDTO.convertByPage(param);
+        PageDTO<WorkerDTO> page = PageDTO.convertByPage(param);
         page.setTotal(queryResult.getTotalElements());
         if (CollectionUtils.isNotEmpty(entities)) {
             page.setData(entities.stream()

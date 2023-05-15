@@ -68,7 +68,7 @@ public class WorkflowJobParam extends JobParam {
      */
     @NotNull
     @Schema(title = "触发类型")
-    private Integer triggerType;
+    private TriggerType triggerType;
 
     /**
      * 执行失败是否继续 true 会继续执行后续作业
