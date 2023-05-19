@@ -97,7 +97,7 @@ public class WorkerAutoConfiguration {
         }
 
         Assert.isTrue(port > 0, "Worker port must be a positive integer in range 1 ~ 65534");
-        URL workerBaseUrl = new URL(workerProps.getScheme().name(), host, port, "");
+        URL workerBaseUrl = new URL(workerProps.getProtocol().getValue(), host, port, "");
         BaseWorker worker = new BaseWorker(workerProps.getName(), workerBaseUrl, resources, rpc);
 
         // 将 tag 添加到 Worker

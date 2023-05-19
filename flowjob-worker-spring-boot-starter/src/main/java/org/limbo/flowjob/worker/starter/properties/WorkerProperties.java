@@ -17,7 +17,7 @@
 package org.limbo.flowjob.worker.starter.properties;
 
 import lombok.Data;
-import org.limbo.flowjob.api.constants.RpcScheme;
+import org.limbo.flowjob.api.constants.Protocol;
 import org.limbo.flowjob.worker.starter.processor.event.WorkerReadyEvent;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -51,7 +51,7 @@ public class WorkerProperties {
     /**
      * worker 注册时，向 broker 提交的 RPC 通信协议类型。默认为 http。
      */
-    private RpcScheme scheme = RpcScheme.http;
+    private Protocol protocol = Protocol.HTTP;
 
     /**
      * worker 注册时，向 broker 提交的 RPC 通信 host，可以是域名或 IP 地址，如不填写则自动发现本机非 127.0.0.1 的地址。

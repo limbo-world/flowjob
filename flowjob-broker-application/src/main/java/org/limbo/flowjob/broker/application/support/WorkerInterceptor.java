@@ -20,8 +20,8 @@ package org.limbo.flowjob.broker.application.support;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.api.ResponseDTO;
-import org.limbo.flowjob.api.remote.constants.WorkerHeaders;
+import org.limbo.flowjob.api.dto.ResponseDTO;
+import org.limbo.flowjob.api.constants.worker.WorkerHeaders;
 import org.limbo.flowjob.broker.application.utils.JWTUtil;
 import org.limbo.flowjob.broker.application.utils.WebUtil;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;

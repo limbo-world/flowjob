@@ -26,7 +26,7 @@ import org.limbo.flowjob.api.constants.ExecuteResult;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.api.remote.param.TaskFeedbackParam;
+import org.limbo.flowjob.api.param.broker.TaskFeedbackParam;
 import org.limbo.flowjob.broker.application.converter.MetaTaskConverter;
 import org.limbo.flowjob.broker.application.task.TaskScheduleTask;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
@@ -153,7 +153,7 @@ public class ScheduleStrategy implements ApplicationContextAware {
      */
     public void taskFeedback(String taskId, TaskFeedbackParam param) {
         executeWithAspect(unused -> {
-            ExecuteResult result = ExecuteResult.parse(param.getResult());
+            ExecuteResult result = param.getResult();
             if (log.isDebugEnabled()) {
                 log.debug("receive task feedback id:{} result:{}", taskId, result);
             }

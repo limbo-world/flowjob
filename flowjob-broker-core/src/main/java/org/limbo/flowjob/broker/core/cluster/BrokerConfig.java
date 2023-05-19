@@ -19,7 +19,7 @@
 package org.limbo.flowjob.broker.core.cluster;
 
 import lombok.Data;
-import org.limbo.flowjob.api.constants.RpcScheme;
+import org.limbo.flowjob.api.constants.Protocol;
 
 /**
  * @author Devil
@@ -53,7 +53,7 @@ public class BrokerConfig {
     /**
      * RPC 通信协议类型。默认为 http。
      */
-    private RpcScheme scheme = RpcScheme.http;
+    private Protocol protocol = Protocol.HTTP;
 
     /**
      * 心跳时间间隔，毫秒

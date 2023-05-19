@@ -21,7 +21,7 @@ package org.limbo.flowjob.broker.application.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Setter;
-import org.limbo.flowjob.api.ResponseDTO;
+import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.broker.application.schedule.ScheduleStrategy;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;

@@ -18,9 +18,9 @@ package org.limbo.flowjob.worker.starter.application.controllers;
 
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.api.remote.constants.HttpWorkerApi;
-import org.limbo.flowjob.api.remote.param.TaskSubmitParam;
-import org.limbo.flowjob.api.ResponseDTO;
+import org.limbo.flowjob.api.constants.worker.HttpWorkerApi;
+import org.limbo.flowjob.api.param.worker.TaskSubmitParam;
+import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.worker.starter.application.services.WorkerService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

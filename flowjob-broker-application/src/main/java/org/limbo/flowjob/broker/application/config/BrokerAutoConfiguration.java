@@ -87,7 +87,7 @@ public class BrokerAutoConfiguration {
             host = NetUtils.getLocalIp();
         }
         Assert.isTrue(port > 0, "port must be a positive integer in range 1 ~ 65534");
-        URL baseUrl = new URL(brokerProperties.getScheme().name(), host, port, "");
+        URL baseUrl = new URL(brokerProperties.getProtocol().getValue(), host, port, "");
         return new BrokerStarter(brokerProperties.getName(), baseUrl, brokerRegistry, nodeManger, metaTaskScheduler, metaTasks);
     }
 
@@ -100,7 +100,6 @@ public class BrokerAutoConfiguration {
     public TaskFactory taskFactory(WorkerRepository workerRepository, TaskManager taskManager, IDGenerator idGenerator) {
         return new TaskFactory(workerRepository, taskManager, idGenerator);
     }
-
 
     /**
      * 如果未声明 WorkerStatisticsRepository 类型的 Bean，则使用基于内存统计的单机模式

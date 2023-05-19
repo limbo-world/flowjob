@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.limbo.flowjob.api.console.param.PlanParam;
+import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.broker.application.service.PlanService;
 import org.limbo.flowjob.test.support.PlanParamFactory;
 import org.limbo.flowjob.api.constants.PlanType;
@@ -50,7 +50,7 @@ class PlanServiceTest {
     @Test
 //    @Transactional
     void addFixedRate() {
-        PlanParam param = PlanParamFactory.newFixedRateAddParam(PlanType.WORKFLOW);
+        PlanParam param = PlanParamFactory.newFixedRateAddParam(PlanType.NORMAL);
         planService.save(null, param);
     }
 

@@ -20,9 +20,8 @@ package org.limbo.flowjob.broker.application.task;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.TaskStatus;
-import org.limbo.flowjob.api.remote.param.TaskFeedbackParam;
+import org.limbo.flowjob.api.param.broker.TaskFeedbackParam;
 import org.limbo.flowjob.broker.application.component.SlotManager;
-import org.limbo.flowjob.broker.application.converter.MetaTaskConverter;
 import org.limbo.flowjob.broker.application.schedule.ScheduleStrategy;
 import org.limbo.flowjob.broker.application.support.CommonThreadPool;
 import org.limbo.flowjob.broker.core.cluster.Broker;

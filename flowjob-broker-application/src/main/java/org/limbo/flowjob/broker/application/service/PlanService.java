@@ -23,11 +23,13 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.api.PageDTO;
-import org.limbo.flowjob.api.console.param.PlanParam;
-import org.limbo.flowjob.api.console.param.PlanQueryParam;
-import org.limbo.flowjob.api.console.param.ScheduleOptionParam;
-import org.limbo.flowjob.api.console.dto.PlanDTO;
+import org.limbo.flowjob.api.constants.MsgConstants;
+import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.dto.PageDTO;
+import org.limbo.flowjob.api.dto.console.PlanDTO;
+import org.limbo.flowjob.api.param.console.PlanParam;
+import org.limbo.flowjob.api.param.console.PlanQueryParam;
+import org.limbo.flowjob.api.param.console.ScheduleOptionParam;
 import org.limbo.flowjob.broker.application.component.SlotManager;
 import org.limbo.flowjob.broker.application.converter.PlanConverter;
 import org.limbo.flowjob.broker.application.support.JpaHelper;
@@ -35,18 +37,14 @@ import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.exceptions.VerifyException;
+import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
-import org.limbo.flowjob.api.constants.MsgConstants;
-import org.limbo.flowjob.api.constants.PlanType;
-import org.limbo.flowjob.api.constants.ScheduleType;
-import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.core.exceptions.VerifyException;
-import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.data.domain.Page;
@@ -92,7 +90,7 @@ public class PlanService {
 
     @Transactional
     public String save(String planId, PlanParam param) {
-        PlanType planType = PlanType.parse(param.getPlanType());
+        PlanType planType = param.getPlanType();
         Verifies.verify(param.getPlanType() != null && PlanType.UNKNOWN != planType, MsgConstants.UNKNOWN + " Plan Type");
 
         PlanInfoEntity planInfoEntity = new PlanInfoEntity();
@@ -133,9 +131,9 @@ public class PlanService {
             planSlotEntityRepo.saveAndFlush(planSlotEntity);
         } else {
             // update
-            planEntityRepo.findById(planId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN + planId));
+            PlanEntity planEntity = planEntityRepo.findById(planId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN + planId));
             // 更新 Plan 版本信息
-            int effected = planEntityRepo.updateVersion(planInfoId, planInfoId, param.getName(), planId, param.getCurrentVersion(), param.getRecentlyVersion());
+            int effected = planEntityRepo.updateVersion(planInfoId, planInfoId, param.getName(), planId, planEntity.getCurrentVersion(), planEntity.getRecentlyVersion());
             if (effected < 1) {
                 throw new IllegalStateException("并发操作，更新Plan版本失败");
             }
@@ -147,10 +145,10 @@ public class PlanService {
         planInfoEntity.setPlanType(planType.type);
         planInfoEntity.setName(param.getName());
         planInfoEntity.setDescription(param.getDescription());
-        planInfoEntity.setTriggerType(TriggerType.parse(param.getTriggerType()).type);
+        planInfoEntity.setTriggerType(param.getTriggerType().type);
         // ScheduleOption
         ScheduleOptionParam scheduleOption = param.getScheduleOption();
-        planInfoEntity.setScheduleType(ScheduleType.parse(scheduleOption.getScheduleType()).type);
+        planInfoEntity.setScheduleType(scheduleOption.getScheduleType().type);
         planInfoEntity.setScheduleStartAt(scheduleOption.getScheduleStartAt());
         planInfoEntity.setScheduleDelay(scheduleOption.getScheduleDelay() == null ? 0L : scheduleOption.getScheduleDelay().toMillis());
         planInfoEntity.setScheduleInterval(scheduleOption.getScheduleInterval() == null ? 0L : scheduleOption.getScheduleInterval().toMillis());

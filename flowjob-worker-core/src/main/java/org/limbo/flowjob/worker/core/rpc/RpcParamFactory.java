@@ -19,11 +19,11 @@
 package org.limbo.flowjob.worker.core.rpc;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.limbo.flowjob.api.remote.param.TaskFeedbackParam;
-import org.limbo.flowjob.api.remote.param.WorkerExecutorRegisterParam;
-import org.limbo.flowjob.api.remote.param.WorkerHeartbeatParam;
-import org.limbo.flowjob.api.remote.param.WorkerRegisterParam;
-import org.limbo.flowjob.api.remote.param.WorkerResourceParam;
+import org.limbo.flowjob.api.param.broker.TaskFeedbackParam;
+import org.limbo.flowjob.api.param.broker.WorkerExecutorRegisterParam;
+import org.limbo.flowjob.api.param.broker.WorkerHeartbeatParam;
+import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
+import org.limbo.flowjob.api.param.broker.WorkerResourceParam;
 import org.limbo.flowjob.api.constants.ExecuteResult;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.domain.WorkerResources;
@@ -108,13 +108,13 @@ public class RpcParamFactory {
 
     public static TaskFeedbackParam taskFeedbackParam(Map<String, Object> context, Map<String, Object> jobAttributes, Object result, Throwable ex) {
         TaskFeedbackParam feedbackParam = new TaskFeedbackParam();
-        feedbackParam.setResult(ExecuteResult.SUCCEED.result);
+        feedbackParam.setResult(ExecuteResult.SUCCEED);
         feedbackParam.setContext(context);
         feedbackParam.setJobAttributes(jobAttributes);
         feedbackParam.setResultData(result);
 
         if (ex != null) {
-            feedbackParam.setResult(ExecuteResult.FAILED.result);
+            feedbackParam.setResult(ExecuteResult.FAILED);
             feedbackParam.setErrorStackTrace(ExceptionUtils.getStackTrace(ex));
         }
         return feedbackParam;
