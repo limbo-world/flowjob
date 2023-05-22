@@ -18,7 +18,6 @@
 
 package org.limbo.flowjob.broker.application.schedule;
 
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -36,13 +35,11 @@ import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
-import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -56,9 +53,6 @@ import java.util.List;
 @Slf4j
 @Component
 public class WorkflowPlanScheduler extends AbstractPlanScheduler {
-
-    @Setter(onMethod_ = @Inject)
-    private JobInstanceEntityRepo jobInstanceEntityRepo;
 
     @Override
     public PlanType getPlanType() {
@@ -180,6 +174,7 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
     }
 
     @Override
+    @Transactional
     public void schedule(Task task) {
         if (task.getStatus() != TaskStatus.SCHEDULING) {
             return;

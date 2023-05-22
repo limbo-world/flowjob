@@ -93,7 +93,7 @@ public class JobInstanceRepo implements JobInstanceRepository {
         jobInstance.setPlanId(entity.getPlanId());
         jobInstance.setRetryTimes(entity.getRetryTimes());
         jobInstance.setPlanInstanceId(entity.getPlanInstanceId());
-        jobInstance.setPlanVersion(entity.getPlanInstanceId());
+        jobInstance.setPlanVersion(entity.getPlanInfoId());
         jobInstance.setStatus(JobStatus.SCHEDULING);
         jobInstance.setTriggerAt(entity.getTriggerAt());
         jobInstance.setContext(new Attributes(entity.getContext()));

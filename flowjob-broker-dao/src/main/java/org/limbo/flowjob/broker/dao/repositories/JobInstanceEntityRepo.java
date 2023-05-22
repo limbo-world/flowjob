@@ -20,8 +20,6 @@ package org.limbo.flowjob.broker.dao.repositories;
 
 import org.limbo.flowjob.api.constants.ConstantsPool;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
-import org.limbo.flowjob.broker.dao.entity.PlanEntity;
-import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
