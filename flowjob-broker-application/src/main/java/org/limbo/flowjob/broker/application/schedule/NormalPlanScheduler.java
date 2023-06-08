@@ -54,21 +54,25 @@ public class NormalPlanScheduler extends AbstractPlanScheduler {
     }
 
     @Override
-    public void scheduleJob(Plan plan, String planInstanceId, String jobId, boolean manualRetry) {
+    @Transactional
+    public void scheduleJob(Plan plan, String planInstanceId, String jobId) {
         NormalPlan normalPlan = (NormalPlan) plan;
         JobInfo jobInfo = normalPlan.getJobInfo();
-        List<JobInstance> jobInstances;
-        if (manualRetry) {
-            JobInstance jobInstance = jobInstanceRepository.getLatest(planInstanceId, jobId);// 获取最后一条
-            String newJobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
-            jobInstance.retryReset(newJobInstanceId, 0);
-            jobInstances = Collections.singletonList(jobInstance);
-        } else {
-            Verifies.verify(TriggerType.API == jobInfo.getTriggerType(), "only api triggerType job can schedule by api");
 
-            jobInstances = createJobInstances(plan, planInstanceId, TimeUtils.currentLocalDateTime());
-        }
+        Verifies.verify(TriggerType.API == jobInfo.getTriggerType(), "only api triggerType job can schedule by api");
 
+        List<JobInstance> jobInstances = createJobInstances(plan, planInstanceId, TimeUtils.currentLocalDateTime());
+
+        saveAndScheduleJobInstances(jobInstances);
+    }
+
+    @Override
+    @Transactional
+    public void manualRetryJob(Plan plan, String planInstanceId, String jobId) {
+        JobInstance jobInstance = jobInstanceRepository.getLatest(planInstanceId, jobId);// 获取最后一条
+        String newJobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
+        jobInstance.retryReset(newJobInstanceId, 0);
+        List<JobInstance> jobInstances = Collections.singletonList(jobInstance);
         saveAndScheduleJobInstances(jobInstances);
     }
 

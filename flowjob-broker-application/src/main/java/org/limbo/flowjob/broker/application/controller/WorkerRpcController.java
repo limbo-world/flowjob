@@ -96,7 +96,7 @@ public class WorkerRpcController {
     @PostMapping("/api/rpc/v1/worker/plan-instance/{planInstanceId}/job/{jobId}/schedule")
     public ResponseDTO<Void> scheduleJob(@Validated @NotNull(message = "no planInstanceId") @PathVariable("planInstanceId") String planInstanceId,
                                          @Validated @NotNull(message = "no jobId") @PathVariable("jobId") String jobId) {
-        scheduleStrategy.scheduleJob(planInstanceId, jobId, false);
+        scheduleStrategy.scheduleJob(planInstanceId, jobId);
         return ResponseDTO.<Void>builder().ok().build();
     }
 

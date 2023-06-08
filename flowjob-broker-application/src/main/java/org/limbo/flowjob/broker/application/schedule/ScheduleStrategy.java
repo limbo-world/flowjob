@@ -28,6 +28,7 @@ import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.param.broker.TaskFeedbackParam;
 import org.limbo.flowjob.broker.application.converter.MetaTaskConverter;
+import org.limbo.flowjob.broker.application.task.JobInstanceScheduleTask;
 import org.limbo.flowjob.broker.application.task.TaskScheduleTask;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
@@ -112,7 +113,7 @@ public class ScheduleStrategy implements ApplicationContextAware {
     }
 
     /**
-     * 创建PlanInstance并执行调度
+     * 调度 plan 创建PlanInstance并执行调度
      */
     public void schedule(TriggerType triggerType, Plan plan, LocalDateTime triggerAt) {
         // 悲观锁快速释放，不阻塞后续任务
@@ -138,10 +139,22 @@ public class ScheduleStrategy implements ApplicationContextAware {
     /**
      * api 方式下发节点任务
      */
-    public void scheduleJob(String planInstanceId, String jobId, boolean retry) {
+    public void scheduleJob(String planInstanceId, String jobId) {
         executeWithAspect(unused -> {
             PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(planInstanceId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INSTANCE + planInstanceId));
-            Plan plan = planRepository.getByVersion(planInstanceEntity.getPlanId(), planInstanceEntity.getPlanInfoId());schedulers.get(plan.getType()).scheduleJob(plan, planInstanceId, jobId, retry);
+            Plan plan = planRepository.getByVersion(planInstanceEntity.getPlanId(), planInstanceEntity.getPlanInfoId());
+            schedulers.get(plan.getType()).scheduleJob(plan, planInstanceId, jobId);
+        });
+    }
+
+    /**
+     * 手工重试 job
+     */
+    public void manualRetryJob(String planInstanceId, String jobId) {
+        executeWithAspect(unused -> {
+            PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(planInstanceId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INSTANCE + planInstanceId));
+            Plan plan = planRepository.getByVersion(planInstanceEntity.getPlanId(), planInstanceEntity.getPlanInfoId());
+            schedulers.get(plan.getType()).manualRetryJob(plan, planInstanceId, jobId);
         });
     }
 
@@ -201,6 +214,7 @@ public class ScheduleStrategy implements ApplicationContextAware {
             consumer.accept(null);
             // do after
             scheduleTasks();
+            scheduleJobs();
         } finally {
             // clear context
             ScheduleContext.clear();
@@ -221,6 +235,20 @@ public class ScheduleStrategy implements ApplicationContextAware {
             } catch (Exception e) {
                 // 由task的状态检查任务去修复task的执行情况
                 log.error("task schedule fail! task={}", task, e);
+            }
+        }
+    }
+
+    public void scheduleJobs() {
+        if (CollectionUtils.isEmpty(ScheduleContext.waitScheduleJobs())) {
+            return;
+        }
+        for (JobInstance jobInstance : ScheduleContext.waitScheduleJobs()) {
+            try {
+                metaTaskScheduler.schedule(new JobInstanceScheduleTask(jobInstance, this));
+            } catch (Exception e) {
+                // 由task的状态检查任务去修复task的执行情况
+                log.error("task schedule fail! jobInstance={}", jobInstance, e);
             }
         }
     }

@@ -60,24 +60,35 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
     }
 
     @Override
-    public void scheduleJob(Plan plan, String planInstanceId, String jobId, boolean manualRetry) {
+    @Transactional
+    public void scheduleJob(Plan plan, String planInstanceId, String jobId) {
         WorkflowPlan workflowPlan = (WorkflowPlan) plan;
         DAG<WorkflowJobInfo> dag = workflowPlan.getDag();
         WorkflowJobInfo jobInfo = dag.getNode(jobId);
 
         Verifies.verify(checkJobsSuccess(planInstanceId, dag.preNodes(jobInfo.getId()), true), "previous job is not complete, please wait!");
 
-        List<JobInstance> jobInstances;
-        if (manualRetry) {
-            JobInstance jobInstance = jobInstanceRepository.getLatest(planInstanceId, jobId);// 获取最后一条
-            String newJobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
-            jobInstance.retryReset(newJobInstanceId, 0);
-            jobInstances = Collections.singletonList(jobInstance);
-        } else {
-            Verifies.verify(TriggerType.API == jobInfo.getTriggerType(), "only api triggerType job can schedule by api");
+        Verifies.verify(TriggerType.API == jobInfo.getTriggerType(), "only api triggerType job can schedule by api");
 
-            jobInstances = createJobInstances(plan, planInstanceId, TimeUtils.currentLocalDateTime());
-        }
+        List<JobInstance> jobInstances = createJobInstances(plan, planInstanceId, TimeUtils.currentLocalDateTime());
+
+        saveAndScheduleJobInstances(jobInstances);
+    }
+
+    // todo 执行的时候可以选择 是就重新计算当前的还是后续节点是否也重新执行一遍
+    @Override
+    @Transactional
+    public void manualRetryJob(Plan plan, String planInstanceId, String jobId) {
+        WorkflowPlan workflowPlan = (WorkflowPlan) plan;
+        DAG<WorkflowJobInfo> dag = workflowPlan.getDag();
+        WorkflowJobInfo jobInfo = dag.getNode(jobId);
+
+        Verifies.verify(checkJobsSuccess(planInstanceId, dag.preNodes(jobInfo.getId()), true), "previous job is not complete, please wait!");
+
+        JobInstance jobInstance = jobInstanceRepository.getLatest(planInstanceId, jobId);// 获取最后一条
+        String newJobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
+        jobInstance.retryReset(newJobInstanceId, 0);
+        List<JobInstance> jobInstances = Collections.singletonList(jobInstance);
 
         saveAndScheduleJobInstances(jobInstances);
     }
@@ -95,6 +106,7 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
     }
 
     @Override
+    @Transactional
     public void handleJobSuccess(JobInstance jobInstance) {
         int num = jobInstanceEntityRepo.success(jobInstance.getJobInstanceId(), TimeUtils.currentLocalDateTime(), jobInstance.getContext().toString());
         if (num < 1) {

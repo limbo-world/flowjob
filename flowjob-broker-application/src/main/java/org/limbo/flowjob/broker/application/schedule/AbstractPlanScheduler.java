@@ -26,7 +26,6 @@ import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
-import org.limbo.flowjob.broker.application.task.JobInstanceScheduleTask;
 import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
@@ -54,7 +53,6 @@ import org.limbo.flowjob.common.utils.time.TimeUtils;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -92,25 +90,17 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
     @Setter(onMethod_ = @Inject)
     protected MetaTaskScheduler metaTaskScheduler;
 
-    @Setter(onMethod_ = @Inject)
-    protected ScheduleStrategy scheduleStrategy;
-
     @Transactional
     public void schedule(Plan plan, String planInstanceId, LocalDateTime triggerAt) {
         List<JobInstance> jobInstances = createJobInstances(plan, planInstanceId, triggerAt);
         saveAndScheduleJobInstances(jobInstances);
     }
 
+    // 如是定时1小时后执行，task的创建问题 比如任务执行失败后，重试间隔可能导致这个问题
+    // 比如广播模式下，一小时后的节点数和当前的肯定是不同的
     protected void saveAndScheduleJobInstances(List<JobInstance> jobInstances) {
         saveJobInstances(jobInstances);
-        for (JobInstance jobInstance : jobInstances) {
-            LocalDateTime now = TimeUtils.currentLocalDateTime();
-            if (jobInstance.getTriggerAt().isAfter(now)) {
-                metaTaskScheduler.schedule(new JobInstanceScheduleTask(jobInstance, scheduleStrategy));
-            } else {
-                schedule(jobInstance);
-            }
-        }
+        ScheduleContext.waitScheduleJobs(jobInstances);
     }
 
     public abstract List<JobInstance> createJobInstances(Plan plan, String planInstanceId, LocalDateTime triggerAt);
@@ -119,33 +109,31 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
     @Override
     @Transactional
     public void schedule(JobInstance jobInstance) {
-        List<Task> tasks = new ArrayList<>();
         // 根据job类型创建task
-        List<Task> jobTasks;
+        List<Task> tasks;
         JobInfo jobInfo = jobInstance.getJobInfo();
         switch (jobInfo.getType()) {
             case NORMAL:
-                jobTasks = taskFactory.create(jobInstance, TaskType.NORMAL);
+                tasks = taskFactory.create(jobInstance, TaskType.NORMAL);
                 break;
             case BROADCAST:
-                jobTasks = taskFactory.create(jobInstance, TaskType.BROADCAST);
+                tasks = taskFactory.create(jobInstance, TaskType.BROADCAST);
                 break;
             case MAP:
             case MAP_REDUCE:
-                jobTasks = taskFactory.create(jobInstance, TaskType.SPLIT);
+                tasks = taskFactory.create(jobInstance, TaskType.SPLIT);
                 break;
             default:
                 throw new JobException(jobInfo.getId(), MsgConstants.UNKNOWN + " job type:" + jobInfo.getType().type);
         }
 
         // 如果可以创建的任务为空（只有广播任务）
-        if (CollectionUtils.isEmpty(jobTasks)) {
+        if (CollectionUtils.isEmpty(tasks)) {
             handleJobSuccess(jobInstance);
         } else {
-            tasks.addAll(jobTasks);
+            saveTasks(tasks);
         }
 
-        saveTasks(tasks);
     }
 
     @Transactional
@@ -239,7 +227,8 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
                 handleSplitTaskSuccess(jobInstance);
                 break;
             case MAP:
-                saveTasks(taskFactory.create(jobInstance, TaskType.REDUCE));
+                List<Task> tasks = taskFactory.create(jobInstance, TaskType.REDUCE);
+                saveTasks(tasks);
                 break;
             case REDUCE:
                 handleJobSuccess(jobInstance);

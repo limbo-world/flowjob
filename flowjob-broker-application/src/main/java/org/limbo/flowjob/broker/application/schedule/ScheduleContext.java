@@ -20,8 +20,10 @@ package org.limbo.flowjob.broker.application.schedule;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -34,6 +36,11 @@ import java.util.List;
 public class ScheduleContext {
 
     private static final ThreadLocal<ScheduleContext> CURRENT = new ThreadLocal<>();
+
+    /**
+     * 调度中产生的需要后续下发的job
+     */
+    private List<JobInstance> waitScheduleJobs;
 
     /**
      * 调度中产生的需要后续下发的task
@@ -58,5 +65,14 @@ public class ScheduleContext {
 
     public static void waitScheduleTasks(List<Task> tasks) {
         CURRENT.get().setWaitScheduleTasks(tasks);
+    }
+
+    public static List<JobInstance> waitScheduleJobs() {
+        ScheduleContext context = CURRENT.get();
+        return context == null || context.getWaitScheduleJobs() == null ? Collections.emptyList() : context.getWaitScheduleJobs();
+    }
+
+    public static void waitScheduleJobs(List<JobInstance> jobs) {
+        CURRENT.get().setWaitScheduleJobs(jobs);
     }
 }
