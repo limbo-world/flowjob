@@ -130,7 +130,7 @@ public class ScheduleStrategy implements ApplicationContextAware {
     }
 
     /**
-     * 调度已有的PlanInstance
+     * 调度已有的JobInstance
      */
     public void schedule(JobInstance jobInstance) {
         executeWithAspect(unused -> schedulers.get(jobInstance.getPlanType()).schedule(jobInstance));
@@ -148,13 +148,13 @@ public class ScheduleStrategy implements ApplicationContextAware {
     }
 
     /**
-     * 手工重试 job
+     * 手工下发 job
      */
-    public void manualRetryJob(String planInstanceId, String jobId) {
+    public void manualScheduleJob(String planInstanceId, String jobId) {
         executeWithAspect(unused -> {
             PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(planInstanceId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INSTANCE + planInstanceId));
             Plan plan = planRepository.getByVersion(planInstanceEntity.getPlanId(), planInstanceEntity.getPlanInfoId());
-            schedulers.get(plan.getType()).manualRetryJob(plan, planInstanceId, jobId);
+            schedulers.get(plan.getType()).manualScheduleJob(plan, planInstanceId, jobId);
         });
     }
 

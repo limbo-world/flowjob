@@ -78,7 +78,7 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
     // todo 执行的时候可以选择 是就重新计算当前的还是后续节点是否也重新执行一遍
     @Override
     @Transactional
-    public void manualRetryJob(Plan plan, String planInstanceId, String jobId) {
+    public void manualScheduleJob(Plan plan, String planInstanceId, String jobId) {
         WorkflowPlan workflowPlan = (WorkflowPlan) plan;
         DAG<WorkflowJobInfo> dag = workflowPlan.getDag();
         WorkflowJobInfo jobInfo = dag.getNode(jobId);

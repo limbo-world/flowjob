@@ -24,12 +24,17 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Setter;
+import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.ResponseDTO;
+import org.limbo.flowjob.api.dto.console.PlanDTO;
 import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.PlanQueryParam;
-import org.limbo.flowjob.api.dto.console.PlanDTO;
+import org.limbo.flowjob.broker.application.schedule.ScheduleStrategy;
 import org.limbo.flowjob.broker.application.service.PlanService;
+import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,6 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author Devil
@@ -51,6 +57,12 @@ public class PlanController {
 
     @Setter(onMethod_ = @Inject)
     private PlanService planService;
+
+    @Setter(onMethod_ = @Inject)
+    private PlanRepository planRepository;
+
+    @Setter(onMethod_ = @Inject)
+    private ScheduleStrategy scheduleStrategy;
 
     /**
      * 新增计划
@@ -94,6 +106,17 @@ public class PlanController {
     @PutMapping("/api/v1/plan/{planId}/stop")
     public ResponseDTO<Boolean> stop(@PathVariable("planId") String planId) {
         return ResponseDTO.<Boolean>builder().ok(planService.stop(planId)).build();
+    }
+
+    /**
+     * 手动触发对应 plan
+     */
+    @Operation(summary = "触发对应plan调度")
+    @PostMapping("/api/v1/plan/{planId}/schedule")
+    public ResponseDTO<Void> schedulePlan(@Validated @NotNull(message = "no planId") @PathVariable("planId") String planId) {
+        Plan plan = planRepository.get(planId);
+        scheduleStrategy.schedule(TriggerType.API, plan, TimeUtils.currentLocalDateTime());
+        return ResponseDTO.<Void>builder().ok().build();
     }
 
     /**

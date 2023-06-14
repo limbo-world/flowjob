@@ -64,9 +64,9 @@ public interface PlanScheduler {
 
 
     /**
-     * 手工重试调度planInstance下对应job
+     * 手工调度planInstance下对应job
      */
-    void manualRetryJob(Plan plan, String planInstanceId, String jobId);
+    void manualScheduleJob(Plan plan, String planInstanceId, String jobId);
 
     /**
      * plan类型

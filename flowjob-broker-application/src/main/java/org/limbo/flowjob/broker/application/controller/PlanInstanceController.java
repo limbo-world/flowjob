@@ -43,13 +43,13 @@ public class PlanInstanceController {
     private ScheduleStrategy scheduleStrategy;
 
     /**
-     * api 触发对应planInstanceId下的job 重试
+     * api 触发对应planInstanceId下的job
      */
     @Operation(summary = "触发对应job调度")
-    @PostMapping("/api/rpc/v1/worker/plan-instance/{planInstanceId}/job/{jobId}/retry")
+    @PostMapping("/api/v1/plan-instance/{planInstanceId}/job/{jobId}/schedule")
     public ResponseDTO<Void> scheduleJob(@Validated @NotNull(message = "no planInstanceId") @PathVariable("planInstanceId") String planInstanceId,
                                          @Validated @NotNull(message = "no jobId") @PathVariable("jobId") String jobId) {
-        scheduleStrategy.manualRetryJob(planInstanceId, jobId);
+        scheduleStrategy.manualScheduleJob(planInstanceId, jobId);
         return ResponseDTO.<Void>builder().ok().build();
     }
 

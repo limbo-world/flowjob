@@ -68,7 +68,7 @@ public class NormalPlanScheduler extends AbstractPlanScheduler {
 
     @Override
     @Transactional
-    public void manualRetryJob(Plan plan, String planInstanceId, String jobId) {
+    public void manualScheduleJob(Plan plan, String planInstanceId, String jobId) {
         JobInstance jobInstance = jobInstanceRepository.getLatest(planInstanceId, jobId);// 获取最后一条
         String newJobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
         jobInstance.retryReset(newJobInstanceId, 0);
