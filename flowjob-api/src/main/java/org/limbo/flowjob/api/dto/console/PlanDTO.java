@@ -104,6 +104,4 @@ public class PlanDTO {
     @Schema(title = "CRON表达式类型")
     private String scheduleCronType;
 
-    @Schema(title = "重试次数")
-    private Integer retry;
 }

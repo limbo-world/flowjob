@@ -23,6 +23,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.limbo.flowjob.api.constants.RetryType;
 
 /**
  * @author Devil
@@ -46,5 +47,11 @@ public class RetryOptionParam {
      */
     @Schema(title = "重试间隔-秒")
     private Integer retryInterval;
+
+    /**
+     * 重试方式
+     */
+    @Schema(title = "重试方式")
+    private Integer retryType = RetryType.ALL.getType();
 
 }

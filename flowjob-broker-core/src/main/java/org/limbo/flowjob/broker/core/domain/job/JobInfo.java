@@ -47,11 +47,6 @@ public class JobInfo {
     private JobType type;
 
     /**
-     * 触发类型
-     */
-    private TriggerType triggerType = TriggerType.SCHEDULE;
-
-    /**
      * 作业执行器配置参数
      */
     private String executorName;

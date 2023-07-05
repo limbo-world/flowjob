@@ -24,6 +24,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.limbo.flowjob.api.constants.RetryType;
 
 import java.io.Serializable;
 
@@ -51,5 +52,10 @@ public class RetryOption implements Serializable {
      * 重试间隔 秒
      */
     private Integer retryInterval = 0;
+
+    /**
+     * 重试方式
+     */
+    private Integer retryType = RetryType.ALL.getType();
 
 }

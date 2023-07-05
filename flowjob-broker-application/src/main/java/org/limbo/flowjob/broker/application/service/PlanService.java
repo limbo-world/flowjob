@@ -243,7 +243,6 @@ public class PlanService {
                 vo.setScheduleInterval(planInfoEntity.getScheduleInterval());
                 vo.setScheduleCron(planInfoEntity.getScheduleCron());
                 vo.setScheduleCronType(planInfoEntity.getScheduleCronType());
-                vo.setRetry(planInfoEntity.getRetry());
                 return vo;
             }).collect(Collectors.toList()));
         }

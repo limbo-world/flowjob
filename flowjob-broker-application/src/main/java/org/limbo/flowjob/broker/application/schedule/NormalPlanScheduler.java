@@ -56,10 +56,7 @@ public class NormalPlanScheduler extends AbstractPlanScheduler {
     @Override
     @Transactional
     public void scheduleJob(Plan plan, String planInstanceId, String jobId) {
-        NormalPlan normalPlan = (NormalPlan) plan;
-        JobInfo jobInfo = normalPlan.getJobInfo();
-
-        Verifies.verify(TriggerType.API == jobInfo.getTriggerType(), "only api triggerType job can schedule by api");
+        Verifies.verify(TriggerType.API == plan.getTriggerType(), "only api triggerType job can schedule by api");
 
         List<JobInstance> jobInstances = createJobInstances(plan, planInstanceId, TimeUtils.currentLocalDateTime());
 

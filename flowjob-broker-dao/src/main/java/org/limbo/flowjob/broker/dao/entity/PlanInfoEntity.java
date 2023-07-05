@@ -114,12 +114,6 @@ public class PlanInfoEntity extends BaseEntity {
     private String scheduleCronType;
 
     /**
-     * 重试次数 超过执行就失败
-     * job上的这个版本不设计了，用户本来就需要做幂等处理
-     */
-    private Integer retry;
-
-    /**
      * single 存储job信息
      * workflow存储job节点之间的关联关系
      */
