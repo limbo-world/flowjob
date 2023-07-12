@@ -20,29 +20,24 @@ package org.limbo.flowjob.api.param.console;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.limbo.flowjob.api.constants.PlanType;
+import lombok.EqualsAndHashCode;
+import org.limbo.flowjob.api.constants.JobType;
 import org.limbo.flowjob.api.constants.TriggerType;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Devil
- * @since 2021/7/24
+ * @since 2023/7/12
  */
 @Data
-@Schema(title = "任务参数")
 public class PlanParam implements Serializable {
-
-    private static final long serialVersionUID = 3349688739542837391L;
-
-    /**
-     * 计划ID
-     */
-    @Schema(title = "任务ID")
-    private String id;
+    private static final long serialVersionUID = 68689784703620782L;
 
     /**
      * 计划名称
@@ -55,14 +50,6 @@ public class PlanParam implements Serializable {
      */
     @Schema(title = "任务描述")
     private String description;
-
-    /**
-     * 计划类型
-     * @see PlanType
-     */
-    @NotNull
-    @Schema(title = "任务类型", implementation = Integer.class)
-    private PlanType planType;
 
     /**
      * 触发方式
@@ -79,17 +66,59 @@ public class PlanParam implements Serializable {
     @Schema(title = "调度配置参数")
     private ScheduleOptionParam scheduleOption;
 
-    /**
-     * 此执行计划对应的所有作业
-     */
-    @Valid
-    @Schema(title = "单任务对应的所有作业")
-    private JobParam job;
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    @Schema(title = "普通任务参数")
+    public static class NormalPlanParam extends PlanParam {
+        private static final long serialVersionUID = -552043309934945026L;
 
-    /**
-     * 此执行计划对应的所有作业
-     */
-    @Schema(title = "工作流对应的所有作业")
-    private List<@Valid WorkflowJobParam> workflow;
+        /**
+         * 作业类型
+         * @see JobType
+         */
+        @NotNull
+        @Schema(title = "作业类型")
+        private JobType type;
+
+        /**
+         * 属性参数
+         */
+        @Schema(title = "属性参数")
+        private Map<String, Object> attributes;
+
+        /**
+         * 作业分发重试参数
+         */
+        @Schema(title = "作业分发重试参数")
+        private RetryOptionParam retryOption;
+
+        /**
+         * 作业分发配置参数
+         */
+        @Valid
+        @NotNull
+        @Schema(title = "作业分发配置参数")
+        private DispatchOptionParam dispatchOption;
+
+        /**
+         * 执行器名称
+         */
+        @NotBlank
+        @Schema(title = "执行器名称")
+        private String executorName;
+    }
+
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    @Schema(title = "工作流任务参数")
+    public static class WorkflowPlanParam extends PlanParam {
+        private static final long serialVersionUID = 3674766094102983427L;
+
+        /**
+         * 此执行计划对应的所有作业
+         */
+        @Schema(title = "工作流对应的所有作业")
+        private List<@Valid WorkflowJobParam> workflow;
+    }
 
 }

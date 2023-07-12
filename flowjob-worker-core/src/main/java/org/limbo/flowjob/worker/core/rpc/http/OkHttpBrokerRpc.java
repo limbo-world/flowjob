@@ -29,6 +29,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.api.constants.worker.HttpBrokerApi;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.broker.BrokerTopologyDTO;
 import org.limbo.flowjob.api.dto.broker.WorkerRegisterDTO;
@@ -116,7 +117,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      * 向指定 broker 节点发起注册请求
      */
     private WorkerRegisterDTO registerWith(WorkerRegisterParam param) throws RegisterFailException {
-        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + "/api/v1/rpc/worker", param, new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
+        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + HttpBrokerApi.API_REGISTER_WORKER, param, new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
         });
 
         if (response == null || !response.success()) {

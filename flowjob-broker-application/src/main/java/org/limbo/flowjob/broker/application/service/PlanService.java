@@ -89,25 +89,49 @@ public class PlanService {
     private PlanConverter planConverter;
 
     @Transactional
-    public String save(String planId, PlanParam param) {
-        PlanType planType = param.getPlanType();
-        Verifies.verify(param.getPlanType() != null && PlanType.UNKNOWN != planType, MsgConstants.UNKNOWN + " Plan Type");
+    public String add(PlanParam.NormalPlanParam param) {
+        JobInfo jobInfo = planConverter.covertJob(param);
+        return save(null, PlanType.NORMAL, param, JacksonUtils.toJSONString(jobInfo));
+    }
 
-        PlanInfoEntity planInfoEntity = new PlanInfoEntity();
-        if (PlanType.NORMAL == planType) {
-            Verifies.notNull(param.getJob(), "Job can't be null with " + PlanType.NORMAL.name() + " Type");
-            JobInfo jobInfo = planConverter.covertJob("0", param.getJob());
-            planInfoEntity.setJobInfo(JacksonUtils.toJSONString(jobInfo));
-        } else {
-            Verifies.notEmpty(param.getWorkflow(), "Workflow can't be empty with " + PlanType.WORKFLOW.name() + " Type");
-            DAG<WorkflowJobInfo> workflow = planConverter.convertJob(param.getWorkflow());
-            try {
-                planInfoEntity.setJobInfo(workflow.json());
-            } catch (JsonProcessingException e) {
-                log.error("To DAG Json failed! dag={}", workflow, e);
-                throw new VerifyException("Dag Node verify fail!");
-            }
+    @Transactional
+    public String update(String planId, PlanParam.NormalPlanParam param) {
+        JobInfo jobInfo = planConverter.covertJob(param);
+        return save(planId, PlanType.NORMAL, param, JacksonUtils.toJSONString(jobInfo));
+    }
+
+    @Transactional
+    public String add(PlanParam.WorkflowPlanParam param) {
+        Verifies.notEmpty(param.getWorkflow(), "Workflow can't be empty with " + PlanType.WORKFLOW.name() + " Type");
+        DAG<WorkflowJobInfo> workflow = planConverter.convertJob(param.getWorkflow());
+        String jobInfo;
+        try {
+            jobInfo = workflow.json();
+        } catch (JsonProcessingException e) {
+            log.error("To DAG Json failed! dag={}", workflow, e);
+            throw new VerifyException("Dag Node verify fail!");
         }
+        return save(null, PlanType.WORKFLOW, param, jobInfo);
+    }
+
+    @Transactional
+    public String update(String planId, PlanParam.WorkflowPlanParam param) {
+        Verifies.notEmpty(param.getWorkflow(), "Workflow can't be empty with " + PlanType.WORKFLOW.name() + " Type");
+        DAG<WorkflowJobInfo> workflow = planConverter.convertJob(param.getWorkflow());
+        String jobInfo;
+        try {
+            jobInfo = workflow.json();
+        } catch (JsonProcessingException e) {
+            log.error("To DAG Json failed! dag={}", workflow, e);
+            throw new VerifyException("Dag Node verify fail!");
+        }
+        return save(planId, PlanType.WORKFLOW, param, jobInfo);
+    }
+
+    @Transactional
+    public String save(String planId, PlanType planType, PlanParam param, String jobInfo) {
+        PlanInfoEntity planInfoEntity = new PlanInfoEntity();
+        planInfoEntity.setJobInfo(JacksonUtils.toJSONString(jobInfo));
 
         String planInfoId = idGenerator.generateId(IDType.PLAN_INFO);
 
@@ -198,7 +222,6 @@ public class PlanService {
         // 停用计划
         return planEntityRepo.updateEnable(planEntity.getPlanId(), true, false) == 1;
     }
-
 
 
     public PageDTO<PlanDTO> page(PlanQueryParam param) {

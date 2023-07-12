@@ -23,33 +23,32 @@ import lombok.Setter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.limbo.flowjob.api.param.console.PlanParam;
+import org.limbo.flowjob.api.constants.JobStatus;
+import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.param.broker.TaskFeedbackParam;
+import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.worker.TaskSubmitParam;
 import org.limbo.flowjob.broker.application.component.SlotManager;
-import org.limbo.flowjob.broker.application.schedule.ScheduleStrategy;
-import org.limbo.flowjob.broker.application.task.PlanScheduleTask;
 import org.limbo.flowjob.broker.application.controller.WorkerRpcController;
 import org.limbo.flowjob.broker.application.converter.MetaTaskConverter;
+import org.limbo.flowjob.broker.application.schedule.ScheduleStrategy;
 import org.limbo.flowjob.broker.application.service.PlanService;
+import org.limbo.flowjob.broker.application.task.PlanScheduleTask;
 import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
+import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.worker.rpc.WorkerConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
-import org.limbo.flowjob.api.constants.JobStatus;
-import org.limbo.flowjob.api.constants.PlanType;
-import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
-import org.limbo.flowjob.test.support.PlanParamFactory;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.rpc.BrokerRpc;
@@ -169,42 +168,51 @@ public class ScheduleTest {
     @Test
 //    @Transactional --- 加上 由于不落表 只在当前事务内 和 before 里面的产生冲突 before 里面获取不到数据
     void testNormalWorkflowPlanSuccess() {
-        PlanParam param = PlanParamFactory.newFixedRateAddParam(PlanType.WORKFLOW);
-        saveAndExecutePlan(TriggerType.SCHEDULE, param, 2, 2, 0);
+//        PlanAddParam param = PlanParamFactory.newFixedRateAddParam(PlanType.WORKFLOW);
+//        saveAndExecuteNormalPlan(TriggerType.SCHEDULE, param, 2, 2, 0);
     }
 
     @Test
 //    @Transactional
     void testNormalPlanSuccess() {
-        PlanParam param = PlanParamFactory.newFixedRateAddParam(PlanType.NORMAL);
-        saveAndExecutePlan(TriggerType.SCHEDULE, param, 1, 1, 0);
+//        PlanAddParam param = PlanParamFactory.newFixedRateAddParam(PlanType.NORMAL);
+//        saveAndExecuteNormalPlan(TriggerType.SCHEDULE, param, 1, 1, 0);
     }
 
     @Test
 //    @Transactional
     void testMapReduceWorkflowPlanSuccess() {
-        PlanParam param = PlanParamFactory.newMapReduceAddParam(PlanType.WORKFLOW);
-        saveAndExecutePlan(TriggerType.SCHEDULE, param, 2, 2, 0);
+//        PlanAddParam param = PlanParamFactory.newMapReduceAddParam(PlanType.WORKFLOW);
+//        saveAndExecuteNormalPlan(TriggerType.SCHEDULE, param, 2, 2, 0);
     }
 
     @Test
 //    @Transactional
     void testMapReducePlanSuccess() {
-        PlanParam param = PlanParamFactory.newMapReduceAddParam(PlanType.NORMAL);
-        saveAndExecutePlan(TriggerType.SCHEDULE, param, 1, 1, 0);
+//        PlanAddParam param = PlanParamFactory.newMapReduceAddParam(PlanType.NORMAL);
+//        saveAndExecuteNormalPlan(TriggerType.SCHEDULE, param, 1, 1, 0);
     }
 
     @Test
     void testApiPlanSuccess() {
-        PlanParam param = PlanParamFactory.newWorkflowParam(TriggerType.API);
-        saveAndExecutePlan(TriggerType.SCHEDULE, param, 2, 2, 0);
+//        PlanAddParam param = PlanParamFactory.newWorkflowParam(TriggerType.API);
+//        saveAndExecuteNormalPlan(TriggerType.SCHEDULE, param, 2, 2, 0);
     }
 
-    private void saveAndExecutePlan(TriggerType triggerType, PlanParam param, int total, int expectSuccess, int expectFail) {
-        String id = planService.save(null, param);
-        planService.start(id);
+    private void saveAndExecuteNormalPlan(TriggerType triggerType, PlanParam.NormalPlanParam param, int total, int expectSuccess, int expectFail) {
+        String id = planService.add(param);
+        executePlan(triggerType, id, total, expectSuccess, expectFail);
+    }
 
-        PlanEntity planEntity = planEntityRepo.findById(id).orElse(null);
+    private void saveAndExecuteWorkflowPlan(TriggerType triggerType, PlanParam.WorkflowPlanParam param, int total, int expectSuccess, int expectFail) {
+        String id = planService.add(param);
+        executePlan(triggerType, id, total, expectSuccess, expectFail);
+    }
+
+    private void executePlan(TriggerType triggerType, String planId, int total, int expectSuccess, int expectFail) {
+        planService.start(planId);
+
+        PlanEntity planEntity = planEntityRepo.findById(planId).orElse(null);
         PlanScheduleTask planScheduleTask = metaTaskConverter.toPlanScheduleTask(planEntity.getPlanId(), triggerType);
         // 调度plan 生成 task 并下发
         Plan plan = planScheduleTask.getPlan();

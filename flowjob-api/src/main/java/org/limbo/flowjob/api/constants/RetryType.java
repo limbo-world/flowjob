@@ -30,8 +30,18 @@ import lombok.Getter;
 public enum RetryType {
 
     UNKNOWN(ConstantsPool.UNKNOWN, "未知"),
-    ALL(1, "重试所有"),
-    ONLY_FAIL_PART(2, "失败部分重试"),
+    /**
+     * 对于普通任务无需类型
+     */
+    NONE(1, ""),
+    /**
+     * 对于map-map/reduce任务 会重新重试
+     */
+    ALL(2, "重试所有"),
+    /**
+     * 对于map-map/reduce任务 只处理失败的任务
+     */
+    ONLY_FAIL_PART(3, "失败部分重试"),
     ;
 
     @JsonValue

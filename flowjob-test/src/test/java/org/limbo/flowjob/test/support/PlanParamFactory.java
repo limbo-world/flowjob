@@ -18,24 +18,17 @@
 
 package org.limbo.flowjob.test.support;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import org.limbo.flowjob.api.param.console.DispatchOptionParam;
-import org.limbo.flowjob.api.param.console.JobParam;
-import org.limbo.flowjob.api.param.console.PlanParam;
-import org.limbo.flowjob.api.param.console.RetryOptionParam;
-import org.limbo.flowjob.api.param.console.ScheduleOptionParam;
-import org.limbo.flowjob.api.param.console.WorkflowJobParam;
 import org.limbo.flowjob.api.constants.JobType;
 import org.limbo.flowjob.api.constants.LoadBalanceType;
-import org.limbo.flowjob.api.constants.PlanType;
-import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
+import org.limbo.flowjob.api.param.console.DispatchOptionParam;
+import org.limbo.flowjob.api.param.console.JobParam;
+import org.limbo.flowjob.api.param.console.RetryOptionParam;
+import org.limbo.flowjob.api.param.console.WorkflowJobParam;
 import org.limbo.flowjob.common.utils.UUIDUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.limbo.flowjob.test.util.DAGTest;
 
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -46,127 +39,127 @@ import java.util.Map;
  */
 public class PlanParamFactory {
 
-    public static PlanParam newMapReduceAddParam(PlanType planType) {
-        PlanParam param = new PlanParam();
-        param.setName(UUIDUtils.randomID());
-        param.setDescription("测试-固定速率");
-        param.setTriggerType(TriggerType.SCHEDULE);
-        param.setPlanType(planType);
-
-        ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
-        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE);
-        scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(5));
-        param.setScheduleOption(scheduleOptionParam);
-
-        if (PlanType.NORMAL == planType) {
-            param.setJob(newJob("MapReduceExecutorDemo", JobType.MAP_REDUCE));
-        } else {
-            WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "MapReduceExecutorDemo", JobType.MAP_REDUCE, TriggerType.SCHEDULE);
-            WorkflowJobParam n2 = newWorkflowJob(UUIDUtils.shortRandomID(), "MapReduceExecutorDemo", JobType.MAP_REDUCE, TriggerType.SCHEDULE);
-
-            n1.setChildren(Sets.newHashSet(n2.getId()));
-
-            param.setWorkflow(Lists.newArrayList(n1, n2));
-        }
-        return param;
-    }
-
-    public static PlanParam newWorkflowParam(TriggerType triggerType) {
-        PlanParam param = new PlanParam();
-        param.setName(UUIDUtils.randomID());
-        param.setDescription("测试-固定速率");
-        param.setTriggerType(TriggerType.SCHEDULE);
-        param.setPlanType(PlanType.WORKFLOW);
-
-        ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
-        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE);
-        scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(5));
-        param.setScheduleOption(scheduleOptionParam);
-
-        WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "MapReduceExecutorDemo", JobType.MAP_REDUCE, TriggerType.SCHEDULE);
-        WorkflowJobParam n2 = newWorkflowJob(UUIDUtils.shortRandomID(), "MapReduceExecutorDemo", JobType.MAP_REDUCE, triggerType);
-
-        n1.setChildren(Sets.newHashSet(n2.getId()));
-
-        param.setWorkflow(Lists.newArrayList(n1, n2));
-        return param;
-    }
-
-    public static PlanParam newFixedRateAddParam(PlanType planType) {
-        PlanParam param = new PlanParam();
-        param.setName(UUIDUtils.randomID());
-        param.setDescription("测试-固定速率");
-        param.setTriggerType(TriggerType.SCHEDULE);
-        param.setPlanType(planType);
-
-        ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
-        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE);
-        scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(3));
-        param.setScheduleOption(scheduleOptionParam);
-
-        if (PlanType.NORMAL == planType) {
-            param.setJob(newJob("hello", JobType.NORMAL));
-        } else {
-            WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
-            WorkflowJobParam n2 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
-
-            n1.setChildren(Sets.newHashSet(n2.getId()));
-
-            param.setWorkflow(Lists.newArrayList(n1, n2));
-        }
-        return param;
-    }
-
-
-    public static PlanParam newFixedDelayAddParam(PlanType planType) {
-        PlanParam param = new PlanParam();
-        param.setName(UUIDUtils.randomID());
-        param.setDescription("测试-固定延迟");
-        param.setTriggerType(TriggerType.SCHEDULE);
-        param.setPlanType(planType);
-
-        ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
-        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_DELAY);
-        scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(3));
-        param.setScheduleOption(scheduleOptionParam);
-
-        if (PlanType.NORMAL == planType) {
-            param.setJob(newJob("hello", JobType.NORMAL));
-        } else {
-            WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
-            WorkflowJobParam n2 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
-
-            n1.setChildren(Sets.newHashSet(n2.getId()));
-
-            param.setWorkflow(Lists.newArrayList(n1, n2));
-        }
-        return param;
-    }
-
-    public static PlanParam newFixedRateReplaceParam(PlanType planType) {
-        PlanParam param = new PlanParam();
-        param.setName(UUIDUtils.randomID());
-        param.setDescription("测试-固定速率-replace");
-        param.setTriggerType(TriggerType.SCHEDULE);
-        param.setPlanType(planType);
-
-        ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
-        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE);
-        scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(3));
-        param.setScheduleOption(scheduleOptionParam);
-
-        if (PlanType.NORMAL == planType) {
-            param.setJob(newJob("hello", JobType.NORMAL));
-        } else {
-            WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
-            WorkflowJobParam n2 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
-
-            n1.setChildren(Sets.newHashSet(n2.getId()));
-
-            param.setWorkflow(Lists.newArrayList(n1, n2));
-        }
-        return param;
-    }
+//    public static PlanAddParam newMapReduceAddParam(PlanType planType) {
+//        PlanAddParam param = new PlanAddParam();
+//        param.setName(UUIDUtils.randomID());
+//        param.setDescription("测试-固定速率");
+//        param.setTriggerType(TriggerType.SCHEDULE);
+//        param.setPlanType(planType);
+//
+//        ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
+//        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE);
+//        scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(5));
+//        param.setScheduleOption(scheduleOptionParam);
+//
+//        if (PlanType.NORMAL == planType) {
+//            param.setJob(newJob("MapReduceExecutorDemo", JobType.MAP_REDUCE));
+//        } else {
+//            WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "MapReduceExecutorDemo", JobType.MAP_REDUCE, TriggerType.SCHEDULE);
+//            WorkflowJobParam n2 = newWorkflowJob(UUIDUtils.shortRandomID(), "MapReduceExecutorDemo", JobType.MAP_REDUCE, TriggerType.SCHEDULE);
+//
+//            n1.setChildren(Sets.newHashSet(n2.getId()));
+//
+//            param.setWorkflow(Lists.newArrayList(n1, n2));
+//        }
+//        return param;
+//    }
+//
+//    public static PlanAddParam newWorkflowParam(TriggerType triggerType) {
+//        PlanAddParam param = new PlanAddParam();
+//        param.setName(UUIDUtils.randomID());
+//        param.setDescription("测试-固定速率");
+//        param.setTriggerType(TriggerType.SCHEDULE);
+//        param.setPlanType(PlanType.WORKFLOW);
+//
+//        ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
+//        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE);
+//        scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(5));
+//        param.setScheduleOption(scheduleOptionParam);
+//
+//        WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "MapReduceExecutorDemo", JobType.MAP_REDUCE, TriggerType.SCHEDULE);
+//        WorkflowJobParam n2 = newWorkflowJob(UUIDUtils.shortRandomID(), "MapReduceExecutorDemo", JobType.MAP_REDUCE, triggerType);
+//
+//        n1.setChildren(Sets.newHashSet(n2.getId()));
+//
+//        param.setWorkflow(Lists.newArrayList(n1, n2));
+//        return param;
+//    }
+//
+//    public static PlanAddParam newFixedRateAddParam(PlanType planType) {
+//        PlanAddParam param = new PlanAddParam();
+//        param.setName(UUIDUtils.randomID());
+//        param.setDescription("测试-固定速率");
+//        param.setTriggerType(TriggerType.SCHEDULE);
+//        param.setPlanType(planType);
+//
+//        ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
+//        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE);
+//        scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(3));
+//        param.setScheduleOption(scheduleOptionParam);
+//
+//        if (PlanType.NORMAL == planType) {
+//            param.setJob(newJob("hello", JobType.NORMAL));
+//        } else {
+//            WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
+//            WorkflowJobParam n2 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
+//
+//            n1.setChildren(Sets.newHashSet(n2.getId()));
+//
+//            param.setWorkflow(Lists.newArrayList(n1, n2));
+//        }
+//        return param;
+//    }
+//
+//
+//    public static PlanAddParam newFixedDelayAddParam(PlanType planType) {
+//        PlanAddParam param = new PlanAddParam();
+//        param.setName(UUIDUtils.randomID());
+//        param.setDescription("测试-固定延迟");
+//        param.setTriggerType(TriggerType.SCHEDULE);
+//        param.setPlanType(planType);
+//
+//        ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
+//        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_DELAY);
+//        scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(3));
+//        param.setScheduleOption(scheduleOptionParam);
+//
+//        if (PlanType.NORMAL == planType) {
+//            param.setJob(newJob("hello", JobType.NORMAL));
+//        } else {
+//            WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
+//            WorkflowJobParam n2 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
+//
+//            n1.setChildren(Sets.newHashSet(n2.getId()));
+//
+//            param.setWorkflow(Lists.newArrayList(n1, n2));
+//        }
+//        return param;
+//    }
+//
+//    public static PlanAddParam newFixedRateReplaceParam(PlanType planType) {
+//        PlanAddParam param = new PlanAddParam();
+//        param.setName(UUIDUtils.randomID());
+//        param.setDescription("测试-固定速率-replace");
+//        param.setTriggerType(TriggerType.SCHEDULE);
+//        param.setPlanType(planType);
+//
+//        ScheduleOptionParam scheduleOptionParam = new ScheduleOptionParam();
+//        scheduleOptionParam.setScheduleType(ScheduleType.FIXED_RATE);
+//        scheduleOptionParam.setScheduleInterval(Duration.ofSeconds(3));
+//        param.setScheduleOption(scheduleOptionParam);
+//
+//        if (PlanType.NORMAL == planType) {
+//            param.setJob(newJob("hello", JobType.NORMAL));
+//        } else {
+//            WorkflowJobParam n1 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
+//            WorkflowJobParam n2 = newWorkflowJob(UUIDUtils.shortRandomID(), "hello", JobType.NORMAL, TriggerType.SCHEDULE);
+//
+//            n1.setChildren(Sets.newHashSet(n2.getId()));
+//
+//            param.setWorkflow(Lists.newArrayList(n1, n2));
+//        }
+//        return param;
+//    }
 
     public static JobParam newJob(String executorName, JobType type) {
         JobParam job = new JobParam();

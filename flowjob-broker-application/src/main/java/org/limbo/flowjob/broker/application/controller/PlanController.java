@@ -37,15 +37,13 @@ import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 
 /**
  * @author Devil
@@ -68,10 +66,10 @@ public class PlanController {
      * 新增计划
      */
     @Operation(summary = "新增计划")
-    @PostMapping("/api/v1/plan")
-    public ResponseDTO<String> add(@Validated @RequestBody PlanParam options) {
+    @PostMapping("/api/v1/plan/add")
+    public ResponseDTO<String> add(@Validated @RequestBody PlanParam.NormalPlanParam options) {
         return ResponseDTO.<String>builder()
-                .ok(planService.save(null, options))
+                .ok(planService.add(options))
                 .build();
     }
 
@@ -82,11 +80,37 @@ public class PlanController {
     @Parameters({
             @Parameter(name = "planId", in = ParameterIn.PATH, description = "计划ID")
     })
-    @PutMapping("/api/v1/plan/{planId}")
-    public ResponseDTO<String> replace(@NotBlank(message = "ID不能为空") @PathVariable("planId") String planId,
-                                           @Validated @RequestBody PlanParam options) {
+    @PostMapping("/api/v1/plan/update")
+    public ResponseDTO<String> update(@NotBlank(message = "ID不能为空") @RequestParam("planId") String planId,
+                                      @Validated @RequestBody PlanParam.NormalPlanParam options) {
         return ResponseDTO.<String>builder()
-                .ok(planService.save(planId, options))
+                .ok(planService.update(planId, options))
+                .build();
+    }
+
+    /**
+     * 新增工作流计划
+     */
+    @Operation(summary = "新增工作流计划")
+    @PostMapping("/api/v1/workflow-plan/add")
+    public ResponseDTO<String> add(@Validated @RequestBody PlanParam.WorkflowPlanParam options) {
+        return ResponseDTO.<String>builder()
+                .ok(planService.add(options))
+                .build();
+    }
+
+    /**
+     * 替换工作流计划
+     */
+    @Operation(summary = "替换工作流计划")
+    @Parameters({
+            @Parameter(name = "planId", in = ParameterIn.PATH, description = "计划ID")
+    })
+    @PostMapping("/api/v1/workflow-plan/update")
+    public ResponseDTO<String> update(@NotBlank(message = "ID不能为空") @RequestParam("planId") String planId,
+                                      @Validated @RequestBody PlanParam.WorkflowPlanParam options) {
+        return ResponseDTO.<String>builder()
+                .ok(planService.update(planId, options))
                 .build();
     }
 
@@ -94,8 +118,8 @@ public class PlanController {
      * 启动计划
      */
     @Operation(summary = "启动计划")
-    @PutMapping("/api/v1/plan/{planId}/start")
-    public ResponseDTO<Boolean> start(@PathVariable("planId") String planId) {
+    @PostMapping("/api/v1/plan/start")
+    public ResponseDTO<Boolean> start(@NotBlank(message = "ID不能为空") @RequestParam("planId") String planId) {
         return ResponseDTO.<Boolean>builder().ok(planService.start(planId)).build();
     }
 
@@ -103,8 +127,8 @@ public class PlanController {
      * 停止计划
      */
     @Operation(summary = "停止计划")
-    @PutMapping("/api/v1/plan/{planId}/stop")
-    public ResponseDTO<Boolean> stop(@PathVariable("planId") String planId) {
+    @PostMapping("/api/v1/plan/stop")
+    public ResponseDTO<Boolean> stop(@NotBlank(message = "ID不能为空") @RequestParam("planId") String planId) {
         return ResponseDTO.<Boolean>builder().ok(planService.stop(planId)).build();
     }
 
@@ -112,8 +136,8 @@ public class PlanController {
      * 手动触发对应 plan
      */
     @Operation(summary = "触发对应plan调度")
-    @PostMapping("/api/v1/plan/{planId}/schedule")
-    public ResponseDTO<Void> schedulePlan(@Validated @NotNull(message = "no planId") @PathVariable("planId") String planId) {
+    @PostMapping("/api/v1/plan/schedule")
+    public ResponseDTO<Void> schedulePlan(@NotBlank(message = "ID不能为空") @RequestParam("planId") String planId) {
         Plan plan = planRepository.get(planId);
         scheduleStrategy.schedule(TriggerType.API, plan, TimeUtils.currentLocalDateTime());
         return ResponseDTO.<Void>builder().ok().build();

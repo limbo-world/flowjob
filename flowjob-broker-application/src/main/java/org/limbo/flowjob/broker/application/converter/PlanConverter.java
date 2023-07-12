@@ -22,8 +22,8 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.param.console.DispatchOptionParam;
 import org.limbo.flowjob.api.param.console.JobParam;
+import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.RetryOptionParam;
-import org.limbo.flowjob.api.param.console.ScheduleOptionParam;
 import org.limbo.flowjob.api.param.console.TagFilterParam;
 import org.limbo.flowjob.api.param.console.WorkflowJobParam;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
@@ -31,7 +31,6 @@ import org.limbo.flowjob.broker.core.dispatch.RetryOption;
 import org.limbo.flowjob.broker.core.dispatch.TagFilterOption;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
-import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.springframework.stereotype.Component;
@@ -55,9 +54,9 @@ public class PlanConverter {
         return new DAG<>(convertJobs(jobParams));
     }
 
-    public JobInfo covertJob(String id, JobParam jobParam) {
+    public JobInfo covertJob(PlanParam.NormalPlanParam jobParam) {
         JobInfo jobInfo = new JobInfo();
-        jobInfo.setId(id);
+        jobInfo.setId("0");
         jobInfo.setType(jobParam.getType());
         jobInfo.setAttributes(new Attributes(jobParam.getAttributes()));
         jobInfo.setRetryOption(convertToRetryOption(jobParam.getRetryOption()));
@@ -95,19 +94,19 @@ public class PlanConverter {
     }
 
 
-    /**
-     * 新增计划参数转换为 计划调度配置
-     */
-    public ScheduleOption convertScheduleOption(ScheduleOptionParam param) {
-        return new ScheduleOption(
-                param.getScheduleType(),
-                param.getScheduleStartAt(),
-                param.getScheduleDelay(),
-                param.getScheduleInterval(),
-                param.getScheduleCron(),
-                param.getScheduleCronType()
-        );
-    }
+//    /**
+//     * 新增计划参数转换为 计划调度配置
+//     */
+//    public ScheduleOption convertScheduleOption(ScheduleOptionParam param) {
+//        return new ScheduleOption(
+//                param.getScheduleType(),
+//                param.getScheduleStartAt(),
+//                param.getScheduleDelay(),
+//                param.getScheduleInterval(),
+//                param.getScheduleCron(),
+//                param.getScheduleCronType()
+//        );
+//    }
 
     /**
      * 生成作业重试参数
