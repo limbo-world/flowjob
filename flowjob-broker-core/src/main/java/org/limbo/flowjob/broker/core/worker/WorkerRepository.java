@@ -63,6 +63,8 @@ public interface WorkerRepository {
      */
     List<Worker> listAvailableWorkers();
 
+    boolean updateStatus(String workerId, Integer oldStatus, Integer newStatus);
+
 
     /**
      * 删除一个worker，软删除

@@ -30,6 +30,7 @@ import org.limbo.flowjob.api.dto.console.WorkerDTO;
 import org.limbo.flowjob.api.param.broker.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
 import org.limbo.flowjob.api.param.console.WorkerQueryParam;
+import org.limbo.flowjob.broker.application.component.SlotManager;
 import org.limbo.flowjob.broker.application.converter.WorkerConverter;
 import org.limbo.flowjob.broker.application.support.JpaHelper;
 import org.limbo.flowjob.broker.application.support.WorkerFactory;
@@ -40,8 +41,10 @@ import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerSlotEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
 import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.WorkerSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerTagEntityRepo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -83,8 +86,15 @@ public class WorkerService {
     @Setter(onMethod_ = @Inject)
     private IDGenerator idGenerator;
 
+    @Setter(onMethod_ = @Inject)
+    private SlotManager slotManager;
+
+    @Setter(onMethod_ = @Inject)
+    private WorkerSlotEntityRepo workerSlotEntityRepo;
+
     /**
      * worker注册
+     *
      * @param options 注册参数
      * @return 返回所有tracker节点信息
      */
@@ -115,6 +125,13 @@ public class WorkerService {
 
         // 保存 worker
         workerRepository.save(worker);
+
+        // 槽位保存
+        WorkerSlotEntity slotEntity = new WorkerSlotEntity();
+        slotEntity.setSlot(slotManager.slot(worker.getId()));
+        slotEntity.setWorkerId(worker.getId());
+        workerSlotEntityRepo.saveAndFlush(slotEntity);
+
         log.info("worker registered " + worker);
 
         return WorkerConverter.toRegisterDTO(worker, nodeManger.allAlive());
@@ -122,6 +139,7 @@ public class WorkerService {
 
     /**
      * worker心跳
+     *
      * @param option 心跳参数，上报部分指标数据
      */
     @Transactional(rollbackOn = Throwable.class)
@@ -141,6 +159,45 @@ public class WorkerService {
         return WorkerConverter.toRegisterDTO(worker, nodeManger.allAlive());
     }
 
+    /**
+     * 启动后参与调度
+     *
+     * @param workerId id
+     */
+    @Transactional
+    public boolean start(String workerId) {
+        Optional<WorkerEntity> workerEntityOptional = workerEntityRepo.findById(workerId);
+        Verifies.verify(workerEntityOptional.isPresent(), String.format("Cannot find Worker %s", workerId));
+
+        WorkerEntity workerEntity = workerEntityOptional.get();
+        // 已经启动不重复处理
+        if (workerEntity.isEnabled()) {
+            return true;
+        }
+
+        return workerEntityRepo.updateEnable(workerEntity.getWorkerId(), false, true) == 1;
+    }
+
+    /**
+     * 取消后不参与调度
+     */
+    @Transactional
+    public boolean stop(String workerId) {
+        // 获取当前的plan数据
+        Optional<WorkerEntity> workerEntityOptional = workerEntityRepo.findById(workerId);
+        Verifies.verify(workerEntityOptional.isPresent(), String.format("Cannot find Worker %s", workerId));
+
+        // 已经停止不重复处理
+        WorkerEntity workerEntity = workerEntityOptional.get();
+        // 已经停止不重复处理
+        if (!workerEntity.isEnabled()) {
+            return true;
+        }
+
+        // 停用计划
+        return workerEntityRepo.updateEnable(workerEntity.getWorkerId(), true, false) == 1;
+    }
+
     public PageDTO<WorkerDTO> page(WorkerQueryParam param) {
         Specification<WorkerEntity> sf = (root, query, cb) -> {
             //用于添加所有查询条件
@@ -149,7 +206,7 @@ public class WorkerService {
                 Predicate p3 = cb.like(root.get("name").as(String.class), param.getName() + "%");
                 p.add(p3);
             }
-            p.add(cb.equal(root.get("deleted"),false));
+            p.add(cb.equal(root.get("deleted"), false));
             Predicate[] pre = new Predicate[p.size()];
             Predicate and = cb.and(p.toArray(pre));
             query.where(and);
@@ -179,7 +236,6 @@ public class WorkerService {
         }
         return page;
     }
-
 
 
 }

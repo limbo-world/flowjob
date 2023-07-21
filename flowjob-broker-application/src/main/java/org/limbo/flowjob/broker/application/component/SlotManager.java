@@ -25,7 +25,9 @@ import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.WorkerSlotEntityRepo;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -54,13 +56,16 @@ public class SlotManager {
     @Setter(onMethod_ = @Inject)
     private PlanSlotEntityRepo planSlotEntityRepo;
 
-    public static final int SLOT_SIZE = 64;
+    @Setter(onMethod_ = @Inject)
+    private WorkerSlotEntityRepo workerSlotEntityRepo;
+
+    public static final int SLOT_SIZE = 1024;
 
     /**
      * 计算槽位
      */
-    public int slot(String planId) {
-        return planId.hashCode() % SlotManager.SLOT_SIZE;
+    public int slot(String id) {
+        return id.hashCode() % SlotManager.SLOT_SIZE;
     }
 
     /**
@@ -114,6 +119,24 @@ public class SlotManager {
 
         return slotEntities.stream()
                 .map(PlanSlotEntity::getPlanId)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 获取当前节点对应的workerId
+     */
+    public List<String> workerIds() {
+        List<Integer> slots = slots();
+        if (CollectionUtils.isEmpty(slots)) {
+            return Collections.emptyList();
+        }
+        List<WorkerSlotEntity> slotEntities = workerSlotEntityRepo.findBySlotIn(slots);
+        if (CollectionUtils.isEmpty(slotEntities)) {
+            return Collections.emptyList();
+        }
+
+        return slotEntities.stream()
+                .map(WorkerSlotEntity::getWorkerId)
                 .collect(Collectors.toList());
     }
 

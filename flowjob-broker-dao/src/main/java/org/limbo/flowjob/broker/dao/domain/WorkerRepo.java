@@ -18,10 +18,11 @@
 
 package org.limbo.flowjob.broker.dao.domain;
 
-import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.api.constants.WorkerStatus;
+import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
@@ -34,13 +35,13 @@ import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerExecutorEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerMetricEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerTagEntityRepo;
-import org.limbo.flowjob.api.constants.WorkerStatus;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -68,12 +69,8 @@ public class WorkerRepo implements WorkerRepository {
     @Setter(onMethod_ = @Inject)
     private WorkerEntityConverter converter;
 
-    /**
-     * worker 心跳过期时间 毫秒
-     */
-    @Getter
-    @Value("${flowjob.broker.worker.heartbeat-timeout:5000}")
-    private long heartbeatExpireInterval;
+    @Setter(onMethod_ = @Inject)
+    private BrokerConfig brokerConfig;
 
     /**
      * {@inheritDoc}
@@ -89,6 +86,7 @@ public class WorkerRepo implements WorkerRepository {
         Objects.requireNonNull(entity);
         entity.setUpdatedAt(TimeUtils.currentLocalDateTime());
         workerEntityRepo.saveAndFlush(entity);
+        worker.setId(entity.getWorkerId());
 
         // Metric 存储
         WorkerMetric metric = worker.getMetric();
@@ -161,19 +159,21 @@ public class WorkerRepo implements WorkerRepository {
      */
     @Override
     public List<Worker> listAvailableWorkers() {
+        LocalDateTime now = TimeUtils.currentLocalDateTime();
         return workerEntityRepo.findByStatusAndEnabledAndDeleted(WorkerStatus.RUNNING.status, true, false)
                 .stream()
                 .map(this::toWorkerWithLazyInit)
                 .filter(worker -> {
                     // 处理心跳过期的
-                    if (worker.getMetric().getLastHeartbeatAt().isBefore(TimeUtils.currentLocalDateTime().plusSeconds(-heartbeatExpireInterval / 1000))) {
-                        workerEntityRepo.updateStatus(worker.getId(), WorkerStatus.RUNNING.status, WorkerStatus.TERMINATED.status);
-                        return false;
-                    } else {
-                        return true;
-                    }
+                    return !worker.getMetric().getLastHeartbeatAt().plus(brokerConfig.getWorker().getHeartbeatTimeout(), ChronoUnit.MILLIS).isBefore(now);
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public boolean updateStatus(String workerId, Integer oldStatus, Integer newStatus) {
+        return workerEntityRepo.updateStatus(workerId, oldStatus, newStatus) > 0;
     }
 
 

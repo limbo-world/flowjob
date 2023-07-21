@@ -23,13 +23,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Setter;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.ResponseDTO;
-import org.limbo.flowjob.api.param.console.WorkerQueryParam;
 import org.limbo.flowjob.api.dto.console.WorkerDTO;
+import org.limbo.flowjob.api.param.console.WorkerQueryParam;
 import org.limbo.flowjob.broker.application.service.WorkerService;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
+import javax.validation.constraints.NotBlank;
 
 /**
  * @author Devil
@@ -46,6 +49,24 @@ public class WorkerController {
     @GetMapping("/api/v1/worker")
     public ResponseDTO<PageDTO<WorkerDTO>> page(WorkerQueryParam param) {
         return ResponseDTO.<PageDTO<WorkerDTO>>builder().ok(workerService.page(param)).build();
+    }
+
+    /**
+     * 启动worker
+     */
+    @Operation(summary = "启动worker")
+    @PostMapping("/api/v1/worker/start")
+    public ResponseDTO<Boolean> start(@NotBlank(message = "ID不能为空") @RequestParam("workerId") String workerId) {
+        return ResponseDTO.<Boolean>builder().ok(workerService.start(workerId)).build();
+    }
+
+    /**
+     * 停止worker
+     */
+    @Operation(summary = "停止worker")
+    @PostMapping("/api/v1/worker/stop")
+    public ResponseDTO<Boolean> stop(@NotBlank(message = "ID不能为空") @RequestParam("workerId") String workerId) {
+        return ResponseDTO.<Boolean>builder().ok(workerService.stop(workerId)).build();
     }
 
 }

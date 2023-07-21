@@ -18,17 +18,19 @@
 
 package org.limbo.flowjob.broker.dao.repositories;
 
-import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerSlotEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
 /**
  * @author Devil
- * @since 2022/6/24
+ * @since 2022/8/23
  */
-public interface WorkerMetricEntityRepo extends JpaRepository<WorkerMetricEntity, String> {
+public interface WorkerSlotEntityRepo extends JpaRepository<WorkerSlotEntity, Long> {
 
-    List<WorkerMetricEntity> findByWorkerIdIn(List<String> workerIds);
+    List<WorkerSlotEntity> findBySlotIn(List<Integer> slots);
+
+    WorkerSlotEntity findByWorkerId(String workerId);
 
 }
