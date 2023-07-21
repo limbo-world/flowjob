@@ -24,5 +24,14 @@ package org.limbo.flowjob.api.constants.worker;
  */
 public interface HttpBrokerApi {
 
-    String API_REGISTER_WORKER = "/api/v1/rpc/worker";
+    String API_WORKER_REGISTER = "/api/v1/rpc/worker";
+
+    String API_WORKER_HEARTBEAT = "/api/v1/rpc/worker/heartbeat";
+
+    String API_WORKER_PLAN_SCHEDULE = "/api/v1/rpc/worker/plan/schedule";
+
+    String API_WORKER_PLAN_INSTANCE_JOB_SCHEDULE = "/api/v1/rpc/worker/plan-instance/job/schedule";
+
+    String API_WORKER_TASK_FEEDBACK = "/api/v1/rpc/worker/task/feedback";
+
 }

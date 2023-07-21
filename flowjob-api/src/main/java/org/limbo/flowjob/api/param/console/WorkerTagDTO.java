@@ -16,25 +16,29 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.config;
+package org.limbo.flowjob.api.param.console;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.limbo.flowjob.common.utils.json.JacksonUtils;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-/**
- * Jackson的序列化、反序列化处理
- *
- * @author Brozen
- * @since 2021-07-27
- */
-public class JacksonSerializerConfiguration {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Schema(title = "worker 标签")
+public class WorkerTagDTO {
 
-    @Bean
-    @Primary
-    public ObjectMapper objectMapper() {
-        return JacksonUtils.mapper;
-    }
+    /**
+     * 标签 key
+     */
+    @Schema(description = "标签 key")
+    private String key;
+
+    /**
+     * 标签 value
+     */
+    @Schema(description = "标签 value")
+    private String value;
 
 }

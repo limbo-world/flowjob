@@ -29,14 +29,13 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.api.constants.worker.HttpBrokerApi;
+import org.limbo.flowjob.api.constants.MsgConstants;
+import org.limbo.flowjob.api.constants.Protocol;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.broker.BrokerTopologyDTO;
 import org.limbo.flowjob.api.dto.broker.WorkerRegisterDTO;
 import org.limbo.flowjob.api.param.broker.TaskFeedbackParam;
 import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
-import org.limbo.flowjob.api.constants.MsgConstants;
-import org.limbo.flowjob.api.constants.Protocol;
 import org.limbo.flowjob.common.lb.LBServerRepository;
 import org.limbo.flowjob.common.lb.LBStrategy;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -55,6 +54,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.limbo.flowjob.api.constants.worker.HttpBrokerApi.*;
 
 /**
  * @author Brozen
@@ -117,7 +118,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      * 向指定 broker 节点发起注册请求
      */
     private WorkerRegisterDTO registerWith(WorkerRegisterParam param) throws RegisterFailException {
-        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + HttpBrokerApi.API_REGISTER_WORKER, param, new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
+        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + API_WORKER_REGISTER, param, new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
         });
 
         if (response == null || !response.success()) {
@@ -164,7 +165,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      */
     @Override
     public void heartbeat(Worker worker) {
-        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + "/api/v1/rpc/worker/" + workerId + "/heartbeat", RpcParamFactory.heartbeatParam(worker), new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
+        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + API_WORKER_HEARTBEAT + "?workerId=" + workerId, RpcParamFactory.heartbeatParam(worker), new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
         });
 
         if (response == null || !response.success()) {
@@ -209,7 +210,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      * 反馈任务执行结果
      */
     private void doFeedbackTask(String taskId, TaskFeedbackParam feedbackParam) {
-        ResponseDTO<Void> response = executePost(BASE_URL + "/api/v1/rpc/worker/task/" + taskId + "/feedback", feedbackParam, new TypeReference<ResponseDTO<Void>>() {
+        ResponseDTO<Void> response = executePost(BASE_URL + API_WORKER_TASK_FEEDBACK + "?taskId=" + taskId, feedbackParam, new TypeReference<ResponseDTO<Void>>() {
         });
 
         if (response == null || !response.success()) {

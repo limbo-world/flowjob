@@ -21,8 +21,8 @@ package org.limbo.flowjob.broker.application.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Setter;
-import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.constants.TriggerType;
+import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.broker.WorkerRegisterDTO;
 import org.limbo.flowjob.api.param.broker.TaskFeedbackParam;
 import org.limbo.flowjob.api.param.broker.WorkerHeartbeatParam;
@@ -33,14 +33,16 @@ import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+
+import static org.limbo.flowjob.api.constants.worker.HttpBrokerApi.*;
 
 /**
  * @author Brozen
@@ -63,7 +65,7 @@ public class WorkerRpcController {
      * worker注册
      */
     @Operation(summary = "worker注册")
-    @PostMapping("/api/rpc/v1/worker")
+    @PostMapping(API_WORKER_REGISTER)
     public ResponseDTO<WorkerRegisterDTO> register(@Validated @RequestBody WorkerRegisterParam param) {
         return ResponseDTO.<WorkerRegisterDTO>builder().ok(workerService.register(param)).build();
     }
@@ -72,8 +74,8 @@ public class WorkerRpcController {
      * worker心跳
      */
     @Operation(summary = "worker心跳")
-    @PostMapping("/api/rpc/v1/worker/{workerId}/heartbeat")
-    public ResponseDTO<WorkerRegisterDTO> heartbeat(@Validated @NotNull(message = "no workerId") @PathVariable("workerId") String workerId,
+    @PostMapping(API_WORKER_HEARTBEAT)
+    public ResponseDTO<WorkerRegisterDTO> heartbeat(@Validated @NotNull(message = "no workerId") @RequestParam("workerId") String workerId,
                                                     @Valid @RequestBody WorkerHeartbeatParam heartbeatOption) {
         return ResponseDTO.<WorkerRegisterDTO>builder().ok(workerService.heartbeat(workerId, heartbeatOption)).build();
     }
@@ -82,8 +84,8 @@ public class WorkerRpcController {
      * api 触发对应plan调度
      */
     @Operation(summary = "触发对应plan调度")
-    @PostMapping("/api/rpc/v1/worker/plan/{planId}/schedule")
-    public ResponseDTO<Void> scheduleJob(@Validated @NotNull(message = "no planId") @PathVariable("planId") String planId) {
+    @PostMapping(API_WORKER_PLAN_SCHEDULE)
+    public ResponseDTO<Void> scheduleJob(@Validated @NotNull(message = "no planId") @RequestParam("planId") String planId) {
         Plan plan = planRepository.get(planId);
         scheduleStrategy.schedule(TriggerType.API, plan, TimeUtils.currentLocalDateTime());
         return ResponseDTO.<Void>builder().ok().build();
@@ -93,9 +95,9 @@ public class WorkerRpcController {
      * api 触发对应planInstanceId下的job调度 目前只有workflow类型会用到
      */
     @Operation(summary = "触发对应job调度")
-    @PostMapping("/api/rpc/v1/worker/plan-instance/{planInstanceId}/job/{jobId}/schedule")
-    public ResponseDTO<Void> scheduleJob(@Validated @NotNull(message = "no planInstanceId") @PathVariable("planInstanceId") String planInstanceId,
-                                         @Validated @NotNull(message = "no jobId") @PathVariable("jobId") String jobId) {
+    @PostMapping(API_WORKER_PLAN_INSTANCE_JOB_SCHEDULE)
+    public ResponseDTO<Void> scheduleJob(@Validated @NotNull(message = "no planInstanceId") @RequestParam("planInstanceId") String planInstanceId,
+                                         @Validated @NotNull(message = "no jobId") @RequestParam("jobId") String jobId) {
         scheduleStrategy.scheduleJob(planInstanceId, jobId);
         return ResponseDTO.<Void>builder().ok().build();
     }
@@ -104,8 +106,8 @@ public class WorkerRpcController {
      * 任务执行反馈接口
      */
     @Operation(summary = "任务执行反馈接口")
-    @PostMapping("/api/rpc/v1/worker/task/{taskId}/feedback")
-    public ResponseDTO<Void> feedback(@Validated @NotNull(message = "no taskId") @PathVariable("taskId") String taskId,
+    @PostMapping(API_WORKER_TASK_FEEDBACK)
+    public ResponseDTO<Void> feedback(@Validated @NotNull(message = "no taskId") @RequestParam("taskId") String taskId,
                                       @Valid @RequestBody TaskFeedbackParam feedback) {
         scheduleStrategy.taskFeedback(taskId, feedback);
         return ResponseDTO.<Void>builder().ok().build();

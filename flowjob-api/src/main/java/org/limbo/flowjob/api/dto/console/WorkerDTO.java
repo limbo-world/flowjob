@@ -21,6 +21,9 @@ package org.limbo.flowjob.api.dto.console;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.limbo.flowjob.api.constants.WorkerStatus;
+import org.limbo.flowjob.api.param.console.WorkerTagDTO;
+
+import java.util.List;
 
 /**
  * @author KaiFengCai
@@ -44,6 +47,9 @@ public class WorkerDTO {
 
     @Schema(title = "port")
     private Integer port;
+
+    @Schema(title = "tag")
+    private List<WorkerTagDTO> tags;
 
     /**
      * worker节点状态

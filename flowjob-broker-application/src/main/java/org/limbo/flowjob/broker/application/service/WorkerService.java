@@ -22,25 +22,27 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.api.constants.MsgConstants;
+import org.limbo.flowjob.api.constants.Protocol;
 import org.limbo.flowjob.api.dto.PageDTO;
-import org.limbo.flowjob.api.param.console.WorkerQueryParam;
-import org.limbo.flowjob.api.dto.console.WorkerDTO;
 import org.limbo.flowjob.api.dto.broker.WorkerRegisterDTO;
+import org.limbo.flowjob.api.dto.console.WorkerDTO;
 import org.limbo.flowjob.api.param.broker.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
+import org.limbo.flowjob.api.param.console.WorkerQueryParam;
 import org.limbo.flowjob.broker.application.converter.WorkerConverter;
 import org.limbo.flowjob.broker.application.support.JpaHelper;
 import org.limbo.flowjob.broker.application.support.WorkerFactory;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
+import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
 import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
-import org.limbo.flowjob.api.constants.MsgConstants;
-import org.limbo.flowjob.api.constants.Protocol;
-import org.limbo.flowjob.broker.core.utils.Verifies;
+import org.limbo.flowjob.broker.dao.repositories.WorkerTagEntityRepo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -52,6 +54,7 @@ import javax.persistence.criteria.Predicate;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -70,6 +73,9 @@ public class WorkerService {
 
     @Setter(onMethod_ = @Inject)
     private WorkerEntityRepo workerEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private WorkerTagEntityRepo workerTagEntityRepo;
 
     @Setter(onMethod_ = @Inject)
     private NodeManger nodeManger;
@@ -159,10 +165,17 @@ public class WorkerService {
         PageDTO<WorkerDTO> page = PageDTO.convertByPage(param);
         page.setTotal(queryResult.getTotalElements());
         if (CollectionUtils.isNotEmpty(entities)) {
-            page.setData(entities.stream()
-                    .map(WorkerConverter::toVO)
-                    .collect(Collectors.toList())
-            );
+
+            List<String> workerIds = entities.stream().map(WorkerEntity::getWorkerId).collect(Collectors.toList());
+            List<WorkerTagEntity> workerTagEntities = workerTagEntityRepo.findByWorkerIdIn(workerIds);
+            Map<String, List<WorkerTagEntity>> workerTagMap = workerTagEntities.stream().collect(Collectors.groupingBy(WorkerTagEntity::getWorkerId));
+
+            List<WorkerDTO> workerDTOS = new ArrayList<>();
+            for (WorkerEntity entity : entities) {
+                workerDTOS.add(WorkerConverter.toVO(entity, workerTagMap.get(entity.getWorkerId())));
+            }
+
+            page.setData(workerDTOS);
         }
         return page;
     }

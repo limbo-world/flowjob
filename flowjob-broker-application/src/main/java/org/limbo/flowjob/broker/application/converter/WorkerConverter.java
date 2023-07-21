@@ -21,20 +21,22 @@ package org.limbo.flowjob.broker.application.converter;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.api.dto.console.WorkerDTO;
 import org.limbo.flowjob.api.dto.broker.BrokerDTO;
 import org.limbo.flowjob.api.dto.broker.BrokerTopologyDTO;
 import org.limbo.flowjob.api.dto.broker.WorkerRegisterDTO;
+import org.limbo.flowjob.api.dto.console.WorkerDTO;
 import org.limbo.flowjob.api.param.broker.WorkerExecutorRegisterParam;
 import org.limbo.flowjob.api.param.broker.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
 import org.limbo.flowjob.api.param.broker.WorkerResourceParam;
+import org.limbo.flowjob.api.param.console.WorkerTagDTO;
 import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.util.ArrayList;
@@ -158,7 +160,7 @@ public class WorkerConverter {
         return brokerTopologyDTO;
     }
 
-    public static WorkerDTO toVO(WorkerEntity workerEntity) {
+    public static WorkerDTO toVO(WorkerEntity workerEntity, List<WorkerTagEntity> workerTagEntities) {
         WorkerDTO workerDTO = new WorkerDTO();
         workerDTO.setWorkerId(workerEntity.getWorkerId());
         workerDTO.setName(workerEntity.getName());
@@ -166,6 +168,12 @@ public class WorkerConverter {
         workerDTO.setHost(workerEntity.getHost());
         workerDTO.setPort(workerEntity.getPort());
         workerDTO.setStatus(workerEntity.getStatus());
+        workerDTO.setTags(new ArrayList<>());
+        if (CollectionUtils.isNotEmpty(workerTagEntities)) {
+            for (WorkerTagEntity workerTagEntity : workerTagEntities) {
+                workerDTO.getTags().add(new WorkerTagDTO(workerTagEntity.getTagKey(), workerTagEntity.getTagValue()));
+            }
+        }
         workerDTO.setEnabled(workerEntity.isEnabled());
         return workerDTO;
     }
