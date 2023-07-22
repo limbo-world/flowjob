@@ -19,48 +19,37 @@
 package org.limbo.flowjob.api.dto.console;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import org.limbo.flowjob.api.constants.WorkerStatus;
-
-import java.util.List;
+import lombok.NoArgsConstructor;
+import org.limbo.flowjob.api.constants.TagFilterCondition;
 
 /**
- * @author KaiFengCai
- * @since 2023/1/30
+ * @author Devil
+ * @since 2023/2/6
  */
+@Schema(title = "标签过滤参数")
 @Data
-@Schema(title = "Worker")
-public class WorkerDTO {
-
-    @Schema(title = "id")
-    private String workerId;
-
-    @Schema(title = "名称")
-    private String name;
-
-    @Schema(title = "通信协议")
-    private String protocol;
-
-    @Schema(title = "host")
-    private String host;
-
-    @Schema(title = "port")
-    private Integer port;
-
-    @Schema(title = "tag")
-    private List<WorkerTagDTO> tags;
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TagFilterDTO {
 
     /**
-     * worker节点状态
-     * @see WorkerStatus
+     * 标签名
      */
-    @Schema(title = "节点状态")
-    private Integer status;
+    private String tagName;
 
     /**
-     * 是否启用 不启用则不会进行任务下发
+     * 标签值
      */
-    @Schema(title = "是否启用")
-    private boolean enabled;
+    private String tagValue;
+
+    /**
+     * 匹配条件
+     * @see TagFilterCondition
+     */
+    private TagFilterCondition condition;
 
 }

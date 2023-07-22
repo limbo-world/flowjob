@@ -20,88 +20,115 @@ package org.limbo.flowjob.api.dto.console;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.limbo.flowjob.api.constants.PlanType;
-import org.limbo.flowjob.api.constants.ScheduleType;
+import lombok.EqualsAndHashCode;
+import org.limbo.flowjob.api.constants.JobType;
 import org.limbo.flowjob.api.constants.TriggerType;
+import org.limbo.flowjob.api.param.console.WorkflowJobParam;
 
-import java.time.LocalDateTime;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 
 /**
- * @author KaiFengCai
- * @since 2023/1/30
+ * @author Devil
+ * @since 2023/7/12
  */
 @Data
-@Schema(title = "任务对象")
-public class PlanDTO {
+public class PlanDTO implements Serializable {
 
-    @Schema(title = "id")
+    private static final long serialVersionUID = 5415937110190483426L;
+
+    /**
+     * 计划ID
+     */
+    @Schema(title = "任务ID")
     private String planId;
 
-    @Schema(title = "当前版本")
-    private String currentVersion;
-
-    @Schema(title = "最新版本")
-    private String recentlyVersion;
-
-    @Schema(title = "是否启动")
-    private boolean enabled;
-
-    @Schema(title = "名称")
+    /**
+     * 计划名称
+     */
+    @Schema(title = "任务名称")
     private String name;
 
-    @Schema(title = "描述")
+    /**
+     * 计划描述
+     */
+    @Schema(title = "任务描述")
     private String description;
 
     /**
-     * 计划作业类型
-     * @see PlanType
-     */
-    @Schema(title = "任务类型")
-    private Integer planType;
-
-    /**
-     * 计划作业调度方式
-     * @see ScheduleType
-     */
-    @Schema(title = "调度方式")
-    private Integer scheduleType;
-
-    /**
-     * 计划作业触发方式
+     * 触发方式
      * @see TriggerType
      */
-    @Schema(title = "触发方式")
-    private Integer triggerType;
+    @NotNull
+    @Schema(title = "触发方式", implementation = Integer.class)
+    private TriggerType triggerType;
 
     /**
-     * 从何时开始调度作业
+     * 作业计划调度配置参数
      */
-    @Schema(title = "调度开始时间")
-    private LocalDateTime scheduleStartAt;
+    @NotNull
+    @Schema(title = "调度配置参数")
+    private ScheduleOptionDTO scheduleOption;
 
-    /**
-     * 作业调度延迟时间，单位秒
-     */
-    @Schema(title = "调度延迟时间")
-    private Long scheduleDelay;
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    @Schema(title = "普通任务参数")
+    public static class NormalPlanDTO extends PlanDTO {
 
-    /**
-     * 作业调度间隔时间，单位秒。
-     */
-    @Schema(title = "调度间隔时间")
-    private Long scheduleInterval;
+        private static final long serialVersionUID = 3895596530765470400L;
 
-    /**
-     * 作业调度的CRON表达式
-     */
-    @Schema(title = "CRON表达式")
-    private String scheduleCron;
+        /**
+         * 作业类型
+         * @see JobType
+         */
+        @NotNull
+        @Schema(title = "作业类型")
+        private JobType type;
 
-    /**
-     * 作业调度的CRON表达式
-     * @see com.cronutils.model.CronType
-     */
-    @Schema(title = "CRON表达式类型")
-    private String scheduleCronType;
+        /**
+         * 属性参数
+         */
+        @Schema(title = "属性参数")
+        private Map<String, Object> attributes;
+
+        /**
+         * 作业分发重试参数
+         */
+        @Schema(title = "作业分发重试参数")
+        private RetryOptionDTO retryOption;
+
+        /**
+         * 作业分发配置参数
+         */
+        @Valid
+        @NotNull
+        @Schema(title = "作业分发配置参数")
+        private DispatchOptionDTO dispatchOption;
+
+        /**
+         * 执行器名称
+         */
+        @NotBlank
+        @Schema(title = "执行器名称")
+        private String executorName;
+    }
+
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    @Schema(title = "工作流任务参数")
+    public static class WorkflowPlanDTO extends PlanDTO {
+
+        private static final long serialVersionUID = 7590151688905915258L;
+
+        /**
+         * 此执行计划对应的所有作业
+         */
+        @Schema(title = "工作流对应的所有作业")
+        private List<@Valid WorkflowJobParam> workflow;
+    }
 
 }

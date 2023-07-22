@@ -20,8 +20,11 @@ package org.limbo.flowjob.broker.application.converter;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.api.dto.console.DispatchOptionDTO;
+import org.limbo.flowjob.api.dto.console.PlanDTO;
+import org.limbo.flowjob.api.dto.console.RetryOptionDTO;
+import org.limbo.flowjob.api.dto.console.TagFilterDTO;
 import org.limbo.flowjob.api.param.console.DispatchOptionParam;
-import org.limbo.flowjob.api.param.console.JobParam;
 import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.RetryOptionParam;
 import org.limbo.flowjob.api.param.console.TagFilterParam;
@@ -58,12 +61,22 @@ public class PlanConverter {
         JobInfo jobInfo = new JobInfo();
         jobInfo.setId("0");
         jobInfo.setType(jobParam.getType());
+        jobInfo.setExecutorName(jobParam.getExecutorName());
         jobInfo.setAttributes(new Attributes(jobParam.getAttributes()));
         jobInfo.setRetryOption(convertToRetryOption(jobParam.getRetryOption()));
         jobInfo.setDispatchOption(convertJobDispatchOption(jobParam.getDispatchOption()));
-        jobInfo.setExecutorName(jobParam.getExecutorName());
         return jobInfo;
     }
+
+    public void assemble(PlanDTO.NormalPlanDTO dto, JobInfo jobInfo) {
+        dto.setType(jobInfo.getType());
+        dto.setAttributes(jobInfo.getAttributes().toMap());
+        dto.setExecutorName(jobInfo.getExecutorName());
+        dto.setRetryOption(convertToRetryOption(jobInfo.getRetryOption()));
+        dto.setDispatchOption(convertJobDispatchOption(jobInfo.getDispatchOption()));
+    }
+
+
 
     public List<WorkflowJobInfo> convertJobs(List<WorkflowJobParam> jobParams) {
         List<WorkflowJobInfo> joblist = Lists.newArrayList();
@@ -118,6 +131,18 @@ public class PlanConverter {
         return RetryOption.builder()
                 .retry(param.getRetry())
                 .retryInterval(param.getRetryInterval())
+                .retryType(param.getRetryType())
+                .build();
+    }
+
+    public RetryOptionDTO convertToRetryOption(RetryOption option) {
+        if (option == null) {
+            return new RetryOptionDTO();
+        }
+        return RetryOptionDTO.builder()
+                .retry(option.getRetry())
+                .retryInterval(option.getRetryInterval())
+                .retryType(option.getRetryInterval())
                 .build();
     }
 
@@ -133,6 +158,15 @@ public class PlanConverter {
                 .build();
     }
 
+    public DispatchOptionDTO convertJobDispatchOption(DispatchOption option) {
+        return DispatchOptionDTO.builder()
+                .loadBalanceType(option.getLoadBalanceType())
+                .cpuRequirement(option.getCpuRequirement())
+                .ramRequirement(option.getRamRequirement())
+                .tagFilters(covertTagFilterOptionDTO(option.getTagFilters()))
+                .build();
+    }
+
     public List<TagFilterOption> covertTagFilterOption(List<TagFilterParam> params) {
         if (CollectionUtils.isEmpty(params)) {
             return Collections.emptyList();
@@ -141,6 +175,17 @@ public class PlanConverter {
                 .tagName(param.getTagName())
                 .tagValue(param.getTagValue())
                 .condition(param.getCondition())
+                .build()).collect(Collectors.toList());
+    }
+
+    public List<TagFilterDTO> covertTagFilterOptionDTO(List<TagFilterOption> options) {
+        if (CollectionUtils.isEmpty(options)) {
+            return Collections.emptyList();
+        }
+        return options.stream().map(option -> TagFilterDTO.builder()
+                .tagName(option.getTagName())
+                .tagValue(option.getTagValue())
+                .condition(option.getCondition())
                 .build()).collect(Collectors.toList());
     }
 

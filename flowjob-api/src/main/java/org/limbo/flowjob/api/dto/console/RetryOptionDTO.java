@@ -19,48 +19,39 @@
 package org.limbo.flowjob.api.dto.console;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import org.limbo.flowjob.api.constants.WorkerStatus;
-
-import java.util.List;
+import lombok.NoArgsConstructor;
+import org.limbo.flowjob.api.constants.RetryType;
 
 /**
- * @author KaiFengCai
- * @since 2023/1/30
+ * @author Devil
+ * @since 2021/7/24
  */
 @Data
-@Schema(title = "Worker")
-public class WorkerDTO {
-
-    @Schema(title = "id")
-    private String workerId;
-
-    @Schema(title = "名称")
-    private String name;
-
-    @Schema(title = "通信协议")
-    private String protocol;
-
-    @Schema(title = "host")
-    private String host;
-
-    @Schema(title = "port")
-    private Integer port;
-
-    @Schema(title = "tag")
-    private List<WorkerTagDTO> tags;
+@Schema(title = "作业重试参数")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class RetryOptionDTO {
 
     /**
-     * worker节点状态
-     * @see WorkerStatus
+     * 重试次数
      */
-    @Schema(title = "节点状态")
-    private Integer status;
+    @Schema(title = "重试次数")
+    private Integer retry;
 
     /**
-     * 是否启用 不启用则不会进行任务下发
+     * 重试间隔
      */
-    @Schema(title = "是否启用")
-    private boolean enabled;
+    @Schema(title = "重试间隔-秒")
+    private Integer retryInterval;
+
+    /**
+     * 重试方式
+     */
+    @Schema(title = "重试方式")
+    private Integer retryType = RetryType.ALL.getType();
 
 }

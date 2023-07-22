@@ -16,11 +16,13 @@
 package org.limbo.flowjob.broker.core.dispatch;
 
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.api.constants.TagFilterCondition;
+import org.limbo.flowjob.broker.core.worker.Worker;
 
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,8 @@ import java.util.regex.Pattern;
  * @author Brozen
  * @since 2022-12-14
  */
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @Setter(AccessLevel.NONE)
 public class TagFilterOption {
@@ -40,17 +44,17 @@ public class TagFilterOption {
     /**
      * 标签名
      */
-    public final String tagName;
+    private String tagName;
 
     /**
      * 标签值
      */
-    public final String tagValue;
+    private String tagValue;
 
     /**
      * 匹配条件
      */
-    public final TagFilterCondition condition;
+    private TagFilterCondition condition;
 
 
     /**
@@ -84,4 +88,15 @@ public class TagFilterOption {
         };
     }
 
+    public String getTagName() {
+        return tagName;
+    }
+
+    public String getTagValue() {
+        return tagValue;
+    }
+
+    public TagFilterCondition getCondition() {
+        return condition;
+    }
 }

@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(title = "worker 标签")
-public class WorkerTagDTO {
+public class WorkerTagParam {
 
     /**
      * 标签 key

@@ -25,8 +25,12 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.ScheduleType;
+import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.console.PlanDTO;
+import org.limbo.flowjob.api.dto.console.PlanListDTO;
+import org.limbo.flowjob.api.dto.console.ScheduleOptionDTO;
 import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.PlanQueryParam;
 import org.limbo.flowjob.api.param.console.ScheduleOptionParam;
@@ -131,7 +135,7 @@ public class PlanService {
     @Transactional
     public String save(String planId, PlanType planType, PlanParam param, String jobInfo) {
         PlanInfoEntity planInfoEntity = new PlanInfoEntity();
-        planInfoEntity.setJobInfo(JacksonUtils.toJSONString(jobInfo));
+        planInfoEntity.setJobInfo(jobInfo);
 
         String planInfoId = idGenerator.generateId(IDType.PLAN_INFO);
 
@@ -174,8 +178,8 @@ public class PlanService {
         ScheduleOptionParam scheduleOption = param.getScheduleOption();
         planInfoEntity.setScheduleType(scheduleOption.getScheduleType().type);
         planInfoEntity.setScheduleStartAt(scheduleOption.getScheduleStartAt());
-        planInfoEntity.setScheduleDelay(scheduleOption.getScheduleDelay() == null ? 0L : scheduleOption.getScheduleDelay().toMillis());
-        planInfoEntity.setScheduleInterval(scheduleOption.getScheduleInterval() == null ? 0L : scheduleOption.getScheduleInterval().toMillis());
+        planInfoEntity.setScheduleDelay(scheduleOption.getScheduleDelay() == null ? 0L : scheduleOption.getScheduleDelay());
+        planInfoEntity.setScheduleInterval(scheduleOption.getScheduleInterval() == null ? 0L : scheduleOption.getScheduleInterval());
         planInfoEntity.setScheduleCron(scheduleOption.getScheduleCron());
 
         // 保存版本信息
@@ -223,8 +227,33 @@ public class PlanService {
         return planEntityRepo.updateEnable(planEntity.getPlanId(), true, false) == 1;
     }
 
+    public PlanDTO.NormalPlanDTO get(String planId) {
+        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(planId);
+        Verifies.verify(planEntityOptional.isPresent(), String.format("Cannot find Plan %s", planId));
 
-    public PageDTO<PlanDTO> page(PlanQueryParam param) {
+        PlanEntity planEntity = planEntityOptional.get();
+        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(planEntity.getCurrentVersion()).get();
+
+        PlanDTO.NormalPlanDTO dto = new PlanDTO.NormalPlanDTO();
+        dto.setPlanId(planId);
+        dto.setName(planInfoEntity.getName());
+        dto.setDescription(planInfoEntity.getDescription());
+        dto.setTriggerType(TriggerType.parse(planInfoEntity.getTriggerType()));
+
+        ScheduleOptionDTO scheduleOptionDTO = new ScheduleOptionDTO();
+        scheduleOptionDTO.setScheduleType(ScheduleType.parse(planInfoEntity.getScheduleType()));
+        scheduleOptionDTO.setScheduleStartAt(planInfoEntity.getScheduleStartAt());
+        scheduleOptionDTO.setScheduleDelay(planInfoEntity.getScheduleDelay());
+        scheduleOptionDTO.setScheduleInterval(planInfoEntity.getScheduleInterval());
+        scheduleOptionDTO.setScheduleCron(planInfoEntity.getScheduleCron());
+        dto.setScheduleOption(scheduleOptionDTO);
+
+        JobInfo jobInfo = JacksonUtils.parseObject(planInfoEntity.getJobInfo(), JobInfo.class);
+        planConverter.assemble(dto, jobInfo);
+        return dto;
+    }
+
+    public PageDTO<PlanListDTO> page(PlanQueryParam param) {
         Specification<PlanEntity> sf = (root, query, cb) -> {
             //用于添加所有查询条件
             List<Predicate> p = new ArrayList<>();
@@ -244,14 +273,14 @@ public class PlanService {
         Pageable pageable = JpaHelper.pageable(param);
         Page<PlanEntity> queryResult = planEntityRepo.findAll(sf, pageable);
         List<PlanEntity> planEntities = queryResult.getContent();
-        PageDTO<PlanDTO> page = PageDTO.convertByPage(param);
+        PageDTO<PlanListDTO> page = PageDTO.convertByPage(param);
         page.setTotal(queryResult.getTotalElements());
         if (CollectionUtils.isNotEmpty(planEntities)) {
             List<PlanInfoEntity> planInfoEntities = planInfoEntityRepo.findAllById(planEntities.stream().map(PlanEntity::getCurrentVersion).collect(Collectors.toList()));
             Map<String, PlanInfoEntity> planInfoEntityMap = planInfoEntities.stream().collect(Collectors.toMap(PlanInfoEntity::getPlanInfoId, e -> e));
             page.setData(planEntities.stream().map(planEntity -> {
                 PlanInfoEntity planInfoEntity = planInfoEntityMap.get(planEntity.getCurrentVersion());
-                PlanDTO vo = new PlanDTO();
+                PlanListDTO vo = new PlanListDTO();
                 vo.setPlanId(planEntity.getPlanId());
                 vo.setCurrentVersion(planEntity.getCurrentVersion());
                 vo.setRecentlyVersion(planEntity.getRecentlyVersion());

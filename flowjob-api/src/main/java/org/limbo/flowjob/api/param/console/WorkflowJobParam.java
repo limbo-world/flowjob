@@ -20,11 +20,13 @@ package org.limbo.flowjob.api.param.console;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import org.limbo.flowjob.api.constants.JobType;
 import org.limbo.flowjob.api.constants.TriggerType;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -32,9 +34,8 @@ import java.util.Set;
  * @since 2021/7/24
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
 @Schema(title = "作业参数")
-public class WorkflowJobParam extends JobParam {
+public class WorkflowJobParam  {
 
     /**
      * id
@@ -55,6 +56,41 @@ public class WorkflowJobParam extends JobParam {
      */
     @Schema(title = "作业描述")
     private String description;
+
+    /**
+     * 作业类型
+     * @see JobType
+     */
+    @NotNull
+    @Schema(title = "作业类型")
+    private JobType type;
+
+    /**
+     * 属性参数
+     */
+    @Schema(title = "属性参数")
+    private Map<String, Object> attributes;
+
+    /**
+     * 作业分发重试参数
+     */
+    @Schema(title = "作业分发重试参数")
+    private RetryOptionParam retryOption;
+
+    /**
+     * 作业分发配置参数
+     */
+    @Valid
+    @NotNull
+    @Schema(title = "作业分发配置参数")
+    private DispatchOptionParam dispatchOption;
+
+    /**
+     * 执行器名称
+     */
+    @NotBlank
+    @Schema(title = "执行器名称")
+    private String executorName;
 
     /**
      * 此作业相连的下级作业名称

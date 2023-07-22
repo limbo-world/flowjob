@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.api.param.console;
+package org.limbo.flowjob.api.dto.console;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -38,7 +38,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ScheduleOptionParam {
+public class ScheduleOptionDTO {
 
     /**
      * 调度方式

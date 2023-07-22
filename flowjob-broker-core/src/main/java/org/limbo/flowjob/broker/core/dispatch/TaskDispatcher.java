@@ -21,12 +21,12 @@ package org.limbo.flowjob.broker.core.dispatch;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.exceptions.JobDispatchException;
 import org.limbo.flowjob.broker.core.statistics.WorkerStatisticsRepository;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
-import org.limbo.flowjob.api.constants.TaskStatus;
 
 import java.util.List;
 import java.util.Objects;
@@ -106,11 +106,13 @@ public class TaskDispatcher {
         if (CollectionUtils.isEmpty(availableWorkers)) {
             return false;
         }
+        SimpleWorkerSelectArguments args = new SimpleWorkerSelectArguments(task);
+        DispatchOption.BaseWorkerFilter workerFilter = new DispatchOption.BaseWorkerFilter();
+        List<Worker> filterWorkers = workerFilter.filter(args, availableWorkers);
         DispatchOption.WorkerSelector workerSelector = workerSelectorFactory.newSelector(task.getDispatchOption().getLoadBalanceType());
         for (int i = 0; i < 3; i++) {
             try {
-                SimpleWorkerSelectArguments args = new SimpleWorkerSelectArguments(task);
-                Worker worker = workerSelector.select(args, availableWorkers);
+                Worker worker = workerSelector.select(args, filterWorkers);
                 if (worker == null) {
                     return false;
                 }
@@ -124,7 +126,7 @@ public class TaskDispatcher {
                     onDispatchToWorkerFailed(task, worker);
                 }
 
-                availableWorkers = availableWorkers.stream().filter(w -> !Objects.equals(w.getId(), worker.getId())).collect(Collectors.toList());
+                filterWorkers = filterWorkers.stream().filter(w -> !Objects.equals(w.getId(), worker.getId())).collect(Collectors.toList());
             } catch (Exception e) {
                 log.error("Task dispatch with error task={}", task, e);
             }

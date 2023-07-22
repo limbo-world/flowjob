@@ -18,14 +18,17 @@
 
 package org.limbo.flowjob.broker.core.domain.job;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.limbo.flowjob.api.constants.TriggerType;
+import org.limbo.flowjob.api.constants.JobType;
 import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.dispatch.RetryOption;
-import org.limbo.flowjob.api.constants.JobType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
+
+import java.io.Serializable;
 
 /**
  * 作业的抽象。主要定义了作业领域的的行为方法，属性的访问操作在{@link JobInfo}轻量级领域对象中。
@@ -37,7 +40,11 @@ import org.limbo.flowjob.common.utils.attribute.Attributes;
 @Getter
 @Setter
 @ToString
-public class JobInfo {
+@NoArgsConstructor
+@AllArgsConstructor
+public class JobInfo implements Serializable {
+
+    private static final long serialVersionUID = 5053574296501459651L;
 
     private String id;
 

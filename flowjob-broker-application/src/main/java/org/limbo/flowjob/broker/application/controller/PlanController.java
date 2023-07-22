@@ -28,6 +28,7 @@ import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.console.PlanDTO;
+import org.limbo.flowjob.api.dto.console.PlanListDTO;
 import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.PlanQueryParam;
 import org.limbo.flowjob.broker.application.schedule.ScheduleStrategy;
@@ -89,6 +90,15 @@ public class PlanController {
     }
 
     /**
+     * 计划列表
+     */
+    @Operation(summary = "计划列表")
+    @GetMapping("/api/v1/plan/get")
+    public ResponseDTO<PlanDTO.NormalPlanDTO> get(@NotBlank(message = "ID不能为空") @RequestParam("planId") String planId) {
+        return ResponseDTO.<PlanDTO.NormalPlanDTO>builder().ok(planService.get(planId)).build();
+    }
+
+    /**
      * 新增工作流计划
      */
     @Operation(summary = "新增工作流计划")
@@ -147,9 +157,9 @@ public class PlanController {
      * 计划列表
      */
     @Operation(summary = "计划列表")
-    @GetMapping("/api/v1/plan")
-    public ResponseDTO<PageDTO<PlanDTO>> page(PlanQueryParam param) {
-        return ResponseDTO.<PageDTO<PlanDTO>>builder().ok(planService.page(param)).build();
+    @GetMapping("/api/v1/plan/page")
+    public ResponseDTO<PageDTO<PlanListDTO>> page(PlanQueryParam param) {
+        return ResponseDTO.<PageDTO<PlanListDTO>>builder().ok(planService.page(param)).build();
     }
 
 }

@@ -26,20 +26,20 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.api.constants.LoadBalanceType;
+import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
-import org.limbo.flowjob.api.constants.LoadBalanceType;
-import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.common.lb.LBServerStatisticsProvider;
 import org.limbo.flowjob.common.lb.LBStrategy;
-import org.limbo.flowjob.common.rpc.RPCInvocation;
 import org.limbo.flowjob.common.lb.strategies.AppointLBStrategy;
 import org.limbo.flowjob.common.lb.strategies.ConsistentHashLBStrategy;
 import org.limbo.flowjob.common.lb.strategies.LFULBStrategy;
 import org.limbo.flowjob.common.lb.strategies.LRULBStrategy;
 import org.limbo.flowjob.common.lb.strategies.RandomLBStrategy;
 import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
+import org.limbo.flowjob.common.rpc.RPCInvocation;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -87,31 +87,13 @@ public class DispatchOption implements Serializable {
      */
     private List<TagFilterOption> tagFilters;
 
-    /**
-     * @author Brozen
-     * @since 2021-05-27
-     */
-    public static class FilteringWorkerSelector implements WorkerSelector {
+    public static class BaseWorkerFilter implements WorkerFilter {
 
-        private final LBStrategy<Worker> strategy;
-
-        public FilteringWorkerSelector(LBStrategy<Worker> strategy) {
-            this.strategy = strategy;
-        }
-
-        /**
-         * {@inheritDoc}
-         *
-         * @param args    worker 选择参数
-         * @param workers 待下发上下文可用的worker
-         * @return
-         */
         @Override
-        public Worker select(WorkerSelectArgument args, List<Worker> workers) {
+        public List<Worker> filter(WorkerSelectArgument args, List<Worker> workers) {
             if (CollectionUtils.isEmpty(workers)) {
-                return null;
+                return Collections.emptyList();
             }
-
             // 过滤 Worker
             String executorName = args.getExecutorName();
             List<Worker> availableWorkers = filterExecutor(executorName, workers);
@@ -119,18 +101,13 @@ public class DispatchOption implements Serializable {
             List<TagFilterOption> tagFilters = dispatchOption.getTagFilters();
             availableWorkers = filterTags(tagFilters, availableWorkers);
             availableWorkers = filterResources(availableWorkers);
-            if (CollectionUtils.isEmpty(availableWorkers)) {
-                return null;
-            }
-
-            // 从过滤出的 worker 中，选择合适的
-            return doSelect(args, availableWorkers);
+            return availableWorkers;
         }
 
         /**
          * filter by executor name
          */
-        protected List<Worker> filterExecutor(String executorName, List<Worker> workers) {
+        private List<Worker> filterExecutor(String executorName, List<Worker> workers) {
             if (StringUtils.isBlank(executorName)) {
                 return Collections.emptyList();
             }
@@ -154,7 +131,7 @@ public class DispatchOption implements Serializable {
         /**
          * filter by tags
          */
-        protected List<Worker> filterTags(List<TagFilterOption> tagFilters, List<Worker> workers) {
+        private List<Worker> filterTags(List<TagFilterOption> tagFilters, List<Worker> workers) {
             if (CollectionUtils.isEmpty(tagFilters)) {
                 return workers;
             }
@@ -168,7 +145,7 @@ public class DispatchOption implements Serializable {
         /**
          * filter by worker queue/CPU/memory
          */
-        protected List<Worker> filterResources(List<Worker> workers) {
+        private List<Worker> filterResources(List<Worker> workers) {
             if (CollectionUtils.isEmpty(workers)) {
                 return Collections.emptyList();
             }
@@ -187,15 +164,34 @@ public class DispatchOption implements Serializable {
             }).collect(Collectors.toList());
         }
 
+    }
+
+    /**
+     * @author Brozen
+     * @since 2021-05-27
+     */
+    public static class LBStrategyWorkerSelector implements WorkerSelector {
+
+        private final LBStrategy<Worker> strategy;
+
+        public LBStrategyWorkerSelector(LBStrategy<Worker> strategy) {
+            this.strategy = strategy;
+        }
 
         /**
+         * {@inheritDoc}
          * 执行 Worker 选择逻辑，这里默认使用负载均衡策略来代理选择逻辑。
          * PS：单独抽取一个方法，方便扩展。
          *
-         * @param args    执行器名称
+         * @param args    worker 选择参数
          * @param workers 待下发上下文可用的worker
+         * @return
          */
-        protected Worker doSelect(WorkerSelectArgument args, List<Worker> workers) {
+        @Override
+        public Worker select(WorkerSelectArgument args, List<Worker> workers) {
+            if (CollectionUtils.isEmpty(workers)) {
+                return null;
+            }
             RPCInvocation lbInvocation = RPCInvocation.builder()
                     .path(args.getExecutorName())
                     .lbParameters(args.getAttributes())
@@ -242,7 +238,7 @@ public class DispatchOption implements Serializable {
      * @author Brozen
      * @since 2021-05-14
      */
-    public static interface WorkerSelector {
+    public interface WorkerSelector {
 
         /**
          * 选择作业上下文应当下发给的worker。
@@ -251,6 +247,21 @@ public class DispatchOption implements Serializable {
          * @param workers 待下发上下文可用的worker
          */
         Worker select(WorkerSelectArgument args, List<Worker> workers);
+
+    }
+
+    /**
+     * 基于配置过滤出合适的worker
+     */
+    public interface WorkerFilter {
+
+        /**
+         * 选择作业上下文应当下发给的worker。
+         *
+         * @param args    worker 选择参数
+         * @param workers 待下发上下文可用的worker
+         */
+        List<Worker> filter(WorkerSelectArgument args, List<Worker> workers);
 
     }
 
@@ -272,12 +283,12 @@ public class DispatchOption implements Serializable {
         private final Map<LoadBalanceType, Supplier<WorkerSelector>> selectors = new EnumMap<>(LoadBalanceType.class);
 
         public WorkerSelectorFactory() {
-            selectors.put(LoadBalanceType.ROUND_ROBIN, () -> new FilteringWorkerSelector(new RoundRobinLBStrategy<>()));
-            selectors.put(LoadBalanceType.RANDOM, () -> new FilteringWorkerSelector(new RandomLBStrategy<>()));
-            selectors.put(LoadBalanceType.LEAST_FREQUENTLY_USED, () -> new FilteringWorkerSelector(new LFULBStrategy<>(this.lbServerStatisticsProvider)));
-            selectors.put(LoadBalanceType.LEAST_RECENTLY_USED, () -> new FilteringWorkerSelector(new LRULBStrategy<>(this.lbServerStatisticsProvider)));
-            selectors.put(LoadBalanceType.APPOINT, () -> new FilteringWorkerSelector(new AppointLBStrategy<>()));
-            selectors.put(LoadBalanceType.CONSISTENT_HASH, () -> new FilteringWorkerSelector(new ConsistentHashLBStrategy<>()));
+            selectors.put(LoadBalanceType.ROUND_ROBIN, () -> new LBStrategyWorkerSelector(new RoundRobinLBStrategy<>()));
+            selectors.put(LoadBalanceType.RANDOM, () -> new LBStrategyWorkerSelector(new RandomLBStrategy<>()));
+            selectors.put(LoadBalanceType.LEAST_FREQUENTLY_USED, () -> new LBStrategyWorkerSelector(new LFULBStrategy<>(this.lbServerStatisticsProvider)));
+            selectors.put(LoadBalanceType.LEAST_RECENTLY_USED, () -> new LBStrategyWorkerSelector(new LRULBStrategy<>(this.lbServerStatisticsProvider)));
+            selectors.put(LoadBalanceType.APPOINT, () -> new LBStrategyWorkerSelector(new AppointLBStrategy<>()));
+            selectors.put(LoadBalanceType.CONSISTENT_HASH, () -> new LBStrategyWorkerSelector(new ConsistentHashLBStrategy<>()));
         }
 
         /**

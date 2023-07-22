@@ -95,7 +95,7 @@ public class WorkerDispatcherTest {
 
     @Test
     public void testRoundRobin() {
-        DispatchOption.FilteringWorkerSelector selector = new DispatchOption.FilteringWorkerSelector(new RoundRobinLBStrategy<>());
+        DispatchOption.LBStrategyWorkerSelector selector = new DispatchOption.LBStrategyWorkerSelector(new RoundRobinLBStrategy<>());
 
         Worker w1 = selector.select(new MockWorkerSelectArgument(), workers);
         assert w1.getId().equals("Worker1");
@@ -108,7 +108,7 @@ public class WorkerDispatcherTest {
 
     @Test
     public void testRandom() {
-        DispatchOption.FilteringWorkerSelector selector = new DispatchOption.FilteringWorkerSelector(new RandomLBStrategy<>());
+        DispatchOption.LBStrategyWorkerSelector selector = new DispatchOption.LBStrategyWorkerSelector(new RandomLBStrategy<>());
         assert selector.select(new MockWorkerSelectArgument(), workers) != null;
         assert selector.select(new MockWorkerSelectArgument(), workers) != null;
         assert selector.select(new MockWorkerSelectArgument(), workers) != null;
@@ -122,7 +122,7 @@ public class WorkerDispatcherTest {
                 new MockLBServerStatistics("Worker2", Instant.EPOCH, 1)
         );
         MockWorkerStatisticsProvider provider = new MockWorkerStatisticsProvider(statistics);
-        DispatchOption.FilteringWorkerSelector selector = new DispatchOption.FilteringWorkerSelector(new LFULBStrategy<>(provider));
+        DispatchOption.LBStrategyWorkerSelector selector = new DispatchOption.LBStrategyWorkerSelector(new LFULBStrategy<>(provider));
 
         Worker w1 = selector.select(new MockWorkerSelectArgument(), workers);
         assert w1.getId().equals("Worker2");
@@ -136,7 +136,7 @@ public class WorkerDispatcherTest {
                 new MockLBServerStatistics("Worker2", Instant.EPOCH, 1)
         );
         MockWorkerStatisticsProvider provider = new MockWorkerStatisticsProvider(statistics);
-        DispatchOption.FilteringWorkerSelector selector = new DispatchOption.FilteringWorkerSelector(new LRULBStrategy<>(provider));
+        DispatchOption.LBStrategyWorkerSelector selector = new DispatchOption.LBStrategyWorkerSelector(new LRULBStrategy<>(provider));
 
         Worker w1 = selector.select(new MockWorkerSelectArgument(), workers);
         assert w1.getId().equals("Worker2");
@@ -145,7 +145,7 @@ public class WorkerDispatcherTest {
 
     @Test
     public void testAppoint() {
-        DispatchOption.FilteringWorkerSelector selector = new DispatchOption.FilteringWorkerSelector(new AppointLBStrategy<>());
+        DispatchOption.LBStrategyWorkerSelector selector = new DispatchOption.LBStrategyWorkerSelector(new AppointLBStrategy<>());
         MockWorkerSelectArgument args = new MockWorkerSelectArgument();
 
         args.getAttributes().put(AppointLBStrategy.PARAM_BY_SERVER_ID, "Worker1");
@@ -160,7 +160,7 @@ public class WorkerDispatcherTest {
 
     @Test
     public void testConsistentHash() {
-        DispatchOption.FilteringWorkerSelector selector = new DispatchOption.FilteringWorkerSelector(new ConsistentHashLBStrategy<>());
+        DispatchOption.LBStrategyWorkerSelector selector = new DispatchOption.LBStrategyWorkerSelector(new ConsistentHashLBStrategy<>());
         MockWorkerSelectArgument args = new MockWorkerSelectArgument();
         args.getAttributes().put(ConsistentHashLBStrategy.HASH_PARAM_NAME, "hashKey");
         args.getAttributes().put("hashKey", "123");
