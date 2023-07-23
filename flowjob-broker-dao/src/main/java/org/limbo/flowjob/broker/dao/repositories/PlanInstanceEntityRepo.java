@@ -18,9 +18,10 @@
 
 package org.limbo.flowjob.broker.dao.repositories;
 
-import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.api.constants.ConstantsPool;
+import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -32,7 +33,7 @@ import java.util.List;
  * @author Devil
  * @since 2022/6/24
  */
-public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity, String> {
+public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity, String>, JpaSpecificationExecutor<PlanInstanceEntity> {
 
     @Query(value = "select * from flowjob_plan_instance where plan_instance_id = :planInstanceId for update", nativeQuery = true)
     PlanInstanceEntity selectForUpdate(@Param("planInstanceId") String planInstanceId);

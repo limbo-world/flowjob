@@ -98,6 +98,7 @@ public class JobInstance implements Serializable {
         this.triggerAt = TimeUtils.currentLocalDateTime().plusSeconds(retryInterval);
         this.jobInstanceId = id;
         this.status = JobStatus.SCHEDULING;
+        this.retryTimes++;
     }
 
     /**

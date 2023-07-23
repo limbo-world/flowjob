@@ -20,8 +20,20 @@ package org.limbo.flowjob.broker.application.service;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.api.constants.MsgConstants;
+import org.limbo.flowjob.api.constants.PlanStatus;
+import org.limbo.flowjob.api.constants.ScheduleType;
+import org.limbo.flowjob.api.constants.TriggerType;
+import org.limbo.flowjob.api.dto.PageDTO;
+import org.limbo.flowjob.api.dto.console.PlanInstanceDTO;
+import org.limbo.flowjob.api.param.console.PlanInstanceQueryParam;
 import org.limbo.flowjob.broker.application.component.SlotManager;
+import org.limbo.flowjob.broker.application.support.JpaHelper;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.broker.core.exceptions.VerifyException;
+import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
@@ -30,21 +42,22 @@ import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
-import org.limbo.flowjob.api.constants.MsgConstants;
-import org.limbo.flowjob.api.constants.PlanStatus;
-import org.limbo.flowjob.api.constants.ScheduleType;
-import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.core.exceptions.VerifyException;
-import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Predicate;
 import javax.transaction.Transactional;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author Devil
@@ -128,4 +141,45 @@ public class PlanInstanceService {
         planInstanceEntity.setTriggerAt(triggerAt);
         planInstanceEntityRepo.saveAndFlush(planInstanceEntity);
     }
+
+    public PageDTO<PlanInstanceDTO> page(PlanInstanceQueryParam param) {
+        Specification<PlanInstanceEntity> sf = (root, query, cb) -> {
+            //用于添加所有查询条件
+            List<Predicate> p = new ArrayList<>();
+            if (StringUtils.isNotBlank(param.getTriggerAtBegin()) && StringUtils.isNotBlank(param.getTriggerAtEnd())) {
+                p.add(cb.greaterThanOrEqualTo(root.get("triggerAt").as(String.class), param.getTriggerAtBegin()));
+                p.add(cb.lessThanOrEqualTo(root.get("triggerAt").as(String.class), param.getTriggerAtEnd()));
+            }
+            Predicate[] pre = new Predicate[p.size()];
+            Predicate and = cb.and(p.toArray(pre));
+            query.where(and);
+
+            //设置排序
+            List<Order> orders = new ArrayList<>();
+            orders.add(cb.desc(root.get("triggerAt")));
+            return query.orderBy(orders).getRestriction();
+        };
+        Pageable pageable = JpaHelper.pageable(param);
+        Page<PlanInstanceEntity> queryResult = planInstanceEntityRepo.findAll(sf, pageable);
+        List<PlanInstanceEntity> planInstanceEntities = queryResult.getContent();
+        PageDTO<PlanInstanceDTO> page = PageDTO.convertByPage(param);
+        page.setTotal(queryResult.getTotalElements());
+        if (CollectionUtils.isNotEmpty(planInstanceEntities)) {
+            page.setData(planInstanceEntities.stream().map(planInstanceEntity -> {
+                PlanInstanceDTO dto = new PlanInstanceDTO();
+                dto.setPlanInstanceId(planInstanceEntity.getPlanInstanceId());
+                dto.setPlanId(planInstanceEntity.getPlanId());
+                dto.setPlanInfoId(planInstanceEntity.getPlanInfoId());
+                dto.setStatus(planInstanceEntity.getStatus());
+                dto.setTriggerType(planInstanceEntity.getTriggerType());
+                dto.setScheduleType(planInstanceEntity.getScheduleType());
+                dto.setTriggerAt(planInstanceEntity.getTriggerAt());
+                dto.setStartAt(planInstanceEntity.getStartAt());
+                dto.setFeedbackAt(planInstanceEntity.getFeedbackAt());
+                return dto;
+            }).collect(Collectors.toList()));
+        }
+        return page;
+    }
+
 }

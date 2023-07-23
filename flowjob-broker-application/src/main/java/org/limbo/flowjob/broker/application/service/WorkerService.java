@@ -127,10 +127,12 @@ public class WorkerService {
         workerRepository.save(worker);
 
         // 槽位保存
-        WorkerSlotEntity slotEntity = new WorkerSlotEntity();
-        slotEntity.setSlot(slotManager.slot(worker.getId()));
-        slotEntity.setWorkerId(worker.getId());
-        workerSlotEntityRepo.saveAndFlush(slotEntity);
+        if (workerSlotEntityRepo.findByWorkerId(worker.getId()) == null) {
+            WorkerSlotEntity slotEntity = new WorkerSlotEntity();
+            slotEntity.setSlot(slotManager.slot(worker.getId()));
+            slotEntity.setWorkerId(worker.getId());
+            workerSlotEntityRepo.saveAndFlush(slotEntity);
+        }
 
         log.info("worker registered " + worker);
 

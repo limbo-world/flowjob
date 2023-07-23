@@ -55,7 +55,7 @@ public class TaskSubmitParam implements Serializable {
      */
     @NotNull(message = "type can't be null")
     @Schema(description = "Task类型")
-    private TaskType type;
+    private Integer type;
 
     /**
      * 执行器的名称

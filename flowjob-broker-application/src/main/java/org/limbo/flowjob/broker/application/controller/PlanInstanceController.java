@@ -21,11 +21,16 @@ package org.limbo.flowjob.broker.application.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Setter;
+import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.ResponseDTO;
+import org.limbo.flowjob.api.dto.console.PlanInstanceDTO;
+import org.limbo.flowjob.api.param.console.PlanInstanceQueryParam;
 import org.limbo.flowjob.broker.application.schedule.ScheduleStrategy;
+import org.limbo.flowjob.broker.application.service.PlanInstanceService;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
@@ -42,13 +47,25 @@ public class PlanInstanceController {
     @Setter(onMethod_ = @Inject)
     private ScheduleStrategy scheduleStrategy;
 
+    @Setter(onMethod_ = @Inject)
+    private PlanInstanceService planInstanceService;
+
+    /**
+     * 计划列表
+     */
+    @Operation(summary = "计划列表")
+    @GetMapping("/api/v1/plan-instance/page")
+    public ResponseDTO<PageDTO<PlanInstanceDTO>> page(PlanInstanceQueryParam param) {
+        return ResponseDTO.<PageDTO<PlanInstanceDTO>>builder().ok(planInstanceService.page(param)).build();
+    }
+
     /**
      * api 触发对应planInstanceId下的job
      */
     @Operation(summary = "触发对应job调度")
-    @PostMapping("/api/v1/plan-instance/{planInstanceId}/job/{jobId}/schedule")
-    public ResponseDTO<Void> scheduleJob(@Validated @NotNull(message = "no planInstanceId") @PathVariable("planInstanceId") String planInstanceId,
-                                         @Validated @NotNull(message = "no jobId") @PathVariable("jobId") String jobId) {
+    @PostMapping("/api/v1/plan-instance/job/schedule")
+    public ResponseDTO<Void> scheduleJob(@Validated @NotNull(message = "no planInstanceId") @RequestParam("planInstanceId") String planInstanceId,
+                                         @Validated @NotNull(message = "no jobId") @RequestParam("jobId") String jobId) {
         scheduleStrategy.manualScheduleJob(planInstanceId, jobId);
         return ResponseDTO.<Void>builder().ok().build();
     }
