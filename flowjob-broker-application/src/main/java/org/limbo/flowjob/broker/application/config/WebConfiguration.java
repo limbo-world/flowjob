@@ -22,16 +22,26 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.common.utils.json.LocalDateTimeSerializer;
 import org.limbo.flowjob.common.utils.time.Formatters;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.format.datetime.DateFormatter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -47,12 +57,19 @@ public class WebConfiguration implements WebMvcConfigurer {
     @Bean
     public ObjectMapper jacksonObjectMapper() {
         JavaTimeModule module = new JavaTimeModule();
-        LocalDateTimeDeserializer dateTimeDeserializer = new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(Formatters.YMD_HMS));
-        module.addDeserializer(LocalDateTime.class, dateTimeDeserializer);
+        module.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(Formatters.YMD_HMS));
+        module.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(Formatters.YMD_HMS)));
+        module.addSerializer(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern(Formatters.YMD_HMS)));
+        module.addDeserializer(LocalDate.class, new LocalDateDeserializer(DateTimeFormatter.ofPattern(Formatters.YMD_HMS)));
+        module.addSerializer(LocalTime.class, new LocalTimeSerializer(DateTimeFormatter.ofPattern(Formatters.YMD_HMS)));
+        module.addDeserializer(LocalTime.class, new LocalTimeDeserializer(DateTimeFormatter.ofPattern(Formatters.YMD_HMS)));
 //        module.addDeserializer(Duration.class, DurationDeserializer.INSTANCE);
-        ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.json().modules(module)
-                .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).build();
+        ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.json()
+                .modules(module)
+                .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .build();
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        objectMapper.setDateFormat(new SimpleDateFormat(Formatters.YMD_HMS));
         return objectMapper;
     }
 
