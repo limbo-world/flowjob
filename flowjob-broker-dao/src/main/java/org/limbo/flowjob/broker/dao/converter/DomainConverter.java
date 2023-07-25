@@ -83,6 +83,7 @@ public class DomainConverter {
         return new ScheduleOption(
                 ScheduleType.parse(entity.getScheduleType()),
                 entity.getScheduleStartAt(),
+                entity.getScheduleEndAt(),
                 Duration.ofMillis(entity.getScheduleDelay()),
                 Duration.ofMillis(entity.getScheduleInterval()),
                 entity.getScheduleCron(),

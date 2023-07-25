@@ -82,6 +82,9 @@ public class TagFilterOption {
                     Pattern pattern = Pattern.compile(this.tagValue);
                     return CollectionUtils.isNotEmpty(values) && values.stream().anyMatch(s -> pattern.matcher(s).find());
 
+                case MATCH_HOST_PORT:
+                    return tagName.equals(worker.getUrl().getHost()) && Integer.parseInt(tagValue) == worker.getUrl().getPort();
+
                 default:
                     return false;
             }

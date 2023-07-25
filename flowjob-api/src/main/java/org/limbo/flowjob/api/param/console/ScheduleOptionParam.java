@@ -26,7 +26,6 @@ import lombok.NoArgsConstructor;
 import org.limbo.flowjob.api.constants.ScheduleType;
 
 import javax.validation.constraints.NotNull;
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 /**
@@ -53,6 +52,12 @@ public class ScheduleOptionParam {
      */
     @Schema(title = "调度开始时间")
     private LocalDateTime scheduleStartAt;
+
+    /**
+     * 调度开始时间，从此时间开始执行调度。
+     */
+    @Schema(title = "调度结束时间")
+    private LocalDateTime scheduleEndAt;
 
     /**
      * 延迟时间 -- 当前时间多久后调度

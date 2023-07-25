@@ -94,6 +94,11 @@ public class PlanInfoEntity extends BaseEntity {
     private LocalDateTime scheduleStartAt;
 
     /**
+     * 从何时结束调度作业
+     */
+    private LocalDateTime scheduleEndAt;
+
+    /**
      * 作业调度延迟时间，单位秒
      */
     private Long scheduleDelay;

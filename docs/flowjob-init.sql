@@ -137,6 +137,7 @@ CREATE TABLE `flowjob_plan_info`
     `schedule_delay`     bigint                                                          DEFAULT NULL,
     `schedule_interval`  bigint                                                          DEFAULT NULL,
     `schedule_start_at`  datetime(6) DEFAULT NULL,
+    `schedule_end_at`    datetime(6) DEFAULT NULL,
     `job_info`           text COLLATE utf8mb4_bin,
     `name`               varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `description`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',

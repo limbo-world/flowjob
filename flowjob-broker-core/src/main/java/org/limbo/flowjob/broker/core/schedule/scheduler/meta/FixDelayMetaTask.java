@@ -33,7 +33,10 @@ public abstract class FixDelayMetaTask extends LoopMetaTask {
 
 
     protected FixDelayMetaTask(Duration delay, Duration interval, MetaTaskScheduler metaTaskScheduler) {
-        super(null, null, new ScheduleOption(ScheduleType.FIXED_DELAY, null, delay, interval, null, null), metaTaskScheduler);
+        super(null, null,
+                new ScheduleOption(ScheduleType.FIXED_DELAY, null, null, delay, interval, null, null),
+                metaTaskScheduler
+        );
     }
 
 }

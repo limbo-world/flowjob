@@ -22,7 +22,6 @@ import org.limbo.flowjob.api.constants.JobType;
 import org.limbo.flowjob.api.constants.LoadBalanceType;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.param.console.DispatchOptionParam;
-import org.limbo.flowjob.api.param.console.JobParam;
 import org.limbo.flowjob.api.param.console.RetryOptionParam;
 import org.limbo.flowjob.api.param.console.WorkflowJobParam;
 import org.limbo.flowjob.common.utils.UUIDUtils;
@@ -161,24 +160,24 @@ public class PlanParamFactory {
 //        return param;
 //    }
 
-    public static JobParam newJob(String executorName, JobType type) {
-        JobParam job = new JobParam();
-        job.setType(type);
-        job.setRetryOption(RetryOptionParam.builder()
-                .retry(2)
-                .retryInterval(3)
-                .build()
-        );
-        job.setDispatchOption(DispatchOptionParam.builder()
-                .loadBalanceType(LoadBalanceType.RANDOM)
-                .build()
-        );
-        Map<String, Object> attr = new HashMap<>();
-        attr.put("num", 1);
-        job.setAttributes(attr);
-        job.setExecutorName(executorName);
-        return job;
-    }
+//    public static JobParam newJob(String executorName, JobType type) {
+//        JobParam job = new JobParam();
+//        job.setType(type);
+//        job.setRetryOption(RetryOptionParam.builder()
+//                .retry(2)
+//                .retryInterval(3)
+//                .build()
+//        );
+//        job.setDispatchOption(DispatchOptionParam.builder()
+//                .loadBalanceType(LoadBalanceType.RANDOM)
+//                .build()
+//        );
+//        Map<String, Object> attr = new HashMap<>();
+//        attr.put("num", 1);
+//        job.setAttributes(attr);
+//        job.setExecutorName(executorName);
+//        return job;
+//    }
 
     public static WorkflowJobParam newWorkflowJob(String id, String executorName, JobType type, TriggerType triggerType) {
         WorkflowJobParam job = new WorkflowJobParam();

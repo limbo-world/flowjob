@@ -178,6 +178,7 @@ public class PlanService {
         ScheduleOptionParam scheduleOption = param.getScheduleOption();
         planInfoEntity.setScheduleType(scheduleOption.getScheduleType().type);
         planInfoEntity.setScheduleStartAt(scheduleOption.getScheduleStartAt());
+        planInfoEntity.setScheduleEndAt(scheduleOption.getScheduleEndAt());
         planInfoEntity.setScheduleDelay(scheduleOption.getScheduleDelay() == null ? 0L : scheduleOption.getScheduleDelay());
         planInfoEntity.setScheduleInterval(scheduleOption.getScheduleInterval() == null ? 0L : scheduleOption.getScheduleInterval());
         planInfoEntity.setScheduleCron(scheduleOption.getScheduleCron());
@@ -243,6 +244,7 @@ public class PlanService {
         ScheduleOptionDTO scheduleOptionDTO = new ScheduleOptionDTO();
         scheduleOptionDTO.setScheduleType(ScheduleType.parse(planInfoEntity.getScheduleType()));
         scheduleOptionDTO.setScheduleStartAt(planInfoEntity.getScheduleStartAt());
+        scheduleOptionDTO.setScheduleEndAt(planInfoEntity.getScheduleEndAt());
         scheduleOptionDTO.setScheduleDelay(planInfoEntity.getScheduleDelay());
         scheduleOptionDTO.setScheduleInterval(planInfoEntity.getScheduleInterval());
         scheduleOptionDTO.setScheduleCron(planInfoEntity.getScheduleCron());
@@ -291,6 +293,7 @@ public class PlanService {
                 vo.setScheduleType(planInfoEntity.getScheduleType());
                 vo.setTriggerType(planInfoEntity.getTriggerType());
                 vo.setScheduleStartAt(planInfoEntity.getScheduleStartAt());
+                vo.setScheduleEndAt(planInfoEntity.getScheduleEndAt());
                 vo.setScheduleDelay(planInfoEntity.getScheduleDelay());
                 vo.setScheduleInterval(planInfoEntity.getScheduleInterval());
                 vo.setScheduleCron(planInfoEntity.getScheduleCron());

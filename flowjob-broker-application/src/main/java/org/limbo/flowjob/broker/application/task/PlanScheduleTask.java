@@ -32,6 +32,7 @@ import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.LoopMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.LocalDateTime;
 
@@ -86,6 +87,10 @@ public class PlanScheduleTask extends LoopMetaTask {
             triggerAt = getNextTriggerAt();
         } else {
             triggerAt = getLastTriggerAt();
+        }
+        LocalDateTime scheduleEndAt = plan.getScheduleOption().getScheduleEndAt();
+        if (scheduleEndAt != null && scheduleEndAt.isBefore(TimeUtils.currentLocalDateTime())) {
+            return;
         }
         CommonThreadPool.IO.submit(() -> scheduleStrategy.schedule(TriggerType.SCHEDULE, plan, triggerAt));
     }

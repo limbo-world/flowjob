@@ -50,6 +50,11 @@ public enum TagFilterCondition {
      * 存在指定名称的标签且匹配正则表达式
      */
     MUST_MATCH_VALUE_REGEX(5, "存在指定名称的标签且匹配正则表达式"),
+
+    /**
+     * 匹配对应的host和port
+     */
+    MATCH_HOST_PORT(6, "匹配对应的host和port"),
     ;
 
     @JsonValue

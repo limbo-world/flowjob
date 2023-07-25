@@ -50,6 +50,11 @@ public class ScheduleOption implements Serializable {
     private final LocalDateTime scheduleStartAt;
 
     /**
+     * 调度结束时间，从此时间结束执行调度。
+     */
+    private final LocalDateTime scheduleEndAt;
+
+    /**
      * 延迟时间 -- 当前时间多久后调度
      */
     private final Duration scheduleDelay;
@@ -76,12 +81,14 @@ public class ScheduleOption implements Serializable {
 //    @JsonCreator // 加上@JsonProperty("scheduleType") 不去掉mapstruct会用set方式，比较奇怪
     public ScheduleOption(ScheduleType scheduleType,
                           LocalDateTime scheduleStartAt,
+                          LocalDateTime scheduleEndAt,
                           Duration scheduleDelay,
                           Duration scheduleInterval,
                           String scheduleCron,
                           String scheduleCronType) {
         this.scheduleType = scheduleType;
         this.scheduleStartAt = scheduleStartAt == null ? TimeUtils.currentLocalDateTime() : scheduleStartAt;
+        this.scheduleEndAt = scheduleEndAt;
         this.scheduleDelay = scheduleDelay == null ? Duration.ZERO : scheduleDelay;
         this.scheduleInterval = scheduleInterval == null ? Duration.ZERO : scheduleInterval;
         this.scheduleCron = scheduleCron;

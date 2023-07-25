@@ -79,6 +79,9 @@ public class PlanListDTO {
     @Schema(title = "调度开始时间")
     private LocalDateTime scheduleStartAt;
 
+    @Schema(title = "调度结束时间")
+    private LocalDateTime scheduleEndAt;
+
     /**
      * 作业调度延迟时间，单位秒
      */
