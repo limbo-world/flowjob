@@ -146,6 +146,7 @@ public class PlanInstanceService {
         Specification<PlanInstanceEntity> sf = (root, query, cb) -> {
             //用于添加所有查询条件
             List<Predicate> p = new ArrayList<>();
+            p.add(cb.equal(root.get("planId").as(String.class), param.getPlanId()));
             if (StringUtils.isNotBlank(param.getTriggerAtBegin()) && StringUtils.isNotBlank(param.getTriggerAtEnd())) {
                 p.add(cb.greaterThanOrEqualTo(root.get("triggerAt").as(String.class), param.getTriggerAtBegin()));
                 p.add(cb.lessThanOrEqualTo(root.get("triggerAt").as(String.class), param.getTriggerAtEnd()));

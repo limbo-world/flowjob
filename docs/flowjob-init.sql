@@ -184,7 +184,6 @@ CREATE TABLE `flowjob_plan_instance`
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_id` (`plan_instance_id`),
     KEY                `idx_plan_trigger` (`plan_id`, `trigger_at`),
-    KEY                `idx_trigger` (`trigger_at`),
     KEY                `idx_plan_feedback` (`plan_id`, `feedback_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;

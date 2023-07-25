@@ -18,9 +18,11 @@
 
 package org.limbo.flowjob.broker.dao.repositories;
 
+import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.api.constants.ConstantsPool;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -32,7 +34,7 @@ import java.util.List;
  * @author Devil
  * @since 2022/6/24
  */
-public interface TaskEntityRepo extends JpaRepository<TaskEntity, String> {
+public interface TaskEntityRepo extends JpaRepository<TaskEntity, String>, JpaSpecificationExecutor<TaskEntity> {
 
     List<TaskEntity> findByJobInstanceIdAndType(String jobInstanceId, Integer type);
 

@@ -23,23 +23,15 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.limbo.flowjob.api.param.PageParam;
 
-import java.time.LocalDateTime;
-
 /**
  * @author KaiFengCai
  * @since 2023/1/30
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class PlanInstanceQueryParam extends PageParam {
+public class TaskQueryParam extends PageParam {
 
-    @Parameter(description = "planId")
-    private String planId;
-
-    @Parameter(description = "期望执行时间开始")
-    private String triggerAtBegin;
-
-    @Parameter(description = "期望执行时间结束")
-    private String triggerAtEnd;
+    @Parameter(description = "jobInstanceId")
+    private String jobInstanceId;
 
 }

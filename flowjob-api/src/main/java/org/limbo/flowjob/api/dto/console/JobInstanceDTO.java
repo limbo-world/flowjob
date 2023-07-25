@@ -1,39 +1,21 @@
-package org.limbo.flowjob.broker.dao.entity;
+package org.limbo.flowjob.api.dto.console;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 import org.limbo.flowjob.api.constants.JobStatus;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
 import java.time.LocalDateTime;
 
 /**
- * job的一次执行 对应于PlanRecord
  *
  * @author Devil
  * @since 2021/9/1
  */
-@Setter
-@Getter
-@Table(name = "flowjob_job_instance")
-@Entity
-@DynamicInsert
-@DynamicUpdate
-public class JobInstanceEntity extends BaseEntity {
-    private static final long serialVersionUID = -1136312243146520057L;
+@Data
+@Schema(title = "任务实例")
+public class JobInstanceDTO {
 
-    /**
-     * 数据库自增id
-     */
-    @Column(updatable = false)
-    private Long id;
-
-    @Id
+    @Schema(title = "id")
     private String jobInstanceId;
 
     private String planInstanceId;
@@ -45,46 +27,50 @@ public class JobInstanceEntity extends BaseEntity {
     /**
      * DAG中的jobId
      */
+    @Schema(title = "DAG中的jobId")
     private String jobId;
 
     /**
      * 状态
      * @see JobStatus
      */
+    @Schema(title = "状态")
     private Integer status;
 
     /**
      * 当前是第几次重试
      */
+    @Schema(title = "重试次数")
     private Integer retryTimes;
 
     /**
      * 错误信息
      */
+    @Schema(title = "错误信息")
     private String errorMsg;
 
     /**
      * 执行上下文
      */
+    @Schema(title = "上下文")
     private String context;
 
     /**
      * 计划时间
      */
+    @Schema(title = "计划时间")
     private LocalDateTime triggerAt;
 
     /**
      * 开始时间
      */
+    @Schema(title = "开始时间")
     private LocalDateTime startAt;
 
     /**
      * 结束时间
      */
+    @Schema(title = "结束时间")
     private LocalDateTime endAt;
 
-    @Override
-    public Object getUid() {
-        return jobInstanceId;
-    }
 }

@@ -21,6 +21,7 @@ package org.limbo.flowjob.broker.dao.repositories;
 import org.limbo.flowjob.api.constants.ConstantsPool;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,7 +34,7 @@ import java.util.List;
  * @since 2022/6/24
  *
  */
-public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, String> {
+public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, String>, JpaSpecificationExecutor<JobInstanceEntity> {
 
     long countByPlanInstanceIdAndStatusIn(String planInstanceId, List<Integer> statuses);
 

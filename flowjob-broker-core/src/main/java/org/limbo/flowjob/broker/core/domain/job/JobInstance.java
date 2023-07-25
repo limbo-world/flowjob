@@ -51,7 +51,7 @@ public class JobInstance implements Serializable {
     /**
      * 当前是第几次重试
      */
-    private int retryTimes = 1;
+    private int retryTimes = 0;
 
     /**
      * 触发时间
@@ -106,7 +106,7 @@ public class JobInstance implements Serializable {
      * @return 是否能重试
      */
     public boolean canRetry() {
-        return retryTimes >= jobInfo.getRetryOption().getRetry();
+        return retryTimes < jobInfo.getRetryOption().getRetry();
     }
 
 }
