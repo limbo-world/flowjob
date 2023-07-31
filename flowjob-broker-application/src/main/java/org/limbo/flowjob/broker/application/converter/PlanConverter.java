@@ -21,7 +21,7 @@ package org.limbo.flowjob.broker.application.converter;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.dto.console.DispatchOptionDTO;
-import org.limbo.flowjob.api.dto.console.PlanDTO;
+import org.limbo.flowjob.api.dto.console.PlanInfoDTO;
 import org.limbo.flowjob.api.dto.console.RetryOptionDTO;
 import org.limbo.flowjob.api.dto.console.TagFilterDTO;
 import org.limbo.flowjob.api.param.console.DispatchOptionParam;
@@ -68,7 +68,7 @@ public class PlanConverter {
         return jobInfo;
     }
 
-    public void assemble(PlanDTO.NormalPlanDTO dto, JobInfo jobInfo) {
+    public void assemble(PlanInfoDTO.NormalPlanInfoDTO dto, JobInfo jobInfo) {
         dto.setType(jobInfo.getType());
         dto.setAttributes(jobInfo.getAttributes().toMap());
         dto.setExecutorName(jobInfo.getExecutorName());

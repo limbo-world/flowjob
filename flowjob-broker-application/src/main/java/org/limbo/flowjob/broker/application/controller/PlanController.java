@@ -28,9 +28,11 @@ import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.console.PlanDTO;
-import org.limbo.flowjob.api.dto.console.PlanListDTO;
+import org.limbo.flowjob.api.dto.console.PlanInfoDTO;
+import org.limbo.flowjob.api.dto.console.PlanVersionDTO;
 import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.PlanQueryParam;
+import org.limbo.flowjob.api.param.console.PlanVersionParam;
 import org.limbo.flowjob.broker.application.schedule.ScheduleStrategy;
 import org.limbo.flowjob.broker.application.service.PlanService;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
@@ -90,12 +92,12 @@ public class PlanController {
     }
 
     /**
-     * 计划列表
+     * 详情
      */
-    @Operation(summary = "计划列表")
+    @Operation(summary = "详情")
     @GetMapping("/api/v1/plan/get")
-    public ResponseDTO<PlanDTO.NormalPlanDTO> get(@NotBlank(message = "ID不能为空") @RequestParam("planId") String planId) {
-        return ResponseDTO.<PlanDTO.NormalPlanDTO>builder().ok(planService.get(planId)).build();
+    public ResponseDTO<PlanInfoDTO.NormalPlanInfoDTO> get(@NotBlank(message = "ID不能为空") @RequestParam("planId") String planId) {
+        return ResponseDTO.<PlanInfoDTO.NormalPlanInfoDTO>builder().ok(planService.get(planId)).build();
     }
 
     /**
@@ -147,7 +149,9 @@ public class PlanController {
      */
     @Operation(summary = "触发对应plan调度")
     @PostMapping("/api/v1/plan/schedule")
-    public ResponseDTO<Void> schedulePlan(@NotBlank(message = "ID不能为空") @RequestParam("planId") String planId) {
+    public ResponseDTO<Void> schedulePlan(@NotBlank(message = "ID不能为空") @RequestParam("planId") String planId,
+                                          @RequestParam("workerId") String workerId) {
+        // todo worker在指定情况下下发
         Plan plan = planRepository.get(planId);
         scheduleStrategy.schedule(TriggerType.API, plan, TimeUtils.currentLocalDateTime());
         return ResponseDTO.<Void>builder().ok().build();
@@ -158,8 +162,27 @@ public class PlanController {
      */
     @Operation(summary = "计划列表")
     @GetMapping("/api/v1/plan/page")
-    public ResponseDTO<PageDTO<PlanListDTO>> page(PlanQueryParam param) {
-        return ResponseDTO.<PageDTO<PlanListDTO>>builder().ok(planService.page(param)).build();
+    public ResponseDTO<PageDTO<PlanDTO>> page(PlanQueryParam param) {
+        return ResponseDTO.<PageDTO<PlanDTO>>builder().ok(planService.page(param)).build();
+    }
+
+    /**
+     * 版本列表
+     */
+    @Operation(summary = "版本列表")
+    @GetMapping("/api/v1/plan/version/page")
+    public ResponseDTO<PageDTO<PlanVersionDTO>> versionPage(PlanVersionParam param) {
+        return ResponseDTO.<PageDTO<PlanVersionDTO>>builder().ok(planService.versionPage(param)).build();
+    }
+
+    /**
+     * 版本修改
+     */
+    @Operation(summary = "版本修改")
+    @PostMapping("/api/v1/plan/version")
+    public ResponseDTO<Boolean> versionUpdate(@NotBlank(message = "ID不能为空") @RequestParam("planId") String planId,
+                                              @NotBlank(message = "version不能为空") @RequestParam("version") String version) {
+        return ResponseDTO.<Boolean>builder().ok(planService.versionUpdate(planId, version)).build();
     }
 
 }

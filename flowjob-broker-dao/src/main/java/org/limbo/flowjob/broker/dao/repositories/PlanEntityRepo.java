@@ -58,6 +58,12 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, String>, JpaSp
                       @Param("recentlyVersion") String recentlyVersion);
 
     @Modifying(clearAutomatically = true)
+    @Query(value = "update PlanEntity set currentVersion = :newCurrentVersion where planId = :planId and currentVersion = :currentVersion ")
+    int updateVersion(@Param("newCurrentVersion") String newCurrentVersion,
+                      @Param("planId") String planId,
+                      @Param("currentVersion") String currentVersion);
+
+    @Modifying(clearAutomatically = true)
     @Query(value = "update PlanEntity set enabled = :newValue where planId = :planId and enabled = :oldValue")
     int updateEnable(@Param("planId") String planId, @Param("oldValue") boolean oldValue, @Param("newValue") boolean newValue);
 

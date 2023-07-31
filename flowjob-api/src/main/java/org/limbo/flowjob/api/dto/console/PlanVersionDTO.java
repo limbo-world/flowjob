@@ -16,17 +16,31 @@
  *
  */
 
-package org.limbo.flowjob.broker.dao.repositories;
+package org.limbo.flowjob.api.dto.console;
 
-import org.limbo.flowjob.broker.dao.entity.PlanEntity;
-import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.ScheduleType;
+import org.limbo.flowjob.api.constants.TriggerType;
+
+import java.time.LocalDateTime;
 
 /**
- * @author Devil
- * @since 2022/6/23
+ * @author KaiFengCai
+ * @since 2023/1/30
  */
-public interface PlanInfoEntityRepo extends JpaRepository<PlanInfoEntity, String>, JpaSpecificationExecutor<PlanInfoEntity> {
+@Data
+@Schema(title = "任务对象")
+public class PlanVersionDTO {
+
+    @Schema(title = "ID")
+    private String planInfoId;
+
+    @Schema(title = "任务名称")
+    private String name;
+
+    @Schema(title = "创建时间")
+    private LocalDateTime createdAt;
 
 }

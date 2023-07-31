@@ -16,17 +16,22 @@
  *
  */
 
-package org.limbo.flowjob.broker.dao.repositories;
+package org.limbo.flowjob.api.param.console;
 
-import org.limbo.flowjob.broker.dao.entity.PlanEntity;
-import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import io.swagger.v3.oas.annotations.Parameter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.limbo.flowjob.api.param.PageParam;
 
 /**
- * @author Devil
- * @since 2022/6/23
+ * @author KaiFengCai
+ * @since 2023/1/30
  */
-public interface PlanInfoEntityRepo extends JpaRepository<PlanInfoEntity, String>, JpaSpecificationExecutor<PlanInfoEntity> {
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class PlanVersionParam extends PageParam {
+
+    @Parameter(description = "ID")
+    private String planId;
 
 }

@@ -29,10 +29,12 @@ import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.console.PlanDTO;
-import org.limbo.flowjob.api.dto.console.PlanListDTO;
+import org.limbo.flowjob.api.dto.console.PlanInfoDTO;
+import org.limbo.flowjob.api.dto.console.PlanVersionDTO;
 import org.limbo.flowjob.api.dto.console.ScheduleOptionDTO;
 import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.PlanQueryParam;
+import org.limbo.flowjob.api.param.console.PlanVersionParam;
 import org.limbo.flowjob.api.param.console.ScheduleOptionParam;
 import org.limbo.flowjob.broker.application.component.SlotManager;
 import org.limbo.flowjob.broker.application.converter.PlanConverter;
@@ -228,14 +230,15 @@ public class PlanService {
         return planEntityRepo.updateEnable(planEntity.getPlanId(), true, false) == 1;
     }
 
-    public PlanDTO.NormalPlanDTO get(String planId) {
+    public PlanInfoDTO.NormalPlanInfoDTO get(String planId) {
         Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(planId);
         Verifies.verify(planEntityOptional.isPresent(), String.format("Cannot find Plan %s", planId));
 
         PlanEntity planEntity = planEntityOptional.get();
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(planEntity.getCurrentVersion()).get();
 
-        PlanDTO.NormalPlanDTO dto = new PlanDTO.NormalPlanDTO();
+        PlanInfoDTO.NormalPlanInfoDTO dto = new PlanInfoDTO.NormalPlanInfoDTO();
+        dto.setPlanInfoId(planInfoEntity.getPlanInfoId());
         dto.setPlanId(planId);
         dto.setName(planInfoEntity.getName());
         dto.setDescription(planInfoEntity.getDescription());
@@ -255,7 +258,7 @@ public class PlanService {
         return dto;
     }
 
-    public PageDTO<PlanListDTO> page(PlanQueryParam param) {
+    public PageDTO<PlanDTO> page(PlanQueryParam param) {
         Specification<PlanEntity> sf = (root, query, cb) -> {
             //用于添加所有查询条件
             List<Predicate> p = new ArrayList<>();
@@ -275,14 +278,14 @@ public class PlanService {
         Pageable pageable = JpaHelper.pageable(param);
         Page<PlanEntity> queryResult = planEntityRepo.findAll(sf, pageable);
         List<PlanEntity> planEntities = queryResult.getContent();
-        PageDTO<PlanListDTO> page = PageDTO.convertByPage(param);
+        PageDTO<PlanDTO> page = PageDTO.convertByPage(param);
         page.setTotal(queryResult.getTotalElements());
         if (CollectionUtils.isNotEmpty(planEntities)) {
             List<PlanInfoEntity> planInfoEntities = planInfoEntityRepo.findAllById(planEntities.stream().map(PlanEntity::getCurrentVersion).collect(Collectors.toList()));
             Map<String, PlanInfoEntity> planInfoEntityMap = planInfoEntities.stream().collect(Collectors.toMap(PlanInfoEntity::getPlanInfoId, e -> e));
             page.setData(planEntities.stream().map(planEntity -> {
                 PlanInfoEntity planInfoEntity = planInfoEntityMap.get(planEntity.getCurrentVersion());
-                PlanListDTO vo = new PlanListDTO();
+                PlanDTO vo = new PlanDTO();
                 vo.setPlanId(planEntity.getPlanId());
                 vo.setCurrentVersion(planEntity.getCurrentVersion());
                 vo.setRecentlyVersion(planEntity.getRecentlyVersion());
@@ -304,5 +307,53 @@ public class PlanService {
         return page;
     }
 
+    public PageDTO<PlanVersionDTO> versionPage(PlanVersionParam param) {
+        Specification<PlanInfoEntity> sf = (root, query, cb) -> {
+            // 设置查询字段
+            query.multiselect(root.get("planId"), root.get("planInfoId"), root.get("name"), root.get("createdAt"));
+            //用于添加所有查询条件
+            List<Predicate> p = new ArrayList<>();
+            Predicate p3 = cb.like(root.get("planId").as(String.class), param.getPlanId());
+            p.add(p3);
+            Predicate[] pre = new Predicate[p.size()];
+            Predicate and = cb.and(p.toArray(pre));
+            query.where(and);
+
+            //设置排序
+            List<Order> orders = new ArrayList<>();
+            orders.add(cb.desc(root.get("planInfoId")));
+            return query.orderBy(orders).getRestriction();
+        };
+        Pageable pageable = JpaHelper.pageable(param);
+        Page<PlanInfoEntity> queryResult = planInfoEntityRepo.findAll(sf, pageable);
+        List<PlanInfoEntity> planInfoEntities = queryResult.getContent();
+        PageDTO<PlanVersionDTO> page = PageDTO.convertByPage(param);
+        page.setTotal(queryResult.getTotalElements());
+        List<PlanVersionDTO> data = new ArrayList<>();
+        page.setData(data);
+        if (CollectionUtils.isEmpty(planInfoEntities)) {
+            return page;
+        }
+        for (PlanInfoEntity planInfoEntity : planInfoEntities) {
+            PlanVersionDTO dto = new PlanVersionDTO();
+            dto.setPlanInfoId(planInfoEntity.getPlanInfoId());
+            dto.setName(planInfoEntity.getName());
+            dto.setCreatedAt(planInfoEntity.getCreatedAt());
+            data.add(dto);
+        }
+        return page;
+    }
+
+    @Transactional
+    public boolean versionUpdate(String planId, String version) {
+        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(planId);
+        Verifies.verify(planEntityOptional.isPresent(), String.format("Cannot find Plan %s", planId));
+        Optional<PlanInfoEntity> planInfoEntityOptional = planInfoEntityRepo.findById(version);
+        Verifies.verify(planInfoEntityOptional.isPresent(), String.format("Cannot find Version %s", version));
+        PlanEntity planEntity = planEntityOptional.get();
+        // 更新 Plan 版本信息
+        int effected = planEntityRepo.updateVersion(version, planId, planEntity.getCurrentVersion());
+        return effected > 0;
+    }
 
 }

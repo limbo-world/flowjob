@@ -20,115 +20,91 @@ package org.limbo.flowjob.api.dto.console;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.limbo.flowjob.api.constants.JobType;
+import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.api.param.console.WorkflowJobParam;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
 
 /**
- * @author Devil
- * @since 2023/7/12
+ * @author KaiFengCai
+ * @since 2023/1/30
  */
 @Data
-public class PlanDTO implements Serializable {
+@Schema(title = "任务对象")
+public class PlanDTO {
 
-    private static final long serialVersionUID = 5415937110190483426L;
-
-    /**
-     * 计划ID
-     */
-    @Schema(title = "任务ID")
+    @Schema(title = "id")
     private String planId;
 
-    /**
-     * 计划名称
-     */
-    @Schema(title = "任务名称")
+    @Schema(title = "当前版本")
+    private String currentVersion;
+
+    @Schema(title = "最新版本")
+    private String recentlyVersion;
+
+    @Schema(title = "是否启动")
+    private boolean enabled;
+
+    @Schema(title = "名称")
     private String name;
 
-    /**
-     * 计划描述
-     */
-    @Schema(title = "任务描述")
+    @Schema(title = "描述")
     private String description;
 
     /**
-     * 触发方式
-     * @see TriggerType
+     * 计划作业类型
+     * @see PlanType
      */
-    @NotNull
-    @Schema(title = "触发方式", implementation = Integer.class)
-    private TriggerType triggerType;
+    @Schema(title = "任务类型")
+    private Integer planType;
 
     /**
-     * 作业计划调度配置参数
+     * 计划作业调度方式
+     * @see ScheduleType
      */
-    @NotNull
-    @Schema(title = "调度配置参数")
-    private ScheduleOptionDTO scheduleOption;
+    @Schema(title = "调度方式")
+    private Integer scheduleType;
 
-    @Data
-    @EqualsAndHashCode(callSuper = true)
-    @Schema(title = "普通任务参数")
-    public static class NormalPlanDTO extends PlanDTO {
+    /**
+     * 计划作业触发方式
+     * @see TriggerType
+     */
+    @Schema(title = "触发方式")
+    private Integer triggerType;
 
-        private static final long serialVersionUID = 3895596530765470400L;
+    /**
+     * 从何时开始调度作业
+     */
+    @Schema(title = "调度开始时间")
+    private LocalDateTime scheduleStartAt;
 
-        /**
-         * 作业类型
-         * @see JobType
-         */
-        @NotNull
-        @Schema(title = "作业类型")
-        private JobType type;
+    @Schema(title = "调度结束时间")
+    private LocalDateTime scheduleEndAt;
 
-        /**
-         * 属性参数
-         */
-        @Schema(title = "属性参数")
-        private Map<String, Object> attributes;
+    /**
+     * 作业调度延迟时间，单位秒
+     */
+    @Schema(title = "调度延迟时间")
+    private Long scheduleDelay;
 
-        /**
-         * 作业分发重试参数
-         */
-        @Schema(title = "作业分发重试参数")
-        private RetryOptionDTO retryOption;
+    /**
+     * 作业调度间隔时间，单位秒。
+     */
+    @Schema(title = "调度间隔时间")
+    private Long scheduleInterval;
 
-        /**
-         * 作业分发配置参数
-         */
-        @Valid
-        @NotNull
-        @Schema(title = "作业分发配置参数")
-        private DispatchOptionDTO dispatchOption;
+    /**
+     * 作业调度的CRON表达式
+     */
+    @Schema(title = "CRON表达式")
+    private String scheduleCron;
 
-        /**
-         * 执行器名称
-         */
-        @NotBlank
-        @Schema(title = "执行器名称")
-        private String executorName;
-    }
-
-    @Data
-    @EqualsAndHashCode(callSuper = true)
-    @Schema(title = "工作流任务参数")
-    public static class WorkflowPlanDTO extends PlanDTO {
-
-        private static final long serialVersionUID = 7590151688905915258L;
-
-        /**
-         * 此执行计划对应的所有作业
-         */
-        @Schema(title = "工作流对应的所有作业")
-        private List<@Valid WorkflowJobParam> workflow;
-    }
+    /**
+     * 作业调度的CRON表达式
+     * @see com.cronutils.model.CronType
+     */
+    @Schema(title = "CRON表达式类型")
+    private String scheduleCronType;
 
 }
