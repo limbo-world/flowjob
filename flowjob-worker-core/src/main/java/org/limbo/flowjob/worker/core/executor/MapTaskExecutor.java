@@ -17,11 +17,7 @@
 package org.limbo.flowjob.worker.core.executor;
 
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.worker.core.domain.Task;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * 任务执行器
@@ -29,40 +25,10 @@ import java.util.Map;
  * @author Devil
  * @since 2021/7/24
  */
-public interface MapTaskExecutor extends TaskExecutor {
+public abstract class MapTaskExecutor extends MapReduceTaskExecutor {
 
     @Override
-    default void run(Task task) {
-        switch (task.getType()) {
-            case SPLIT:
-                List<Map<String, Object>> subTasks = split(task);
-                if (CollectionUtils.isEmpty(subTasks)) {
-                    throw new IllegalArgumentException("sub task empty");
-                }
-                int maxSize = 100;
-                if (subTasks.size() > maxSize) {
-                    throw new IllegalArgumentException("sub task size > " + maxSize);
-                }
-                task.setResult(subTasks);
-                break;
-            case MAP:
-                task.setResult(map(task));
-                break;
-            default:
-                break;
-        }
+    public void reduce(Task task) {
+        // do nothing
     }
-
-    /**
-     * 切分创建多个子task
-     * @param task 任务
-     */
-    List<Map<String, Object>> split(Task task);
-
-    /**
-     * 处理map分片任务
-     * @param task 任务
-     */
-    Map<String, Object> map(Task task);
-
 }

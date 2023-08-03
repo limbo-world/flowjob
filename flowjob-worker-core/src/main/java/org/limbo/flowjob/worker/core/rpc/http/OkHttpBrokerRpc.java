@@ -45,8 +45,8 @@ import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.rpc.BrokerNode;
 import org.limbo.flowjob.worker.core.rpc.BrokerRpc;
 import org.limbo.flowjob.worker.core.rpc.RpcParamFactory;
-import org.limbo.flowjob.worker.core.rpc.exceptions.BrokerRpcException;
-import org.limbo.flowjob.worker.core.rpc.exceptions.RegisterFailException;
+import org.limbo.flowjob.worker.core.exceptions.BrokerRpcException;
+import org.limbo.flowjob.worker.core.exceptions.RegisterFailException;
 
 import javax.annotation.Nullable;
 import java.io.IOException;

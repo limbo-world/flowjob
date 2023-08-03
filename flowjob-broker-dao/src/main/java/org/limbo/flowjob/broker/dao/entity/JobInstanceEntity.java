@@ -48,6 +48,11 @@ public class JobInstanceEntity extends BaseEntity {
     private String jobId;
 
     /**
+     * 执行作业的worker ID
+     */
+    private String workerId;
+
+    /**
      * 状态
      * @see JobStatus
      */

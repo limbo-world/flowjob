@@ -17,8 +17,8 @@
 package org.limbo.flowjob.worker.core.domain;
 
 import org.limbo.flowjob.worker.core.executor.TaskExecutor;
-import org.limbo.flowjob.worker.core.utils.collections.ImmutableMultiValueMap;
-import org.limbo.flowjob.worker.core.utils.collections.MultiValueMap;
+import org.limbo.flowjob.common.utils.collections.ImmutableMultiValueMap;
+import org.limbo.flowjob.common.utils.collections.MultiValueMap;
 
 import java.net.URL;
 import java.time.Duration;

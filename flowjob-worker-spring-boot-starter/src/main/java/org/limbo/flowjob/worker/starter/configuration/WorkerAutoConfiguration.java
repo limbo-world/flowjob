@@ -26,7 +26,7 @@ import org.limbo.flowjob.common.lb.LBStrategy;
 import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
 import org.limbo.flowjob.common.utils.NetUtils;
 import org.limbo.flowjob.worker.core.domain.BaseWorker;
-import org.limbo.flowjob.worker.core.domain.CalculatingWorkerResource;
+import org.limbo.flowjob.worker.core.resource.CalculatingWorkerResource;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.domain.WorkerResources;
 import org.limbo.flowjob.worker.core.rpc.BaseLBServerRepository;

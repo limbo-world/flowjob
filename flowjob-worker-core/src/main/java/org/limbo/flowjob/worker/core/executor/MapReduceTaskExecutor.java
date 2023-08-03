@@ -17,8 +17,12 @@
 package org.limbo.flowjob.worker.core.executor;
 
 
-import org.limbo.flowjob.api.constants.TaskType;
+import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.limbo.flowjob.worker.core.domain.Task;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * 任务执行器
@@ -26,21 +30,52 @@ import org.limbo.flowjob.worker.core.domain.Task;
  * @author Devil
  * @since 2021/7/24
  */
-public interface MapReduceTaskExecutor extends MapTaskExecutor {
+public abstract class MapReduceTaskExecutor implements TaskExecutor {
 
     @Override
-    default void run(Task task) {
-        if (TaskType.REDUCE == task.getType()) {
-            reduce(task);
-        } else {
-            MapTaskExecutor.super.run(task);
+    public void run(Task task) {
+        switch (task.getType()) {
+            case SHARDING:
+                List<Map<String, Object>> subTasks = sharding(task);
+                if (CollectionUtils.isEmpty(subTasks)) {
+                    throw new IllegalArgumentException("sub task empty");
+                }
+                int maxSize = 100;
+                if (subTasks.size() > maxSize) {
+                    throw new IllegalArgumentException("sub task size > " + maxSize);
+                }
+                task.setResult(subTasks);
+                break;
+            case MAP:
+                task.setResult(map(task));
+                break;
+            case REDUCE:
+                reduce(task);
+                break;
+            default:
+                throw new IllegalArgumentException("wrong task type task: " + JacksonUtils.toJSONString(task));
         }
     }
 
     /**
-     * 处理reduce任务
+     * 切分创建多个子task
+     *
      * @param task 任务
      */
-    void reduce(Task task);
+    public abstract List<Map<String, Object>> sharding(Task task);
+
+    /**
+     * 处理map分片任务
+     *
+     * @param task 任务
+     */
+    public abstract Map<String, Object> map(Task task);
+
+    /**
+     * 处理reduce任务
+     *
+     * @param task 任务
+     */
+    public abstract void reduce(Task task);
 
 }

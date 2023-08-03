@@ -113,15 +113,15 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
         List<Task> tasks;
         JobInfo jobInfo = jobInstance.getJobInfo();
         switch (jobInfo.getType()) {
-            case NORMAL:
-                tasks = taskFactory.create(jobInstance, TaskType.NORMAL);
+            case STANDALONE:
+                tasks = taskFactory.create(jobInstance, TaskType.STANDALONE);
                 break;
             case BROADCAST:
                 tasks = taskFactory.create(jobInstance, TaskType.BROADCAST);
                 break;
             case MAP:
             case MAP_REDUCE:
-                tasks = taskFactory.create(jobInstance, TaskType.SPLIT);
+                tasks = taskFactory.create(jobInstance, TaskType.SHARDING);
                 break;
             default:
                 throw new JobException(jobInfo.getId(), MsgConstants.UNKNOWN + " job type:" + jobInfo.getType().type);
@@ -185,7 +185,7 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
         // 判断当前 job 类型 进行后续处理
         JobInfo jobInfo = jobInstance.getJobInfo();
         switch (jobInfo.getType()) {
-            case NORMAL:
+            case STANDALONE:
             case BROADCAST:
                 handleJobSuccess(jobInstance);
                 break;
@@ -207,8 +207,8 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
      */
     private void handleMapJobSuccess(Task task, JobInstance jobInstance) {
         switch (task.getType()) {
-            case SPLIT:
-                handleSplitTaskSuccess(jobInstance);
+            case SHARDING:
+                handleShardingTaskSuccess(jobInstance);
                 break;
             case MAP:
                 handleJobSuccess(jobInstance);
@@ -223,8 +223,8 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
      */
     private void handleMapReduceJobSuccess(Task task, JobInstance jobInstance) {
         switch (task.getType()) {
-            case SPLIT:
-                handleSplitTaskSuccess(jobInstance);
+            case SHARDING:
+                handleShardingTaskSuccess(jobInstance);
                 break;
             case MAP:
                 List<Task> tasks = taskFactory.create(jobInstance, TaskType.REDUCE);
@@ -241,7 +241,7 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
     /**
      * 处理分片任务
      */
-    private void handleSplitTaskSuccess(JobInstance jobInstance) {
+    private void handleShardingTaskSuccess(JobInstance jobInstance) {
         List<Task> tasks = taskFactory.create(jobInstance, TaskType.MAP);
         if (CollectionUtils.isEmpty(tasks)) {
             handleJobSuccess(jobInstance);

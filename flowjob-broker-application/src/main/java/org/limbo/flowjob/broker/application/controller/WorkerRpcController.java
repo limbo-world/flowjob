@@ -81,17 +81,6 @@ public class WorkerRpcController {
     }
 
     /**
-     * api 触发对应plan调度
-     */
-    @Operation(summary = "触发对应plan调度")
-    @PostMapping(API_WORKER_PLAN_SCHEDULE)
-    public ResponseDTO<Void> scheduleJob(@Validated @NotNull(message = "no planId") @RequestParam("planId") String planId) {
-        Plan plan = planRepository.get(planId);
-        scheduleStrategy.schedule(TriggerType.API, plan, TimeUtils.currentLocalDateTime());
-        return ResponseDTO.<Void>builder().ok().build();
-    }
-
-    /**
      * api 触发对应planInstanceId下的job调度 目前只有workflow类型会用到
      */
     @Operation(summary = "触发对应job调度")

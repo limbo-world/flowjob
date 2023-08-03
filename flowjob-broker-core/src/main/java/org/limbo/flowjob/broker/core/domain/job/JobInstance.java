@@ -54,6 +54,11 @@ public class JobInstance implements Serializable {
     private int retryTimes = 0;
 
     /**
+     * 执行作业的worker ID
+     */
+    private String workerId;
+
+    /**
      * 触发时间
      */
     private LocalDateTime triggerAt;

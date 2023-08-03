@@ -34,7 +34,7 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-public class MapReduceExecutorDemo implements MapReduceTaskExecutor {
+public class MapReduceExecutorDemo extends MapReduceTaskExecutor {
 
     private static final String KEY = "k";
 
@@ -43,7 +43,7 @@ public class MapReduceExecutorDemo implements MapReduceTaskExecutor {
     private static final String NUM_KEY = "num";
 
     @Override
-    public List<Map<String, Object>> split(Task task) {
+    public List<Map<String, Object>> sharding(Task task) {
         List<Map<String, Object>> result = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             Map<String, Object> taskParam = new HashMap<>();

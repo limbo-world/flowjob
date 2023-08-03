@@ -60,7 +60,7 @@ public class TaskManagerComponent implements TaskManager {
                     .errorStackTrace(taskEntity.getErrorStackTrace())
                     .build();
             switch (taskType) {
-                case SPLIT:
+                case SHARDING:
                     taskResult.setSubTaskAttributes(JacksonUtils.parseObject(taskEntity.getResult(), new TypeReference<List<Map<String, Object>>>() {
                     }));
                     break;

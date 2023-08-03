@@ -61,11 +61,11 @@ public class TaskFactory {
 
         creators = new EnumMap<>(TaskType.class);
 
-        creators.put(TaskType.NORMAL, new NormalTaskCreator());
+        creators.put(TaskType.STANDALONE, new NormalTaskCreator());
         creators.put(TaskType.BROADCAST, new BroadcastTaskCreator());
         creators.put(TaskType.MAP, new MapTaskCreator());
         creators.put(TaskType.REDUCE, new ReduceTaskCreator());
-        creators.put(TaskType.SPLIT, new SplitTaskCreator());
+        creators.put(TaskType.SHARDING, new ShardingTaskCreator());
     }
 
     public List<Task> create(JobInstance instance, TaskType taskType) {
@@ -114,16 +114,16 @@ public class TaskFactory {
 
         @Override
         public List<Task> tasks(JobInstance instance) {
-            Task task = initTask(TaskType.NORMAL, instance, null, instance.getTriggerAt());
+            Task task = initTask(TaskType.STANDALONE, instance, null, instance.getTriggerAt());
             return Collections.singletonList(task);
         }
 
         /**
-         * 此策略仅适用于 {@link TaskType#NORMAL} 类型的任务
+         * 此策略仅适用于 {@link TaskType#STANDALONE} 类型的任务
          */
         @Override
         public TaskType getType() {
-            return TaskType.NORMAL;
+            return TaskType.STANDALONE;
         }
     }
 
@@ -157,22 +157,22 @@ public class TaskFactory {
     }
 
     /**
-     * Split任务创建策略
+     * 分片任务创建策略
      */
-    public class SplitTaskCreator extends TaskCreator {
+    public class ShardingTaskCreator extends TaskCreator {
 
         @Override
         public List<Task> tasks(JobInstance instance) {
-            Task task = initTask(TaskType.SPLIT, instance, null, instance.getTriggerAt());
+            Task task = initTask(TaskType.SHARDING, instance, null, instance.getTriggerAt());
             return Collections.singletonList(task);
         }
 
         /**
-         * 此策略仅适用于 {@link TaskType#SPLIT} 类型的任务
+         * 此策略仅适用于 {@link TaskType#SHARDING} 类型的任务
          */
         @Override
         public TaskType getType() {
-            return TaskType.SPLIT;
+            return TaskType.SHARDING;
         }
 
     }
@@ -185,7 +185,7 @@ public class TaskFactory {
 
         @Override
         public List<Task> tasks(JobInstance instance) {
-            TaskResult taskResult = taskManager.getTaskResults(instance.getJobInstanceId(), TaskType.SPLIT).get(0);
+            TaskResult taskResult = taskManager.getTaskResults(instance.getJobInstanceId(), TaskType.SHARDING).get(0);
             List<Task> tasks = new ArrayList<>();
             for (Map<String, Object> attribute : taskResult.getSubTaskAttributes()) {
                 Task task = initTask(TaskType.MAP, instance, null, TimeUtils.currentLocalDateTime());

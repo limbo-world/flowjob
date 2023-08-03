@@ -31,17 +31,13 @@ public enum RetryType {
 
     UNKNOWN(ConstantsPool.UNKNOWN, "未知"),
     /**
-     * 对于普通任务无需类型
+     * 对于广播/map-map/reduce任务 会重新重试
      */
-    NONE(1, ""),
+    ALL(1, "重试所有"),
     /**
-     * 对于map-map/reduce任务 会重新重试
+     * 对于广播/map-map/reduce任务 只处理失败的任务
      */
-    ALL(2, "重试所有"),
-    /**
-     * 对于map-map/reduce任务 只处理失败的任务
-     */
-    ONLY_FAIL_PART(3, "失败部分重试"),
+    ONLY_FAIL_PART(2, "失败部分重试"),
     ;
 
     @JsonValue
