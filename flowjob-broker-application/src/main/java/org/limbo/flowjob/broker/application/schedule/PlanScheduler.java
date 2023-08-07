@@ -39,6 +39,11 @@ public interface PlanScheduler {
     /**
      * 调度job实例
      */
+    void scheduleBak(JobInstance jobInstance);
+
+    /**
+     * 调度job实例
+     */
     void schedule(JobInstance jobInstance);
 
     /**

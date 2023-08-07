@@ -58,11 +58,11 @@ public class SingletonWorkerStatisticsRepo extends Lockable<List<SingletonWorker
      * 记录任务被下发
      */
     @Override
-    public void recordTaskDispatched(Task task, Worker worker) {
+    public void recordDispatched(Worker worker) {
         runInWriteLock(records -> {
             // 新增记录
             records.add(new WorkerDispatchRecord(
-                    task.getWorkerId(), Instant.now()
+                    worker.getId(), Instant.now()
             ));
 
             // 同时检测头部 10 条记录是否过时，如过时需要移除

@@ -28,6 +28,8 @@ public enum IDType {
 
     TENANT,
 
+    AGENT,
+
     WORKER,
 
     WORKER_EXECUTOR,

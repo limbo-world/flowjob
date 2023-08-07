@@ -18,7 +18,7 @@ package org.limbo.flowjob.worker.starter.application.controllers;
 
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.api.constants.worker.HttpWorkerApi;
+import org.limbo.flowjob.api.constants.rpc.HttpWorkerApi;
 import org.limbo.flowjob.api.param.worker.TaskSubmitParam;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.worker.starter.application.services.WorkerService;
@@ -47,7 +47,7 @@ public class WorkerController extends BaseController {
      * Worker 会检测剩余可用资源量，如资源不足则直接拒绝接收任务。
      * Worker 中如有空闲工作线程，则会立即执行任务；如果工作线程已满，则会将任务提交到积压队列，等候执行；如果积压队列已满，则接受任务失败。
      */
-    @PostMapping(HttpWorkerApi.API_SEND_TASK)
+    @PostMapping(HttpWorkerApi.API_SUBMIT_TASK)
     public ResponseDTO<Boolean> receiveJob(@RequestBody TaskSubmitParam param) {
         return ResponseDTO.<Boolean>builder().ok(workerService.receive(param)).build();
     }

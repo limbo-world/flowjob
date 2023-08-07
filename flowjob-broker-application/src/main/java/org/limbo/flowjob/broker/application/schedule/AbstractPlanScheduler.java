@@ -26,6 +26,7 @@ import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
+import org.limbo.flowjob.broker.core.dispatch.JobDispatcher;
 import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
@@ -35,7 +36,7 @@ import org.limbo.flowjob.broker.core.domain.job.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
-import org.limbo.flowjob.broker.core.exceptions.JobException;
+import org.limbo.flowjob.common.exception.JobException;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
@@ -46,6 +47,8 @@ import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
+import org.limbo.flowjob.common.lb.LBStrategy;
+import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
@@ -90,6 +93,8 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
     @Setter(onMethod_ = @Inject)
     protected MetaTaskScheduler metaTaskScheduler;
 
+    protected LBStrategy lbStrategy = new RoundRobinLBStrategy<>()
+
     @Transactional
     public void schedule(Plan plan, String planInstanceId, LocalDateTime triggerAt) {
         List<JobInstance> jobInstances = createJobInstances(plan, planInstanceId, triggerAt);
@@ -105,10 +110,9 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
 
     public abstract List<JobInstance> createJobInstances(Plan plan, String planInstanceId, LocalDateTime triggerAt);
 
-
     @Override
     @Transactional
-    public void schedule(JobInstance jobInstance) {
+    public void scheduleBak(JobInstance jobInstance) {
         // 根据job类型创建task
         List<Task> tasks;
         JobInfo jobInfo = jobInstance.getJobInfo();

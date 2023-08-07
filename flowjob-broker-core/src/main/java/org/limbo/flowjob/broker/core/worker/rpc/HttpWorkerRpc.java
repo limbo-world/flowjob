@@ -19,6 +19,7 @@ package org.limbo.flowjob.broker.core.worker.rpc;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.broker.core.rpc.AbstractRpc;
 import org.limbo.flowjob.broker.core.worker.Worker;
 
 import java.net.MalformedURLException;
@@ -31,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2022-08-12
  */
 @Slf4j
-public abstract class HttpWorkerRpc extends AbstractWorkerRpc {
+public abstract class HttpWorkerRpc extends AbstractRpc implements WorkerRpc {
 
     /**
      * URL 缓存
@@ -46,7 +47,7 @@ public abstract class HttpWorkerRpc extends AbstractWorkerRpc {
 
 
     public HttpWorkerRpc(Worker worker) {
-        super(worker);
+        super(worker.getId());
         this.baseUrl = worker.getRpcBaseUrl();
     }
 

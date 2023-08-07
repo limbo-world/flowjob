@@ -48,6 +48,12 @@
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
 
+        <!-- http client -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+        </dependency>
+
         <!-- utils -->
         <dependency>
             <groupId>org.apache.commons</groupId>

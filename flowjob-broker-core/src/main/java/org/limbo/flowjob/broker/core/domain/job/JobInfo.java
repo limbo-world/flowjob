@@ -24,7 +24,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.api.constants.JobType;
-import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
+import org.limbo.flowjob.common.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.dispatch.RetryOption;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 

@@ -16,9 +16,9 @@
 
 package org.limbo.flowjob.worker.core.rpc;
 
+import org.limbo.flowjob.common.exception.RegisterFailException;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.executor.ExecuteContext;
-import org.limbo.flowjob.worker.core.exceptions.RegisterFailException;
 
 import javax.annotation.Nullable;
 

@@ -49,6 +49,18 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity " +
+            " set status = " + ConstantsPool.SCHEDULE_STATUS_DISPATCHING + ", agentId = :agentId " +
+            " where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_SCHEDULING)
+    int dispatching(@Param("jobInstanceId") String jobInstanceId, @Param("agentId") String agentId);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "update JobInstanceEntity " +
+            "set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING + ", startAt = :startAt " +
+            "where agentId = :agentId and jobInstanceId = :jobInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_DISPATCHING)
+    int executing(@Param("agentId") String agentId, @Param("jobInstanceId") String jobInstanceId, @Param("startAt") LocalDateTime startAt);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "update JobInstanceEntity " +
             "set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING + ", startAt = :startAt " +
             "where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_SCHEDULING)
     int executing(@Param("jobInstanceId") String jobInstanceId, @Param("startAt") LocalDateTime startAt);

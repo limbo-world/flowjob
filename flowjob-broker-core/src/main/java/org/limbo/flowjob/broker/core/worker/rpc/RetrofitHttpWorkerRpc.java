@@ -17,11 +17,11 @@
 package org.limbo.flowjob.broker.core.worker.rpc;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.limbo.flowjob.api.constants.worker.HttpWorkerApi;
+import org.limbo.flowjob.api.constants.rpc.HttpWorkerApi;
 import org.limbo.flowjob.api.dto.ResponseDTO;
-import org.limbo.flowjob.api.param.worker.TaskSubmitParam;
-import org.limbo.flowjob.broker.core.domain.task.Task;
-import org.limbo.flowjob.broker.core.exceptions.WorkerException;
+import org.limbo.flowjob.api.param.agent.JobSubmitParam;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.core.exceptions.RpcException;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import retrofit2.Call;
 import retrofit2.Retrofit;
@@ -46,15 +46,9 @@ public class RetrofitHttpWorkerRpc extends HttpWorkerRpc {
                 .build().create(RetrofitWorkerApi.class);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @param task 作业实例
-     * @return
-     */
     @Override
-    public boolean sendTask(Task task) {
-        Boolean result = send(api.sendTask(WorkerConverter.toTaskSubmitParam(task)));
+    public boolean dispatch(JobInstance instance) {
+        Boolean result = send(api.dispatch(WorkerConverter.toJobDispatchParam(instance)));
         return BooleanUtils.isTrue(result);
     }
 
@@ -63,7 +57,7 @@ public class RetrofitHttpWorkerRpc extends HttpWorkerRpc {
             try {
                 return call.execute().body();
             } catch (Exception e) {
-                throw new WorkerException(workerId(), "http api execute error", e);
+                throw new RpcException(id(), "http api execute error", e);
             }
         });
     }
@@ -77,8 +71,8 @@ public class RetrofitHttpWorkerRpc extends HttpWorkerRpc {
         @Headers(
                 "Content-Type: application/json"
         )
-        @POST(HttpWorkerApi.API_SEND_TASK)
-        Call<ResponseDTO<Boolean>> sendTask(@Body TaskSubmitParam param);
+        @POST(HttpWorkerApi.API_SUBMIT_TASK)
+        Call<ResponseDTO<Boolean>> dispatch(@Body JobSubmitParam param);
 
     }
 

@@ -21,7 +21,6 @@ package org.limbo.flowjob.broker.application.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Setter;
-import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.broker.WorkerRegisterDTO;
 import org.limbo.flowjob.api.param.broker.TaskFeedbackParam;
@@ -29,9 +28,7 @@ import org.limbo.flowjob.api.param.broker.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
 import org.limbo.flowjob.broker.application.schedule.ScheduleStrategy;
 import org.limbo.flowjob.broker.application.service.WorkerService;
-import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
-import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,7 +39,7 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import static org.limbo.flowjob.api.constants.worker.HttpBrokerApi.*;
+import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.*;
 
 /**
  * @author Brozen
@@ -75,9 +72,9 @@ public class WorkerRpcController {
      */
     @Operation(summary = "worker心跳")
     @PostMapping(API_WORKER_HEARTBEAT)
-    public ResponseDTO<WorkerRegisterDTO> heartbeat(@Validated @NotNull(message = "no workerId") @RequestParam("workerId") String workerId,
+    public ResponseDTO<WorkerRegisterDTO> heartbeat(@Validated @NotNull(message = "no id") @RequestParam("id") String id,
                                                     @Valid @RequestBody WorkerHeartbeatParam heartbeatOption) {
-        return ResponseDTO.<WorkerRegisterDTO>builder().ok(workerService.heartbeat(workerId, heartbeatOption)).build();
+        return ResponseDTO.<WorkerRegisterDTO>builder().ok(workerService.heartbeat(id, heartbeatOption)).build();
     }
 
     /**

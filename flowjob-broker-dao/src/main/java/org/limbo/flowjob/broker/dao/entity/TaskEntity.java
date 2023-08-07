@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
-import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
+import org.limbo.flowjob.common.dispatch.DispatchOption;
 import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
 

@@ -19,15 +19,9 @@
 package org.limbo.flowjob.worker.core.rpc.http;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.net.HttpHeaders;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.Call;
 import okhttp3.HttpUrl;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.Protocol;
@@ -36,17 +30,18 @@ import org.limbo.flowjob.api.dto.broker.BrokerTopologyDTO;
 import org.limbo.flowjob.api.dto.broker.WorkerRegisterDTO;
 import org.limbo.flowjob.api.param.broker.TaskFeedbackParam;
 import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
+import org.limbo.flowjob.common.cluster.BrokerNode;
+import org.limbo.flowjob.common.exception.BrokerRpcException;
+import org.limbo.flowjob.common.exception.RegisterFailException;
+import org.limbo.flowjob.common.http.OKHttpRpc;
 import org.limbo.flowjob.common.lb.LBServerRepository;
 import org.limbo.flowjob.common.lb.LBStrategy;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.limbo.flowjob.worker.core.domain.Task;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.executor.ExecuteContext;
-import org.limbo.flowjob.worker.core.rpc.BrokerNode;
 import org.limbo.flowjob.worker.core.rpc.BrokerRpc;
 import org.limbo.flowjob.worker.core.rpc.RpcParamFactory;
-import org.limbo.flowjob.worker.core.exceptions.BrokerRpcException;
-import org.limbo.flowjob.worker.core.exceptions.RegisterFailException;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -55,26 +50,19 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.limbo.flowjob.api.constants.worker.HttpBrokerApi.*;
+import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.*;
 
 /**
  * @author Brozen
  * @since 2022-08-31
  */
 @Slf4j
-public class OkHttpBrokerRpc implements BrokerRpc {
-
-    private final OkHttpClient client;
+public class OkHttpBrokerRpc extends OKHttpRpc<BrokerNode> implements BrokerRpc {
 
     /**
      * Broker 负载均衡
      */
     private final LBServerRepository<BrokerNode> repository;
-
-    // application/json; charset=utf-8
-    private static final String JSON_UTF_8 = com.google.common.net.MediaType.JSON_UTF_8.toString();
-
-    private static final MediaType MEDIA_TYPE = MediaType.parse(JSON_UTF_8);
 
     private static final String BASE_URL = "http://0.0.0.0:8080";
 
@@ -83,8 +71,8 @@ public class OkHttpBrokerRpc implements BrokerRpc {
     private String workerId = "";
 
     public OkHttpBrokerRpc(LBServerRepository<BrokerNode> repository, LBStrategy<BrokerNode> strategy) {
+        super(repository, strategy);
         this.repository = repository;
-        this.client = new OkHttpClient.Builder().addInterceptor(new LoadBalanceInterceptor<>(repository, strategy)).build();
     }
 
     /**
@@ -165,7 +153,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      */
     @Override
     public void heartbeat(Worker worker) {
-        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + API_WORKER_HEARTBEAT + "?workerId=" + workerId, RpcParamFactory.heartbeatParam(worker), new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
+        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + API_WORKER_HEARTBEAT + "?id=" + workerId, RpcParamFactory.heartbeatParam(worker), new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
         });
 
         if (response == null || !response.success()) {
@@ -225,38 +213,12 @@ public class OkHttpBrokerRpc implements BrokerRpc {
     private <T> ResponseDTO<T> executePost(String url, Object param, TypeReference<ResponseDTO<T>> reference) {
         Objects.requireNonNull(reference);
 
-        String json = JacksonUtils.toJSONString(param);
-        RequestBody body = RequestBody.create(MEDIA_TYPE, json);
-
-        Request request = new Request.Builder()
-                .url(url)
-                .header(HttpHeaders.CONTENT_TYPE, JSON_UTF_8)
-                .post(body).build();
-        Call call = client.newCall(request);
-
-        if (log.isDebugEnabled()) {
-            log.debug("call broker {}", logRequest(url, json));
-        }
-
+        ResponseBody responseBody = executePost(url, param);
         try {
-            // HTTP 响应状态异常
-            Response response = call.execute();
-            if (!response.isSuccessful()) {
-                throw new BrokerRpcException("Broker api access failed; " + logRequest(url, json) + " code=" + response.code());
-            }
-
-            // 无响应 body 是异常
-            if (response.body() == null) {
-                throw new BrokerRpcException("Broker api response empty body " + logRequest(url, json));
-            }
-            return JacksonUtils.parseObject(response.body().string(), reference);
+            return JacksonUtils.parseObject(responseBody.string(), reference);
         } catch (IOException e) {
-            throw new BrokerRpcException("Broker api access failed " + logRequest(url, json), e);
+            throw new BrokerRpcException("Api access failed " + logRequest(url, JacksonUtils.toJSONString(param)), e);
         }
-    }
-
-    private String logRequest(String url, String param) {
-        return String.format("request[url=%s, param=%s]", url, param);
     }
 
 }

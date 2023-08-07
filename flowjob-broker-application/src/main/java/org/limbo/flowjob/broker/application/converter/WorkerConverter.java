@@ -146,18 +146,8 @@ public class WorkerConverter {
     public static WorkerRegisterDTO toRegisterDTO(Worker worker, Collection<Node> nodes) {
         WorkerRegisterDTO registerResult = new WorkerRegisterDTO();
         registerResult.setWorkerId(worker.getId());
-        registerResult.setBrokerTopology(toBrokerTopologyDTO(nodes));
+        registerResult.setBrokerTopology(BrokerConverter.toBrokerTopologyDTO(nodes));
         return registerResult;
-    }
-
-    public static BrokerTopologyDTO toBrokerTopologyDTO(Collection<Node> nodes) {
-        BrokerTopologyDTO brokerTopologyDTO = new BrokerTopologyDTO();
-        if (CollectionUtils.isNotEmpty(nodes)) {
-            for (Node node : nodes) {
-                brokerTopologyDTO.getBrokers().add(new BrokerDTO(node.getHost(), node.getPort()));
-            }
-        }
-        return brokerTopologyDTO;
     }
 
     public static WorkerDTO toVO(WorkerEntity workerEntity, List<WorkerTagEntity> workerTagEntities) {

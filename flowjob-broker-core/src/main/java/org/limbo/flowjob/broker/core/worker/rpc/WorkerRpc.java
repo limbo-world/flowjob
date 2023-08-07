@@ -16,8 +16,8 @@
 
 package org.limbo.flowjob.broker.core.worker.rpc;
 
-import org.limbo.flowjob.api.constants.Protocol;
-import org.limbo.flowjob.broker.core.domain.task.Task;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.core.rpc.IRpc;
 
 /**
  * Worker 通信接口
@@ -25,21 +25,13 @@ import org.limbo.flowjob.broker.core.domain.task.Task;
  * @author Brozen
  * @since 2022-08-12
  */
-public interface WorkerRpc {
+public interface WorkerRpc extends IRpc {
 
     /**
      * 发送一个作业到worker执行。当worker接受此task后，将触发返回
-     * @param task 作业实例
+     * @param instance 作业实例
      * @return worker接受task后触发
      */
-    boolean sendTask(Task task);
-
-    String workerId();
-
-    Protocol protocol();
-
-    String host();
-
-    Integer port();
+    boolean dispatch(JobInstance instance);
 
 }

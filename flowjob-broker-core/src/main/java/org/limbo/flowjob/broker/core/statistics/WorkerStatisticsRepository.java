@@ -16,7 +16,6 @@
 
 package org.limbo.flowjob.broker.core.statistics;
 
-import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.common.lb.LBServerStatistics;
 import org.limbo.flowjob.common.lb.LBServerStatisticsProvider;
@@ -37,10 +36,9 @@ public interface WorkerStatisticsRepository extends LBServerStatisticsProvider {
     /**
      * 记录任务被下发
      *
-     * @param task 下发的任务
      * @param worker 接收任务的 worker
      */
-    void recordTaskDispatched(Task task, Worker worker);
+    void recordDispatched(Worker worker);
 
 
     /**

@@ -20,6 +20,8 @@
         <module>flowjob-worker-core</module>
         <module>flowjob-worker-spring-boot-starter</module>
         <module>flowjob-worker-spring-boot-demo</module>
+        <module>flowjob-agent-core</module>
+        <module>flowjob-agent-spring-boot-starter</module>
     </modules>
 
     <organization>

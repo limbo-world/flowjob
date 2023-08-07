@@ -36,6 +36,8 @@ public enum MetaTaskType {
 
     JOB_EXECUTE_CHECK,
 
+    DELAY_JOB,
+
     TASK,
 
     TASK_DISPATCH_CHECK,

@@ -19,7 +19,10 @@
 package org.limbo.flowjob.broker.core.worker.rpc;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.api.param.agent.JobSubmitParam;
 import org.limbo.flowjob.api.param.worker.TaskSubmitParam;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
@@ -34,6 +37,18 @@ import java.util.stream.Collectors;
  * @since 2022/10/21
  */
 public class WorkerConverter {
+
+    public static JobSubmitParam toJobDispatchParam(JobInstance instance) {
+        JobInfo jobInfo = instance.getJobInfo();
+
+        JobSubmitParam jobDispatchParam = new JobSubmitParam();
+        jobDispatchParam.setJobInstanceId(instance.getJobInstanceId());
+        jobDispatchParam.setType(jobInfo.getType().type);
+        jobDispatchParam.setExecutorName(jobInfo.getExecutorName());
+        jobDispatchParam.setContext(instance.getContext().toMap());
+        jobDispatchParam.setAttributes(jobInfo.getAttributes().toMap());
+        return jobDispatchParam;
+    }
 
     public static TaskSubmitParam toTaskSubmitParam(Task task) {
         TaskSubmitParam taskSubmitParam = new TaskSubmitParam();

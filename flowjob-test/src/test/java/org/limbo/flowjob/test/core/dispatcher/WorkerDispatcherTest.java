@@ -26,12 +26,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
+import org.limbo.flowjob.api.constants.WorkerStatus;
+import org.limbo.flowjob.common.dispatch.DispatchOption;
+import org.limbo.flowjob.broker.core.dispatch.WorkerSelectArgument;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
-import org.limbo.flowjob.api.constants.WorkerStatus;
 import org.limbo.flowjob.common.lb.LBServerStatistics;
 import org.limbo.flowjob.common.lb.LBServerStatisticsProvider;
 import org.limbo.flowjob.common.lb.strategies.AppointLBStrategy;
@@ -148,11 +149,11 @@ public class WorkerDispatcherTest {
         DispatchOption.LBStrategyWorkerSelector selector = new DispatchOption.LBStrategyWorkerSelector(new AppointLBStrategy<>());
         MockWorkerSelectArgument args = new MockWorkerSelectArgument();
 
-        args.getAttributes().put(AppointLBStrategy.PARAM_BY_SERVER_ID, "Worker1");
+        args.getLBParameters().put(AppointLBStrategy.PARAM_BY_SERVER_ID, "Worker1");
         Worker w1 = selector.select(new MockWorkerSelectArgument(), workers);
         assert w1.getId().equals("Worker1");
 
-        args.getAttributes().put(AppointLBStrategy.PARAM_BY_SERVER_ID, "Worker2");
+        args.getLBParameters().put(AppointLBStrategy.PARAM_BY_SERVER_ID, "Worker2");
         Worker w2 = selector.select(new MockWorkerSelectArgument(), workers);
         assert w2.getId().equals("Worker1");
     }
@@ -162,8 +163,8 @@ public class WorkerDispatcherTest {
     public void testConsistentHash() {
         DispatchOption.LBStrategyWorkerSelector selector = new DispatchOption.LBStrategyWorkerSelector(new ConsistentHashLBStrategy<>());
         MockWorkerSelectArgument args = new MockWorkerSelectArgument();
-        args.getAttributes().put(ConsistentHashLBStrategy.HASH_PARAM_NAME, "hashKey");
-        args.getAttributes().put("hashKey", "123");
+        args.getLBParameters().put(ConsistentHashLBStrategy.HASH_PARAM_NAME, "hashKey");
+        args.getLBParameters().put("hashKey", "123");
 
         Worker w1 = selector.select(args, workers);
         assert w1 != null;
@@ -177,7 +178,7 @@ public class WorkerDispatcherTest {
 
 
     @Setter
-    static class MockWorkerSelectArgument implements DispatchOption.WorkerSelectArgument {
+    static class MockWorkerSelectArgument implements WorkerSelectArgument {
 
         private String executorName = "hello";
 
@@ -196,7 +197,7 @@ public class WorkerDispatcherTest {
         }
 
         @Override
-        public Map<String, String> getAttributes() {
+        public Map<String, String> getLBParameters() {
             return attributes;
         }
     }

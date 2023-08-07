@@ -30,13 +30,12 @@ import java.util.stream.Collectors;
  * @author Brozen
  * @since 2022-09-20
  */
-@Component
 public class TaskConverter {
 
     /**
      * Task 提交参数转为 Task
      */
-    public Task task(TaskSubmitParam param) {
+    public static Task task(TaskSubmitParam param) {
         TaskType taskType = TaskType.parse(param.getType());
         Task task = new Task();
         task.setTaskId(param.getTaskId());

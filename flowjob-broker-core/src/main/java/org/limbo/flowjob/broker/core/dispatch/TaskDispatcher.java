@@ -27,6 +27,7 @@ import org.limbo.flowjob.broker.core.exceptions.JobDispatchException;
 import org.limbo.flowjob.broker.core.statistics.WorkerStatisticsRepository;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
+import org.limbo.flowjob.common.dispatch.DispatchOption;
 
 import java.util.List;
 import java.util.Objects;
@@ -82,7 +83,7 @@ public class TaskDispatcher {
 
         try {
             // 发送任务到worker，根据worker返回结果，更新状态
-            boolean dispatched = worker.sendTask(task);
+            boolean dispatched = worker.dispatch(task);
             if (dispatched) {
                 onDispatchSucceed(task, worker);
                 return true;
@@ -118,7 +119,7 @@ public class TaskDispatcher {
                 }
 
                 // 发送任务到worker，根据worker返回结果，更新状态
-                boolean dispatched = worker.sendTask(task);
+                boolean dispatched = worker.dispatch(task);
                 if (dispatched) {
                     onDispatchSucceed(task, worker);
                     return true;
@@ -147,7 +148,7 @@ public class TaskDispatcher {
         task.setWorkerId(worker.getId());
 
         // 记录统计数据
-        statisticsRepository.recordTaskDispatched(task, worker);
+        statisticsRepository.recordDispatched(task, worker);
 
         if (log.isDebugEnabled()) {
             log.debug("Task dispatch success task={}", task.getTaskId());

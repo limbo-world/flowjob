@@ -20,10 +20,12 @@ package org.limbo.flowjob.broker.application.schedule;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.api.constants.JobStatus;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TriggerType;
+import org.limbo.flowjob.api.constants.rpc.HttpAgentApi;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
@@ -31,6 +33,8 @@ import org.limbo.flowjob.broker.core.domain.plan.NormalPlan;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.utils.Verifies;
+import org.limbo.flowjob.common.cluster.WorkerNode;
+import org.limbo.flowjob.common.rpc.RPCInvocation;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
@@ -39,6 +43,7 @@ import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Devil
@@ -77,6 +82,27 @@ public class NormalPlanScheduler extends AbstractPlanScheduler {
         JobInfo jobInfo = ((NormalPlan) plan).getJobInfo();
         JobInstance jobInstance = createJobInstance(plan.getPlanId(), plan.getVersion(), planInstanceId, new Attributes(), jobInfo, triggerAt);
         return Collections.singletonList(jobInstance);
+    }
+
+    @Override
+    public void schedule(JobInstance jobInstance) {
+        if (jobInstance.getStatus() != JobStatus.SCHEDULING) {
+            return;
+        }
+
+        // todo 选择 agent 下发
+        List<WorkerNode> agent;
+        RPCInvocation lbInvocation = RPCInvocation.builder()
+                .path(HttpAgentApi.API_SUBMIT_JOB)
+                .build();
+        WorkerNode o = lbStrategy.select(agent, lbInvocation).orElse(null);
+
+        // todo rpc 执行  成功 --- 失败（直接把任务改为失败？重试？）
+
+        int num = jobInstanceEntityRepo.dispatching(jobInstance.getJobInstanceId(), o.getServerId());
+        if (num < 1) {
+            return; // 可能多个节点操作同个task
+        }
     }
 
     @Transactional

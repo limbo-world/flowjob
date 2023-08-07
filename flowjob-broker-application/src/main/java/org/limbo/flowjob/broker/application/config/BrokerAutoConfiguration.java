@@ -28,7 +28,7 @@ import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
-import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
+import org.limbo.flowjob.common.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.task.TaskFactory;

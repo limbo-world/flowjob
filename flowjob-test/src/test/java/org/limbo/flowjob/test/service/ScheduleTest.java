@@ -30,7 +30,7 @@ import org.limbo.flowjob.api.param.broker.TaskFeedbackParam;
 import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.worker.TaskSubmitParam;
 import org.limbo.flowjob.broker.application.component.SlotManager;
-import org.limbo.flowjob.broker.application.controller.WorkerRpcController;
+import org.limbo.flowjob.broker.application.controller.WorkerClientController;
 import org.limbo.flowjob.broker.application.converter.MetaTaskConverter;
 import org.limbo.flowjob.broker.application.schedule.ScheduleStrategy;
 import org.limbo.flowjob.broker.application.service.PlanService;
@@ -106,7 +106,7 @@ public class ScheduleTest {
     private WorkerService workerService;
 
     @Setter(onMethod_ = @Inject)
-    private WorkerRpcController workerRpcController;
+    private WorkerClientController workerRpcController;
 
     private static String PLAN_INSTANCE_ID = null;
 

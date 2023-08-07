@@ -26,7 +26,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
+import org.limbo.flowjob.common.dispatch.DispatchOption;
 import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;

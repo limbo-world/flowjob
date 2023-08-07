@@ -29,7 +29,7 @@ import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.param.broker.TaskFeedbackParam;
 import org.limbo.flowjob.broker.application.converter.MetaTaskConverter;
 import org.limbo.flowjob.broker.application.service.PlanInstanceService;
-import org.limbo.flowjob.broker.application.task.JobInstanceScheduleTask;
+import org.limbo.flowjob.broker.application.task.DelayJobInstanceScheduleTask;
 import org.limbo.flowjob.broker.application.task.TaskScheduleTask;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
@@ -133,8 +133,15 @@ public class ScheduleStrategy implements ApplicationContextAware {
     /**
      * 调度已有的JobInstance
      */
+    public void scheduleV2(JobInstance jobInstance) {
+        schedulers.get(jobInstance.getPlanType()).schedule(jobInstance);
+    }
+
+    /**
+     * 调度已有的JobInstance
+     */
     public void schedule(JobInstance jobInstance) {
-        executeWithAspect(unused -> schedulers.get(jobInstance.getPlanType()).schedule(jobInstance));
+        executeWithAspect(unused -> schedulers.get(jobInstance.getPlanType()).scheduleBak(jobInstance));
     }
 
     /**
@@ -246,7 +253,7 @@ public class ScheduleStrategy implements ApplicationContextAware {
         }
         for (JobInstance jobInstance : ScheduleContext.waitScheduleJobs()) {
             try {
-                metaTaskScheduler.schedule(new JobInstanceScheduleTask(jobInstance, this));
+                metaTaskScheduler.schedule(new DelayJobInstanceScheduleTask(jobInstance, this));
             } catch (Exception e) {
                 // 由task的状态检查任务去修复task的执行情况
                 log.error("task schedule fail! jobInstance={}", jobInstance, e);

@@ -17,15 +17,12 @@
 package org.limbo.flowjob.worker.starter.application.services;
 
 import lombok.AllArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.param.worker.TaskSubmitParam;
 import org.limbo.flowjob.worker.core.domain.Task;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.starter.application.converter.TaskConverter;
 import org.springframework.stereotype.Service;
-
-import javax.inject.Inject;
 
 /**
  * @author Devil
@@ -38,9 +35,6 @@ public class WorkerService {
 
     private final Worker worker;
 
-    @Setter(onMethod_ = @Inject)
-    private TaskConverter taskConverter;
-
     /**
      * {@inheritDoc}
      * @param param
@@ -49,7 +43,7 @@ public class WorkerService {
     public Boolean receive(TaskSubmitParam param) {
         log.info("receive task {}", param);
         try {
-            Task task = taskConverter.task(param);
+            Task task = TaskConverter.task(param);
             worker.receiveTask(task);
             return true;
         } catch (Exception e) {

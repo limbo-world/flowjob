@@ -32,7 +32,17 @@ import lombok.Getter;
 public enum JobStatus {
 
     UNKNOWN(ConstantsPool.UNKNOWN, "未知"),
+    /**
+     * 已经创建 等待 broker 下发 agent
+     */
     SCHEDULING(ConstantsPool.SCHEDULE_STATUS_SCHEDULING, "调度中"),
+    /**
+     * 下发 agent 待 agent 下发 worker
+     */
+    DISPATCHING(ConstantsPool.SCHEDULE_STATUS_DISPATCHING, "下发中"),
+    /**
+     * 接收到 agent 下发worker的反馈
+     */
     EXECUTING(ConstantsPool.SCHEDULE_STATUS_EXECUTING, "执行中"),
     SUCCEED(ConstantsPool.SCHEDULE_STATUS_EXECUTE_SUCCEED, "执行成功"),
     FAILED(ConstantsPool.SCHEDULE_STATUS_EXECUTE_FAILED, "执行异常"), // worker拒绝，进入容错策略 失败次数不增加 TERMINATED 作业被手动终止 不再增加一个状态 而是写入 errMsg
