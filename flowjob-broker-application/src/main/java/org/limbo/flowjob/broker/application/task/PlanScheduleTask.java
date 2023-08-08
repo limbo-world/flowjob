@@ -26,7 +26,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.application.schedule.ScheduleStrategy;
+import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
 import org.limbo.flowjob.broker.application.support.CommonThreadPool;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.LoopMetaTask;
@@ -53,13 +53,13 @@ public class PlanScheduleTask extends LoopMetaTask {
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ToString.Exclude
-    private final ScheduleStrategy scheduleStrategy;
+    private final ScheduleProxy scheduleProxy;
 
     public PlanScheduleTask(Plan plan, LocalDateTime lastTriggerAt, LocalDateTime lastFeedbackAt,
-                            ScheduleStrategy scheduleStrategy, MetaTaskScheduler metaTaskScheduler) {
+                            ScheduleProxy scheduleProxy, MetaTaskScheduler metaTaskScheduler) {
         super(lastTriggerAt, lastFeedbackAt, plan.getScheduleOption(), metaTaskScheduler);
         this.plan = plan;
-        this.scheduleStrategy = scheduleStrategy;
+        this.scheduleProxy = scheduleProxy;
     }
 
     @Override
@@ -92,7 +92,7 @@ public class PlanScheduleTask extends LoopMetaTask {
         if (scheduleEndAt != null && scheduleEndAt.isBefore(TimeUtils.currentLocalDateTime())) {
             return;
         }
-        CommonThreadPool.IO.submit(() -> scheduleStrategy.schedule(TriggerType.SCHEDULE, plan, triggerAt));
+        CommonThreadPool.IO.submit(() -> scheduleProxy.schedule(TriggerType.SCHEDULE, plan, triggerAt));
     }
 
 //    @Override

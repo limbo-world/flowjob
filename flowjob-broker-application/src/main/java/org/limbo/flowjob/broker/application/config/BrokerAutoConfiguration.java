@@ -28,20 +28,12 @@ import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
-import org.limbo.flowjob.common.dispatch.DispatchOption;
-import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
-import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
-import org.limbo.flowjob.broker.core.domain.task.TaskManager;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.core.statistics.WorkerStatisticsRepository;
-import org.limbo.flowjob.broker.core.worker.WorkerRepository;
-import org.limbo.flowjob.broker.dao.domain.SingletonWorkerStatisticsRepo;
 import org.limbo.flowjob.broker.dao.repositories.BrokerEntityRepo;
 import org.limbo.flowjob.common.utils.NetUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -94,40 +86,6 @@ public class BrokerAutoConfiguration {
     @Bean
     public NodeManger brokerManger() {
         return new NodeMangerImpl();
-    }
-
-    @Bean
-    public TaskFactory taskFactory(WorkerRepository workerRepository, TaskManager taskManager, IDGenerator idGenerator) {
-        return new TaskFactory(workerRepository, taskManager, idGenerator);
-    }
-
-    /**
-     * 如果未声明 WorkerStatisticsRepository 类型的 Bean，则使用基于内存统计的单机模式
-     */
-    @Bean
-    @ConditionalOnMissingBean(WorkerStatisticsRepository.class)
-    public WorkerStatisticsRepository workerStatisticsRepository() {
-        return new SingletonWorkerStatisticsRepo();
-    }
-
-
-    /**
-     * 用于生成 Worker 选择器，内部封装了 LB 算法的调用。
-     */
-    @Bean
-    public DispatchOption.WorkerSelectorFactory workerSelectorFactory(WorkerStatisticsRepository statisticsRepository) {
-        DispatchOption.WorkerSelectorFactory factory = new DispatchOption.WorkerSelectorFactory();
-        factory.setLbServerStatisticsProvider(statisticsRepository);
-        return factory;
-    }
-
-
-    /**
-     * 用于分发任务
-     */
-    @Bean
-    public TaskDispatcher taskDispatcher(WorkerRepository workerRepository, DispatchOption.WorkerSelectorFactory factory, WorkerStatisticsRepository statisticsRepository) {
-        return new TaskDispatcher(workerRepository, factory, statisticsRepository);
     }
 
     /**

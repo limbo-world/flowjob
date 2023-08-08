@@ -20,10 +20,11 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.limbo.flowjob.api.constants.rpc.HttpAgentApi;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.param.agent.JobSubmitParam;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.core.agent.AgentConverter;
+import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
+import org.limbo.flowjob.common.meta.JobInstance;
 import org.limbo.flowjob.broker.core.exceptions.RpcException;
-import org.limbo.flowjob.broker.core.worker.Worker;
-import org.limbo.flowjob.broker.core.worker.rpc.WorkerConverter;
+import org.limbo.flowjob.broker.core.rpc.AbstractRpc;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -35,21 +36,21 @@ import retrofit2.http.POST;
  * @author Brozen
  * @since 2022-08-26
  */
-public class RetrofitHttpAgentRpc extends HttpAgentRpc {
+public class RetrofitHttpAgentRpc extends AbstractRpc implements AgentRpc {
 
     private final RetrofitAgentApi api;
 
-    public RetrofitHttpAgentRpc(Worker worker) {
-        super(worker);
+    public RetrofitHttpAgentRpc(ScheduleAgent agent) {
+        super(agent.getId());
         this.api = new Retrofit.Builder()
-                .baseUrl(getBaseUrl())
+                .baseUrl(agent.getUrl())
                 .addConverterFactory(GsonConverterFactory.create())
                 .build().create(RetrofitAgentApi.class);
     }
 
     @Override
     public boolean dispatch(JobInstance instance) {
-        Boolean result = send(api.dispatch(WorkerConverter.toJobDispatchParam(instance)));
+        Boolean result = send(api.dispatch(AgentConverter.toJobDispatchParam(instance)));
         return BooleanUtils.isTrue(result);
     }
 

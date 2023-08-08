@@ -22,10 +22,17 @@ import org.limbo.flowjob.agent.starter.service.AgentService;
 import org.limbo.flowjob.api.constants.rpc.HttpAgentApi;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.param.agent.JobSubmitParam;
+import org.limbo.flowjob.api.param.agent.TaskFeedbackParam;
+import org.limbo.flowjob.api.param.agent.TaskSubmitParam;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author Devil
@@ -42,10 +49,33 @@ public class AgentController extends BaseController {
         this.agentService = agentService;
     }
 
+    /**
+     * 接收job
+     *
+     * @param param
+     * @return
+     */
     @PostMapping(HttpAgentApi.API_SUBMIT_JOB)
     public ResponseDTO<Boolean> receiveJob(@RequestBody JobSubmitParam param) {
         return ResponseDTO.<Boolean>builder().ok(agentService.receive(param)).build();
     }
 
+    /**
+     * task执行反馈接口
+     */
+    @PostMapping(HttpAgentApi.API_TASK_SUBMIT)
+    public ResponseDTO<Boolean> receiveTask(@RequestBody TaskSubmitParam param) {
+        return ResponseDTO.<Boolean>builder().ok(agentService.receive(param)).build();
+    }
+
+    /**
+     * task执行反馈接口
+     */
+    @PostMapping(HttpAgentApi.API_TASK_FEEDBACK)
+    public ResponseDTO<Boolean> feedback(@Validated @NotNull(message = "no taskId") @RequestParam("taskId") String taskId,
+                                         @Valid @RequestBody TaskFeedbackParam feedback) {
+        agentService.taskFeedback(taskId, feedback);
+        return ResponseDTO.<Boolean>builder().ok(true).build();
+    }
 
 }

@@ -19,10 +19,9 @@
 package org.limbo.flowjob.agent;
 
 import lombok.Data;
+import org.limbo.flowjob.common.meta.DispatchOption;
 import org.limbo.flowjob.api.constants.JobType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
-
-import java.util.Map;
 
 /**
  * @author Devil
@@ -34,7 +33,7 @@ public class Job {
     /**
      * 实例id
      */
-    private String id;
+    private String jobInstanceId;
 
     /**
      * 类型
@@ -47,6 +46,9 @@ public class Job {
      * 执行器的名称
      */
     private String executorName;
+
+
+    private DispatchOption dispatchOption;
 
     /**
      * 上下文元数据

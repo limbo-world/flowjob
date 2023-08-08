@@ -137,6 +137,7 @@ CREATE TABLE `flowjob_plan_info`
     `schedule_delay`     bigint                                                          DEFAULT NULL,
     `schedule_interval`  bigint                                                          DEFAULT NULL,
     `schedule_start_at`  datetime(6) DEFAULT NULL,
+    `schedule_end_at`    datetime(6) DEFAULT NULL,
     `job_info`           text COLLATE utf8mb4_bin,
     `name`               varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `description`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
@@ -360,6 +361,21 @@ TABLES `flowjob_worker` WRITE;
 UNLOCK
 TABLES;
 
+DROP TABLE IF EXISTS `flowjob_worker_slot`;
+CREATE TABLE `flowjob_worker_slot`
+(
+    `id`         bigint unsigned NOT NULL AUTO_INCREMENT,
+    `worker_id`  varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `slot`       int                                                    NOT NULL,
+    `is_deleted` bit(1)                                                 NOT NULL DEFAULT 0,
+    `created_at` datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_id` (`worker_id`),
+    KEY          `idx_slot` (`slot`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+
 --
 -- Table structure for table `flowjob_worker_executor`
 --
@@ -408,7 +424,6 @@ CREATE TABLE `flowjob_worker_metric`
     `available_cpu`         float                                                           DEFAULT NULL,
     `available_queue_limit` int                                                             DEFAULT NULL,
     `available_ram`         float                                                           DEFAULT NULL,
-    `executing_jobs`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `last_heartbeat_at`     datetime(6) NOT NULL,
     `is_deleted`            bit(1)                                                 NOT NULL DEFAULT 0,
     `created_at`            datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,

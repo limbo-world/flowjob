@@ -22,8 +22,8 @@ import lombok.Setter;
 import org.limbo.flowjob.api.constants.JobStatus;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.PlanType;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.common.meta.JobInfo;
+import org.limbo.flowjob.common.meta.JobInstance;
 import org.limbo.flowjob.broker.core.domain.job.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
@@ -79,7 +79,7 @@ public class JobInstanceRepo implements JobInstanceRepository {
         JobInstance jobInstance = new JobInstance();
         PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
         JobInfo jobInfo;
-        if (PlanType.NORMAL == planType) {
+        if (PlanType.STANDALONE == planType) {
             jobInfo = JacksonUtils.parseObject(planInfoEntity.getJobInfo(), JobInfo.class);
         } else if (PlanType.WORKFLOW == planType) {
             DAG<WorkflowJobInfo> dag = DomainConverter.toJobDag(planInfoEntity.getJobInfo());

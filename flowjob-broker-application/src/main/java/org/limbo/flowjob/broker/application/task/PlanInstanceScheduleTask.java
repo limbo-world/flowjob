@@ -22,7 +22,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.application.schedule.ScheduleStrategy;
+import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
 import org.limbo.flowjob.broker.application.support.CommonThreadPool;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
@@ -53,12 +53,12 @@ public class PlanInstanceScheduleTask implements MetaTask {
 
     @Getter(AccessLevel.NONE)
     @ToString.Exclude
-    private final ScheduleStrategy scheduleStrategy;
+    private final ScheduleProxy scheduleProxy;
 
-    public PlanInstanceScheduleTask(String planInstanceId, Plan plan, LocalDateTime triggerAt, ScheduleStrategy scheduleStrategy) {
+    public PlanInstanceScheduleTask(String planInstanceId, Plan plan, LocalDateTime triggerAt, ScheduleProxy scheduleProxy) {
         this.planInstanceId = planInstanceId;
         this.triggerAt = triggerAt;
-        this.scheduleStrategy = scheduleStrategy;
+        this.scheduleProxy = scheduleProxy;
         this.plan = plan;
     }
 
@@ -66,7 +66,7 @@ public class PlanInstanceScheduleTask implements MetaTask {
     public void execute() {
         CommonThreadPool.IO.submit(() -> {
             try {
-                scheduleStrategy.schedule(planInstanceId, plan, triggerAt);
+                scheduleProxy.schedule(planInstanceId, plan, triggerAt);
             } catch (Exception e) {
                 log.error("planInstance {} schedule fail", planInstanceId, e);
             }
@@ -75,7 +75,7 @@ public class PlanInstanceScheduleTask implements MetaTask {
 
     @Override
     public MetaTaskType getType() {
-        return MetaTaskType.TASK;
+        return MetaTaskType.PLAN_INSTANCE;
     }
 
     @Override

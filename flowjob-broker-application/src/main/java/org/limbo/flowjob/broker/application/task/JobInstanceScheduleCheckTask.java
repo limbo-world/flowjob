@@ -23,10 +23,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.PlanStatus;
 import org.limbo.flowjob.broker.application.component.SlotManager;
 import org.limbo.flowjob.broker.application.converter.MetaTaskConverter;
-import org.limbo.flowjob.broker.application.schedule.ScheduleStrategy;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
-import org.limbo.flowjob.broker.core.domain.job.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
@@ -50,11 +48,7 @@ public class JobInstanceScheduleCheckTask extends FixDelayMetaTask {
 
     private final NodeManger nodeManger;
 
-    private final JobInstanceRepository jobInstanceRepo;
-
     private final JobInstanceEntityRepo jobInstanceEntityRepo;
-
-    private final ScheduleStrategy scheduleStrategy;
 
     private final SlotManager slotManager;
 
@@ -66,17 +60,13 @@ public class JobInstanceScheduleCheckTask extends FixDelayMetaTask {
                                         @Lazy Broker broker,
                                         NodeManger nodeManger,
                                         JobInstanceEntityRepo jobInstanceEntityRepo,
-                                        JobInstanceRepository jobInstanceRepo,
-                                        ScheduleStrategy scheduleStrategy,
                                         SlotManager slotManager,
                                         MetaTaskConverter metaTaskConverter) {
         super(Duration.ofSeconds(INTERVAL), scheduler);
         this.broker = broker;
         this.nodeManger = nodeManger;
         this.jobInstanceEntityRepo = jobInstanceEntityRepo;
-        this.scheduleStrategy = scheduleStrategy;
         this.slotManager = slotManager;
-        this.jobInstanceRepo = jobInstanceRepo;
         this.metaTaskConverter = metaTaskConverter;
     }
 

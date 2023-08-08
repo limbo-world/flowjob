@@ -52,6 +52,16 @@ public interface ScheduleAgent {
     void receiveJob(Job job);
 
     /**
+     * task 成功处理
+     */
+    void taskSuccess(Task task, Object result);
+
+    /**
+     * task失败处理
+     */
+    void taskFail(Task task, String errorMsg, String errorStackTrace);
+
+    /**
      * 停止当前 Worker
      */
     void stop();

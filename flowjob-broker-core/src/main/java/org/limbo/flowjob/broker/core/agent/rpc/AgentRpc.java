@@ -16,7 +16,7 @@
 
 package org.limbo.flowjob.broker.core.agent.rpc;
 
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.common.meta.JobInstance;
 import org.limbo.flowjob.broker.core.rpc.IRpc;
 
 /**

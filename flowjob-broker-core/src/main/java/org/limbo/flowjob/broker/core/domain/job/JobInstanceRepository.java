@@ -18,6 +18,8 @@
 
 package org.limbo.flowjob.broker.core.domain.job;
 
+import org.limbo.flowjob.common.meta.JobInstance;
+
 /**
  * @author Devil
  * @since 2023/5/8

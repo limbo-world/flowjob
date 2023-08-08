@@ -19,6 +19,7 @@
 package org.limbo.flowjob.agent.rpc;
 
 import org.limbo.flowjob.agent.Task;
+import org.limbo.flowjob.common.meta.Worker;
 
 /**
  * @author Devil
@@ -28,9 +29,10 @@ public interface AgentWorkerRpc {
 
     /**
      * 发送一个作业到worker执行。当worker接受此task后，将触发返回
+     * @param worker 对应节点
      * @param task 任务
      * @return worker接受task后触发
      */
-    boolean dispatch(Task task);
+    boolean dispatch(Worker worker, Task task);
 
 }

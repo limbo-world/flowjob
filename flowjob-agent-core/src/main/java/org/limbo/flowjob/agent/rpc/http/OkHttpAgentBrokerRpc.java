@@ -23,10 +23,11 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
 import okhttp3.ResponseBody;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.agent.Job;
 import org.limbo.flowjob.agent.ScheduleAgent;
 import org.limbo.flowjob.agent.rpc.AgentBrokerRpc;
 import org.limbo.flowjob.agent.rpc.RpcParamFactory;
-import org.limbo.flowjob.agent.worker.Worker;
+import org.limbo.flowjob.common.meta.Worker;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.Protocol;
 import org.limbo.flowjob.api.dto.ResponseDTO;
@@ -34,14 +35,15 @@ import org.limbo.flowjob.api.dto.broker.AgentRegisterDTO;
 import org.limbo.flowjob.api.dto.broker.AvailableWorkerDTO;
 import org.limbo.flowjob.api.dto.broker.BrokerTopologyDTO;
 import org.limbo.flowjob.api.param.broker.AgentRegisterParam;
-import org.limbo.flowjob.common.cluster.BrokerNode;
 import org.limbo.flowjob.common.exception.BrokerRpcException;
 import org.limbo.flowjob.common.exception.RegisterFailException;
 import org.limbo.flowjob.common.http.OKHttpRpc;
+import org.limbo.flowjob.common.lb.BaseLBServer;
 import org.limbo.flowjob.common.lb.LBServerRepository;
 import org.limbo.flowjob.common.lb.LBStrategy;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
@@ -55,12 +57,12 @@ import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.*;
  * @since 2022-08-31
  */
 @Slf4j
-public class OkHttpAgentBrokerRpc extends OKHttpRpc<BrokerNode> implements AgentBrokerRpc {
+public class OkHttpAgentBrokerRpc extends OKHttpRpc<BaseLBServer> implements AgentBrokerRpc {
 
     /**
      * Broker 负载均衡
      */
-    private final LBServerRepository<BrokerNode> repository;
+    private final LBServerRepository<BaseLBServer> repository;
 
     private static final String BASE_URL = "http://0.0.0.0:8080";
 
@@ -68,7 +70,7 @@ public class OkHttpAgentBrokerRpc extends OKHttpRpc<BrokerNode> implements Agent
 
     private String agentId = "";
 
-    public OkHttpAgentBrokerRpc(LBServerRepository<BrokerNode> repository, LBStrategy<BrokerNode> strategy) {
+    public OkHttpAgentBrokerRpc(LBServerRepository<BaseLBServer> repository, LBStrategy<BaseLBServer> strategy) {
         super(repository, strategy);
         this.repository = repository;
     }
@@ -120,7 +122,7 @@ public class OkHttpAgentBrokerRpc extends OKHttpRpc<BrokerNode> implements Agent
         Set<HttpUrl> realtime = topo.getBrokers().stream()
                 .map(b -> new HttpUrl.Builder().scheme(DEFAULT_PROTOCOL.value).host(b.getHost()).port(b.getPort()).build())
                 .collect(Collectors.toSet());
-        List<BrokerNode> brokerNodes = repository.listAliveServers().stream().filter(b -> realtime.contains(HttpUrl.get(b.getUrl()))).collect(Collectors.toList());
+        List<BaseLBServer> brokerNodes = repository.listAliveServers().stream().filter(b -> realtime.contains(HttpUrl.get(b.getUrl()))).collect(Collectors.toList());
 
         // 新增添加的
         Set<HttpUrl> saved = brokerNodes.stream()
@@ -131,7 +133,7 @@ public class OkHttpAgentBrokerRpc extends OKHttpRpc<BrokerNode> implements Agent
                 continue;
             }
 
-            brokerNodes.add(new BrokerNode(url.url()));
+            brokerNodes.add(new BaseLBServer(url.url()));
         }
 
         repository.updateServers(brokerNodes);
@@ -174,6 +176,16 @@ public class OkHttpAgentBrokerRpc extends OKHttpRpc<BrokerNode> implements Agent
     }
 
     @Override
+    public void feedbackJobSucceed(Job job) {
+
+    }
+
+    @Override
+    public void feedbackJobFail(Job job, @Nullable Throwable ex) {
+
+    }
+
+    @Override
     public List<Worker> availableWorkers(String jobId) {
         ResponseDTO<List<AvailableWorkerDTO>> response = executeGet(BASE_URL + API_AGENT_HEARTBEAT + "?jobId=" + jobId, new TypeReference<ResponseDTO<List<AvailableWorkerDTO>>>() {
         });
@@ -184,34 +196,6 @@ public class OkHttpAgentBrokerRpc extends OKHttpRpc<BrokerNode> implements Agent
         }
 
         return null;
-    }
-
-    /**
-     * 通过 OkHttp 执行请求，并获取响应
-     */
-    private <T> ResponseDTO<T> executePost(String url, Object param, TypeReference<ResponseDTO<T>> reference) {
-        Objects.requireNonNull(reference);
-
-        ResponseBody responseBody = executePost(url, param);
-        try {
-            return JacksonUtils.parseObject(responseBody.string(), reference);
-        } catch (IOException e) {
-            throw new BrokerRpcException("Api access failed " + logRequest(url, JacksonUtils.toJSONString(param)), e);
-        }
-    }
-
-    /**
-     * 通过 OkHttp 执行请求，并获取响应
-     */
-    private <T> ResponseDTO<T> executeGet(String url, TypeReference<ResponseDTO<T>> reference) {
-        Objects.requireNonNull(reference);
-
-        ResponseBody responseBody = executeGet(url);
-        try {
-            return JacksonUtils.parseObject(responseBody.string(), reference);
-        } catch (IOException e) {
-            throw new BrokerRpcException("Api access failed " + logRequest(url), e);
-        }
     }
 
 }

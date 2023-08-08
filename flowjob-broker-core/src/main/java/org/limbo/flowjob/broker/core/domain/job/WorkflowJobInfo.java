@@ -24,6 +24,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.api.constants.NodeType;
 import org.limbo.flowjob.api.constants.TriggerType;
+import org.limbo.flowjob.common.meta.JobInfo;
 import org.limbo.flowjob.common.utils.dag.DAGNode;
 
 import java.util.HashSet;

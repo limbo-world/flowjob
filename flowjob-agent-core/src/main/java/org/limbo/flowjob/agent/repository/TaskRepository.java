@@ -20,9 +20,9 @@ package org.limbo.flowjob.agent.repository;
 
 import org.limbo.flowjob.agent.Task;
 
-import java.sql.Connection;
-import java.sql.SQLException;
+import javax.sql.DataSource;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Devil
@@ -30,17 +30,37 @@ import java.util.Collection;
  */
 public class TaskRepository {
 
-    private Connection connection;
+    private DataSource dataSource;
 
-    public TaskRepository(Connection connection) {
-        this.connection = connection;
+    public TaskRepository(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     public void initTable() throws Exception {
 
     }
 
-    public boolean batchSave(Collection<Task> tasks) throws SQLException {
+    public Task getById(String id) {
+        return null;
+    }
+
+    public List<Task> getByJobInstanceId(String jobInstanceId) {
+        return null;
+    }
+
+    public boolean batchSave(Collection<Task> tasks) {
+        return true;
+    }
+
+    public boolean executing(String taskId, String workerId) {
+        return true;
+    }
+
+    public boolean success(String taskId, String context, String jobAttributes, String result) {
+        return true;
+    }
+
+    public boolean fail(String taskId, String errorMsg, String errorStack) {
         return true;
     }
 

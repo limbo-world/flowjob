@@ -32,7 +32,7 @@ import java.util.Map;
 public class JobSubmitParam implements Serializable {
     private static final long serialVersionUID = 3844255455063078620L;
 
-    private String id;
+    private String jobInstanceId;
 
     /**
      * 类型

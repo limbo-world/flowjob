@@ -23,21 +23,28 @@ import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.agent.constants.AgentStatus;
 import org.limbo.flowjob.agent.rpc.AgentBrokerRpc;
 import org.limbo.flowjob.agent.service.JobService;
+import org.limbo.flowjob.agent.service.TaskService;
+import org.limbo.flowjob.api.constants.JobStatus;
+import org.limbo.flowjob.api.constants.MsgConstants;
+import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.common.exception.BrokerRpcException;
 import org.limbo.flowjob.common.exception.RegisterFailException;
 import org.limbo.flowjob.common.heartbeat.Heartbeat;
 import org.limbo.flowjob.common.heartbeat.HeartbeatPacemaker;
 import org.limbo.flowjob.common.thread.NamedThreadFactory;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.net.URL;
 import java.time.Duration;
+import java.util.List;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -87,6 +94,8 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
     private HeartbeatPacemaker pacemaker;
 
     private JobService jobService;
+
+    private TaskService taskService;
 
     public BaseScheduleAgent(URL url, AgentBrokerRpc brokerRpc) {
         Objects.requireNonNull(url, "URL can't be null");
@@ -191,20 +200,24 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
             throw new IllegalArgumentException("Worker's queue is full, limit: " + availableQueueSize);
         }
 
-        // 存储任务，并判断是否重复接收任务
-        ExecuteContext context = new ExecuteContext(taskRepository, executor, brokerRpc, task);
-        if (!jobService.save(context)) {
-            log.warn("Receive job [{}], but already in repository", task.getTaskId());
-            return;
-        }
+        jobService.save(job);
 
         try {
             // 提交执行
-            Future<?> future = this.threadPool.submit(() -> jobService.schedule(job));
-            context.setScheduleFuture(future);
+            this.threadPool.submit(() -> jobService.schedule(job));
         } catch (RejectedExecutionException e) {
             throw new IllegalStateException("Schedule job failed, maybe thread exhausted");
         }
+    }
+
+    @Override
+    public void taskSuccess(Task task, Object result) {
+        taskService.taskSuccess(task, result);
+    }
+
+    @Override
+    public void taskFail(Task task, String errorMsg, String errorStackTrace) {
+        taskService.taskFail(task, errorMsg, errorStackTrace);
     }
 
     /**
@@ -217,7 +230,7 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
     }
 
     public int availableQueueSize() {
-        return queueSize - jobRepository.count();
+        return queueSize - jobService.count();
     }
 
     @Override

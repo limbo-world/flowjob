@@ -18,10 +18,6 @@ package org.limbo.flowjob.broker.core.agent.rpc;
 
 import org.limbo.flowjob.api.constants.Protocol;
 import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
-import org.limbo.flowjob.broker.core.worker.Worker;
-import org.limbo.flowjob.broker.core.worker.rpc.RetrofitHttpWorkerRpc;
-import org.limbo.flowjob.broker.core.worker.rpc.WorkerRpc;
-import org.limbo.flowjob.broker.core.worker.rpc.WorkerRpcFactory;
 
 import java.net.URL;
 
@@ -46,7 +42,7 @@ public class DefaultAgentRpcFactory implements AgentRpcFactory {
         switch (protocol) {
             case HTTP:
             case HTTPS:
-                return new RetrofitHttpWorkerRpc(worker);
+                return new RetrofitHttpAgentRpc(agent);
             default:
                 throw new IllegalArgumentException("不支持的 Agent 通信协议：" + rpcBaseUrl.getProtocol());
         }

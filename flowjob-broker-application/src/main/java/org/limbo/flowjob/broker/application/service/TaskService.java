@@ -18,21 +18,17 @@
 
 package org.limbo.flowjob.broker.application.service;
 
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.console.TaskDTO;
 import org.limbo.flowjob.api.param.console.TaskQueryParam;
 import org.limbo.flowjob.broker.application.support.JpaHelper;
-import org.limbo.flowjob.broker.dao.entity.TaskEntity;
-import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import java.util.ArrayList;
@@ -47,11 +43,9 @@ import java.util.stream.Collectors;
 @Service
 public class TaskService {
 
-    @Setter(onMethod_ = @Inject)
-    private TaskEntityRepo taskEntityRepo;
 
     public PageDTO<TaskDTO> page(TaskQueryParam param) {
-        Specification<TaskEntity> sf = (root, query, cb) -> {
+        Specification<Object> sf = (root, query, cb) -> {
             //用于添加所有查询条件
             List<Predicate> p = new ArrayList<>();
             p.add(cb.equal(root.get("jobInstanceId").as(String.class), param.getJobInstanceId()));
@@ -65,31 +59,14 @@ public class TaskService {
             return query.orderBy(orders).getRestriction();
         };
         Pageable pageable = JpaHelper.pageable(param);
-        Page<TaskEntity> queryResult = taskEntityRepo.findAll(sf, pageable);
-        List<TaskEntity> taskEntities = queryResult.getContent();
+        // todo rpc 获取
+        Page<Object> queryResult = null;
+        List<Object> taskEntities = queryResult.getContent();
         PageDTO<TaskDTO> page = PageDTO.convertByPage(param);
         page.setTotal(queryResult.getTotalElements());
         if (CollectionUtils.isNotEmpty(taskEntities)) {
             page.setData(taskEntities.stream().map(taskEntity -> {
                 TaskDTO dto = new TaskDTO();
-                dto.setTaskId(taskEntity.getTaskId());
-                dto.setJobInstanceId(taskEntity.getJobInstanceId());
-                dto.setJobId(taskEntity.getJobId());
-                dto.setPlanId(taskEntity.getPlanId());
-                dto.setPlanInstanceId(taskEntity.getPlanInstanceId());
-                dto.setPlanInfoId(taskEntity.getPlanInfoId());
-                dto.setWorkerId(taskEntity.getWorkerId());
-                dto.setType(taskEntity.getType());
-                dto.setStatus(taskEntity.getStatus());
-                dto.setExecutorName(taskEntity.getExecutorName());
-                dto.setContext(taskEntity.getContext());
-                dto.setJobAttributes(taskEntity.getJobAttributes());
-                dto.setTaskAttributes(taskEntity.getTaskAttributes());
-                dto.setResult(taskEntity.getResult());
-                dto.setErrorMsg(taskEntity.getErrorMsg());
-                dto.setErrorStackTrace(taskEntity.getErrorStackTrace());
-                dto.setStartAt(taskEntity.getStartAt());
-                dto.setEndAt(taskEntity.getEndAt());
                 return dto;
             }).collect(Collectors.toList()));
         }

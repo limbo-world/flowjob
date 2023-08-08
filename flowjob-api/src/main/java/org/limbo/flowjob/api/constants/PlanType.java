@@ -29,7 +29,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum PlanType {
     UNKNOWN(ConstantsPool.UNKNOWN, "未知"),
-    NORMAL(1, "普通任务"),
+    STANDALONE(1, "单例任务"),
     WORKFLOW(2, "工作流任务"),
     ;
 

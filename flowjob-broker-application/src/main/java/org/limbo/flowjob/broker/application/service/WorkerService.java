@@ -24,6 +24,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.Protocol;
+import org.limbo.flowjob.api.constants.WorkerStatus;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.broker.WorkerRegisterDTO;
 import org.limbo.flowjob.api.dto.console.WorkerDTO;
@@ -33,19 +34,22 @@ import org.limbo.flowjob.api.param.console.WorkerQueryParam;
 import org.limbo.flowjob.broker.application.component.SlotManager;
 import org.limbo.flowjob.broker.application.converter.WorkerConverter;
 import org.limbo.flowjob.broker.application.support.JpaHelper;
-import org.limbo.flowjob.broker.application.support.WorkerFactory;
+import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.utils.Verifies;
-import org.limbo.flowjob.broker.core.worker.Worker;
-import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerSlotEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
 import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.WorkerExecutorEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.WorkerMetricEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerTagEntityRepo;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -72,9 +76,6 @@ import java.util.stream.Collectors;
 public class WorkerService {
 
     @Setter(onMethod_ = @Inject)
-    private WorkerRepository workerRepository;
-
-    @Setter(onMethod_ = @Inject)
     private WorkerEntityRepo workerEntityRepo;
 
     @Setter(onMethod_ = @Inject)
@@ -92,6 +93,15 @@ public class WorkerService {
     @Setter(onMethod_ = @Inject)
     private WorkerSlotEntityRepo workerSlotEntityRepo;
 
+    @Setter(onMethod_ = @Inject)
+    private WorkerMetricEntityRepo workerMetricEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private WorkerExecutorEntityRepo workerExecutorEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private BrokerConfig brokerConfig;
+
     /**
      * worker注册
      *
@@ -100,8 +110,6 @@ public class WorkerService {
      */
     @Transactional(rollbackOn = Throwable.class)
     public WorkerRegisterDTO register(WorkerRegisterParam options) {
-        // TODO ??? 租户鉴权
-
         // 校验 protocol
         String protocolName = options.getUrl().getProtocol();
         Protocol protocol = Protocol.parse(protocolName);
@@ -111,32 +119,59 @@ public class WorkerService {
         );
 
         // 新增 or 更新 worker
-        Worker worker = Optional
-                .ofNullable(workerRepository.getByName(options.getName()))
-                .orElseGet(() -> WorkerFactory.newWorker(idGenerator.generateId(IDType.WORKER), options));
+        WorkerEntity workerEntity = workerEntityRepo.findByNameAndDeleted(options.getName(), false).orElse(null);
+        if (workerEntity == null) {
+            String workerId = idGenerator.generateId(IDType.WORKER);
 
-        // 更新注册信息
-        worker.register(
-                options.getUrl(),
-                WorkerConverter.toWorkerTags(options),
-                WorkerConverter.toWorkerExecutors(options),
-                WorkerConverter.toWorkerMetric(options)
-        );
+            workerEntity = new WorkerEntity();
+            workerEntity.setAppId("");
+            workerEntity.setWorkerId(workerId);
+            workerEntity.setName(options.getName());
+            workerEntity.setProtocol(options.getUrl().getProtocol());
+            workerEntity.setHost(options.getUrl().getHost());
+            workerEntity.setPort(options.getUrl().getPort());
+            workerEntity.setEnabled(true);
 
-        // 保存 worker
-        workerRepository.save(worker);
-
-        // 槽位保存
-        if (workerSlotEntityRepo.findByWorkerId(worker.getId()) == null) {
             WorkerSlotEntity slotEntity = new WorkerSlotEntity();
-            slotEntity.setSlot(slotManager.slot(worker.getId()));
-            slotEntity.setWorkerId(worker.getId());
+            slotEntity.setSlot(slotManager.slot(workerId));
+            slotEntity.setWorkerId(workerId);
             workerSlotEntityRepo.saveAndFlush(slotEntity);
         }
 
-        log.info("worker registered " + worker);
+        String workerId = workerEntity.getWorkerId();
 
-        return WorkerConverter.toRegisterDTO(worker, nodeManger.allAlive());
+        // worker 存储
+        workerEntity.setStatus(WorkerStatus.RUNNING.status);
+        workerEntity.setUpdatedAt(TimeUtils.currentLocalDateTime());
+        workerEntityRepo.saveAndFlush(workerEntity);
+
+        // Metric 存储
+        WorkerMetricEntity workerMetricEntity = WorkerConverter.toWorkerMetricEntity(workerId, options.getAvailableResource());
+        workerMetricEntityRepo.saveAndFlush(workerMetricEntity);
+
+        // Executors 存储
+        workerExecutorEntityRepo.deleteByWorkerId(workerEntity.getWorkerId());
+        if (CollectionUtils.isNotEmpty(options.getExecutors())) {
+            List<WorkerExecutorEntity> workerExecutorEntities = options.getExecutors().stream()
+                    .map(a -> WorkerConverter.toWorkerExecutorEntity(workerId, a))
+                    .collect(Collectors.toList());
+            workerExecutorEntityRepo.saveAll(workerExecutorEntities);
+            workerExecutorEntityRepo.flush();
+        }
+
+        // Tags 存储
+        workerTagEntityRepo.deleteByWorkerId(workerEntity.getWorkerId());
+        if (CollectionUtils.isNotEmpty(options.getTags())) {
+            List<WorkerTagEntity> workerTagEntities = options.getTags().stream()
+                    .map(a -> WorkerConverter.toWorkerTagEntity(workerId, a))
+                    .collect(Collectors.toList());
+            workerTagEntityRepo.saveAll(workerTagEntities);
+            workerTagEntityRepo.flush();
+        }
+
+        log.info("worker registered " + workerEntity.getWorkerId());
+
+        return WorkerConverter.toRegisterDTO(workerEntity.getWorkerId(), nodeManger.allAlive());
     }
 
     /**
@@ -147,18 +182,23 @@ public class WorkerService {
     @Transactional(rollbackOn = Throwable.class)
     public WorkerRegisterDTO heartbeat(String workerId, WorkerHeartbeatParam option) {
         // 查询worker并校验
-        Worker worker = workerRepository.get(workerId);
-        Verifies.requireNotNull(worker, "worker不存在！");
+        WorkerEntity workerEntity = workerEntityRepo.findByWorkerIdAndDeleted(workerId, false).orElse(null);
+        Verifies.requireNotNull(workerEntity, "worker不存在！");
 
-        // 更新metric
-        worker.heartbeat(WorkerConverter.toWorkerMetric(option));
-        workerRepository.saveMetric(worker);
+        // Metric 存储
+        WorkerMetricEntity workerMetricEntity = WorkerConverter.toWorkerMetricEntity(workerId, option.getAvailableResource());
+        workerMetricEntityRepo.saveAndFlush(workerMetricEntity);
 
         if (log.isDebugEnabled()) {
             log.debug("receive heartbeat from " + workerId);
         }
 
-        return WorkerConverter.toRegisterDTO(worker, nodeManger.allAlive());
+        return WorkerConverter.toRegisterDTO(workerId, nodeManger.allAlive());
+    }
+
+    @Transactional
+    public boolean updateStatus(String workerId, Integer oldStatus, Integer newStatus) {
+        return workerEntityRepo.updateStatus(workerId, oldStatus, newStatus) > 0;
     }
 
     /**

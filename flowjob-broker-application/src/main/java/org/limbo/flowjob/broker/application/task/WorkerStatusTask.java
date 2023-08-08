@@ -22,13 +22,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.WorkerStatus;
 import org.limbo.flowjob.broker.application.component.SlotManager;
+import org.limbo.flowjob.broker.application.service.WorkerService;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
-import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
@@ -53,7 +53,7 @@ public class WorkerStatusTask extends FixDelayMetaTask {
 
     private final WorkerEntityRepo workerEntityRepo;
 
-    private final WorkerRepository workerRepository;
+    private final WorkerService workerService;
 
     private final WorkerMetricEntityRepo workerMetricEntityRepo;
 
@@ -68,7 +68,7 @@ public class WorkerStatusTask extends FixDelayMetaTask {
     public WorkerStatusTask(MetaTaskScheduler scheduler,
                             WorkerEntityRepo workerEntityRepo,
                             WorkerMetricEntityRepo workerMetricEntityRepo,
-                            WorkerRepository workerRepository,
+                            WorkerService workerService,
                             BrokerConfig brokerConfig,
                             SlotManager slotManager,
                             @Lazy Broker broker,
@@ -76,7 +76,7 @@ public class WorkerStatusTask extends FixDelayMetaTask {
         super(Duration.ofSeconds(30), scheduler);
         this.workerEntityRepo = workerEntityRepo;
         this.workerMetricEntityRepo = workerMetricEntityRepo;
-        this.workerRepository = workerRepository;
+        this.workerService = workerService;
         this.brokerConfig = brokerConfig;
         this.slotManager = slotManager;
         this.broker = broker;
@@ -111,12 +111,12 @@ public class WorkerStatusTask extends FixDelayMetaTask {
                 if (WorkerStatus.RUNNING == currentStatus) {
 
                     if (workerMetricEntity.getLastHeartbeatAt().plus(brokerConfig.getWorker().getHeartbeatTimeout(), ChronoUnit.MILLIS).isBefore(now)) {
-                        workerRepository.updateStatus(workerEntity.getWorkerId(), WorkerStatus.RUNNING.status, WorkerStatus.FUSING.status);
+                        workerService.updateStatus(workerEntity.getWorkerId(), WorkerStatus.RUNNING.status, WorkerStatus.FUSING.status);
                     }
 
                 } else if (WorkerStatus.FUSING == currentStatus) {
                     if (workerMetricEntity.getLastHeartbeatAt().plus(brokerConfig.getWorker().getHeartbeatTimeout() * 2, ChronoUnit.MILLIS).isBefore(now)) {
-                        workerRepository.updateStatus(workerEntity.getWorkerId(), WorkerStatus.FUSING.status, WorkerStatus.TERMINATED.status);
+                        workerService.updateStatus(workerEntity.getWorkerId(), WorkerStatus.FUSING.status, WorkerStatus.TERMINATED.status);
                     }
                 }
             }

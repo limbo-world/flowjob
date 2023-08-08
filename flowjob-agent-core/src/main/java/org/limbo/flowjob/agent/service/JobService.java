@@ -22,18 +22,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.agent.Job;
 import org.limbo.flowjob.agent.Task;
+import org.limbo.flowjob.agent.TaskFactory;
 import org.limbo.flowjob.agent.dispatch.SimpleWorkerSelectArguments;
+import org.limbo.flowjob.agent.dispatch.WorkerFilter;
 import org.limbo.flowjob.agent.dispatch.WorkerSelector;
 import org.limbo.flowjob.agent.dispatch.WorkerSelectorFactory;
 import org.limbo.flowjob.agent.repository.JobRepository;
 import org.limbo.flowjob.agent.repository.TaskRepository;
 import org.limbo.flowjob.agent.rpc.AgentBrokerRpc;
 import org.limbo.flowjob.agent.rpc.AgentWorkerRpc;
-import org.limbo.flowjob.agent.worker.Worker;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.common.exception.JobException;
+import org.limbo.flowjob.common.meta.Worker;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -56,10 +58,13 @@ public class JobService {
 
     private WorkerSelectorFactory workerSelectorFactory;
 
-    public JobService(JobRepository jobRepository, TaskRepository taskRepository, AgentBrokerRpc brokerRpc) {
+    public JobService(JobRepository jobRepository, TaskRepository taskRepository, AgentBrokerRpc brokerRpc,
+                      AgentWorkerRpc workerRpc, WorkerSelectorFactory workerSelectorFactory) {
         this.jobRepository = jobRepository;
         this.taskRepository = taskRepository;
         this.brokerRpc = brokerRpc;
+        this.workerRpc = workerRpc;
+        this.workerSelectorFactory = workerSelectorFactory;
     }
 
     public boolean save(Job job) {
@@ -75,7 +80,6 @@ public class JobService {
      *
      * @param job
      */
-    // todo 事务
     public void schedule(Job job) {
         // 根据job类型创建task
         List<Task> tasks = createTasks(job);
@@ -86,18 +90,18 @@ public class JobService {
             return;
         }
 
-        saveTasks(tasks);
+        if (saveTasks(tasks)) {
+            brokerRpc.notifyJobDispatched(job.getJobInstanceId());
 
-        for (Task task : tasks) {
-            boolean dispatched = workerRpc.dispatch(task);
-            if (!dispatched) {
-                // todo 如果下发失败，需要处理
+            for (Task task : tasks) {
+//                boolean dispatched = workerRpc.dispatch(task);
+//                if (dispatched) {
+//                    taskRepository.executing(task.getTaskId(), task.getWorkerId());
+//                } else {
+//                    taskRepository.fail(task.getTaskId(), MsgConstants.DISPATCH_FAIL, null);
+//                }
             }
         }
-
-        // todo 更新本地 task 状态
-
-        brokerRpc.notifyJobDispatched(job.getId());
     }
 
     /**
@@ -106,7 +110,7 @@ public class JobService {
      * @param job
      */
     private void handleJobSuccess(Job job) {
-
+        brokerRpc.feedbackJobSucceed(job);
     }
 
     /**
@@ -127,49 +131,41 @@ public class JobService {
     }
 
     public List<Task> createTasks(Job job) {
-        List<Worker> workers = brokerRpc.availableWorkers(job.getId());
-        List<Worker> dispatchWorker = selectDispatchWorkers();
-        SimpleWorkerSelectArguments args = new SimpleWorkerSelectArguments(task);
+        List<Worker> workers = brokerRpc.availableWorkers(job.getJobInstanceId());
+        SimpleWorkerSelectArguments args = new SimpleWorkerSelectArguments(job.getExecutorName(), job.getDispatchOption(), job.getAttributes());
         WorkerSelector workerSelector = workerSelectorFactory.newSelector(null);
         List<Task> tasks = new ArrayList<>();
+
+        WorkerFilter workerFilter = new WorkerFilter(args, workers)
+                .filterExecutor()
+                .filterTags();
+
         switch (job.getType()) {
             case STANDALONE:
-                Worker select = workerSelector.select(args, dispatchWorker);
-                tasks.add(createTask(job, TaskType.BROADCAST, select.getId(), null));
+                List<Worker> ws = workerFilter.filterResources().get();
+                Worker w = workerSelector.select(args, ws);
+                if (w != null) {
+                    tasks.add(TaskFactory.createTask(job, TaskType.STANDALONE, w.getId(), null));
+                }
                 break;
             case BROADCAST:
-                for (Worker worker : dispatchWorker) {
-                    tasks.add(createTask(job, TaskType.BROADCAST, worker.getId(), null));
+                for (Worker worker : workerFilter.get()) {
+                    tasks.add(TaskFactory.createTask(job, TaskType.BROADCAST, worker.getId(), null));
                 }
                 break;
             case MAP:
             case MAP_REDUCE:
-                Worker select = workerSelector.select(args, dispatchWorker);
-                tasks.add(createTask(job, TaskType.BROADCAST, select.getId(), null));
+                List<Worker> wsm = workerFilter.filterResources().get();
+                Worker wm = workerSelector.select(args, wsm);
+                if (wm != null) {
+                    tasks.add(TaskFactory.createTask(job, TaskType.SHARDING, wm.getId(), null));
+                }
                 break;
             default:
-                throw new JobException(job.getId(), MsgConstants.UNKNOWN + " job type:" + job.getType().type);
+                throw new JobException(job.getJobInstanceId(), MsgConstants.UNKNOWN + " job type:" + job.getType().type);
         }
 
         return tasks;
-    }
-
-    private List<Worker> selectDispatchWorkers(List<Worker> workers) {
-
-
-    }
-
-    private Task createTask(Job job, TaskType type, String workerId, LocalDateTime triggerAt) {
-        Task task = new Task();
-        task.setJobId(job.getId());
-        task.setType(type);
-        task.setStatus(TaskStatus.SCHEDULING);
-        task.setExecutorName(job.getExecutorName());
-        task.setContext(job.getContext());
-        task.setJobAttributes(job.getAttributes());
-        task.setWorkerId(workerId);
-        task.setTriggerAt(triggerAt);
-        return task;
     }
 
 }

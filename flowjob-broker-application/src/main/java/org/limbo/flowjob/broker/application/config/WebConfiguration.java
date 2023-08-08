@@ -76,7 +76,6 @@ public class WebConfiguration implements WebMvcConfigurer {
         registry.addFormatter(new DateFormatter(Formatters.YMD_HMS));
     }
 
-// todo ??? work调用先不用拦截 ak/sk
     //
 //    /**
 //     * worker 会话拦截

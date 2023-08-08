@@ -23,12 +23,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Setter;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.broker.WorkerRegisterDTO;
-import org.limbo.flowjob.api.param.broker.TaskFeedbackParam;
 import org.limbo.flowjob.api.param.broker.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
-import org.limbo.flowjob.broker.application.schedule.ScheduleStrategy;
 import org.limbo.flowjob.broker.application.service.WorkerService;
-import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,7 +36,8 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.*;
+import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.API_WORKER_HEARTBEAT;
+import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.API_WORKER_REGISTER;
 
 /**
  * @author Brozen
@@ -51,12 +49,6 @@ public class WorkerRpcController {
 
     @Setter(onMethod_ = @Inject)
     private WorkerService workerService;
-
-    @Setter(onMethod_ = @Inject)
-    private ScheduleStrategy scheduleStrategy;
-
-    @Setter(onMethod_ = @Inject)
-    private PlanRepository planRepository;
 
     /**
      * worker注册
@@ -75,28 +67,6 @@ public class WorkerRpcController {
     public ResponseDTO<WorkerRegisterDTO> heartbeat(@Validated @NotNull(message = "no id") @RequestParam("id") String id,
                                                     @Valid @RequestBody WorkerHeartbeatParam heartbeatOption) {
         return ResponseDTO.<WorkerRegisterDTO>builder().ok(workerService.heartbeat(id, heartbeatOption)).build();
-    }
-
-    /**
-     * api 触发对应planInstanceId下的job调度 目前只有workflow类型会用到
-     */
-    @Operation(summary = "触发对应job调度")
-    @PostMapping(API_WORKER_PLAN_INSTANCE_JOB_SCHEDULE)
-    public ResponseDTO<Void> scheduleJob(@Validated @NotNull(message = "no planInstanceId") @RequestParam("planInstanceId") String planInstanceId,
-                                         @Validated @NotNull(message = "no jobId") @RequestParam("jobId") String jobId) {
-        scheduleStrategy.scheduleJob(planInstanceId, jobId);
-        return ResponseDTO.<Void>builder().ok().build();
-    }
-
-    /**
-     * 任务执行反馈接口
-     */
-    @Operation(summary = "任务执行反馈接口")
-    @PostMapping(API_WORKER_TASK_FEEDBACK)
-    public ResponseDTO<Void> feedback(@Validated @NotNull(message = "no taskId") @RequestParam("taskId") String taskId,
-                                      @Valid @RequestBody TaskFeedbackParam feedback) {
-        scheduleStrategy.taskFeedback(taskId, feedback);
-        return ResponseDTO.<Void>builder().ok().build();
     }
 
 }

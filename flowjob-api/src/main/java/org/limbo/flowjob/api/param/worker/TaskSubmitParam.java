@@ -41,13 +41,7 @@ public class TaskSubmitParam implements Serializable {
     @NotBlank
     private String taskId;
 
-    private String planId;
-
-    private String planInstanceId;
-
-    private String jobId;
-
-    private String jobInstanceId;
+    private String agentId;
 
     /**
      * Task类型

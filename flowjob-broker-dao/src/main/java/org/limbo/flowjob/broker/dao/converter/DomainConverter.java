@@ -20,25 +20,19 @@ package org.limbo.flowjob.broker.dao.converter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.common.dispatch.DispatchOption;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.ScheduleType;
+import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
-import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.NormalPlan;
+import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
-import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
-import org.limbo.flowjob.broker.dao.entity.TaskEntity;
-import org.limbo.flowjob.api.constants.PlanType;
-import org.limbo.flowjob.api.constants.ScheduleType;
-import org.limbo.flowjob.api.constants.TaskStatus;
-import org.limbo.flowjob.api.constants.TaskType;
-import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.common.utils.attribute.Attributes;
+import org.limbo.flowjob.common.meta.JobInfo;
+import org.limbo.flowjob.common.meta.JobInstance;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
@@ -57,7 +51,7 @@ public class DomainConverter {
     public static Plan toPlan(PlanEntity entity, PlanInfoEntity planInfoEntity) {
         Plan plan;
         PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
-        if (PlanType.NORMAL == planType) {
+        if (PlanType.STANDALONE == planType) {
             plan = new NormalPlan(
                     planInfoEntity.getPlanId(),
                     planInfoEntity.getPlanInfoId(),
@@ -99,46 +93,6 @@ public class DomainConverter {
         List<WorkflowJobInfo> jobInfos = JacksonUtils.parseObject(dag, new TypeReference<List<WorkflowJobInfo>>() {
         });
         return new DAG<>(jobInfos);
-    }
-
-    public static TaskEntity toTaskEntity(Task task) {
-        TaskEntity taskEntity = new TaskEntity();
-        taskEntity.setJobInstanceId(task.getJobInstanceId());
-        taskEntity.setJobId(task.getJobId());
-        taskEntity.setPlanId(task.getPlanId());
-        taskEntity.setPlanInfoId(task.getPlanVersion());
-        taskEntity.setPlanInstanceId(task.getPlanInstanceId());
-        taskEntity.setType(task.getType().type);
-        taskEntity.setStatus(task.getStatus().status);
-        taskEntity.setWorkerId(task.getWorkerId());
-        taskEntity.setExecutorName(task.getExecutorName());
-        taskEntity.setJobAttributes(task.getJobAttributes() == null ? JacksonUtils.DEFAULT_NONE_OBJECT : task.getJobAttributes().toString());
-        taskEntity.setTaskAttributes(JacksonUtils.toJSONString(task.getTaskAttributes()));
-        taskEntity.setDispatchOption(JacksonUtils.toJSONString(task.getDispatchOption()));
-        taskEntity.setTaskId(task.getTaskId());
-        return taskEntity;
-    }
-
-    public static Task toTask(TaskEntity entity) {
-        if (entity == null) {
-            return null;
-        }
-        TaskType type = TaskType.parse(entity.getType());
-        Task task = new Task();
-        task.setTaskId(entity.getTaskId());
-        task.setJobInstanceId(entity.getJobInstanceId());
-        task.setJobId(entity.getJobId());
-        task.setStatus(TaskStatus.parse(entity.getStatus()));
-        task.setType(type);
-        task.setWorkerId(entity.getWorkerId());
-        task.setExecutorName(entity.getExecutorName());
-        task.setJobAttributes(new Attributes(entity.getJobAttributes()));
-        task.setTaskAttributes(type, entity.getTaskAttributes());
-        task.setPlanId(entity.getPlanId());
-        task.setPlanInstanceId(entity.getPlanInstanceId());
-        task.setPlanVersion(entity.getPlanInfoId());
-        task.setDispatchOption(JacksonUtils.parseObject(entity.getDispatchOption(), DispatchOption.class));
-        return task;
     }
 
     public static JobInstanceEntity toJobInstanceEntity(JobInstance jobInstance) {

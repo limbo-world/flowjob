@@ -19,9 +19,8 @@
 package org.limbo.flowjob.broker.application.schedule;
 
 import org.limbo.flowjob.api.constants.PlanType;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.common.meta.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.core.domain.task.Task;
 
 import java.time.LocalDateTime;
 
@@ -39,28 +38,11 @@ public interface PlanScheduler {
     /**
      * 调度job实例
      */
-    void scheduleBak(JobInstance jobInstance);
-
-    /**
-     * 调度job实例
-     */
     void schedule(JobInstance jobInstance);
 
-    /**
-     * 调度 task
-     */
-    void schedule(Task task);
+    void handleJobSuccess(JobInstance jobInstance);
 
-
-    /**
-     * task 成功处理
-     */
-    void handleSuccess(Task task, Object result);
-
-    /**
-     * task失败处理
-     */
-    void handleFail(Task task, String errorMsg, String errorStackTrace);
+    void handleJobFail(JobInstance jobInstance, String errorMsg);
 
     /**
      * 调度planInstance下对应job

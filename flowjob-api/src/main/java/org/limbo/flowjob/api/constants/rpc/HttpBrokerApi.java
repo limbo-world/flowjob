@@ -38,8 +38,8 @@ public interface HttpBrokerApi {
 
     String API_WORKER_PLAN_SCHEDULE = "/api/v1/rpc/worker/plan/schedule";
 
-    String API_WORKER_PLAN_INSTANCE_JOB_SCHEDULE = "/api/v1/rpc/worker/plan-instance/job/schedule";
+    String API_PLAN_INSTANCE_JOB_SCHEDULE = "/api/v1/rpc/plan-instance/job/schedule";
 
-    String API_WORKER_TASK_FEEDBACK = "/api/v1/rpc/worker/task/feedback";
+    String API_JOB_FEEDBACK = "/api/v1/rpc/job/feedback";
 
 }

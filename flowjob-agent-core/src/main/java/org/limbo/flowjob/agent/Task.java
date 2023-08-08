@@ -50,7 +50,11 @@ public class Task {
 
     private String taskId;
 
-    private String jobInstanceId;
+    /**
+     * 前置 task
+     */
+    private String preTaskId;
+
 
     /**
      * 类型

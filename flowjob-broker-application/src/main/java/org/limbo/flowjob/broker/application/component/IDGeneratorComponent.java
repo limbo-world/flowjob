@@ -53,7 +53,6 @@ public class IDGeneratorComponent implements IDGenerator {
     @Transactional
     public String generateId(IDType type) {
         Long randomAutoId = gainRandomAutoId(type);
-//        String id = randomAutoId + String.format("%2d", planId).replace(" ", "0") + String.format("%4d", jobId % 10000).replace(" ", "0");
         return String.valueOf(randomAutoId);
     }
 

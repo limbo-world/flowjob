@@ -20,6 +20,7 @@ import lombok.Data;
 import org.apache.commons.collections4.MapUtils;
 import org.limbo.flowjob.api.constants.TaskType;
 
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,13 +34,7 @@ public class Task {
 
     private String taskId;
 
-    private String planId;
-
-    private String planInstanceId;
-
-    private String jobId;
-
-    private String jobInstanceId;
+    private URL agentRpcUrl;
 
     private TaskType type;
 

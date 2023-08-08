@@ -18,10 +18,12 @@
 
 package org.limbo.flowjob.agent.rpc;
 
+import org.limbo.flowjob.agent.Job;
 import org.limbo.flowjob.agent.ScheduleAgent;
-import org.limbo.flowjob.agent.worker.Worker;
+import org.limbo.flowjob.common.meta.Worker;
 import org.limbo.flowjob.common.exception.RegisterFailException;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -32,24 +34,42 @@ public interface AgentBrokerRpc {
 
     /**
      * 向 Broker 注册
+     *
      * @param agent 需注册的 agent
      */
     void register(ScheduleAgent agent) throws RegisterFailException;
 
     /**
      * 维持心跳
+     *
      * @param agent agent
      */
     void heartbeat(ScheduleAgent agent);
 
     /**
+     * job已下发
      *
      * @return
      */
     boolean notifyJobDispatched(String jobInstanceId);
 
     /**
+     * 向 Broker 反馈任务执行成功
+     *
+     * @param job 任务
+     */
+    void feedbackJobSucceed(Job job);
+
+    /**
+     * 向 Broker 反馈任务执行成功
+     *
+     * @param job 任务
+     */
+    void feedbackJobFail(Job job, @Nullable Throwable ex);
+
+    /**
      * 获取 job 可以下发的所有worker
+     *
      * @param jobId
      * @return
      */

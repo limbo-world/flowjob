@@ -20,7 +20,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.worker.core.domain.Task;
-import org.limbo.flowjob.worker.core.rpc.BrokerRpc;
+import org.limbo.flowjob.worker.core.rpc.WorkerAgentRpc;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
@@ -44,9 +44,9 @@ public class ExecuteContext implements Runnable {
     public final TaskExecutor executor;
 
     /**
-     * Broker 通信
+     * Rpc
      */
-    public final BrokerRpc brokerRpc;
+    public final WorkerAgentRpc agentRpc;
 
     /**
      * 从 Broker 接收到的任务
@@ -65,10 +65,10 @@ public class ExecuteContext implements Runnable {
      */
     private final AtomicReference<Status> status;
 
-    public ExecuteContext(TaskRepository taskRepository, TaskExecutor executor, BrokerRpc brokerRpc, Task task) {
+    public ExecuteContext(TaskRepository taskRepository, TaskExecutor executor, WorkerAgentRpc agentRpc, Task task) {
         this.taskRepository = taskRepository;
         this.executor = executor;
-        this.brokerRpc = brokerRpc;
+        this.agentRpc = agentRpc;
         this.task = task;
 
         this.status = new AtomicReference<>(Status.WAITING);
@@ -91,14 +91,14 @@ public class ExecuteContext implements Runnable {
 
             // 执行成功
             this.status.set(Status.SUCCEED);
-            this.brokerRpc.feedbackTaskSucceed(this);
+            this.agentRpc.feedbackTaskSucceed(this);
         } catch (Exception e) {
 
             // 执行异常
             log.error("Task execute error", e);
             this.status.set(Status.FAILED);
 
-            this.brokerRpc.feedbackTaskFailed(this, e);
+            this.agentRpc.feedbackTaskFailed(this, e);
 
         } finally {
             // 最终都要移除任务

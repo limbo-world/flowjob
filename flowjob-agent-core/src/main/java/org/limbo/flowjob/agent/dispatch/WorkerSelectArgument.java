@@ -18,6 +18,8 @@
 
 package org.limbo.flowjob.agent.dispatch;
 
+import org.limbo.flowjob.common.meta.DispatchOption;
+
 import java.util.Map;
 
 /**

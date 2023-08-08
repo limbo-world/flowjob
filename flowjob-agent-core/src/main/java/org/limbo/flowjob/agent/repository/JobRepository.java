@@ -41,7 +41,7 @@ public class JobRepository {
      * @param job 任务
      */
     public boolean save(Job job) {
-        return map.putIfAbsent(job.getId(), job) == null;
+        return map.putIfAbsent(job.getJobInstanceId(), job) == null;
     }
 
 

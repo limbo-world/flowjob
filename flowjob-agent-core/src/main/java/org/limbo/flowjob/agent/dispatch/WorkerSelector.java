@@ -18,7 +18,7 @@
 
 package org.limbo.flowjob.agent.dispatch;
 
-import org.limbo.flowjob.agent.worker.Worker;
+import org.limbo.flowjob.common.meta.Worker;
 import org.limbo.flowjob.api.constants.LoadBalanceType;
 
 import java.util.List;

@@ -51,11 +51,6 @@ public class WorkerMetricEntity extends BaseEntity {
     private String workerId;
 
     /**
-     * worker节点上正在执行中的作业
-     */
-    private String executingJobs;
-
-    /**
      * 可用的CPU核心数
      */
     private Float availableCpu;

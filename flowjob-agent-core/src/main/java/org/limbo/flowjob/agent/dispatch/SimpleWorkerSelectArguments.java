@@ -20,6 +20,7 @@ package org.limbo.flowjob.agent.dispatch;
 
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
+import org.limbo.flowjob.common.meta.DispatchOption;
 
 import java.util.HashMap;
 import java.util.Map;

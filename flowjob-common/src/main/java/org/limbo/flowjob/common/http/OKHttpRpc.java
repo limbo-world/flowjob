@@ -18,6 +18,7 @@
 
 package org.limbo.flowjob.common.http;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.net.HttpHeaders;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
@@ -27,6 +28,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.common.exception.BrokerRpcException;
 import org.limbo.flowjob.common.lb.LBServer;
 import org.limbo.flowjob.common.lb.LBServerRepository;
@@ -34,6 +36,7 @@ import org.limbo.flowjob.common.lb.LBStrategy;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * @author Devil
@@ -50,7 +53,11 @@ public class OKHttpRpc<S extends LBServer> {
     private static final MediaType MEDIA_TYPE = MediaType.parse(JSON_UTF_8);
 
     public OKHttpRpc(LBServerRepository<S> repository, LBStrategy<S> strategy) {
-        this.client = new OkHttpClient.Builder().addInterceptor(new LoadBalanceInterceptor<>(repository, strategy)).build();
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        if (repository != null) {
+            builder.addInterceptor(new LoadBalanceInterceptor<>(repository, strategy));
+        }
+        this.client = builder.build();
     }
 
     protected ResponseBody executeGet(String url) {
@@ -125,6 +132,34 @@ public class OKHttpRpc<S extends LBServer> {
 
     protected String logRequest(String url, String param) {
         return String.format("request[url=%s, param=%s]", url, param);
+    }
+
+    /**
+     * 通过 OkHttp 执行请求，并获取响应
+     */
+    protected <T> ResponseDTO<T> executePost(String url, Object param, TypeReference<ResponseDTO<T>> reference) {
+        Objects.requireNonNull(reference);
+
+        ResponseBody responseBody = executePost(url, param);
+        try {
+            return JacksonUtils.parseObject(responseBody.string(), reference);
+        } catch (IOException e) {
+            throw new BrokerRpcException("Api access failed " + logRequest(url, JacksonUtils.toJSONString(param)), e);
+        }
+    }
+
+    /**
+     * 通过 OkHttp 执行请求，并获取响应
+     */
+    protected <T> ResponseDTO<T> executeGet(String url, TypeReference<ResponseDTO<T>> reference) {
+        Objects.requireNonNull(reference);
+
+        ResponseBody responseBody = executeGet(url);
+        try {
+            return JacksonUtils.parseObject(responseBody.string(), reference);
+        } catch (IOException e) {
+            throw new BrokerRpcException("Api access failed " + logRequest(url), e);
+        }
     }
 
 }

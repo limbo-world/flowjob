@@ -36,7 +36,7 @@
 
     <dependencies>
 
-        <!-- Worker 依赖 -->
+        <!-- 内部 依赖 -->
         <dependency>
             <groupId>io.github.limbo-world</groupId>
             <artifactId>flowjob-agent-core</artifactId>
@@ -60,6 +60,12 @@
         <dependency>
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
+        </dependency>
+
+        <!-- JSR303 -->
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
         </dependency>
 
         <!-- H2 -->

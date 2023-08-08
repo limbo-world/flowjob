@@ -19,7 +19,6 @@ package org.limbo.flowjob.worker.starter.application.converter;
 import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.api.param.worker.TaskSubmitParam;
 import org.limbo.flowjob.worker.core.domain.Task;
-import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
@@ -39,10 +38,6 @@ public class TaskConverter {
         TaskType taskType = TaskType.parse(param.getType());
         Task task = new Task();
         task.setTaskId(param.getTaskId());
-        task.setPlanId(param.getPlanId());
-        task.setPlanInstanceId(param.getPlanInstanceId());
-        task.setJobId(param.getJobId());
-        task.setJobInstanceId(param.getJobInstanceId());
         task.setType(taskType);
         task.setExecutorName(param.getExecutorName());
         task.setContext(param.getContext());

@@ -20,7 +20,7 @@ package org.limbo.flowjob.broker.core.domain.plan;
 
 import lombok.Getter;
 import lombok.ToString;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.common.meta.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.api.constants.PlanType;
@@ -43,12 +43,14 @@ public class NormalPlan extends Plan {
 
     public NormalPlan(String planId, String version, TriggerType triggerType,
                       ScheduleOption scheduleOption, JobInfo jobInfo) {
-        super(planId, version, PlanType.NORMAL, triggerType, scheduleOption);
+        super(planId, version, PlanType.STANDALONE, triggerType, scheduleOption);
         this.jobInfo = jobInfo;
     }
 
     @Override
     public PlanType planType() {
-        return PlanType.NORMAL;
+        return PlanType.STANDALONE;
     }
+
+
 }

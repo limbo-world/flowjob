@@ -28,6 +28,8 @@ public enum MetaTaskType {
 
     PLAN,
 
+    PLAN_INSTANCE,
+
     PLAN_LOAD,
 
     UPDATED_PLAN_LOAD,
@@ -36,13 +38,7 @@ public enum MetaTaskType {
 
     JOB_EXECUTE_CHECK,
 
-    DELAY_JOB,
-
-    TASK,
-
-    TASK_DISPATCH_CHECK,
-
-    TASK_EXECUTE_CHECK,
+    JOB,
 
     WORKER_OFFLINE,
 

@@ -33,7 +33,7 @@ import org.limbo.flowjob.api.dto.console.PlanVersionDTO;
 import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.PlanQueryParam;
 import org.limbo.flowjob.api.param.console.PlanVersionParam;
-import org.limbo.flowjob.broker.application.schedule.ScheduleStrategy;
+import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
 import org.limbo.flowjob.broker.application.service.PlanService;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
@@ -63,7 +63,7 @@ public class PlanController {
     private PlanRepository planRepository;
 
     @Setter(onMethod_ = @Inject)
-    private ScheduleStrategy scheduleStrategy;
+    private ScheduleProxy scheduleProxy;
 
     /**
      * 新增计划
@@ -151,9 +151,8 @@ public class PlanController {
     @PostMapping("/api/v1/plan/schedule")
     public ResponseDTO<Void> schedulePlan(@NotBlank(message = "ID不能为空") @RequestParam("planId") String planId,
                                           @RequestParam("workerId") String workerId) {
-        // todo worker在指定情况下下发
         Plan plan = planRepository.get(planId);
-        scheduleStrategy.schedule(TriggerType.API, plan, TimeUtils.currentLocalDateTime());
+        scheduleProxy.schedule(TriggerType.API, plan, TimeUtils.currentLocalDateTime());
         return ResponseDTO.<Void>builder().ok().build();
     }
 

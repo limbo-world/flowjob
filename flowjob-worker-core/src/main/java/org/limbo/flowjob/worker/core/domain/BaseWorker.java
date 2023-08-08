@@ -29,7 +29,9 @@ import org.limbo.flowjob.worker.core.constants.WorkerStatus;
 import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.executor.TaskExecutor;
 import org.limbo.flowjob.worker.core.executor.TaskRepository;
-import org.limbo.flowjob.worker.core.rpc.BrokerRpc;
+import org.limbo.flowjob.worker.core.rpc.WorkerAgentRpc;
+import org.limbo.flowjob.worker.core.rpc.WorkerBrokerRpc;
+import org.limbo.flowjob.worker.core.rpc.http.OkHttpAgentRpc;
 
 import java.net.URL;
 import java.time.Duration;
@@ -93,7 +95,7 @@ public class BaseWorker implements Worker {
     /**
      * 远程调用
      */
-    private BrokerRpc brokerRpc;
+    private WorkerBrokerRpc brokerRpc;
 
     /**
      * 是否已经启动
@@ -112,7 +114,7 @@ public class BaseWorker implements Worker {
      * @param resource worker 资源描述对象
      * @param brokerRpc broker RPC 通信模块
      */
-    public BaseWorker(String name, URL baseURL, WorkerResources resource, BrokerRpc brokerRpc) {
+    public BaseWorker(String name, URL baseURL, WorkerResources resource, WorkerBrokerRpc brokerRpc) {
         Objects.requireNonNull(baseURL, "URL can't be null");
         Objects.requireNonNull(brokerRpc, "remote client can't be null");
 
@@ -306,7 +308,8 @@ public class BaseWorker implements Worker {
         }
 
         // 存储任务，并判断是否重复接收任务
-        ExecuteContext context = new ExecuteContext(taskRepository, executor, brokerRpc, task);
+        WorkerAgentRpc agentRpc = new OkHttpAgentRpc(); // todo 根据协议创建
+        ExecuteContext context = new ExecuteContext(taskRepository, executor, agentRpc, task);
         if (!taskRepository.save(context)) {
             log.warn("Receive task [{}], but already in repository", task.getTaskId());
             return;

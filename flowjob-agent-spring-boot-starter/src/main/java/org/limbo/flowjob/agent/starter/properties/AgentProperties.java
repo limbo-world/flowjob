@@ -18,7 +18,6 @@ package org.limbo.flowjob.agent.starter.properties;
 
 import lombok.Data;
 import org.limbo.flowjob.api.constants.Protocol;
-import org.limbo.flowjob.worker.starter.processor.event.WorkerReadyEvent;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.net.URL;
@@ -39,12 +38,12 @@ public class AgentProperties {
     private boolean enabled = true;
 
     /**
-     * broker 节点连接列表
+     * 节点连接列表
      */
     private List<URL> brokers;
 
     /**
-     * worker 注册时，向 broker 提交的 RPC 通信协议类型。默认为 http。
+     * 注册时，向 broker 提交的 RPC 通信协议类型。默认为 http。
      */
     private Protocol protocol = Protocol.HTTP;
 

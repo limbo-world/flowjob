@@ -18,12 +18,15 @@
 
 package org.limbo.flowjob.broker.core.agent;
 
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Delegate;
-import org.limbo.flowjob.api.constants.Protocol;
+import org.limbo.flowjob.api.constants.AgentStatus;
 import org.limbo.flowjob.broker.core.agent.rpc.AgentRpc;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
-import org.limbo.flowjob.broker.core.worker.rpc.WorkerRpc;
-import org.limbo.flowjob.broker.core.worker.rpc.WorkerRpcFactory;
+import org.limbo.flowjob.broker.core.agent.rpc.AgentRpcFactory;
 import org.limbo.flowjob.common.lb.LBServer;
 
 import java.net.URL;
@@ -32,7 +35,26 @@ import java.net.URL;
  * @author Devil
  * @since 2023/8/7
  */
+@Getter
+@Setter(AccessLevel.NONE)
+@ToString
+@Builder(builderClassName = "Builder")
 public class ScheduleAgent implements AgentRpc, LBServer {
+
+    /**
+     * ID
+     */
+    private String id;
+
+    /**
+     * 通信的基础 URL
+     */
+    private URL rpcBaseUrl;
+
+    /**
+     * 节点状态
+     */
+    private AgentStatus status;
 
     /**
      * RPC 通信协议
@@ -42,10 +64,10 @@ public class ScheduleAgent implements AgentRpc, LBServer {
     /**
      * 懒加载 Worker RPC 模块
      */
-    @Delegate(types = WorkerRpc.class)
-    private synchronized WorkerRpc getRPC() {
+    @Delegate(types = AgentRpc.class)
+    private synchronized AgentRpc getRPC() {
         if (this.rpc == null) {
-            WorkerRpcFactory factory = WorkerRpcFactory.getInstance();
+            AgentRpcFactory factory = AgentRpcFactory.getInstance();
             this.rpc = factory.createRPC(this);
         }
 
@@ -54,41 +76,16 @@ public class ScheduleAgent implements AgentRpc, LBServer {
 
     @Override
     public String getServerId() {
-        return null;
+        return id;
     }
 
     @Override
     public boolean isAlive() {
-        return false;
+        return AgentStatus.RUNNING == status;
     }
 
     @Override
     public URL getUrl() {
-        return null;
-    }
-
-    @Override
-    public boolean dispatch(JobInstance instance) {
-        return false;
-    }
-
-    @Override
-    public String agentId() {
-        return null;
-    }
-
-    @Override
-    public Protocol protocol() {
-        return null;
-    }
-
-    @Override
-    public String host() {
-        return null;
-    }
-
-    @Override
-    public Integer port() {
-        return null;
+        return rpcBaseUrl;
     }
 }

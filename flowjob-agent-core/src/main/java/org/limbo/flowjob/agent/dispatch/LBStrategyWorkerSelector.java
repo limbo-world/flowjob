@@ -19,7 +19,7 @@
 package org.limbo.flowjob.agent.dispatch;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.agent.worker.Worker;
+import org.limbo.flowjob.common.meta.Worker;
 import org.limbo.flowjob.common.lb.LBStrategy;
 import org.limbo.flowjob.common.rpc.RPCInvocation;
 

@@ -361,6 +361,21 @@ TABLES `flowjob_worker` WRITE;
 UNLOCK
 TABLES;
 
+DROP TABLE IF EXISTS `flowjob_worker_slot`;
+CREATE TABLE `flowjob_worker_slot`
+(
+    `id`         bigint unsigned NOT NULL AUTO_INCREMENT,
+    `worker_id`  varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `slot`       int                                                    NOT NULL,
+    `is_deleted` bit(1)                                                 NOT NULL DEFAULT 0,
+    `created_at` datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_id` (`worker_id`),
+    KEY          `idx_slot` (`slot`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+
 --
 -- Table structure for table `flowjob_worker_executor`
 --
@@ -409,7 +424,6 @@ CREATE TABLE `flowjob_worker_metric`
     `available_cpu`         float                                                           DEFAULT NULL,
     `available_queue_limit` int                                                             DEFAULT NULL,
     `available_ram`         float                                                           DEFAULT NULL,
-    `executing_jobs`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `last_heartbeat_at`     datetime(6) NOT NULL,
     `is_deleted`            bit(1)                                                 NOT NULL DEFAULT 0,
     `created_at`            datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -493,38 +507,6 @@ LOCK
 TABLES `flowjob_plan_slot` WRITE;
 /*!40000 ALTER TABLE `flowjob_plan_slot` DISABLE KEYS */;
 /*!40000 ALTER TABLE `flowjob_plan_slot` ENABLE KEYS */;
-UNLOCK
-TABLES;
-
---
--- Table structure for table `flowjob_plan_slot`
---
-
-DROP TABLE IF EXISTS `flowjob_worker_slot`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `flowjob_worker_slot`
-(
-    `id`         bigint unsigned NOT NULL AUTO_INCREMENT,
-    `worker_id`  varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `slot`       int                                                    NOT NULL,
-    `is_deleted` bit(1)                                                 NOT NULL DEFAULT 0,
-    `created_at` datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_id` (`worker_id`),
-    KEY          `idx_slot` (`slot`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `flowjob_worker_slot`
---
-
-LOCK
-TABLES `flowjob_worker_slot` WRITE;
-/*!40000 ALTER TABLE `flowjob_worker_slot` DISABLE KEYS */;
-/*!40000 ALTER TABLE `flowjob_worker_slot` ENABLE KEYS */;
 UNLOCK
 TABLES;
 

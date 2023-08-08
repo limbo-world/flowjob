@@ -19,7 +19,7 @@
 package org.limbo.flowjob.worker.core.rpc;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.limbo.flowjob.api.param.broker.TaskFeedbackParam;
+import org.limbo.flowjob.api.param.agent.TaskFeedbackParam;
 import org.limbo.flowjob.api.param.broker.WorkerExecutorRegisterParam;
 import org.limbo.flowjob.api.param.broker.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
