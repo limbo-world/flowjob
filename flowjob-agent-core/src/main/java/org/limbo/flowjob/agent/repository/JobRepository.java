@@ -41,7 +41,7 @@ public class JobRepository {
      * @param job 任务
      */
     public boolean save(Job job) {
-        return map.putIfAbsent(job.getJobInstanceId(), job) == null;
+        return map.putIfAbsent(job.getId(), job) == null;
     }
 
 
@@ -60,12 +60,8 @@ public class JobRepository {
         return map.size();
     }
 
-
-    /**
-     * 判断在仓库中是否存在指定 ID 的任务
-     */
-    public boolean has(String id) {
-        return map.containsKey(id);
+    public Job getById(String id) {
+        return map.get(id);
     }
 
 }

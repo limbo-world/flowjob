@@ -22,7 +22,7 @@ import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.param.agent.JobSubmitParam;
 import org.limbo.flowjob.broker.core.agent.AgentConverter;
 import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
-import org.limbo.flowjob.common.meta.JobInstance;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.exceptions.RpcException;
 import org.limbo.flowjob.broker.core.rpc.AbstractRpc;
 import retrofit2.Call;
@@ -73,7 +73,7 @@ public class RetrofitHttpAgentRpc extends AbstractRpc implements AgentRpc {
         @Headers(
                 "Content-Type: application/json"
         )
-        @POST(HttpAgentApi.API_SUBMIT_JOB)
+        @POST(HttpAgentApi.API_JOB_SUBMIT)
         Call<ResponseDTO<Boolean>> dispatch(@Body JobSubmitParam param);
 
     }

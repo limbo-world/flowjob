@@ -20,7 +20,6 @@ package org.limbo.flowjob.agent.worker;
 
 import lombok.AllArgsConstructor;
 import lombok.Setter;
-import org.limbo.flowjob.common.meta.Worker;
 import org.limbo.flowjob.common.utils.concurrent.Lockable;
 
 import java.time.Duration;

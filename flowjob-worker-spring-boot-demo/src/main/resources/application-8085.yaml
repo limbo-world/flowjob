@@ -2,7 +2,7 @@ server:
   port: 8085
 spring:
   application:
-    name: job-worker
+    name: flowjob-worker
 
 flowjob:
   worker:

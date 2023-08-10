@@ -30,7 +30,7 @@ import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
-import org.limbo.flowjob.common.meta.JobInstance;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
@@ -102,6 +102,9 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
         if (num < 1) {
             return; // 被其他更新
         }
+
+        // 更新 plan 上下文
+        planInstanceEntityRepo.updateContext(jobInstance.getPlanInstanceId(), jobInstance.getContext().toString());
 
         String planInstanceId = jobInstance.getPlanInstanceId();
 

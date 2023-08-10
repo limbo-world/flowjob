@@ -16,18 +16,27 @@
 
 package org.limbo.flowjob.agent.starter.configuration;
 
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.agent.BaseScheduleAgent;
+import org.limbo.flowjob.agent.FlowjobConnectionFactory;
+import org.limbo.flowjob.agent.H2ConnectionFactory;
 import org.limbo.flowjob.agent.ScheduleAgent;
-import org.limbo.flowjob.agent.dispatch.WorkerSelectorFactory;
+import org.limbo.flowjob.agent.TaskDispatcher;
+import org.limbo.flowjob.agent.repository.JobRepository;
+import org.limbo.flowjob.agent.repository.TaskRepository;
 import org.limbo.flowjob.agent.rpc.AgentBrokerRpc;
+import org.limbo.flowjob.agent.rpc.AgentWorkerRpc;
 import org.limbo.flowjob.agent.rpc.http.OkHttpAgentBrokerRpc;
+import org.limbo.flowjob.agent.rpc.http.OkHttpAgentWorkerRpc;
+import org.limbo.flowjob.agent.service.JobService;
+import org.limbo.flowjob.agent.service.TaskService;
 import org.limbo.flowjob.agent.starter.SpringDelegatedAgent;
+import org.limbo.flowjob.agent.starter.handler.HttpHandlerProcessor;
 import org.limbo.flowjob.agent.starter.properties.AgentProperties;
 import org.limbo.flowjob.agent.worker.SingletonWorkerStatisticsRepo;
+import org.limbo.flowjob.agent.worker.WorkerSelectorFactory;
 import org.limbo.flowjob.agent.worker.WorkerStatisticsRepository;
 import org.limbo.flowjob.api.constants.Protocol;
 import org.limbo.flowjob.common.lb.BaseLBServer;
@@ -35,14 +44,14 @@ import org.limbo.flowjob.common.lb.BaseLBServerRepository;
 import org.limbo.flowjob.common.lb.LBServerRepository;
 import org.limbo.flowjob.common.lb.LBStrategy;
 import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
+import org.limbo.flowjob.common.rpc.EmbedHttpRpcServer;
+import org.limbo.flowjob.common.rpc.EmbedRpcServer;
 import org.limbo.flowjob.common.utils.NetUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 
@@ -61,13 +70,11 @@ import java.util.stream.Collectors;
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.ANY)
 @ConditionalOnProperty(prefix = "flowjob.agent", value = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(AgentProperties.class)
-@ComponentScan(basePackages = "org.limbo.flowjob.agent.starter.application")
 public class FlowJobAgentAutoConfiguration {
 
     private final AgentProperties properties;
 
-    @Setter(onMethod_ = @Value("${server.port:8080}"))
-    private Integer httpServerPort = null;
+    private static final Integer DEFAULT_HTTP_SERVER_PORT = 9876;
 
     public FlowJobAgentAutoConfiguration(AgentProperties properties) {
         this.properties = properties;
@@ -76,12 +83,13 @@ public class FlowJobAgentAutoConfiguration {
 
     /**
      * agent 实例，
+     *
      * @param rpc broker rpc 通信模块
      */
     @Bean
-    public ScheduleAgent httpWorker(AgentBrokerRpc rpc) throws MalformedURLException {
+    public ScheduleAgent httpWorker(AgentBrokerRpc rpc, JobService jobService, TaskService taskService) throws MalformedURLException {
         // 优先使用 SpringMVC 或 SpringWebflux 设置的端口号
-        Integer port = properties.getPort() != null ? properties.getPort() : httpServerPort;
+        Integer port = properties.getPort() != null ? properties.getPort() : DEFAULT_HTTP_SERVER_PORT;
 
         // 优先使用指定的 host，如未指定则自动寻找本机 IP
         String host = properties.getHost();
@@ -91,10 +99,54 @@ public class FlowJobAgentAutoConfiguration {
 
         Assert.isTrue(port > 0, "Worker port must be a positive integer in range 1 ~ 65534");
         URL workerBaseUrl = new URL(properties.getProtocol().getValue(), host, port, "");
-        ScheduleAgent agent = new BaseScheduleAgent(workerBaseUrl, rpc);
+        HttpHandlerProcessor httpHandlerProcessor = new HttpHandlerProcessor();
+        EmbedRpcServer embedRpcServer = new EmbedHttpRpcServer(port, httpHandlerProcessor);
+        ScheduleAgent agent = new BaseScheduleAgent(workerBaseUrl, rpc, jobService, taskService, embedRpcServer);
+        httpHandlerProcessor.setAgent(agent);
+
         return new SpringDelegatedAgent(agent);
     }
 
+    @Bean
+    public JobService jobService(JobRepository jobRepository, TaskRepository taskRepository, AgentBrokerRpc brokerRpc,
+                                 TaskDispatcher taskDispatcher) {
+        return new JobService(jobRepository, taskRepository, brokerRpc, taskDispatcher);
+    }
+
+    @Bean
+    public TaskService taskService(TaskRepository taskRepository, JobRepository jobRepository,
+                                   TaskDispatcher taskDispatcher, AgentBrokerRpc brokerRpc) {
+        return new TaskService(taskRepository, jobRepository, taskDispatcher, brokerRpc);
+    }
+
+    @Bean
+    public TaskRepository taskRepository(FlowjobConnectionFactory flowjobConnectionFactory) {
+        return new TaskRepository(flowjobConnectionFactory);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(FlowjobConnectionFactory.class)
+    public FlowjobConnectionFactory flowjobConnectionFactory() {
+        return new H2ConnectionFactory();
+    }
+
+
+    @Bean
+    public JobRepository jobRepository() {
+        return new JobRepository();
+    }
+
+    @Bean
+    public TaskDispatcher taskDispatcher(AgentBrokerRpc brokerRpc, AgentWorkerRpc workerRpc, JobRepository jobRepository,
+                                         WorkerSelectorFactory workerSelectorFactory, WorkerStatisticsRepository statisticsRepository) {
+        return new TaskDispatcher(brokerRpc, workerRpc, jobRepository, workerSelectorFactory, statisticsRepository);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(AgentWorkerRpc.class)
+    public AgentWorkerRpc workerRpc() {
+        return new OkHttpAgentWorkerRpc();
+    }
 
     /**
      * Broker 通信模块
@@ -164,6 +216,7 @@ public class FlowJobAgentAutoConfiguration {
      * 用于生成 Worker 选择器，内部封装了 LB 算法的调用。
      */
     @Bean
+    @ConditionalOnMissingBean(WorkerSelectorFactory.class)
     public WorkerSelectorFactory workerSelectorFactory(WorkerStatisticsRepository statisticsRepository) {
         WorkerSelectorFactory factory = new WorkerSelectorFactory();
         factory.setLbServerStatisticsProvider(statisticsRepository);

@@ -6,7 +6,7 @@
 
     <groupId>io.github.limbo-world</groupId>
     <artifactId>flowjob</artifactId>
-    <version>1.1.0</version>
+    <version>2.0.0</version>
     <packaging>pom</packaging>
     <description>flow-job调度框架</description>
 
@@ -22,6 +22,7 @@
         <module>flowjob-worker-spring-boot-demo</module>
         <module>flowjob-agent-core</module>
         <module>flowjob-agent-spring-boot-starter</module>
+        <module>flowjob-agent-application</module>
     </modules>
 
     <organization>
@@ -88,12 +89,12 @@
             <dependency>
                 <groupId>io.github.limbo-world</groupId>
                 <artifactId>flowjob-common</artifactId>
-                <version>1.1.0</version>
+                <version>2.0.0</version>
             </dependency>
             <dependency>
                 <groupId>io.github.limbo-world</groupId>
                 <artifactId>flowjob-api</artifactId>
-                <version>1.1.0</version>
+                <version>2.0.0</version>
             </dependency>
             <!-- BOM End-->
 

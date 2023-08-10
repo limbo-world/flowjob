@@ -18,15 +18,24 @@
 
 package org.limbo.flowjob.agent.service;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.agent.CommonThreadPool;
+import org.limbo.flowjob.agent.Job;
 import org.limbo.flowjob.agent.Task;
+import org.limbo.flowjob.agent.TaskDispatcher;
+import org.limbo.flowjob.agent.TaskFactory;
+import org.limbo.flowjob.agent.repository.JobRepository;
 import org.limbo.flowjob.agent.repository.TaskRepository;
-import org.limbo.flowjob.api.constants.MsgConstants;
-import org.limbo.flowjob.api.constants.TaskStatus;
+import org.limbo.flowjob.agent.rpc.AgentBrokerRpc;
+import org.limbo.flowjob.agent.rpc.http.OkHttpAgentBrokerRpc;
+import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Devil
@@ -36,74 +45,101 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
 
-    public TaskService(TaskRepository taskRepository) {
+    private final JobRepository jobRepository;
+
+    private final TaskDispatcher taskDispatcher;
+
+    private final AgentBrokerRpc brokerRpc;
+
+    public TaskService(TaskRepository taskRepository, JobRepository jobRepository, TaskDispatcher taskDispatcher, AgentBrokerRpc brokerRpc) {
         this.taskRepository = taskRepository;
+        this.jobRepository = jobRepository;
+        this.taskDispatcher = taskDispatcher;
+        this.brokerRpc = brokerRpc;
+    }
+
+    public Task getById(String id) {
+        return taskRepository.getById(id);
+    }
+
+    public boolean batchSave(Collection<Task> tasks) {
+        return true;
     }
 
     /**
      * task 成功处理
      */
     // todo 事务
-    public void taskSuccess(Task task, Object result) {
-        boolean updated = taskRepository.success(task.getTaskId(), task.getContext().toString(), task.getJobAttributes().toString(), JacksonUtils.toJSONString(result));
+    public void taskSuccess(Task task, Attributes context, Object result) {
+        boolean updated = taskRepository.success(task.getTaskId(), task.getContext().toString(), JacksonUtils.toJSONString(result));
         if (!updated) { // 已经被更新 无需重复处理
             return;
         }
 
+        Job job = jobRepository.getById(task.getJobId());
+
         switch (task.getType()) {
             case STANDALONE:
             case REDUCE:
-                rpcFeedbackJobSuccess();
+                handleJobSuccess(job);
                 break;
             case SHARDING:
-                // 将待下发的 task 进行异步下发
-
+                dealShardingTaskSuccess(task);
                 break;
             case BROADCAST:
-                // 检测是否所有task都已经完成
-                // 如果已经完成 rpcFeedbackJobSuccess();
+                dealBroadcastTaskSuccess(task, job);
                 break;
             case MAP:
-                // 检测是否所有task都已经完成
-                // 如果已经完成 下发 ReduceTask
+                dealMapTaskSuccess(task);
                 break;
         }
 
-        // 检查task是否都已经完成
-        List<Task> tasks = taskRepository.getByJobInstanceId(task.getJobInstanceId());
-        boolean success = tasks.stream().allMatch(entity -> TaskStatus.SUCCEED == entity.getStatus());
-        if (!success) {
+    }
+
+    /**
+     * 将 task 待下发的 subTask 进行异步下发
+     */
+    public void dealShardingTaskSuccess(Task task) {
+        CommonThreadPool.IO.submit(() -> {
+            Long startId = 0L;
+            List<Task> subTasks = taskRepository.getByJobInstanceId(task.getJobId(), TaskType.MAP, startId, 1000);
+            while (CollectionUtils.isNotEmpty(subTasks)) {
+                for (Task subTask : subTasks) {
+                    taskDispatcher.dispatch(subTask);
+                }
+            }
+        });
+    }
+
+    /**
+     * 检测是否所有task都已经完成
+     * 如果已经完成 通知 job 完成
+     */
+    public void dealBroadcastTaskSuccess(Task task, Job job) {
+        if (taskRepository.countUnSuccess(task.getJobId(), TaskType.BROADCAST) > 0) {
             return; // 交由失败的task 或者后面还在执行的task去做后续逻辑处理
         }
-        // todo 聚合上下文内容
-        Attributes context = new Attributes();
-        for (Task t : tasks) {
-            Attributes taskContext = new Attributes(t.getContext().toMap());
-            context.put(taskContext);
+        handleJobSuccess(job);
+    }
+
+    private void handleJobSuccess(Job job) {
+        brokerRpc.feedbackJobSucceed(job);
+        jobRepository.delete(job.getId());
+    }
+
+    /**
+     * 检测是否所有task都已经完成
+     * 如果已经完成 下发 ReduceTask
+     */
+    public void dealMapTaskSuccess(Task task) {
+        if (taskRepository.countUnSuccess(task.getJobId(), TaskType.MAP) > 0) {
+            return; // 交由失败的task 或者后面还在执行的task去做后续逻辑处理
         }
-        // 判断当前 job 类型 进行后续处理
-//        switch (task.getJobType()) {
-//            case STANDALONE:
-//            case BROADCAST:
-//                rpcFeedbackJobSuccess();
-//                break;
-//            case MAP:
-//                handleMapJobSuccess(task, jobInstance);
-//                break;
-//            case MAP_REDUCE:
-//                handleMapReduceJobSuccess(task, jobInstance);
-//                break;
-//            default:
-//                throw new IllegalArgumentException(MsgConstants.UNKNOWN + " JobType in jobInstance:" + jobInstance.getJobInstanceId());
-//        }
-    }
 
-    public void rpcFeedbackJobSuccess() {
-
-    }
-
-    public void rpcFeedbackJobFail() {
-
+        Job job = jobRepository.getById(task.getJobId());
+        List<Map<String, Object>> mapResults = taskRepository.getAllTaskResult(task.getJobId(), TaskType.MAP);
+        Task reduceTask = TaskFactory.createTask(job, mapResults, TaskType.REDUCE, null);
+        taskDispatcher.dispatch(reduceTask);
     }
 
 
@@ -117,8 +153,10 @@ public class TaskService {
         if (StringUtils.isBlank(errorStackTrace)) {
             errorStackTrace = "";
         }
+        Job job = jobRepository.getById(task.getJobId());
         taskRepository.fail(task.getTaskId(), errorMsg, errorStackTrace);
-        rpcFeedbackJobFail();
+        brokerRpc.feedbackJobFail(job, errorMsg);
+        jobRepository.delete(job.getId());
         // 终止其它执行中的task
     }
 

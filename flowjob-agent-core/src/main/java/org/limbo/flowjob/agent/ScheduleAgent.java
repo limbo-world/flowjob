@@ -18,8 +18,11 @@
 
 package org.limbo.flowjob.agent;
 
+import org.limbo.flowjob.common.utils.attribute.Attributes;
+
 import java.net.URL;
 import java.time.Duration;
+import java.util.List;
 
 /**
  * @author Devil
@@ -52,14 +55,21 @@ public interface ScheduleAgent {
     void receiveJob(Job job);
 
     /**
+     * 接收子任务
+     * @param taskId
+     * @param attrs
+     */
+    void receiveSubTasks(String taskId, List<Object> attrs);
+
+    /**
      * task 成功处理
      */
-    void taskSuccess(Task task, Object result);
+    void taskSuccess(String taskId, Attributes context, Object result);
 
     /**
      * task失败处理
      */
-    void taskFail(Task task, String errorMsg, String errorStackTrace);
+    void taskFail(String taskId, Attributes context, String errorMsg, String errorStackTrace);
 
     /**
      * 停止当前 Worker
@@ -67,7 +77,7 @@ public interface ScheduleAgent {
     void stop();
 
     /**
-     * 队列可用
+     * 队列剩余可用数量
      */
     int availableQueueSize();
 

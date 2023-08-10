@@ -19,7 +19,7 @@
 package org.limbo.flowjob.broker.application.schedule;
 
 import org.limbo.flowjob.api.constants.PlanType;
-import org.limbo.flowjob.common.meta.JobInstance;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 
 import java.time.LocalDateTime;

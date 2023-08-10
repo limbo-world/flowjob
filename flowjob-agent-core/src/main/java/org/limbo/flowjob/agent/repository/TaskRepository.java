@@ -18,11 +18,13 @@
 
 package org.limbo.flowjob.agent.repository;
 
+import org.limbo.flowjob.agent.FlowjobConnectionFactory;
 import org.limbo.flowjob.agent.Task;
+import org.limbo.flowjob.api.constants.TaskType;
 
-import javax.sql.DataSource;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Devil
@@ -30,10 +32,10 @@ import java.util.List;
  */
 public class TaskRepository {
 
-    private DataSource dataSource;
+    private FlowjobConnectionFactory connectionFactory;
 
-    public TaskRepository(DataSource dataSource) {
-        this.dataSource = dataSource;
+    public TaskRepository(FlowjobConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory;
     }
 
     public void initTable() throws Exception {
@@ -44,19 +46,27 @@ public class TaskRepository {
         return null;
     }
 
-    public List<Task> getByJobInstanceId(String jobInstanceId) {
+    public List<Task> getByJobInstanceId(String jobId, TaskType type, Long startId, Integer limit) {
         return null;
+    }
+
+    public List<Map<String, Object>> getAllTaskResult(String jobId, TaskType type) {
+        return null;
+    }
+
+    public long countUnSuccess(String jobId, TaskType type) {
+        return 0L;
     }
 
     public boolean batchSave(Collection<Task> tasks) {
         return true;
     }
 
-    public boolean executing(String taskId, String workerId) {
+    public boolean executing(Task task) {
         return true;
     }
 
-    public boolean success(String taskId, String context, String jobAttributes, String result) {
+    public boolean success(String taskId, String context, String result) {
         return true;
     }
 

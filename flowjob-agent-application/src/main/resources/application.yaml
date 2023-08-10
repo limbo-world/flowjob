@@ -1,0 +1,10 @@
+server:
+  port: 8084
+spring:
+  application:
+    name: flowjob-agent
+
+flowjob:
+  agent:
+    brokers:
+      - http://localhost:8081

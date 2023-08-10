@@ -41,6 +41,8 @@ import javax.persistence.Table;
 @DynamicUpdate
 public class AgentEntity extends BaseEntity {
 
+    private static final long serialVersionUID = -6463518329027854352L;
+
     /**
      * 数据库自增id
      */
@@ -49,11 +51,6 @@ public class AgentEntity extends BaseEntity {
 
     @Id
     private String agentId;
-
-    /**
-     * 所属应用
-     */
-    private String appId;
 
     /**
      * 服务使用的通信协议
@@ -75,11 +72,6 @@ public class AgentEntity extends BaseEntity {
      * @see AgentStatus
      */
     private Integer status;
-
-    /**
-     * 任务队列剩余可排队数
-     */
-    private Integer availableQueueLimit;
 
     /**
      * 是否启用 不启用则不会进行任务下发

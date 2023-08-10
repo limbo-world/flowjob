@@ -21,9 +21,11 @@ package org.limbo.flowjob.broker.application.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.Setter;
 import org.limbo.flowjob.api.dto.ResponseDTO;
+import org.limbo.flowjob.api.dto.broker.AvailableWorkerDTO;
 import org.limbo.flowjob.api.param.broker.JobFeedbackParam;
 import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,9 +33,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
-import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.API_JOB_FEEDBACK;
-import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.API_PLAN_INSTANCE_JOB_SCHEDULE;
+import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.*;
 
 /**
  * @author Devil
@@ -60,10 +62,23 @@ public class JobRpcController {
      */
     @Operation(summary = "任务执行反馈接口")
     @PostMapping(API_JOB_FEEDBACK)
-    public ResponseDTO<Void> feedback(@Validated @NotNull(message = "no job") @RequestParam("jobInstanceId") String jobInstanceId,
-                                      @Valid @RequestBody JobFeedbackParam feedback) {
+    public ResponseDTO<Boolean> feedback(@Validated @NotNull(message = "no job") @RequestParam("jobInstanceId") String jobInstanceId,
+                                         @Valid @RequestBody JobFeedbackParam feedback) {
         scheduleProxy.feedback(jobInstanceId, feedback);
-        return ResponseDTO.<Void>builder().ok().build();
+        return ResponseDTO.<Boolean>builder().ok(true).build();
+    }
+
+    /**
+     * 任务执行反馈接口
+     */
+    @Operation(summary = "任务执行反馈接口")
+    @GetMapping(API_JOB_FILTER_WORKERS)
+    public ResponseDTO<List<AvailableWorkerDTO>> jobFilterWorkers(@Validated @NotNull(message = "no job") @RequestParam("jobInstanceId") String jobInstanceId,
+                                                                  @RequestParam(value = "filterExecutor", required = false) boolean filterExecutor,
+                                                                  @RequestParam(value = "filterTag", required = false) boolean filterTag,
+                                                                  @RequestParam(value = "filterResource", required = false) boolean filterResource) {
+        List<AvailableWorkerDTO> workerDTOS = scheduleProxy.jobFilterWorkers(jobInstanceId, filterExecutor, filterTag, filterResource);
+        return ResponseDTO.<List<AvailableWorkerDTO>>builder().ok(workerDTOS).build();
     }
 
 }

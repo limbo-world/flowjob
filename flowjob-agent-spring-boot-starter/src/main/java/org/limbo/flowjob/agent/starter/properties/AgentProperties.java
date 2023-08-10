@@ -65,7 +65,7 @@ public class AgentProperties {
     private Duration heartbeat = Duration.ofSeconds(2);
 
     /**
-     * 任务积压队列容量。如积压队列已满，则 worker 无法继续接收任务。为0情况下队列数大小等于任务执行并发数。
+     * 任务积压队列容量。如积压队列已满，则无法继续接收任务。为0情况下队列数大小等于任务执行并发数。
      */
     private int queueSize = 0;
 

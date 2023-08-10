@@ -20,9 +20,11 @@ package org.limbo.flowjob.broker.application.converter;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.api.dto.broker.AvailableWorkerDTO;
 import org.limbo.flowjob.api.dto.broker.BrokerDTO;
 import org.limbo.flowjob.api.dto.broker.BrokerTopologyDTO;
 import org.limbo.flowjob.broker.core.cluster.Node;
+import org.limbo.flowjob.broker.core.worker.Worker;
 
 import java.util.Collection;
 
@@ -41,6 +43,15 @@ public class BrokerConverter {
             }
         }
         return brokerTopologyDTO;
+    }
+
+    public static AvailableWorkerDTO toWorkerDTO(Worker worker) {
+        AvailableWorkerDTO workerDTO = new AvailableWorkerDTO();
+        workerDTO.setId(worker.getId());
+        workerDTO.setProtocol(worker.getUrl().getProtocol());
+        workerDTO.setHost(worker.getUrl().getHost());
+        workerDTO.setPort(worker.getUrl().getPort());
+        return workerDTO;
     }
 
 }

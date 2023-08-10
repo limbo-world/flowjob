@@ -22,22 +22,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.agent.Job;
 import org.limbo.flowjob.agent.Task;
+import org.limbo.flowjob.agent.TaskDispatcher;
 import org.limbo.flowjob.agent.TaskFactory;
-import org.limbo.flowjob.agent.dispatch.SimpleWorkerSelectArguments;
-import org.limbo.flowjob.agent.dispatch.WorkerFilter;
-import org.limbo.flowjob.agent.dispatch.WorkerSelector;
-import org.limbo.flowjob.agent.dispatch.WorkerSelectorFactory;
 import org.limbo.flowjob.agent.repository.JobRepository;
 import org.limbo.flowjob.agent.repository.TaskRepository;
 import org.limbo.flowjob.agent.rpc.AgentBrokerRpc;
-import org.limbo.flowjob.agent.rpc.AgentWorkerRpc;
+import org.limbo.flowjob.agent.worker.Worker;
 import org.limbo.flowjob.api.constants.MsgConstants;
-import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.common.exception.JobException;
-import org.limbo.flowjob.common.meta.Worker;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,17 +48,14 @@ public class JobService {
 
     private AgentBrokerRpc brokerRpc;
 
-    private AgentWorkerRpc workerRpc;
-
-    private WorkerSelectorFactory workerSelectorFactory;
+    private TaskDispatcher taskDispatcher;
 
     public JobService(JobRepository jobRepository, TaskRepository taskRepository, AgentBrokerRpc brokerRpc,
-                      AgentWorkerRpc workerRpc, WorkerSelectorFactory workerSelectorFactory) {
+                      TaskDispatcher taskDispatcher) {
         this.jobRepository = jobRepository;
         this.taskRepository = taskRepository;
         this.brokerRpc = brokerRpc;
-        this.workerRpc = workerRpc;
-        this.workerSelectorFactory = workerSelectorFactory;
+        this.taskDispatcher = taskDispatcher;
     }
 
     public boolean save(Job job) {
@@ -75,6 +66,10 @@ public class JobService {
         return jobRepository.count();
     }
 
+    public Job getById(String id) {
+        return jobRepository.getById(id);
+    }
+
     /**
      * 处理 job 调度
      *
@@ -82,7 +77,7 @@ public class JobService {
      */
     public void schedule(Job job) {
         // 根据job类型创建task
-        List<Task> tasks = createTasks(job);
+        List<Task> tasks = createRootTasks(job);
 
         // 如果可以创建的任务为空（只有广播任务）
         if (CollectionUtils.isEmpty(tasks)) {
@@ -91,15 +86,15 @@ public class JobService {
         }
 
         if (saveTasks(tasks)) {
-            brokerRpc.notifyJobDispatched(job.getJobInstanceId());
+            brokerRpc.notifyJobDispatched(job.getId());
 
             for (Task task : tasks) {
-//                boolean dispatched = workerRpc.dispatch(task);
-//                if (dispatched) {
-//                    taskRepository.executing(task.getTaskId(), task.getWorkerId());
-//                } else {
-//                    taskRepository.fail(task.getTaskId(), MsgConstants.DISPATCH_FAIL, null);
-//                }
+                boolean dispatched = taskDispatcher.dispatch(task);
+                if (dispatched) {
+                    taskRepository.executing(task);
+                } else {
+                    taskRepository.fail(task.getTaskId(), MsgConstants.DISPATCH_FAIL, null);
+                }
             }
         }
     }
@@ -111,6 +106,7 @@ public class JobService {
      */
     private void handleJobSuccess(Job job) {
         brokerRpc.feedbackJobSucceed(job);
+        jobRepository.delete(job.getId());
     }
 
     /**
@@ -118,7 +114,7 @@ public class JobService {
      *
      * @param tasks 列表
      */
-    public boolean saveTasks(List<Task> tasks) {
+    private boolean saveTasks(List<Task> tasks) {
         if (CollectionUtils.isEmpty(tasks)) {
             return true;
         }
@@ -130,39 +126,25 @@ public class JobService {
         return false;
     }
 
-    public List<Task> createTasks(Job job) {
-        List<Worker> workers = brokerRpc.availableWorkers(job.getJobInstanceId());
-        SimpleWorkerSelectArguments args = new SimpleWorkerSelectArguments(job.getExecutorName(), job.getDispatchOption(), job.getAttributes());
-        WorkerSelector workerSelector = workerSelectorFactory.newSelector(null);
+    public List<Task> createRootTasks(Job job) {
         List<Task> tasks = new ArrayList<>();
-
-        WorkerFilter workerFilter = new WorkerFilter(args, workers)
-                .filterExecutor()
-                .filterTags();
-
         switch (job.getType()) {
             case STANDALONE:
-                List<Worker> ws = workerFilter.filterResources().get();
-                Worker w = workerSelector.select(args, ws);
-                if (w != null) {
-                    tasks.add(TaskFactory.createTask(job, TaskType.STANDALONE, w.getId(), null));
-                }
+                tasks.add(TaskFactory.createTask(job, null, TaskType.STANDALONE, null));
                 break;
             case BROADCAST:
-                for (Worker worker : workerFilter.get()) {
-                    tasks.add(TaskFactory.createTask(job, TaskType.BROADCAST, worker.getId(), null));
+                List<Worker> workers = brokerRpc.availableWorkers(job.getId(), true, true, false);
+                for (Worker worker : workers) {
+                    Task task = TaskFactory.createTask(job, null, TaskType.BROADCAST, worker);
+                    tasks.add(task);
                 }
                 break;
             case MAP:
             case MAP_REDUCE:
-                List<Worker> wsm = workerFilter.filterResources().get();
-                Worker wm = workerSelector.select(args, wsm);
-                if (wm != null) {
-                    tasks.add(TaskFactory.createTask(job, TaskType.SHARDING, wm.getId(), null));
-                }
+                tasks.add(TaskFactory.createTask(job, null, TaskType.SHARDING, null));
                 break;
             default:
-                throw new JobException(job.getJobInstanceId(), MsgConstants.UNKNOWN + " job type:" + job.getType().type);
+                throw new JobException(job.getId(), MsgConstants.UNKNOWN + " job type:" + job.getType().type);
         }
 
         return tasks;

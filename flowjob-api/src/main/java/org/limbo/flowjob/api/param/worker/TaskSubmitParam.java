@@ -25,7 +25,6 @@ import org.limbo.flowjob.api.constants.TaskType;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -67,13 +66,8 @@ public class TaskSubmitParam implements Serializable {
     private Map<String, Object> attributes;
 
     /**
-     * 每个map task单独的属性
+     * 每个task单独的属性
      */
-    private Map<String, Object> mapAttributes;
-
-    /**
-     * reduce时候使用的
-     */
-    private List<Map<String, Object>> reduceAttributes;
+    private Object taskAttributes;
 
 }

@@ -16,7 +16,6 @@
 
 package org.limbo.flowjob.worker.starter;
 
-import lombok.Setter;
 import lombok.experimental.Delegate;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.starter.processor.event.ExecutorScannedEvent;
@@ -25,7 +24,7 @@ import org.limbo.flowjob.worker.starter.properties.WorkerProperties;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.event.EventListener;
 
-import javax.inject.Inject;
+import javax.annotation.Resource;
 
 /**
  * @author Brozen
@@ -36,7 +35,7 @@ public class SpringDelegatedWorker implements Worker, DisposableBean {
     @Delegate(types = Worker.class)
     private final Worker delegated;
 
-    @Setter(onMethod_ = @Inject)
+    @Resource
     private WorkerProperties properties;
 
 

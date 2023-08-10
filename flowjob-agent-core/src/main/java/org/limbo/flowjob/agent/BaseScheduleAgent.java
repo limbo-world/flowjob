@@ -20,28 +20,25 @@ package org.limbo.flowjob.agent;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.agent.constants.AgentStatus;
 import org.limbo.flowjob.agent.rpc.AgentBrokerRpc;
 import org.limbo.flowjob.agent.service.JobService;
 import org.limbo.flowjob.agent.service.TaskService;
-import org.limbo.flowjob.api.constants.JobStatus;
-import org.limbo.flowjob.api.constants.MsgConstants;
-import org.limbo.flowjob.api.constants.TaskStatus;
+import org.limbo.flowjob.api.constants.JobType;
+import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.common.exception.BrokerRpcException;
 import org.limbo.flowjob.common.exception.RegisterFailException;
 import org.limbo.flowjob.common.heartbeat.Heartbeat;
 import org.limbo.flowjob.common.heartbeat.HeartbeatPacemaker;
+import org.limbo.flowjob.common.rpc.EmbedRpcServer;
+import org.limbo.flowjob.common.rpc.RpcServerStatus;
 import org.limbo.flowjob.common.thread.NamedThreadFactory;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
-import org.limbo.flowjob.common.utils.json.JacksonUtils;
-import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.net.URL;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -56,17 +53,6 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @Slf4j
 public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
-
-    /**
-     * 通信基础 URL
-     */
-    @Getter
-    private URL url;
-
-    /**
-     * 远程调用
-     */
-    private AgentBrokerRpc brokerRpc;
 
     /**
      * 并发执行任务数量
@@ -86,23 +72,44 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
     /**
      * 是否已经启动
      */
-    private AtomicReference<AgentStatus> status;
+    private AtomicReference<RpcServerStatus> status;
 
     /**
      * 心跳起搏器
      */
     private HeartbeatPacemaker pacemaker;
 
+    /**
+     * 通信基础 URL
+     */
+    @Getter
+    private URL url;
+
+    /**
+     * 远程调用
+     */
+    private AgentBrokerRpc brokerRpc;
+
+    private EmbedRpcServer embedRpcServer;
+
     private JobService jobService;
 
     private TaskService taskService;
 
-    public BaseScheduleAgent(URL url, AgentBrokerRpc brokerRpc) {
+    public BaseScheduleAgent(URL url, AgentBrokerRpc brokerRpc, JobService jobService, TaskService taskService, EmbedRpcServer embedRpcServer) {
         Objects.requireNonNull(url, "URL can't be null");
         Objects.requireNonNull(brokerRpc, "remote client can't be null");
 
         this.url = url;
         this.brokerRpc = brokerRpc;
+        this.embedRpcServer = embedRpcServer;
+        this.jobService = jobService;
+        this.taskService = taskService;
+
+        this.concurrency = Runtime.getRuntime().availableProcessors();
+        this.queueSize = 4096;
+
+        this.status = embedRpcServer.getStatus();
     }
 
     @Override
@@ -115,54 +122,43 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
         Objects.requireNonNull(heartbeatPeriod);
 
         // 重复检测
-        if (!status.compareAndSet(AgentStatus.IDLE, AgentStatus.INITIALIZING)) {
+        if (!status.compareAndSet(RpcServerStatus.IDLE, RpcServerStatus.INITIALIZING)) {
             return;
         }
 
         Heartbeat heartbeat = this;
 
-        Timer startTimer = new Timer();
-        TimerTask startTask = new TimerTask() {
-            @Override
-            public void run() {
-                // 状态检测
-                if (AgentStatus.INITIALIZING != status.get()) {
-                    startTimer.cancel();
-                    return;
+        // 启动RPC服务
+        this.embedRpcServer.start();
+
+        // 初始化线程池
+        BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(queueSize <= 0 ? concurrency : queueSize);
+        threadPool = new ThreadPoolExecutor(
+                concurrency, concurrency,
+                5, TimeUnit.SECONDS, queue,
+                NamedThreadFactory.newInstance("FlowJobAgentExecutor"),
+                (r, e) -> {
+                    throw new RejectedExecutionException();
                 }
-                // 注册
-                try {
-                    registerSelfToBroker();
-                } catch (Exception e) {
-                    log.error("Register to broker has error", e);
-                    return;
-                }
+        );
 
-                // 启动心跳
-                if (pacemaker == null) {
-                    pacemaker = new HeartbeatPacemaker(heartbeat, Duration.ofSeconds(1));
-                }
-                pacemaker.start();
+        // 注册
+        try {
+            registerSelfToBroker();
+        } catch (Exception e) {
+            log.error("Register to broker has error", e);
+            return;
+        }
 
-                // 初始化线程池
-                BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(queueSize <= 0 ? concurrency : queueSize);
-                threadPool = new ThreadPoolExecutor(
-                        concurrency, concurrency,
-                        5, TimeUnit.SECONDS, queue,
-                        NamedThreadFactory.newInstance("FlowJobAgentExecutor"),
-                        (r, e) -> {
-                            throw new RejectedExecutionException();
-                        }
-                );
+        // 启动心跳
+        if (pacemaker == null) {
+            pacemaker = new HeartbeatPacemaker(heartbeat, Duration.ofSeconds(1));
+        }
+        pacemaker.start();
 
-                // 更新为运行中
-                status.compareAndSet(AgentStatus.INITIALIZING, AgentStatus.RUNNING);
-                log.info("worker start!");
-            }
-        };
-
-        startTimer.scheduleAtFixedRate(startTask, 0, 3000);
-
+        // 更新为运行中
+        status.compareAndSet(RpcServerStatus.INITIALIZING, RpcServerStatus.RUNNING);
+        log.info("schedule agent start!");
     }
 
     @Override
@@ -194,10 +190,9 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
     public void receiveJob(Job job) {
         assertRunning();
 
-        // 找到执行器，校验是否存在
         int availableQueueSize = availableQueueSize();
         if (jobService.count() >= availableQueueSize) {
-            throw new IllegalArgumentException("Worker's queue is full, limit: " + availableQueueSize);
+            throw new IllegalArgumentException("Agent's queue is full, limit: " + availableQueueSize);
         }
 
         jobService.save(job);
@@ -211,12 +206,51 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
     }
 
     @Override
-    public void taskSuccess(Task task, Object result) {
-        taskService.taskSuccess(task, result);
+    public void receiveSubTasks(String taskId, List<Object> attrs) {
+        assertRunning();
+
+        Task task = taskService.getById(taskId);
+        if (task == null) {
+            throw new IllegalArgumentException("task not found taskId:" + taskId);
+        }
+        Job job = jobService.getById(task.getJobId());
+        if (job == null) {
+            throw new IllegalArgumentException("task not found taskId:" + taskId + " jobId:" + task.getJobId());
+        }
+        if (JobType.MAP != job.getType() && JobType.MAP_REDUCE != job.getType()) {
+            throw new IllegalArgumentException("Job Type doesn't match taskId:" + taskId + " jobId:" + task.getJobId() + " type:" + job.getType());
+        }
+        List<Task> tasks = new ArrayList<>();
+        for (Object attr : attrs) {
+            Task newTask = TaskFactory.createTask(job, attr, TaskType.MAP, null);
+            tasks.add(newTask);
+        }
+        if (!taskService.batchSave(tasks)) {
+            throw new IllegalArgumentException("batch save task fail taskId:" + taskId);
+        }
     }
 
     @Override
-    public void taskFail(Task task, String errorMsg, String errorStackTrace) {
+    public void taskSuccess(String taskId, Attributes context, Object result) {
+        assertRunning();
+
+        Task task = taskService.getById(taskId);
+        if (task == null) {
+            throw new IllegalArgumentException("task not found taskId:" + taskId);
+        }
+
+        taskService.taskSuccess(task, context, result);
+    }
+
+    @Override
+    public void taskFail(String taskId, Attributes context, String errorMsg, String errorStackTrace) {
+        assertRunning();
+
+        Task task = taskService.getById(taskId);
+        if (task == null) {
+            throw new IllegalArgumentException("task not found taskId:" + taskId);
+        }
+
         taskService.taskFail(task, errorMsg, errorStackTrace);
     }
 
@@ -224,7 +258,7 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
      * 验证 worker 正在运行中
      */
     private void assertRunning() {
-        if (this.status.get() != AgentStatus.RUNNING) {
+        if (this.status.get() != RpcServerStatus.RUNNING) {
             throw new IllegalStateException("Agent is not running: " + this.status.get());
         }
     }
@@ -235,7 +269,7 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
 
     @Override
     public void stop() {
-        // todo
+        this.embedRpcServer.stop();
     }
 
     @Override

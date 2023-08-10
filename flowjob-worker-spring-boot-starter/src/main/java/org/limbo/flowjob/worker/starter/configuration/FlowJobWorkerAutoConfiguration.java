@@ -16,33 +16,35 @@
 
 package org.limbo.flowjob.worker.starter.configuration;
 
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.api.constants.Protocol;
+import org.limbo.flowjob.common.lb.BaseLBServer;
+import org.limbo.flowjob.common.lb.BaseLBServerRepository;
 import org.limbo.flowjob.common.lb.LBServerRepository;
 import org.limbo.flowjob.common.lb.LBStrategy;
 import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
+import org.limbo.flowjob.common.rpc.EmbedHttpRpcServer;
+import org.limbo.flowjob.common.rpc.EmbedRpcServer;
 import org.limbo.flowjob.common.utils.NetUtils;
 import org.limbo.flowjob.worker.core.domain.BaseWorker;
-import org.limbo.flowjob.worker.core.resource.CalculatingWorkerResource;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.domain.WorkerResources;
-import org.limbo.flowjob.common.lb.BaseLBServerRepository;
-import org.limbo.flowjob.common.lb.BaseLBServer;
+import org.limbo.flowjob.worker.core.resource.CalculatingWorkerResource;
+import org.limbo.flowjob.worker.core.rpc.WorkerAgentRpc;
 import org.limbo.flowjob.worker.core.rpc.WorkerBrokerRpc;
+import org.limbo.flowjob.worker.core.rpc.http.OkHttpAgentRpc;
 import org.limbo.flowjob.worker.core.rpc.http.OkHttpBrokerRpc;
 import org.limbo.flowjob.worker.starter.SpringDelegatedWorker;
+import org.limbo.flowjob.worker.starter.handler.HttpHandlerProcessor;
 import org.limbo.flowjob.worker.starter.processor.ExecutorMethodProcessor;
 import org.limbo.flowjob.worker.starter.properties.WorkerProperties;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 
@@ -61,13 +63,12 @@ import java.util.stream.Collectors;
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.ANY)
 @ConditionalOnProperty(prefix = "flowjob.worker", value = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(WorkerProperties.class)
-//@ComponentScan(basePackages = "org.limbo.flowjob.worker.starter.application") // todo 是否可以去掉
 public class FlowJobWorkerAutoConfiguration {
 
     private final WorkerProperties workerProps;
 
-    @Setter(onMethod_ = @Value("${server.port:8080}"))
-    private Integer httpServerPort = null;
+    //    @Setter(onMethod_ = @Value("${server.port:8080}")) // 不依赖主应用的端口 默认设置一个
+    private static final Integer DEFAULT_HTTP_SERVER_PORT = 9877;
 
     public FlowJobWorkerAutoConfiguration(WorkerProperties workerProps) {
         this.workerProps = workerProps;
@@ -85,12 +86,13 @@ public class FlowJobWorkerAutoConfiguration {
 
     /**
      * Worker 实例，
-     * @param rpc broker rpc 通信模块
+     *
+     * @param brokerRpc broker rpc 通信模块
      */
     @Bean
-    public Worker httpWorker(WorkerResources resources, WorkerBrokerRpc rpc) throws MalformedURLException {
+    public Worker httpWorker(WorkerResources resources, WorkerBrokerRpc brokerRpc, WorkerAgentRpc agentRpc) throws MalformedURLException {
         // 优先使用 SpringMVC 或 SpringWebflux 设置的端口号
-        Integer port = workerProps.getPort() != null ? workerProps.getPort() : httpServerPort;
+        Integer port = workerProps.getPort() != null ? workerProps.getPort() : DEFAULT_HTTP_SERVER_PORT;
 
         // 优先使用指定的 host，如未指定则自动寻找本机 IP
         String host = workerProps.getHost();
@@ -100,7 +102,10 @@ public class FlowJobWorkerAutoConfiguration {
 
         Assert.isTrue(port > 0, "Worker port must be a positive integer in range 1 ~ 65534");
         URL workerBaseUrl = new URL(workerProps.getProtocol().getValue(), host, port, "");
-        BaseWorker worker = new BaseWorker(workerProps.getName(), workerBaseUrl, resources, rpc);
+        HttpHandlerProcessor httpHandlerProcessor = new HttpHandlerProcessor();
+        EmbedRpcServer embedRpcServer = new EmbedHttpRpcServer(port, httpHandlerProcessor);
+        BaseWorker worker = new BaseWorker(workerProps.getName(), workerBaseUrl, resources, brokerRpc, agentRpc, embedRpcServer);
+        httpHandlerProcessor.setWorker(worker);
 
         // 将 tag 添加到 Worker
         if (CollectionUtils.isNotEmpty(workerProps.getTags())) {
@@ -119,7 +124,6 @@ public class FlowJobWorkerAutoConfiguration {
     public WorkerResources calculatingWorkerResource() {
         return new CalculatingWorkerResource(workerProps.getTaskConcurrency(), workerProps.getTaskQueueSize());
     }
-
 
     /**
      * Broker 通信模块
@@ -141,6 +145,14 @@ public class FlowJobWorkerAutoConfiguration {
         return httpBrokerRpc(brokerLoadBalancer, strategy);
     }
 
+    /**
+     * Agent 通信模块
+     */
+    @Bean
+    @ConditionalOnMissingBean(WorkerAgentRpc.class)
+    public WorkerAgentRpc agentRpc() {
+        return new OkHttpAgentRpc();
+    }
 
     /**
      * HTTP 协议的 broker 通信

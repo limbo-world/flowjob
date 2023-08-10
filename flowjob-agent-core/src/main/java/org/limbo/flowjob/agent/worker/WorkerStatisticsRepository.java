@@ -20,7 +20,6 @@ package org.limbo.flowjob.agent.worker;
 
 import org.limbo.flowjob.common.lb.LBServerStatistics;
 import org.limbo.flowjob.common.lb.LBServerStatisticsProvider;
-import org.limbo.flowjob.common.meta.Worker;
 
 import java.time.Duration;
 import java.time.Instant;

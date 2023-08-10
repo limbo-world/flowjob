@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Properties>
+        <Property name="LOG_EXCEPTION_CONVERSION_WORD">%xThrowable</Property>
+        <property name="pattern_base">%d{yy-MM-dd HH:mm:ss}  %5level %pid --- </property>
+        <property name="CONSOLE_LOG_PATTERN">${pattern_base} [%t] %-40.40c{1.} - %L : %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</property>
+    </Properties>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${sys:CONSOLE_LOG_PATTERN}"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <logger name="org.apache.commons" level="INFO" />
+        <logger name="org.apache.http" level="INFO" />
+        <logger name="org.springframework" level="INFO" />
+        <logger name="org.springframework.web" level="INFO" />
+        <logger name="com.netflix.discovery" level="INFO" />
+        <logger name="org.springframework.cloud.client.discovery" level="INFO" />
+        <Root level="DEBUG">
+            <AppenderRef ref="Console" />
+        </Root>
+    </Loggers>
+</Configuration>

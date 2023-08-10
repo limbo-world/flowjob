@@ -21,17 +21,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.common.exception.BrokerRpcException;
 import org.limbo.flowjob.common.exception.RegisterFailException;
+import org.limbo.flowjob.common.rpc.EmbedRpcServer;
+import org.limbo.flowjob.common.rpc.RpcServerStatus;
 import org.limbo.flowjob.common.thread.NamedThreadFactory;
 import org.limbo.flowjob.common.utils.SHAUtils;
 import org.limbo.flowjob.common.utils.collections.MultiValueMap;
 import org.limbo.flowjob.common.utils.collections.MutableMultiValueMap;
-import org.limbo.flowjob.worker.core.constants.WorkerStatus;
 import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.executor.TaskExecutor;
 import org.limbo.flowjob.worker.core.executor.TaskRepository;
 import org.limbo.flowjob.worker.core.rpc.WorkerAgentRpc;
 import org.limbo.flowjob.worker.core.rpc.WorkerBrokerRpc;
-import org.limbo.flowjob.worker.core.rpc.http.OkHttpAgentRpc;
 
 import java.net.URL;
 import java.time.Duration;
@@ -40,8 +40,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -78,6 +76,11 @@ public class BaseWorker implements Worker {
     private WorkerResources resource;
 
     /**
+     * 任务执行线程池
+     */
+    private ExecutorService threadPool;
+
+    /**
      * Worker 标签
      */
     private MultiValueMap<String, String, Set<String>> tags;
@@ -88,19 +91,16 @@ public class BaseWorker implements Worker {
     private final Map<String, TaskExecutor> executors;
 
     /**
-     * 任务执行线程池
-     */
-    private ExecutorService threadPool;
-
-    /**
      * 远程调用
      */
     private WorkerBrokerRpc brokerRpc;
 
+    private WorkerAgentRpc agentRpc;
+
     /**
      * 是否已经启动
      */
-    private AtomicReference<WorkerStatus> status;
+    private AtomicReference<RpcServerStatus> status;
 
     /**
      * 心跳起搏器
@@ -108,30 +108,42 @@ public class BaseWorker implements Worker {
     private WorkerHeartbeat pacemaker;
 
     /**
-     * 创建一个 Worker 实例
-     * @param name worker 实例 名称，如未指定则会随机生成一个
-     * @param baseURL worker 启动的 RPC 服务的 baseUrl
-     * @param resource worker 资源描述对象
-     * @param brokerRpc broker RPC 通信模块
+     * RPC服务
      */
-    public BaseWorker(String name, URL baseURL, WorkerResources resource, WorkerBrokerRpc brokerRpc) {
+    private EmbedRpcServer embedRpcServer;
+
+    /**
+     * 创建一个 Worker 实例
+     *
+     * @param name           worker 实例 名称，如未指定则会随机生成一个
+     * @param baseURL        worker 启动的 RPC 服务的 baseUrl
+     * @param resource       worker 资源描述对象
+     * @param brokerRpc      broker RPC 通信模块
+     * @param agentRpc       agent RPC 通信模块
+     * @param embedRpcServer 内置服务
+     */
+    public BaseWorker(String name, URL baseURL, WorkerResources resource, WorkerBrokerRpc brokerRpc, WorkerAgentRpc agentRpc, EmbedRpcServer embedRpcServer) {
         Objects.requireNonNull(baseURL, "URL can't be null");
-        Objects.requireNonNull(brokerRpc, "remote client can't be null");
+        Objects.requireNonNull(brokerRpc, "broker client can't be null");
+        Objects.requireNonNull(agentRpc, "agent client can't be null");
 
         this.name = StringUtils.isBlank(name) ? SHAUtils.sha1AndHex(baseURL.toString()).toUpperCase() : name;
         this.rpcBaseURL = baseURL;
         this.resource = resource;
         this.brokerRpc = brokerRpc;
+        this.agentRpc = agentRpc;
+        this.embedRpcServer = embedRpcServer;
 
         Supplier<Set<String>> valueFactory = () -> Collections.newSetFromMap(new ConcurrentHashMap<>());
         this.tags = new MutableMultiValueMap<>(new ConcurrentHashMap<>(), valueFactory);
         this.executors = new ConcurrentHashMap<>();
-        this.status = new AtomicReference<>(WorkerStatus.IDLE);
+        this.status = embedRpcServer.getStatus();
     }
 
 
     /**
      * {@inheritDoc}
+     *
      * @return
      */
     @Override
@@ -156,7 +168,8 @@ public class BaseWorker implements Worker {
 
     /**
      * {@inheritDoc}
-     * @param key 标签 key
+     *
+     * @param key   标签 key
      * @param value 标签 value
      */
     @Override
@@ -205,56 +218,46 @@ public class BaseWorker implements Worker {
         Objects.requireNonNull(heartbeatPeriod);
 
         // 重复检测
-        if (!status.compareAndSet(WorkerStatus.IDLE, WorkerStatus.INITIALIZING)) {
+        if (!status.compareAndSet(RpcServerStatus.IDLE, RpcServerStatus.INITIALIZING)) {
             return;
         }
 
         Worker worker = this;
 
-        Timer startTimer = new Timer();
-        TimerTask startTask = new TimerTask() {
-            @Override
-            public void run() {
-                // 状态检测
-                if (WorkerStatus.INITIALIZING != status.get()) {
-                    startTimer.cancel();
-                    return;
+        // 启动RPC服务
+        this.embedRpcServer.start(); // 目前由于服务在线程中异步处理，如果启动失败，应该终止broker的心跳启动
+
+        // 初始化线程池
+        BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(resource.queueSize() <= 0 ?
+                resource.concurrency() : resource.queueSize()
+        );
+        this.threadPool = new ThreadPoolExecutor(
+                resource.concurrency(), resource.concurrency(),
+                5, TimeUnit.SECONDS, queue,
+                NamedThreadFactory.newInstance("FlowJobWorkerTaskExecutor"),
+                (r, e) -> {
+                    throw new RejectedExecutionException();
                 }
-                // 注册
-                try {
-                    registerSelfToBroker();
-                } catch (Exception e) {
-                    log.error("Register to broker has error", e);
-                    return;
-                }
+        );
 
-                // 启动心跳
-                if (pacemaker == null) {
-                    pacemaker = new WorkerHeartbeat(worker, Duration.ofSeconds(1));
-                }
-                pacemaker.start();
+        // 注册
+        try {
+            registerSelfToBroker();
+        } catch (Exception e) {
+            log.error("Register to broker has error", e);
+            throw new RuntimeException(e);
+        }
 
-                // 初始化线程池
-                BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(resource.queueSize() <= 0 ?
-                        resource.concurrency() : resource.queueSize()
-                );
-                threadPool = new ThreadPoolExecutor(
-                        resource.concurrency(), resource.concurrency(),
-                        5, TimeUnit.SECONDS, queue,
-                        NamedThreadFactory.newInstance("FlowJobWorkerTaskExecutor"),
-                        (r, e) -> {
-                            throw new RejectedExecutionException();
-                        }
-                );
+        // 更新为运行中
+        status.compareAndSet(RpcServerStatus.INITIALIZING, RpcServerStatus.RUNNING);
 
-                // 更新为运行中
-                status.compareAndSet(WorkerStatus.INITIALIZING, WorkerStatus.RUNNING);
-                log.info("worker start!");
-            }
-        };
+        // 心跳
+        if (pacemaker == null) {
+            pacemaker = new WorkerHeartbeat(worker, Duration.ofSeconds(3));
+        }
+        pacemaker.start();
 
-        startTimer.scheduleAtFixedRate(startTask, 0, 3000);
-
+        log.info("worker start!");
     }
 
 
@@ -280,6 +283,8 @@ public class BaseWorker implements Worker {
      */
     @Override
     public void sendHeartbeat() {
+        assertWorkerRunning();
+
         try {
             brokerRpc.heartbeat(this);
         } catch (BrokerRpcException e) {
@@ -288,9 +293,9 @@ public class BaseWorker implements Worker {
         }
     }
 
-
     /**
      * 接收 Broker 发送来的任务
+     *
      * @param task 任务数据
      */
     @Override
@@ -308,7 +313,6 @@ public class BaseWorker implements Worker {
         }
 
         // 存储任务，并判断是否重复接收任务
-        WorkerAgentRpc agentRpc = new OkHttpAgentRpc(); // todo 根据协议创建
         ExecuteContext context = new ExecuteContext(taskRepository, executor, agentRpc, task);
         if (!taskRepository.save(context)) {
             log.warn("Receive task [{}], but already in repository", task.getTaskId());
@@ -329,7 +333,7 @@ public class BaseWorker implements Worker {
      * 验证 worker 正在运行中
      */
     private void assertWorkerRunning() {
-        if (this.status.get() != WorkerStatus.RUNNING) {
+        if (this.status.get() != RpcServerStatus.RUNNING) {
             throw new IllegalStateException("Worker is not running: " + this.status.get());
         }
     }
@@ -340,7 +344,7 @@ public class BaseWorker implements Worker {
      */
     @Override
     public void stop() {
-        // TODO ???
+        this.embedRpcServer.stop();
     }
 
 }

@@ -16,13 +16,12 @@
 
 package org.limbo.flowjob.agent.starter;
 
-import lombok.Setter;
 import lombok.experimental.Delegate;
 import org.limbo.flowjob.agent.ScheduleAgent;
 import org.limbo.flowjob.agent.starter.properties.AgentProperties;
 import org.springframework.beans.factory.DisposableBean;
 
-import javax.inject.Inject;
+import javax.annotation.Resource;
 
 /**
  * @author Brozen
@@ -33,7 +32,7 @@ public class SpringDelegatedAgent implements ScheduleAgent, DisposableBean {
     @Delegate(types = ScheduleAgent.class)
     private final ScheduleAgent delegated;
 
-    @Setter(onMethod_ = @Inject)
+    @Resource
     private AgentProperties properties;
 
 

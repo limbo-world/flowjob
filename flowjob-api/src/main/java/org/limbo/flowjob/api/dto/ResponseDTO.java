@@ -125,6 +125,17 @@ public class ResponseDTO<T> {
         }
 
         /**
+         * 设置响应状态码{@link HttpStatus#SC_BAD_REQUEST}，并设置提示信息
+         * @param message 错误提示信息
+         * @return 链式调用
+         */
+        public Builder<T> notFound(String message) {
+            this.code = HttpStatus.SC_NOT_FOUND;
+            this.message = message;
+            return this;
+        }
+
+        /**
          * 设置响应状态码{@link HttpStatus#SC_UNAUTHORIZED} 未认证，未登录，并设置提示信息
          * @return 链式调用
          */

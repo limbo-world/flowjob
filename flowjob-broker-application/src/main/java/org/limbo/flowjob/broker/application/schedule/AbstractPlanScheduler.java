@@ -40,8 +40,8 @@ import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.common.lb.LBStrategy;
 import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
-import org.limbo.flowjob.common.meta.JobInfo;
-import org.limbo.flowjob.common.meta.JobInstance;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.common.rpc.RPCInvocation;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
@@ -117,7 +117,7 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
         // 选择 agent
         List<ScheduleAgent> agents = new ArrayList<>();
         RPCInvocation lbInvocation = RPCInvocation.builder()
-                .path(HttpAgentApi.API_SUBMIT_JOB)
+                .path(HttpAgentApi.API_JOB_SUBMIT)
                 .build();
         ScheduleAgent agent = lbStrategy.select(agents, lbInvocation).orElse(null);
         if (agent == null) {

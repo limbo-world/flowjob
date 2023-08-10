@@ -25,7 +25,7 @@ import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
 import org.limbo.flowjob.broker.application.task.JobInstanceScheduleTask;
 import org.limbo.flowjob.broker.application.task.PlanInstanceScheduleTask;
 import org.limbo.flowjob.broker.application.task.PlanScheduleTask;
-import org.limbo.flowjob.common.meta.JobInstance;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.job.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;

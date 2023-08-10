@@ -26,20 +26,35 @@ import org.limbo.flowjob.api.constants.ExecuteResult;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.TriggerType;
+import org.limbo.flowjob.api.constants.WorkerStatus;
+import org.limbo.flowjob.api.dto.broker.AvailableWorkerDTO;
 import org.limbo.flowjob.api.param.broker.JobFeedbackParam;
+import org.limbo.flowjob.broker.application.converter.BrokerConverter;
 import org.limbo.flowjob.broker.application.service.PlanInstanceService;
 import org.limbo.flowjob.broker.application.task.JobInstanceScheduleTask;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
-import org.limbo.flowjob.common.meta.JobInstance;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.job.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.utils.Verifies;
+import org.limbo.flowjob.broker.core.worker.Worker;
+import org.limbo.flowjob.broker.core.worker.dispatch.WorkerFilter;
+import org.limbo.flowjob.broker.dao.converter.WorkerEntityConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.WorkerExecutorEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.WorkerMetricEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.WorkerTagEntityRepo;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -49,9 +64,13 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * 代理 平衡事务
@@ -81,7 +100,20 @@ public class ScheduleProxy implements ApplicationContextAware {
     private PlanRepository planRepository;
 
     @Setter(onMethod_ = @Inject)
+    private WorkerEntityRepo workerEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private WorkerExecutorEntityRepo workerExecutorEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private WorkerTagEntityRepo workerTagEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private WorkerMetricEntityRepo workerMetricEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
     private PlanInstanceEntityRepo planInstanceEntityRepo;
+
 
     private final Map<PlanType, PlanScheduler> schedulers = new EnumMap<>(PlanType.class);
 
@@ -152,7 +184,7 @@ public class ScheduleProxy implements ApplicationContextAware {
      * 任务执行反馈
      *
      * @param jobInstanceId Id
-     * @param param  反馈参数
+     * @param param         反馈参数
      */
     public void feedback(String jobInstanceId, JobFeedbackParam param) {
         executeWithAspect(unused -> {
@@ -211,6 +243,52 @@ public class ScheduleProxy implements ApplicationContextAware {
                 log.error("task schedule fail! jobInstance={}", jobInstance, e);
             }
         }
+    }
+
+    /**
+     * 任务可下发节点
+     */
+    public List<AvailableWorkerDTO> jobFilterWorkers(String jobInstanceId, boolean filterExecutor, boolean filterTag, boolean filterResource) {
+
+        JobInstance jobInstance = jobInstanceRepository.get(jobInstanceId);
+        JobInfo jobInfo = jobInstance.getJobInfo();
+
+        List<WorkerEntity> workerEntities = workerEntityRepo.findByStatusAndEnabledAndDeleted(WorkerStatus.RUNNING.status, true, false);
+
+        if (CollectionUtils.isEmpty(workerEntities)) {
+            return Collections.emptyList();
+        }
+        // 转换
+        List<String> workerIds = workerEntities.stream().map(WorkerEntity::getWorkerId).collect(Collectors.toList());
+        List<WorkerExecutorEntity> workerExecutorEntities = workerExecutorEntityRepo.findByWorkerIdIn(workerIds);
+        Map<String, List<WorkerExecutorEntity>> workerExecutorMap = workerExecutorEntities.stream().collect(Collectors.groupingBy(WorkerExecutorEntity::getWorkerId));
+        List<WorkerTagEntity> workerTagEntities = workerTagEntityRepo.findByWorkerIdIn(workerIds);
+        Map<String, List<WorkerTagEntity>> workerTagMap = workerTagEntities.stream().collect(Collectors.groupingBy(WorkerTagEntity::getWorkerId));
+        List<WorkerMetricEntity> workerMetricEntities = workerMetricEntityRepo.findByWorkerIdIn(workerIds);
+        Map<String, WorkerMetricEntity> workerMetricMap = workerMetricEntities.stream().collect(Collectors.toMap(WorkerMetricEntity::getWorkerId, e -> e));
+
+        List<Worker> aliveWorkers = new ArrayList<>();
+        for (WorkerEntity entity : workerEntities) {
+            List<WorkerExecutorEntity> executors = workerExecutorMap.get(entity.getWorkerId());
+            List<WorkerTagEntity> tags = workerTagMap.get(entity.getWorkerId());
+            WorkerMetricEntity metric = workerMetricMap.get(entity.getWorkerId());
+            Worker worker = WorkerEntityConverter.toWorker(entity, executors, tags, metric);
+            aliveWorkers.add(worker);
+        }
+
+        // 过滤
+        WorkerFilter workerFilter = new WorkerFilter(jobInfo.getExecutorName(), jobInfo.getDispatchOption().getTagFilters(), aliveWorkers);
+        if (filterExecutor) {
+            workerFilter.filterExecutor();
+        }
+        if (filterTag) {
+            workerFilter.filterTags();
+        }
+        if (filterResource) {
+            workerFilter.filterResources();
+        }
+
+        return workerFilter.get().stream().map(BrokerConverter::toWorkerDTO).collect(Collectors.toList());
     }
 
 }

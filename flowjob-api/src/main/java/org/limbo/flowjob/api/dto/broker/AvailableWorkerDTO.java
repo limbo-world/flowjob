@@ -34,6 +34,9 @@ public class AvailableWorkerDTO {
     @Schema(description = "ID")
     private String id;
 
+    @Schema(title = "通信协议")
+    private String protocol;
+
     /**
      * 节点主机名
      */

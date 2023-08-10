@@ -19,8 +19,8 @@
 package org.limbo.flowjob.broker.core.agent;
 
 import org.limbo.flowjob.api.param.agent.JobSubmitParam;
-import org.limbo.flowjob.common.meta.JobInfo;
-import org.limbo.flowjob.common.meta.JobInstance;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 
 /**
  * @author Devil

@@ -18,23 +18,17 @@
 
 package org.limbo.flowjob.agent;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.agent.worker.Worker;
 import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
-import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 作业执行上下文
@@ -50,11 +44,9 @@ public class Task {
 
     private String taskId;
 
-    /**
-     * 前置 task
-     */
-    private String preTaskId;
+    private String jobId;
 
+    private String executorName;
 
     /**
      * 类型
@@ -69,11 +61,22 @@ public class Task {
     /**
      * 此分发执行此作业上下文的worker
      */
-    private String workerId;
+    private Worker worker;
 
-    private String executorName;
-
+    /**
+     * 预期触发时间
+     */
     private LocalDateTime triggerAt;
+
+    /**
+     * 开始时间
+     */
+    private LocalDateTime startAt;
+
+    /**
+     * 结束时间
+     */
+    private LocalDateTime endAt;
 
     /**
      * 全局上下文
@@ -88,7 +91,6 @@ public class Task {
     /**
      * task参数属性
      */
-    @Setter(AccessLevel.NONE)
     private Object taskAttributes;
 
     public void setContext(Attributes context) {
@@ -98,41 +100,12 @@ public class Task {
         this.context = context;
     }
 
-    public void setTaskAttributes(TaskType type, String json) {
-        if (StringUtils.isBlank(json)) {
-            return;
-        }
-        if (TaskType.REDUCE == type) {
-            List<Attributes> attrs = new ArrayList<>();
-            List<Map<String, Object>> list = JacksonUtils.parseObject(json, new TypeReference<List<Map<String, Object>>>() {
-            });
-            if (CollectionUtils.isNotEmpty(list)) {
-                for (Map<String, Object> map : list) {
-                    attrs.add(new Attributes(map));
-                }
-            }
-            this.taskAttributes = attrs;
-        } else {
-            Map<String, Object> map = JacksonUtils.parseObject(json, new TypeReference<Map<String, Object>>() {
-            });
-            this.taskAttributes = new Attributes(map);
-        }
-    }
-
     public Attributes getMapAttributes() {
         return (Attributes) taskAttributes;
     }
 
-    public void setMapAttributes(Attributes mapAttributes) {
-        this.taskAttributes = mapAttributes;
-    }
-
     public List<Attributes> getReduceAttributes() {
         return (List<Attributes>) taskAttributes;
-    }
-
-    public void setReduceAttributes(List<Attributes> reduceAttributes) {
-        this.taskAttributes = reduceAttributes;
     }
 
 }

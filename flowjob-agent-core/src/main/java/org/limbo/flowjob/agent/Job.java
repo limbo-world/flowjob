@@ -19,8 +19,8 @@
 package org.limbo.flowjob.agent;
 
 import lombok.Data;
-import org.limbo.flowjob.common.meta.DispatchOption;
 import org.limbo.flowjob.api.constants.JobType;
+import org.limbo.flowjob.api.constants.LoadBalanceType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
 /**
@@ -33,7 +33,7 @@ public class Job {
     /**
      * 实例id
      */
-    private String jobInstanceId;
+    private String id;
 
     /**
      * 类型
@@ -47,8 +47,10 @@ public class Job {
      */
     private String executorName;
 
-
-    private DispatchOption dispatchOption;
+    /**
+     * 负载策略
+     */
+    private LoadBalanceType loadBalanceType;
 
     /**
      * 上下文元数据

@@ -25,8 +25,8 @@ import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.plan.NormalPlan;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.utils.Verifies;
-import org.limbo.flowjob.common.meta.JobInfo;
-import org.limbo.flowjob.common.meta.JobInstance;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
@@ -59,6 +59,9 @@ public class StandalonePlanScheduler extends AbstractPlanScheduler {
         if (num < 1) {
             return; // 被其他更新
         }
+
+        // 更新 plan 上下文
+        planInstanceEntityRepo.updateContext(jobInstance.getPlanInstanceId(), jobInstance.getContext().toString());
 
         String planInstanceId = jobInstance.getPlanInstanceId();
         handlerPlanComplete(planInstanceId, true);

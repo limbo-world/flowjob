@@ -23,13 +23,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.agent.Task;
 import org.limbo.flowjob.agent.rpc.AgentWorkerRpc;
+import org.limbo.flowjob.agent.worker.Worker;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.param.worker.TaskSubmitParam;
 import org.limbo.flowjob.common.exception.RegisterFailException;
 import org.limbo.flowjob.common.http.OKHttpRpc;
 import org.limbo.flowjob.common.lb.BaseLBServer;
-import org.limbo.flowjob.common.meta.Worker;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
 import java.net.URL;
@@ -48,19 +48,17 @@ import static org.limbo.flowjob.api.constants.rpc.HttpWorkerApi.API_SUBMIT_TASK;
 @Slf4j
 public class OkHttpAgentWorkerRpc extends OKHttpRpc<BaseLBServer> implements AgentWorkerRpc {
 
-    private static final String BASE_URL = "http://0.0.0.0:8080";
-
     public OkHttpAgentWorkerRpc() {
         super(null, null);
     }
 
     @Override
     public boolean dispatch(Worker worker, Task task) {
-        String baseUrl = BASE_URL;
-        if (worker != null) {
-            URL url = worker.getUrl();
-            baseUrl = url.getProtocol() + "://" + url.getHost() + ":" + url.getPort();
+        if (worker == null) {
+            return false;
         }
+        URL url = worker.getUrl();
+        String baseUrl = url.getProtocol() + "://" + url.getHost() + ":" + url.getPort();
         ResponseDTO<Boolean> response = executePost(baseUrl + API_SUBMIT_TASK, toTaskSubmitParam(task), new TypeReference<ResponseDTO<Boolean>>() {
         });
 
@@ -81,7 +79,7 @@ public class OkHttpAgentWorkerRpc extends OKHttpRpc<BaseLBServer> implements Age
 
         switch (task.getType()) {
             case MAP:
-                taskSubmitParam.setMapAttributes(task.getMapAttributes() == null ? Collections.emptyMap() : task.getMapAttributes().toMap());
+                taskSubmitParam.setTaskAttributes(task.getMapAttributes() == null ? Collections.emptyMap() : task.getMapAttributes().toMap());
                 break;
             case REDUCE:
                 List<Map<String, Object>> reduceAttrs = new LinkedList<>();
@@ -91,7 +89,7 @@ public class OkHttpAgentWorkerRpc extends OKHttpRpc<BaseLBServer> implements Age
                             .map(Attributes::toMap)
                             .collect(Collectors.toList());
                 }
-                taskSubmitParam.setReduceAttributes(reduceAttrs);
+                taskSubmitParam.setTaskAttributes(reduceAttrs);
                 break;
             default:
                 break;

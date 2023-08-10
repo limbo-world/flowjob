@@ -18,10 +18,10 @@
 
 package org.limbo.flowjob.agent;
 
+import org.limbo.flowjob.agent.worker.Worker;
 import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
-
-import java.time.LocalDateTime;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 /**
  * @author Devil
@@ -29,16 +29,15 @@ import java.time.LocalDateTime;
  */
 public class TaskFactory {
 
-    public static Task createTask(Job job, TaskType type, String workerId, LocalDateTime triggerAt) {
+    public static Task createTask(Job job, Object taskAttributes, TaskType type, Worker worker) {
         Task task = new Task();
-        task.setJobInstanceId(job.getJobInstanceId());
         task.setType(type);
         task.setStatus(TaskStatus.SCHEDULING);
-        task.setExecutorName(job.getExecutorName());
         task.setContext(job.getContext());
         task.setJobAttributes(job.getAttributes());
-        task.setWorkerId(workerId);
-        task.setTriggerAt(triggerAt);
+        task.setTaskAttributes(taskAttributes);
+        task.setWorker(worker);
+        task.setTriggerAt(TimeUtils.currentLocalDateTime());
         return task;
     }
 

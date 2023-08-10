@@ -20,7 +20,7 @@ package org.limbo.flowjob.broker.application.schedule;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.common.meta.JobInstance;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 
 import java.util.Collections;
 import java.util.List;

@@ -23,4 +23,10 @@ spring:
       hibernate:
         enable_lazy_load_no_trans: true # 解决懒加载问题 no Session
 
+flowjob:
+  agent:
+    enabled: false
+    brokers:
+      - http://localhost:8081
+
 

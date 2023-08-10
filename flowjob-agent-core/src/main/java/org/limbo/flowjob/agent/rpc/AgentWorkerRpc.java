@@ -19,7 +19,8 @@
 package org.limbo.flowjob.agent.rpc;
 
 import org.limbo.flowjob.agent.Task;
-import org.limbo.flowjob.common.meta.Worker;
+import org.limbo.flowjob.agent.worker.Worker;
+import org.limbo.flowjob.api.constants.Protocol;
 
 /**
  * @author Devil
@@ -29,7 +30,7 @@ public interface AgentWorkerRpc {
 
     /**
      * 发送一个作业到worker执行。当worker接受此task后，将触发返回
-     * @param worker 对应节点
+     * @param worker 下发的worker
      * @param task 任务
      * @return worker接受task后触发
      */

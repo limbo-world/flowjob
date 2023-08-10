@@ -57,7 +57,7 @@ public class WorkerHeartbeat {
 
     public WorkerHeartbeat(Worker worker, Duration period) {
         this.worker = worker;
-        this.heartbeatScheduler = new Timer("WorkerHeartbeat-" + worker.getName());
+        this.heartbeatScheduler = new Timer("[Flowjob-Heartbeat-Timer]-" + worker.getName());
         this.period = period;
         this.beating = false;
     }

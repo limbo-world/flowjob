@@ -24,7 +24,7 @@ package org.limbo.flowjob.api.constants.rpc;
  */
 public interface HttpAgentApi {
 
-    String API_SUBMIT_JOB = "/api/v1/rpc/job";
+    String API_JOB_SUBMIT = "/api/v1/rpc/job";
 
     String API_TASK_SUBMIT = "/api/v1/rpc/task";
 

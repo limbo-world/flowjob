@@ -133,7 +133,7 @@ public class AgentService {
         agent.setHost(options.getUrl().getHost());
         agent.setPort(options.getUrl().getPort());
         agent.setStatus(AgentStatus.TERMINATED.status);
-        agent.setAvailableQueueLimit(options.getAvailableResource().getAvailableQueueLimit());
+//        agent.setAvailableQueueLimit(options.getAvailableResource().getAvailableQueueLimit());
         return agent;
     }
 }
