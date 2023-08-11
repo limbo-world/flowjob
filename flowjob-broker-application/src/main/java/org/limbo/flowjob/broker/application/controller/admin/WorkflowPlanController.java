@@ -19,25 +19,13 @@
 package org.limbo.flowjob.broker.application.controller.admin;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Setter;
-import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.ResponseDTO;
-import org.limbo.flowjob.api.dto.console.PlanDTO;
 import org.limbo.flowjob.api.dto.console.PlanInfoDTO;
-import org.limbo.flowjob.api.dto.console.PlanVersionDTO;
 import org.limbo.flowjob.api.param.console.PlanParam;
-import org.limbo.flowjob.api.param.console.PlanQueryParam;
-import org.limbo.flowjob.api.param.console.PlanVersionParam;
-import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
-import org.limbo.flowjob.broker.application.service.PlanService;
-import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
-import org.limbo.flowjob.common.utils.time.TimeUtils;
+import org.limbo.flowjob.api.param.console.WorkflowPlanUpdateParam;
+import org.limbo.flowjob.broker.application.service.WorkflowPlanService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -57,7 +45,7 @@ import javax.validation.constraints.NotBlank;
 public class WorkflowPlanController {
 
     @Setter(onMethod_ = @Inject)
-    private PlanService planService;
+    private WorkflowPlanService workflowPlanService;
 
     /**
      * 新增工作流计划
@@ -65,7 +53,7 @@ public class WorkflowPlanController {
     @Operation(summary = "新增工作流计划")
     @PostMapping("/api/v1/workflow-plan/add")
     public ResponseDTO<String> add(@Validated @RequestBody PlanParam.WorkflowPlanParam options) {
-        return ResponseDTO.ok(planService.add(options));
+        return ResponseDTO.ok(workflowPlanService.add(options));
     }
 
 
@@ -73,23 +61,18 @@ public class WorkflowPlanController {
      * 替换工作流计划
      */
     @Operation(summary = "替换工作流计划")
-    @Parameters({
-            @Parameter(name = "planId", in = ParameterIn.PATH, description = "计划ID")
-    })
     @PostMapping("/api/v1/workflow-plan/update")
-    public ResponseDTO<String> update(@NotBlank(message = "ID不能为空") @RequestParam("planId") String planId,
-                                      @Validated @RequestBody PlanParam.WorkflowPlanParam options) {
-        return ResponseDTO.ok(planService.update(planId, options));
+    public ResponseDTO<String> update(@Validated @RequestBody WorkflowPlanUpdateParam param) {
+        return ResponseDTO.ok(workflowPlanService.update(param));
     }
-
 
     /**
      * 获取工作流 plan 详情
      */
     @Operation(summary = "详情")
     @GetMapping("/api/v1/workflow-plan/get")
-    public ResponseDTO<PlanInfoDTO.NormalPlanInfoDTO> get(@NotBlank(message = "ID不能为空") @RequestParam("planId") String planId) {
-        return ResponseDTO.<PlanInfoDTO.NormalPlanInfoDTO>builder().ok(planService.get(planId)).build();
+    public ResponseDTO<PlanInfoDTO.WorkflowPlanInfoDTO> get(@NotBlank(message = "ID不能为空") @RequestParam("planId") String planId) {
+        return ResponseDTO.ok(workflowPlanService.getWorkflowPlan(planId));
     }
 
 

@@ -18,31 +18,28 @@
 
 package org.limbo.flowjob.broker.application.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.PlanType;
-import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.console.PlanDTO;
 import org.limbo.flowjob.api.dto.console.PlanInfoDTO;
 import org.limbo.flowjob.api.dto.console.PlanVersionDTO;
-import org.limbo.flowjob.api.dto.console.ScheduleOptionDTO;
 import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.PlanQueryParam;
 import org.limbo.flowjob.api.param.console.PlanVersionParam;
 import org.limbo.flowjob.api.param.console.ScheduleOptionParam;
 import org.limbo.flowjob.broker.application.component.SlotManager;
 import org.limbo.flowjob.broker.application.converter.PlanConverter;
+import org.limbo.flowjob.broker.application.converter.factory.PlanFactory;
 import org.limbo.flowjob.broker.application.support.JpaHelper;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
@@ -51,7 +48,6 @@ import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
-import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -92,46 +88,21 @@ public class PlanService {
     private SlotManager slotManager;
 
     @Setter(onMethod_ = @Inject)
+    private PlanFactory factory;
+
+    @Setter(onMethod_ = @Inject)
     private PlanConverter planConverter;
 
     @Transactional
     public String add(PlanParam.NormalPlanParam param) {
-        JobInfo jobInfo = planConverter.covertJob(param);
+        JobInfo jobInfo = factory.createJob(param);
         return save(null, PlanType.STANDALONE, param, JacksonUtils.toJSONString(jobInfo));
     }
 
     @Transactional
     public String update(String planId, PlanParam.NormalPlanParam param) {
-        JobInfo jobInfo = planConverter.covertJob(param);
+        JobInfo jobInfo = factory.createJob(param);
         return save(planId, PlanType.STANDALONE, param, JacksonUtils.toJSONString(jobInfo));
-    }
-
-    @Transactional
-    public String add(PlanParam.WorkflowPlanParam param) {
-        Verifies.notEmpty(param.getWorkflow(), "Workflow can't be empty with " + PlanType.WORKFLOW.name() + " Type");
-        DAG<WorkflowJobInfo> workflow = planConverter.convertJob(param.getWorkflow());
-        String jobInfo;
-        try {
-            jobInfo = workflow.json();
-        } catch (JsonProcessingException e) {
-            log.error("To DAG Json failed! dag={}", workflow, e);
-            throw new VerifyException("Dag Node verify fail!");
-        }
-        return save(null, PlanType.WORKFLOW, param, jobInfo);
-    }
-
-    @Transactional
-    public String update(String planId, PlanParam.WorkflowPlanParam param) {
-        Verifies.notEmpty(param.getWorkflow(), "Workflow can't be empty with " + PlanType.WORKFLOW.name() + " Type");
-        DAG<WorkflowJobInfo> workflow = planConverter.convertJob(param.getWorkflow());
-        String jobInfo;
-        try {
-            jobInfo = workflow.json();
-        } catch (JsonProcessingException e) {
-            log.error("To DAG Json failed! dag={}", workflow, e);
-            throw new VerifyException("Dag Node verify fail!");
-        }
-        return save(planId, PlanType.WORKFLOW, param, jobInfo);
     }
 
     @Transactional
@@ -243,15 +214,7 @@ public class PlanService {
         dto.setName(planInfoEntity.getName());
         dto.setDescription(planInfoEntity.getDescription());
         dto.setTriggerType(TriggerType.parse(planInfoEntity.getTriggerType()));
-
-        ScheduleOptionDTO scheduleOptionDTO = new ScheduleOptionDTO();
-        scheduleOptionDTO.setScheduleType(ScheduleType.parse(planInfoEntity.getScheduleType()));
-        scheduleOptionDTO.setScheduleStartAt(planInfoEntity.getScheduleStartAt());
-        scheduleOptionDTO.setScheduleEndAt(planInfoEntity.getScheduleEndAt());
-        scheduleOptionDTO.setScheduleDelay(planInfoEntity.getScheduleDelay());
-        scheduleOptionDTO.setScheduleInterval(planInfoEntity.getScheduleInterval());
-        scheduleOptionDTO.setScheduleCron(planInfoEntity.getScheduleCron());
-        dto.setScheduleOption(scheduleOptionDTO);
+        dto.setScheduleOption(planConverter.toScheduleOptionDTO(planInfoEntity));
 
         JobInfo jobInfo = JacksonUtils.parseObject(planInfoEntity.getJobInfo(), JobInfo.class);
         planConverter.assemble(dto, jobInfo);
