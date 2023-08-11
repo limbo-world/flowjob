@@ -66,6 +66,19 @@ public class ResponseDTO<T> {
         return new Builder<>();
     }
 
+
+    /**
+     * 获取一个响应类，并设置响应状态码{@link HttpStatus#SC_OK}，填充数据为入参 data
+     * @param data 响应数据
+     * @param <T> 响应数据类型
+     */
+    public static <T> ResponseDTO<T> ok(T data) {
+        return ResponseDTO.<T>builder()
+                .ok(data)
+                .build();
+    }
+
+
     /**
      * 请求是否成功
      * @return
@@ -73,6 +86,7 @@ public class ResponseDTO<T> {
     public boolean success() {
         return this.code == HttpStatus.SC_OK;
     }
+
 
     /**
      * 响应类Response的Builder
