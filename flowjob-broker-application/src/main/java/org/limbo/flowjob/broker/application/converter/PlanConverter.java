@@ -24,6 +24,7 @@ import org.limbo.flowjob.api.dto.console.DispatchOptionDTO;
 import org.limbo.flowjob.api.dto.console.PlanInfoDTO;
 import org.limbo.flowjob.api.dto.console.RetryOptionDTO;
 import org.limbo.flowjob.api.dto.console.TagFilterDTO;
+import org.limbo.flowjob.api.dto.console.WorkflowJobDTO;
 import org.limbo.flowjob.api.param.console.DispatchOptionParam;
 import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.RetryOptionParam;
@@ -57,6 +58,10 @@ public class PlanConverter {
         return new DAG<>(convertJobs(jobParams));
     }
 
+
+    /**
+     * 生成非 DAG 作业实体
+     */
     public JobInfo covertJob(PlanParam.NormalPlanParam jobParam) {
         JobInfo jobInfo = new JobInfo();
         jobInfo.setId("0");
@@ -68,6 +73,10 @@ public class PlanConverter {
         return jobInfo;
     }
 
+
+    /**
+     * 填充作业信息到作业 DTO 中，非 DAG 作业
+     */
     public void assemble(PlanInfoDTO.NormalPlanInfoDTO dto, JobInfo jobInfo) {
         dto.setType(jobInfo.getType());
         dto.setAttributes(jobInfo.getAttributes().toMap());
@@ -77,7 +86,9 @@ public class PlanConverter {
     }
 
 
-
+    /**
+     * 生成 DAG 作业实体列表
+     */
     public List<WorkflowJobInfo> convertJobs(List<WorkflowJobParam> jobParams) {
         List<WorkflowJobInfo> joblist = Lists.newArrayList();
         for (WorkflowJobParam jobParam : jobParams) {
@@ -89,7 +100,7 @@ public class PlanConverter {
 
 
     /**
-     * 生成单个作业
+     * 生成单个 DAG 作业
      */
     public WorkflowJobInfo convertJob(WorkflowJobParam param) {
         WorkflowJobInfo jobInfo = new WorkflowJobInfo();
@@ -104,6 +115,26 @@ public class PlanConverter {
         jobInfo.setDispatchOption(convertJobDispatchOption(param.getDispatchOption()));
         jobInfo.setExecutorName(param.getExecutorName());
         return jobInfo;
+    }
+
+
+    /**
+     * 转换为单个 DAG 作业 DTO
+     */
+    public WorkflowJobDTO toWorkflowJobDTO(WorkflowJobInfo job) {
+        WorkflowJobDTO dto = new WorkflowJobDTO();
+        dto.setId(job.getId());
+        dto.setName(job.getName());
+        dto.setDescription(job.getDescription());
+        dto.setType(job.getType());
+        dto.setAttributes(job.getAttributes().toMap());
+        dto.setRetryOption(convertToRetryOption(job.getRetryOption()));
+        dto.setDispatchOption(convertJobDispatchOption(job.getDispatchOption()));
+        dto.setExecutorName(job.getExecutorName());
+        dto.setChildren(job.getChildrenIds());
+        dto.setTriggerType(job.getTriggerType());
+        dto.setContinueWhenFail(job.isContinueWhenFail());
+        return dto;
     }
 
 
@@ -135,6 +166,10 @@ public class PlanConverter {
                 .build();
     }
 
+
+    /**
+     * 转换为作业重试 DTO
+     */
     public RetryOptionDTO convertToRetryOption(RetryOption option) {
         if (option == null) {
             return new RetryOptionDTO();
@@ -145,6 +180,7 @@ public class PlanConverter {
                 .retryType(option.getRetryInterval())
                 .build();
     }
+
 
     /**
      * 生成作业分发参数
@@ -158,6 +194,10 @@ public class PlanConverter {
                 .build();
     }
 
+
+    /**
+     * 转换为作业分发参数 DTO
+     */
     public DispatchOptionDTO convertJobDispatchOption(DispatchOption option) {
         return DispatchOptionDTO.builder()
                 .loadBalanceType(option.getLoadBalanceType())
@@ -167,6 +207,10 @@ public class PlanConverter {
                 .build();
     }
 
+
+    /**
+     * 生成作业的过滤标签
+     */
     public List<TagFilterOption> covertTagFilterOption(List<TagFilterParam> params) {
         if (CollectionUtils.isEmpty(params)) {
             return Collections.emptyList();
@@ -178,6 +222,10 @@ public class PlanConverter {
                 .build()).collect(Collectors.toList());
     }
 
+
+    /**
+     * 转换为作业过滤标签 DTO
+     */
     public List<TagFilterDTO> covertTagFilterOptionDTO(List<TagFilterOption> options) {
         if (CollectionUtils.isEmpty(options)) {
             return Collections.emptyList();
