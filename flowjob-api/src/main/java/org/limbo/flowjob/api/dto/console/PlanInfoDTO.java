@@ -23,7 +23,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.limbo.flowjob.api.constants.JobType;
 import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.api.param.console.WorkflowJobParam;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -134,7 +133,7 @@ public class PlanInfoDTO implements Serializable {
          * 此执行计划对应的所有作业
          */
         @Schema(title = "工作流对应的所有作业")
-        private List<@Valid WorkflowJobParam> workflow;
+        private List<@Valid WorkflowJobDTO> workflow;
     }
 
 }

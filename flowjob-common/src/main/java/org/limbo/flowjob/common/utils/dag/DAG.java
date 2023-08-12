@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.io.Serializable;
@@ -251,8 +252,13 @@ public class DAG<T extends DAGNode> implements Serializable {
     /**
      * 返回json字符串
      */
-    public String json() throws JsonProcessingException {
-        return mapper.writeValueAsString(nodes.values());
+    public String json() {
+        try {
+            return mapper.writeValueAsString(nodes.values());
+        } catch (JsonProcessingException e) {
+            log.error("DAG to json failed", e);
+            return StringUtils.EMPTY;
+        }
     }
 
 

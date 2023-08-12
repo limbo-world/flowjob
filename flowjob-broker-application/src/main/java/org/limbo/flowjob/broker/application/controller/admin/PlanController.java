@@ -100,31 +100,6 @@ public class PlanController {
         return ResponseDTO.<PlanInfoDTO.NormalPlanInfoDTO>builder().ok(planService.get(planId)).build();
     }
 
-    /**
-     * 新增工作流计划
-     */
-    @Operation(summary = "新增工作流计划")
-    @PostMapping("/api/v1/workflow-plan/add")
-    public ResponseDTO<String> add(@Validated @RequestBody PlanParam.WorkflowPlanParam options) {
-        return ResponseDTO.<String>builder()
-                .ok(planService.add(options))
-                .build();
-    }
-
-    /**
-     * 替换工作流计划
-     */
-    @Operation(summary = "替换工作流计划")
-    @Parameters({
-            @Parameter(name = "planId", in = ParameterIn.PATH, description = "计划ID")
-    })
-    @PostMapping("/api/v1/workflow-plan/update")
-    public ResponseDTO<String> update(@NotBlank(message = "ID不能为空") @RequestParam("planId") String planId,
-                                      @Validated @RequestBody PlanParam.WorkflowPlanParam options) {
-        return ResponseDTO.<String>builder()
-                .ok(planService.update(planId, options))
-                .build();
-    }
 
     /**
      * 启动计划
