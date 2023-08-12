@@ -103,7 +103,10 @@ public class AgentService {
         Verifies.requireNotNull(agent, "agent不存在！");
 
         // 更新
-        agentEntityRepo.updateQueue(agentId, option.getAvailableResource().getAvailableQueueLimit());
+        agent.setAvailableQueueLimit(option.getAvailableResource().getAvailableQueueLimit());
+        agent.setLastHeartbeatAt(TimeUtils.currentLocalDateTime());
+        agent.setStatus(AgentStatus.RUNNING.status);
+        agentEntityRepo.saveAndFlush(agent);
 
         if (log.isDebugEnabled()) {
             log.debug("receive heartbeat from " + agentId);
@@ -132,8 +135,9 @@ public class AgentService {
         agent.setProtocol(options.getUrl().getProtocol());
         agent.setHost(options.getUrl().getHost());
         agent.setPort(options.getUrl().getPort());
-        agent.setStatus(AgentStatus.TERMINATED.status);
-//        agent.setAvailableQueueLimit(options.getAvailableResource().getAvailableQueueLimit());
+        agent.setStatus(AgentStatus.RUNNING.status);
+        agent.setAvailableQueueLimit(options.getAvailableResource().getAvailableQueueLimit());
+        agent.setLastHeartbeatAt(TimeUtils.currentLocalDateTime());
         return agent;
     }
 }

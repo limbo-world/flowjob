@@ -73,12 +73,12 @@ public class WorkerProperties {
     /**
      * 任务执行并发数量。worker 将允许同时执行的任务个数，同时执行的任务数量超出此限制后，后续接收的任务将放入积压队列中。默认为系统 CPU 核数。
      */
-    private int taskConcurrency = Runtime.getRuntime().availableProcessors();
+    private int concurrency = Runtime.getRuntime().availableProcessors();
 
     /**
      * 任务积压队列容量。如积压队列已满，则 worker 无法继续接收任务。为0情况下队列数大小等于任务执行并发数。
      */
-    private int taskQueueSize = 0;
+    private int queueSize = 0;
 
     /**
      * worker 节点标签，可用于下发任务时进行过滤。

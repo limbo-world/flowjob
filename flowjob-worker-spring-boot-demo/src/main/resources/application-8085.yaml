@@ -8,7 +8,7 @@ flowjob:
   worker:
     brokers:
       - http://localhost:8081
-    taskQueueSize: 64
+    queue-size: 64
     tags:
       - a=b
       - c=d

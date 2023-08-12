@@ -19,6 +19,7 @@
 package org.limbo.flowjob.agent;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * @author Devil
@@ -28,6 +29,6 @@ public interface FlowjobConnectionFactory {
 
     void init();
 
-    Connection getConnection();
+    Connection getConnection() throws SQLException;
 
 }

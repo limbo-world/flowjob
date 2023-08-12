@@ -21,9 +21,6 @@ package org.limbo.flowjob.broker.dao.repositories;
 import org.limbo.flowjob.broker.dao.entity.AgentEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 /**
  * @author Devil
@@ -32,9 +29,5 @@ import org.springframework.data.repository.query.Param;
 public interface AgentEntityRepo extends JpaRepository<AgentEntity, String>, JpaSpecificationExecutor<AgentEntity> {
 
     AgentEntity findByHostAndPort(String host, Integer port);
-
-    @Modifying(clearAutomatically = true)
-    @Query(value = "update AgentEntity set availableQueueLimit = :availableQueueLimit where agentId = :agentId")
-    int updateQueue(@Param("agentId") String agentId, @Param("availableQueueLimit") Integer availableQueueLimit);
 
 }

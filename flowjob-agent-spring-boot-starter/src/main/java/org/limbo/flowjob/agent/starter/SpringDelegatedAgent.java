@@ -18,22 +18,30 @@ package org.limbo.flowjob.agent.starter;
 
 import lombok.experimental.Delegate;
 import org.limbo.flowjob.agent.ScheduleAgent;
+import org.limbo.flowjob.agent.starter.component.AgentStartEvent;
 import org.limbo.flowjob.agent.starter.properties.AgentProperties;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.context.event.EventListener;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Resource;
 
 /**
  * @author Brozen
  * @since 2022-09-11
  */
-public class SpringDelegatedAgent implements ScheduleAgent, DisposableBean {
+public class SpringDelegatedAgent implements ScheduleAgent, SmartInitializingSingleton, ApplicationEventPublisherAware, DisposableBean {
 
     @Delegate(types = ScheduleAgent.class)
     private final ScheduleAgent delegated;
 
     @Resource
     private AgentProperties properties;
+
+    private ApplicationEventPublisher eventPublisher;
 
 
     public SpringDelegatedAgent(ScheduleAgent delegated) {
@@ -49,4 +57,23 @@ public class SpringDelegatedAgent implements ScheduleAgent, DisposableBean {
         delegated.stop();
     }
 
+    @Override
+    public void setApplicationEventPublisher(@Nonnull ApplicationEventPublisher applicationEventPublisher) {
+        this.eventPublisher = applicationEventPublisher;
+    }
+
+    @Override
+    public void afterSingletonsInstantiated() {
+        if (properties.isAutoStart()) {
+            eventPublisher.publishEvent(new AgentStartEvent());
+        }
+    }
+
+    /**
+     * 监听到 AgentStartEvent 事件后，启动
+     */
+    @EventListener(AgentStartEvent.class)
+    public void onReady(AgentStartEvent event) {
+        delegated.start(properties.getHeartbeat());
+    }
 }

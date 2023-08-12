@@ -18,6 +18,7 @@
 
 package org.limbo.flowjob.agent.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.agent.CommonThreadPool;
@@ -28,7 +29,6 @@ import org.limbo.flowjob.agent.TaskFactory;
 import org.limbo.flowjob.agent.repository.JobRepository;
 import org.limbo.flowjob.agent.repository.TaskRepository;
 import org.limbo.flowjob.agent.rpc.AgentBrokerRpc;
-import org.limbo.flowjob.agent.rpc.http.OkHttpAgentBrokerRpc;
 import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -36,6 +36,7 @@ import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Devil
@@ -71,7 +72,8 @@ public class TaskService {
      */
     // todo 事务
     public void taskSuccess(Task task, Attributes context, Object result) {
-        boolean updated = taskRepository.success(task.getTaskId(), task.getContext().toString(), JacksonUtils.toJSONString(result));
+        task.setContext(context);
+        boolean updated = taskRepository.success(task);
         if (!updated) { // 已经被更新 无需重复处理
             return;
         }
@@ -101,12 +103,14 @@ public class TaskService {
      */
     public void dealShardingTaskSuccess(Task task) {
         CommonThreadPool.IO.submit(() -> {
-            Long startId = 0L;
-            List<Task> subTasks = taskRepository.getByJobInstanceId(task.getJobId(), TaskType.MAP, startId, 1000);
+            String startId = "0";
+            List<Task> subTasks = taskRepository.getByJobAndType(task.getJobId(), TaskType.MAP, startId, 1000);
             while (CollectionUtils.isNotEmpty(subTasks)) {
                 for (Task subTask : subTasks) {
                     taskDispatcher.dispatch(subTask);
                 }
+                startId = subTasks.get(subTasks.size() - 1).getTaskId();
+                subTasks = taskRepository.getByJobAndType(task.getJobId(), TaskType.MAP, startId, 1000);
             }
         });
     }
@@ -137,7 +141,11 @@ public class TaskService {
         }
 
         Job job = jobRepository.getById(task.getJobId());
-        List<Map<String, Object>> mapResults = taskRepository.getAllTaskResult(task.getJobId(), TaskType.MAP);
+        List<String> results = taskRepository.getAllTaskResult(task.getJobId(), TaskType.MAP);
+        List<Map<String, Object>> mapResults = results.stream()
+                .map(r -> JacksonUtils.parseObject(r, new TypeReference<Map<String, Object>>() {
+                }))
+                .collect(Collectors.toList());
         Task reduceTask = TaskFactory.createTask(job, mapResults, TaskType.REDUCE, null);
         taskDispatcher.dispatch(reduceTask);
     }
@@ -154,7 +162,9 @@ public class TaskService {
             errorStackTrace = "";
         }
         Job job = jobRepository.getById(task.getJobId());
-        taskRepository.fail(task.getTaskId(), errorMsg, errorStackTrace);
+        task.setErrorMsg(errorMsg);
+        task.setErrorStackTrace(errorStackTrace);
+        taskRepository.fail(task);
         brokerRpc.feedbackJobFail(job, errorMsg);
         jobRepository.delete(job.getId());
         // 终止其它执行中的task

@@ -42,7 +42,6 @@ import org.limbo.flowjob.worker.starter.processor.ExecutorMethodProcessor;
 import org.limbo.flowjob.worker.starter.properties.WorkerProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -60,7 +59,6 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Configuration
-@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.ANY)
 @ConditionalOnProperty(prefix = "flowjob.worker", value = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(WorkerProperties.class)
 public class FlowJobWorkerAutoConfiguration {
@@ -122,7 +120,7 @@ public class FlowJobWorkerAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(WorkerResources.class)
     public WorkerResources calculatingWorkerResource() {
-        return new CalculatingWorkerResource(workerProps.getTaskConcurrency(), workerProps.getTaskQueueSize());
+        return new CalculatingWorkerResource(workerProps.getConcurrency(), workerProps.getQueueSize());
     }
 
     /**

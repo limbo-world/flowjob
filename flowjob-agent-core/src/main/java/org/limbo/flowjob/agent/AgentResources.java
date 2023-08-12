@@ -14,25 +14,27 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.worker.demo;
-
-import org.springframework.boot.WebApplicationType;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
+package org.limbo.flowjob.agent;
 
 /**
- * @author Devil
- * @since 2021/7/24
+ * @author Brozen
+ * @since 2022-09-05
  */
-@SpringBootApplication(scanBasePackages = "org.limbo.flowjob.worker.demo")
-public class WorkerDemoBootstrap {
+public interface AgentResources {
 
-    public static void main(String[] args) {
-        new SpringApplicationBuilder()
-                .web(WebApplicationType.SERVLET)
-                .sources(WorkerDemoBootstrap.class)
-                .build()
-                .run(args);
-    }
+    /**
+     * 并发执行任务数量
+     */
+    int concurrency();
+
+    /**
+     * 任务积压队列大小
+     */
+    int queueSize();
+
+    /**
+     * 剩余可分配任务数
+     */
+    int availableQueueSize();
 
 }

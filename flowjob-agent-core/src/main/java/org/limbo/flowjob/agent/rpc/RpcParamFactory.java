@@ -34,7 +34,7 @@ public class RpcParamFactory {
      */
     public static AgentRegisterParam registerParam(ScheduleAgent agent) {
         AgentResourceParam availableResource = new AgentResourceParam();
-        availableResource.setAvailableQueueLimit(agent.availableQueueSize());
+        availableResource.setAvailableQueueLimit(agent.getResource().availableQueueSize());
 
         AgentRegisterParam registerParam = new AgentRegisterParam();
         registerParam.setUrl(agent.getURL());
@@ -47,7 +47,7 @@ public class RpcParamFactory {
      */
     public static AgentHeartbeatParam heartbeatParam(ScheduleAgent agent) {
         AgentResourceParam availableResource = new AgentResourceParam();
-        availableResource.setAvailableQueueLimit(agent.availableQueueSize());
+        availableResource.setAvailableQueueLimit(agent.getResource().availableQueueSize());
 
         AgentHeartbeatParam registerParam = new AgentHeartbeatParam();
         registerParam.setAvailableResource(availableResource);

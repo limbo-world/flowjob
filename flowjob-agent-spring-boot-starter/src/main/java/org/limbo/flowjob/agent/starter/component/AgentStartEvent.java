@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.limbo.flowjob.worker.demo;
+package org.limbo.flowjob.agent.starter.component;
 
-import org.springframework.boot.WebApplicationType;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.ApplicationEvent;
+
+import java.time.Instant;
 
 /**
- * @author Devil
- * @since 2021/7/24
+ * @author Brozen
+ * @since 2022-09-22
  */
-@SpringBootApplication(scanBasePackages = "org.limbo.flowjob.worker.demo")
-public class WorkerDemoBootstrap {
+public class AgentStartEvent extends ApplicationEvent {
 
-    public static void main(String[] args) {
-        new SpringApplicationBuilder()
-                .web(WebApplicationType.SERVLET)
-                .sources(WorkerDemoBootstrap.class)
-                .build()
-                .run(args);
+    private static final long serialVersionUID = -3142336688682707775L;
+
+    /**
+     * 生成 Worker ready 事件
+     */
+    public AgentStartEvent() {
+        super(Instant.now());
     }
 
 }

@@ -93,7 +93,8 @@ public class JobService {
                 if (dispatched) {
                     taskRepository.executing(task);
                 } else {
-                    taskRepository.fail(task.getTaskId(), MsgConstants.DISPATCH_FAIL, null);
+                    task.setErrorMsg(MsgConstants.DISPATCH_FAIL);
+                    taskRepository.fail(task);
                 }
             }
         }

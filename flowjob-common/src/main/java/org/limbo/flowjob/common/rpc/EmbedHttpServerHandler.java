@@ -72,13 +72,13 @@ public class EmbedHttpServerHandler extends SimpleChannelInboundHandler<FullHttp
     }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+    public void channelReadComplete(ChannelHandlerContext ctx) {
         ctx.flush();
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        log.error(">>>>>>>>>>> xxl-job provider netty_http server caught exception", cause);
+        log.error("Flowjob Rpc server caught exception", cause);
         ctx.close();
     }
 
@@ -86,7 +86,7 @@ public class EmbedHttpServerHandler extends SimpleChannelInboundHandler<FullHttp
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent) {
             ctx.channel().close();
-            log.debug(">>>>>>>>>>> xxl-job provider netty_http server close an idle channel.");
+            log.debug("Flowjob Rpc server close an idle channel.");
         } else {
             super.userEventTriggered(ctx, evt);
         }

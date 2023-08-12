@@ -20,7 +20,7 @@ package org.limbo.flowjob.agent.rpc.http;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.agent.Task;
 import org.limbo.flowjob.agent.rpc.AgentWorkerRpc;
 import org.limbo.flowjob.agent.worker.Worker;
@@ -30,14 +30,12 @@ import org.limbo.flowjob.api.param.worker.TaskSubmitParam;
 import org.limbo.flowjob.common.exception.RegisterFailException;
 import org.limbo.flowjob.common.http.OKHttpRpc;
 import org.limbo.flowjob.common.lb.BaseLBServer;
-import org.limbo.flowjob.common.utils.attribute.Attributes;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.net.URL;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.limbo.flowjob.api.constants.rpc.HttpWorkerApi.API_SUBMIT_TASK;
 
@@ -79,17 +77,21 @@ public class OkHttpAgentWorkerRpc extends OKHttpRpc<BaseLBServer> implements Age
 
         switch (task.getType()) {
             case MAP:
-                taskSubmitParam.setTaskAttributes(task.getMapAttributes() == null ? Collections.emptyMap() : task.getMapAttributes().toMap());
+                if (StringUtils.isBlank(task.getTaskAttributes())) {
+                    taskSubmitParam.setTaskAttributes(Collections.emptyMap());
+                } else {
+                    taskSubmitParam.setTaskAttributes(JacksonUtils.parseObject(task.getTaskAttributes(), new TypeReference<Map<String, Object>>() {
+                    }));
+                }
                 break;
             case REDUCE:
-                List<Map<String, Object>> reduceAttrs = new LinkedList<>();
-                if (CollectionUtils.isNotEmpty(task.getReduceAttributes())) {
-                    reduceAttrs = task.getReduceAttributes().stream()
-                            .filter(attrs -> attrs != null && !attrs.isEmpty())
-                            .map(Attributes::toMap)
-                            .collect(Collectors.toList());
+                if (StringUtils.isBlank(task.getTaskAttributes())) {
+                    taskSubmitParam.setTaskAttributes(Collections.emptyList());
+                } else {
+                    List<Map<String, Object>> reduceAttrs = JacksonUtils.parseObject(task.getTaskAttributes(), new TypeReference<List<Map<String, Object>>>() {
+                    });
+                    taskSubmitParam.setTaskAttributes(reduceAttrs);
                 }
-                taskSubmitParam.setTaskAttributes(reduceAttrs);
                 break;
             default:
                 break;

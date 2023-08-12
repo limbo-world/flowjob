@@ -21,6 +21,7 @@ package org.limbo.flowjob.agent;
 import org.limbo.flowjob.agent.worker.Worker;
 import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 /**
@@ -35,7 +36,7 @@ public class TaskFactory {
         task.setStatus(TaskStatus.SCHEDULING);
         task.setContext(job.getContext());
         task.setJobAttributes(job.getAttributes());
-        task.setTaskAttributes(taskAttributes);
+        task.setTaskAttributes(taskAttributes == null ? "" : JacksonUtils.toJSONString(taskAttributes));
         task.setWorker(worker);
         task.setTriggerAt(TimeUtils.currentLocalDateTime());
         return task;

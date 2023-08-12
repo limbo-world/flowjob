@@ -38,6 +38,11 @@ public class AgentProperties {
     private boolean enabled = true;
 
     /**
+     * 是否自动启动 agent
+     */
+    private boolean autoStart = true;
+
+    /**
      * 节点连接列表
      */
     private List<URL> brokers;
@@ -65,9 +70,28 @@ public class AgentProperties {
     private Duration heartbeat = Duration.ofSeconds(2);
 
     /**
+     * 任务执行并发数量。允许同时执行的任务个数，同时执行的任务数量超出此限制后，后续接收的任务将放入积压队列中。默认为系统 CPU 核数。
+     */
+    private int concurrency = Runtime.getRuntime().availableProcessors();
+
+    /**
      * 任务积压队列容量。如积压队列已满，则无法继续接收任务。为0情况下队列数大小等于任务执行并发数。
      */
-    private int queueSize = 0;
+    private int queueSize = 1024;
+
+    /**
+     * 数据连接地址
+     */
+    private String datasourceUrl;
+
+    private String datasourceUsername;
+
+    private String datasourcePassword;
+
+    /**
+     * 是否初始化数据库 如果是持久化 task 的则选 false 交由运维管理
+     */
+    private boolean initTable;
 
 
 }

@@ -24,6 +24,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.Protocol;
+import org.limbo.flowjob.api.constants.WorkerStatus;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.broker.WorkerRegisterDTO;
 import org.limbo.flowjob.api.dto.console.WorkerDTO;
@@ -41,7 +42,6 @@ import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
-import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerSlotEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
 import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
@@ -147,6 +147,9 @@ public class WorkerService {
         // 查询worker并校验
         Worker worker = workerRepository.get(workerId);
         Verifies.requireNotNull(worker, "worker不存在！");
+
+        // 更新状态
+        workerEntityRepo.updateStatus(workerId, WorkerStatus.RUNNING.status);
 
         // 更新metric
         worker.heartbeat(WorkerConverter.toWorkerMetric(option));

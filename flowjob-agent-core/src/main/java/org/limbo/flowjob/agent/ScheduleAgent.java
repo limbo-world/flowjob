@@ -77,8 +77,8 @@ public interface ScheduleAgent {
     void stop();
 
     /**
-     * 队列剩余可用数量
+     * 获取分配的资源
      */
-    int availableQueueSize();
+    AgentResources getResource();
 
 }

@@ -28,6 +28,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.time.LocalDateTime;
 
 /**
  * @author Devil
@@ -72,6 +73,16 @@ public class AgentEntity extends BaseEntity {
      * @see AgentStatus
      */
     private Integer status;
+
+    /**
+     * 任务队列剩余可排队数
+     */
+    private Integer availableQueueLimit;
+
+    /**
+     * 上次心跳上报时间戳，毫秒
+     */
+    private LocalDateTime lastHeartbeatAt;
 
     /**
      * 是否启用 不启用则不会进行任务下发

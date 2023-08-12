@@ -18,60 +18,264 @@
 
 package org.limbo.flowjob.agent.repository;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.agent.FlowjobConnectionFactory;
 import org.limbo.flowjob.agent.Task;
+import org.limbo.flowjob.agent.worker.Worker;
+import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
+import org.limbo.flowjob.common.utils.time.DateTimeUtils;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Devil
  * @since 2023/8/3
  */
+@Slf4j
 public class TaskRepository {
 
     private FlowjobConnectionFactory connectionFactory;
+
+    private static final String TABLE_NAME = "flowjob_task";
 
     public TaskRepository(FlowjobConnectionFactory connectionFactory) {
         this.connectionFactory = connectionFactory;
     }
 
-    public void initTable() throws Exception {
+    public boolean existTable() throws SQLException {
+        try (Connection conn = connectionFactory.getConnection()) {
+            DatabaseMetaData metaData = conn.getMetaData();
+            ResultSet tables = metaData.getTables(null, null, TABLE_NAME, null);
+            return tables.next();
+        }
+    }
 
+    public void initTable() throws SQLException {
+        try (Connection conn = connectionFactory.getConnection(); Statement stat = conn.createStatement()) {
+            String dropSql = "DROP TABLE IF EXISTS `" + TABLE_NAME + "`;";
+            stat.execute(dropSql);
+
+            String createSql = "CREATE TABLE `" + TABLE_NAME + "`\n" +
+                    "(\n" +
+                    "    `task_id`           bigint unsigned NOT NULL AUTO_INCREMENT,\n" +
+                    "    `job_id`            varchar(255) NOT NULL DEFAULT '',\n" +
+                    "    `worker_id`         varchar(255) NOT NULL DEFAULT '',\n" +
+                    "    `worker_address`    varchar(255) NOT NULL DEFAULT '',\n" +
+                    "    `executor_name`     varchar(255) NOT NULL DEFAULT '',\n" +
+                    "    `context`           varchar(255) NOT NULL DEFAULT '',\n" +
+                    "    `job_attributes`    varchar(255) NOT NULL DEFAULT '',\n" +
+                    "    `task_attributes`   varchar(255) NOT NULL DEFAULT '',\n" +
+                    "    `type`              int                                                    NOT NULL,\n" +
+                    "    `status`            int                                                    NOT NULL,\n" +
+                    "    `trigger_at`        datetime(6) DEFAULT NULL,\n" +
+                    "    `start_at`          datetime(6) DEFAULT NULL,\n" +
+                    "    `end_at`            datetime(6) DEFAULT NULL,\n" +
+                    "    `result`            varchar(255) NOT NULL DEFAULT '',\n" +
+                    "    `error_msg`         varchar(255) NOT NULL DEFAULT '',\n" +
+                    "    `error_stack_trace` text DEFAULT NULL,\n" +
+                    "    `created_at`        datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,\n" +
+                    "    `updated_at`        datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n" +
+                    "    PRIMARY KEY (`task_id`),\n" +
+                    "    index       `idx_job_type` (`job_id`, `type`)\n" +
+                    ")";
+            stat.execute(createSql);
+        }
     }
 
     public Task getById(String id) {
-        return null;
+        String sql = "select * from " + TABLE_NAME + " where task_id = ?";
+        try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                return convert(rs);
+            }
+        } catch (Exception e) {
+            log.error("TaskRepository.getById error id={}", id, e);
+            return null;
+        }
     }
 
-    public List<Task> getByJobInstanceId(String jobId, TaskType type, Long startId, Integer limit) {
-        return null;
+    public List<Task> getByJobAndType(String jobId, TaskType type, String startId, Integer limit) {
+        String sql = "select * from " + TABLE_NAME + " where job_id = ? and `type` = ? and task_id > ? limit ?";
+        try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, jobId);
+            ps.setInt(2, type.type);
+            ps.setString(3, startId);
+            ps.setInt(4, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                List<Task> tasks = new ArrayList<>();
+                while (rs.next()) {
+                    tasks.add(convert(rs));
+                }
+                return tasks;
+            }
+        } catch (Exception e) {
+            log.error("TaskRepository.getByJobAndType error jobId={} type={} startId={} limit={}", jobId, type, startId, limit, e);
+            return Collections.emptyList();
+        }
     }
 
-    public List<Map<String, Object>> getAllTaskResult(String jobId, TaskType type) {
-        return null;
+    public List<String> getAllTaskResult(String jobId, TaskType type) {
+        String sql = "select result from " + TABLE_NAME + " where job_id = ? and `type` = ?";
+        try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, jobId);
+            ps.setInt(2, type.type);
+            try (ResultSet rs = ps.executeQuery()) {
+                List<String> results = new ArrayList<>();
+                while (rs.next()) {
+                    results.add(rs.getString("result"));
+                }
+                return results;
+            }
+        } catch (Exception e) {
+            log.error("TaskRepository.getAllTaskResult error jobId={} type={}", jobId, type, e);
+            return Collections.emptyList();
+        }
     }
 
     public long countUnSuccess(String jobId, TaskType type) {
-        return 0L;
+        String sql = "select count(*) from " + TABLE_NAME + " where job_id = ? and `type` = ?";
+        try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, jobId);
+            ps.setInt(2, type.type);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            log.error("TaskRepository.countUnSuccess error jobId={} type={}", jobId, type, e);
+            return 0;
+        }
     }
 
     public boolean batchSave(Collection<Task> tasks) {
-        return true;
+        List<String> values = new ArrayList<>();
+        for (Task task : tasks) {
+            values.add(" (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        }
+        String sql = "insert into " + TABLE_NAME + "(" +
+                "task_id, job_id, worker_id, worker_address, executor_name, context, job_attributes, task_attributes, `type`, " +
+                "status, trigger_at, start_at, end_at, `result`, error_msg, error_stack_trace" +
+                ") values " + StringUtils.join(values, ",");
+
+        try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            int idx = 0;
+            for (Task task : tasks) {
+                ps.setString(++idx, task.getTaskId());
+                ps.setString(++idx, task.getJobId());
+                if (task.getWorker() != null) {
+                    ps.setString(++idx, task.getWorker().getId());
+                    ps.setString(++idx, getWorkerAddress(task.getWorker()));
+                } else {
+                    ps.setString(++idx, "");
+                    ps.setString(++idx, "");
+                }
+                ps.setString(++idx, task.getExecutorName());
+                ps.setString(++idx, task.getContext().toString());
+                ps.setString(++idx, task.getJobAttributes().toString());
+                ps.setString(++idx, task.getTaskAttributes());
+                ps.setInt(++idx, task.getType().type);
+                ps.setInt(++idx, task.getStatus().status);
+                ps.setString(++idx, DateTimeUtils.formatYMDHMS(task.getTriggerAt()));
+                ps.setString(++idx, DateTimeUtils.formatYMDHMS(task.getStartAt()));
+                ps.setString(++idx, DateTimeUtils.formatYMDHMS(task.getEndAt()));
+                ps.setString(++idx, task.getResult());
+                ps.setString(++idx, task.getErrorMsg());
+                ps.setString(++idx, task.getErrorStackTrace());
+            }
+            ps.executeBatch();
+            return true;
+        } catch (Exception e) {
+            log.error("TaskRepository.batchSave error", e);
+            return false;
+        }
+    }
+
+    private String getWorkerAddress(Worker worker) {
+        return worker.getUrl().getProtocol() + ":" + worker.getUrl().getHost() + ":" + worker.getUrl().getPort();
     }
 
     public boolean executing(Task task) {
-        return true;
+        String sql = "update " + TABLE_NAME + "set `status` = ?, worker_id = ?, worker_address = ?, start_at = ? where task_id = ?";
+        try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, TaskStatus.EXECUTING.status);
+            ps.setString(2, task.getWorker().getId());
+            ps.setString(3, getWorkerAddress(task.getWorker()));
+            ps.setString(4, DateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime()));
+            ps.setString(5, task.getTaskId());
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            log.error("TaskRepository.executing error task={} ", task, e);
+            return false;
+        }
     }
 
-    public boolean success(String taskId, String context, String result) {
-        return true;
+    public boolean success(Task task) {
+        String sql = "update " + TABLE_NAME + "set `status` = ?, end_at = ?, `result` = ?, context = ? where task_id = ?";
+        try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, TaskStatus.SUCCEED.status);
+            ps.setString(2, DateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime()));
+            ps.setString(3, task.getResult());
+            ps.setString(3, task.getContext().toString());
+            ps.setString(4, task.getTaskId());
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            log.error("TaskRepository.success error task={} ", task, e);
+            return false;
+        }
     }
 
-    public boolean fail(String taskId, String errorMsg, String errorStack) {
-        return true;
+    public boolean fail(Task task) {
+        String sql = "update " + TABLE_NAME + "set `status` = ?, end_at = ?, error_msg = ?, error_stack_trace = ? where task_id = ?";
+        try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, TaskStatus.FAILED.status);
+            ps.setString(2, DateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime()));
+            ps.setString(3, task.getErrorMsg());
+            ps.setString(4, task.getErrorStackTrace());
+            ps.setString(5, task.getTaskId());
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            log.error("TaskRepository.fail error task={} ", task, e);
+            return false;
+        }
+    }
+
+    private Task convert(ResultSet rs) throws SQLException, MalformedURLException {
+        Task task = new Task();
+        task.setTaskId(String.valueOf(rs.getLong("task_id")));
+        task.setJobId(rs.getString("job_id"));
+        task.setExecutorName(rs.getString("executor_name"));
+        String workerAddress = rs.getString("worker_address");
+
+        String[] split = workerAddress.split(":");
+        URL url = new URL(split[0], split[1], Integer.parseInt(split[2]), "");
+        Worker worker = new Worker(rs.getString("worker_id"), url);
+        task.setWorker(worker);
+
+        task.setTriggerAt(DateTimeUtils.parseYMDHMS(rs.getString("trigger_at")));
+        task.setStartAt(DateTimeUtils.parseYMDHMS(rs.getString("start_at")));
+        task.setEndAt(DateTimeUtils.parseYMDHMS(rs.getString("end_at")));
+        task.setContext(new Attributes(rs.getString("context")));
+        task.setJobAttributes(new Attributes(rs.getString("job_attributes")));
+        task.setTaskAttributes(rs.getString("task_attributes"));
+        task.setResult(rs.getString("result"));
+        task.setErrorMsg(rs.getString("error_msg"));
+        task.setErrorStackTrace(rs.getString("error_stack_trace"));
+        return task;
     }
 
 }

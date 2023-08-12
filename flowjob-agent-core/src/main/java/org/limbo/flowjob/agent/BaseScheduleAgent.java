@@ -55,14 +55,10 @@ import java.util.concurrent.atomic.AtomicReference;
 public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
 
     /**
-     * 并发执行任务数量
+     * 工作节点资源
      */
-    private int concurrency;
-
-    /**
-     * 队列数
-     */
-    private int queueSize;
+    @Getter
+    private AgentResources resource;
 
     /**
      * 任务执行线程池
@@ -92,11 +88,12 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
 
     private EmbedRpcServer embedRpcServer;
 
-    private JobService jobService;
-
     private TaskService taskService;
 
-    public BaseScheduleAgent(URL url, AgentBrokerRpc brokerRpc, JobService jobService, TaskService taskService, EmbedRpcServer embedRpcServer) {
+    private JobService jobService;
+
+    public BaseScheduleAgent(URL url, AgentResources resource, AgentBrokerRpc brokerRpc, JobService jobService, TaskService taskService,
+                             EmbedRpcServer embedRpcServer) {
         Objects.requireNonNull(url, "URL can't be null");
         Objects.requireNonNull(brokerRpc, "remote client can't be null");
 
@@ -105,9 +102,7 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
         this.embedRpcServer = embedRpcServer;
         this.jobService = jobService;
         this.taskService = taskService;
-
-        this.concurrency = Runtime.getRuntime().availableProcessors();
-        this.queueSize = 4096;
+        this.resource = resource;
 
         this.status = embedRpcServer.getStatus();
     }
@@ -132,9 +127,9 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
         this.embedRpcServer.start();
 
         // 初始化线程池
-        BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(queueSize <= 0 ? concurrency : queueSize);
+        BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(resource.queueSize() <= 0 ? resource.concurrency() : resource.queueSize());
         threadPool = new ThreadPoolExecutor(
-                concurrency, concurrency,
+                resource.concurrency(), resource.concurrency(),
                 5, TimeUnit.SECONDS, queue,
                 NamedThreadFactory.newInstance("FlowJobAgentExecutor"),
                 (r, e) -> {
@@ -190,7 +185,7 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
     public void receiveJob(Job job) {
         assertRunning();
 
-        int availableQueueSize = availableQueueSize();
+        int availableQueueSize = this.resource.availableQueueSize();
         if (jobService.count() >= availableQueueSize) {
             throw new IllegalArgumentException("Agent's queue is full, limit: " + availableQueueSize);
         }
@@ -261,10 +256,6 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
         if (this.status.get() != RpcServerStatus.RUNNING) {
             throw new IllegalStateException("Agent is not running: " + this.status.get());
         }
-    }
-
-    public int availableQueueSize() {
-        return queueSize - jobService.count();
     }
 
     @Override

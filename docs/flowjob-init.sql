@@ -243,56 +243,6 @@ UNLOCK
 TABLES;
 
 --
--- Table structure for table `flowjob_task`
---
-
-DROP TABLE IF EXISTS `flowjob_task`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `flowjob_task`
-(
-    `id`                bigint unsigned NOT NULL AUTO_INCREMENT,
-    `task_id`           varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `job_instance_id`   varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `job_id`            varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `plan_id`           varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `plan_instance_id`  varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `plan_info_id`      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `worker_id`         varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `executor_name`     varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `dispatch_option`   varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `context`           varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `job_attributes`    varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `task_attributes`   varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `type`              tinyint                                                NOT NULL,
-    `status`            tinyint                                                NOT NULL,
-    `start_at`          datetime(6) DEFAULT NULL,
-    `end_at`            datetime(6) DEFAULT NULL,
-    `result`            varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `error_msg`         varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `error_stack_trace` text COLLATE utf8mb4_bin                                        DEFAULT NULL,
-    `is_deleted`        bit(1)                                                 NOT NULL DEFAULT 0,
-    `created_at`        datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`        datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_id` (`task_id`),
-    KEY                 `idx_job_instance_type` (`job_instance_id`, `type`),
-    KEY                 `idx_plan_status` (`plan_id`, `status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `flowjob_task`
---
-
-LOCK
-TABLES `flowjob_task` WRITE;
-/*!40000 ALTER TABLE `flowjob_task` DISABLE KEYS */;
-/*!40000 ALTER TABLE `flowjob_task` ENABLE KEYS */;
-UNLOCK
-TABLES;
-
---
 -- Table structure for table `flowjob_tenant`
 --
 
@@ -511,6 +461,43 @@ UNLOCK
 TABLES;
 
 --
+-- Table structure for table `flowjob_worker`
+--
+
+DROP TABLE IF EXISTS `flowjob_agent`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `flowjob_agent`
+(
+    `id`                    bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+    `agent_id`              varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `protocol`              varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `host`                  varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `port`                  int                                                             DEFAULT NULL,
+    `status`                tinyint                                                NOT NULL,
+    `available_queue_limit` int                                                             DEFAULT NULL,
+    `last_heartbeat_at`     datetime(6) NOT NULL,
+    `is_enabled`            bit(1)                                                          DEFAULT NULL,
+    `is_deleted`            bit(1)                                                 NOT NULL DEFAULT 0,
+    `created_at`            datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`            datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_id` (`agent_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `flowjob_agent`
+--
+
+LOCK
+TABLES `flowjob_agent` WRITE;
+/*!40000 ALTER TABLE `flowjob_agent` DISABLE KEYS */;
+/*!40000 ALTER TABLE `flowjob_agent` ENABLE KEYS */;
+UNLOCK
+TABLES;
+
+--
 -- Table structure for table `flowjob_id`
 --
 
@@ -560,6 +547,8 @@ INSERT INTO flowjob_id(`type`, `current_id`, `step`)
 VALUES ('JOB_INSTANCE', 100000, 1000);
 INSERT INTO flowjob_id(`type`, `current_id`, `step`)
 VALUES ('TASK', 100000, 1000);
+INSERT INTO flowjob_id(`type`, `current_id`, `step`)
+VALUES ('AGENT', 100000, 1000);
 /*!40000 ALTER TABLE `flowjob_id` ENABLE KEYS */;
 UNLOCK
 TABLES;

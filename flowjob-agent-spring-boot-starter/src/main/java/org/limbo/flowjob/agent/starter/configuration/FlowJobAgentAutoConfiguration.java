@@ -19,9 +19,10 @@ package org.limbo.flowjob.agent.starter.configuration;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.agent.AgentResources;
+import org.limbo.flowjob.agent.BaseAgentResources;
 import org.limbo.flowjob.agent.BaseScheduleAgent;
 import org.limbo.flowjob.agent.FlowjobConnectionFactory;
-import org.limbo.flowjob.agent.H2ConnectionFactory;
 import org.limbo.flowjob.agent.ScheduleAgent;
 import org.limbo.flowjob.agent.TaskDispatcher;
 import org.limbo.flowjob.agent.repository.JobRepository;
@@ -33,6 +34,7 @@ import org.limbo.flowjob.agent.rpc.http.OkHttpAgentWorkerRpc;
 import org.limbo.flowjob.agent.service.JobService;
 import org.limbo.flowjob.agent.service.TaskService;
 import org.limbo.flowjob.agent.starter.SpringDelegatedAgent;
+import org.limbo.flowjob.agent.starter.component.H2ConnectionFactory;
 import org.limbo.flowjob.agent.starter.handler.HttpHandlerProcessor;
 import org.limbo.flowjob.agent.starter.properties.AgentProperties;
 import org.limbo.flowjob.agent.worker.SingletonWorkerStatisticsRepo;
@@ -49,7 +51,6 @@ import org.limbo.flowjob.common.rpc.EmbedRpcServer;
 import org.limbo.flowjob.common.utils.NetUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,6 +58,7 @@ import org.springframework.util.Assert;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -67,7 +69,6 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Configuration
-@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.ANY)
 @ConditionalOnProperty(prefix = "flowjob.agent", value = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(AgentProperties.class)
 public class FlowJobAgentAutoConfiguration {
@@ -86,8 +87,8 @@ public class FlowJobAgentAutoConfiguration {
      *
      * @param rpc broker rpc 通信模块
      */
-    @Bean
-    public ScheduleAgent httpWorker(AgentBrokerRpc rpc, JobService jobService, TaskService taskService) throws MalformedURLException {
+    @Bean("fjaHttpScheduleAgent")
+    public ScheduleAgent httpWorker(AgentResources resources, AgentBrokerRpc rpc, JobService jobService, TaskService taskService) throws MalformedURLException {
         // 优先使用 SpringMVC 或 SpringWebflux 设置的端口号
         Integer port = properties.getPort() != null ? properties.getPort() : DEFAULT_HTTP_SERVER_PORT;
 
@@ -101,48 +102,62 @@ public class FlowJobAgentAutoConfiguration {
         URL workerBaseUrl = new URL(properties.getProtocol().getValue(), host, port, "");
         HttpHandlerProcessor httpHandlerProcessor = new HttpHandlerProcessor();
         EmbedRpcServer embedRpcServer = new EmbedHttpRpcServer(port, httpHandlerProcessor);
-        ScheduleAgent agent = new BaseScheduleAgent(workerBaseUrl, rpc, jobService, taskService, embedRpcServer);
+        ScheduleAgent agent = new BaseScheduleAgent(workerBaseUrl, resources, rpc, jobService, taskService, embedRpcServer);
         httpHandlerProcessor.setAgent(agent);
 
         return new SpringDelegatedAgent(agent);
     }
 
+    /**
+     * 动态计算 Worker 资源
+     */
     @Bean
+    @ConditionalOnMissingBean(AgentResources.class)
+    public AgentResources agentResource(JobService jobService) {
+        return new BaseAgentResources(properties.getConcurrency(), properties.getQueueSize(), jobService);
+    }
+
+    @Bean("fjaJobService")
     public JobService jobService(JobRepository jobRepository, TaskRepository taskRepository, AgentBrokerRpc brokerRpc,
                                  TaskDispatcher taskDispatcher) {
         return new JobService(jobRepository, taskRepository, brokerRpc, taskDispatcher);
     }
 
-    @Bean
+    @Bean("fjaTaskService")
     public TaskService taskService(TaskRepository taskRepository, JobRepository jobRepository,
                                    TaskDispatcher taskDispatcher, AgentBrokerRpc brokerRpc) {
         return new TaskService(taskRepository, jobRepository, taskDispatcher, brokerRpc);
     }
 
-    @Bean
-    public TaskRepository taskRepository(FlowjobConnectionFactory flowjobConnectionFactory) {
-        return new TaskRepository(flowjobConnectionFactory);
+    @Bean("fjaTaskRepository")
+    public TaskRepository taskRepository(FlowjobConnectionFactory flowjobConnectionFactory) throws SQLException {
+        TaskRepository taskRepository = new TaskRepository(flowjobConnectionFactory);
+        // 先放这里了后面考虑生命周期
+        if (properties.isInitTable()) {
+            taskRepository.initTable();
+        }
+        return taskRepository;
     }
 
-    @Bean
+    @Bean("fjaConnectionFactory")
     @ConditionalOnMissingBean(FlowjobConnectionFactory.class)
     public FlowjobConnectionFactory flowjobConnectionFactory() {
-        return new H2ConnectionFactory();
+        return new H2ConnectionFactory(properties.getDatasourceUrl(), properties.getDatasourceUsername(), properties.getDatasourcePassword());
     }
 
 
-    @Bean
+    @Bean("fjaJobRepository")
     public JobRepository jobRepository() {
         return new JobRepository();
     }
 
-    @Bean
+    @Bean("fjaTaskDispatcher")
     public TaskDispatcher taskDispatcher(AgentBrokerRpc brokerRpc, AgentWorkerRpc workerRpc, JobRepository jobRepository,
                                          WorkerSelectorFactory workerSelectorFactory, WorkerStatisticsRepository statisticsRepository) {
         return new TaskDispatcher(brokerRpc, workerRpc, jobRepository, workerSelectorFactory, statisticsRepository);
     }
 
-    @Bean
+    @Bean("fjaAgentWorkerRpc")
     @ConditionalOnMissingBean(AgentWorkerRpc.class)
     public AgentWorkerRpc workerRpc() {
         return new OkHttpAgentWorkerRpc();
@@ -151,7 +166,7 @@ public class FlowJobAgentAutoConfiguration {
     /**
      * Broker 通信模块
      */
-    @Bean
+    @Bean("fjaAgentBrokerRpc")
     @ConditionalOnMissingBean(AgentBrokerRpc.class)
     public AgentBrokerRpc brokerRpc(LBServerRepository<BaseLBServer> brokerLoadBalancer, LBStrategy<BaseLBServer> strategy) {
         List<URL> brokers = properties.getBrokers();
@@ -187,8 +202,8 @@ public class FlowJobAgentAutoConfiguration {
     /**
      * Broker 仓储
      */
-    @Bean("brokerLoadBalanceRepo")
-    @ConditionalOnMissingBean(name = "brokerLoadBalanceRepo")
+    @Bean("fjaBrokerLoadBalanceRepo")
+    @ConditionalOnMissingBean(name = "fjaBrokerLoadBalanceRepo")
     public LBServerRepository<BaseLBServer> brokerLoadBalanceRepo() {
         return new BaseLBServerRepository<>(brokerNodes());
     }
@@ -197,8 +212,8 @@ public class FlowJobAgentAutoConfiguration {
     /**
      * Broker 负载均衡策略
      */
-    @Bean("brokerLoadBalanceStrategy")
-    @ConditionalOnMissingBean(name = "brokerLoadBalanceStrategy")
+    @Bean("fjaBrokerLoadBalanceStrategy")
+    @ConditionalOnMissingBean(name = "fjaBrokerLoadBalanceStrategy")
     public LBStrategy<BaseLBServer> brokerLoadBalanceStrategy() {
         return new RoundRobinLBStrategy<>();
     }
@@ -206,7 +221,7 @@ public class FlowJobAgentAutoConfiguration {
     /**
      * 如果未声明 WorkerStatisticsRepository 类型的 Bean，则使用基于内存统计的单机模式
      */
-    @Bean
+    @Bean("fjaWorkerStatisticsRepository")
     @ConditionalOnMissingBean(WorkerStatisticsRepository.class)
     public WorkerStatisticsRepository workerStatisticsRepository() {
         return new SingletonWorkerStatisticsRepo();
@@ -215,7 +230,7 @@ public class FlowJobAgentAutoConfiguration {
     /**
      * 用于生成 Worker 选择器，内部封装了 LB 算法的调用。
      */
-    @Bean
+    @Bean("fjaWorkerSelectorFactory")
     @ConditionalOnMissingBean(WorkerSelectorFactory.class)
     public WorkerSelectorFactory workerSelectorFactory(WorkerStatisticsRepository statisticsRepository) {
         WorkerSelectorFactory factory = new WorkerSelectorFactory();

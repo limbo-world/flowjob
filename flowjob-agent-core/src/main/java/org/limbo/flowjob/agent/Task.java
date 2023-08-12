@@ -28,7 +28,6 @@ import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * 作业执行上下文
@@ -91,21 +90,19 @@ public class Task {
     /**
      * task参数属性
      */
-    private Object taskAttributes;
+    private String taskAttributes;
+
+    private String result;
+
+    private String errorMsg;
+
+    private String errorStackTrace;
 
     public void setContext(Attributes context) {
         if (context == null) {
             return;
         }
         this.context = context;
-    }
-
-    public Attributes getMapAttributes() {
-        return (Attributes) taskAttributes;
-    }
-
-    public List<Attributes> getReduceAttributes() {
-        return (List<Attributes>) taskAttributes;
     }
 
 }
