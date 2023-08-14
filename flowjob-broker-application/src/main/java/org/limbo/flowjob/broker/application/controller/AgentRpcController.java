@@ -68,16 +68,4 @@ public class AgentRpcController {
         return ResponseDTO.<AgentRegisterDTO>builder().ok(agentService.heartbeat(id, heartbeatOption)).build();
     }
 
-    /**
-     * 下发反馈
-     */
-    @Operation(summary = "Job下发反馈")
-    @PostMapping(API_AGENT_JOB_DISPATCHED)
-    public ResponseDTO<Boolean> heartbeat(@Validated @NotNull(message = "no agentId") @RequestParam("agentId") String agentId,
-                                                   @Validated @NotNull(message = "no jobInstanceId") @RequestParam("jobInstanceId") String jobInstanceId) {
-        return ResponseDTO.<Boolean>builder().ok(agentService.jobDispatched(agentId, jobInstanceId)).build();
-    }
-
-
-
 }

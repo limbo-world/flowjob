@@ -18,6 +18,7 @@
 
 package org.limbo.flowjob.agent;
 
+import org.limbo.flowjob.api.param.agent.SubTaskCreateParam;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
 import java.net.URL;
@@ -56,20 +57,18 @@ public interface ScheduleAgent {
 
     /**
      * 接收子任务
-     * @param taskId
-     * @param attrs
      */
-    void receiveSubTasks(String taskId, List<Object> attrs);
+    void receiveSubTasks(SubTaskCreateParam param);
 
     /**
      * task 成功处理
      */
-    void taskSuccess(String taskId, Attributes context, Object result);
+    void taskSuccess(String jobId, String taskId, Attributes context, Object result);
 
     /**
      * task失败处理
      */
-    void taskFail(String taskId, Attributes context, String errorMsg, String errorStackTrace);
+    void taskFail(String jobId, String taskId, Attributes context, String errorMsg, String errorStackTrace);
 
     /**
      * 停止当前 Worker

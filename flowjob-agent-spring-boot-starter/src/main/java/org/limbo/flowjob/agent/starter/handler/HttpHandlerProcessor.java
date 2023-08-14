@@ -18,16 +18,15 @@
 
 package org.limbo.flowjob.agent.starter.handler;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import io.netty.handler.codec.http.HttpMethod;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.agent.Job;
 import org.limbo.flowjob.agent.ScheduleAgent;
 import org.limbo.flowjob.api.constants.ExecuteResult;
 import org.limbo.flowjob.api.constants.JobType;
+import org.limbo.flowjob.api.constants.LoadBalanceType;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.param.agent.JobSubmitParam;
 import org.limbo.flowjob.api.param.agent.SubTaskCreateParam;
@@ -35,9 +34,6 @@ import org.limbo.flowjob.api.param.agent.TaskFeedbackParam;
 import org.limbo.flowjob.common.rpc.IHttpHandlerProcessor;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.limbo.flowjob.api.constants.rpc.HttpAgentApi.*;
 
@@ -70,16 +66,15 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
 
         try {
             switch (uri) {
-                case API_JOB_SUBMIT:
+                case API_JOB_RECEIVE:
                     JobSubmitParam jobSubmitParam = JacksonUtils.parseObject(data, JobSubmitParam.class);
                     return ResponseDTO.<Boolean>builder().ok(receive(jobSubmitParam)).build();
-                case API_TASK_SUBMIT:
-                    List<SubTaskCreateParam> subTaskCreateParams = JacksonUtils.parseObject(data, new TypeReference<List<SubTaskCreateParam>>() {
-                    });
-                    return ResponseDTO.<Boolean>builder().ok(receiveSubTasks(null, subTaskCreateParams)).build();
+                case API_TASK_RECEIVE:
+                    SubTaskCreateParam subTaskCreateParam = JacksonUtils.parseObject(data, SubTaskCreateParam.class);
+                    return ResponseDTO.<Boolean>builder().ok(receiveSubTasks(subTaskCreateParam)).build();
                 case API_TASK_FEEDBACK:
                     TaskFeedbackParam taskFeedbackParam = JacksonUtils.parseObject(data, TaskFeedbackParam.class);
-                    taskFeedback(null, taskFeedbackParam);
+                    taskFeedback(taskFeedbackParam);
                     return ResponseDTO.<Boolean>builder().ok(true).build();
             }
 
@@ -105,37 +100,37 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
         }
     }
 
-    public boolean receiveSubTasks(String taskId, List<SubTaskCreateParam> params) {
-        log.info("receive task taskId={} param={}", taskId, params);
+    public boolean receiveSubTasks(SubTaskCreateParam param) {
+        log.info("receive task param={}", param);
         try {
-            if (CollectionUtils.isEmpty(params)) {
+            if (param == null) {
                 return true;
             }
-            List<Object> attrs = new ArrayList<>();
-            for (SubTaskCreateParam param : params) {
-                attrs.add(param.getData());
-            }
-            agent.receiveSubTasks(taskId, attrs);
+            agent.receiveSubTasks(param);
             return true;
         } catch (Exception e) {
-            log.error("Failed to receive task taskId={} param={}", taskId, params, e);
+            log.error("Failed to receive task param={}", param, e);
             return false;
         }
     }
 
-    public void taskFeedback(String taskId, TaskFeedbackParam param) {
+    public void taskFeedback(TaskFeedbackParam param) {
+        if (param == null) {
+            return;
+        }
+
         ExecuteResult result = param.getResult();
         if (log.isDebugEnabled()) {
-            log.debug("receive task feedback id:{} result:{}", taskId, result);
+            log.debug("receive task feedback param:{}", param);
         }
 
         switch (result) {
             case SUCCEED:
-                agent.taskSuccess(taskId, new Attributes(param.getContext()), param.getResultData());
+                agent.taskSuccess(param.getJobId(), param.getTaskId(), new Attributes(param.getContext()), param.getResultData());
                 break;
 
             case FAILED:
-                agent.taskFail(taskId, new Attributes(param.getContext()), param.getErrorMsg(), param.getErrorStackTrace());
+                agent.taskFail(param.getJobId(), param.getTaskId(), new Attributes(param.getContext()), param.getErrorMsg(), param.getErrorStackTrace());
                 break;
 
             case TERMINATED:
@@ -151,6 +146,7 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
         job.setId(param.getJobInstanceId());
         job.setType(JobType.parse(param.getType()));
         job.setExecutorName(param.getExecutorName());
+        job.setLoadBalanceType(LoadBalanceType.parse(param.getLoadBalanceType()));
         job.setContext(new Attributes(param.getContext()));
         job.setAttributes(new Attributes(param.getAttributes()));
         return job;

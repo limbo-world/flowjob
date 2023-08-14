@@ -28,8 +28,6 @@ public interface HttpBrokerApi {
 
     String API_AGENT_HEARTBEAT = "/api/v1/rpc/agent/heartbeat";
 
-    String API_AGENT_JOB_DISPATCHED = "/api/v1/rpc/agent/job/dispatched";
-
     String API_AGENT_JOB_WORKERS = "/api/v1/rpc/agent/job/workers";
 
     String API_WORKER_REGISTER = "/api/v1/rpc/worker";
@@ -39,6 +37,8 @@ public interface HttpBrokerApi {
     String API_WORKER_PLAN_SCHEDULE = "/api/v1/rpc/worker/plan/schedule";
 
     String API_PLAN_INSTANCE_JOB_SCHEDULE = "/api/v1/rpc/plan-instance/job/schedule";
+
+    String API_JOB_DISPATCHED = "/api/v1/rpc/job/dispatched";
 
     String API_JOB_FEEDBACK = "/api/v1/rpc/job/feedback";
 

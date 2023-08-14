@@ -16,18 +16,16 @@
  *
  */
 
-package org.limbo.flowjob.api.constants.rpc;
+package org.limbo.flowjob.broker.core.agent;
+
+import java.util.List;
 
 /**
  * @author Devil
- * @since 2022/11/7
+ * @since 2023/8/14
  */
-public interface HttpAgentApi {
+public interface AgentRepository {
 
-    String API_JOB_RECEIVE = "/api/v1/rpc/job";
-
-    String API_TASK_RECEIVE = "/api/v1/rpc/task";
-
-    String API_TASK_FEEDBACK = "/api/v1/rpc/task/feedback";
+    List<ScheduleAgent> listAvailableAgents();
 
 }

@@ -32,6 +32,8 @@ import java.util.Map;
 @Data
 public class Task {
 
+    private String jobId;
+
     private String taskId;
 
     private URL agentRpcUrl;
@@ -56,7 +58,7 @@ public class Task {
     /**
      * 每个map task单独的属性
      */
-    private Map<String, Object> mapAttributes;
+    private Map<String, Object> taskAttributes;
 
     /**
      * reduce时候使用的

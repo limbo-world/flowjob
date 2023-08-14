@@ -33,7 +33,6 @@ import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.AgentEntity;
 import org.limbo.flowjob.broker.dao.repositories.AgentEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Service;
 
@@ -58,9 +57,6 @@ public class AgentService {
 
     @Setter(onMethod_ = @Inject)
     private NodeManger nodeManger;
-
-    @Setter(onMethod_ = @Inject)
-    private JobInstanceEntityRepo jobInstanceEntityRepo;
 
     /**
      * 注册
@@ -116,12 +112,6 @@ public class AgentService {
     }
 
 
-    @Transactional(rollbackOn = Throwable.class)
-    public boolean jobDispatched(String agentId, String jobInstanceId) {
-        return jobInstanceEntityRepo.executing(agentId, jobInstanceId, TimeUtils.currentLocalDateTime()) > 0;
-    }
-
-
     public AgentRegisterDTO toDTO(String agentId) {
         AgentRegisterDTO registerResult = new AgentRegisterDTO();
         registerResult.setAgentId(agentId);
@@ -138,6 +128,8 @@ public class AgentService {
         agent.setStatus(AgentStatus.RUNNING.status);
         agent.setAvailableQueueLimit(options.getAvailableResource().getAvailableQueueLimit());
         agent.setLastHeartbeatAt(TimeUtils.currentLocalDateTime());
+        agent.setEnabled(true);
+        agent.setDeleted(false);
         return agent;
     }
 }

@@ -157,11 +157,11 @@ public class OkHttpAgentBrokerRpc extends OKHttpRpc<BaseLBServer> implements Age
 
     @Override
     public boolean notifyJobDispatched(String jobInstanceId) {
-        String url = BASE_URL + API_AGENT_JOB_DISPATCHED + "?agentId=" + agentId + "&jobInstanceId=" + jobInstanceId;
+        String url = BASE_URL + API_JOB_DISPATCHED + "?agentId=" + agentId + "&jobInstanceId=" + jobInstanceId;
         ResponseDTO<Boolean> response = executePost(url, null, new TypeReference<ResponseDTO<Boolean>>() {
         });
 
-        checkResponse(response, API_AGENT_JOB_DISPATCHED);
+        checkResponse(response, API_JOB_DISPATCHED);
 
         return response.getData();
     }
@@ -172,7 +172,7 @@ public class OkHttpAgentBrokerRpc extends OKHttpRpc<BaseLBServer> implements Age
         param.setContext(job.getContext().toMap());
         param.setResult(ExecuteResult.SUCCEED);
         String url = BASE_URL + API_JOB_FEEDBACK + "?jobInstanceId=" + job.getId();
-        ResponseDTO<Boolean> response = executePost(url, null, new TypeReference<ResponseDTO<Boolean>>() {
+        ResponseDTO<Boolean> response = executePost(url, param, new TypeReference<ResponseDTO<Boolean>>() {
         });
 
         checkResponse(response, API_JOB_FEEDBACK);
@@ -186,7 +186,7 @@ public class OkHttpAgentBrokerRpc extends OKHttpRpc<BaseLBServer> implements Age
         param.setErrorMsg(errorMsg);
         param.setResult(ExecuteResult.FAILED);
         String url = BASE_URL + API_JOB_FEEDBACK + "?jobInstanceId=" + job.getId();
-        ResponseDTO<Boolean> response = executePost(url, null, new TypeReference<ResponseDTO<Boolean>>() {
+        ResponseDTO<Boolean> response = executePost(url, param, new TypeReference<ResponseDTO<Boolean>>() {
         });
 
         checkResponse(response, API_JOB_FEEDBACK);
@@ -196,11 +196,11 @@ public class OkHttpAgentBrokerRpc extends OKHttpRpc<BaseLBServer> implements Age
 
     @Override
     public List<Worker> availableWorkers(String jobId, boolean filterExecutor, boolean filterTag, boolean filterResource) {
-        String url = String.format(BASE_URL + API_AGENT_HEARTBEAT + "?jobId=%s&filterExecutor=%s&filterTag=%s&filterResource=%s", jobId, filterExecutor, filterTag, filterResource);
+        String url = String.format(BASE_URL + API_JOB_FILTER_WORKERS + "?jobInstanceId=%s&filterExecutor=%s&filterTag=%s&filterResource=%s", jobId, filterExecutor, filterTag, filterResource);
         ResponseDTO<List<AvailableWorkerDTO>> response = executeGet(url, new TypeReference<ResponseDTO<List<AvailableWorkerDTO>>>() {
         });
 
-        checkResponse(response, API_AGENT_HEARTBEAT);
+        checkResponse(response, API_JOB_FILTER_WORKERS);
         List<AvailableWorkerDTO> workerDTOS = response.getData();
         if (CollectionUtils.isEmpty(workerDTOS)) {
             return Collections.emptyList();

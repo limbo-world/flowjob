@@ -19,7 +19,9 @@ package org.limbo.flowjob.worker.core.executor;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
+import org.limbo.flowjob.worker.core.domain.SubTask;
 import org.limbo.flowjob.worker.core.domain.Task;
+import org.limbo.flowjob.worker.core.rpc.WorkerAgentRpc;
 
 import java.util.List;
 import java.util.Map;
@@ -32,19 +34,17 @@ import java.util.Map;
  */
 public abstract class MapReduceTaskExecutor implements TaskExecutor {
 
+    public WorkerAgentRpc agentRpc;
+
+    public MapReduceTaskExecutor(WorkerAgentRpc agentRpc) {
+        this.agentRpc = agentRpc;
+    }
+
     @Override
     public void run(Task task) {
         switch (task.getType()) {
             case SHARDING:
-                List<Map<String, Object>> subTasks = sharding(task);
-                if (CollectionUtils.isEmpty(subTasks)) {
-                    throw new IllegalArgumentException("sub task empty");
-                }
-                int maxSize = 100;
-                if (subTasks.size() > maxSize) {
-                    throw new IllegalArgumentException("sub task size > " + maxSize);
-                }
-                task.setResult(subTasks);
+                sharding(task);
                 break;
             case MAP:
                 task.setResult(map(task));
@@ -62,7 +62,18 @@ public abstract class MapReduceTaskExecutor implements TaskExecutor {
      *
      * @param task 任务
      */
-    public abstract List<Map<String, Object>> sharding(Task task);
+    public abstract void sharding(Task task);
+
+    protected Boolean submitSubTasks(Task task, List<SubTask> subTasks) {
+        if (CollectionUtils.isEmpty(subTasks)) {
+            throw new IllegalArgumentException("sub task empty");
+        }
+        int maxSize = 100;
+        if (subTasks.size() > maxSize) {
+            throw new IllegalArgumentException("sub task size > " + maxSize);
+        }
+        return agentRpc.submitSubTasks(task, subTasks);
+    }
 
     /**
      * 处理map分片任务

@@ -19,8 +19,10 @@
 package org.limbo.flowjob.worker.demo.executors;
 
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.worker.core.domain.SubTask;
 import org.limbo.flowjob.worker.core.domain.Task;
 import org.limbo.flowjob.worker.core.executor.MapReduceTaskExecutor;
+import org.limbo.flowjob.worker.core.rpc.WorkerAgentRpc;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -42,26 +44,35 @@ public class MapReduceExecutorDemo extends MapReduceTaskExecutor {
 
     private static final String NUM_KEY = "num";
 
+    public MapReduceExecutorDemo(WorkerAgentRpc agentRpc) {
+        super(agentRpc);
+    }
+
     @Override
-    public List<Map<String, Object>> sharding(Task task) {
-        List<Map<String, Object>> result = new ArrayList<>();
+    public void sharding(Task task) {
+        List<SubTask> subTasks = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             Map<String, Object> taskParam = new HashMap<>();
             taskParam.put(KEY, i);
             // add context
             task.setContextValue("t" + KEY, i);
             // add task
-            result.add(taskParam);
+            subTasks.add(SubTask.builder()
+                    .taskId("SUB_" + i)
+                    .attributes(taskParam)
+                    .build()
+            );
         }
+        // 提交子任务
+        submitSubTasks(task, subTasks);
         // job
         testPutJobAttr(task);
-        return result;
     }
 
     @Override
     public Map<String, Object> map(Task task) {
         Map<String, Object> result = new HashMap<>();
-        Map<String, Object> mapAttributes = task.getMapAttributes();
+        Map<String, Object> mapAttributes = task.getTaskAttributes();
         int v = (int) mapAttributes.get(KEY) + 100;
         result.put(KEY, v);
         // add context

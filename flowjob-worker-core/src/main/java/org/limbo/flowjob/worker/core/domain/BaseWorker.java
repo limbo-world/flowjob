@@ -313,6 +313,7 @@ public class BaseWorker implements Worker {
         }
 
         // 存储任务，并判断是否重复接收任务
+
         ExecuteContext context = new ExecuteContext(taskRepository, executor, agentRpc, task);
         if (!taskRepository.save(context)) {
             log.warn("Receive task [{}], but already in repository", task.getTaskId());

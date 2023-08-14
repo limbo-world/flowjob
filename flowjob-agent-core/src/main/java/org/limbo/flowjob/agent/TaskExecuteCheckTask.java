@@ -47,7 +47,7 @@
 // * 2. worker服务假死
 // * 3. worker完成task调用broker的接口失败
 // */
-//@Component
+//@Component todo
 //public class TaskExecuteCheckTask extends FixDelayMetaTask {
 //
 //    private final TaskEntityRepo taskEntityRepo;

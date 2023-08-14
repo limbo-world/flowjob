@@ -25,9 +25,12 @@ import org.limbo.flowjob.api.constants.JobStatus;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.rpc.HttpAgentApi;
+import org.limbo.flowjob.broker.core.agent.AgentRepository;
 import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.job.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
@@ -40,8 +43,6 @@ import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.common.lb.LBStrategy;
 import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.common.rpc.RPCInvocation;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
@@ -49,7 +50,6 @@ import org.limbo.flowjob.common.utils.time.TimeUtils;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -76,6 +76,9 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
     protected IDGenerator idGenerator;
 
     @Setter(onMethod_ = @Inject)
+    protected AgentRepository agentRepository;
+
+    @Setter(onMethod_ = @Inject)
     protected MetaTaskScheduler metaTaskScheduler;
 
     protected LBStrategy<ScheduleAgent> lbStrategy = new RoundRobinLBStrategy<>();
@@ -84,6 +87,7 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
     public void schedule(Plan plan, String planInstanceId, LocalDateTime triggerAt) {
         List<JobInstance> jobInstances = createJobInstances(plan, planInstanceId, triggerAt);
         saveAndScheduleJobInstances(jobInstances);
+        planInstanceEntityRepo.dispatching(planInstanceId);
     }
 
     // 如是定时1小时后执行，task的创建问题 比如任务执行失败后，重试间隔可能导致这个问题
@@ -101,6 +105,8 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
             return;
         }
 
+        // 如果是 plan instance 的检测，那么 job instance 已经创建，则无需再度创建
+
         // 保存 jobInstance
         List<JobInstanceEntity> jobInstanceEntities = jobInstances.stream().map(DomainConverter::toJobInstanceEntity).collect(Collectors.toList());
         jobInstanceEntityRepo.saveAll(jobInstanceEntities);
@@ -115,9 +121,9 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
         }
 
         // 选择 agent
-        List<ScheduleAgent> agents = new ArrayList<>();
+        List<ScheduleAgent> agents = agentRepository.listAvailableAgents();
         RPCInvocation lbInvocation = RPCInvocation.builder()
-                .path(HttpAgentApi.API_JOB_SUBMIT)
+                .path(HttpAgentApi.API_JOB_RECEIVE)
                 .build();
         ScheduleAgent agent = lbStrategy.select(agents, lbInvocation).orElse(null);
         if (agent == null) {
@@ -152,6 +158,7 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
         String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
         JobInstance instance = new JobInstance();
         instance.setJobInstanceId(jobInstanceId);
+        instance.setAgentId("");
         instance.setJobInfo(jobInfo);
         instance.setPlanType(getPlanType());
         instance.setPlanId(planId);

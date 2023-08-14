@@ -24,6 +24,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+import java.util.List;
+
 /**
  * 作业执行反馈
  *
@@ -35,18 +38,34 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(title = "子任务创建参数")
-public class SubTaskCreateParam {
+public class SubTaskCreateParam implements Serializable {
+
+    private static final long serialVersionUID = 7622034220519608736L;
 
     /**
-     * 前置taskId
+     * jobId
      */
-    @Schema(description = "前置taskId")
-    private String preTaskId;
+    @Schema(description = "jobId")
+    private String jobId;
 
-    /**
-     * 返回的数据
-     */
-    @Schema(description = "返回的数据")
-    private Object data;
+    private List<SubTaskInfoParam> subTasks;
+
+    @Data
+    public static class SubTaskInfoParam implements Serializable {
+
+        private static final long serialVersionUID = -223386710820618775L;
+
+        /**
+         * taskId
+         */
+        @Schema(description = "taskId")
+        private String taskId;
+
+        /**
+         * 返回的数据
+         */
+        @Schema(description = "返回的数据")
+        private Object data;
+    }
 
 }

@@ -20,12 +20,15 @@ package org.limbo.flowjob.agent;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.agent.rpc.AgentBrokerRpc;
 import org.limbo.flowjob.agent.service.JobService;
 import org.limbo.flowjob.agent.service.TaskService;
 import org.limbo.flowjob.api.constants.JobType;
 import org.limbo.flowjob.api.constants.TaskType;
+import org.limbo.flowjob.api.param.agent.SubTaskCreateParam;
 import org.limbo.flowjob.common.exception.BrokerRpcException;
+import org.limbo.flowjob.common.exception.JobException;
 import org.limbo.flowjob.common.exception.RegisterFailException;
 import org.limbo.flowjob.common.heartbeat.Heartbeat;
 import org.limbo.flowjob.common.heartbeat.HeartbeatPacemaker;
@@ -193,57 +196,67 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
         jobService.save(job);
 
         try {
-            // 提交执行
-            this.threadPool.submit(() -> jobService.schedule(job));
+            this.threadPool.submit(() -> {
+                try {
+                    // 提交执行
+                    jobService.schedule(job);
+                } catch (Exception e) {
+                    log.error("Failed to receive job job={}", job, e);
+                    throw new JobException(job.getId(), e.getMessage(), e);
+                }
+            });
         } catch (RejectedExecutionException e) {
-            throw new IllegalStateException("Schedule job failed, maybe thread exhausted");
+            // 拒绝时候的处理
+            throw new IllegalStateException("Schedule job failed, maybe thread exhausted. job=" + job.getId());
         }
     }
 
     @Override
-    public void receiveSubTasks(String taskId, List<Object> attrs) {
+    public void receiveSubTasks(SubTaskCreateParam param) {
         assertRunning();
 
-        Task task = taskService.getById(taskId);
-        if (task == null) {
-            throw new IllegalArgumentException("task not found taskId:" + taskId);
+        if (CollectionUtils.isEmpty(param.getSubTasks())) {
+            throw new IllegalArgumentException("subTasks is empty");
         }
-        Job job = jobService.getById(task.getJobId());
+
+        Job job = jobService.getById(param.getJobId());
         if (job == null) {
-            throw new IllegalArgumentException("task not found taskId:" + taskId + " jobId:" + task.getJobId());
+            throw new IllegalArgumentException("job not found jobId:" + param.getJobId());
         }
         if (JobType.MAP != job.getType() && JobType.MAP_REDUCE != job.getType()) {
-            throw new IllegalArgumentException("Job Type doesn't match taskId:" + taskId + " jobId:" + task.getJobId() + " type:" + job.getType());
+            throw new IllegalArgumentException("Job Type doesn't match jobId:" + param.getJobId() + " type:" + job.getType());
         }
+
         List<Task> tasks = new ArrayList<>();
-        for (Object attr : attrs) {
-            Task newTask = TaskFactory.createTask(job, attr, TaskType.MAP, null);
+        for (SubTaskCreateParam.SubTaskInfoParam subTaskInfoParam : param.getSubTasks()) {
+            Task newTask = TaskFactory.createTask(subTaskInfoParam.getTaskId(), job, subTaskInfoParam.getData(), TaskType.MAP, null);
             tasks.add(newTask);
         }
+
         if (!taskService.batchSave(tasks)) {
-            throw new IllegalArgumentException("batch save task fail taskId:" + taskId);
+            throw new IllegalArgumentException("batch save task fail jobId:" + param.getJobId());
         }
     }
 
     @Override
-    public void taskSuccess(String taskId, Attributes context, Object result) {
+    public void taskSuccess(String jobId, String taskId, Attributes context, Object result) {
         assertRunning();
 
-        Task task = taskService.getById(taskId);
+        Task task = taskService.getById(jobId, taskId);
         if (task == null) {
-            throw new IllegalArgumentException("task not found taskId:" + taskId);
+            throw new IllegalArgumentException("task not found jobId:" + jobId + " taskId:" + taskId);
         }
 
         taskService.taskSuccess(task, context, result);
     }
 
     @Override
-    public void taskFail(String taskId, Attributes context, String errorMsg, String errorStackTrace) {
+    public void taskFail(String jobId, String taskId, Attributes context, String errorMsg, String errorStackTrace) {
         assertRunning();
 
-        Task task = taskService.getById(taskId);
+        Task task = taskService.getById(jobId, taskId);
         if (task == null) {
-            throw new IllegalArgumentException("task not found taskId:" + taskId);
+            throw new IllegalArgumentException("task not found jobId:" + jobId + " taskId:" + taskId);
         }
 
         taskService.taskFail(task, errorMsg, errorStackTrace);

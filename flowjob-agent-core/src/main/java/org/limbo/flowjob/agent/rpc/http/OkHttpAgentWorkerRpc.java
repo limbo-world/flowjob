@@ -46,8 +46,11 @@ import static org.limbo.flowjob.api.constants.rpc.HttpWorkerApi.API_SUBMIT_TASK;
 @Slf4j
 public class OkHttpAgentWorkerRpc extends OKHttpRpc<BaseLBServer> implements AgentWorkerRpc {
 
-    public OkHttpAgentWorkerRpc() {
+    private URL agentUrl;
+
+    public OkHttpAgentWorkerRpc(URL agentUrl) {
         super(null, null);
+        this.agentUrl = agentUrl;
     }
 
     @Override
@@ -57,7 +60,7 @@ public class OkHttpAgentWorkerRpc extends OKHttpRpc<BaseLBServer> implements Age
         }
         URL url = worker.getUrl();
         String baseUrl = url.getProtocol() + "://" + url.getHost() + ":" + url.getPort();
-        ResponseDTO<Boolean> response = executePost(baseUrl + API_SUBMIT_TASK, toTaskSubmitParam(task), new TypeReference<ResponseDTO<Boolean>>() {
+        ResponseDTO<Boolean> response = executePost(baseUrl + API_SUBMIT_TASK, toTaskSubmitParam(agentUrl, task), new TypeReference<ResponseDTO<Boolean>>() {
         });
 
         if (response == null || !response.success()) {
@@ -67,9 +70,11 @@ public class OkHttpAgentWorkerRpc extends OKHttpRpc<BaseLBServer> implements Age
         return response.getData();
     }
 
-    public static TaskSubmitParam toTaskSubmitParam(Task task) {
+    public static TaskSubmitParam toTaskSubmitParam(URL agentUrl, Task task) {
         TaskSubmitParam taskSubmitParam = new TaskSubmitParam();
+        taskSubmitParam.setJobId(task.getJobId());
         taskSubmitParam.setTaskId(task.getTaskId());
+        taskSubmitParam.setAgentRpcUrl(agentUrl);
         taskSubmitParam.setType(task.getType().type);
         taskSubmitParam.setExecutorName(task.getExecutorName());
         taskSubmitParam.setContext(task.getContext() == null ? Collections.emptyMap() : task.getContext().toMap());

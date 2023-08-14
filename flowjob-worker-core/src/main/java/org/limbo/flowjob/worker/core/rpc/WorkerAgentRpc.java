@@ -18,9 +18,12 @@
 
 package org.limbo.flowjob.worker.core.rpc;
 
+import org.limbo.flowjob.worker.core.domain.SubTask;
+import org.limbo.flowjob.worker.core.domain.Task;
 import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * @author Devil
@@ -28,11 +31,13 @@ import javax.annotation.Nullable;
  */
 public interface WorkerAgentRpc {
 
+    Boolean submitSubTasks(Task task, List<SubTask> subTasks);
+
     /**
      * 反馈任务执行成功
      * @param context 任务执行上下文
      */
-    void feedbackTaskSucceed(ExecuteContext context);
+    Boolean feedbackTaskSucceed(ExecuteContext context);
 
 
     /**
@@ -40,5 +45,5 @@ public interface WorkerAgentRpc {
      * @param context 任务执行上下文
      * @param ex 导致任务失败的异常信息，可以为 null
      */
-    void feedbackTaskFailed(ExecuteContext context, @Nullable Throwable ex);
+    Boolean feedbackTaskFailed(ExecuteContext context, @Nullable Throwable ex);
 }

@@ -25,11 +25,12 @@ spring:
 
 flowjob:
   agent:
-    enabled: true
+    enabled: false
     auto-start: false
     brokers:
       - http://localhost:8081
-    datasource-url: jdbc:h2:file:/Users/devil/h2/flowjob_db;mode=mysql;DATABASE_TO_UPPER=false;auto_server=true;
+    datasource-url: jdbc:h2:mem:flowjob_db;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false;MODE=mysql;
+#    datasource-url: jdbc:h2:file:/Users/devil/h2/flowjob_db;AUTO_SERVER=true;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false;MODE=mysql;
     init-table: true
 
 

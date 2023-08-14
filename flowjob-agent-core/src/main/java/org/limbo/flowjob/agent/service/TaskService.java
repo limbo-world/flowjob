@@ -34,6 +34,7 @@ import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -59,19 +60,22 @@ public class TaskService {
         this.brokerRpc = brokerRpc;
     }
 
-    public Task getById(String id) {
-        return taskRepository.getById(id);
+    public Task getById(String jobId, String taskId) {
+        return taskRepository.getById(jobId, taskId);
     }
 
     public boolean batchSave(Collection<Task> tasks) {
-        return true;
+        if (CollectionUtils.isEmpty(tasks)) {
+            return true;
+        }
+        return taskRepository.batchSave(tasks);
     }
 
     /**
      * task 成功处理
      */
     // todo 事务
-    public void taskSuccess(Task task, Attributes context, Object result) {
+    public void taskSuccess(Task task, Attributes context, Object result) { // todo result
         task.setContext(context);
         boolean updated = taskRepository.success(task);
         if (!updated) { // 已经被更新 无需重复处理
@@ -102,6 +106,7 @@ public class TaskService {
      * 将 task 待下发的 subTask 进行异步下发
      */
     public void dealShardingTaskSuccess(Task task) {
+        // todo 如果失败了需要处理
         CommonThreadPool.IO.submit(() -> {
             String startId = "0";
             List<Task> subTasks = taskRepository.getByJobAndType(task.getJobId(), TaskType.MAP, startId, 1000);
@@ -146,7 +151,8 @@ public class TaskService {
                 .map(r -> JacksonUtils.parseObject(r, new TypeReference<Map<String, Object>>() {
                 }))
                 .collect(Collectors.toList());
-        Task reduceTask = TaskFactory.createTask(job, mapResults, TaskType.REDUCE, null);
+        Task reduceTask = TaskFactory.createTask(TaskType.REDUCE.name(), job, mapResults, TaskType.REDUCE, null);
+        taskRepository.batchSave(Collections.singletonList(reduceTask));
         taskDispatcher.dispatch(reduceTask);
     }
 

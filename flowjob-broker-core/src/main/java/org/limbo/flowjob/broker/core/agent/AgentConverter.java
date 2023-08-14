@@ -35,6 +35,7 @@ public class AgentConverter {
         param.setJobInstanceId(instance.getJobInstanceId());
         param.setType(jobInfo.getType().type);
         param.setExecutorName(jobInfo.getExecutorName());
+        param.setLoadBalanceType(jobInfo.getDispatchOption().getLoadBalanceType().type);
         param.setContext(instance.getContext().toMap());
         param.setAttributes(jobInfo.getAttributes().toMap());
         return param;

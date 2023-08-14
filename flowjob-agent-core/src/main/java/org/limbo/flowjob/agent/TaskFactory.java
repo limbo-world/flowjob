@@ -30,9 +30,12 @@ import org.limbo.flowjob.common.utils.time.TimeUtils;
  */
 public class TaskFactory {
 
-    public static Task createTask(Job job, Object taskAttributes, TaskType type, Worker worker) {
+    public static Task createTask(String taskId, Job job, Object taskAttributes, TaskType type, Worker worker) {
         Task task = new Task();
+        task.setTaskId(taskId);
+        task.setJobId(job.getId());
         task.setType(type);
+        task.setExecutorName(job.getExecutorName());
         task.setStatus(TaskStatus.SCHEDULING);
         task.setContext(job.getContext());
         task.setJobAttributes(job.getAttributes());

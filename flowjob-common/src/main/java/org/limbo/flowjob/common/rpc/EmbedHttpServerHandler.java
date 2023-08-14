@@ -50,14 +50,21 @@ public class EmbedHttpServerHandler extends SimpleChannelInboundHandler<FullHttp
 
     @Override
     protected void channelRead0(final ChannelHandlerContext ctx, FullHttpRequest msg) {
+
+        // 最开始放到线程池中获取，导致异步执行前资源释放导致获取的时候抛出异常
+        String requestData = msg.content().toString(CharsetUtil.UTF_8);
+        String uri = msg.uri();
+        HttpMethod httpMethod = msg.method();
+        boolean keepAlive = HttpUtil.isKeepAlive(msg);
+
         serverThreadPool.execute(() -> {
-            String requestData = msg.content().toString(CharsetUtil.UTF_8);
-            String uri = msg.uri();
-            HttpMethod httpMethod = msg.method();
-
-            String response = bizProcess.process(httpMethod, uri, requestData);
-
-            returnResponse(ctx, HttpUtil.isKeepAlive(msg), response);
+            try {
+                String response = bizProcess.process(httpMethod, uri, requestData);
+                returnResponse(ctx, keepAlive, response);
+            } catch (Exception e) {
+                log.error("Get Request Error method={} url={} param={}", httpMethod, uri, requestData, e);
+                throw new RuntimeException(e);
+            }
         });
     }
 

@@ -20,58 +20,75 @@ package org.limbo.flowjob.worker.core.rpc.http;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.limbo.flowjob.api.constants.MsgConstants;
-import org.limbo.flowjob.api.constants.Protocol;
 import org.limbo.flowjob.api.dto.ResponseDTO;
+import org.limbo.flowjob.api.param.agent.SubTaskCreateParam;
 import org.limbo.flowjob.api.param.agent.TaskFeedbackParam;
 import org.limbo.flowjob.common.exception.RegisterFailException;
 import org.limbo.flowjob.common.http.OKHttpRpc;
 import org.limbo.flowjob.common.lb.BaseLBServer;
+import org.limbo.flowjob.worker.core.domain.SubTask;
 import org.limbo.flowjob.worker.core.domain.Task;
 import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.rpc.RpcParamFactory;
 import org.limbo.flowjob.worker.core.rpc.WorkerAgentRpc;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
-import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.API_JOB_FEEDBACK;
+import static org.limbo.flowjob.api.constants.rpc.HttpAgentApi.API_TASK_FEEDBACK;
+import static org.limbo.flowjob.api.constants.rpc.HttpAgentApi.API_TASK_RECEIVE;
 
 /**
  * @author Devil
  * @since 2023/8/7
  */
-public class OkHttpAgentRpc extends OKHttpRpc<BaseLBServer>  implements WorkerAgentRpc {
-
-    private static final String BASE_URL = "http://0.0.0.0:8080";
-
-    private static final Protocol DEFAULT_PROTOCOL = Protocol.HTTP;
+public class OkHttpAgentRpc extends OKHttpRpc<BaseLBServer> implements WorkerAgentRpc {
 
     public OkHttpAgentRpc() {
         super(null, null);
     }
 
     @Override
-    public void feedbackTaskSucceed(ExecuteContext context) {
-        Task task = context.getTask();
-        doFeedbackTask(task.getTaskId(), RpcParamFactory.taskFeedbackParam(task.getContext(), task.getJobAttributes(), task.getResult(), null));
-    }
+    public Boolean submitSubTasks(Task task, List<SubTask> subTasks) {
+        SubTaskCreateParam param = RpcParamFactory.subTaskCreateParam(task.getJobId(), subTasks);
 
-    @Override
-    public void feedbackTaskFailed(ExecuteContext context, @Nullable Throwable ex) {
-        Task task = context.getTask();
-        doFeedbackTask(context.getTask().getTaskId(), RpcParamFactory.taskFeedbackParam(task.getContext(), task.getJobAttributes(), task.getResult(), ex));
-    }
-
-    /**
-     * 反馈任务执行结果
-     */
-    private void doFeedbackTask(String taskId, TaskFeedbackParam feedbackParam) {
-        ResponseDTO<Void> response = executePost(BASE_URL + API_JOB_FEEDBACK + "?taskId=" + taskId, feedbackParam, new TypeReference<ResponseDTO<Void>>() {
+        ResponseDTO<Boolean> response = executePost(task.getAgentRpcUrl() + API_TASK_RECEIVE, param, new TypeReference<ResponseDTO<Boolean>>() {
         });
 
         if (response == null || !response.success()) {
             String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
             throw new RegisterFailException("Worker feedback Task failed: " + msg);
         }
+
+        return response.getData();
+    }
+
+    @Override
+    public Boolean feedbackTaskSucceed(ExecuteContext context) {
+        Task task = context.getTask();
+        TaskFeedbackParam taskFeedbackParam = RpcParamFactory.taskFeedbackParam(task.getJobId(), task.getTaskId(), task.getContext(), task.getJobAttributes(), task.getResult(), null);
+        return doFeedbackTask(task, taskFeedbackParam);
+    }
+
+    @Override
+    public Boolean feedbackTaskFailed(ExecuteContext context, @Nullable Throwable ex) {
+        Task task = context.getTask();
+        TaskFeedbackParam taskFeedbackParam = RpcParamFactory.taskFeedbackParam(task.getJobId(), task.getTaskId(), task.getContext(), task.getJobAttributes(), task.getResult(), ex);
+        return doFeedbackTask(task, taskFeedbackParam);
+    }
+
+    /**
+     * 反馈任务执行结果
+     */
+    private Boolean doFeedbackTask(Task task, TaskFeedbackParam feedbackParam) {
+        ResponseDTO<Boolean> response = executePost(task.getAgentRpcUrl() + API_TASK_FEEDBACK, feedbackParam, new TypeReference<ResponseDTO<Boolean>>() {
+        });
+
+        if (response == null || !response.success()) {
+            String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
+            throw new RegisterFailException("Worker feedback Task failed: " + msg);
+        }
+        return response.getData();
     }
 
 }

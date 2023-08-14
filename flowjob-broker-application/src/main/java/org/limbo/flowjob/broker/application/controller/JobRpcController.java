@@ -19,6 +19,7 @@
 package org.limbo.flowjob.broker.application.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Setter;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.broker.AvailableWorkerDTO;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -41,6 +43,8 @@ import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.*;
  * @author Devil
  * @since 2023/8/7
  */
+@Tag(name = "job remote rpc")
+@RestController
 public class JobRpcController {
 
     @Setter(onMethod_ = @Inject)
@@ -58,6 +62,16 @@ public class JobRpcController {
     }
 
     /**
+     * 下发反馈
+     */
+    @Operation(summary = "Job下发反馈")
+    @PostMapping(API_JOB_DISPATCHED)
+    public ResponseDTO<Boolean> heartbeat(@Validated @NotNull(message = "no agentId") @RequestParam("agentId") String agentId,
+                                          @Validated @NotNull(message = "no jobInstanceId") @RequestParam("jobInstanceId") String jobInstanceId) {
+        return ResponseDTO.<Boolean>builder().ok(scheduleProxy.jobDispatched(agentId, jobInstanceId)).build();
+    }
+
+    /**
      * 任务执行反馈接口
      */
     @Operation(summary = "任务执行反馈接口")
@@ -69,9 +83,9 @@ public class JobRpcController {
     }
 
     /**
-     * 任务执行反馈接口
+     * 任务可执行worker列表
      */
-    @Operation(summary = "任务执行反馈接口")
+    @Operation(summary = "任务可执行worker列表")
     @GetMapping(API_JOB_FILTER_WORKERS)
     public ResponseDTO<List<AvailableWorkerDTO>> jobFilterWorkers(@Validated @NotNull(message = "no job") @RequestParam("jobInstanceId") String jobInstanceId,
                                                                   @RequestParam(value = "filterExecutor", required = false) boolean filterExecutor,

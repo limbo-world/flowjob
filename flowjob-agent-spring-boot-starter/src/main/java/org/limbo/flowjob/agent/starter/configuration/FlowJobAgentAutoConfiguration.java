@@ -88,10 +88,19 @@ public class FlowJobAgentAutoConfiguration {
      * @param rpc broker rpc 通信模块
      */
     @Bean("fjaHttpScheduleAgent")
-    public ScheduleAgent httpWorker(AgentResources resources, AgentBrokerRpc rpc, JobService jobService, TaskService taskService) throws MalformedURLException {
+    public ScheduleAgent httpAgent(URL agentUrl, AgentResources resources, AgentBrokerRpc rpc, JobService jobService, TaskService taskService) throws MalformedURLException {
+        HttpHandlerProcessor httpHandlerProcessor = new HttpHandlerProcessor();
+        EmbedRpcServer embedRpcServer = new EmbedHttpRpcServer(agentUrl.getPort(), httpHandlerProcessor);
+        ScheduleAgent agent = new BaseScheduleAgent(agentUrl, resources, rpc, jobService, taskService, embedRpcServer);
+        httpHandlerProcessor.setAgent(agent);
+
+        return new SpringDelegatedAgent(agent);
+    }
+
+    @Bean("fjaAgentServerUrl")
+    public URL agentUrl() throws MalformedURLException {
         // 优先使用 SpringMVC 或 SpringWebflux 设置的端口号
         Integer port = properties.getPort() != null ? properties.getPort() : DEFAULT_HTTP_SERVER_PORT;
-
         // 优先使用指定的 host，如未指定则自动寻找本机 IP
         String host = properties.getHost();
         if (StringUtils.isEmpty(host)) {
@@ -99,13 +108,7 @@ public class FlowJobAgentAutoConfiguration {
         }
 
         Assert.isTrue(port > 0, "Worker port must be a positive integer in range 1 ~ 65534");
-        URL workerBaseUrl = new URL(properties.getProtocol().getValue(), host, port, "");
-        HttpHandlerProcessor httpHandlerProcessor = new HttpHandlerProcessor();
-        EmbedRpcServer embedRpcServer = new EmbedHttpRpcServer(port, httpHandlerProcessor);
-        ScheduleAgent agent = new BaseScheduleAgent(workerBaseUrl, resources, rpc, jobService, taskService, embedRpcServer);
-        httpHandlerProcessor.setAgent(agent);
-
-        return new SpringDelegatedAgent(agent);
+        return new URL(properties.getProtocol().getValue(), host, port, "");
     }
 
     /**
@@ -159,9 +162,11 @@ public class FlowJobAgentAutoConfiguration {
 
     @Bean("fjaAgentWorkerRpc")
     @ConditionalOnMissingBean(AgentWorkerRpc.class)
-    public AgentWorkerRpc workerRpc() {
-        return new OkHttpAgentWorkerRpc();
+    public AgentWorkerRpc workerRpc(URL agentUrl) {
+        return new OkHttpAgentWorkerRpc(agentUrl);
     }
+
+
 
     /**
      * Broker 通信模块

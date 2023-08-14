@@ -25,6 +25,7 @@ import org.limbo.flowjob.api.constants.TaskType;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.net.URL;
 import java.util.Map;
 
 /**
@@ -38,9 +39,13 @@ public class TaskSubmitParam implements Serializable {
     private static final long serialVersionUID = -5172349572814593252L;
 
     @NotBlank
+    private String jobId;
+
+    @NotBlank
     private String taskId;
 
-    private String agentId;
+    @NotNull
+    private URL agentRpcUrl;
 
     /**
      * Task类型

@@ -131,18 +131,20 @@ public class JobService {
         List<Task> tasks = new ArrayList<>();
         switch (job.getType()) {
             case STANDALONE:
-                tasks.add(TaskFactory.createTask(job, null, TaskType.STANDALONE, null));
+                tasks.add(TaskFactory.createTask(job.getType().name(), job, null, TaskType.STANDALONE, null));
                 break;
             case BROADCAST:
                 List<Worker> workers = brokerRpc.availableWorkers(job.getId(), true, true, false);
+                int idx = 1;
                 for (Worker worker : workers) {
-                    Task task = TaskFactory.createTask(job, null, TaskType.BROADCAST, worker);
+                    Task task = TaskFactory.createTask(String.valueOf(idx), job, null, TaskType.BROADCAST, worker);
                     tasks.add(task);
+                    idx++;
                 }
                 break;
             case MAP:
             case MAP_REDUCE:
-                tasks.add(TaskFactory.createTask(job, null, TaskType.SHARDING, null));
+                tasks.add(TaskFactory.createTask(job.getType().name(), job, null, TaskType.SHARDING, null));
                 break;
             default:
                 throw new JobException(job.getId(), MsgConstants.UNKNOWN + " job type:" + job.getType().type);

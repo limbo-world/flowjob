@@ -18,17 +18,21 @@
 
 package org.limbo.flowjob.worker.core.rpc;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.limbo.flowjob.api.constants.ExecuteResult;
+import org.limbo.flowjob.api.param.agent.SubTaskCreateParam;
 import org.limbo.flowjob.api.param.agent.TaskFeedbackParam;
 import org.limbo.flowjob.api.param.broker.WorkerExecutorRegisterParam;
 import org.limbo.flowjob.api.param.broker.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
 import org.limbo.flowjob.api.param.broker.WorkerResourceParam;
-import org.limbo.flowjob.api.constants.ExecuteResult;
+import org.limbo.flowjob.worker.core.domain.SubTask;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.domain.WorkerResources;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -106,8 +110,10 @@ public class RpcParamFactory {
         return heartbeatParam;
     }
 
-    public static TaskFeedbackParam taskFeedbackParam(Map<String, Object> context, Map<String, Object> jobAttributes, Object result, Throwable ex) {
+    public static TaskFeedbackParam taskFeedbackParam(String jobId, String taskId, Map<String, Object> context, Map<String, Object> jobAttributes, Object result, Throwable ex) {
         TaskFeedbackParam feedbackParam = new TaskFeedbackParam();
+        feedbackParam.setJobId(jobId);
+        feedbackParam.setTaskId(taskId);
         feedbackParam.setResult(ExecuteResult.SUCCEED);
         feedbackParam.setContext(context);
         feedbackParam.setJobAttributes(jobAttributes);
@@ -119,4 +125,23 @@ public class RpcParamFactory {
         }
         return feedbackParam;
     }
+
+    public static SubTaskCreateParam subTaskCreateParam(String jobId, List<SubTask> subTasks) {
+        SubTaskCreateParam param = new SubTaskCreateParam();
+        param.setJobId(jobId);
+
+        List<SubTaskCreateParam.SubTaskInfoParam> subTaskParams = Collections.emptyList();
+        if (CollectionUtils.isNotEmpty(subTasks)) {
+            subTaskParams = new ArrayList<>();
+            for (SubTask subTask : subTasks) {
+                SubTaskCreateParam.SubTaskInfoParam subTaskInfoParam = new SubTaskCreateParam.SubTaskInfoParam();
+                subTaskInfoParam.setTaskId(subTask.getTaskId());
+                subTaskInfoParam.setData(subTask.getAttributes());
+                subTaskParams.add(subTaskInfoParam);
+            }
+        }
+        param.setSubTasks(subTaskParams);
+        return param;
+    }
+
 }

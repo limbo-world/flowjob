@@ -16,52 +16,27 @@
  *
  */
 
-package org.limbo.flowjob.api.param.agent;
+package org.limbo.flowjob.worker.core.domain;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import org.limbo.flowjob.api.constants.JobType;
-import org.limbo.flowjob.api.constants.LoadBalanceType;
+import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.util.Map;
 
 /**
  * @author Devil
- * @since 2023/8/3
+ * @since 2023/8/14
  */
 @Data
-public class JobSubmitParam implements Serializable {
-    private static final long serialVersionUID = 3844255455063078620L;
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class SubTask {
 
-    private String jobInstanceId;
+    private String taskId;
 
-    /**
-     * 类型
-     *
-     * @see JobType
-     */
-    private Integer type;
-
-    /**
-     * 执行器的名称
-     */
-    private String executorName;
-
-    /**
-     * 负载策略
-     *
-     * @see LoadBalanceType
-     */
-    private Integer loadBalanceType;
-
-    /**
-     * 上下文元数据
-     */
-    private Map<String, Object> context;
-
-    /**
-     * job配置的属性
-     */
     private Map<String, Object> attributes;
 
 }

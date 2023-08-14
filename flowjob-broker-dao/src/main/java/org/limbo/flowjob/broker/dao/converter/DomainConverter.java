@@ -100,6 +100,7 @@ public class DomainConverter {
         JobInstanceEntity entity = new JobInstanceEntity();
         entity.setJobId(jobInfo.getId());
         entity.setJobInstanceId(jobInstance.getJobInstanceId());
+        entity.setAgentId(jobInstance.getAgentId());
         entity.setRetryTimes(jobInstance.getRetryTimes());
         entity.setPlanInstanceId(jobInstance.getPlanInstanceId());
         entity.setPlanId(jobInstance.getPlanId());

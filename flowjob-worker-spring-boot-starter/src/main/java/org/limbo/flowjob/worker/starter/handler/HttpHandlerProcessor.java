@@ -99,8 +99,10 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
     public static Task toTask(TaskSubmitParam param) {
         TaskType taskType = TaskType.parse(param.getType());
         Task task = new Task();
-        task.setTaskId(String.valueOf(param.getTaskId()));
+        task.setJobId(param.getJobId());
+        task.setTaskId(param.getTaskId());
         task.setType(taskType);
+        task.setAgentRpcUrl(param.getAgentRpcUrl());
         task.setExecutorName(param.getExecutorName());
         task.setContext(param.getContext());
         task.setJobAttributes(param.getAttributes());
@@ -109,7 +111,7 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
             case BROADCAST:
             case SHARDING:
             case MAP:
-                task.setMapAttributes((Map<String, Object>) param.getTaskAttributes());
+                task.setTaskAttributes((Map<String, Object>) param.getTaskAttributes());
                 break;
             case REDUCE:
                 List<Map<String, Object>> attr = (List<Map<String, Object>>) param.getTaskAttributes();

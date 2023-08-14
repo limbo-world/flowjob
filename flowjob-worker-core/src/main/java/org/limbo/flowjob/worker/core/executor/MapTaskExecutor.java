@@ -18,6 +18,7 @@ package org.limbo.flowjob.worker.core.executor;
 
 
 import org.limbo.flowjob.worker.core.domain.Task;
+import org.limbo.flowjob.worker.core.rpc.WorkerAgentRpc;
 
 /**
  * 任务执行器
@@ -26,6 +27,10 @@ import org.limbo.flowjob.worker.core.domain.Task;
  * @since 2021/7/24
  */
 public abstract class MapTaskExecutor extends MapReduceTaskExecutor {
+
+    public MapTaskExecutor(WorkerAgentRpc agentRpc) {
+        super(agentRpc);
+    }
 
     @Override
     public void reduce(Task task) {

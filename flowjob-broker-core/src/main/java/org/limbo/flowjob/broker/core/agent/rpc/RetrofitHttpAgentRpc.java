@@ -16,6 +16,7 @@
 
 package org.limbo.flowjob.broker.core.agent.rpc;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.limbo.flowjob.api.constants.rpc.HttpAgentApi;
 import org.limbo.flowjob.api.dto.ResponseDTO;
@@ -36,6 +37,7 @@ import retrofit2.http.POST;
  * @author Brozen
  * @since 2022-08-26
  */
+@Slf4j
 public class RetrofitHttpAgentRpc extends AbstractRpc implements AgentRpc {
 
     private final RetrofitAgentApi api;
@@ -66,14 +68,14 @@ public class RetrofitHttpAgentRpc extends AbstractRpc implements AgentRpc {
 
 
     /**
-     * Worker HTTP 协议通信接口
+     * HTTP 协议通信接口
      */
     interface RetrofitAgentApi {
 
         @Headers(
                 "Content-Type: application/json"
         )
-        @POST(HttpAgentApi.API_JOB_SUBMIT)
+        @POST(HttpAgentApi.API_JOB_RECEIVE)
         Call<ResponseDTO<Boolean>> dispatch(@Body JobSubmitParam param);
 
     }

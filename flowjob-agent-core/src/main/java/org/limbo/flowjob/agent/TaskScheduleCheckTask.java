@@ -42,7 +42,7 @@
 ///**
 // * task 如果长时间调度中没有进行下发 需要处理
 // */
-//@Component
+//@Component todo
 //public class TaskScheduleCheckTask extends FixDelayMetaTask {
 //
 //    private final TaskEntityRepo taskEntityRepo;

@@ -45,7 +45,6 @@ public class TaskDispatcher {
 
     private final AgentWorkerRpc agentWorkerRpc;
 
-
     private final JobRepository jobRepository;
 
     private final WorkerSelectorFactory workerSelectorFactory;
@@ -70,22 +69,22 @@ public class TaskDispatcher {
             log.debug("start dispatch task={}", task);
         }
 
-        if (task.getStatus() != TaskStatus.DISPATCHING) {
-            log.error("Cannot startup context due to current status: {} {}", task.getStatus(), task.getTaskId());
-            return false;
-        }
+//        if (task.getStatus() != TaskStatus.DISPATCHING) {
+//            log.error("Cannot startup context due to current status: {} {}", task.getStatus(), task.getTaskId());
+//            return false;
+//        }
 
-        if (task.getWorker() != null) {
+        if (task.getWorker() == null) {
             return dispatchWithWorkerSelect(task);
         } else {
-            return dispatchWithWorkerId(task);
+            return dispatchWithWorker(task);
         }
     }
 
     /**
      *  指定 worker 的任务
      */
-    private boolean dispatchWithWorkerId(Task task) {
+    private boolean dispatchWithWorker(Task task) {
         Worker worker = task.getWorker();
         try {
             // 发送任务到worker，根据worker返回结果，更新状态

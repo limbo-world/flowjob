@@ -29,7 +29,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum PlanStatus {
     UNKNOWN(ConstantsPool.UNKNOWN, "未知"),
-    SCHEDULING(ConstantsPool.SCHEDULE_STATUS_SCHEDULING, "调度中"), // 还没有任务在执行状态
+    SCHEDULING(ConstantsPool.SCHEDULE_STATUS_SCHEDULING, "调度中"), // 时间轮中，还未创建 job 实例
+    DISPATCHING(ConstantsPool.SCHEDULE_STATUS_DISPATCHING, "下发中"), // 创建完 job 实例，等待 job 下发
     EXECUTING(ConstantsPool.SCHEDULE_STATUS_EXECUTING, "执行中"), // 第一个任务切换为执行中的时候
     SUCCEED(ConstantsPool.SCHEDULE_STATUS_EXECUTE_SUCCEED, "执行成功"), // 所有节点都执行成功
     FAILED(ConstantsPool.SCHEDULE_STATUS_EXECUTE_FAILED, "执行失败"), // 有一个节点执行失败，并触发plan的失败场景

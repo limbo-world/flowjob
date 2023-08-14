@@ -19,8 +19,11 @@
 package org.limbo.flowjob.broker.dao.repositories;
 
 import org.limbo.flowjob.broker.dao.entity.AgentEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
+import java.util.List;
 
 /**
  * @author Devil
@@ -29,5 +32,10 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 public interface AgentEntityRepo extends JpaRepository<AgentEntity, String>, JpaSpecificationExecutor<AgentEntity> {
 
     AgentEntity findByHostAndPort(String host, Integer port);
+
+    /**
+     * 查询状态启动未删除
+     */
+    List<AgentEntity> findByStatusAndEnabledAndDeleted(Integer status, boolean enabled, boolean deleted);
 
 }

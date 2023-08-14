@@ -61,7 +61,7 @@ public class StandalonePlanScheduler extends AbstractPlanScheduler {
         }
 
         // 更新 plan 上下文
-        planInstanceEntityRepo.updateContext(jobInstance.getPlanInstanceId(), jobInstance.getContext().toString());
+//        planInstanceEntityRepo.updateContext(jobInstance.getPlanInstanceId(), jobInstance.getContext().toString());
 
         String planInstanceId = jobInstance.getPlanInstanceId();
         handlerPlanComplete(planInstanceId, true);

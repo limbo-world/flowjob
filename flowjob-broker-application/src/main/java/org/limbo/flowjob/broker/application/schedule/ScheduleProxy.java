@@ -50,12 +50,14 @@ import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
+import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerExecutorEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerMetricEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerTagEntityRepo;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -63,6 +65,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -114,6 +117,9 @@ public class ScheduleProxy implements ApplicationContextAware {
     @Setter(onMethod_ = @Inject)
     private PlanInstanceEntityRepo planInstanceEntityRepo;
 
+    @Setter(onMethod_ = @Inject)
+    private JobInstanceEntityRepo jobInstanceEntityRepo;
+
 
     private final Map<PlanType, PlanScheduler> schedulers = new EnumMap<>(PlanType.class);
 
@@ -156,6 +162,11 @@ public class ScheduleProxy implements ApplicationContextAware {
      */
     public void schedule(JobInstance jobInstance) {
         executeWithAspect(unused -> schedulers.get(jobInstance.getPlanType()).schedule(jobInstance));
+    }
+
+    @Transactional(rollbackOn = Throwable.class)
+    public boolean jobDispatched(String agentId, String jobInstanceId) {
+        return jobInstanceEntityRepo.executing(agentId, jobInstanceId, TimeUtils.currentLocalDateTime()) > 0;
     }
 
     /**

@@ -42,6 +42,12 @@ import java.util.Map;
 @Schema(title = "作业执行反馈参数")
 public class TaskFeedbackParam {
 
+    @NotNull(message = "jobId can't be null")
+    private String jobId;
+
+    @NotNull(message = "taskId can't be null")
+    private String taskId;
+
     /**
      * 执行结果
      * @see ExecuteResult

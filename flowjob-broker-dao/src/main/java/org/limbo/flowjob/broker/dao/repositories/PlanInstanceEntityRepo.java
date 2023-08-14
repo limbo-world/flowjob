@@ -52,9 +52,15 @@ public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity
             "order by feedback_at desc limit 1", nativeQuery = true)
     PlanInstanceEntity findLatelyFeedback(@Param("planId") String planId, @Param("planInfoId") String planInfoId, @Param("scheduleType") Integer scheduleType, @Param("triggerType") Integer triggerType);
 
+//    @Modifying(clearAutomatically = true)
+//    @Query(value = "update PlanInstanceEntity set context =:context where planInstanceId = :planInstanceId")
+//    int updateContext(@Param("planInstanceId") String planInstanceId, @Param("context") String context);
+
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanInstanceEntity set context =:context where planInstanceId = :planInstanceId")
-    int updateContext(@Param("planInstanceId") String planInstanceId, @Param("context") String context);
+    @Query(value = "update PlanInstanceEntity " +
+            " set status = " + ConstantsPool.SCHEDULE_STATUS_DISPATCHING +
+            " where planInstanceId = :planInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_SCHEDULING)
+    int dispatching(@Param("planInstanceId") String planInstanceId);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING + ", startAt = :startAt " +
