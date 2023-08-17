@@ -24,13 +24,14 @@ import org.limbo.flowjob.api.constants.JobStatus;
 import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.broker.core.domain.IDType;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
@@ -61,7 +62,9 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
 
         Verifies.verify(TriggerType.API == jobInfo.getTriggerType(), "only api triggerType job can schedule by api");
 
-        List<JobInstance> jobInstances = createJobInstances(plan, planInstanceId, TimeUtils.currentLocalDateTime());
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(planInstanceId).orElse(null);
+
+        List<JobInstance> jobInstances = createJobInstances(plan, new Attributes(planInstanceEntity.getAttributes()), planInstanceId, TimeUtils.currentLocalDateTime());
 
         saveAndScheduleJobInstances(jobInstances);
     }
@@ -85,12 +88,12 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
     }
 
     @Override
-    public List<JobInstance> createJobInstances(Plan plan, String planInstanceId, LocalDateTime triggerAt) {
+    public List<JobInstance> createJobInstances(Plan plan, Attributes planAttributes, String planInstanceId, LocalDateTime triggerAt) {
         List<JobInstance> jobInstances = new ArrayList<>();
         // 获取头部节点
         for (WorkflowJobInfo jobInfo : ((WorkflowPlan) plan).getDag().origins()) {
             if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
-                jobInstances.add(createJobInstance(plan.getPlanId(), plan.getVersion(), planInstanceId, new Attributes(), jobInfo, triggerAt));
+                jobInstances.add(createJobInstance(plan.getPlanId(), plan.getVersion(), planInstanceId, planAttributes, new Attributes(), jobInfo, triggerAt));
             }
         }
         return jobInstances;
@@ -102,9 +105,6 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
         if (num < 1) {
             return; // 被其他更新
         }
-
-        // 更新 plan 上下文
-//        planInstanceEntityRepo.updateContext(jobInstance.getPlanInstanceId(), jobInstance.getContext().toString());
 
         String planInstanceId = jobInstance.getPlanInstanceId();
 
@@ -125,13 +125,15 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
                 handlerPlanComplete(planInstanceId, true);
             }
         } else {
+            PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(planInstanceId).orElse(null);
+
             LocalDateTime triggerAt = TimeUtils.currentLocalDateTime();
             // 后续作业存在，则检测是否可触发，并继续下发作业
             List<JobInstance> subJobInstances = new ArrayList<>();
             for (WorkflowJobInfo subJobInfo : subJobInfos) {
                 // 前置节点已经完成则可以下发
                 if (checkJobsSuccess(planInstanceId, dag.preNodes(subJobInfo.getId()), true)) {
-                    JobInstance subJobInstance = createJobInstance(planId, version, planInstanceId, jobInstance.getContext(), subJobInfo, triggerAt);
+                    JobInstance subJobInstance = createJobInstance(planId, version, planInstanceId, new Attributes(planInstanceEntity.getAttributes()), jobInstance.getContext(), subJobInfo, triggerAt);
                     subJobInstances.add(subJobInstance);
                 }
             }

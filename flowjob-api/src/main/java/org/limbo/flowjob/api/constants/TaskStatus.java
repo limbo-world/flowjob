@@ -36,27 +36,27 @@ public enum TaskStatus {
     /**
      * 任务刚创建，还在调度中
      */
-    SCHEDULING(ConstantsPool.SCHEDULE_STATUS_SCHEDULING, "调度中"),
+    SCHEDULING(ConstantsPool.TASK_SCHEDULING, "调度中"),
 
     /**
      * 任务尝试下发给worker
      */
-    DISPATCHING(ConstantsPool.SCHEDULE_STATUS_DISPATCHING, "下发中"),
+    DISPATCHING(ConstantsPool.TASK_DISPATCHING, "下发中"),
 
     /**
      * 任务已下发给worker成功，正在执行中
      */
-    EXECUTING(ConstantsPool.SCHEDULE_STATUS_EXECUTING, "执行中"),
+    EXECUTING(ConstantsPool.TASK_EXECUTING, "执行中"),
 
     /**
      * 执行成功
      */
-    SUCCEED(ConstantsPool.SCHEDULE_STATUS_EXECUTE_SUCCEED, "执行成功"),
+    SUCCEED(ConstantsPool.TASK_EXECUTE_SUCCEED, "执行成功"),
 
     /**
      * 执行失败
      */
-    FAILED(ConstantsPool.SCHEDULE_STATUS_EXECUTE_FAILED, "执行失败"),
+    FAILED(ConstantsPool.TASK_EXECUTE_FAILED, "执行失败"),
     ;
 
     @JsonValue
@@ -72,6 +72,7 @@ public enum TaskStatus {
 
     /**
      * 校验是否是当前状态
+     *
      * @param status 待校验状态值
      */
     public boolean is(TaskStatus status) {
@@ -80,6 +81,7 @@ public enum TaskStatus {
 
     /**
      * 校验是否是当前状态
+     *
      * @param status 待校验状态值
      */
     public boolean is(Number status) {

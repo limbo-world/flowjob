@@ -179,6 +179,7 @@ CREATE TABLE `flowjob_plan_instance`
     `trigger_type`     tinyint                                                NOT NULL,
     `schedule_type`    tinyint                                                NOT NULL,
     `status`           tinyint                                                NOT NULL,
+    `attributes`       text COLLATE utf8mb4_bin,
     `trigger_at`       datetime(6) NOT NULL,
     `start_at`         datetime(6) DEFAULT NULL,
     `feedback_at`      datetime(6) DEFAULT NULL,
@@ -221,7 +222,7 @@ CREATE TABLE `flowjob_job_instance`
     `plan_id`          varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `plan_info_id`     varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `trigger_at`       datetime(6) NOT NULL,
-    `context`          varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `context`          text COLLATE utf8mb4_bin,
     `start_at`         datetime(6) DEFAULT NULL,
     `end_at`           datetime(6) DEFAULT NULL,
     `status`           tinyint                                                NOT NULL,
@@ -383,8 +384,7 @@ CREATE TABLE `flowjob_worker_metric`
     `created_at`            datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`            datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_id` (`worker_id`),
-    KEY                     `idx_last_heartbeat` (`last_heartbeat_at`)
+    UNIQUE KEY `uk_id` (`worker_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -487,7 +487,9 @@ CREATE TABLE `flowjob_agent`
     `created_at`            datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`            datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_id` (`agent_id`)
+    UNIQUE KEY `uk_id` (`agent_id`),
+    KEY                     `idx_host_port` (`host`, `port`),
+    KEY                     `idx_last_heartbeat` (`last_heartbeat_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

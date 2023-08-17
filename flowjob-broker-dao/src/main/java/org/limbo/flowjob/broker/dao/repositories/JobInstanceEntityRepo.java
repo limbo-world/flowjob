@@ -32,7 +32,6 @@ import java.util.List;
 /**
  * @author Devil
  * @since 2022/6/24
- *
  */
 public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, String>, JpaSpecificationExecutor<JobInstanceEntity> {
 
@@ -45,26 +44,26 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity " +
-            " set status = " + ConstantsPool.SCHEDULE_STATUS_DISPATCHING + ", agentId = :agentId " +
-            " where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_SCHEDULING)
+            " set status = " + ConstantsPool.JOB_DISPATCHING + ", agentId = :agentId " +
+            " where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.JOB_SCHEDULING)
     int dispatching(@Param("jobInstanceId") String jobInstanceId, @Param("agentId") String agentId);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity " +
-            "set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING + ", startAt = :startAt " +
-            "where agentId = :agentId and jobInstanceId = :jobInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_DISPATCHING)
+            "set status = " + ConstantsPool.JOB_EXECUTING + ", startAt = :startAt " +
+            "where agentId = :agentId and jobInstanceId = :jobInstanceId and status = " + ConstantsPool.JOB_DISPATCHING)
     int executing(@Param("agentId") String agentId, @Param("jobInstanceId") String jobInstanceId, @Param("startAt") LocalDateTime startAt);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity " +
-            "set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTE_SUCCEED + ", context = :context, endAt = :endAt " +
-            "where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING)
+            "set status = " + ConstantsPool.JOB_EXECUTE_SUCCEED + ", context = :context, endAt = :endAt " +
+            "where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.JOB_EXECUTING)
     int success(@Param("jobInstanceId") String jobInstanceId, @Param("endAt") LocalDateTime endAt, @Param("context") String context);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity " +
-            "set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTE_FAILED + ", errorMsg =:errorMsg " +
-            "where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING)
+            "set status = " + ConstantsPool.JOB_EXECUTE_FAILED + ", errorMsg =:errorMsg " +
+            "where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.JOB_EXECUTING)
     int fail(@Param("jobInstanceId") String jobInstanceId, @Param("errorMsg") String errorMsg);
 
 }

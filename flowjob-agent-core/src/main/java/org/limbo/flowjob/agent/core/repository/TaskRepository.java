@@ -78,9 +78,9 @@ public class TaskRepository {
                     "    `worker_id`         varchar(255) NOT NULL DEFAULT '',\n" +
                     "    `worker_address`    varchar(255) NOT NULL DEFAULT '',\n" +
                     "    `executor_name`     varchar(255) NOT NULL DEFAULT '',\n" +
-                    "    `context`           varchar(255) NOT NULL DEFAULT '',\n" +
-                    "    `job_attributes`    varchar(255) NOT NULL DEFAULT '',\n" +
-                    "    `task_attributes`   varchar(255) NOT NULL DEFAULT '',\n" +
+                    "    `context`           text,\n" +
+                    "    `job_attributes`    text,\n" +
+                    "    `task_attributes`   text,\n" +
                     "    `type`              int                                                    NOT NULL,\n" +
                     "    `status`            int                                                    NOT NULL,\n" +
                     "    `trigger_at`        datetime(6) DEFAULT NULL,\n" +
@@ -176,10 +176,11 @@ public class TaskRepository {
     }
 
     public long countUnSuccess(String jobId, TaskType type) {
-        String sql = "select count(*) from " + TABLE_NAME + " where job_id = ? and `type` = ?";
+        String sql = "select count(*) from " + TABLE_NAME + " where job_id = ? and `type` = ? and `status` != ? ";
         try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, jobId);
             ps.setInt(2, type.type);
+            ps.setInt(3, TaskStatus.SUCCEED.status);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1);

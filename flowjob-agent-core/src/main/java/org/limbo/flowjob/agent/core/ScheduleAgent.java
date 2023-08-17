@@ -73,7 +73,7 @@ public interface ScheduleAgent {
     /**
      * task失败处理
      */
-    void taskFail(String jobId, String taskId, Attributes context, String errorMsg, String errorStackTrace);
+    void taskFail(String jobId, String taskId, String errorMsg, String errorStackTrace);
 
     /**
      * 停止当前 Worker

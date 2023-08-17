@@ -84,8 +84,8 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
     protected LBStrategy<ScheduleAgent> lbStrategy = new RoundRobinLBStrategy<>();
 
     @Transactional
-    public void schedule(Plan plan, String planInstanceId, LocalDateTime triggerAt) {
-        List<JobInstance> jobInstances = createJobInstances(plan, planInstanceId, triggerAt);
+    public void schedule(Plan plan, Attributes planAttributes, String planInstanceId, LocalDateTime triggerAt) {
+        List<JobInstance> jobInstances = createJobInstances(plan, planAttributes, planInstanceId, triggerAt);
         saveAndScheduleJobInstances(jobInstances);
         planInstanceEntityRepo.dispatching(planInstanceId);
     }
@@ -97,7 +97,7 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
         ScheduleContext.waitScheduleJobs(jobInstances);
     }
 
-    public abstract List<JobInstance> createJobInstances(Plan plan, String planInstanceId, LocalDateTime triggerAt);
+    public abstract List<JobInstance> createJobInstances(Plan plan, Attributes planAttributes, String planInstanceId, LocalDateTime triggerAt);
 
     @Transactional
     public void saveJobInstances(List<JobInstance> jobInstances) {
@@ -153,7 +153,7 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
         }
     }
 
-    public JobInstance createJobInstance(String planId, String planVersion, String planInstanceId,
+    public JobInstance createJobInstance(String planId, String planVersion, String planInstanceId, Attributes planAttributes,
                                          Attributes context, JobInfo jobInfo, LocalDateTime triggerAt) {
         String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
         JobInstance instance = new JobInstance();
@@ -167,7 +167,10 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
         instance.setStatus(JobStatus.SCHEDULING);
         instance.setTriggerAt(triggerAt);
         instance.setContext(context == null ? new Attributes() : context);
-        instance.setJobAttributes(jobInfo.getAttributes() == null ? new Attributes() : jobInfo.getAttributes());
+        Attributes attributes = new Attributes();
+        attributes.put(planAttributes);
+        attributes.put(jobInfo.getAttributes());
+        instance.setAttributes(attributes);
         return instance;
     }
 

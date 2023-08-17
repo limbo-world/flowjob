@@ -46,6 +46,7 @@ import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.worker.dispatch.WorkerFilter;
 import org.limbo.flowjob.broker.dao.converter.WorkerEntityConverter;
+import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
@@ -144,18 +145,13 @@ public class ScheduleProxy implements ApplicationContextAware {
     /**
      * 调度 plan 创建PlanInstance并执行调度
      */
-    public void schedule(TriggerType triggerType, Plan plan, LocalDateTime triggerAt) {
-        // 悲观锁快速释放，不阻塞后续任务
-        String planInstanceId = idGenerator.generateId(IDType.PLAN_INSTANCE);
-        planInstanceService.save(planInstanceId, triggerType, plan, triggerAt);
-        schedule(planInstanceId, plan, triggerAt);
-    }
-
-    /**
-     * 调度已有的PlanInstance
-     */
-    public void schedule(String planInstanceId, Plan plan, LocalDateTime triggerAt) {
-        executeWithAspect(unused -> schedulers.get(plan.getType()).schedule(plan, planInstanceId, triggerAt));
+    public void schedule(TriggerType triggerType, Plan plan, Attributes planAttributes, LocalDateTime triggerAt) {
+        executeWithAspect(unused -> {
+            // 悲观锁快速释放，不阻塞后续任务
+            String planInstanceId = idGenerator.generateId(IDType.PLAN_INSTANCE);
+            planInstanceService.save(planInstanceId, planAttributes, triggerType, plan, triggerAt); // 可以考虑 PlanInstance 对象来处理后续流程
+            schedulers.get(plan.getType()).schedule(plan, planAttributes, planInstanceId, triggerAt);
+        });
     }
 
     /**
@@ -165,8 +161,16 @@ public class ScheduleProxy implements ApplicationContextAware {
         executeWithAspect(unused -> schedulers.get(jobInstance.getPlanType()).schedule(jobInstance));
     }
 
+    /**
+     * job开始执行的反馈
+     * @param agentId
+     * @param jobInstanceId
+     * @return
+     */
     @Transactional(rollbackOn = Throwable.class)
-    public boolean jobDispatched(String agentId, String jobInstanceId) {
+    public boolean jobExecuting(String agentId, String jobInstanceId) {
+        JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.findById(jobInstanceId).orElse(null);
+        planInstanceEntityRepo.executing(jobInstanceEntity.getPlanInstanceId(), TimeUtils.currentLocalDateTime());
         return jobInstanceEntityRepo.executing(agentId, jobInstanceId, TimeUtils.currentLocalDateTime()) > 0;
     }
 
@@ -212,7 +216,7 @@ public class ScheduleProxy implements ApplicationContextAware {
 
             switch (result) {
                 case SUCCEED:
-                    jobInstance.setContext(new Attributes(param.getContext()));
+//                    jobInstance.setContext(new Attributes(param.getContext()));
                     planScheduler.handleJobSuccess(jobInstance);
                     break;
 

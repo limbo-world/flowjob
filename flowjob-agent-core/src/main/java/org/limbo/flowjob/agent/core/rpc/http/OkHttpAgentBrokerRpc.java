@@ -156,12 +156,12 @@ public class OkHttpAgentBrokerRpc extends OKHttpRpc<BaseLBServer> implements Age
     }
 
     @Override
-    public boolean notifyJobDispatched(String jobInstanceId) {
-        String url = BASE_URL + API_JOB_DISPATCHED + "?agentId=" + agentId + "&jobInstanceId=" + jobInstanceId;
+    public boolean notifyJobExecuting(String jobInstanceId) {
+        String url = BASE_URL + API_JOB_EXECUTING + "?agentId=" + agentId + "&jobInstanceId=" + jobInstanceId;
         ResponseDTO<Boolean> response = executePost(url, null, new TypeReference<ResponseDTO<Boolean>>() {
         });
 
-        checkResponse(response, API_JOB_DISPATCHED);
+        checkResponse(response, API_JOB_EXECUTING);
 
         return response.getData();
     }

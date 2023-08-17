@@ -23,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
 import org.limbo.flowjob.broker.application.task.JobScheduleTask;
-import org.limbo.flowjob.broker.application.task.PlanInstanceScheduleTask;
 import org.limbo.flowjob.broker.application.task.PlanScheduleTask;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.job.JobInstanceRepository;
@@ -81,11 +80,6 @@ public class MetaTaskConverter {
                 metaTaskScheduler
         );
 
-    }
-
-    public PlanInstanceScheduleTask toPlanInstanceScheduleTask(PlanInstanceEntity entity) {
-        Plan plan = planRepository.getByVersion(entity.getPlanId(), entity.getPlanInfoId());
-        return new PlanInstanceScheduleTask(entity.getPlanInstanceId(), plan, entity.getTriggerAt(), scheduleProxy);
     }
 
     public JobScheduleTask toJobInstanceScheduleTask(JobInstanceEntity entity) {

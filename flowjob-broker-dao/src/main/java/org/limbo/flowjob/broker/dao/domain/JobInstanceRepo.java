@@ -30,8 +30,10 @@ import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -48,6 +50,9 @@ public class JobInstanceRepo implements JobInstanceRepository {
 
     @Setter(onMethod_ = @Inject)
     private JobInstanceEntityRepo jobInstanceEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private PlanInstanceEntityRepo planInstanceEntityRepo;
 
     @Setter(onMethod_ = @Inject)
     private PlanInfoEntityRepo planInfoEntityRepo;
@@ -88,6 +93,8 @@ public class JobInstanceRepo implements JobInstanceRepository {
             throw new IllegalArgumentException("Illegal PlanType in plan:" + planInfoEntity.getPlanId() + " version:" + planInfoEntity.getPlanInfoId());
         }
 
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(entity.getPlanInstanceId()).orElse(null);
+
         jobInstance.setJobInfo(jobInfo);
         jobInstance.setPlanType(planType);
         jobInstance.setPlanId(entity.getPlanId());
@@ -97,7 +104,12 @@ public class JobInstanceRepo implements JobInstanceRepository {
         jobInstance.setStatus(JobStatus.SCHEDULING);
         jobInstance.setTriggerAt(entity.getTriggerAt());
         jobInstance.setContext(new Attributes(entity.getContext()));
-        jobInstance.setJobAttributes(jobInfo.getAttributes() == null ? new Attributes() : jobInfo.getAttributes());
+
+        Attributes attributes = new Attributes();
+        attributes.put(new Attributes(planInstanceEntity.getAttributes()));
+        attributes.put(jobInfo.getAttributes());
+        jobInstance.setAttributes(attributes);
+
         jobInstance.setJobInstanceId(entity.getJobInstanceId());
         jobInstance.setStatus(JobStatus.parse(entity.getStatus()));
         jobInstance.setStartAt(entity.getStartAt());

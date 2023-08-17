@@ -92,7 +92,7 @@ public class PlanScheduleTask extends LoopMetaTask {
         if (scheduleEndAt != null && scheduleEndAt.isBefore(TimeUtils.currentLocalDateTime())) {
             return;
         }
-        CommonThreadPool.IO.submit(() -> scheduleProxy.schedule(TriggerType.SCHEDULE, plan, triggerAt));
+        CommonThreadPool.IO.submit(() -> scheduleProxy.schedule(TriggerType.SCHEDULE, plan, null, triggerAt));
     }
 
 //    @Override

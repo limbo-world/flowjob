@@ -66,12 +66,12 @@ public class MapReduceExecutorDemo extends MapReduceTaskExecutor {
         Map<String, Object> mapAttributes = task.getTaskAttributes();
         int v = (int) mapAttributes.get(KEY) + 100;
         result.put(KEY, v);
-        // add context
-        String ck = "m" + KEY;
-        if (task.getContextValue(ck) != null) {
-            v += (int) task.getContextValue(ck);
-        }
-        task.setContextValue("m" + KEY, v);
+        // add context 现实场景中不建议在 map 任务中设置上下文
+//        String ck = "m" + KEY;
+//        if (task.getContextValue(ck) != null) {
+//            v += (int) task.getContextValue(ck);
+//        }
+//        task.setContextValue("m" + KEY, v);
         return result;
     }
 

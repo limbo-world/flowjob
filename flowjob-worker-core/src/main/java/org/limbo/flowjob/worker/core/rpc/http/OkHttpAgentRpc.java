@@ -79,13 +79,13 @@ public class OkHttpAgentRpc extends OKHttpRpc<BaseLBServer> implements WorkerAge
 
     @Override
     public Boolean feedbackTaskSucceed(Task task) {
-        TaskFeedbackParam taskFeedbackParam = RpcParamFactory.taskFeedbackParam(task.getJobId(), task.getTaskId(), task.getContext(), task.getResult(), null);
+        TaskFeedbackParam taskFeedbackParam = RpcParamFactory.taskFeedbackParam(task.getJobId(), task.getTaskId(), task.getResult(), null);
         return doFeedbackTask(task, taskFeedbackParam);
     }
 
     @Override
     public Boolean feedbackTaskFailed(Task task, @Nullable Throwable ex) {
-        TaskFeedbackParam taskFeedbackParam = RpcParamFactory.taskFeedbackParam(task.getJobId(), task.getTaskId(), task.getContext(), task.getResult(), ex);
+        TaskFeedbackParam taskFeedbackParam = RpcParamFactory.taskFeedbackParam(task.getJobId(), task.getTaskId(), task.getResult(), ex);
         return doFeedbackTask(task, taskFeedbackParam);
     }
 

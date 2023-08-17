@@ -41,4 +41,16 @@ public interface WorkerBrokerRpc {
      */
     void heartbeat(Worker worker);
 
+//    /**
+//     * 向 Broker 发送心跳
+//     * @param worker 发送心跳的 Worker
+//     */
+//    void schedulePlan(Worker worker);
+//
+//    /**
+//     * 向 Broker 发送心跳
+//     * @param worker 发送心跳的 Worker
+//     */
+//    void schedulePlanJob(Worker worker);
+
 }
