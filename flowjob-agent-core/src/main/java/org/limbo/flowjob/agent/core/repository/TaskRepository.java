@@ -181,7 +181,11 @@ public class TaskRepository {
             ps.setString(1, jobId);
             ps.setInt(2, type.type);
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.getInt(1);
+                if (rs.next()) {
+                    return rs.getInt(1);
+                } else {
+                    return 0L;
+                }
             }
         } catch (Exception e) {
             log.error("TaskRepository.countUnSuccess error jobId={} type={}", jobId, type, e);
