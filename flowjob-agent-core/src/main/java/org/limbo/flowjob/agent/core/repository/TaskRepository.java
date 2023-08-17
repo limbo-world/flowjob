@@ -206,7 +206,7 @@ public class TaskRepository {
                 ps.setString(++idx, task.getJobId());
                 if (task.getWorker() != null) {
                     ps.setString(++idx, task.getWorker().getId());
-                    ps.setString(++idx, getWorkerAddress(task.getWorker()));
+                    ps.setString(++idx, task.getWorker().getUrl().toString());
                 } else {
                     ps.setString(++idx, "");
                     ps.setString(++idx, "");
@@ -232,16 +232,13 @@ public class TaskRepository {
         }
     }
 
-    private String getWorkerAddress(Worker worker) {
-        return worker.getUrl().getProtocol() + ":" + worker.getUrl().getHost() + ":" + worker.getUrl().getPort();
-    }
 
     public boolean executing(Task task) {
         String sql = "update " + TABLE_NAME + " set `status` = ?, worker_id = ?, worker_address = ?, start_at = ? where job_id = ? and task_id = ?";
         try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, TaskStatus.EXECUTING.status);
             ps.setString(2, task.getWorker().getId());
-            ps.setString(3, getWorkerAddress(task.getWorker()));
+            ps.setString(3, task.getWorker().getUrl().toString());
             ps.setString(4, DateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime()));
             ps.setString(5, task.getJobId());
             ps.setString(6, task.getTaskId());
@@ -305,10 +302,12 @@ public class TaskRepository {
         task.setType(TaskType.parse(rs.getInt("type")));
         task.setStatus(TaskStatus.parse(rs.getInt("status")));
 
+        String workerId = rs.getString("worker_id");
         String workerAddress = rs.getString("worker_address");
-        String[] split = workerAddress.split(":");
-        URL url = new URL(split[0], split[1], Integer.parseInt(split[2]), "");
-        Worker worker = new Worker(rs.getString("worker_id"), url);
+        Worker worker = null;
+        if (StringUtils.isBlank(workerId) && StringUtils.isNotBlank(workerAddress)) {
+            worker = new Worker(workerId, new URL(workerAddress));
+        }
         task.setWorker(worker);
 
         String triggerAtStr = rs.getString("trigger_at");
