@@ -21,9 +21,10 @@ package org.limbo.flowjob.broker.application.config;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.application.component.BrokerStarter;
 import org.limbo.flowjob.broker.application.component.DBBrokerRegistry;
-import org.limbo.flowjob.broker.application.support.NodeMangerImpl;
+import org.limbo.flowjob.broker.application.component.LocalNodeManger;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
@@ -31,7 +32,10 @@ import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
+import org.limbo.flowjob.broker.dao.repositories.AgentSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.BrokerEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.WorkerSlotEntityRepo;
 import org.limbo.flowjob.common.utils.NetUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -71,7 +75,22 @@ public class BrokerAutoConfiguration {
      * worker 管理，持久化等
      */
     @Bean
-    public Broker broker(NodeManger nodeManger, MetaTaskScheduler metaTaskScheduler, List<MetaTask> metaTasks) throws MalformedURLException {
+    public Broker broker(URL brokerUrl, NodeManger nodeManger, MetaTaskScheduler metaTaskScheduler, List<MetaTask> metaTasks) {
+        return new BrokerStarter(brokerProperties.getName(), brokerUrl, brokerRegistry, nodeManger, metaTaskScheduler, metaTasks);
+    }
+
+    @Bean
+    public NodeManger brokerManger(BrokerSlotManager slotManager) {
+        return new LocalNodeManger(slotManager);
+    }
+
+    @Bean
+    public BrokerSlotManager slotManager(URL brokerUrl, PlanSlotEntityRepo planSlotEntityRepo, WorkerSlotEntityRepo workerSlotEntityRepo, AgentSlotEntityRepo agentSlotEntityRepo) {
+        return new BrokerSlotManager(brokerUrl.getHost(), brokerUrl.getPort(), planSlotEntityRepo, workerSlotEntityRepo, agentSlotEntityRepo);
+    }
+
+    @Bean
+    public URL brokerUrl() throws MalformedURLException {
         Integer port = brokerProperties.getPort() != null ? brokerProperties.getPort() : httpServerPort;
         // 优先使用指定的 host，如未指定则自动寻找本机 IP
         String host = brokerProperties.getHost();
@@ -79,13 +98,7 @@ public class BrokerAutoConfiguration {
             host = NetUtils.getLocalIp();
         }
         Assert.isTrue(port > 0, "port must be a positive integer in range 1 ~ 65534");
-        URL baseUrl = new URL(brokerProperties.getProtocol().getValue(), host, port, "");
-        return new BrokerStarter(brokerProperties.getName(), baseUrl, brokerRegistry, nodeManger, metaTaskScheduler, metaTasks);
-    }
-
-    @Bean
-    public NodeManger brokerManger() {
-        return new NodeMangerImpl();
+        return new URL(brokerProperties.getProtocol().getValue(), host, port, "");
     }
 
     /**
@@ -98,7 +111,7 @@ public class BrokerAutoConfiguration {
 
     @Bean
     public DBBrokerRegistry brokerRegistry(BrokerConfig config, BrokerEntityRepo brokerEntityRepo, IDGenerator idGenerator) {
-        return new DBBrokerRegistry(1000, config.getHeartbeatInterval(), config.getHeartbeatTimeout(), brokerEntityRepo, idGenerator);
+        return new DBBrokerRegistry(config.getHeartbeatInterval(), config.getHeartbeatTimeout(), brokerEntityRepo, idGenerator);
     }
 
 }

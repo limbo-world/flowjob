@@ -37,9 +37,9 @@ public class WorkerAvailableResource {
     private float availableCpu;
 
     /**
-     * 可用的内存空间，单位GB。
+     * 可用的内存空间，单位MB。
      */
-    private float availableRam;
+    private long availableRam;
 
     /**
      * 任务队列剩余可排队数
@@ -48,7 +48,7 @@ public class WorkerAvailableResource {
 
     public WorkerAvailableResource(
             @JsonProperty("availableCpu") float availableCpu,
-            @JsonProperty("availableRam") float availableRam,
+            @JsonProperty("availableRam") long availableRam,
             @JsonProperty("availableQueueLimit") int availableQueueLimit) {
         this.availableCpu = availableCpu;
         this.availableRam = availableRam;

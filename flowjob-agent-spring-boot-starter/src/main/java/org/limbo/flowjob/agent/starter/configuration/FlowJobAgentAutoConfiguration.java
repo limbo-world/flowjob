@@ -1,17 +1,19 @@
 /*
- * Copyright 2020-2024 Limbo Team (https://github.com/limbo-world).
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright 2020-2024 Limbo Team (https://github.com/limbo-world).
+ *  *
+ *  * Licensed under the Apache License, Version 2.0 (the "License");
+ *  * you may not use this file except in compliance with the License.
+ *  * You may obtain a copy of the License at
+ *  *
+ *  * 	http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  * Unless required by applicable law or agreed to in writing, software
+ *  * distributed under the License is distributed on an "AS IS" BASIS,
+ *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  * See the License for the specific language governing permissions and
+ *  * limitations under the License.
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package org.limbo.flowjob.agent.starter.configuration;
@@ -19,27 +21,27 @@ package org.limbo.flowjob.agent.starter.configuration;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.agent.AgentResources;
-import org.limbo.flowjob.agent.BaseAgentResources;
-import org.limbo.flowjob.agent.BaseScheduleAgent;
-import org.limbo.flowjob.agent.FlowjobConnectionFactory;
-import org.limbo.flowjob.agent.ScheduleAgent;
-import org.limbo.flowjob.agent.TaskDispatcher;
-import org.limbo.flowjob.agent.repository.JobRepository;
-import org.limbo.flowjob.agent.repository.TaskRepository;
-import org.limbo.flowjob.agent.rpc.AgentBrokerRpc;
-import org.limbo.flowjob.agent.rpc.AgentWorkerRpc;
-import org.limbo.flowjob.agent.rpc.http.OkHttpAgentBrokerRpc;
-import org.limbo.flowjob.agent.rpc.http.OkHttpAgentWorkerRpc;
-import org.limbo.flowjob.agent.service.JobService;
-import org.limbo.flowjob.agent.service.TaskService;
+import org.limbo.flowjob.agent.core.AgentResources;
+import org.limbo.flowjob.agent.core.BaseAgentResources;
+import org.limbo.flowjob.agent.core.BaseScheduleAgent;
+import org.limbo.flowjob.agent.core.FlowjobConnectionFactory;
+import org.limbo.flowjob.agent.core.ScheduleAgent;
+import org.limbo.flowjob.agent.core.TaskDispatcher;
+import org.limbo.flowjob.agent.core.repository.JobRepository;
+import org.limbo.flowjob.agent.core.repository.TaskRepository;
+import org.limbo.flowjob.agent.core.rpc.AgentBrokerRpc;
+import org.limbo.flowjob.agent.core.rpc.AgentWorkerRpc;
+import org.limbo.flowjob.agent.core.rpc.http.OkHttpAgentBrokerRpc;
+import org.limbo.flowjob.agent.core.rpc.http.OkHttpAgentWorkerRpc;
+import org.limbo.flowjob.agent.core.service.JobService;
+import org.limbo.flowjob.agent.core.service.TaskService;
+import org.limbo.flowjob.agent.core.worker.SingletonWorkerStatisticsRepo;
+import org.limbo.flowjob.agent.core.worker.WorkerSelectorFactory;
+import org.limbo.flowjob.agent.core.worker.WorkerStatisticsRepository;
 import org.limbo.flowjob.agent.starter.SpringDelegatedAgent;
 import org.limbo.flowjob.agent.starter.component.H2ConnectionFactory;
 import org.limbo.flowjob.agent.starter.handler.HttpHandlerProcessor;
 import org.limbo.flowjob.agent.starter.properties.AgentProperties;
-import org.limbo.flowjob.agent.worker.SingletonWorkerStatisticsRepo;
-import org.limbo.flowjob.agent.worker.WorkerSelectorFactory;
-import org.limbo.flowjob.agent.worker.WorkerStatisticsRepository;
 import org.limbo.flowjob.api.constants.Protocol;
 import org.limbo.flowjob.common.lb.BaseLBServer;
 import org.limbo.flowjob.common.lb.BaseLBServerRepository;
@@ -88,10 +90,10 @@ public class FlowJobAgentAutoConfiguration {
      * @param rpc broker rpc 通信模块
      */
     @Bean("fjaHttpScheduleAgent")
-    public ScheduleAgent httpAgent(URL agentUrl, AgentResources resources, AgentBrokerRpc rpc, JobService jobService, TaskService taskService) throws MalformedURLException {
+    public ScheduleAgent httpAgent(URL fjaAgentServerUrl, AgentResources resources, AgentBrokerRpc rpc, JobService jobService, TaskService taskService) {
         HttpHandlerProcessor httpHandlerProcessor = new HttpHandlerProcessor();
-        EmbedRpcServer embedRpcServer = new EmbedHttpRpcServer(agentUrl.getPort(), httpHandlerProcessor);
-        ScheduleAgent agent = new BaseScheduleAgent(agentUrl, resources, rpc, jobService, taskService, embedRpcServer);
+        EmbedRpcServer embedRpcServer = new EmbedHttpRpcServer(fjaAgentServerUrl.getPort(), httpHandlerProcessor);
+        ScheduleAgent agent = new BaseScheduleAgent(fjaAgentServerUrl, resources, rpc, jobService, taskService, embedRpcServer);
         httpHandlerProcessor.setAgent(agent);
 
         return new SpringDelegatedAgent(agent);
@@ -162,8 +164,8 @@ public class FlowJobAgentAutoConfiguration {
 
     @Bean("fjaAgentWorkerRpc")
     @ConditionalOnMissingBean(AgentWorkerRpc.class)
-    public AgentWorkerRpc workerRpc(URL agentUrl) {
-        return new OkHttpAgentWorkerRpc(agentUrl);
+    public AgentWorkerRpc workerRpc(URL fjaAgentServerUrl) {
+        return new OkHttpAgentWorkerRpc(fjaAgentServerUrl);
     }
 
 

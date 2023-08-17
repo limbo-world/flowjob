@@ -23,20 +23,19 @@ import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.param.agent.SubTaskCreateParam;
 import org.limbo.flowjob.api.param.agent.TaskFeedbackParam;
+import org.limbo.flowjob.api.param.agent.TaskReportParam;
 import org.limbo.flowjob.common.exception.RegisterFailException;
 import org.limbo.flowjob.common.http.OKHttpRpc;
 import org.limbo.flowjob.common.lb.BaseLBServer;
 import org.limbo.flowjob.worker.core.domain.SubTask;
 import org.limbo.flowjob.worker.core.domain.Task;
-import org.limbo.flowjob.worker.core.executor.ExecuteContext;
 import org.limbo.flowjob.worker.core.rpc.RpcParamFactory;
 import org.limbo.flowjob.worker.core.rpc.WorkerAgentRpc;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
-import static org.limbo.flowjob.api.constants.rpc.HttpAgentApi.API_TASK_FEEDBACK;
-import static org.limbo.flowjob.api.constants.rpc.HttpAgentApi.API_TASK_RECEIVE;
+import static org.limbo.flowjob.api.constants.rpc.HttpAgentApi.*;
 
 /**
  * @author Devil
@@ -57,23 +56,36 @@ public class OkHttpAgentRpc extends OKHttpRpc<BaseLBServer> implements WorkerAge
 
         if (response == null || !response.success()) {
             String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
-            throw new RegisterFailException("Worker feedback Task failed: " + msg);
+            throw new RegisterFailException("Worker submit sub task failed: " + msg);
         }
 
         return response.getData();
     }
 
     @Override
-    public Boolean feedbackTaskSucceed(ExecuteContext context) {
-        Task task = context.getTask();
-        TaskFeedbackParam taskFeedbackParam = RpcParamFactory.taskFeedbackParam(task.getJobId(), task.getTaskId(), task.getContext(), task.getJobAttributes(), task.getResult(), null);
+    public Boolean reportTask(Task task) {
+        TaskReportParam param = RpcParamFactory.subTaskReportParam(task.getTaskId());
+
+        ResponseDTO<Boolean> response = executePost(task.getAgentRpcUrl() + API_TASK_REPORT, param, new TypeReference<ResponseDTO<Boolean>>() {
+        });
+
+        if (response == null || !response.success()) {
+            String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
+            throw new RegisterFailException("Worker report task failed: " + msg);
+        }
+
+        return response.getData();
+    }
+
+    @Override
+    public Boolean feedbackTaskSucceed(Task task) {
+        TaskFeedbackParam taskFeedbackParam = RpcParamFactory.taskFeedbackParam(task.getJobId(), task.getTaskId(), task.getContext(), task.getResult(), null);
         return doFeedbackTask(task, taskFeedbackParam);
     }
 
     @Override
-    public Boolean feedbackTaskFailed(ExecuteContext context, @Nullable Throwable ex) {
-        Task task = context.getTask();
-        TaskFeedbackParam taskFeedbackParam = RpcParamFactory.taskFeedbackParam(task.getJobId(), task.getTaskId(), task.getContext(), task.getJobAttributes(), task.getResult(), ex);
+    public Boolean feedbackTaskFailed(Task task, @Nullable Throwable ex) {
+        TaskFeedbackParam taskFeedbackParam = RpcParamFactory.taskFeedbackParam(task.getJobId(), task.getTaskId(), task.getContext(), task.getResult(), ex);
         return doFeedbackTask(task, taskFeedbackParam);
     }
 

@@ -21,6 +21,7 @@ package org.limbo.flowjob.broker.dao.repositories;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -29,7 +30,7 @@ import java.util.List;
  */
 public interface PlanSlotEntityRepo extends JpaRepository<PlanSlotEntity, Long> {
 
-    List<PlanSlotEntity> findBySlotIn(List<Integer> slots);
+    List<PlanSlotEntity> findBySlotIn(Collection<Integer> slots);
 
     PlanSlotEntity findByPlanId(String planId);
 

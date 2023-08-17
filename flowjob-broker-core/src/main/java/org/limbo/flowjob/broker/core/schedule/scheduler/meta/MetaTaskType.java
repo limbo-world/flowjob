@@ -36,11 +36,15 @@ public enum MetaTaskType {
 
     PLAN_EXECUTE_CHECK,
 
+    JOB_SCHEDULE_CHECK,
+
     JOB_EXECUTE_CHECK,
 
     JOB,
 
-    WORKER_OFFLINE,
+    WORKER_STATUS,
+
+    AGENT_STATUS,
 
     ;
 

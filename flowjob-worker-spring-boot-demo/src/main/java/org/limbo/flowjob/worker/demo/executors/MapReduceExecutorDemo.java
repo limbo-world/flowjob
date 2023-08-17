@@ -25,7 +25,7 @@ import org.limbo.flowjob.worker.core.executor.MapReduceTaskExecutor;
 import org.limbo.flowjob.worker.core.rpc.WorkerAgentRpc;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,33 +40,24 @@ public class MapReduceExecutorDemo extends MapReduceTaskExecutor {
 
     private static final String KEY = "k";
 
-    private static final String COUNT_KEY = "count";
-
-    private static final String NUM_KEY = "num";
-
     public MapReduceExecutorDemo(WorkerAgentRpc agentRpc) {
         super(agentRpc);
     }
 
     @Override
     public void sharding(Task task) {
-        List<SubTask> subTasks = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             Map<String, Object> taskParam = new HashMap<>();
             taskParam.put(KEY, i);
             // add context
             task.setContextValue("t" + KEY, i);
-            // add task
-            subTasks.add(SubTask.builder()
+            // 测试多次提交子任务
+            submitSubTasks(task, Collections.singletonList(SubTask.builder()
                     .taskId("SUB_" + i)
                     .attributes(taskParam)
-                    .build()
+                    .build())
             );
         }
-        // 提交子任务
-        submitSubTasks(task, subTasks);
-        // job
-        testPutJobAttr(task);
     }
 
     @Override
@@ -81,8 +72,6 @@ public class MapReduceExecutorDemo extends MapReduceTaskExecutor {
             v += (int) task.getContextValue(ck);
         }
         task.setContextValue("m" + KEY, v);
-        // job
-        testPutJobAttr(task);
         return result;
     }
 
@@ -95,23 +84,7 @@ public class MapReduceExecutorDemo extends MapReduceTaskExecutor {
             sum += v;
         }
         task.setContextValue("sum", sum);
-        // job
-        testPutJobAttr(task);
         log.info("sum = {}", sum);
-    }
-
-    private void testPutJobAttr(Task task) {
-        if (task.getJobAttribute(COUNT_KEY) == null) {
-            task.setJobAttribute(COUNT_KEY, 1);
-        } else {
-            task.setJobAttribute(COUNT_KEY, 1 + (int) task.getJobAttribute(COUNT_KEY));
-        }
-
-        if (task.getJobAttribute(NUM_KEY) == null) {
-            task.setJobAttribute(NUM_KEY, 10);
-        } else {
-            task.setJobAttribute(NUM_KEY, 10 + (int) task.getJobAttribute(NUM_KEY));
-        }
     }
 
 }

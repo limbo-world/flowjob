@@ -20,7 +20,7 @@ package org.limbo.flowjob.broker.application.task;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.application.component.SlotManager;
+import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.application.converter.MetaTaskConverter;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
@@ -54,7 +54,7 @@ public class UpdatedPlanLoadTask extends FixDelayMetaTask {
 
     private final MetaTaskConverter metaTaskConverter;
 
-    private final SlotManager slotManager;
+    private final BrokerSlotManager slotManager;
 
     private final Broker broker;
 
@@ -65,7 +65,7 @@ public class UpdatedPlanLoadTask extends FixDelayMetaTask {
     public UpdatedPlanLoadTask(MetaTaskScheduler scheduler,
                                PlanEntityRepo planEntityRepo,
                                MetaTaskConverter metaTaskConverter,
-                               SlotManager slotManager,
+                               BrokerSlotManager slotManager,
                                @Lazy Broker broker,
                                NodeManger nodeManger) {
         super(Duration.ofSeconds(1), scheduler);

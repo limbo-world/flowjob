@@ -43,8 +43,17 @@ public class AgentRepo implements AgentRepository {
 
     @Override
     public List<ScheduleAgent> listAvailableAgents() {
-        List<AgentEntity> agentEntities = agentEntityRepo.findByStatusAndEnabledAndDeleted(AgentStatus.RUNNING.status, true, false);
+        List<AgentEntity> agentEntities = agentEntityRepo.findByStatusAndAvailableQueueLimitGreaterThanAndEnabledAndDeleted(AgentStatus.RUNNING.status, 0, true, false);
         return agentEntities.stream().map(this::toAgent).collect(Collectors.toList());
+    }
+
+    @Override
+    public ScheduleAgent get(String id) {
+        AgentEntity agent = agentEntityRepo.findById(id).orElse(null);
+        if (agent == null) {
+            return null;
+        }
+        return toAgent(agent);
     }
 
 

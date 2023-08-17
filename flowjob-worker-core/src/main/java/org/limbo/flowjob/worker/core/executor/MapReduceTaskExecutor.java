@@ -47,7 +47,8 @@ public abstract class MapReduceTaskExecutor implements TaskExecutor {
                 sharding(task);
                 break;
             case MAP:
-                task.setResult(map(task));
+                Map<String, Object> result = map(task);
+                task.setResult(result == null ? "" : JacksonUtils.toJSONString(result));
                 break;
             case REDUCE:
                 reduce(task);

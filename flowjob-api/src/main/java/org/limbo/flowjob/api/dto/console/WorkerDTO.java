@@ -47,6 +47,21 @@ public class WorkerDTO {
     @Schema(title = "port")
     private Integer port;
 
+    /**
+     * 可用的CPU核心数
+     */
+    private Float availableCpu;
+
+    /**
+     * 可用的内存空间，单位MB
+     */
+    private Long availableRam;
+
+    /**
+     * 任务队列剩余可排队数
+     */
+    private Integer availableQueueLimit;
+
     @Schema(title = "tag")
     private List<WorkerTagDTO> tags;
 

@@ -18,10 +18,7 @@
 
 package org.limbo.flowjob.broker.core.cluster;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.limbo.flowjob.api.constants.Protocol;
 
 /**
@@ -67,15 +64,5 @@ public class BrokerConfig {
      * 心跳超时时间，毫秒
      */
     protected long heartbeatTimeout = 5000;
-
-    private WorkerProperties worker = new WorkerProperties();
-
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Builder
-    @Data
-    public static class WorkerProperties {
-        private long heartbeatTimeout = 3000;
-    }
 
 }

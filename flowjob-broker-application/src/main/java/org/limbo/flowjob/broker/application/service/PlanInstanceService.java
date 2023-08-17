@@ -29,7 +29,7 @@ import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.console.PlanInstanceDTO;
 import org.limbo.flowjob.api.param.console.PlanInstanceQueryParam;
-import org.limbo.flowjob.broker.application.component.SlotManager;
+import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.application.support.JpaHelper;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
@@ -37,11 +37,9 @@ import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
-import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -74,10 +72,7 @@ public class PlanInstanceService {
     private PlanInfoEntityRepo planInfoEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private SlotManager slotManager;
-
-    @Setter(onMethod_ = @Inject)
-    private PlanSlotEntityRepo planSlotEntityRepo;
+    private BrokerSlotManager slotManager;
 
     @Setter(onMethod_ = @Inject)
     private PlanInstanceEntityRepo planInstanceEntityRepo;
@@ -102,11 +97,7 @@ public class PlanInstanceService {
 
             Verifies.verify(planEntity.isEnabled(), "plan " + planId + " is not enabled");
 
-            List<Integer> slots = slotManager.slots();
-            Verifies.notEmpty(slots, "slots is empty");
-            PlanSlotEntity planSlotEntity = planSlotEntityRepo.findByPlanId(planId);
-            Verifies.notNull(planSlotEntity, "plan's slot is null id:" + planId);
-            Verifies.verify(slots.contains(planSlotEntity.getSlot()), MessageFormat.format("plan {0} is not in this broker", planId));
+            slotManager.checkPlanId(planId);
 
             // 校验是否重复创建
             PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findLatelyTrigger(planId, planInfoEntity.getPlanInfoId(), planInfoEntity.getScheduleType(), triggerType.type);

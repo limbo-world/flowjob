@@ -31,7 +31,7 @@ import org.limbo.flowjob.api.dto.broker.AvailableWorkerDTO;
 import org.limbo.flowjob.api.param.broker.JobFeedbackParam;
 import org.limbo.flowjob.broker.application.converter.BrokerConverter;
 import org.limbo.flowjob.broker.application.service.PlanInstanceService;
-import org.limbo.flowjob.broker.application.task.JobInstanceScheduleTask;
+import org.limbo.flowjob.broker.application.task.JobScheduleTask;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
@@ -43,6 +43,7 @@ import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.core.worker.Worker;
+import org.limbo.flowjob.broker.core.worker.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.worker.dispatch.WorkerFilter;
 import org.limbo.flowjob.broker.dao.converter.WorkerEntityConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
@@ -248,7 +249,7 @@ public class ScheduleProxy implements ApplicationContextAware {
         }
         for (JobInstance jobInstance : ScheduleContext.waitScheduleJobs()) {
             try {
-                metaTaskScheduler.schedule(new JobInstanceScheduleTask(jobInstance, this));
+                metaTaskScheduler.schedule(new JobScheduleTask(jobInstance, this));
             } catch (Exception e) {
                 // 由task的状态检查任务去修复task的执行情况
                 log.error("task schedule fail! jobInstance={}", jobInstance, e);
@@ -269,6 +270,7 @@ public class ScheduleProxy implements ApplicationContextAware {
         if (CollectionUtils.isEmpty(workerEntities)) {
             return Collections.emptyList();
         }
+
         // 转换
         List<String> workerIds = workerEntities.stream().map(WorkerEntity::getWorkerId).collect(Collectors.toList());
         List<WorkerExecutorEntity> workerExecutorEntities = workerExecutorEntityRepo.findByWorkerIdIn(workerIds);
@@ -287,8 +289,13 @@ public class ScheduleProxy implements ApplicationContextAware {
             aliveWorkers.add(worker);
         }
 
+        DispatchOption dispatchOption = jobInfo.getDispatchOption();
+        if (dispatchOption == null) {
+            return aliveWorkers.stream().map(BrokerConverter::toWorkerDTO).collect(Collectors.toList());
+        }
+
         // 过滤
-        WorkerFilter workerFilter = new WorkerFilter(jobInfo.getExecutorName(), jobInfo.getDispatchOption().getTagFilters(), aliveWorkers);
+        WorkerFilter workerFilter = new WorkerFilter(jobInfo.getExecutorName(), dispatchOption.getTagFilters(), aliveWorkers);
         if (filterExecutor) {
             workerFilter.filterExecutor();
         }
@@ -296,7 +303,7 @@ public class ScheduleProxy implements ApplicationContextAware {
             workerFilter.filterTags();
         }
         if (filterResource) {
-            workerFilter.filterResources();
+            workerFilter.filterResources(dispatchOption.getCpuRequirement(), dispatchOption.getRamRequirement());
         }
 
         return workerFilter.get().stream().map(BrokerConverter::toWorkerDTO).collect(Collectors.toList());

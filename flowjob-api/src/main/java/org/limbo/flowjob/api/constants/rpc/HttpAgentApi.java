@@ -28,6 +28,8 @@ public interface HttpAgentApi {
 
     String API_TASK_RECEIVE = "/api/v1/rpc/task";
 
+    String API_TASK_REPORT = "/api/v1/rpc/task/report";
+
     String API_TASK_FEEDBACK = "/api/v1/rpc/task/feedback";
 
 }

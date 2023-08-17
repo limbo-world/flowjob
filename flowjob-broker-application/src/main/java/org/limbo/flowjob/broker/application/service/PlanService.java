@@ -33,7 +33,7 @@ import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.PlanQueryParam;
 import org.limbo.flowjob.api.param.console.PlanVersionParam;
 import org.limbo.flowjob.api.param.console.ScheduleOptionParam;
-import org.limbo.flowjob.broker.application.component.SlotManager;
+import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.application.converter.PlanConverter;
 import org.limbo.flowjob.broker.application.converter.factory.PlanFactory;
 import org.limbo.flowjob.broker.application.support.JpaHelper;
@@ -85,7 +85,7 @@ public class PlanService {
     private IDGenerator idGenerator;
 
     @Setter(onMethod_ = @Inject)
-    private SlotManager slotManager;
+    private BrokerSlotManager slotManager;
 
     @Setter(onMethod_ = @Inject)
     private PlanFactory factory;

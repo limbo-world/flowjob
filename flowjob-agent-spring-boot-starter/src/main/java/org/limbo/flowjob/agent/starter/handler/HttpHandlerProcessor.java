@@ -22,8 +22,8 @@ import io.netty.handler.codec.http.HttpMethod;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.agent.Job;
-import org.limbo.flowjob.agent.ScheduleAgent;
+import org.limbo.flowjob.agent.core.Job;
+import org.limbo.flowjob.agent.core.ScheduleAgent;
 import org.limbo.flowjob.api.constants.ExecuteResult;
 import org.limbo.flowjob.api.constants.JobType;
 import org.limbo.flowjob.api.constants.LoadBalanceType;
@@ -31,6 +31,7 @@ import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.param.agent.JobSubmitParam;
 import org.limbo.flowjob.api.param.agent.SubTaskCreateParam;
 import org.limbo.flowjob.api.param.agent.TaskFeedbackParam;
+import org.limbo.flowjob.api.param.agent.TaskReportParam;
 import org.limbo.flowjob.common.rpc.IHttpHandlerProcessor;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -69,6 +70,9 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
                 case API_JOB_RECEIVE:
                     JobSubmitParam jobSubmitParam = JacksonUtils.parseObject(data, JobSubmitParam.class);
                     return ResponseDTO.<Boolean>builder().ok(receive(jobSubmitParam)).build();
+                case API_TASK_REPORT:
+                    TaskReportParam taskReportParam = JacksonUtils.parseObject(data, TaskReportParam.class);
+                    return ResponseDTO.<Boolean>builder().ok(reportTask(taskReportParam)).build();
                 case API_TASK_RECEIVE:
                     SubTaskCreateParam subTaskCreateParam = JacksonUtils.parseObject(data, SubTaskCreateParam.class);
                     return ResponseDTO.<Boolean>builder().ok(receiveSubTasks(subTaskCreateParam)).build();
@@ -100,8 +104,24 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
         }
     }
 
+    public boolean reportTask(TaskReportParam param) {
+        if (log.isDebugEnabled()) {
+            log.debug("report task param={}", param);
+        }
+        try {
+            if (param == null) {
+                return true;
+            }
+            agent.reportTask(param);
+            return true;
+        } catch (Exception e) {
+            log.error("Failed to report task param={}", param, e);
+            return false;
+        }
+    }
+
     public boolean receiveSubTasks(SubTaskCreateParam param) {
-        log.info("receive task param={}", param);
+        log.info("receive sub task param={}", param);
         try {
             if (param == null) {
                 return true;
@@ -109,7 +129,7 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
             agent.receiveSubTasks(param);
             return true;
         } catch (Exception e) {
-            log.error("Failed to receive task param={}", param, e);
+            log.error("Failed to receive sub task param={}", param, e);
             return false;
         }
     }

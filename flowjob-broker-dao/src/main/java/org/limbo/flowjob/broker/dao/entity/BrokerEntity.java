@@ -56,6 +56,12 @@ public class BrokerEntity extends BaseEntity {
     private String host;
 
     private Integer port;
+
+    /**
+     * 上线时间
+     */
+    private LocalDateTime onlineTime;
+
     /**
      * 上次心跳时间
      */

@@ -28,4 +28,6 @@ public interface AgentRepository {
 
     List<ScheduleAgent> listAvailableAgents();
 
+    ScheduleAgent get(String id);
+
 }

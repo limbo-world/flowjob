@@ -81,16 +81,16 @@ public class WorkerFilter {
     /**
      * 基于资源过滤
      */
-    public WorkerFilter filterResources() {
+    public WorkerFilter filterResources(Float cpuRequirement, Long ramRequirement) {
         this.workers = workers.stream().filter(worker -> {
             WorkerAvailableResource availableResource = worker.getMetric().getAvailableResource();
             if (availableResource.getAvailableQueueLimit() <= 0) {
                 return false;
             }
-            if (availableResource.getAvailableCpu() <= 0) {
+            if (cpuRequirement != null && availableResource.getAvailableCpu() < cpuRequirement) {
                 return false;
             }
-            if (availableResource.getAvailableRam() <= 0) {
+            if (ramRequirement != null && availableResource.getAvailableRam() < ramRequirement) {
                 return false;
             }
             return true;

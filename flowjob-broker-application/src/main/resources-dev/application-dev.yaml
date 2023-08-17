@@ -25,7 +25,7 @@ spring:
 
 flowjob:
   agent:
-    enabled: false
+    enabled: true
     auto-start: false
     brokers:
       - http://localhost:8081

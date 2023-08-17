@@ -19,9 +19,11 @@
 package org.limbo.flowjob.broker.dao.repositories;
 
 import org.limbo.flowjob.broker.dao.entity.AgentEntity;
-import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -33,9 +35,15 @@ public interface AgentEntityRepo extends JpaRepository<AgentEntity, String>, Jpa
 
     AgentEntity findByHostAndPort(String host, Integer port);
 
-    /**
-     * 查询状态启动未删除
-     */
-    List<AgentEntity> findByStatusAndEnabledAndDeleted(Integer status, boolean enabled, boolean deleted);
+    List<AgentEntity> findByAgentIdInAndDeleted(List<String> agentIds, boolean deleted);
 
+    /**
+     * 查询状态启动未删除 todo 性能
+     */
+    List<AgentEntity> findByStatusAndAvailableQueueLimitGreaterThanAndEnabledAndDeleted(Integer status, Integer availableQueueLimit, boolean enabled, boolean deleted);
+
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "update AgentEntity set status = :newStatus where agentId = :agentId and status = :oldStatus ")
+    int updateStatus(@Param("agentId") String agentId, @Param("oldStatus") Integer oldStatus, @Param("newStatus") Integer newStatus);
 }

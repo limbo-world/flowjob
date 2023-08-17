@@ -26,7 +26,6 @@ import lombok.NoArgsConstructor;
 import org.limbo.flowjob.api.constants.LoadBalanceType;
 
 import javax.validation.constraints.NotNull;
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -42,6 +41,7 @@ public class DispatchOptionParam {
 
     /**
      * 负载方式
+     *
      * @see LoadBalanceType
      */
     @NotNull
@@ -52,13 +52,13 @@ public class DispatchOptionParam {
      * 所需的CPU核心数，小于等于0表示此作业未定义CPU需求。在分发作业时，会根据此方法返回的CPU核心需求数量来检测一个worker是否有能力执行此作业。
      */
     @Schema(title = "所需的CPU核心数", description = "小于等于0表示此作业未定义CPU需求")
-    private BigDecimal cpuRequirement;
+    private Float cpuRequirement;
 
     /**
-     * 所需的内存GB数，小于等于0表示此作业未定义内存需求。在分发作业时，会根据此方法返回的内存需求数量来检测一个worker是否有能力执行此作业。
+     * 所需的内存MB数，小于等于0表示此作业未定义内存需求。在分发作业时，会根据此方法返回的内存需求数量来检测一个worker是否有能力执行此作业。
      */
-    @Schema(title = "所需的内存GB数", description = "小于等于0表示此作业未定义内存需求")
-    private BigDecimal ramRequirement;
+    @Schema(title = "所需的内存MB数", description = "小于等于0表示此作业未定义内存需求")
+    private Long ramRequirement;
 
     @Schema(title = "标签过滤", description = "根据指定标签过滤")
     private List<TagFilterParam> tagFilters;

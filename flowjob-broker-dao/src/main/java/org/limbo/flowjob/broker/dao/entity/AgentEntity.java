@@ -75,7 +75,7 @@ public class AgentEntity extends BaseEntity {
     private Integer status;
 
     /**
-     * 任务队列剩余可排队数 todo 目前没有用上
+     * 任务队列剩余可排队数
      */
     private Integer availableQueueLimit;
 

@@ -19,6 +19,7 @@ package org.limbo.flowjob.worker.core.domain;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.common.constants.WorkerConstant;
 import org.limbo.flowjob.common.exception.BrokerRpcException;
 import org.limbo.flowjob.common.exception.RegisterFailException;
 import org.limbo.flowjob.common.rpc.EmbedRpcServer;
@@ -44,8 +45,10 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -79,6 +82,11 @@ public class BaseWorker implements Worker {
      * 任务执行线程池
      */
     private ExecutorService threadPool;
+
+    /**
+     * 任务执行线程池
+     */
+    private ScheduledExecutorService scheduledReportPool;
 
     /**
      * Worker 标签
@@ -239,6 +247,7 @@ public class BaseWorker implements Worker {
                     throw new RejectedExecutionException();
                 }
         );
+        this.scheduledReportPool = Executors.newScheduledThreadPool(resource.concurrency(), NamedThreadFactory.newInstance("FlowJobWorkerTaskReporter"));
 
         // 注册
         try {
@@ -253,7 +262,7 @@ public class BaseWorker implements Worker {
 
         // 心跳
         if (pacemaker == null) {
-            pacemaker = new WorkerHeartbeat(worker, Duration.ofSeconds(3));
+            pacemaker = new WorkerHeartbeat(worker, Duration.ofSeconds(WorkerConstant.HEARTBEAT_TIMEOUT_SECOND));
         }
         pacemaker.start();
 
@@ -314,7 +323,7 @@ public class BaseWorker implements Worker {
 
         // 存储任务，并判断是否重复接收任务
 
-        ExecuteContext context = new ExecuteContext(taskRepository, executor, agentRpc, task);
+        ExecuteContext context = new ExecuteContext(scheduledReportPool, taskRepository, executor, agentRpc, task);
         if (!taskRepository.save(context)) {
             log.warn("Receive task [{}], but already in repository", task.getTaskId());
             return;

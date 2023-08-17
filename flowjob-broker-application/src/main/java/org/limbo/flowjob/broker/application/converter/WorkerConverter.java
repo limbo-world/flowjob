@@ -36,6 +36,7 @@ import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
@@ -157,7 +158,7 @@ public class WorkerConverter {
         return brokerTopologyDTO;
     }
 
-    public static WorkerDTO toVO(WorkerEntity workerEntity, List<WorkerTagEntity> workerTagEntities) {
+    public static WorkerDTO toVO(WorkerEntity workerEntity, WorkerMetricEntity workerMetric, List<WorkerTagEntity> workerTagEntities) {
         WorkerDTO workerDTO = new WorkerDTO();
         workerDTO.setWorkerId(workerEntity.getWorkerId());
         workerDTO.setName(workerEntity.getName());
@@ -166,6 +167,9 @@ public class WorkerConverter {
         workerDTO.setPort(workerEntity.getPort());
         workerDTO.setStatus(workerEntity.getStatus());
         workerDTO.setTags(new ArrayList<>());
+        workerDTO.setAvailableCpu(workerMetric.getAvailableCpu());
+        workerDTO.setAvailableRam(workerMetric.getAvailableRam() / 1024 / 1024);
+        workerDTO.setAvailableQueueLimit(workerMetric.getAvailableQueueLimit());
         if (CollectionUtils.isNotEmpty(workerTagEntities)) {
             for (WorkerTagEntity workerTagEntity : workerTagEntities) {
                 workerDTO.getTags().add(new WorkerTagDTO(workerTagEntity.getTagKey(), workerTagEntity.getTagValue()));

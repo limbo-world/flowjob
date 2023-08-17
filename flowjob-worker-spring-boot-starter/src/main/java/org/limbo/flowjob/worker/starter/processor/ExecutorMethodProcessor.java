@@ -16,6 +16,7 @@
 
 package org.limbo.flowjob.worker.starter.processor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.worker.core.domain.Task;
@@ -59,6 +60,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Brozen
  * @since 2022-09-07
  */
+@Slf4j
 public class ExecutorMethodProcessor implements SmartInitializingSingleton,
         ApplicationContextAware, BeanFactoryAware, ApplicationEventPublisherAware {
 
@@ -199,8 +201,8 @@ public class ExecutorMethodProcessor implements SmartInitializingSingleton,
             MethodIntrospector.MetadataLookup<Executor> lookup = method ->
                     AnnotatedElementUtils.findMergedAnnotation(method, Executor.class);
             annotatedMethods = MethodIntrospector.selectMethods(beanType, lookup);
-        } catch (Exception ignore) {
-            // todo
+        } catch (Exception e) {
+            log.error("Executor annotation method select fail bean:{}", beanName, e);
         }
 
         // 根据 Bean 类型、@Executor 方法判断是否忽略 Bean

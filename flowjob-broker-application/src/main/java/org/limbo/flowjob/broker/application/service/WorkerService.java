@@ -31,7 +31,7 @@ import org.limbo.flowjob.api.dto.console.WorkerDTO;
 import org.limbo.flowjob.api.param.broker.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
 import org.limbo.flowjob.api.param.console.WorkerQueryParam;
-import org.limbo.flowjob.broker.application.component.SlotManager;
+import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.application.converter.WorkerConverter;
 import org.limbo.flowjob.broker.application.support.JpaHelper;
 import org.limbo.flowjob.broker.application.support.WorkerFactory;
@@ -42,9 +42,11 @@ import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerSlotEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
 import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.WorkerMetricEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerTagEntityRepo;
 import org.springframework.data.domain.Page;
@@ -88,10 +90,14 @@ public class WorkerService {
     private IDGenerator idGenerator;
 
     @Setter(onMethod_ = @Inject)
-    private SlotManager slotManager;
+    private BrokerSlotManager slotManager;
 
     @Setter(onMethod_ = @Inject)
     private WorkerSlotEntityRepo workerSlotEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private WorkerMetricEntityRepo workerMetricEntityRepo;
+
 
     /**
      * worker注册
@@ -232,19 +238,22 @@ public class WorkerService {
         if (CollectionUtils.isNotEmpty(entities)) {
 
             List<String> workerIds = entities.stream().map(WorkerEntity::getWorkerId).collect(Collectors.toList());
+
             List<WorkerTagEntity> workerTagEntities = workerTagEntityRepo.findByWorkerIdIn(workerIds);
             Map<String, List<WorkerTagEntity>> workerTagMap = workerTagEntities.stream().collect(Collectors.groupingBy(WorkerTagEntity::getWorkerId));
 
+            List<WorkerMetricEntity> workerMetricEntities = workerMetricEntityRepo.findByWorkerIdIn(workerIds);
+            Map<String, WorkerMetricEntity> workerMetricMap = workerMetricEntities.stream().collect(Collectors.toMap(WorkerMetricEntity::getWorkerId, e -> e));
+
             List<WorkerDTO> workerDTOS = new ArrayList<>();
             for (WorkerEntity entity : entities) {
-                workerDTOS.add(WorkerConverter.toVO(entity, workerTagMap.get(entity.getWorkerId())));
+                workerDTOS.add(WorkerConverter.toVO(entity, workerMetricMap.get(entity.getWorkerId()), workerTagMap.get(entity.getWorkerId())));
             }
 
             page.setData(workerDTOS);
         }
         return page;
     }
-
 
 
 }

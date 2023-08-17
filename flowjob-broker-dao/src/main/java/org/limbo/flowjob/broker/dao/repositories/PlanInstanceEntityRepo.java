@@ -38,8 +38,6 @@ public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity
     @Query(value = "select * from flowjob_plan_instance where plan_instance_id = :planInstanceId for update", nativeQuery = true)
     PlanInstanceEntity selectForUpdate(@Param("planInstanceId") String planInstanceId);
 
-    PlanInstanceEntity findByPlanIdAndTriggerAtAndTriggerType(String planId, LocalDateTime triggerAt, Integer triggerType);
-
     List<PlanInstanceEntity> findByPlanIdInAndTriggerAtLessThanEqualAndStatus(List<String> planIds, LocalDateTime triggerAt, Integer status);
 
     @Query(value = "select * from flowjob_plan_instance " +
@@ -51,10 +49,6 @@ public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity
             "where plan_id = :planId and schedule_type = :scheduleType and trigger_type = :triggerType and plan_info_id =:planInfoId " +
             "order by feedback_at desc limit 1", nativeQuery = true)
     PlanInstanceEntity findLatelyFeedback(@Param("planId") String planId, @Param("planInfoId") String planInfoId, @Param("scheduleType") Integer scheduleType, @Param("triggerType") Integer triggerType);
-
-//    @Modifying(clearAutomatically = true)
-//    @Query(value = "update PlanInstanceEntity set context =:context where planInstanceId = :planInstanceId")
-//    int updateContext(@Param("planInstanceId") String planInstanceId, @Param("context") String context);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanInstanceEntity " +

@@ -38,10 +38,11 @@ public interface WorkerEntityRepo extends JpaRepository<WorkerEntity, String>, J
 
     Optional<WorkerEntity> findByNameAndDeleted(String name, boolean deleted);
 
+    // todo 性能
     List<WorkerEntity> findByWorkerIdInAndDeleted(List<String> workerIds, boolean deleted);
 
     /**
-     * 根据状态查询未删除worker
+     * 根据状态查询未删除worker todo 性能
      */
     List<WorkerEntity> findByStatusAndEnabledAndDeleted(Integer status, boolean enabled, boolean deleted);
 

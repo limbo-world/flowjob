@@ -41,7 +41,7 @@ public class WorkerResourceParam {
      * 可用的内存空间，单位MB。
      */
     @Schema(description = "可用的内存空间，单位MB。")
-    private float availableRAM;
+    private long availableRAM;
 
     /**
      * 任务队列剩余可排队数

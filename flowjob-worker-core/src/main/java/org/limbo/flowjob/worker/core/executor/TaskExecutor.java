@@ -35,10 +35,10 @@ public interface TaskExecutor {
 
 
     /**
-     * 执行器名称，默认为执行器类的类名
+     * 执行器名称，默认为执行器类的类全名
      */
     default String getName() {
-        return this.getClass().getSimpleName();
+        return this.getClass().getName();
     }
 
 

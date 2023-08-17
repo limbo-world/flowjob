@@ -22,7 +22,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.agent.FlowjobConnectionFactory;
+import org.limbo.flowjob.agent.core.FlowjobConnectionFactory;
 
 import javax.sql.DataSource;
 import java.sql.Connection;

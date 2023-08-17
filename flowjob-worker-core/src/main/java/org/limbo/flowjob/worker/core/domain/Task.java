@@ -68,7 +68,7 @@ public class Task {
     /**
      * 结果数据
      */
-    private Object result;
+    private String result;
 
     public void setContext(Map<String, Object> context) {
         if (MapUtils.isEmpty(context)) {
@@ -85,10 +85,6 @@ public class Task {
 
     public Object getContextValue(String key) {
         return context.get(key);
-    }
-
-    public Object setJobAttribute(String key, Object value) {
-        return jobAttributes.put(key, value);
     }
 
     public Object getJobAttribute(String key) {

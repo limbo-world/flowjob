@@ -21,10 +21,9 @@ package org.limbo.flowjob.broker.application.task;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.WorkerStatus;
-import org.limbo.flowjob.broker.application.component.SlotManager;
+import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.application.service.WorkerService;
 import org.limbo.flowjob.broker.core.cluster.Broker;
-import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
@@ -33,6 +32,7 @@ import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerMetricEntityRepo;
+import org.limbo.flowjob.common.constants.WorkerConstant;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -57,11 +57,9 @@ public class WorkerStatusTask extends FixDelayMetaTask {
 
     private final WorkerMetricEntityRepo workerMetricEntityRepo;
 
-    private final SlotManager slotManager;
+    private final BrokerSlotManager slotManager;
 
     private final Broker broker;
-
-    private final BrokerConfig brokerConfig;
 
     private final NodeManger nodeManger;
 
@@ -69,15 +67,13 @@ public class WorkerStatusTask extends FixDelayMetaTask {
                             WorkerEntityRepo workerEntityRepo,
                             WorkerMetricEntityRepo workerMetricEntityRepo,
                             WorkerService workerService,
-                            BrokerConfig brokerConfig,
-                            SlotManager slotManager,
+                            BrokerSlotManager slotManager,
                             @Lazy Broker broker,
                             NodeManger nodeManger) {
-        super(Duration.ofSeconds(30), scheduler);
+        super(Duration.ofSeconds(0), Duration.ofSeconds(WorkerConstant.HEARTBEAT_TIMEOUT_SECOND), scheduler);
         this.workerEntityRepo = workerEntityRepo;
         this.workerMetricEntityRepo = workerMetricEntityRepo;
         this.workerService = workerService;
-        this.brokerConfig = brokerConfig;
         this.slotManager = slotManager;
         this.broker = broker;
         this.nodeManger = nodeManger;
@@ -99,36 +95,40 @@ public class WorkerStatusTask extends FixDelayMetaTask {
             if (CollectionUtils.isEmpty(workerIds)) {
                 return;
             }
+
             List<WorkerEntity> workerEntities = workerEntityRepo.findByWorkerIdInAndDeleted(workerIds, false);
             if (CollectionUtils.isEmpty(workerEntities)) {
                 return;
             }
 
             LocalDateTime now = TimeUtils.currentLocalDateTime();
+            long heartbeatTimeout = WorkerConstant.HEARTBEAT_TIMEOUT_SECOND;
+
             for (WorkerEntity workerEntity : workerEntities) {
                 WorkerStatus currentStatus = WorkerStatus.parse(workerEntity.getStatus());
                 WorkerMetricEntity workerMetricEntity = workerMetricEntityRepo.findById(workerEntity.getWorkerId()).get();
                 if (WorkerStatus.RUNNING == currentStatus) {
 
-                    if (workerMetricEntity.getLastHeartbeatAt().plus(brokerConfig.getWorker().getHeartbeatTimeout(), ChronoUnit.MILLIS).isBefore(now)) {
+                    if (workerMetricEntity.getLastHeartbeatAt().plus(heartbeatTimeout, ChronoUnit.SECONDS).isBefore(now)) {
                         workerService.updateStatus(workerEntity.getWorkerId(), WorkerStatus.RUNNING.status, WorkerStatus.FUSING.status);
                     }
 
                 } else if (WorkerStatus.FUSING == currentStatus) {
-                    if (workerMetricEntity.getLastHeartbeatAt().plus(brokerConfig.getWorker().getHeartbeatTimeout() * 2, ChronoUnit.MILLIS).isBefore(now)) {
+                    if (workerMetricEntity.getLastHeartbeatAt().plus(heartbeatTimeout * 2, ChronoUnit.SECONDS).isBefore(now)) {
                         workerService.updateStatus(workerEntity.getWorkerId(), WorkerStatus.FUSING.status, WorkerStatus.TERMINATED.status);
                     }
                 }
             }
+
         } catch (Exception e) {
-            log.error("{} load and schedule plan task fail", scheduleId(), e);
+            log.error("{} load and schedule WorkerStatusTask fail", scheduleId(), e);
         }
     }
 
 
     @Override
     public MetaTaskType getType() {
-        return MetaTaskType.PLAN_LOAD;
+        return MetaTaskType.WORKER_STATUS;
     }
 
     @Override

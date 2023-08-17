@@ -46,7 +46,6 @@ public enum IDType {
 
     JOB_INSTANCE,
 
-    TASK,
     ;
 
 }

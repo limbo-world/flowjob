@@ -56,9 +56,9 @@ public class WorkerMetricEntity extends BaseEntity {
     private Float availableCpu;
 
     /**
-     * 可用的内存空间，单位GB
+     * 可用的内存空间，单位字节
      */
-    private Float availableRam;
+    private Long availableRam;
 
     /**
      * 任务队列剩余可排队数

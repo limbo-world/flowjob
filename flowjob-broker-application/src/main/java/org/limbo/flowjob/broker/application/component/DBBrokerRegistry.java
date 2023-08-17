@@ -18,10 +18,8 @@
 
 package org.limbo.flowjob.broker.application.component;
 
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.core.cluster.NodeEvent;
 import org.limbo.flowjob.broker.core.cluster.NodeListener;
 import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
@@ -33,7 +31,6 @@ import org.limbo.flowjob.common.utils.time.Formatters;
 import org.limbo.flowjob.common.utils.time.TimeFormateUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
-import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,14 +60,8 @@ public class DBBrokerRegistry implements NodeRegistry {
      */
     private long heartbeatInterval = 2000;
 
-    /**
-     * 状态检查任务间隔，毫秒
-     */
-    private long nodeStatusCheckInterval = 1000;
-
-    public DBBrokerRegistry(long nodeStatusCheckInterval, long heartbeatInterval, long heartbeatTimeout,
+    public DBBrokerRegistry(long heartbeatInterval, long heartbeatTimeout,
                             BrokerEntityRepo brokerEntityRepo, IDGenerator idGenerator) {
-        this.nodeStatusCheckInterval = nodeStatusCheckInterval;
         this.heartbeatInterval = heartbeatInterval;
         this.heartbeatTimeout = heartbeatTimeout;
         this.brokerEntityRepo = brokerEntityRepo;
@@ -85,8 +76,8 @@ public class DBBrokerRegistry implements NodeRegistry {
         new Timer().schedule(new HeartbeatTask(name, host, port), 0, heartbeatInterval);
 
         // 开启定时任务，监听broker心跳情况
-        new Timer().schedule(new NodeOnlineCheckTask(), 0, nodeStatusCheckInterval);
-        new Timer().schedule(new NodeOfflineCheckTask(), 0, nodeStatusCheckInterval);
+        new Timer().schedule(new NodeOnlineCheckTask(), 0, heartbeatTimeout);
+        new Timer().schedule(new NodeOfflineCheckTask(), 0, heartbeatTimeout);
     }
 
     @Override
@@ -112,14 +103,19 @@ public class DBBrokerRegistry implements NodeRegistry {
         @Override
         public void run() {
             try {
-                BrokerEntity broker = brokerEntityRepo.findByName(name).orElse(new BrokerEntity());
-                if (StringUtils.isBlank(broker.getBrokerId())) {
+                BrokerEntity broker = brokerEntityRepo.findByName(name).orElse(null);
+                LocalDateTime now = TimeUtils.currentLocalDateTime();
+                if (broker == null) {
+                    broker = new BrokerEntity();
                     broker.setBrokerId(idGenerator.generateId(IDType.BROKER));
+                    broker.setOnlineTime(now);
+                } else if (broker.getLastHeartbeat().plusSeconds(getSecond(heartbeatTimeout)).isBefore(now)) { // 断线重连
+                    broker.setOnlineTime(now);
                 }
                 broker.setName(name);
                 broker.setHost(host);
                 broker.setPort(port);
-                broker.setLastHeartbeat(TimeUtils.currentLocalDateTime());
+                broker.setLastHeartbeat(now);
                 brokerEntityRepo.saveAndFlush(broker);
                 if (log.isDebugEnabled()) {
                     log.debug("{} send heartbeat name: {}, host: {}, port: {} time:{}", TASK_NAME, name, host, port, TimeFormateUtils.format(TimeUtils.currentLocalDateTime(), Formatters.YMD_HMS));
@@ -145,7 +141,7 @@ public class DBBrokerRegistry implements NodeRegistry {
                 if (log.isDebugEnabled()) {
                     log.info("{} checkOnline start:{} end:{}", TASK_NAME, TimeFormateUtils.format(startTime, Formatters.YMD_HMS), TimeFormateUtils.format(endTime, Formatters.YMD_HMS));
                 }
-                List<BrokerEntity> onlineBrokers = brokerEntityRepo.findByLastHeartbeatBetween(startTime, endTime);
+                List<BrokerEntity> onlineBrokers = brokerEntityRepo.findByOnlineTimeBetween(startTime, endTime);
                 if (CollectionUtils.isNotEmpty(onlineBrokers)) {
                     for (BrokerEntity broker : onlineBrokers) {
                         if (log.isDebugEnabled()) {

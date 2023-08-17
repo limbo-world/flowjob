@@ -23,6 +23,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.limbo.flowjob.api.constants.ExecuteResult;
 import org.limbo.flowjob.api.param.agent.SubTaskCreateParam;
 import org.limbo.flowjob.api.param.agent.TaskFeedbackParam;
+import org.limbo.flowjob.api.param.agent.TaskReportParam;
 import org.limbo.flowjob.api.param.broker.WorkerExecutorRegisterParam;
 import org.limbo.flowjob.api.param.broker.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
@@ -110,13 +111,12 @@ public class RpcParamFactory {
         return heartbeatParam;
     }
 
-    public static TaskFeedbackParam taskFeedbackParam(String jobId, String taskId, Map<String, Object> context, Map<String, Object> jobAttributes, Object result, Throwable ex) {
+    public static TaskFeedbackParam taskFeedbackParam(String jobId, String taskId, Map<String, Object> context, String result, Throwable ex) {
         TaskFeedbackParam feedbackParam = new TaskFeedbackParam();
         feedbackParam.setJobId(jobId);
         feedbackParam.setTaskId(taskId);
         feedbackParam.setResult(ExecuteResult.SUCCEED);
         feedbackParam.setContext(context);
-        feedbackParam.setJobAttributes(jobAttributes);
         feedbackParam.setResultData(result);
 
         if (ex != null) {
@@ -124,6 +124,12 @@ public class RpcParamFactory {
             feedbackParam.setErrorStackTrace(ExceptionUtils.getStackTrace(ex));
         }
         return feedbackParam;
+    }
+
+    public static TaskReportParam subTaskReportParam(String taskId) {
+        return TaskReportParam.builder()
+                .taskId(taskId)
+                .build();
     }
 
     public static SubTaskCreateParam subTaskCreateParam(String jobId, List<SubTask> subTasks) {
