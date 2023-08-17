@@ -75,11 +75,12 @@ public class JobService {
     }
 
     /**
-     * 处理 job 调度
+     * 处理 job 调度 todo 执行失败的问题，比如task保存失败等
      *
      * @param job
      */
     public void schedule(Job job) {
+
         // 根据job类型创建task
         List<Task> tasks = createRootTasks(job);
 
@@ -90,8 +91,6 @@ public class JobService {
         }
 
         if (saveTasks(tasks)) {
-            brokerRpc.notifyJobDispatched(job.getId());
-
             for (Task task : tasks) {
                 boolean dispatched = taskDispatcher.dispatch(task);
                 if (dispatched) {

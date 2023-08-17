@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.controller;
+package org.limbo.flowjob.broker.application.controller.rpc;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -51,24 +51,13 @@ public class JobRpcController {
     private ScheduleProxy scheduleProxy;
 
     /**
-     * api 触发对应planInstanceId下的job调度 目前只有workflow类型会用到
+     * job执行反馈
      */
-    @Operation(summary = "触发对应job调度")
-    @PostMapping(API_PLAN_INSTANCE_JOB_SCHEDULE)
-    public ResponseDTO<Void> scheduleJob(@Validated @NotNull(message = "no planInstanceId") @RequestParam("planInstanceId") String planInstanceId,
-                                         @Validated @NotNull(message = "no jobId") @RequestParam("jobId") String jobId) {
-        scheduleProxy.scheduleJob(planInstanceId, jobId);
-        return ResponseDTO.<Void>builder().ok().build();
-    }
-
-    /**
-     * 下发反馈
-     */
-    @Operation(summary = "Job下发反馈")
-    @PostMapping(API_JOB_DISPATCHED)
-    public ResponseDTO<Boolean> heartbeat(@Validated @NotNull(message = "no agentId") @RequestParam("agentId") String agentId,
+    @Operation(summary = "job执行反馈")
+    @PostMapping(API_JOB_EXECUTING)
+    public ResponseDTO<Boolean> executing(@Validated @NotNull(message = "no agentId") @RequestParam("agentId") String agentId,
                                           @Validated @NotNull(message = "no jobInstanceId") @RequestParam("jobInstanceId") String jobInstanceId) {
-        return ResponseDTO.<Boolean>builder().ok(scheduleProxy.jobDispatched(agentId, jobInstanceId)).build();
+        return ResponseDTO.<Boolean>builder().ok(scheduleProxy.jobExecuting(agentId, jobInstanceId)).build();
     }
 
     /**

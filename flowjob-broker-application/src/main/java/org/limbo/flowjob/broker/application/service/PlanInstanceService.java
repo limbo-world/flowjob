@@ -40,6 +40,7 @@ import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -78,7 +79,7 @@ public class PlanInstanceService {
     private PlanInstanceEntityRepo planInstanceEntityRepo;
 
     @Transactional
-    public void save(String planInstanceId, TriggerType triggerType, Plan plan, LocalDateTime triggerAt) {
+    public void save(String planInstanceId, Attributes planAttributes, TriggerType triggerType, Plan plan, LocalDateTime triggerAt) {
         String planId = plan.getPlanId();
         String version = plan.getVersion();
 
@@ -129,6 +130,7 @@ public class PlanInstanceService {
         planInstanceEntity.setStatus(PlanStatus.SCHEDULING.status);
         planInstanceEntity.setTriggerType(triggerType.type);
         planInstanceEntity.setScheduleType(planInfoEntity.getScheduleType());
+        planInstanceEntity.setAttributes(planAttributes == null ? "" : planAttributes.toString());
         planInstanceEntity.setTriggerAt(triggerAt);
         planInstanceEntityRepo.saveAndFlush(planInstanceEntity);
     }

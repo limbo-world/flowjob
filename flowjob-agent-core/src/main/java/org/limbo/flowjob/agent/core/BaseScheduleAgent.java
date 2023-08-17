@@ -205,7 +205,7 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
         }
 
         jobService.save(job);
-
+        brokerRpc.notifyJobExecuting(job.getId());
         try {
             this.threadPool.submit(() -> {
                 try {
@@ -269,7 +269,7 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
     }
 
     @Override
-    public void taskFail(String jobId, String taskId, Attributes context, String errorMsg, String errorStackTrace) {
+    public void taskFail(String jobId, String taskId, String errorMsg, String errorStackTrace) {
         assertRunning();
 
         Task task = taskService.getById(jobId, taskId);

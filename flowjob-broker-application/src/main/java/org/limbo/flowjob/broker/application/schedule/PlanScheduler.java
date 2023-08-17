@@ -21,6 +21,7 @@ package org.limbo.flowjob.broker.application.schedule;
 import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
 
 import java.time.LocalDateTime;
 
@@ -33,7 +34,7 @@ public interface PlanScheduler {
     /**
      * 调度plan实例
      */
-    void schedule(Plan plan, String planInstanceId, LocalDateTime triggerAt);
+    void schedule(Plan plan, Attributes planAttribute, String planInstanceId, LocalDateTime triggerAt);
 
     /**
      * 调度job实例

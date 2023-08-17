@@ -150,7 +150,7 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
                 break;
 
             case FAILED:
-                agent.taskFail(param.getJobId(), param.getTaskId(), new Attributes(param.getContext()), param.getErrorMsg(), param.getErrorStackTrace());
+                agent.taskFail(param.getJobId(), param.getTaskId(), param.getErrorMsg(), param.getErrorStackTrace());
                 break;
 
             case TERMINATED:

@@ -64,14 +64,14 @@ public class JobInstance implements Serializable {
     private LocalDateTime triggerAt;
 
     /**
-     * 全局上下文
+     * 全局上下文 todo 目前这个功能有点模糊，plan创建时候传入/流程中动态更新？？
      */
     private Attributes context;
 
     /**
-     * job 节点动态参数
+     * job 参数 plan + job
      */
-    private Attributes jobAttributes;
+    private Attributes attributes;
 
     /**
      * 开始时间

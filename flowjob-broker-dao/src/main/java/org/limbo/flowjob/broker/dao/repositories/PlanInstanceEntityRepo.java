@@ -52,22 +52,22 @@ public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanInstanceEntity " +
-            " set status = " + ConstantsPool.SCHEDULE_STATUS_DISPATCHING +
-            " where planInstanceId = :planInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_SCHEDULING)
+            " set status = " + ConstantsPool.PLAN_DISPATCHING +
+            " where planInstanceId = :planInstanceId and status = " + ConstantsPool.PLAN_SCHEDULING)
     int dispatching(@Param("planInstanceId") String planInstanceId);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING + ", startAt = :startAt " +
-            " where planInstanceId = :planInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_SCHEDULING)
+    @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.PLAN_EXECUTING + ", startAt = :startAt " +
+            " where planInstanceId = :planInstanceId and status = " + ConstantsPool.PLAN_DISPATCHING)
     int executing(@Param("planInstanceId") String planInstanceId, @Param("startAt") LocalDateTime startAt);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTE_SUCCEED + ", feedbackAt = :feedbackAt " +
-            " where planInstanceId = :planInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING)
+    @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.PLAN_EXECUTE_SUCCEED + ", feedbackAt = :feedbackAt " +
+            " where planInstanceId = :planInstanceId and status = " + ConstantsPool.PLAN_EXECUTING)
     int success(@Param("planInstanceId") String planInstanceId, @Param("feedbackAt") LocalDateTime feedbackAt);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTE_FAILED + ", feedbackAt = :feedbackAt " +
-            " where planInstanceId = :planInstanceId and status = " + ConstantsPool.SCHEDULE_STATUS_EXECUTING)
+    @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.PLAN_EXECUTE_FAILED + ", feedbackAt = :feedbackAt " +
+            " where planInstanceId = :planInstanceId and status = " + ConstantsPool.PLAN_EXECUTING)
     int fail(@Param("planInstanceId") String planInstanceId, @Param("feedbackAt") LocalDateTime feedbackAt);
 }

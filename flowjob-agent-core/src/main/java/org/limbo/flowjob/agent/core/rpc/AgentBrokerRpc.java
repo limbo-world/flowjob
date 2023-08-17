@@ -46,11 +46,11 @@ public interface AgentBrokerRpc {
     void heartbeat(ScheduleAgent agent);
 
     /**
-     * job已下发
+     * job执行中
      *
      * @return
      */
-    boolean notifyJobDispatched(String jobInstanceId);
+    boolean notifyJobExecuting(String jobInstanceId);
 
     /**
      * 向 Broker 反馈任务执行成功

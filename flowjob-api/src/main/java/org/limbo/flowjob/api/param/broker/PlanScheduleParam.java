@@ -16,51 +16,29 @@
  *
  */
 
-package org.limbo.flowjob.api.param.agent;
+package org.limbo.flowjob.api.param.broker;
 
 import lombok.Data;
-import org.limbo.flowjob.api.constants.JobType;
-import org.limbo.flowjob.api.constants.LoadBalanceType;
 
 import java.io.Serializable;
 import java.util.Map;
 
 /**
  * @author Devil
- * @since 2023/8/3
+ * @since 2023/8/17
  */
 @Data
-public class JobSubmitParam implements Serializable {
-    private static final long serialVersionUID = 3844255455063078620L;
+public class PlanScheduleParam implements Serializable {
 
-    private String jobInstanceId;
+    private static final long serialVersionUID = -1054807691136684334L;
 
-    /**
-     * 类型
-     *
-     * @see JobType
-     */
-    private Integer type;
+    private String planId;
+
+    // 用于指定执行节点
+//    private String workerId;
 
     /**
-     * 执行器的名称
-     */
-    private String executorName;
-
-    /**
-     * 负载策略
-     *
-     * @see LoadBalanceType
-     */
-    private Integer loadBalanceType;
-
-    /**
-     * 上下文元数据
-     */
-    private Map<String, Object> context;
-
-    /**
-     * job 属性 plan + job
+     * plan 的参数
      */
     private Map<String, Object> attributes;
 

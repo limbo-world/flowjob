@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Setter;
+import org.apache.commons.collections4.MapUtils;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.ResponseDTO;
@@ -32,11 +33,13 @@ import org.limbo.flowjob.api.dto.console.PlanInfoDTO;
 import org.limbo.flowjob.api.dto.console.PlanVersionDTO;
 import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.PlanQueryParam;
+import org.limbo.flowjob.api.param.broker.PlanScheduleParam;
 import org.limbo.flowjob.api.param.console.PlanVersionParam;
 import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
 import org.limbo.flowjob.broker.application.service.PlanService;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -124,10 +127,13 @@ public class PlanController {
      */
     @Operation(summary = "触发对应plan调度")
     @PostMapping("/api/v1/plan/schedule")
-    public ResponseDTO<Void> schedulePlan(@NotBlank(message = "ID不能为空") @RequestParam("planId") String planId,
-                                          @RequestParam("workerId") String workerId) {
-        Plan plan = planRepository.get(planId);
-        scheduleProxy.schedule(TriggerType.API, plan, TimeUtils.currentLocalDateTime());
+    public ResponseDTO<Void> schedulePlan(@RequestBody PlanScheduleParam param) {
+        Plan plan = planRepository.get(param.getPlanId());
+        Attributes attributes = null;
+        if (MapUtils.isEmpty(param.getAttributes())) {
+            attributes = new Attributes(param.getAttributes());
+        }
+        scheduleProxy.schedule(TriggerType.API, plan, attributes, TimeUtils.currentLocalDateTime());
         return ResponseDTO.<Void>builder().ok().build();
     }
 

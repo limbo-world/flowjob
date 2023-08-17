@@ -22,11 +22,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.broker.core.domain.IDType;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.NormalPlan;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.utils.Verifies;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
@@ -46,9 +47,9 @@ public class StandalonePlanScheduler extends AbstractPlanScheduler {
 
 
     @Override
-    public List<JobInstance> createJobInstances(Plan plan, String planInstanceId, LocalDateTime triggerAt) {
+    public List<JobInstance> createJobInstances(Plan plan, Attributes planAttribute, String planInstanceId, LocalDateTime triggerAt) {
         JobInfo jobInfo = ((NormalPlan) plan).getJobInfo();
-        JobInstance jobInstance = createJobInstance(plan.getPlanId(), plan.getVersion(), planInstanceId, new Attributes(), jobInfo, triggerAt);
+        JobInstance jobInstance = createJobInstance(plan.getPlanId(), plan.getVersion(), planInstanceId, planAttribute, new Attributes(), jobInfo, triggerAt);
         return Collections.singletonList(jobInstance);
     }
 
@@ -59,9 +60,6 @@ public class StandalonePlanScheduler extends AbstractPlanScheduler {
         if (num < 1) {
             return; // 被其他更新
         }
-
-        // 更新 plan 上下文
-//        planInstanceEntityRepo.updateContext(jobInstance.getPlanInstanceId(), jobInstance.getContext().toString());
 
         String planInstanceId = jobInstance.getPlanInstanceId();
         handlerPlanComplete(planInstanceId, true);
@@ -92,7 +90,9 @@ public class StandalonePlanScheduler extends AbstractPlanScheduler {
     public void scheduleJob(Plan plan, String planInstanceId, String jobId) {
         Verifies.verify(TriggerType.API == plan.getTriggerType(), "only api triggerType job can schedule by api");
 
-        List<JobInstance> jobInstances = createJobInstances(plan, planInstanceId, TimeUtils.currentLocalDateTime());
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(planInstanceId).orElse(null);
+
+        List<JobInstance> jobInstances = createJobInstances(plan, new Attributes(planInstanceEntity.getAttributes()), planInstanceId, TimeUtils.currentLocalDateTime());
 
         saveAndScheduleJobInstances(jobInstances);
     }
