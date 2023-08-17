@@ -25,6 +25,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 /**
@@ -43,6 +44,7 @@ public interface AgentEntityRepo extends JpaRepository<AgentEntity, String>, Jpa
     List<AgentEntity> findByStatusAndAvailableQueueLimitGreaterThanAndEnabledAndDeleted(Integer status, Integer availableQueueLimit, boolean enabled, boolean deleted);
 
 
+    @Transactional
     @Modifying(clearAutomatically = true)
     @Query(value = "update AgentEntity set status = :newStatus where agentId = :agentId and status = :oldStatus ")
     int updateStatus(@Param("agentId") String agentId, @Param("oldStatus") Integer oldStatus, @Param("newStatus") Integer newStatus);

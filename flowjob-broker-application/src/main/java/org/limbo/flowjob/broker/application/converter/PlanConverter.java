@@ -92,6 +92,7 @@ public class PlanConverter {
         dto.setScheduleDelay(planInfo.getScheduleDelay());
         dto.setScheduleInterval(planInfo.getScheduleInterval());
         dto.setScheduleCron(planInfo.getScheduleCron());
+        dto.setScheduleCronType(planInfo.getScheduleCronType());
         return dto;
     }
 

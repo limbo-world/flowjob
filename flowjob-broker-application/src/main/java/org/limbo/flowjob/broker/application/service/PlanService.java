@@ -155,6 +155,7 @@ public class PlanService {
         planInfoEntity.setScheduleDelay(scheduleOption.getScheduleDelay() == null ? 0L : scheduleOption.getScheduleDelay());
         planInfoEntity.setScheduleInterval(scheduleOption.getScheduleInterval() == null ? 0L : scheduleOption.getScheduleInterval());
         planInfoEntity.setScheduleCron(scheduleOption.getScheduleCron());
+        planInfoEntity.setScheduleCronType(scheduleOption.getScheduleCronType());
 
         // 保存版本信息
         planInfoEntityRepo.saveAndFlush(planInfoEntity);

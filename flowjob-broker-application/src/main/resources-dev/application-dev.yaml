@@ -2,19 +2,16 @@ server:
   port: 8081
 
 spring:
-  flyway:
-    baseline-on-migrate: true # 线上可能由于DDL权限等问题，需要关闭flyway功能
-    baseline-version: 0
   # DB
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.jdbc.Driver
-#    url: jdbc:mysql://10.219.153.31:3306/flow_job?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
-#    username: brozen
-#    password: nSN2ZYAr
-    url: jdbc:mysql://127.0.0.1:3306/flow_job?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
-    username: root
-    password: root
+    url: jdbc:mysql://10.219.153.31:3306/flow_job?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
+    username: brozen
+    password: nSN2ZYAr
+#    url: jdbc:mysql://127.0.0.1:3306/flow_job?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
+#    username: root
+#    password: root
   jpa:
     hibernate:
       ddl-auto: none
