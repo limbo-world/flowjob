@@ -30,6 +30,9 @@ import org.limbo.flowjob.agent.core.repository.JobRepository;
 import org.limbo.flowjob.agent.core.repository.TaskRepository;
 import org.limbo.flowjob.agent.core.rpc.AgentBrokerRpc;
 import org.limbo.flowjob.api.constants.TaskType;
+import org.limbo.flowjob.api.dto.PageDTO;
+import org.limbo.flowjob.api.dto.console.TaskDTO;
+import org.limbo.flowjob.api.param.console.TaskQueryParam;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
@@ -183,6 +186,37 @@ public class TaskService {
             jobRepository.delete(job.getId());
         }
         // 终止其它执行中的task
+    }
+
+    public PageDTO<TaskDTO> page(TaskQueryParam param) {
+        long count = taskRepository.queryCount(param);
+        if (count <= 0) {
+            return PageDTO.empty(param);
+        }
+
+        PageDTO<TaskDTO> page = PageDTO.convertByPage(param);
+        page.setTotal(count);
+
+        List<Task> tasks = taskRepository.queryPage(param);
+        page.setData(tasks.stream().map(task -> {
+            TaskDTO dto = new TaskDTO();
+            dto.setTaskId(task.getTaskId());
+            dto.setJobInstanceId(task.getJobId());
+            dto.setWorkerId(task.getWorker() == null ? "" : task.getWorker().getId());
+            dto.setWorkerAddress(task.getWorker() == null ? "" : task.getWorker().address());
+            dto.setType(task.getType().type);
+            dto.setStatus(task.getStatus().status);
+            dto.setContext(task.getContext().toString());
+            dto.setJobAttributes(task.getJobAttributes().toString());
+            dto.setTaskAttributes(task.getTaskAttributes());
+            dto.setResult(task.getResult());
+            dto.setErrorMsg(task.getErrorMsg());
+            dto.setErrorStackTrace(task.getErrorStackTrace());
+            dto.setStartAt(task.getStartAt());
+            dto.setEndAt(task.getEndAt());
+            return dto;
+        }).collect(Collectors.toList()));
+        return page;
     }
 
 }

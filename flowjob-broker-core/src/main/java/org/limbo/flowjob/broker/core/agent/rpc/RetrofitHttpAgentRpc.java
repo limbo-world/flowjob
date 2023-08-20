@@ -19,16 +19,20 @@ package org.limbo.flowjob.broker.core.agent.rpc;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.limbo.flowjob.api.constants.rpc.HttpAgentApi;
+import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.ResponseDTO;
+import org.limbo.flowjob.api.dto.console.TaskDTO;
 import org.limbo.flowjob.api.param.agent.JobSubmitParam;
+import org.limbo.flowjob.api.param.console.TaskQueryParam;
 import org.limbo.flowjob.broker.core.agent.AgentConverter;
 import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.exceptions.RpcException;
 import org.limbo.flowjob.broker.core.rpc.AbstractRpc;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import retrofit2.Call;
 import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.http.Body;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
@@ -51,7 +55,7 @@ public class RetrofitHttpAgentRpc extends AbstractRpc implements AgentRpc {
         this.baseUrl = agent.getUrl();
         this.api = new Retrofit.Builder()
                 .baseUrl(baseUrl)
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(JacksonConverterFactory.create(JacksonUtils.newObjectMapper()))
                 .build().create(RetrofitAgentApi.class);
     }
 
@@ -59,6 +63,11 @@ public class RetrofitHttpAgentRpc extends AbstractRpc implements AgentRpc {
     public boolean dispatch(JobInstance instance) {
         Boolean result = send(api.dispatch(AgentConverter.toJobDispatchParam(instance)));
         return BooleanUtils.isTrue(result);
+    }
+
+    @Override
+    public PageDTO<TaskDTO> page(TaskQueryParam param) {
+        return send(api.page(param));
     }
 
     private <T> T send(Call<ResponseDTO<T>> call) {
@@ -82,6 +91,12 @@ public class RetrofitHttpAgentRpc extends AbstractRpc implements AgentRpc {
         )
         @POST(HttpAgentApi.API_JOB_RECEIVE)
         Call<ResponseDTO<Boolean>> dispatch(@Body JobSubmitParam param);
+
+        @Headers(
+                "Content-Type: application/json"
+        )
+        @POST(HttpAgentApi.API_TASK_PAGE)
+        Call<ResponseDTO<PageDTO<TaskDTO>>> page(@Body TaskQueryParam param);
 
     }
 

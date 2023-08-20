@@ -24,14 +24,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.agent.core.Job;
 import org.limbo.flowjob.agent.core.ScheduleAgent;
+import org.limbo.flowjob.agent.core.service.TaskService;
 import org.limbo.flowjob.api.constants.ExecuteResult;
 import org.limbo.flowjob.api.constants.JobType;
 import org.limbo.flowjob.api.constants.LoadBalanceType;
+import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.ResponseDTO;
+import org.limbo.flowjob.api.dto.console.TaskDTO;
 import org.limbo.flowjob.api.param.agent.JobSubmitParam;
 import org.limbo.flowjob.api.param.agent.SubTaskCreateParam;
 import org.limbo.flowjob.api.param.agent.TaskFeedbackParam;
 import org.limbo.flowjob.api.param.agent.TaskReportParam;
+import org.limbo.flowjob.api.param.console.TaskQueryParam;
 import org.limbo.flowjob.common.rpc.IHttpHandlerProcessor;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -47,6 +51,9 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
 
     @Setter
     private ScheduleAgent agent;
+
+    @Setter
+    private TaskService taskService;
 
     @Override
     public String process(HttpMethod httpMethod, String uri, String data) {
@@ -80,6 +87,9 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
                     TaskFeedbackParam taskFeedbackParam = JacksonUtils.parseObject(data, TaskFeedbackParam.class);
                     taskFeedback(taskFeedbackParam);
                     return ResponseDTO.<Boolean>builder().ok(true).build();
+                case API_TASK_PAGE:
+                    TaskQueryParam taskQueryParam = JacksonUtils.parseObject(data, TaskQueryParam.class);
+                    return ResponseDTO.<PageDTO<TaskDTO>>builder().ok(taskService.page(taskQueryParam)).build();
             }
 
             String msg = "Invalid request, Uri NotFound.";

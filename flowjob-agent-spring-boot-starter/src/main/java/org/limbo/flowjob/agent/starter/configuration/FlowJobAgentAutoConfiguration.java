@@ -95,6 +95,7 @@ public class FlowJobAgentAutoConfiguration {
         EmbedRpcServer embedRpcServer = new EmbedHttpRpcServer(fjaAgentServerUrl.getPort(), httpHandlerProcessor);
         ScheduleAgent agent = new BaseScheduleAgent(fjaAgentServerUrl, resources, rpc, jobService, taskService, embedRpcServer);
         httpHandlerProcessor.setAgent(agent);
+        httpHandlerProcessor.setTaskService(taskService);
 
         return new SpringDelegatedAgent(agent);
     }
@@ -157,9 +158,10 @@ public class FlowJobAgentAutoConfiguration {
     }
 
     @Bean("fjaTaskDispatcher")
-    public TaskDispatcher taskDispatcher(AgentBrokerRpc brokerRpc, AgentWorkerRpc workerRpc, JobRepository jobRepository,
+    public TaskDispatcher taskDispatcher(AgentBrokerRpc brokerRpc, AgentWorkerRpc workerRpc,
+                                         JobRepository jobRepository, TaskRepository taskRepository,
                                          WorkerSelectorFactory workerSelectorFactory, WorkerStatisticsRepository statisticsRepository) {
-        return new TaskDispatcher(brokerRpc, workerRpc, jobRepository, workerSelectorFactory, statisticsRepository);
+        return new TaskDispatcher(brokerRpc, workerRpc, jobRepository, taskRepository, workerSelectorFactory, statisticsRepository);
     }
 
     @Bean("fjaAgentWorkerRpc")

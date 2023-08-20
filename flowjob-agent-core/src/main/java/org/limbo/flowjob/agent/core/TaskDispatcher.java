@@ -20,14 +20,16 @@ package org.limbo.flowjob.agent.core;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.agent.core.repository.JobRepository;
+import org.limbo.flowjob.agent.core.repository.TaskRepository;
 import org.limbo.flowjob.agent.core.rpc.AgentBrokerRpc;
+import org.limbo.flowjob.agent.core.rpc.AgentWorkerRpc;
 import org.limbo.flowjob.agent.core.worker.Worker;
 import org.limbo.flowjob.agent.core.worker.WorkerSelectInvocation;
-import org.limbo.flowjob.agent.core.worker.WorkerStatisticsRepository;
-import org.limbo.flowjob.agent.core.repository.JobRepository;
-import org.limbo.flowjob.agent.core.rpc.AgentWorkerRpc;
 import org.limbo.flowjob.agent.core.worker.WorkerSelector;
 import org.limbo.flowjob.agent.core.worker.WorkerSelectorFactory;
+import org.limbo.flowjob.agent.core.worker.WorkerStatisticsRepository;
+import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.TaskStatus;
 
 import java.util.List;
@@ -47,15 +49,19 @@ public class TaskDispatcher {
 
     private final JobRepository jobRepository;
 
+    private final TaskRepository taskRepository;
+
     private final WorkerSelectorFactory workerSelectorFactory;
 
     private final WorkerStatisticsRepository statisticsRepository;
 
-    public TaskDispatcher(AgentBrokerRpc agentBrokerRpc, AgentWorkerRpc agentWorkerRpc, JobRepository jobRepository,
+    public TaskDispatcher(AgentBrokerRpc agentBrokerRpc, AgentWorkerRpc agentWorkerRpc,
+                          JobRepository jobRepository, TaskRepository taskRepository,
                           WorkerSelectorFactory workerSelectorFactory, WorkerStatisticsRepository statisticsRepository) {
         this.agentBrokerRpc = agentBrokerRpc;
         this.agentWorkerRpc = agentWorkerRpc;
         this.jobRepository = jobRepository;
+        this.taskRepository = taskRepository;
         this.workerSelectorFactory = workerSelectorFactory;
         this.statisticsRepository = statisticsRepository;
     }
@@ -74,12 +80,33 @@ public class TaskDispatcher {
 //            return false;
 //        }
 
+//        if (task.getWorker() == null) {
+//            dispatched = dispatchWithWorkerSelect(task);
+//        } else {
+//            dispatched = dispatchWithWorker(task);
+//        }
+
+        boolean dispatched = false;
+
+        Worker worker = null;
+
         if (task.getWorker() == null) {
-            return dispatchWithWorkerSelect(task);
-        } else {
-            return dispatchWithWorker(task);
+            worker = selectWorker(task);
+            task.setWorker(worker);
         }
+
+        if (task.getWorker() != null) {
+            taskRepository.executing(task);
+            dispatched = agentWorkerRpc.dispatch(worker, task);
+        }
+
+        if (!dispatched) {
+            task.setErrorMsg(MsgConstants.DISPATCH_FAIL);
+            taskRepository.fail(task);
+        }
+        return dispatched;
     }
+
 
     /**
      *  指定 worker 的任务
@@ -102,6 +129,18 @@ public class TaskDispatcher {
         // 下发失败
         onDispatchFailed(task);
         return false;
+    }
+
+    private Worker selectWorker(Task task) {
+        List<Worker> allWorkers = agentBrokerRpc.availableWorkers(task.getJobId(), true, true, true);
+        if (CollectionUtils.isEmpty(allWorkers)) {
+            return null;
+        }
+
+        Job job = jobRepository.getById(task.getJobId());
+        WorkerSelectInvocation invocation = new WorkerSelectInvocation(job.getAttributes());
+        WorkerSelector workerSelector = workerSelectorFactory.newSelector(job.getLoadBalanceType());
+        return workerSelector.select(invocation, allWorkers);
     }
 
     /**

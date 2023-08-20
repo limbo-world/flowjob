@@ -25,6 +25,7 @@ import org.limbo.flowjob.agent.core.Task;
 import org.limbo.flowjob.agent.core.worker.Worker;
 import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
+import org.limbo.flowjob.api.param.console.TaskQueryParam;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.time.DateTimeUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
@@ -159,6 +160,44 @@ public class TaskRepository {
         }
     }
 
+    public List<Task> queryPage(TaskQueryParam param) {
+        String sql = "select * from " + TABLE_NAME + " where job_id = ? LIMIT ? OFFSET ?";
+        try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, param.getJobInstanceId());
+            ps.setInt(2, param.getSize());
+            ps.setInt(3, param.getOffset());
+            try (ResultSet rs = ps.executeQuery()) {
+                List<Task> tasks = new ArrayList<>();
+                while (rs.next()) {
+                    tasks.add(convert(rs));
+                }
+                return tasks;
+            }
+        } catch (Exception e) {
+            log.error("TaskRepository.queryPage error param={}", param, e);
+            return Collections.emptyList();
+        }
+    }
+
+    public long queryCount(TaskQueryParam param) {
+        String sql = "select count(*) from " + TABLE_NAME + " where job_id = ? LIMIT ? OFFSET ?";
+        try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, param.getJobInstanceId());
+            ps.setInt(2, param.getSize());
+            ps.setInt(3, param.getOffset());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                } else {
+                    return 0L;
+                }
+            }
+        } catch (Exception e) {
+            log.error("TaskRepository.queryCount error param={}", param, e);
+            return 0L;
+        }
+    }
+
     public List<String> getAllTaskResult(String jobId, TaskType type) {
         String sql = "select result from " + TABLE_NAME + " where job_id = ? and `type` = ?";
         try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -192,7 +231,7 @@ public class TaskRepository {
             }
         } catch (Exception e) {
             log.error("TaskRepository.countUnSuccess error jobId={} type={}", jobId, type, e);
-            return 0;
+            return 0L;
         }
     }
 
@@ -213,7 +252,7 @@ public class TaskRepository {
                 ps.setString(++idx, task.getJobId());
                 if (task.getWorker() != null) {
                     ps.setString(++idx, task.getWorker().getId());
-                    ps.setString(++idx, task.getWorker().getUrl().toString());
+                    ps.setString(++idx, task.getWorker().address());
                 } else {
                     ps.setString(++idx, "");
                     ps.setString(++idx, "");
@@ -245,7 +284,7 @@ public class TaskRepository {
         try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, TaskStatus.EXECUTING.status);
             ps.setString(2, task.getWorker().getId());
-            ps.setString(3, task.getWorker().getUrl().toString());
+            ps.setString(3, task.getWorker().address());
             ps.setString(4, DateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime()));
             ps.setString(5, task.getJobId());
             ps.setString(6, task.getTaskId());
@@ -312,7 +351,7 @@ public class TaskRepository {
         String workerId = rs.getString("worker_id");
         String workerAddress = rs.getString("worker_address");
         Worker worker = null;
-        if (StringUtils.isBlank(workerId) && StringUtils.isNotBlank(workerAddress)) {
+        if (StringUtils.isNotBlank(workerId) && StringUtils.isNotBlank(workerAddress)) {
             worker = new Worker(workerId, new URL(workerAddress));
         }
         task.setWorker(worker);

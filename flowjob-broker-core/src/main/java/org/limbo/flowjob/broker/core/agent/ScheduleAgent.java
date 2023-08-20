@@ -88,4 +88,5 @@ public class ScheduleAgent implements AgentRpc, LBServer {
     public URL getUrl() {
         return rpcBaseUrl;
     }
+
 }

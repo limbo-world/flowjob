@@ -92,13 +92,7 @@ public class JobService {
 
         if (saveTasks(tasks)) {
             for (Task task : tasks) {
-                boolean dispatched = taskDispatcher.dispatch(task);
-                if (dispatched) {
-                    taskRepository.executing(task);
-                } else {
-                    task.setErrorMsg(MsgConstants.DISPATCH_FAIL);
-                    taskRepository.fail(task);
-                }
+                taskDispatcher.dispatch(task);
             }
         }
     }

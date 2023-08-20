@@ -18,22 +18,19 @@
 
 package org.limbo.flowjob.broker.application.service;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.console.TaskDTO;
 import org.limbo.flowjob.api.param.console.TaskQueryParam;
-import org.limbo.flowjob.broker.application.support.JpaHelper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
+import org.limbo.flowjob.broker.core.agent.AgentRepository;
+import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
+import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
+import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Predicate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import javax.inject.Inject;
 
 /**
  * @author Devil
@@ -43,35 +40,26 @@ import java.util.stream.Collectors;
 @Service
 public class TaskService {
 
+    @Setter(onMethod_ = @Inject)
+    private JobInstanceEntityRepo jobInstanceEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private AgentRepository agentRepository;
 
 
     public PageDTO<TaskDTO> page(TaskQueryParam param) {
-        Specification<Object> sf = (root, query, cb) -> {
-            //用于添加所有查询条件
-            List<Predicate> p = new ArrayList<>();
-            p.add(cb.equal(root.get("jobInstanceId").as(String.class), param.getJobInstanceId()));
-            Predicate[] pre = new Predicate[p.size()];
-            Predicate and = cb.and(p.toArray(pre));
-            query.where(and);
 
-            //设置排序
-            List<Order> orders = new ArrayList<>();
-            orders.add(cb.desc(root.get("startAt")));
-            return query.orderBy(orders).getRestriction();
-        };
-        Pageable pageable = JpaHelper.pageable(param);
-        // todo rpc 获取
-        Page<Object> queryResult = null;
-        List<Object> taskEntities = queryResult.getContent();
-        PageDTO<TaskDTO> page = PageDTO.convertByPage(param);
-        page.setTotal(queryResult.getTotalElements());
-        if (CollectionUtils.isNotEmpty(taskEntities)) {
-            page.setData(taskEntities.stream().map(taskEntity -> {
-                TaskDTO dto = new TaskDTO();
-                return dto;
-            }).collect(Collectors.toList()));
+        JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.findById(param.getJobInstanceId()).orElse(null);
+        if (jobInstanceEntity == null || StringUtils.isBlank(jobInstanceEntity.getAgentId())) {
+            return PageDTO.empty(param);
         }
-        return page;
+
+        ScheduleAgent agent = agentRepository.get(jobInstanceEntity.getAgentId());
+        if (agent == null || !agent.isAlive()) {
+            return PageDTO.empty(param);
+        }
+
+        return agent.page(param);
     }
 
 }

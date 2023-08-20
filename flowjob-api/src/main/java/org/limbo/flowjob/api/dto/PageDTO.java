@@ -57,12 +57,6 @@ public class PageDTO<T> {
     private List<T> data;
 
     /**
-     * 是否查询所有数据
-     */
-    @Schema(description = "是否查询所有数据")
-    private Boolean needAll;
-
-    /**
      * 是否还有下一页
      */
     @Schema(description = "是否还有下一页")
@@ -92,9 +86,17 @@ public class PageDTO<T> {
         return data == null ? Collections.emptyList() : data;
     }
 
+    public static <V> PageDTO<V> empty(PageParam page) {
+        PageDTO<V> result = new PageDTO<>();
+        result.setTotal(0);
+        result.setSize(page.getSize());
+        result.setCurrent(page.getCurrent());
+        result.setData(Collections.emptyList());
+        return result;
+    }
+
     public static <V> PageDTO<V> convertByPage(PageParam page) {
         PageDTO<V> result = new PageDTO<>();
-        result.setNeedAll(page.getNeedAll());
         result.setCurrent(page.getCurrent());
         result.setSize(page.getSize());
         return result;

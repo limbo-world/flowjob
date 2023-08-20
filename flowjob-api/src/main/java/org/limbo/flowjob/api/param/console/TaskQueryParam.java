@@ -23,6 +23,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.limbo.flowjob.api.param.PageParam;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * @author KaiFengCai
  * @since 2023/1/30
@@ -31,6 +33,7 @@ import org.limbo.flowjob.api.param.PageParam;
 @EqualsAndHashCode(callSuper = true)
 public class TaskQueryParam extends PageParam {
 
+    @NotNull
     @Parameter(description = "jobInstanceId")
     private String jobInstanceId;
 

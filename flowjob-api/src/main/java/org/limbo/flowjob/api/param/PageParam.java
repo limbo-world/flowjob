@@ -69,12 +69,6 @@ public class PageParam {
     private List<String> sort;
 
     /**
-     * 是否查询所有数据
-     */
-    @Parameter(description = "是否查询所有数据")
-    private Boolean needAll;
-
-    /**
      * 是否查询总数
      */
     @Parameter(description = "是否查询总数")

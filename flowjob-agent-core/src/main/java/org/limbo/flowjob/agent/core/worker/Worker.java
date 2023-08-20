@@ -52,4 +52,9 @@ public class Worker implements LBServer {
     public URL getUrl() {
         return url;
     }
+
+    public String address() {
+        return url.toString();
+    }
+
 }

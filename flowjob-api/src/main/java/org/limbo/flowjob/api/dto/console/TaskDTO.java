@@ -5,6 +5,7 @@ import lombok.Data;
 import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -15,23 +16,19 @@ import java.time.LocalDateTime;
  */
 @Data
 @Schema(title = "任务实例")
-public class TaskDTO {
+public class TaskDTO implements Serializable {
+
+    private static final long serialVersionUID = 3715594289001150342L;
 
     @Schema(title = "id")
     private String taskId;
 
     private String jobInstanceId;
 
-    private String jobId;
-
-    private String planId;
-
-    private String planInstanceId;
-
-    private String planInfoId;
-
     @Schema(title = "执行作业的worker")
     private String workerId;
+
+    private String workerAddress;
 
     /**
      * 类型
@@ -46,12 +43,6 @@ public class TaskDTO {
      */
     @Schema(title = "状态")
     private Integer status;
-
-    /**
-     * 执行器名称
-     */
-    @Schema(title = "执行器名称")
-    private String executorName;
 
     /**
      * 执行上下文

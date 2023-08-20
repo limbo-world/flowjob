@@ -16,6 +16,9 @@
 
 package org.limbo.flowjob.broker.core.agent.rpc;
 
+import org.limbo.flowjob.api.dto.PageDTO;
+import org.limbo.flowjob.api.dto.console.TaskDTO;
+import org.limbo.flowjob.api.param.console.TaskQueryParam;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.rpc.IRpc;
 
@@ -33,5 +36,12 @@ public interface AgentRpc extends IRpc {
      * @return worker接受task后触发
      */
     boolean dispatch(JobInstance instance);
+
+    /**
+     * task查询
+     * @param param 参数
+     * @return 返回值
+     */
+    PageDTO<TaskDTO> page(TaskQueryParam param);
 
 }

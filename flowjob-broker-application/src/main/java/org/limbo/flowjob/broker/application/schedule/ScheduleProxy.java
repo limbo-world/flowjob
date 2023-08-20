@@ -169,14 +169,10 @@ public class ScheduleProxy implements ApplicationContextAware {
      */
     @Transactional(rollbackOn = Throwable.class)
     public boolean jobExecuting(String agentId, String jobInstanceId) {
-        log.info("executing before agentId={} jobInstanceId={}", agentId, jobInstanceId); // todo
-        try {
-            JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.findById(jobInstanceId).orElse(null);
-            planInstanceEntityRepo.executing(jobInstanceEntity.getPlanInstanceId(), TimeUtils.currentLocalDateTime());
-            return jobInstanceEntityRepo.executing(jobInstanceId, agentId, TimeUtils.currentLocalDateTime()) > 0;
-        } finally {
-            log.info("executing after agentId={} jobInstanceId={}", agentId, jobInstanceId);
-        }
+        log.info("Receive Job executing info agentId={} jobInstanceId={}", agentId, jobInstanceId);
+        JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.findById(jobInstanceId).orElse(null);
+        planInstanceEntityRepo.executing(jobInstanceEntity.getPlanInstanceId(), TimeUtils.currentLocalDateTime());
+        return jobInstanceEntityRepo.executing(jobInstanceId, agentId, TimeUtils.currentLocalDateTime()) > 0;
     }
 
     /**

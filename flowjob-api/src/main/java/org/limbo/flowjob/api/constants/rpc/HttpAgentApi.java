@@ -32,4 +32,6 @@ public interface HttpAgentApi {
 
     String API_TASK_FEEDBACK = "/api/v1/rpc/task/feedback";
 
+    String API_TASK_PAGE = "/api/v1/rpc/task/page";
+
 }
