@@ -205,10 +205,11 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
         }
 
         jobService.save(job);
-        brokerRpc.notifyJobExecuting(job.getId());
         try {
             this.threadPool.submit(() -> {
                 try {
+                    // 反馈执行中
+                    brokerRpc.notifyJobExecuting(job.getId());
                     // 提交执行
                     jobService.schedule(job);
                 } catch (Exception e) {

@@ -127,15 +127,22 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
                 .build();
         ScheduleAgent agent = lbStrategy.select(agents, lbInvocation).orElse(null);
         if (agent == null) {
+            log.warn("No alive server for job={}", jobInstance.getJobInstanceId());
             return; // 状态检测的时候自动重试
         }
 
         // rpc 执行
-        boolean dispatched = agent.dispatch(jobInstance);
+        boolean dispatched;
+        try {
+            log.info("Try dispatch JobInstance id={} to agent={}", jobInstance.getJobInstanceId(), agent.getId());
+            dispatched = agent.dispatch(jobInstance);
+            log.info("Dispatch JobInstance id={} to agent={} success", jobInstance.getJobInstanceId(), agent.getId());
+        } catch (Exception e) {
+            dispatched = false;
+            log.error("Dispatch JobInstance id={} to agent={} faile", jobInstance.getJobInstanceId(), agent.getId(), e);
+        }
 
-        if (dispatched) {
-            jobInstanceEntityRepo.dispatching(jobInstance.getJobInstanceId(), agent.getId());
-        } else {
+        if (!dispatched) {
             handleJobFail(jobInstance, MsgConstants.DISPATCH_FAIL);
         }
     }

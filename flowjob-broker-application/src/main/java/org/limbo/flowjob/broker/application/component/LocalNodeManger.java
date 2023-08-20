@@ -18,8 +18,10 @@
 
 package org.limbo.flowjob.broker.application.component;
 
+import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.util.Collection;
 import java.util.Map;
@@ -31,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Devil
  * @since 2022/7/20
  */
+@Slf4j
 public class LocalNodeManger implements NodeManger {
 
     private static final Map<String, Node> map = new ConcurrentHashMap<>();
@@ -43,8 +46,11 @@ public class LocalNodeManger implements NodeManger {
 
     @Override
     public void online(Node node) {
-        map.putIfAbsent(node.getName(), node);
-        slotManager.rehash(map.values());
+        Node n = map.putIfAbsent(node.getName(), node);
+        if (n == null) {
+            slotManager.rehash(map.values());
+        }
+        log.debug("[LocalNodeManger] online {}", JacksonUtils.toJSONString(map));
     }
 
     @Override
@@ -53,6 +59,7 @@ public class LocalNodeManger implements NodeManger {
         if (rn != null) {
             slotManager.rehash(map.values());
         }
+        log.debug("[LocalNodeManger] offline {}", JacksonUtils.toJSONString(map));
     }
 
     @Override
@@ -62,6 +69,9 @@ public class LocalNodeManger implements NodeManger {
 
     @Override
     public Collection<Node> allAlive() {
+        if (map.size() == 0) {
+            log.debug("[LocalNodeManger] allAlive {}", JacksonUtils.toJSONString(map));
+        }
         return map.values();
     }
 

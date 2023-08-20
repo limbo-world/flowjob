@@ -33,6 +33,8 @@ import retrofit2.http.Body;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
 
+import java.net.URL;
+
 /**
  * @author Brozen
  * @since 2022-08-26
@@ -40,12 +42,15 @@ import retrofit2.http.POST;
 @Slf4j
 public class RetrofitHttpAgentRpc extends AbstractRpc implements AgentRpc {
 
+    private URL baseUrl;
+
     private final RetrofitAgentApi api;
 
     public RetrofitHttpAgentRpc(ScheduleAgent agent) {
         super(agent.getId());
+        this.baseUrl = agent.getUrl();
         this.api = new Retrofit.Builder()
-                .baseUrl(agent.getUrl())
+                .baseUrl(baseUrl)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build().create(RetrofitAgentApi.class);
     }
@@ -61,7 +66,7 @@ public class RetrofitHttpAgentRpc extends AbstractRpc implements AgentRpc {
             try {
                 return call.execute().body();
             } catch (Exception e) {
-                throw new RpcException(id(), "http api execute error", e);
+                throw new RpcException(id(), "http api execute error url=" + baseUrl, e);
             }
         });
     }

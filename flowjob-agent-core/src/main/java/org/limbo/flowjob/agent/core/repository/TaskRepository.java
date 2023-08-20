@@ -118,12 +118,14 @@ public class TaskRepository {
         }
     }
 
-    public List<Task> getByLastReportAtBefore(String lastTime, String startId, Integer limit) {
-        String sql = "select * from " + TABLE_NAME + " where last_report_at < ? and task_id > ? order by task_id limit ?";
+    public List<Task> getByLastReportBeforeAndUnFinish(String lastTime, String startId, Integer limit) {
+        String sql = "select * from " + TABLE_NAME + " where last_report_at < ? and status not in (?, ?) and task_id > ? order by task_id limit ?";
         try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, lastTime);
-            ps.setString(2, startId);
-            ps.setInt(3, limit);
+            ps.setInt(2, TaskStatus.SUCCEED.status);
+            ps.setInt(3, TaskStatus.FAILED.status);
+            ps.setString(4, startId);
+            ps.setInt(5, limit);
             try (ResultSet rs = ps.executeQuery()) {
                 List<Task> tasks = new ArrayList<>();
                 while (rs.next()) {

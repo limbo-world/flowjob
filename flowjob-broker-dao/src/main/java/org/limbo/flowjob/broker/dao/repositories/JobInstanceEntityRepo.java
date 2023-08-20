@@ -44,15 +44,9 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity " +
-            " set status = " + ConstantsPool.JOB_DISPATCHING + ", agentId = :agentId " +
+            " set status = " + ConstantsPool.JOB_EXECUTING + ", agentId = :agentId , startAt = :startAt " +
             " where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.JOB_SCHEDULING)
-    int dispatching(@Param("jobInstanceId") String jobInstanceId, @Param("agentId") String agentId);
-
-    @Modifying(clearAutomatically = true)
-    @Query(value = "update JobInstanceEntity " +
-            "set status = " + ConstantsPool.JOB_EXECUTING + ", startAt = :startAt " +
-            "where agentId = :agentId and jobInstanceId = :jobInstanceId and status = " + ConstantsPool.JOB_DISPATCHING)
-    int executing(@Param("agentId") String agentId, @Param("jobInstanceId") String jobInstanceId, @Param("startAt") LocalDateTime startAt);
+    int executing(@Param("jobInstanceId") String jobInstanceId, @Param("agentId") String agentId, @Param("startAt") LocalDateTime startAt);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity " +
@@ -63,7 +57,7 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity " +
             "set status = " + ConstantsPool.JOB_EXECUTE_FAILED + ", errorMsg =:errorMsg " +
-            "where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.JOB_EXECUTING)
-    int fail(@Param("jobInstanceId") String jobInstanceId, @Param("errorMsg") String errorMsg);
+            "where jobInstanceId = :jobInstanceId and status = :oldStatus")
+    int fail(@Param("jobInstanceId") String jobInstanceId, @Param("oldStatus") Integer oldStatus, @Param("errorMsg") String errorMsg);
 
 }

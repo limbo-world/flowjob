@@ -84,7 +84,7 @@ public class LoadBalanceInterceptor<S extends LBServer> implements Interceptor {
             Optional<S> optional = strategy.select(servers, new RPCInvocation(path, new HashMap<>()));
             if (!optional.isPresent()) {
                 log.warn("No available alive servers after " + i + " tries from load balancer");
-                throw new IllegalStateException("Can't get alive broker");
+                throw new IllegalStateException("Can't get alive server by path=" + path);
             }
             S select = optional.get();
             HttpUrl baseURL = HttpUrl.get(select.getUrl());

@@ -76,13 +76,17 @@ public class TaskChecker {
                     String now = DateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime().plus(-period.toMillis(), ChronoUnit.MILLIS));
                     String startId = "";
                     Integer limit = 1000;
-                    List<Task> tasks = taskService.getByLastReportAtBefore(now, startId, limit);
+                    List<Task> tasks = taskService.getByLastReportBeforeAndUnFinish(now, startId, limit);
                     while (CollectionUtils.isNotEmpty(tasks)) {
                         for (Task t : tasks) {
-                            taskService.taskFail(t, String.format("worker %s is offline", t.getWorker().getId()), "");
+                            if (t.getWorker() != null) {
+                                taskService.taskFail(t, String.format("worker %s is offline", t.getWorker().getId()), "");
+                            } else {
+                                taskService.taskFail(t, "no worker", "");
+                            }
                         }
                         startId = tasks.get(tasks.size() - 1).getTaskId();
-                        tasks = taskService.getByLastReportAtBefore(now, startId, limit);
+                        tasks = taskService.getByLastReportBeforeAndUnFinish(now, startId, limit);
                     }
                 } catch (Exception e) {
                     log.error("[TaskChecker] error", e);
@@ -109,7 +113,6 @@ public class TaskChecker {
 
         this.running = false;
     }
-
 
 
 }

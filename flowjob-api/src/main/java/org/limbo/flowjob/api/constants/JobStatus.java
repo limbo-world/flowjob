@@ -37,10 +37,6 @@ public enum JobStatus {
      */
     SCHEDULING(ConstantsPool.JOB_SCHEDULING, "调度中"),
     /**
-     * 下发 agent 待 agent 下发 worker
-     */
-    DISPATCHING(ConstantsPool.JOB_DISPATCHING, "下发中"),
-    /**
      * 接收到 agent 下发worker的反馈
      */
     EXECUTING(ConstantsPool.JOB_EXECUTING, "执行中"),

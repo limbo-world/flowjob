@@ -68,7 +68,7 @@ public class StandalonePlanScheduler extends AbstractPlanScheduler {
     @Override
     @Transactional
     public void handleJobFail(JobInstance jobInstance, String errorMsg) {
-        int num = jobInstanceEntityRepo.fail(jobInstance.getJobInstanceId(), errorMsg);
+        int num = jobInstanceEntityRepo.fail(jobInstance.getJobInstanceId(), jobInstance.getStatus().status, errorMsg);
         if (num < 1) {
             return; // 可能被其他的处理了
         }

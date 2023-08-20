@@ -51,9 +51,9 @@ public class JobRpcController {
     private ScheduleProxy scheduleProxy;
 
     /**
-     * job执行反馈
+     * job开始执行反馈
      */
-    @Operation(summary = "job执行反馈")
+    @Operation(summary = "job开始执行反馈")
     @PostMapping(API_JOB_EXECUTING)
     public ResponseDTO<Boolean> executing(@Validated @NotNull(message = "no agentId") @RequestParam("agentId") String agentId,
                                           @Validated @NotNull(message = "no jobInstanceId") @RequestParam("jobInstanceId") String jobInstanceId) {

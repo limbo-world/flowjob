@@ -101,6 +101,10 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
         } catch (Exception e) {
             log.error("Failed to receive job param={}", param, e);
             return false;
+        } finally {
+            if (log.isDebugEnabled()) {
+                log.debug("receive job success param={}", param);
+            }
         }
     }
 
