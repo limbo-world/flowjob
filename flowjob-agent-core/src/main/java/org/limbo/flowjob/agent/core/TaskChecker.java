@@ -73,10 +73,10 @@ public class TaskChecker {
             public void run() {
                 try {
                     // todo 性能优化
-                    String now = DateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime().plus(-period.toMillis(), ChronoUnit.MILLIS));
+                    String queryTime = DateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime().plus(-period.toMillis(), ChronoUnit.MILLIS));
                     String startId = "";
                     Integer limit = 1000;
-                    List<Task> tasks = taskService.getByLastReportBeforeAndUnFinish(now, startId, limit);
+                    List<Task> tasks = taskService.getByLastReportBeforeAndUnFinish(queryTime, startId, limit);
                     while (CollectionUtils.isNotEmpty(tasks)) {
                         for (Task t : tasks) {
                             if (t.getWorker() != null) {
@@ -86,7 +86,7 @@ public class TaskChecker {
                             }
                         }
                         startId = tasks.get(tasks.size() - 1).getTaskId();
-                        tasks = taskService.getByLastReportBeforeAndUnFinish(now, startId, limit);
+                        tasks = taskService.getByLastReportBeforeAndUnFinish(queryTime, startId, limit);
                     }
                 } catch (Exception e) {
                     log.error("[TaskChecker] error", e);

@@ -36,6 +36,7 @@ public interface ConstantsPool {
 
     // =========== job status ==================
     int JOB_SCHEDULING = 10;
+//    int JOB_DISPATCHING = 20;
     int JOB_EXECUTING = 30;
     int JOB_EXECUTE_SUCCEED = 40;
     int JOB_EXECUTE_FAILED = 50;

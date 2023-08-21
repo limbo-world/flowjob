@@ -101,8 +101,14 @@ public class TaskDispatcher {
         }
 
         if (!dispatched) {
-            task.setErrorMsg(MsgConstants.DISPATCH_FAIL);
+            String errorMsg = MsgConstants.DISPATCH_FAIL;
+            task.setErrorMsg(errorMsg);
+            // org.limbo.flowjob.agent.core.service.TaskService.taskFail 引入 TaskService会有循环依赖问题先这样写，后面优化掉
             taskRepository.fail(task);
+            Job job = jobRepository.getById(task.getJobId());
+            if (agentBrokerRpc.feedbackJobFail(job, errorMsg)) {
+                jobRepository.delete(job.getId());
+            }
         }
         return dispatched;
     }

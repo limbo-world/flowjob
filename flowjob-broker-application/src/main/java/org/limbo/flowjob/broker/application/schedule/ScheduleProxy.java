@@ -30,10 +30,7 @@ import org.limbo.flowjob.api.constants.WorkerStatus;
 import org.limbo.flowjob.api.dto.broker.AvailableWorkerDTO;
 import org.limbo.flowjob.api.param.broker.JobFeedbackParam;
 import org.limbo.flowjob.broker.application.converter.BrokerConverter;
-import org.limbo.flowjob.broker.application.service.PlanInstanceService;
 import org.limbo.flowjob.broker.application.task.JobScheduleTask;
-import org.limbo.flowjob.broker.core.domain.IDGenerator;
-import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.job.JobInstanceRepository;
@@ -93,12 +90,6 @@ public class ScheduleProxy implements ApplicationContextAware {
     private MetaTaskScheduler metaTaskScheduler;
 
     @Setter(onMethod_ = @Inject)
-    private PlanInstanceService planInstanceService;
-
-    @Setter(onMethod_ = @Inject)
-    private IDGenerator idGenerator;
-
-    @Setter(onMethod_ = @Inject)
     private JobInstanceRepository jobInstanceRepository;
 
     @Setter(onMethod_ = @Inject)
@@ -146,12 +137,7 @@ public class ScheduleProxy implements ApplicationContextAware {
      * 调度 plan 创建PlanInstance并执行调度
      */
     public void schedule(TriggerType triggerType, Plan plan, Attributes planAttributes, LocalDateTime triggerAt) {
-        executeWithAspect(unused -> {
-            // 悲观锁快速释放，不阻塞后续任务
-            String planInstanceId = idGenerator.generateId(IDType.PLAN_INSTANCE);
-            planInstanceService.save(planInstanceId, planAttributes, triggerType, plan, triggerAt); // 可以考虑 PlanInstance 对象来处理后续流程
-            schedulers.get(plan.getType()).schedule(plan, planAttributes, planInstanceId, triggerAt);
-        });
+        executeWithAspect(unused -> schedulers.get(plan.getType()).schedule(triggerType, plan, planAttributes, triggerAt));
     }
 
     /**
@@ -163,6 +149,7 @@ public class ScheduleProxy implements ApplicationContextAware {
 
     /**
      * job开始执行的反馈
+     *
      * @param agentId
      * @param jobInstanceId
      * @return
@@ -254,7 +241,7 @@ public class ScheduleProxy implements ApplicationContextAware {
         }
         for (JobInstance jobInstance : ScheduleContext.waitScheduleJobs()) {
             try {
-                metaTaskScheduler.schedule(new JobScheduleTask(jobInstance, this));
+                metaTaskScheduler.schedule(new JobScheduleTask(jobInstance, this, metaTaskScheduler));
             } catch (Exception e) {
                 // 由task的状态检查任务去修复task的执行情况
                 log.error("task schedule fail! jobInstance={}", jobInstance, e);

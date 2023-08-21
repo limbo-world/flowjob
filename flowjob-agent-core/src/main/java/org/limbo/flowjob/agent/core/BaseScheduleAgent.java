@@ -161,7 +161,7 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
 
         // task检测
         if (taskChecker == null) {
-            taskChecker = new TaskChecker(taskService, Duration.ofSeconds(TaskConstant.TASK_REPORT_SECONDS));
+            taskChecker = new TaskChecker(taskService, Duration.ofSeconds(TaskConstant.TASK_REPORT_SECONDS + 5));
         }
         taskChecker.start();
 
@@ -209,7 +209,10 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
             this.threadPool.submit(() -> {
                 try {
                     // 反馈执行中
-                    brokerRpc.notifyJobExecuting(job.getId());
+                    boolean success = brokerRpc.notifyJobExecuting(job.getId());
+                    if (!success) {
+                        return; // 可能已经下发给其它节点
+                    }
                     // 提交执行
                     jobService.schedule(job);
                 } catch (Exception e) {

@@ -24,8 +24,7 @@ import java.time.LocalDateTime;
 @Entity
 @DynamicInsert
 @DynamicUpdate
-public class
-JobInstanceEntity extends BaseEntity {
+public class JobInstanceEntity extends BaseEntity {
     private static final long serialVersionUID = -1136312243146520057L;
 
     /**

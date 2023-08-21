@@ -26,6 +26,7 @@ import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
 import org.limbo.flowjob.broker.application.support.CommonThreadPool;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
+import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
 
 import java.time.LocalDateTime;
@@ -37,7 +38,7 @@ import java.time.LocalDateTime;
  * @date 2023/1/9
  */
 @Slf4j
-public class JobScheduleTask implements MetaTask {
+public class JobScheduleTask extends MetaTask {
 
     @Getter
     private final JobInstance jobInstance;
@@ -52,7 +53,8 @@ public class JobScheduleTask implements MetaTask {
     @ToString.Exclude
     private final ScheduleProxy scheduleProxy;
 
-    public JobScheduleTask(JobInstance jobInstance, ScheduleProxy scheduleProxy) {
+    public JobScheduleTask(JobInstance jobInstance, ScheduleProxy scheduleProxy, MetaTaskScheduler metaTaskScheduler) {
+        super(metaTaskScheduler);
         this.jobInstance = jobInstance;
         this.triggerAt = jobInstance.getTriggerAt();
         this.scheduleProxy = scheduleProxy;
@@ -83,4 +85,5 @@ public class JobScheduleTask implements MetaTask {
     public LocalDateTime scheduleAt() {
         return triggerAt;
     }
+
 }

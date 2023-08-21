@@ -19,6 +19,7 @@
 package org.limbo.flowjob.broker.application.schedule;
 
 import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
@@ -34,11 +35,8 @@ public interface PlanScheduler {
     /**
      * 调度plan实例
      */
-    void schedule(Plan plan, Attributes planAttribute, String planInstanceId, LocalDateTime triggerAt);
+    void schedule(TriggerType triggerType, Plan plan, Attributes planAttribute, LocalDateTime triggerAt);
 
-    /**
-     * 调度job实例
-     */
     void schedule(JobInstance jobInstance);
 
     void handleJobSuccess(JobInstance jobInstance);

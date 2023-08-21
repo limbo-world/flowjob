@@ -35,6 +35,7 @@ import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 /**
  * 调度PLan的信息创建Instance
@@ -62,6 +63,9 @@ public class PlanScheduleTask extends LoopMetaTask {
         this.scheduleProxy = scheduleProxy;
     }
 
+    /**
+     * plan 的 fixed delay 由于执行代码不在内存中，需要由执行完成的节点触发
+     */
     @Override
     protected void executeFixedDelay() {
         executeTask();
@@ -95,11 +99,11 @@ public class PlanScheduleTask extends LoopMetaTask {
         CommonThreadPool.IO.submit(() -> scheduleProxy.schedule(TriggerType.SCHEDULE, plan, null, triggerAt));
     }
 
-//    @Override
-//    public LocalDateTime calNextTriggerAt() {
-//        LocalDateTime triggerAt = super.calNextTriggerAt();
-//        return triggerAt.truncatedTo(ChronoUnit.SECONDS);  // 这里获取到的是毫秒 转为秒
-//    }
+    @Override
+    public LocalDateTime calNextTriggerAt() {
+        LocalDateTime triggerAt = super.calNextTriggerAt();
+        return triggerAt.truncatedTo(ChronoUnit.SECONDS);  // 这里获取到的是毫秒 转为秒
+    }
 
     @Override
     public MetaTaskType getType() {

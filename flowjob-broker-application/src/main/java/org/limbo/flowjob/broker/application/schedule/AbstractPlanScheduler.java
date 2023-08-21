@@ -24,7 +24,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.JobStatus;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.ScheduleType;
+import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.constants.rpc.HttpAgentApi;
+import org.limbo.flowjob.broker.application.service.PlanInstanceService;
 import org.limbo.flowjob.broker.core.agent.AgentRepository;
 import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
@@ -81,10 +83,16 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
     @Setter(onMethod_ = @Inject)
     protected MetaTaskScheduler metaTaskScheduler;
 
+    @Setter(onMethod_ = @Inject)
+    protected PlanInstanceService planInstanceService;
+
     protected LBStrategy<ScheduleAgent> lbStrategy = new RoundRobinLBStrategy<>();
 
     @Transactional
-    public void schedule(Plan plan, Attributes planAttributes, String planInstanceId, LocalDateTime triggerAt) {
+    public void schedule(TriggerType triggerType, Plan plan, Attributes planAttributes, LocalDateTime triggerAt) {
+        // 悲观锁快速释放，不阻塞后续任务
+        String planInstanceId = idGenerator.generateId(IDType.PLAN_INSTANCE);
+        planInstanceService.save(planInstanceId, planAttributes, triggerType, plan, triggerAt); // 可以考虑 PlanInstance 对象来处理后续流程
         List<JobInstance> jobInstances = createJobInstances(plan, planAttributes, planInstanceId, triggerAt);
         saveAndScheduleJobInstances(jobInstances);
         planInstanceEntityRepo.dispatching(planInstanceId);
@@ -116,6 +124,7 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
     @Override
     @Transactional
     public void schedule(JobInstance jobInstance) {
+        // 加锁 同时只能有一个在执行下发逻辑
         if (jobInstance.getStatus() != JobStatus.SCHEDULING) {
             return;
         }
@@ -128,6 +137,7 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
         ScheduleAgent agent = lbStrategy.select(agents, lbInvocation).orElse(null);
         if (agent == null) {
             log.warn("No alive server for job={}", jobInstance.getJobInstanceId());
+            handleJobFail(jobInstance, MsgConstants.DISPATCH_FAIL_NO_AGENT);
             return; // 状态检测的时候自动重试
         }
 
@@ -136,10 +146,10 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
         try {
             log.info("Try dispatch JobInstance id={} to agent={}", jobInstance.getJobInstanceId(), agent.getId());
             dispatched = agent.dispatch(jobInstance);
-            log.info("Dispatch JobInstance id={} to agent={} success", jobInstance.getJobInstanceId(), agent.getId());
+            log.info("Dispatch JobInstance id={} to agent={} success={}", jobInstance.getJobInstanceId(), agent.getId(), dispatched);
         } catch (Exception e) {
             dispatched = false;
-            log.error("Dispatch JobInstance id={} to agent={} faile", jobInstance.getJobInstanceId(), agent.getId(), e);
+            log.error("Dispatch JobInstance id={} to agent={} fail", jobInstance.getJobInstanceId(), agent.getId(), e);
         }
 
         if (!dispatched) {

@@ -80,6 +80,7 @@ public class JobService {
      * @param job
      */
     public void schedule(Job job) {
+        log.info("start schedule job={}", job);
 
         // 根据job类型创建task
         List<Task> tasks = createRootTasks(job);
@@ -120,8 +121,8 @@ public class JobService {
             return taskRepository.batchSave(tasks);
         } catch (Exception e) {
             log.error("batchSave tasks({}) failed.", tasks, e);
+            return false;
         }
-        return false;
     }
 
     public List<Task> createRootTasks(Job job) {

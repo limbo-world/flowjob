@@ -84,7 +84,7 @@ public class MetaTaskConverter {
 
     public JobScheduleTask toJobInstanceScheduleTask(JobInstanceEntity entity) {
         JobInstance jobInstance = jobInstanceRepository.get(entity.getJobInstanceId());
-        return new JobScheduleTask(jobInstance, scheduleProxy);
+        return new JobScheduleTask(jobInstance, scheduleProxy, metaTaskScheduler);
     }
 
 }

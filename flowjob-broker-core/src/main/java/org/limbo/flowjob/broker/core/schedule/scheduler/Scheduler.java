@@ -39,10 +39,4 @@ public interface Scheduler<T extends Scheduled> {
      */
     void unschedule(String id);
 
-    /**
-     * 判断是否在调度中
-     * @param id 调度的对象 id
-     */
-    boolean isScheduling(String id);
-
 }

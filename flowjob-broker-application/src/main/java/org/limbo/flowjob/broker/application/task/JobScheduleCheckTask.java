@@ -20,7 +20,7 @@ package org.limbo.flowjob.broker.application.task;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.api.constants.PlanStatus;
+import org.limbo.flowjob.api.constants.JobStatus;
 import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.application.converter.MetaTaskConverter;
 import org.limbo.flowjob.broker.core.cluster.Broker;
@@ -83,7 +83,7 @@ public class JobScheduleCheckTask extends FixDelayMetaTask {
         }
 
         // 一段时候后还是 还是 SCHEDULING 状态的，需要重新调度
-        List<JobInstanceEntity> list = jobInstanceEntityRepo.findByPlanIdInAndTriggerAtLessThanEqualAndStatus(planIds, TimeUtils.currentLocalDateTime().plusSeconds(-INTERVAL), PlanStatus.SCHEDULING.status);
+        List<JobInstanceEntity> list = jobInstanceEntityRepo.findByPlanIdInAndTriggerAtLessThanEqualAndStatus(planIds, TimeUtils.currentLocalDateTime().plusSeconds(-INTERVAL), JobStatus.SCHEDULING.status);// todo 性能优化
         if (CollectionUtils.isEmpty(list)) {
             return;
         }

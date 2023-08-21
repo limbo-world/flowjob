@@ -36,6 +36,10 @@ public enum JobStatus {
      * 已经创建 等待 broker 下发 agent
      */
     SCHEDULING(ConstantsPool.JOB_SCHEDULING, "调度中"),
+//    /**
+//     * 下发 agent 待 agent 下发 worker
+//     */
+//    DISPATCHING(ConstantsPool.JOB_DISPATCHING, "下发中"),
     /**
      * 接收到 agent 下发worker的反馈
      */

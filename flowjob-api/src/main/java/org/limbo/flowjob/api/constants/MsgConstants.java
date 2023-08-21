@@ -32,6 +32,8 @@ public interface MsgConstants {
 
     String DISPATCH_FAIL = "dispatch fail";
 
+    String DISPATCH_FAIL_NO_AGENT = "dispatch fail no agent";
+
     String TERMINATE_BY_OTHER_JOB = "terminate by other job";
 
     String CANT_FIND_JOB_INSTANCE = "can't find job instance by id:";
