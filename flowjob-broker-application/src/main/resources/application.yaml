@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: dev
+    active: @profiles.active@
 
   application:
     name: flowjob-broker

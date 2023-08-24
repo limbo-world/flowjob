@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Properties>
+        <property name="LOG_HOME">./logs</property>
+        <Property name="LOG_EXCEPTION_CONVERSION_WORD">%xThrowable</Property>
+        <property name="pattern_base">%d{yy-MM-dd HH:mm:ss}  %5level %pid --- </property>
+        <property name="CONSOLE_LOG_PATTERN">${pattern_base} [%t] %-40.40c{1.} - %L : %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</property>
+    </Properties>
+    <Appenders>
+        <!-- info log-->
+        <RollingFile name="InfoLogFile" fileName="${LOG_HOME}/web-info.log" filePattern="${LOG_HOME}/web-info.log.%d{yyyy-MM-dd}">
+            <PatternLayout charset="UTF-8" pattern="${pattern}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+            <Filters>
+                <MarkerFilter marker="WechatMarker" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <MarkerFilter marker="TradeMarker" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <ThresholdFilter level="ERROR" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </RollingFile>
+        <!-- error log-->
+        <RollingFile name="ErrorLogFile" fileName="${LOG_HOME}/web-error.log" filePattern="${LOG_HOME}/web-error.log.%d{yyyy-MM-dd}">
+            <PatternLayout charset="UTF-8" pattern="${pattern}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+            <Filters>
+                <MarkerFilter marker="WechatMarker" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <MarkerFilter marker="TradeMarker" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <logger name="org.hibernate" level="INFO" />
+        <logger name="org.flywaydb.core" level="INFO" />
+        <logger name="org.apache.commons" level="INFO" />
+        <logger name="org.apache.http" level="INFO" />
+        <logger name="org.springframework" level="INFO" />
+        <logger name="org.springframework.web" level="INFO" />
+        <Root level="INFO">
+            <AppenderRef ref="InfoLogFile" />
+            <AppenderRef ref="ErrorLogFile" />
+        </Root>
+    </Loggers>
+</Configuration>

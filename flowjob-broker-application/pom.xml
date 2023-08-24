@@ -100,6 +100,15 @@
                 <profiles.active>dev</profiles.active>
             </properties>
         </profile>
+        <profile>
+            <id>prod</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <profiles.active>prod</profiles.active>
+            </properties>
+        </profile>
     </profiles>
 
     <build>

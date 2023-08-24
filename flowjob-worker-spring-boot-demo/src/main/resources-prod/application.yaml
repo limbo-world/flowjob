@@ -1,0 +1,11 @@
+server:
+  port: 8084
+
+flowjob:
+  worker:
+    brokers:
+      - http://localhost:8081
+    queue-size: 64
+    tags:
+      - a=b
+      - c=d
