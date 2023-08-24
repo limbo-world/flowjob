@@ -91,7 +91,7 @@
 项目根目录下，执行如下命令打包编译，通过`-P`参数指定环境，如开发环境为`-P dev`
 
 ```
-mvn clean package -Dmaven.test.skip=true -P dev
+mvn clean package -Dmaven.test.skip=true -Pdev
 ```
 
 ## Worker部署

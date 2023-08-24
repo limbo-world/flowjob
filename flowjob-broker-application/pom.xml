@@ -102,9 +102,6 @@
         </profile>
         <profile>
             <id>prod</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
             <properties>
                 <profiles.active>prod</profiles.active>
             </properties>
@@ -117,9 +114,11 @@
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
+                <filtering>true</filtering>
             </resource>
             <resource>
                 <directory>src/main/resources-${profiles.active}</directory>
+                <filtering>true</filtering>
             </resource>
         </resources>
 
