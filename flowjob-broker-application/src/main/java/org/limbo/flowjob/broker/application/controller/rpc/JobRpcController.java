@@ -61,6 +61,15 @@ public class JobRpcController {
     }
 
     /**
+     * job执行上报
+     */
+    @Operation(summary = "job执行上报")
+    @PostMapping(API_JOB_REPORT)
+    public ResponseDTO<Boolean> report(@Validated @NotNull(message = "no jobInstanceId") @RequestParam("jobInstanceId") String jobInstanceId) {
+        return ResponseDTO.<Boolean>builder().ok(scheduleProxy.jobReport(jobInstanceId)).build();
+    }
+
+    /**
      * 任务执行反馈接口
      */
     @Operation(summary = "任务执行反馈接口")

@@ -62,6 +62,10 @@ public class JobService {
         return jobRepository.save(job);
     }
 
+    public void delete(String id) {
+        jobRepository.delete(id);
+    }
+
     public int count() {
         return jobRepository.count();
     }

@@ -53,6 +53,11 @@ public interface AgentBrokerRpc {
     boolean notifyJobExecuting(String jobInstanceId);
 
     /**
+     * 反馈任务执行状态
+     */
+    boolean reportJob(String jobInstanceId);
+
+    /**
      * 向 Broker 反馈任务执行成功
      *
      * @param job 任务

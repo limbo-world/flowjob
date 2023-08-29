@@ -29,6 +29,7 @@ import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.api.param.agent.SubTaskCreateParam;
 import org.limbo.flowjob.api.param.agent.TaskReportParam;
 import org.limbo.flowjob.common.constants.AgentConstant;
+import org.limbo.flowjob.common.constants.JobConstant;
 import org.limbo.flowjob.common.constants.TaskConstant;
 import org.limbo.flowjob.common.exception.BrokerRpcException;
 import org.limbo.flowjob.common.exception.JobException;
@@ -48,7 +49,10 @@ import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -88,6 +92,11 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
      */
     @Getter
     private URL url;
+
+    /**
+     * 任务上报线程池
+     */
+    private ScheduledExecutorService scheduledReportPool;
 
     /**
      * 远程调用
@@ -131,6 +140,14 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
 
         Heartbeat heartbeat = this;
 
+        // 注册
+        try {
+            registerSelfToBroker();
+        } catch (Exception e) {
+            log.error("Register to broker has error", e);
+            return;
+        }
+
         // 启动RPC服务
         this.embedRpcServer.start();
 
@@ -145,13 +162,7 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
                 }
         );
 
-        // 注册
-        try {
-            registerSelfToBroker();
-        } catch (Exception e) {
-            log.error("Register to broker has error", e);
-            return;
-        }
+        scheduledReportPool = Executors.newScheduledThreadPool(resource.concurrency(), NamedThreadFactory.newInstance("FlowJobAgentJobReporter"));
 
         // 启动心跳
         if (pacemaker == null) {
@@ -207,20 +218,31 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
         jobService.save(job);
         try {
             this.threadPool.submit(() -> {
+                ScheduledFuture<?> jobReportScheduledFuture = null;
                 try {
                     // 反馈执行中
                     boolean success = brokerRpc.notifyJobExecuting(job.getId());
                     if (!success) {
+                        jobService.delete(job.getId());
                         return; // 可能已经下发给其它节点
                     }
+                    // 开启任务上报
+                    jobReportScheduledFuture = scheduledReportPool.scheduleAtFixedRate(new StatusReportRunnable(job), 1, JobConstant.JOB_REPORT_SECONDS, TimeUnit.SECONDS);
                     // 提交执行
                     jobService.schedule(job);
                 } catch (Exception e) {
+                    jobService.delete(job.getId());
                     log.error("Failed to receive job job={}", job, e);
                     throw new JobException(job.getId(), e.getMessage(), e);
+                } finally {
+                    // 最终都要移除任务
+                    if (jobReportScheduledFuture != null) {
+                        jobReportScheduledFuture.cancel(true);
+                    }
                 }
             });
         } catch (RejectedExecutionException e) {
+            jobService.delete(job.getId());
             // 拒绝时候的处理
             throw new IllegalStateException("Schedule job failed, maybe thread exhausted. job=" + job.getId());
         }
@@ -303,6 +325,20 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
     @Override
     public void beat() {
         this.sendHeartbeat();
+    }
+
+    private class StatusReportRunnable implements Runnable {
+
+        private Job job;
+
+        public StatusReportRunnable(Job job) {
+            this.job = job;
+        }
+
+        @Override
+        public void run() {
+            brokerRpc.reportJob(job.getId());
+        }
     }
 
 }

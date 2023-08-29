@@ -70,6 +70,10 @@ public class Task {
      */
     private String result;
 
+    public String getUid() {
+        return jobId + "-" + taskId;
+    }
+
     public void setContext(Map<String, Object> context) {
         if (MapUtils.isEmpty(context)) {
             return;

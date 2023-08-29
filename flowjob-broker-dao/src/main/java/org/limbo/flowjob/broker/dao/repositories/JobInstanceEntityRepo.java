@@ -35,7 +35,7 @@ import java.util.List;
  */
 public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, String>, JpaSpecificationExecutor<JobInstanceEntity> {
 
-    List<JobInstanceEntity> findByPlanIdInAndStatus(List<String> planInstanceIds, Integer status);
+    List<JobInstanceEntity> findByPlanIdInAndStatusAndLastReportAtBetween(List<String> planInstanceIds, Integer status, LocalDateTime lastReportAtStart, LocalDateTime lastReportAtEnd);
 
     List<JobInstanceEntity> findByPlanIdInAndTriggerAtLessThanEqualAndStatus(List<String> planIds, LocalDateTime triggerAt, Integer status);
 
@@ -50,6 +50,12 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity " +
+            " set lastReportAt = :lastReportAt " +
+            " where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.JOB_EXECUTING)
+    int report(@Param("jobInstanceId") String jobInstanceId, @Param("lastReportAt") LocalDateTime lastReportAt);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "update JobInstanceEntity " +
             "set status = " + ConstantsPool.JOB_EXECUTE_SUCCEED + ", context = :context, endAt = :endAt " +
             "where jobInstanceId = :jobInstanceId and status = " + ConstantsPool.JOB_EXECUTING)
     int success(@Param("jobInstanceId") String jobInstanceId, @Param("endAt") LocalDateTime endAt, @Param("context") String context);
@@ -57,7 +63,7 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity " +
             "set status = " + ConstantsPool.JOB_EXECUTE_FAILED + ", errorMsg =:errorMsg " +
-            "where jobInstanceId = :jobInstanceId and status = :oldStatus")
+            " where jobInstanceId = :jobInstanceId and status = :oldStatus")
     int fail(@Param("jobInstanceId") String jobInstanceId, @Param("oldStatus") Integer oldStatus, @Param("errorMsg") String errorMsg);
 
 }

@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.common.lb.Invocation;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,11 +32,14 @@ import java.util.Map;
  */
 public class WorkerSelectInvocation implements Invocation {
 
+    private String executorName;
+
     private Map<String, String> lbParameters;
 
     private static final String LB_PREFIX = "worker.lb.";
 
-    public WorkerSelectInvocation(Attributes attributes) {
+    public WorkerSelectInvocation(String executorName, Attributes attributes) {
+        this.executorName = executorName;
         this.lbParameters = new HashMap<>();
         putStringEntry(this.lbParameters, attributes);
     }
@@ -60,11 +64,11 @@ public class WorkerSelectInvocation implements Invocation {
 
     @Override
     public String getInvokeTargetId() {
-        return null;
+        return executorName;
     }
 
     @Override
     public Map<String, String> getLBParameters() {
-        return null;
+        return Collections.unmodifiableMap(lbParameters);
     }
 }

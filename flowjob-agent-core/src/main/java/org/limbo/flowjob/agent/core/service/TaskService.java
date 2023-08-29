@@ -67,8 +67,8 @@ public class TaskService {
         return taskRepository.getById(jobId, taskId);
     }
 
-    public List<Task> getByLastReportBeforeAndUnFinish(String lastTime, String startId, Integer limit) {
-        return taskRepository.getByLastReportBeforeAndUnFinish(lastTime, startId, limit);
+    public List<Task> getByLastReportBetweenAndUnFinish(String reportTimeStart, String reportTimeEnd, String startId, Integer limit) {
+        return taskRepository.getByLastReportBetweenAndUnFinish(reportTimeStart, reportTimeEnd, startId, limit);
     }
 
     public boolean batchSave(Collection<Task> tasks) {

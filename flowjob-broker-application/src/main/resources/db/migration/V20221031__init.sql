@@ -225,6 +225,7 @@ CREATE TABLE `flowjob_job_instance`
     `context`          text COLLATE utf8mb4_bin,
     `start_at`         datetime(6) DEFAULT NULL,
     `end_at`           datetime(6) DEFAULT NULL,
+    `last_report_at`   datetime(6) NOT NULL,
     `status`           tinyint                                                NOT NULL,
     `error_msg`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `is_deleted`       bit(1)                                                 NOT NULL DEFAULT 0,

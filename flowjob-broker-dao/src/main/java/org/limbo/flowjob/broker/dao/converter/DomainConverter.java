@@ -35,6 +35,7 @@ import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
 import java.util.List;
@@ -109,6 +110,7 @@ public class DomainConverter {
         entity.setTriggerAt(jobInstance.getTriggerAt());
         entity.setStartAt(jobInstance.getStartAt());
         entity.setEndAt(jobInstance.getEndAt());
+        entity.setLastReportAt(TimeUtils.currentLocalDateTime());
         return entity;
     }
 

@@ -85,6 +85,11 @@ public class JobInstanceEntity extends BaseEntity {
      */
     private LocalDateTime endAt;
 
+    /**
+     * 上次上报时间戳，毫秒
+     */
+    private LocalDateTime lastReportAt;
+
     @Override
     public Object getUid() {
         return jobInstanceId;

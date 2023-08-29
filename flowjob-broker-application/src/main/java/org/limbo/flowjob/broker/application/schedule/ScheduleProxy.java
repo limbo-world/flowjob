@@ -163,6 +163,15 @@ public class ScheduleProxy implements ApplicationContextAware {
     }
 
     /**
+     * job执行上报
+     */
+    @Transactional(rollbackOn = Throwable.class)
+    public boolean jobReport(String jobInstanceId) {
+        log.info("Receive Job report jobInstanceId={}", jobInstanceId);
+        return jobInstanceEntityRepo.report(jobInstanceId, TimeUtils.currentLocalDateTime()) > 0;
+    }
+
+    /**
      * api 方式下发节点任务
      */
     public void scheduleJob(String planInstanceId, String jobId) {

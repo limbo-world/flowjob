@@ -38,15 +38,15 @@ public class TaskRepository {
      * @param context 任务执行上下文
      */
     public boolean save(ExecuteContext context) {
-        return tasks.putIfAbsent(context.getTask().getTaskId(), context) == null;
+        return tasks.putIfAbsent(context.getTask().getUid(), context) == null;
     }
 
 
     /**
      * 从仓库中移除任务
      */
-    public void delete(String taskId) {
-        tasks.remove(taskId);
+    public void delete(String uid) {
+        tasks.remove(uid);
     }
 
 
@@ -61,8 +61,8 @@ public class TaskRepository {
     /**
      * 判断在仓库中是否存在指定 ID 的任务
      */
-    public boolean has(String taskId) {
-        return tasks.containsKey(taskId);
+    public boolean has(String uid) {
+        return tasks.containsKey(uid);
     }
 
 }

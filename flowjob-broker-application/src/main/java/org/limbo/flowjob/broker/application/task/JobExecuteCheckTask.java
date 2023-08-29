@@ -18,6 +18,7 @@
 
 package org.limbo.flowjob.broker.application.task;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.ExecuteResult;
 import org.limbo.flowjob.api.constants.JobStatus;
@@ -25,8 +26,6 @@ import org.limbo.flowjob.api.param.broker.JobFeedbackParam;
 import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
 import org.limbo.flowjob.broker.application.support.CommonThreadPool;
-import org.limbo.flowjob.broker.core.agent.AgentRepository;
-import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
@@ -34,10 +33,16 @@ import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
+import org.limbo.flowjob.common.constants.JobConstant;
+import org.limbo.flowjob.common.utils.time.DateTimeUtils;
+import org.limbo.flowjob.common.utils.time.Formatters;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 
@@ -48,10 +53,9 @@ import java.util.List;
  * 2. agent服务假死
  * 3. agent完成job调用broker的接口失败
  */
+@Slf4j
 @Component
 public class JobExecuteCheckTask extends FixDelayMetaTask {
-
-    private final AgentRepository agentRepository;
 
     private final JobInstanceEntityRepo jobInstanceEntityRepo;
 
@@ -63,19 +67,22 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
 
     private final ScheduleProxy scheduleProxy;
 
+    /**
+     * 上次检测时间
+     */
+    private LocalDateTime lastCheckTime = DateTimeUtils.parse("2000-01-01 00:00:00", Formatters.YMD_HMS);
+
     public JobExecuteCheckTask(MetaTaskScheduler metaTaskScheduler,
                                JobInstanceEntityRepo jobInstanceEntityRepo,
                                BrokerSlotManager slotManager,
                                @Lazy Broker broker,
                                NodeManger nodeManger,
-                               AgentRepository agentRepository,
                                ScheduleProxy scheduleProxy) {
         super(Duration.ofSeconds(5), metaTaskScheduler);
         this.jobInstanceEntityRepo = jobInstanceEntityRepo;
         this.slotManager = slotManager;
         this.broker = broker;
         this.nodeManger = nodeManger;
-        this.agentRepository = agentRepository;
         this.scheduleProxy = scheduleProxy;
     }
 
@@ -90,16 +97,17 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
         if (CollectionUtils.isEmpty(executingJobs)) {
             return;
         }
-        // 获取长时间为执行中的task 判断worker是否已经宕机
+
         for (JobInstanceEntity instance : executingJobs) {
             CommonThreadPool.IO.submit(() -> {
-                ScheduleAgent agent = agentRepository.get(instance.getAgentId());
-                if (agent == null || !agent.isAlive()) {
+                try {
                     JobFeedbackParam param = JobFeedbackParam.builder()
                             .result(ExecuteResult.FAILED)
                             .errorMsg(String.format("agent %s is offline", instance.getAgentId()))
                             .build();
                     scheduleProxy.feedback(instance.getJobInstanceId(), param);
+                } catch (Exception e) {
+                    log.error("[JobExecuteCheckTask] handler job fail with error jobInstanceId={}", instance.getJobInstanceId(), e);
                 }
             });
         }
@@ -113,7 +121,10 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
         if (CollectionUtils.isEmpty(planIds)) {
             return Collections.emptyList();
         }
-        List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findByPlanIdInAndStatus(planIds, JobStatus.EXECUTING.status); // todo 性能优化
+
+        LocalDateTime curCheckTime = TimeUtils.currentLocalDateTime().plus(-JobConstant.JOB_REPORT_SECONDS + 5, ChronoUnit.SECONDS);
+        List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findByPlanIdInAndStatusAndLastReportAtBetween(planIds, JobStatus.EXECUTING.status, lastCheckTime, curCheckTime);
+        lastCheckTime = curCheckTime;
         if (CollectionUtils.isEmpty(jobInstanceEntities)) {
             return Collections.emptyList();
         }

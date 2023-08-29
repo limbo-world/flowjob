@@ -18,9 +18,11 @@
 
 package org.limbo.flowjob.broker.application.schedule;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.JobStatus;
+import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.broker.core.domain.IDType;
@@ -28,15 +30,19 @@ import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
+import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
+import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
 
+import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -50,6 +56,9 @@ import java.util.List;
 @Slf4j
 @Component
 public class WorkflowPlanScheduler extends AbstractPlanScheduler {
+
+    @Setter(onMethod_ = @Inject)
+    protected PlanInfoEntityRepo planInfoEntityRepo;
 
     @Override
     @Transactional
@@ -100,6 +109,7 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
     }
 
     @Override
+    @Transactional
     public void handleJobSuccess(JobInstance jobInstance) {
         int num = jobInstanceEntityRepo.success(jobInstance.getJobInstanceId(), TimeUtils.currentLocalDateTime(), jobInstance.getContext().toString());
         if (num < 1) {
@@ -113,7 +123,9 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
         WorkflowJobInfo jobInfo = (WorkflowJobInfo) jobInstance.getJobInfo();
         String jobId = jobInfo.getId();
 
-        DAG<WorkflowJobInfo> dag = DomainConverter.toJobDag(jobId);
+
+        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(version).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INSTANCE + planId));
+        DAG<WorkflowJobInfo> dag = DomainConverter.toJobDag(planInfoEntity.getJobInfo());
 
         // 当前节点的子节点
         List<WorkflowJobInfo> subJobInfos = dag.subNodes(jobId);
@@ -146,6 +158,7 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
     }
 
     @Override
+    @Transactional
     public void handleJobFail(JobInstance jobInstance, String errorMsg) {
         int num = jobInstanceEntityRepo.fail(jobInstance.getJobInstanceId(), jobInstance.getStatus().status, errorMsg);
         if (num < 1) {

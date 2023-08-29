@@ -119,14 +119,16 @@ public class TaskRepository {
         }
     }
 
-    public List<Task> getByLastReportBeforeAndUnFinish(String lastTime, String startId, Integer limit) {
-        String sql = "select * from " + TABLE_NAME + " where last_report_at < ? and status not in (?, ?) and task_id > ? order by task_id limit ?";
+    public List<Task> getByLastReportBetweenAndUnFinish(String reportTimeStart, String reportTimeEnd, String startId, Integer limit) {
+        String sql = "select * from " + TABLE_NAME + " where last_report_at >= ? and last_report_at <= ? and status not in (?, ?) and task_id > ? order by task_id limit ?";
         try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, lastTime);
-            ps.setInt(2, TaskStatus.SUCCEED.status);
-            ps.setInt(3, TaskStatus.FAILED.status);
-            ps.setString(4, startId);
-            ps.setInt(5, limit);
+            int i = 0;
+            ps.setString(++i, reportTimeStart);
+            ps.setString(++i, reportTimeEnd);
+            ps.setInt(++i, TaskStatus.SUCCEED.status);
+            ps.setInt(++i, TaskStatus.FAILED.status);
+            ps.setString(++i, startId);
+            ps.setInt(++i, limit);
             try (ResultSet rs = ps.executeQuery()) {
                 List<Task> tasks = new ArrayList<>();
                 while (rs.next()) {
@@ -135,7 +137,7 @@ public class TaskRepository {
                 return tasks;
             }
         } catch (Exception e) {
-            log.error("TaskRepository.getByLastReportAtBefore error lastTime={} startId={} limit={}", lastTime, startId, limit, e);
+            log.error("TaskRepository.getByLastReportAtBefore error reportTimeStart={} reportTimeEnd={} startId={} limit={}", reportTimeStart, reportTimeEnd, startId, limit, e);
             return Collections.emptyList();
         }
     }
@@ -296,11 +298,12 @@ public class TaskRepository {
     }
 
     public boolean report(String jobId, String taskId) {
-        String sql = "update " + TABLE_NAME + " set `last_report_at` = ? where job_id = ? and task_id = ?";
+        String sql = "update " + TABLE_NAME + " set `last_report_at` = ? where job_id = ? and task_id = ? and status = ?";
         try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, DateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime()));
             ps.setString(2, jobId);
             ps.setString(3, taskId);
+            ps.setInt(4, TaskStatus.EXECUTING.status);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             log.error("TaskRepository.report error jobId={} taskId={}", jobId, taskId, e);

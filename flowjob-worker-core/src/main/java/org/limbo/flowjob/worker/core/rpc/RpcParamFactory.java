@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -125,8 +124,9 @@ public class RpcParamFactory {
         return feedbackParam;
     }
 
-    public static TaskReportParam subTaskReportParam(String taskId) {
+    public static TaskReportParam taskReportParam(String jobId, String taskId) {
         return TaskReportParam.builder()
+                .jobId(jobId)
                 .taskId(taskId)
                 .build();
     }

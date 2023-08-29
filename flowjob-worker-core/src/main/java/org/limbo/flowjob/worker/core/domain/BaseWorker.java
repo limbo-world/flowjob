@@ -232,6 +232,14 @@ public class BaseWorker implements Worker {
 
         Worker worker = this;
 
+        // 注册
+        try {
+            registerSelfToBroker();
+        } catch (Exception e) {
+            log.error("Register to broker has error", e);
+            throw new RuntimeException(e);
+        }
+
         // 启动RPC服务
         this.embedRpcServer.start(); // 目前由于服务在线程中异步处理，如果启动失败，应该终止broker的心跳启动
 
@@ -249,23 +257,14 @@ public class BaseWorker implements Worker {
         );
         this.scheduledReportPool = Executors.newScheduledThreadPool(resource.concurrency(), NamedThreadFactory.newInstance("FlowJobWorkerTaskReporter"));
 
-        // 注册
-        try {
-            registerSelfToBroker();
-        } catch (Exception e) {
-            log.error("Register to broker has error", e);
-            throw new RuntimeException(e);
-        }
-
-        // 更新为运行中
-        status.compareAndSet(RpcServerStatus.INITIALIZING, RpcServerStatus.RUNNING);
-
         // 心跳
         if (pacemaker == null) {
             pacemaker = new WorkerHeartbeat(worker, Duration.ofSeconds(WorkerConstant.HEARTBEAT_TIMEOUT_SECOND));
         }
         pacemaker.start();
 
+        // 更新为运行中
+        status.compareAndSet(RpcServerStatus.INITIALIZING, RpcServerStatus.RUNNING);
         log.info("worker start!");
     }
 

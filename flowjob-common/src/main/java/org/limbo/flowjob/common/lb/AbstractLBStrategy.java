@@ -44,7 +44,12 @@ public abstract class AbstractLBStrategy<S extends LBServer> implements LBStrate
             return Optional.empty();
         }
 
-        return doSelect(servers, invocation);
+        try {
+            return doSelect(servers, invocation);
+        } catch (Exception e) {
+            log.error("[{}] select with error servers={} invocation={}", getClass().getSimpleName(), servers, invocation);
+            throw new LoadBalanceException(e);
+        }
     }
 
 

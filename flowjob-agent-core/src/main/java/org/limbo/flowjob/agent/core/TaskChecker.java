@@ -25,6 +25,7 @@ import org.limbo.flowjob.common.utils.time.DateTimeUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Timer;
@@ -50,6 +51,11 @@ public class TaskChecker {
 
     private TaskService taskService;
 
+    /**
+     * 上次检测时间
+     */
+    private LocalDateTime lastCheckTime;
+
     public TaskChecker(TaskService taskService, Duration period) {
         this.taskService = taskService;
         this.timer = new Timer("TaskChecker");
@@ -67,16 +73,17 @@ public class TaskChecker {
             this.task.cancel();
         }
 
+        this.lastCheckTime = TimeUtils.currentLocalDateTime().plusSeconds(-2 * period.getSeconds());
+
         this.task = new TimerTask() {
 
             @Override
             public void run() {
                 try {
-                    // todo 性能优化
-                    String queryTime = DateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime().plus(-period.toMillis(), ChronoUnit.MILLIS));
+                    LocalDateTime curCheckTime = TimeUtils.currentLocalDateTime().plus(-period.toMillis(), ChronoUnit.MILLIS);
                     String startId = "";
                     Integer limit = 1000;
-                    List<Task> tasks = taskService.getByLastReportBeforeAndUnFinish(queryTime, startId, limit);
+                    List<Task> tasks = taskService.getByLastReportBetweenAndUnFinish(DateTimeUtils.formatYMDHMS(lastCheckTime), DateTimeUtils.formatYMDHMS(curCheckTime), startId, limit);
                     while (CollectionUtils.isNotEmpty(tasks)) {
                         for (Task t : tasks) {
                             if (t.getWorker() != null) {
@@ -86,7 +93,7 @@ public class TaskChecker {
                             }
                         }
                         startId = tasks.get(tasks.size() - 1).getTaskId();
-                        tasks = taskService.getByLastReportBeforeAndUnFinish(queryTime, startId, limit);
+                        tasks = taskService.getByLastReportBetweenAndUnFinish(DateTimeUtils.formatYMDHMS(lastCheckTime), DateTimeUtils.formatYMDHMS(curCheckTime), startId, limit);
                     }
                 } catch (Exception e) {
                     log.error("[TaskChecker] error", e);

@@ -117,6 +117,7 @@ public class TaskDispatcher {
     /**
      *  指定 worker 的任务
      */
+    @Deprecated
     private boolean dispatchWithWorker(Task task) {
         Worker worker = task.getWorker();
         try {
@@ -144,7 +145,7 @@ public class TaskDispatcher {
         }
 
         Job job = jobRepository.getById(task.getJobId());
-        WorkerSelectInvocation invocation = new WorkerSelectInvocation(job.getAttributes());
+        WorkerSelectInvocation invocation = new WorkerSelectInvocation(job.getExecutorName(), job.getAttributes());
         WorkerSelector workerSelector = workerSelectorFactory.newSelector(job.getLoadBalanceType());
         return workerSelector.select(invocation, allWorkers);
     }
@@ -152,6 +153,7 @@ public class TaskDispatcher {
     /**
      * 需要worker选择的任务
      */
+    @Deprecated
     private boolean dispatchWithWorkerSelect(Task task) {
         List<Worker> allWorkers = agentBrokerRpc.availableWorkers(task.getJobId(), true, true, true);
         if (CollectionUtils.isEmpty(allWorkers)) {
@@ -159,7 +161,7 @@ public class TaskDispatcher {
         }
 
         Job job = jobRepository.getById(task.getJobId());
-        WorkerSelectInvocation invocation = new WorkerSelectInvocation(job.getAttributes());
+        WorkerSelectInvocation invocation = new WorkerSelectInvocation(job.getExecutorName(), job.getAttributes());
         WorkerSelector workerSelector = workerSelectorFactory.newSelector(job.getLoadBalanceType());
         for (int i = 0; i < 3; i++) {
             try {

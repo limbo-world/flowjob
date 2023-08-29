@@ -64,7 +64,7 @@ public class OkHttpAgentRpc extends OKHttpRpc<BaseLBServer> implements WorkerAge
 
     @Override
     public Boolean reportTask(Task task) {
-        TaskReportParam param = RpcParamFactory.subTaskReportParam(task.getTaskId());
+        TaskReportParam param = RpcParamFactory.taskReportParam(task.getJobId(), task.getTaskId());
 
         ResponseDTO<Boolean> response = executePost(task.getAgentRpcUrl() + API_TASK_REPORT, param, new TypeReference<ResponseDTO<Boolean>>() {
         });

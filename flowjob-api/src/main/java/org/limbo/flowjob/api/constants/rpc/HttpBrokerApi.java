@@ -49,6 +49,8 @@ public interface HttpBrokerApi {
     // ============== job ==================
     String API_JOB_EXECUTING = "/api/v1/rpc/job/executing";
 
+    String API_JOB_REPORT = "/api/v1/rpc/job/report";
+
     String API_JOB_FEEDBACK = "/api/v1/rpc/job/feedback";
 
     String API_JOB_FILTER_WORKERS = "/api/v1/rpc/job/workers";

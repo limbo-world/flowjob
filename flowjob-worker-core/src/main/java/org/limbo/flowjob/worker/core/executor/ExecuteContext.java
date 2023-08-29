@@ -117,7 +117,7 @@ public class ExecuteContext implements Runnable {
             if (taskReportScheduledFuture != null) {
                 taskReportScheduledFuture.cancel(true);
             }
-            taskRepository.delete(task.getTaskId());
+            taskRepository.delete(task.getUid());
         }
     }
 
