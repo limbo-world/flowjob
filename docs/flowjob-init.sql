@@ -234,7 +234,7 @@ CREATE TABLE `flowjob_job_instance`
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_id` (`job_instance_id`),
     UNIQUE KEY `uk_plan_instance_job` (`plan_instance_id`, `job_id`, `retry_times`),
-    index `idx_report_plan` (`last_report_at`, `plan_id`)
+    KEY `idx_report_plan` (`last_report_at`, `plan_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
