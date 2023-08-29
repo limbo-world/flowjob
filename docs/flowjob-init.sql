@@ -234,7 +234,7 @@ CREATE TABLE `flowjob_job_instance`
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_id` (`job_instance_id`),
     UNIQUE KEY `uk_plan_instance_job` (`plan_instance_id`, `job_id`, `retry_times`),
-    KEY `idx_report_plan` (`last_report_at`, `plan_id`)
+    KEY                `idx_report_plan` (`last_report_at`, `plan_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -531,7 +531,7 @@ CREATE TABLE `flowjob_id`
 (
     `id`         bigint unsigned NOT NULL AUTO_INCREMENT,
     `type`       varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `current_id` bigint unsigned NOT NULL DEFAULT '0',
+    `current_id` bigint unsigned NOT NULL DEFAULT 0,
     `step`       int                                                    NOT NULL DEFAULT 0,
     `is_deleted` bit(1)                                                 NOT NULL DEFAULT 0,
     `created_at` datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
