@@ -62,13 +62,19 @@ public class JobScheduleTask extends MetaTask {
 
     @Override
     public void execute() {
-        CommonThreadPool.IO.submit(() -> {
-            try {
-                scheduleProxy.schedule(jobInstance);
-            } catch (Exception e) {
-                log.error("jobInstance {} schedule fail", jobInstance.getJobInstanceId(), e);
-            }
-        });
+        try {
+            CommonThreadPool.IO.submit(this::scheduleJob);
+        } catch (Exception e) {
+            log.error("{} execute fail", scheduleId(), e);
+        }
+    }
+
+    public void scheduleJob() {
+        try {
+            scheduleProxy.schedule(jobInstance);
+        } catch (Exception e) {
+            log.error("jobInstance {} schedule fail", jobInstance.getJobInstanceId(), e);
+        }
     }
 
     @Override

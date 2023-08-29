@@ -158,12 +158,14 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
     }
 
     public void handlerPlanComplete(String planInstanceId, boolean success) {
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(planInstanceId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INSTANCE + planInstanceId));
         if (success) {
             planInstanceEntityRepo.success(planInstanceId, TimeUtils.currentLocalDateTime());
         } else {
-            planInstanceEntityRepo.fail(planInstanceId, TimeUtils.currentLocalDateTime());
+            LocalDateTime current = TimeUtils.currentLocalDateTime();
+            LocalDateTime startAt = planInstanceEntity.getStartAt() == null ? current : planInstanceEntity.getStartAt();
+            planInstanceEntityRepo.fail(planInstanceId, startAt, current);
         }
-        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(planInstanceId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INSTANCE + planInstanceId));
         if (ScheduleType.FIXED_DELAY == ScheduleType.parse(planInstanceEntity.getScheduleType())) {
             // 如果为 FIXED_DELAY 更新 plan  使得 UpdatedPlanLoadTask 进行重新加载
             planEntityRepo.updateTime(planInstanceEntity.getPlanId(), TimeUtils.currentLocalDateTime());

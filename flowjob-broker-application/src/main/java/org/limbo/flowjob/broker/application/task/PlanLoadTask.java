@@ -99,7 +99,7 @@ public class PlanLoadTask extends FixDelayMetaTask {
                 metaTaskScheduler.schedule(metaTask);
             }
         } catch (Exception e) {
-            log.error("{} load and schedule plan task fail", scheduleId(), e);
+            log.error("{} execute fail", scheduleId(), e);
         }
     }
 

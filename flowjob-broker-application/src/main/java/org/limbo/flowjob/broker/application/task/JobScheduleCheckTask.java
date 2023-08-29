@@ -35,6 +35,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -72,23 +73,30 @@ public class JobScheduleCheckTask extends FixDelayMetaTask {
 
     @Override
     protected void executeTask() {
-        // 判断自己是否存在 --- 可能由于心跳异常导致不存活
-        if (!nodeManger.alive(broker.getName())) {
-            return;
-        }
+        try {
+            // 判断自己是否存在 --- 可能由于心跳异常导致不存活
+            if (!nodeManger.alive(broker.getName())) {
+                return;
+            }
 
-        List<String> planIds = slotManager.planIds();
-        if (CollectionUtils.isEmpty(planIds)) {
-            return;
-        }
+            List<String> planIds = slotManager.planIds();
+            if (CollectionUtils.isEmpty(planIds)) {
+                return;
+            }
 
-        // 一段时候后还是 还是 SCHEDULING 状态的，需要重新调度
-        List<JobInstanceEntity> list = jobInstanceEntityRepo.findByPlanIdInAndTriggerAtLessThanEqualAndStatus(planIds, TimeUtils.currentLocalDateTime().plusSeconds(-INTERVAL), JobStatus.SCHEDULING.status);// todo 性能优化
-        if (CollectionUtils.isEmpty(list)) {
-            return;
-        }
-        for (JobInstanceEntity entity : list) {
-            metaTaskScheduler.schedule(metaTaskConverter.toJobInstanceScheduleTask(entity));
+            // 一段时候后还是 还是 SCHEDULING 状态的，需要重新调度
+            Integer limit = 100;
+            LocalDateTime currentTime = TimeUtils.currentLocalDateTime();
+
+            List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findInSchedule(planIds, currentTime.plusSeconds(-INTERVAL), currentTime, JobStatus.SCHEDULING.status, limit);
+            while (CollectionUtils.isNotEmpty(jobInstanceEntities)) {
+                for (JobInstanceEntity entity : jobInstanceEntities) {
+                    JobScheduleTask jobScheduleTask = metaTaskConverter.toJobInstanceScheduleTask(entity);
+                    jobScheduleTask.scheduleJob();
+                }
+            }
+        } catch (Exception e) {
+            log.error("{} execute fail", scheduleId(), e);
         }
     }
 

@@ -67,7 +67,7 @@ public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity
     int success(@Param("planInstanceId") String planInstanceId, @Param("feedbackAt") LocalDateTime feedbackAt);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.PLAN_EXECUTE_FAILED + ", feedbackAt = :feedbackAt " +
+    @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.PLAN_EXECUTE_FAILED + ", startAt =:startAt, feedbackAt = :feedbackAt " +
             " where planInstanceId = :planInstanceId ")
-    int fail(@Param("planInstanceId") String planInstanceId, @Param("feedbackAt") LocalDateTime feedbackAt);
+    int fail(@Param("planInstanceId") String planInstanceId, @Param("startAt") LocalDateTime startAt, @Param("feedbackAt") LocalDateTime feedbackAt);
 }

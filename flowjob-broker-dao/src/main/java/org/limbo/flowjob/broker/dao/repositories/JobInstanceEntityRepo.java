@@ -35,9 +35,23 @@ import java.util.List;
  */
 public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, String>, JpaSpecificationExecutor<JobInstanceEntity> {
 
-    List<JobInstanceEntity> findByPlanIdInAndStatusAndLastReportAtBetween(List<String> planInstanceIds, Integer status, LocalDateTime lastReportAtStart, LocalDateTime lastReportAtEnd);
+    @Query(value = "select * from flowjob_job_instance" +
+            " where plan_id in :planIds and  status = :status and last_report_at >= :lastReportAtStart and last_report_at <= :lastReportAtEnd" +
+            " order by job_instance_id LIMIT :limit", nativeQuery = true)
+    List<JobInstanceEntity> findByExecuteCheck(@Param("planIds") List<String> planIds,
+                                               @Param("status") Integer status,
+                                               @Param("lastReportAtStart") LocalDateTime lastReportAtStart,
+                                               @Param("lastReportAtEnd") LocalDateTime lastReportAtEnd,
+                                               @Param("limit") Integer limit);
 
-    List<JobInstanceEntity> findByPlanIdInAndTriggerAtLessThanEqualAndStatus(List<String> planIds, LocalDateTime triggerAt, Integer status);
+    @Query(value = "select * from flowjob_job_instance" +
+            " where plan_id in :planIds and  status = :status and last_report_at <= :lastReportAt and trigger_at >= :triggerAt " +
+            " order by job_instance_id LIMIT :limit", nativeQuery = true)
+    List<JobInstanceEntity> findInSchedule(@Param("planIds") List<String> planIds,
+                                           @Param("lastReportAt") LocalDateTime lastReportAt,
+                                           @Param("triggerAt") LocalDateTime triggerAt,
+                                           @Param("status") Integer status,
+                                           @Param("limit") Integer limit);
 
     @Query(value = "select * from flowjob_job_instance where plan_instance_id = :planInstanceId and  job_id = :jobId order by trigger_at desc limit 1", nativeQuery = true)
     JobInstanceEntity findByLatest(@Param("planInstanceId") String planInstanceId, @Param("jobId") String jobId);
@@ -62,8 +76,12 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity " +
-            "set status = " + ConstantsPool.JOB_EXECUTE_FAILED + ", errorMsg =:errorMsg " +
+            "set status = " + ConstantsPool.JOB_EXECUTE_FAILED + ", errorMsg =:errorMsg, startAt = :startAt, endAt = :endAt  " +
             " where jobInstanceId = :jobInstanceId and status = :oldStatus")
-    int fail(@Param("jobInstanceId") String jobInstanceId, @Param("oldStatus") Integer oldStatus, @Param("errorMsg") String errorMsg);
+    int fail(@Param("jobInstanceId") String jobInstanceId,
+             @Param("oldStatus") Integer oldStatus,
+             @Param("startAt") LocalDateTime startAt,
+             @Param("endAt") LocalDateTime endAt,
+             @Param("errorMsg") String errorMsg);
 
 }

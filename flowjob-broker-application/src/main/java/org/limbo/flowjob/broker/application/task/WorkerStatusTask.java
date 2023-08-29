@@ -121,7 +121,7 @@ public class WorkerStatusTask extends FixDelayMetaTask {
             }
 
         } catch (Exception e) {
-            log.error("{} load and schedule WorkerStatusTask fail", scheduleId(), e);
+            log.error("{} execute fail", scheduleId(), e);
         }
     }
 

@@ -43,7 +43,6 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -88,47 +87,42 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
 
     @Override
     protected void executeTask() {
-        // 判断自己是否存在 --- 可能由于心跳异常导致不存活
-        if (!nodeManger.alive(broker.getName())) {
-            return;
-        }
+        try {
+            // 判断自己是否存在 --- 可能由于心跳异常导致不存活
+            if (!nodeManger.alive(broker.getName())) {
+                return;
+            }
 
-        List<JobInstanceEntity> executingJobs = loadExecuting();
-        if (CollectionUtils.isEmpty(executingJobs)) {
-            return;
-        }
+            List<String> planIds = slotManager.planIds();
+            if (CollectionUtils.isEmpty(planIds)) {
+                return;
+            }
 
-        for (JobInstanceEntity instance : executingJobs) {
-            CommonThreadPool.IO.submit(() -> {
-                try {
-                    JobFeedbackParam param = JobFeedbackParam.builder()
-                            .result(ExecuteResult.FAILED)
-                            .errorMsg(String.format("agent %s is offline", instance.getAgentId()))
-                            .build();
-                    scheduleProxy.feedback(instance.getJobInstanceId(), param);
-                } catch (Exception e) {
-                    log.error("[JobExecuteCheckTask] handler job fail with error jobInstanceId={}", instance.getJobInstanceId(), e);
+            LocalDateTime curCheckTime = TimeUtils.currentLocalDateTime().plus(-JobConstant.JOB_REPORT_SECONDS + 5, ChronoUnit.SECONDS);
+
+            Integer limit = 100;
+
+            List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findByExecuteCheck(planIds, JobStatus.EXECUTING.status, lastCheckTime, curCheckTime, limit);
+            while (CollectionUtils.isNotEmpty(jobInstanceEntities)) {
+                for (JobInstanceEntity instance : jobInstanceEntities) {
+                    CommonThreadPool.IO.submit(() -> {
+                        try {
+                            JobFeedbackParam param = JobFeedbackParam.builder()
+                                    .result(ExecuteResult.FAILED)
+                                    .errorMsg(String.format("agent %s is offline", instance.getAgentId()))
+                                    .build();
+                            scheduleProxy.feedback(instance.getJobInstanceId(), param);
+                        } catch (Exception e) {
+                            log.error("[JobExecuteCheckTask] handler job fail with error jobInstanceId={}", instance.getJobInstanceId(), e);
+                        }
+                    });
                 }
-            });
+                jobInstanceEntities = jobInstanceEntityRepo.findByExecuteCheck(planIds, JobStatus.EXECUTING.status, lastCheckTime, curCheckTime, limit);
+            }
+            lastCheckTime = curCheckTime;
+        } catch (Exception e) {
+            log.error("{} execute fail", scheduleId(), e);
         }
-    }
-
-    /**
-     * 加载执行中的
-     */
-    private List<JobInstanceEntity> loadExecuting() {
-        List<String> planIds = slotManager.planIds();
-        if (CollectionUtils.isEmpty(planIds)) {
-            return Collections.emptyList();
-        }
-
-        LocalDateTime curCheckTime = TimeUtils.currentLocalDateTime().plus(-JobConstant.JOB_REPORT_SECONDS + 5, ChronoUnit.SECONDS);
-        List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findByPlanIdInAndStatusAndLastReportAtBetween(planIds, JobStatus.EXECUTING.status, lastCheckTime, curCheckTime);
-        lastCheckTime = curCheckTime;
-        if (CollectionUtils.isEmpty(jobInstanceEntities)) {
-            return Collections.emptyList();
-        }
-        return jobInstanceEntities;
     }
 
     @Override

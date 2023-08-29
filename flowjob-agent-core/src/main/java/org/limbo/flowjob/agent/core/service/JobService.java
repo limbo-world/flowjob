@@ -29,6 +29,7 @@ import org.limbo.flowjob.agent.core.repository.TaskRepository;
 import org.limbo.flowjob.agent.core.rpc.AgentBrokerRpc;
 import org.limbo.flowjob.agent.core.worker.Worker;
 import org.limbo.flowjob.api.constants.MsgConstants;
+import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.common.exception.JobException;
 
@@ -79,7 +80,7 @@ public class JobService {
     }
 
     /**
-     * 处理 job 调度 todo 执行失败的问题，比如task保存失败等
+     * 处理 job 调度
      *
      * @param job
      */
@@ -133,20 +134,20 @@ public class JobService {
         List<Task> tasks = new ArrayList<>();
         switch (job.getType()) {
             case STANDALONE:
-                tasks.add(TaskFactory.createTask(job.getType().name(), job, null, TaskType.STANDALONE, null));
+                tasks.add(TaskFactory.createTask(job.getType().name(), job, null, TaskType.STANDALONE, TaskStatus.DISPATCHING, null));
                 break;
             case BROADCAST:
                 List<Worker> workers = brokerRpc.availableWorkers(job.getId(), true, true, false);
                 int idx = 1;
                 for (Worker worker : workers) {
-                    Task task = TaskFactory.createTask(String.valueOf(idx), job, null, TaskType.BROADCAST, worker);
+                    Task task = TaskFactory.createTask(String.valueOf(idx), job, null, TaskType.BROADCAST, TaskStatus.DISPATCHING, worker);
                     tasks.add(task);
                     idx++;
                 }
                 break;
             case MAP:
             case MAP_REDUCE:
-                tasks.add(TaskFactory.createTask(job.getType().name(), job, null, TaskType.SHARDING, null));
+                tasks.add(TaskFactory.createTask(job.getType().name(), job, null, TaskType.SHARDING, TaskStatus.DISPATCHING,null));
                 break;
             default:
                 throw new JobException(job.getId(), MsgConstants.UNKNOWN + " job type:" + job.getType().type);

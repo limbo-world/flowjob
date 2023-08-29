@@ -75,10 +75,9 @@ public class TaskDispatcher {
             log.debug("start dispatch task={}", task);
         }
 
-//        if (task.getStatus() != TaskStatus.DISPATCHING) {
-//            log.error("Cannot startup context due to current status: {} {}", task.getStatus(), task.getTaskId());
-//            return false;
-//        }
+        if (task.getStatus() != TaskStatus.DISPATCHING) {
+            return false;
+        }
 
 //        if (task.getWorker() == null) {
 //            dispatched = dispatchWithWorkerSelect(task);

@@ -20,7 +20,9 @@ package org.limbo.flowjob.agent.core;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.agent.core.repository.TaskRepository;
 import org.limbo.flowjob.agent.core.service.TaskService;
+import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.common.utils.time.DateTimeUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
@@ -36,7 +38,7 @@ import java.util.TimerTask;
  * @since 2023/8/15
  */
 @Slf4j
-public class TaskChecker {
+public class TaskExecuteChecker {
 
     private Timer timer;
 
@@ -56,9 +58,11 @@ public class TaskChecker {
      */
     private LocalDateTime lastCheckTime;
 
-    public TaskChecker(TaskService taskService, Duration period) {
+    private static final String CHECKER_NAME = "TaskExecuteChecker";
+
+    public TaskExecuteChecker(TaskService taskService, Duration period) {
         this.taskService = taskService;
-        this.timer = new Timer("TaskChecker");
+        this.timer = new Timer(CHECKER_NAME);
         this.period = period;
         this.running = false;
     }
@@ -80,10 +84,10 @@ public class TaskChecker {
             @Override
             public void run() {
                 try {
+                    TaskRepository taskRepository = taskService.getTaskRepository();
                     LocalDateTime curCheckTime = TimeUtils.currentLocalDateTime().plus(-period.toMillis(), ChronoUnit.MILLIS);
-                    String startId = "";
                     Integer limit = 1000;
-                    List<Task> tasks = taskService.getByLastReportBetweenAndUnFinish(DateTimeUtils.formatYMDHMS(lastCheckTime), DateTimeUtils.formatYMDHMS(curCheckTime), startId, limit);
+                    List<Task> tasks = taskRepository.getByLastReportBetween(DateTimeUtils.formatYMDHMS(lastCheckTime), DateTimeUtils.formatYMDHMS(curCheckTime), TaskStatus.EXECUTING, limit);
                     while (CollectionUtils.isNotEmpty(tasks)) {
                         for (Task t : tasks) {
                             if (t.getWorker() != null) {
@@ -92,17 +96,20 @@ public class TaskChecker {
                                 taskService.taskFail(t, "no worker", "");
                             }
                         }
-                        startId = tasks.get(tasks.size() - 1).getTaskId();
-                        tasks = taskService.getByLastReportBetweenAndUnFinish(DateTimeUtils.formatYMDHMS(lastCheckTime), DateTimeUtils.formatYMDHMS(curCheckTime), startId, limit);
+                        tasks = taskRepository.getByLastReportBetween(DateTimeUtils.formatYMDHMS(lastCheckTime), DateTimeUtils.formatYMDHMS(curCheckTime), TaskStatus.EXECUTING, limit);
                     }
+
+                    lastCheckTime = curCheckTime;
                 } catch (Exception e) {
-                    log.error("[TaskChecker] error", e);
+                    log.error("[{}] error", CHECKER_NAME, e);
                 }
             }
         };
 
         this.timer.schedule(this.task, 10, this.period.toMillis());
         this.running = true;
+
+        log.info("[{}] start!", CHECKER_NAME);
     }
 
 
@@ -119,6 +126,8 @@ public class TaskChecker {
         }
 
         this.running = false;
+
+        log.info("[{}] stop!", CHECKER_NAME);
     }
 
 

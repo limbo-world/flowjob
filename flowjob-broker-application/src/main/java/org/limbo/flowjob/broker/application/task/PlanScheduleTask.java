@@ -86,17 +86,21 @@ public class PlanScheduleTask extends LoopMetaTask {
 
     @Override
     protected void executeTask() {
-        LocalDateTime triggerAt;
-        if (ScheduleType.FIXED_DELAY == getScheduleOption().getScheduleType()) {
-            triggerAt = getNextTriggerAt();
-        } else {
-            triggerAt = getLastTriggerAt();
+        try {
+            LocalDateTime triggerAt;
+            if (ScheduleType.FIXED_DELAY == getScheduleOption().getScheduleType()) {
+                triggerAt = getNextTriggerAt();
+            } else {
+                triggerAt = getLastTriggerAt();
+            }
+            LocalDateTime scheduleEndAt = plan.getScheduleOption().getScheduleEndAt();
+            if (scheduleEndAt != null && scheduleEndAt.isBefore(TimeUtils.currentLocalDateTime())) {
+                return;
+            }
+            CommonThreadPool.IO.submit(() -> scheduleProxy.schedule(TriggerType.SCHEDULE, plan, null, triggerAt));
+        } catch (Exception e) {
+            log.error("{} execute fail", scheduleId(), e);
         }
-        LocalDateTime scheduleEndAt = plan.getScheduleOption().getScheduleEndAt();
-        if (scheduleEndAt != null && scheduleEndAt.isBefore(TimeUtils.currentLocalDateTime())) {
-            return;
-        }
-        CommonThreadPool.IO.submit(() -> scheduleProxy.schedule(TriggerType.SCHEDULE, plan, null, triggerAt));
     }
 
     @Override
