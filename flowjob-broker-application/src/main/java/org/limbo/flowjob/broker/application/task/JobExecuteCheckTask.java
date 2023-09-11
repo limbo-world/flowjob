@@ -25,7 +25,6 @@ import org.limbo.flowjob.api.constants.JobStatus;
 import org.limbo.flowjob.api.param.broker.JobFeedbackParam;
 import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
-import org.limbo.flowjob.broker.application.support.CommonThreadPool;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
@@ -34,6 +33,7 @@ import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.common.constants.JobConstant;
+import org.limbo.flowjob.common.thread.CommonThreadPool;
 import org.limbo.flowjob.common.utils.time.DateTimeUtils;
 import org.limbo.flowjob.common.utils.time.Formatters;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
@@ -102,6 +102,7 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
 
             Integer limit = 100;
 
+            // todo
             List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findByExecuteCheck(planIds, JobStatus.EXECUTING.status, lastCheckTime, curCheckTime, limit);
             while (CollectionUtils.isNotEmpty(jobInstanceEntities)) {
                 for (JobInstanceEntity instance : jobInstanceEntities) {

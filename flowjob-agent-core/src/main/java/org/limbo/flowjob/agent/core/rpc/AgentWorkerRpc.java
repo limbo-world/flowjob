@@ -19,7 +19,7 @@
 package org.limbo.flowjob.agent.core.rpc;
 
 import org.limbo.flowjob.agent.core.entity.Task;
-import org.limbo.flowjob.agent.core.worker.Worker;
+import org.limbo.flowjob.agent.core.Worker;
 
 /**
  * @author Devil

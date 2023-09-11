@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.agent.core.worker;
+package org.limbo.flowjob.broker.core.schedule.selector;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

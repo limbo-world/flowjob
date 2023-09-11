@@ -18,6 +18,7 @@
 
 package org.limbo.flowjob.broker.application.task;
 
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.AgentStatus;
@@ -85,25 +86,28 @@ public class AgentStatusTask extends FixDelayMetaTask {
                 return;
             }
 
-            List<AgentEntity> agentEntities = agentEntityRepo.findByAgentIdInAndDeleted(agentIds, false);
-            if (CollectionUtils.isEmpty(agentEntities)) {
-                return;
-            }
+            List<List<String>> partitions = Lists.partition(agentIds, 100);
+            for (List<String> partition : partitions) {
+                List<AgentEntity> agentEntities = agentEntityRepo.findByAgentIdInAndDeleted(partition, false);
+                if (CollectionUtils.isEmpty(agentEntities)) {
+                    return;
+                }
 
-            LocalDateTime now = TimeUtils.currentLocalDateTime();
-            long heartbeatTimeout = AgentConstant.HEARTBEAT_TIMEOUT_SECOND;
+                LocalDateTime now = TimeUtils.currentLocalDateTime();
+                long heartbeatTimeout = AgentConstant.HEARTBEAT_TIMEOUT_SECOND;
 
-            for (AgentEntity agentEntity : agentEntities) {
-                AgentStatus currentStatus = AgentStatus.parse(agentEntity.getStatus());
-                if (AgentStatus.RUNNING == currentStatus) {
+                for (AgentEntity agentEntity : agentEntities) {
+                    AgentStatus currentStatus = AgentStatus.parse(agentEntity.getStatus());
+                    if (AgentStatus.RUNNING == currentStatus) {
 
-                    if (agentEntity.getLastHeartbeatAt().plus(heartbeatTimeout, ChronoUnit.SECONDS).isBefore(now)) {
-                        agentEntityRepo.updateStatus(agentEntity.getAgentId(), AgentStatus.RUNNING.status, AgentStatus.FUSING.status);
-                    }
+                        if (agentEntity.getLastHeartbeatAt().plus(heartbeatTimeout, ChronoUnit.SECONDS).isBefore(now)) {
+                            agentEntityRepo.updateStatus(agentEntity.getAgentId(), AgentStatus.RUNNING.status, AgentStatus.FUSING.status);
+                        }
 
-                } else if (AgentStatus.FUSING == currentStatus) {
-                    if (agentEntity.getLastHeartbeatAt().plus(heartbeatTimeout * 2, ChronoUnit.SECONDS).isBefore(now)) {
-                        agentEntityRepo.updateStatus(agentEntity.getAgentId(), AgentStatus.FUSING.status, AgentStatus.TERMINATED.status);
+                    } else if (AgentStatus.FUSING == currentStatus) {
+                        if (agentEntity.getLastHeartbeatAt().plus(heartbeatTimeout * 2, ChronoUnit.SECONDS).isBefore(now)) {
+                            agentEntityRepo.updateStatus(agentEntity.getAgentId(), AgentStatus.FUSING.status, AgentStatus.TERMINATED.status);
+                        }
                     }
                 }
             }

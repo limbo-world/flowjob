@@ -22,7 +22,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.agent.core.worker.Worker;
+import org.limbo.flowjob.agent.core.Worker;
 import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.common.utils.attribute.Attributes;

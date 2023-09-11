@@ -20,17 +20,14 @@ package org.limbo.flowjob.agent.core.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.agent.core.CommonThreadPool;
-import org.limbo.flowjob.agent.core.entity.Job;
-import org.limbo.flowjob.agent.core.entity.Task;
 import org.limbo.flowjob.agent.core.TaskDispatcher;
 import org.limbo.flowjob.agent.core.TaskFactory;
+import org.limbo.flowjob.agent.core.entity.Job;
+import org.limbo.flowjob.agent.core.entity.Task;
 import org.limbo.flowjob.agent.core.repository.JobRepository;
 import org.limbo.flowjob.agent.core.repository.TaskRepository;
 import org.limbo.flowjob.agent.core.rpc.AgentBrokerRpc;
-import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.console.TaskDTO;
@@ -102,7 +99,6 @@ public class TaskService {
                 handleJobSuccess(job);
                 break;
             case SHARDING:
-                dealShardingTaskSuccess(task);
                 break;
             case BROADCAST:
                 dealBroadcastTaskSuccess(task, job);
@@ -112,26 +108,6 @@ public class TaskService {
                 break;
         }
 
-    }
-
-    /**
-     * 将 task 待下发的 subTask 进行异步下发
-     */
-    public void dealShardingTaskSuccess(Task task) {
-        taskRepository.updateToDispatching(task.getJobId());
-        CommonThreadPool.IO.submit(() -> {
-            try {
-                List<Task> subTasks = taskRepository.getDispatchingByJobAndType(task.getJobId(), TaskType.MAP, 1000);
-                while (CollectionUtils.isNotEmpty(subTasks)) {
-                    for (Task subTask : subTasks) {
-                        taskDispatcher.dispatch(subTask);
-                    }
-                    subTasks = taskRepository.getDispatchingByJobAndType(task.getJobId(), TaskType.MAP, 1000);
-                }
-            } catch (Exception e) {
-                log.error("dealShardingTaskSuccess fail jobId={}", task.getJobId(), e);
-            }
-        });
     }
 
     /**
@@ -165,7 +141,7 @@ public class TaskService {
                 .map(r -> JacksonUtils.parseObject(r, new TypeReference<Map<String, Object>>() {
                 }))
                 .collect(Collectors.toList());
-        Task reduceTask = TaskFactory.createTask(TaskType.REDUCE.name(), job, mapResults, TaskType.REDUCE, TaskStatus.DISPATCHING, null);
+        Task reduceTask = TaskFactory.createTask(TaskType.REDUCE.name(), job, mapResults, TaskType.REDUCE, null);
         taskRepository.batchSave(Collections.singletonList(reduceTask));
         taskDispatcher.dispatch(reduceTask);
     }

@@ -20,16 +20,15 @@ package org.limbo.flowjob.agent.core.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.agent.core.entity.Job;
-import org.limbo.flowjob.agent.core.entity.Task;
 import org.limbo.flowjob.agent.core.TaskDispatcher;
 import org.limbo.flowjob.agent.core.TaskFactory;
+import org.limbo.flowjob.agent.core.Worker;
+import org.limbo.flowjob.agent.core.entity.Job;
+import org.limbo.flowjob.agent.core.entity.Task;
 import org.limbo.flowjob.agent.core.repository.JobRepository;
 import org.limbo.flowjob.agent.core.repository.TaskRepository;
 import org.limbo.flowjob.agent.core.rpc.AgentBrokerRpc;
-import org.limbo.flowjob.agent.core.worker.Worker;
 import org.limbo.flowjob.api.constants.MsgConstants;
-import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.common.exception.JobException;
 
@@ -131,20 +130,20 @@ public class JobService {
         List<Task> tasks = new ArrayList<>();
         switch (job.getType()) {
             case STANDALONE:
-                tasks.add(TaskFactory.createTask(job.getType().name(), job, null, TaskType.STANDALONE, TaskStatus.DISPATCHING, null));
+                tasks.add(TaskFactory.createTask(job.getType().name(), job, null, TaskType.STANDALONE, null));
                 break;
             case BROADCAST:
-                List<Worker> workers = brokerRpc.availableWorkers(job.getId(), true, true, false);
+                List<Worker> workers = brokerRpc.availableWorkers(job.getId(), true, true, false, false);
                 int idx = 1;
                 for (Worker worker : workers) {
-                    Task task = TaskFactory.createTask(String.valueOf(idx), job, null, TaskType.BROADCAST, TaskStatus.DISPATCHING, worker);
+                    Task task = TaskFactory.createTask(String.valueOf(idx), job, null, TaskType.BROADCAST, worker);
                     tasks.add(task);
                     idx++;
                 }
                 break;
             case MAP:
             case MAP_REDUCE:
-                tasks.add(TaskFactory.createTask(job.getType().name(), job, null, TaskType.SHARDING, TaskStatus.DISPATCHING,null));
+                tasks.add(TaskFactory.createTask(job.getType().name(), job, null, TaskType.SHARDING, null));
                 break;
             default:
                 throw new JobException(job.getId(), MsgConstants.UNKNOWN + " job type:" + job.getType().type);

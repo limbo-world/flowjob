@@ -83,6 +83,9 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
                 case API_JOB_RECEIVE:
                     JobSubmitParam jobSubmitParam = JacksonUtils.parseObject(data, JobSubmitParam.class);
                     return ResponseDTO.<Boolean>builder().ok(receive(jobSubmitParam)).build();
+                case API_TASK_EXECUTING:
+                    TaskReportParam taskReportExecutingParam = JacksonUtils.parseObject(data, TaskReportParam.class);
+                    return ResponseDTO.<Boolean>builder().ok(reportTaskExecuting(taskReportExecutingParam)).build();
                 case API_TASK_REPORT:
                     TaskReportParam taskReportParam = JacksonUtils.parseObject(data, TaskReportParam.class);
                     return ResponseDTO.<Boolean>builder().ok(reportTask(taskReportParam)).build();
@@ -123,6 +126,22 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
             if (log.isDebugEnabled()) {
                 log.debug("receive job success param={}", param);
             }
+        }
+    }
+
+    public boolean reportTaskExecuting(TaskReportParam param) {
+        if (log.isDebugEnabled()) {
+            log.debug("report task param={}", param);
+        }
+        try {
+            if (param == null) {
+                return true;
+            }
+            agent.reportTaskExecuting(param);
+            return true;
+        } catch (Exception e) {
+            log.error("Failed to report task param={}", param, e);
+            return false;
         }
     }
 

@@ -32,12 +32,16 @@ import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
+import org.limbo.flowjob.broker.core.schedule.selector.SingletonWorkerStatisticsRepo;
+import org.limbo.flowjob.broker.core.schedule.selector.WorkerSelectorFactory;
+import org.limbo.flowjob.broker.core.schedule.selector.WorkerStatisticsRepository;
 import org.limbo.flowjob.broker.dao.repositories.AgentSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.BrokerEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerSlotEntityRepo;
 import org.limbo.flowjob.common.utils.NetUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -112,6 +116,26 @@ public class BrokerAutoConfiguration {
     @Bean
     public DBBrokerRegistry brokerRegistry(BrokerConfig config, BrokerEntityRepo brokerEntityRepo, IDGenerator idGenerator) {
         return new DBBrokerRegistry(config.getHeartbeatInterval(), config.getHeartbeatTimeout(), brokerEntityRepo, idGenerator);
+    }
+
+    /**
+     * 如果未声明 WorkerStatisticsRepository 类型的 Bean，则使用基于内存统计的单机模式
+     */
+    @Bean("fjWorkerStatisticsRepository")
+    @ConditionalOnMissingBean(WorkerStatisticsRepository.class)
+    public WorkerStatisticsRepository workerStatisticsRepository() {
+        return new SingletonWorkerStatisticsRepo();
+    }
+
+    /**
+     * 用于生成 Worker 选择器，内部封装了 LB 算法的调用。
+     */
+    @Bean("fjWorkerSelectorFactory")
+    @ConditionalOnMissingBean(WorkerSelectorFactory.class)
+    public WorkerSelectorFactory workerSelectorFactory(WorkerStatisticsRepository statisticsRepository) {
+        WorkerSelectorFactory factory = new WorkerSelectorFactory();
+        factory.setLbServerStatisticsProvider(statisticsRepository);
+        return factory;
     }
 
 }

@@ -18,6 +18,7 @@
 
 package org.limbo.flowjob.broker.application.task;
 
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.WorkerStatus;
@@ -96,26 +97,29 @@ public class WorkerStatusTask extends FixDelayMetaTask {
                 return;
             }
 
-            List<WorkerEntity> workerEntities = workerEntityRepo.findByWorkerIdInAndDeleted(workerIds, false);
-            if (CollectionUtils.isEmpty(workerEntities)) {
-                return;
-            }
+            List<List<String>> partitions = Lists.partition(workerIds, 100);
+            for (List<String> partition : partitions) {
+                List<WorkerEntity> workerEntities = workerEntityRepo.findByWorkerIdInAndDeleted(partition, false);
+                if (CollectionUtils.isEmpty(workerEntities)) {
+                    return;
+                }
 
-            LocalDateTime now = TimeUtils.currentLocalDateTime();
-            long heartbeatTimeout = WorkerConstant.HEARTBEAT_TIMEOUT_SECOND;
+                LocalDateTime now = TimeUtils.currentLocalDateTime();
+                long heartbeatTimeout = WorkerConstant.HEARTBEAT_TIMEOUT_SECOND;
 
-            for (WorkerEntity workerEntity : workerEntities) {
-                WorkerStatus currentStatus = WorkerStatus.parse(workerEntity.getStatus());
-                WorkerMetricEntity workerMetricEntity = workerMetricEntityRepo.findById(workerEntity.getWorkerId()).get();
-                if (WorkerStatus.RUNNING == currentStatus) {
+                for (WorkerEntity workerEntity : workerEntities) {
+                    WorkerStatus currentStatus = WorkerStatus.parse(workerEntity.getStatus());
+                    WorkerMetricEntity workerMetricEntity = workerMetricEntityRepo.findById(workerEntity.getWorkerId()).get();
+                    if (WorkerStatus.RUNNING == currentStatus) {
 
-                    if (workerMetricEntity.getLastHeartbeatAt().plus(heartbeatTimeout, ChronoUnit.SECONDS).isBefore(now)) {
-                        workerService.updateStatus(workerEntity.getWorkerId(), WorkerStatus.RUNNING.status, WorkerStatus.FUSING.status);
-                    }
+                        if (workerMetricEntity.getLastHeartbeatAt().plus(heartbeatTimeout, ChronoUnit.SECONDS).isBefore(now)) {
+                            workerService.updateStatus(workerEntity.getWorkerId(), WorkerStatus.RUNNING.status, WorkerStatus.FUSING.status);
+                        }
 
-                } else if (WorkerStatus.FUSING == currentStatus) {
-                    if (workerMetricEntity.getLastHeartbeatAt().plus(heartbeatTimeout * 2, ChronoUnit.SECONDS).isBefore(now)) {
-                        workerService.updateStatus(workerEntity.getWorkerId(), WorkerStatus.FUSING.status, WorkerStatus.TERMINATED.status);
+                    } else if (WorkerStatus.FUSING == currentStatus) {
+                        if (workerMetricEntity.getLastHeartbeatAt().plus(heartbeatTimeout * 2, ChronoUnit.SECONDS).isBefore(now)) {
+                            workerService.updateStatus(workerEntity.getWorkerId(), WorkerStatus.FUSING.status, WorkerStatus.TERMINATED.status);
+                        }
                     }
                 }
             }

@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.agent.core;
+package org.limbo.flowjob.agent.core.checker;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -35,6 +35,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
+ * 执行中的task可能由于worker宕机导致状态不更新
+ *
  * @author Devil
  * @since 2023/8/15
  */
@@ -87,8 +89,9 @@ public class TaskExecuteChecker {
                 try {
                     TaskRepository taskRepository = taskService.getTaskRepository();
                     LocalDateTime curCheckTime = TimeUtils.currentLocalDateTime().plus(-period.toMillis(), ChronoUnit.MILLIS);
-                    Integer limit = 1000;
-                    List<Task> tasks = taskRepository.getByLastReportBetween(DateTimeUtils.formatYMDHMS(lastCheckTime), DateTimeUtils.formatYMDHMS(curCheckTime), TaskStatus.EXECUTING, limit);
+                    Integer limit = 100;
+                    String startId = "";
+                    List<Task> tasks = taskRepository.getByLastReportBetween(DateTimeUtils.formatYMDHMS(lastCheckTime), DateTimeUtils.formatYMDHMS(curCheckTime), TaskStatus.EXECUTING, startId, limit);
                     while (CollectionUtils.isNotEmpty(tasks)) {
                         for (Task t : tasks) {
                             if (t.getWorker() != null) {
@@ -97,7 +100,8 @@ public class TaskExecuteChecker {
                                 taskService.taskFail(t, "no worker", "");
                             }
                         }
-                        tasks = taskRepository.getByLastReportBetween(DateTimeUtils.formatYMDHMS(lastCheckTime), DateTimeUtils.formatYMDHMS(curCheckTime), TaskStatus.EXECUTING, limit);
+                        startId = tasks.get(tasks.size() - 1).getTaskId();
+                        tasks = taskRepository.getByLastReportBetween(DateTimeUtils.formatYMDHMS(lastCheckTime), DateTimeUtils.formatYMDHMS(curCheckTime), TaskStatus.EXECUTING, startId, limit);
                     }
 
                     lastCheckTime = curCheckTime;

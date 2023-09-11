@@ -62,6 +62,11 @@ public interface ScheduleAgent {
     void receiveSubTasks(SubTaskCreateParam param);
 
     /**
+     * 任务执行中
+     */
+    void reportTaskExecuting(TaskReportParam param);
+
+    /**
      * 任务上报
      */
     void reportTask(TaskReportParam param);

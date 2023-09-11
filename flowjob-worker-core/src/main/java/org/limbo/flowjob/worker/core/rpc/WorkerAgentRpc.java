@@ -33,6 +33,11 @@ public interface WorkerAgentRpc {
     Boolean submitSubTasks(Task task, List<SubTask> subTasks);
 
     /**
+     * 反馈任务开始执行
+     */
+    Boolean reportTaskExecuting(Task task);
+
+    /**
      * 反馈任务执行状态
      */
     Boolean reportTask(Task task);

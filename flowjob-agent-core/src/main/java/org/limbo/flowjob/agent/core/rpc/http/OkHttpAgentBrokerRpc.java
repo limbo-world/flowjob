@@ -22,11 +22,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.agent.core.entity.Job;
 import org.limbo.flowjob.agent.core.ScheduleAgent;
+import org.limbo.flowjob.agent.core.Worker;
+import org.limbo.flowjob.agent.core.entity.Job;
 import org.limbo.flowjob.agent.core.rpc.AgentBrokerRpc;
 import org.limbo.flowjob.agent.core.rpc.RpcParamFactory;
-import org.limbo.flowjob.agent.core.worker.Worker;
 import org.limbo.flowjob.api.constants.ExecuteResult;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.Protocol;
@@ -156,7 +156,7 @@ public class OkHttpAgentBrokerRpc extends OKHttpRpc<BaseLBServer> implements Age
     }
 
     @Override
-    public boolean notifyJobExecuting(String jobInstanceId) {
+    public boolean reportExecuting(String jobInstanceId) {
         String url = BASE_URL + API_JOB_EXECUTING + "?agentId=" + agentId + "&jobInstanceId=" + jobInstanceId;
         ResponseDTO<Boolean> response = executePost(url, null, new TypeReference<ResponseDTO<Boolean>>() {
         });
@@ -206,12 +206,13 @@ public class OkHttpAgentBrokerRpc extends OKHttpRpc<BaseLBServer> implements Age
     }
 
     @Override
-    public List<Worker> availableWorkers(String jobId, boolean filterExecutor, boolean filterTag, boolean filterResource) {
-        String url = String.format(BASE_URL + API_JOB_FILTER_WORKERS + "?jobInstanceId=%s&filterExecutor=%s&filterTag=%s&filterResource=%s", jobId, filterExecutor, filterTag, filterResource);
+    public List<Worker> availableWorkers(String jobId, boolean filterExecutor, boolean filterTag, boolean filterResource, boolean lbSelect) {
+        String url = String.format(BASE_URL + API_JOB_FILTER_WORKER + "?jobInstanceId=%s&filterExecutor=%s&filterTag=%s&filterResource=%s&lbSelect=%s",
+                jobId, filterExecutor, filterTag, filterResource, lbSelect);
         ResponseDTO<List<AvailableWorkerDTO>> response = executeGet(url, new TypeReference<ResponseDTO<List<AvailableWorkerDTO>>>() {
         });
 
-        checkResponse(response, API_JOB_FILTER_WORKERS);
+        checkResponse(response, API_JOB_FILTER_WORKER);
         List<AvailableWorkerDTO> workerDTOS = response.getData();
         if (CollectionUtils.isEmpty(workerDTOS)) {
             return Collections.emptyList();
@@ -228,6 +229,9 @@ public class OkHttpAgentBrokerRpc extends OKHttpRpc<BaseLBServer> implements Age
     }
 
     public Worker toWorker(AvailableWorkerDTO workerDTO) throws MalformedURLException {
+        if (workerDTO == null) {
+            return null;
+        }
         URL url = new URL(workerDTO.getProtocol(), workerDTO.getHost(), workerDTO.getPort(), "");
         return new Worker(workerDTO.getId(), url);
     }

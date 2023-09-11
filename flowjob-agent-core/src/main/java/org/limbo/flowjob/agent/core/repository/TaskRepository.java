@@ -23,7 +23,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.agent.core.FlowjobConnectionFactory;
 import org.limbo.flowjob.agent.core.entity.Task;
-import org.limbo.flowjob.agent.core.worker.Worker;
+import org.limbo.flowjob.agent.core.Worker;
 import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.api.param.console.TaskQueryParam;
@@ -163,13 +163,14 @@ public class TaskRepository {
         }
     }
 
-    public List<Task> getByLastReportBetween(String reportTimeStart, String reportTimeEnd, TaskStatus status, Integer limit) {
-        String sql = "select * from " + TABLE_NAME + " where last_report_at >= ? and last_report_at <= ? and status = ? order by task_id limit ?";
+    public List<Task> getByLastReportBetween(String reportTimeStart, String reportTimeEnd, TaskStatus status, String taskId, Integer limit) {
+        String sql = "select * from " + TABLE_NAME + " where last_report_at >= ? and last_report_at <= ? and status = ? and task_id > ? order by task_id limit ?";
         try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             int i = 0;
             ps.setString(++i, reportTimeStart);
             ps.setString(++i, reportTimeEnd);
             ps.setInt(++i, status.status);
+            ps.setString(++i, taskId);
             ps.setInt(++i, limit);
             try (ResultSet rs = ps.executeQuery()) {
                 List<Task> tasks = new ArrayList<>();
@@ -180,26 +181,6 @@ public class TaskRepository {
             }
         } catch (Exception e) {
             log.error("TaskRepository.getByLastReportAtBefore error reportTimeStart={} reportTimeEnd={} limit={}", reportTimeStart, reportTimeEnd, limit, e);
-            return Collections.emptyList();
-        }
-    }
-
-    public List<Task> getDispatchingByJobAndType(String jobId, TaskType type, Integer limit) {
-        String sql = "select * from " + TABLE_NAME + " where job_id = ? and `type` = ? and `status` = ? order by task_id limit ?";
-        try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, jobId);
-            ps.setInt(2, type.type);
-            ps.setInt(3, TaskStatus.DISPATCHING.status);
-            ps.setInt(4, limit);
-            try (ResultSet rs = ps.executeQuery()) {
-                List<Task> tasks = new ArrayList<>();
-                while (rs.next()) {
-                    tasks.add(convert(rs));
-                }
-                return tasks;
-            }
-        } catch (Exception e) {
-            log.error("TaskRepository.getByJobAndType error jobId={} type={} limit={}", jobId, type, limit, e);
             return Collections.emptyList();
         }
     }
@@ -325,19 +306,19 @@ public class TaskRepository {
         }
     }
 
-
-    public boolean executing(Task task) {
-        String sql = "update " + TABLE_NAME + " set `status` = ?, worker_id = ?, worker_address = ?, start_at = ? where job_id = ? and task_id = ?";
+    public boolean executing(String jobId, String taskId, String workerId, String workerAddress) {
+        String sql = "update " + TABLE_NAME + " set `status` = ?, worker_id = ?, worker_address = ? start_at = ? where job_id = ? and task_id = ?";
         try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, TaskStatus.EXECUTING.status);
-            ps.setString(2, task.getWorker().getId());
-            ps.setString(3, task.getWorker().address());
-            ps.setString(4, DateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime()));
-            ps.setString(5, task.getJobId());
-            ps.setString(6, task.getTaskId());
+            int i = 0;
+            ps.setInt(++i, TaskStatus.EXECUTING.status);
+            ps.setString(++i, workerId);
+            ps.setString(++i, workerAddress);
+            ps.setString(++i, DateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime()));
+            ps.setString(++i, jobId);
+            ps.setString(++i, taskId);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
-            log.error("TaskRepository.executing error task={} ", task, e);
+            log.error("TaskRepository.executing error jobId={} taskId={} workerId={}", jobId, taskId, workerId, e);
             return false;
         }
     }
@@ -387,20 +368,6 @@ public class TaskRepository {
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             log.error("TaskRepository.fail error task={} ", task, e);
-            return false;
-        }
-    }
-
-    public boolean updateToDispatching(String jobId) {
-        String sql = "update " + TABLE_NAME + " set `status` = ?, last_report_at = ? where job_id = ? and `status` = ?";
-        try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, TaskStatus.DISPATCHING.status);
-            ps.setString(2, DateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime()));
-            ps.setString(3, jobId);
-            ps.setInt(4, TaskStatus.SCHEDULING.status);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            log.error("TaskRepository.scheduling error jobId={} ", jobId, e);
             return false;
         }
     }

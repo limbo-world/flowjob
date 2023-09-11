@@ -20,11 +20,14 @@ package org.limbo.flowjob.agent.core;
 
 import org.limbo.flowjob.agent.core.entity.Job;
 import org.limbo.flowjob.agent.core.entity.Task;
-import org.limbo.flowjob.agent.core.worker.Worker;
 import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
+import org.limbo.flowjob.common.utils.time.DateTimeUtils;
+import org.limbo.flowjob.common.utils.time.Formatters;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
+
+import java.time.LocalDateTime;
 
 /**
  * @author Devil
@@ -32,17 +35,20 @@ import org.limbo.flowjob.common.utils.time.TimeUtils;
  */
 public class TaskFactory {
 
-    public static Task createTask(String taskId, Job job, Object taskAttributes, TaskType type, TaskStatus status, Worker worker) {
+    public static final LocalDateTime DEFAULT_REPORT_TIME = DateTimeUtils.parse("2000-01-01 00:00:00", Formatters.YMD_HMS);
+
+    public static Task createTask(String taskId, Job job, Object taskAttributes, TaskType type, Worker worker) {
         Task task = new Task();
         task.setTaskId(taskId);
         task.setJobId(job.getId());
         task.setType(type);
         task.setExecutorName(job.getExecutorName());
-        task.setStatus(status);
+        task.setStatus(TaskStatus.SCHEDULING);
         task.setContext(job.getContext());
         task.setJobAttributes(job.getAttributes());
         task.setTaskAttributes(taskAttributes == null ? "" : JacksonUtils.toJSONString(taskAttributes));
         task.setWorker(worker);
+        task.setLastReportAt(DEFAULT_REPORT_TIME);
         task.setTriggerAt(TimeUtils.currentLocalDateTime());
         return task;
     }

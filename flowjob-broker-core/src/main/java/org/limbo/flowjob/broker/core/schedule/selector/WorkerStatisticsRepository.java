@@ -16,8 +16,9 @@
  *
  */
 
-package org.limbo.flowjob.agent.core.worker;
+package org.limbo.flowjob.broker.core.schedule.selector;
 
+import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.common.lb.LBServerStatistics;
 import org.limbo.flowjob.common.lb.LBServerStatisticsProvider;
 

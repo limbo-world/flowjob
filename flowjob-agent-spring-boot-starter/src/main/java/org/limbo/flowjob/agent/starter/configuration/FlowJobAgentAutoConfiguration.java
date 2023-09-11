@@ -35,9 +35,6 @@ import org.limbo.flowjob.agent.core.rpc.http.OkHttpAgentBrokerRpc;
 import org.limbo.flowjob.agent.core.rpc.http.OkHttpAgentWorkerRpc;
 import org.limbo.flowjob.agent.core.service.JobService;
 import org.limbo.flowjob.agent.core.service.TaskService;
-import org.limbo.flowjob.agent.core.worker.SingletonWorkerStatisticsRepo;
-import org.limbo.flowjob.agent.core.worker.WorkerSelectorFactory;
-import org.limbo.flowjob.agent.core.worker.WorkerStatisticsRepository;
 import org.limbo.flowjob.agent.starter.SpringDelegatedAgent;
 import org.limbo.flowjob.agent.starter.component.H2ConnectionFactory;
 import org.limbo.flowjob.agent.starter.handler.HttpHandlerProcessor;
@@ -159,10 +156,8 @@ public class FlowJobAgentAutoConfiguration {
     }
 
     @Bean("fjaTaskDispatcher")
-    public TaskDispatcher taskDispatcher(AgentBrokerRpc brokerRpc, AgentWorkerRpc workerRpc,
-                                         JobRepository jobRepository, TaskRepository taskRepository,
-                                         WorkerSelectorFactory workerSelectorFactory, WorkerStatisticsRepository statisticsRepository) {
-        return new TaskDispatcher(brokerRpc, workerRpc, jobRepository, taskRepository, workerSelectorFactory, statisticsRepository);
+    public TaskDispatcher taskDispatcher(AgentBrokerRpc brokerRpc, AgentWorkerRpc workerRpc) {
+        return new TaskDispatcher(brokerRpc, workerRpc);
     }
 
     @Bean("fjaAgentWorkerRpc")
@@ -178,7 +173,7 @@ public class FlowJobAgentAutoConfiguration {
      */
     @Bean("fjaAgentBrokerRpc")
     @ConditionalOnMissingBean(AgentBrokerRpc.class)
-    public AgentBrokerRpc brokerRpc(LBServerRepository<BaseLBServer> brokerLoadBalancer, LBStrategy<BaseLBServer> strategy) {
+    public AgentBrokerRpc brokerRpc(LBServerRepository<BaseLBServer> fjaBrokerLoadBalanceRepo, LBStrategy<BaseLBServer> fjaBrokerLoadBalanceStrategy) {
         List<URL> brokers = properties.getBrokers();
         if (CollectionUtils.isEmpty(brokers)) {
             throw new IllegalArgumentException("No brokers configured");
@@ -190,7 +185,7 @@ public class FlowJobAgentAutoConfiguration {
             throw new IllegalArgumentException("Unsupported broker protocol [" + brokerProtocol + "]");
         }
 
-        return httpBrokerRpc(brokerLoadBalancer, strategy);
+        return httpBrokerRpc(fjaBrokerLoadBalanceRepo, fjaBrokerLoadBalanceStrategy);
     }
 
 
@@ -226,26 +221,6 @@ public class FlowJobAgentAutoConfiguration {
     @ConditionalOnMissingBean(name = "fjaBrokerLoadBalanceStrategy")
     public LBStrategy<BaseLBServer> brokerLoadBalanceStrategy() {
         return new RoundRobinLBStrategy<>();
-    }
-
-    /**
-     * 如果未声明 WorkerStatisticsRepository 类型的 Bean，则使用基于内存统计的单机模式
-     */
-    @Bean("fjaWorkerStatisticsRepository")
-    @ConditionalOnMissingBean(WorkerStatisticsRepository.class)
-    public WorkerStatisticsRepository workerStatisticsRepository() {
-        return new SingletonWorkerStatisticsRepo();
-    }
-
-    /**
-     * 用于生成 Worker 选择器，内部封装了 LB 算法的调用。
-     */
-    @Bean("fjaWorkerSelectorFactory")
-    @ConditionalOnMissingBean(WorkerSelectorFactory.class)
-    public WorkerSelectorFactory workerSelectorFactory(WorkerStatisticsRepository statisticsRepository) {
-        WorkerSelectorFactory factory = new WorkerSelectorFactory();
-        factory.setLbServerStatisticsProvider(statisticsRepository);
-        return factory;
     }
 
 }

@@ -18,9 +18,9 @@
 
 package org.limbo.flowjob.agent.core.rpc;
 
-import org.limbo.flowjob.agent.core.entity.Job;
 import org.limbo.flowjob.agent.core.ScheduleAgent;
-import org.limbo.flowjob.agent.core.worker.Worker;
+import org.limbo.flowjob.agent.core.Worker;
+import org.limbo.flowjob.agent.core.entity.Job;
 import org.limbo.flowjob.common.exception.RegisterFailException;
 
 import java.util.List;
@@ -50,7 +50,7 @@ public interface AgentBrokerRpc {
      *
      * @return
      */
-    boolean notifyJobExecuting(String jobInstanceId);
+    boolean reportExecuting(String jobInstanceId);
 
     /**
      * 反馈任务执行状态
@@ -77,6 +77,6 @@ public interface AgentBrokerRpc {
      * @param jobId
      * @return
      */
-    List<Worker> availableWorkers(String jobId, boolean filterExecutor, boolean filterTag, boolean filterResource);
+    List<Worker> availableWorkers(String jobId, boolean filterExecutor, boolean filterTag, boolean filterResource, boolean lbSelect);
 
 }

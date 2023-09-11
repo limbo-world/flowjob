@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+
 import java.util.List;
 
 import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.*;
@@ -81,15 +82,23 @@ public class JobRpcController {
     }
 
     /**
-     * 任务可执行worker列表
+     * 任务可执行worker
+     *
+     * @param jobInstanceId  任务id
+     * @param filterExecutor 是否基于执行器过滤
+     * @param filterTag      是否基于标签过滤
+     * @param filterResource 是否基于资源过滤
+     * @param lbSelect       是否基于负载返回合适的一个
+     * @return
      */
-    @Operation(summary = "任务可执行worker列表")
-    @GetMapping(API_JOB_FILTER_WORKERS)
+    @Operation(summary = "任务可执行worker")
+    @GetMapping(API_JOB_FILTER_WORKER)
     public ResponseDTO<List<AvailableWorkerDTO>> jobFilterWorkers(@Validated @NotNull(message = "no job") @RequestParam("jobInstanceId") String jobInstanceId,
-                                                                  @RequestParam(value = "filterExecutor", required = false) boolean filterExecutor,
-                                                                  @RequestParam(value = "filterTag", required = false) boolean filterTag,
-                                                                  @RequestParam(value = "filterResource", required = false) boolean filterResource) {
-        List<AvailableWorkerDTO> workerDTOS = scheduleProxy.jobFilterWorkers(jobInstanceId, filterExecutor, filterTag, filterResource);
+                                                            @RequestParam(value = "filterExecutor", required = false) boolean filterExecutor,
+                                                            @RequestParam(value = "filterTag", required = false) boolean filterTag,
+                                                            @RequestParam(value = "filterResource", required = false) boolean filterResource,
+                                                            @RequestParam(value = "lbSelect", required = false) boolean lbSelect) {
+        List<AvailableWorkerDTO> workerDTOS = scheduleProxy.jobFilterWorker(jobInstanceId, filterExecutor, filterTag, filterResource, lbSelect);
         return ResponseDTO.<List<AvailableWorkerDTO>>builder().ok(workerDTOS).build();
     }
 

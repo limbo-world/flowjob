@@ -22,13 +22,14 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.agent.core.checker.TaskScheduleChecker;
+import org.limbo.flowjob.agent.core.checker.TaskExecuteChecker;
 import org.limbo.flowjob.agent.core.entity.Job;
 import org.limbo.flowjob.agent.core.entity.Task;
 import org.limbo.flowjob.agent.core.rpc.AgentBrokerRpc;
 import org.limbo.flowjob.agent.core.service.JobService;
 import org.limbo.flowjob.agent.core.service.TaskService;
 import org.limbo.flowjob.api.constants.JobType;
-import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.api.param.agent.SubTaskCreateParam;
 import org.limbo.flowjob.api.param.agent.TaskReportParam;
@@ -93,7 +94,7 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
 
     private TaskExecuteChecker taskExecuteChecker;
 
-    private TaskDispatchChecker taskDispatchChecker;
+    private TaskScheduleChecker taskScheduleChecker;
 
     /**
      * 通信基础 URL
@@ -179,17 +180,17 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
         }
         pacemaker.start();
 
-        // task执行上报检测
+        // task执行检测
         if (taskExecuteChecker == null) {
             taskExecuteChecker = new TaskExecuteChecker(taskService, Duration.ofSeconds(TaskConstant.TASK_REPORT_SECONDS + 5));
         }
         taskExecuteChecker.start();
 
-        // task执行上报检测
-        if (taskDispatchChecker == null) {
-            taskDispatchChecker = new TaskDispatchChecker(taskService, Duration.ofSeconds(5));
+        // tas下发检测
+        if (taskScheduleChecker == null) {
+            taskScheduleChecker = new TaskScheduleChecker(taskService, Duration.ofSeconds(5));
         }
-        taskExecuteChecker.start();
+        taskScheduleChecker.start();
 
         // 更新为运行中
         status.compareAndSet(RpcServerStatus.INITIALIZING, RpcServerStatus.RUNNING);
@@ -234,9 +235,10 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
         try {
             this.threadPool.submit(() -> {
                 ScheduledFuture<?> jobReportScheduledFuture = null;
+
                 try {
-                    // 反馈执行中
-                    boolean success = brokerRpc.notifyJobExecuting(job.getId());
+                    // 反馈执行中 -- 排除由于网络问题导致的失败可能性
+                    boolean success = reportJobExecuting(job.getId(), 3);
                     if (!success) {
                         jobService.delete(job.getId());
                         return; // 可能已经下发给其它节点
@@ -246,11 +248,11 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
                     // 提交执行
                     jobService.schedule(job);
                 } catch (Exception e) {
-                    jobService.delete(job.getId());
-                    taskService.getTaskRepository().deleteByJobId(job.getId());
                     log.error("Failed to receive job job={}", job, e);
                     throw new JobException(job.getId(), e.getMessage(), e);
                 } finally {
+                    jobService.delete(job.getId());
+                    taskService.getTaskRepository().deleteByJobId(job.getId());
                     // 最终都要移除任务
                     if (jobReportScheduledFuture != null) {
                         jobReportScheduledFuture.cancel(true);
@@ -261,6 +263,19 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
             jobService.delete(job.getId());
             // 拒绝时候的处理
             throw new IllegalStateException("Schedule job failed, maybe thread exhausted. job=" + job.getId());
+        }
+    }
+
+    private boolean reportJobExecuting(String id, int retryTimes) {
+        if (retryTimes < 0) {
+            return false;
+        }
+        try {
+            return brokerRpc.reportExecuting(id);
+        } catch (Exception e) {
+            log.error("reportJobExecuting fail job={} times={}", id, retryTimes, e);
+            retryTimes--;
+            return reportJobExecuting(id, retryTimes);
         }
     }
 
@@ -293,13 +308,20 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
 
         List<Task> tasks = new ArrayList<>();
         for (SubTaskCreateParam.SubTaskInfoParam subTaskInfoParam : subTaskParams) {
-            Task newTask = TaskFactory.createTask(subTaskInfoParam.getTaskId(), job, subTaskInfoParam.getData(), TaskType.MAP, TaskStatus.SCHEDULING, null);
+            Task newTask = TaskFactory.createTask(subTaskInfoParam.getTaskId(), job, subTaskInfoParam.getData(), TaskType.MAP, null);
             tasks.add(newTask);
         }
 
         if (!taskService.batchSave(tasks)) {
             throw new IllegalArgumentException("batch save task fail jobId:" + jobId);
         }
+    }
+
+    @Override
+    public void reportTaskExecuting(TaskReportParam param) {
+        assertRunning();
+
+        taskService.getTaskRepository().executing(param.getJobId(), param.getTaskId(), param.getWorkerId(), param.getWorkerAddress());
     }
 
     @Override

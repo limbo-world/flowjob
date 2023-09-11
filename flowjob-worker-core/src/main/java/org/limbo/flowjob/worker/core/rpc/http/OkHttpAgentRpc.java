@@ -29,6 +29,7 @@ import org.limbo.flowjob.common.http.OKHttpRpc;
 import org.limbo.flowjob.common.lb.BaseLBServer;
 import org.limbo.flowjob.worker.core.domain.SubTask;
 import org.limbo.flowjob.worker.core.domain.Task;
+import org.limbo.flowjob.worker.core.domain.WorkerContext;
 import org.limbo.flowjob.worker.core.rpc.RpcParamFactory;
 import org.limbo.flowjob.worker.core.rpc.WorkerAgentRpc;
 
@@ -63,8 +64,23 @@ public class OkHttpAgentRpc extends OKHttpRpc<BaseLBServer> implements WorkerAge
     }
 
     @Override
+    public Boolean reportTaskExecuting(Task task) {
+        TaskReportParam param = RpcParamFactory.taskReportParam(task.getJobId(), task.getTaskId(), WorkerContext.getWorkerId());
+
+        ResponseDTO<Boolean> response = executePost(task.getRpcUrl() + API_TASK_EXECUTING, param, new TypeReference<ResponseDTO<Boolean>>() {
+        });
+
+        if (response == null || !response.success()) {
+            String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
+            throw new RegisterFailException("Worker report task failed: " + msg);
+        }
+
+        return response.getData();
+    }
+
+    @Override
     public Boolean reportTask(Task task) {
-        TaskReportParam param = RpcParamFactory.taskReportParam(task.getJobId(), task.getTaskId());
+        TaskReportParam param = RpcParamFactory.taskReportParam(task.getJobId(), task.getTaskId(), WorkerContext.getWorkerId());
 
         ResponseDTO<Boolean> response = executePost(task.getRpcUrl() + API_TASK_REPORT, param, new TypeReference<ResponseDTO<Boolean>>() {
         });

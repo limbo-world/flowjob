@@ -21,7 +21,6 @@ package org.limbo.flowjob.worker.core.rpc.http;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
-import okhttp3.ResponseBody;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.Protocol;
@@ -29,24 +28,22 @@ import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.broker.BrokerTopologyDTO;
 import org.limbo.flowjob.api.dto.broker.WorkerRegisterDTO;
 import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
-import org.limbo.flowjob.common.lb.BaseLBServer;
-import org.limbo.flowjob.common.exception.BrokerRpcException;
 import org.limbo.flowjob.common.exception.RegisterFailException;
 import org.limbo.flowjob.common.http.OKHttpRpc;
+import org.limbo.flowjob.common.lb.BaseLBServer;
 import org.limbo.flowjob.common.lb.LBServerRepository;
 import org.limbo.flowjob.common.lb.LBStrategy;
-import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.limbo.flowjob.worker.core.domain.Worker;
-import org.limbo.flowjob.worker.core.rpc.WorkerBrokerRpc;
+import org.limbo.flowjob.worker.core.domain.WorkerContext;
 import org.limbo.flowjob.worker.core.rpc.RpcParamFactory;
+import org.limbo.flowjob.worker.core.rpc.WorkerBrokerRpc;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.*;
+import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.API_WORKER_HEARTBEAT;
+import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.API_WORKER_REGISTER;
 
 /**
  * @author Brozen
@@ -63,8 +60,6 @@ public class OkHttpBrokerRpc extends OKHttpRpc<BaseLBServer> implements WorkerBr
     private static final String BASE_URL = "http://0.0.0.0:8080";
 
     private static final Protocol DEFAULT_PROTOCOL = Protocol.HTTP;
-
-    private String workerId = "";
 
     public OkHttpBrokerRpc(LBServerRepository<BaseLBServer> repository, LBStrategy<BaseLBServer> strategy) {
         super(repository, strategy);
@@ -89,7 +84,7 @@ public class OkHttpBrokerRpc extends OKHttpRpc<BaseLBServer> implements WorkerBr
 
         // 注册成功，更新 broker 节点拓扑
         if (result != null) {
-            workerId = result.getWorkerId();
+            WorkerContext.setWorkerId(result.getWorkerId());
             updateBrokerTopology(result.getBrokerTopology());
         } else {
             String msg = "Register failed after tried all broker, please check your configuration";
@@ -149,7 +144,7 @@ public class OkHttpBrokerRpc extends OKHttpRpc<BaseLBServer> implements WorkerBr
      */
     @Override
     public void heartbeat(Worker worker) {
-        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + API_WORKER_HEARTBEAT + "?id=" + workerId, RpcParamFactory.heartbeatParam(worker), new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
+        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + API_WORKER_HEARTBEAT + "?id=" + WorkerContext.getWorkerId(), RpcParamFactory.heartbeatParam(worker), new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
         });
 
         if (response == null || !response.success()) {

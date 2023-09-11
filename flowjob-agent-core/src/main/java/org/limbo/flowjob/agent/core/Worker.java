@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.agent.core.worker;
+package org.limbo.flowjob.agent.core;
 
 import lombok.AllArgsConstructor;
 import org.limbo.flowjob.common.lb.LBServer;

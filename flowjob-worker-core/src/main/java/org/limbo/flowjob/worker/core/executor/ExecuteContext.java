@@ -96,6 +96,14 @@ public class ExecuteContext implements Runnable {
         }
 
         try {
+            // 反馈执行中 -- 排除由于网络问题导致的失败可能性
+            boolean success = reportTaskExecuting(task, 3);
+            if (!success) {
+                taskRepository.delete(task.getUid());
+                return; // 可能已经下发给其它节点
+            }
+
+
             ThreadLocalContext.setExecuteContext(this);
             // 开启任务上报
             this.taskReportScheduledFuture = scheduledReportPool.scheduleAtFixedRate(new StatusReportRunnable(task), 1, TaskConstant.TASK_REPORT_SECONDS, TimeUnit.SECONDS);
@@ -150,6 +158,19 @@ public class ExecuteContext implements Runnable {
         }
 
         return this.status.compareAndSet(Status.WAITING, Status.CANCELED);
+    }
+
+    private boolean reportTaskExecuting(Task task, int retryTimes) {
+        if (retryTimes < 0) {
+            return false;
+        }
+        try {
+            return agentRpc.reportTaskExecuting(task);
+        } catch (Exception e) {
+            log.error("ReportTaskExecuting fail task={} times={}", task.getTaskId(), retryTimes, e);
+            retryTimes--;
+            return reportTaskExecuting(task, retryTimes);
+        }
     }
 
 }

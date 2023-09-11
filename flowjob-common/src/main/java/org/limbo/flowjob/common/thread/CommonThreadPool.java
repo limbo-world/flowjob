@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.agent.core;
+package org.limbo.flowjob.common.thread;
 
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;

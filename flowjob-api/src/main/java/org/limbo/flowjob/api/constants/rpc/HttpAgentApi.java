@@ -25,8 +25,12 @@ package org.limbo.flowjob.api.constants.rpc;
 public interface HttpAgentApi {
 
     String API_JOB_RECEIVE = "/api/v1/rpc/job";
-
+    /**
+     * 任务接收
+     */
     String API_TASK_RECEIVE = "/api/v1/rpc/task";
+
+    String API_TASK_EXECUTING = "/api/v1/rpc/task/executing";
 
     String API_TASK_REPORT = "/api/v1/rpc/task/report";
 

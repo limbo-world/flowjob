@@ -16,9 +16,10 @@
  *
  */
 
-package org.limbo.flowjob.agent.core.worker;
+package org.limbo.flowjob.broker.core.schedule.selector;
 
 import org.limbo.flowjob.api.constants.LoadBalanceType;
+import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.common.lb.Invocation;
 
 import java.util.List;

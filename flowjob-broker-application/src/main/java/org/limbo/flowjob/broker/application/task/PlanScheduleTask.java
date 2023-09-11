@@ -27,11 +27,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
-import org.limbo.flowjob.broker.application.support.CommonThreadPool;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.LoopMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
+import org.limbo.flowjob.common.thread.CommonThreadPool;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.LocalDateTime;

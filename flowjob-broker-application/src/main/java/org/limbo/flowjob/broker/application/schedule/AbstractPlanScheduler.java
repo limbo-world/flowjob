@@ -136,26 +136,24 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
                 .build();
         ScheduleAgent agent = lbStrategy.select(agents, lbInvocation).orElse(null);
         if (agent == null) {
-            log.warn("No alive server for job={}", jobInstance.getJobInstanceId());
-            handleJobFail(jobInstance, MsgConstants.DISPATCH_FAIL_NO_AGENT);
-            return; // 状态检测的时候自动重试
+            // 状态检测的时候自动重试
+            if (log.isDebugEnabled()) {
+                log.debug("No alive server for job={}", jobInstance.getJobInstanceId());
+            }
+            return;
         }
 
         // rpc 执行
-        boolean dispatched;
         try {
             log.info("Try dispatch JobInstance id={} to agent={}", jobInstance.getJobInstanceId(), agent.getId());
-            dispatched = agent.dispatch(jobInstance);
+            boolean dispatched = agent.dispatch(jobInstance); // 可能存在接口超时导致重复下发，HttpBrokerApi.API_JOB_EXECUTING 由对应接口处理
             log.info("Dispatch JobInstance id={} to agent={} success={}", jobInstance.getJobInstanceId(), agent.getId(), dispatched);
         } catch (Exception e) {
-            dispatched = false;
             log.error("Dispatch JobInstance id={} to agent={} fail", jobInstance.getJobInstanceId(), agent.getId(), e);
         }
 
-        if (!dispatched) {
-            handleJobFail(jobInstance, MsgConstants.DISPATCH_FAIL);
-        }
     }
+
 
     public void handlerPlanComplete(String planInstanceId, boolean success) {
         PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(planInstanceId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INSTANCE + planInstanceId));

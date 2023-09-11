@@ -51,4 +51,16 @@ public class TaskReportParam implements Serializable {
     @Schema(description = "taskId")
     private String taskId;
 
+    /**
+     * workerId
+     */
+    @Schema(description = "workerId")
+    private String workerId;
+
+    /**
+     * workerAddress
+     */
+    @Schema(description = "workerAddress")
+    private String workerAddress;
+
 }

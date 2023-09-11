@@ -53,7 +53,7 @@ public interface HttpBrokerApi {
 
     String API_JOB_FEEDBACK = "/api/v1/rpc/job/feedback";
 
-    String API_JOB_FILTER_WORKERS = "/api/v1/rpc/job/workers";
+    String API_JOB_FILTER_WORKER = "/api/v1/rpc/job/worker";
     // ============== job ==================
 
 }

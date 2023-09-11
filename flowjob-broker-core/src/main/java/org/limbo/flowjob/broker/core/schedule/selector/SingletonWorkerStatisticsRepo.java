@@ -16,10 +16,11 @@
  *
  */
 
-package org.limbo.flowjob.agent.core.worker;
+package org.limbo.flowjob.broker.core.schedule.selector;
 
 import lombok.AllArgsConstructor;
 import lombok.Setter;
+import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.common.utils.concurrent.Lockable;
 
 import java.time.Duration;

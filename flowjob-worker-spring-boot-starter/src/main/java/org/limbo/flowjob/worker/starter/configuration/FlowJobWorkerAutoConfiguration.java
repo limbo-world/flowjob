@@ -128,7 +128,7 @@ public class FlowJobWorkerAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(WorkerBrokerRpc.class)
-    public WorkerBrokerRpc brokerRpc(LBServerRepository<BaseLBServer> brokerLoadBalancer, LBStrategy<BaseLBServer> strategy) {
+    public WorkerBrokerRpc brokerRpc(LBServerRepository<BaseLBServer> fjwBrokerLoadBalanceRepo, LBStrategy<BaseLBServer> fjwBrokerLoadBalanceStrategy) {
         List<URL> brokers = workerProps.getBrokers();
         if (CollectionUtils.isEmpty(brokers)) {
             throw new IllegalArgumentException("No brokers configured");
@@ -140,7 +140,7 @@ public class FlowJobWorkerAutoConfiguration {
             throw new IllegalArgumentException("Unsupported broker protocol [" + brokerProtocol + "]");
         }
 
-        return httpBrokerRpc(brokerLoadBalancer, strategy);
+        return httpBrokerRpc(fjwBrokerLoadBalanceRepo, fjwBrokerLoadBalanceStrategy);
     }
 
     /**
@@ -170,8 +170,8 @@ public class FlowJobWorkerAutoConfiguration {
     /**
      * Broker 仓储
      */
-    @Bean("brokerLoadBalanceRepo")
-    @ConditionalOnMissingBean(name = "brokerLoadBalanceRepo")
+    @Bean("fjwBrokerLoadBalanceRepo")
+    @ConditionalOnMissingBean(name = "fjwBrokerLoadBalanceRepo")
     public LBServerRepository<BaseLBServer> brokerLoadBalanceRepo() {
         return new BaseLBServerRepository<>(brokerNodes());
     }
@@ -180,8 +180,8 @@ public class FlowJobWorkerAutoConfiguration {
     /**
      * Broker 负载均衡策略
      */
-    @Bean("brokerLoadBalanceStrategy")
-    @ConditionalOnMissingBean(name = "brokerLoadBalanceStrategy")
+    @Bean("fjwBrokerLoadBalanceStrategy")
+    @ConditionalOnMissingBean(name = "fjwBrokerLoadBalanceStrategy")
     public LBStrategy<BaseLBServer> brokerLoadBalanceStrategy() {
         return new RoundRobinLBStrategy<>();
     }

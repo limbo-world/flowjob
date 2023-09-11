@@ -38,6 +38,9 @@ import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
+import org.limbo.flowjob.broker.core.schedule.selector.WorkerSelectInvocation;
+import org.limbo.flowjob.broker.core.schedule.selector.WorkerSelector;
+import org.limbo.flowjob.broker.core.schedule.selector.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.dispatch.DispatchOption;
@@ -112,6 +115,9 @@ public class ScheduleProxy implements ApplicationContextAware {
 
     @Setter(onMethod_ = @Inject)
     private JobInstanceEntityRepo jobInstanceEntityRepo;
+
+    @Setter(onMethod_ = @Inject)
+    private WorkerSelectorFactory workerSelectorFactory;
 
 
     private final Map<PlanType, PlanScheduler> schedulers = new EnumMap<>(PlanType.class);
@@ -261,7 +267,7 @@ public class ScheduleProxy implements ApplicationContextAware {
     /**
      * 任务可下发节点
      */
-    public List<AvailableWorkerDTO> jobFilterWorkers(String jobInstanceId, boolean filterExecutor, boolean filterTag, boolean filterResource) {
+    public List<AvailableWorkerDTO> jobFilterWorker(String jobInstanceId, boolean filterExecutor, boolean filterTag, boolean filterResource, boolean lbSelect) {
 
         JobInstance jobInstance = jobInstanceRepository.get(jobInstanceId);
         JobInfo jobInfo = jobInstance.getJobInfo();
@@ -292,6 +298,7 @@ public class ScheduleProxy implements ApplicationContextAware {
 
         DispatchOption dispatchOption = jobInfo.getDispatchOption();
         if (dispatchOption == null) {
+            log.warn("Job has none dispatchOption id={}", jobInstance.getJobInstanceId());
             return aliveWorkers.stream().map(BrokerConverter::toWorkerDTO).collect(Collectors.toList());
         }
 
@@ -307,7 +314,14 @@ public class ScheduleProxy implements ApplicationContextAware {
             workerFilter.filterResources(dispatchOption.getCpuRequirement(), dispatchOption.getRamRequirement());
         }
 
-        return workerFilter.get().stream().map(BrokerConverter::toWorkerDTO).collect(Collectors.toList());
+        if (lbSelect) {
+            WorkerSelectInvocation invocation = new WorkerSelectInvocation(jobInfo.getExecutorName(), jobInstance.getAttributes());
+            WorkerSelector workerSelector = workerSelectorFactory.newSelector(jobInfo.getDispatchOption().getLoadBalanceType());
+            Worker select = workerSelector.select(invocation, workerFilter.get());
+            return Collections.singletonList(BrokerConverter.toWorkerDTO(select));
+        } else {
+            return workerFilter.get().stream().map(BrokerConverter::toWorkerDTO).collect(Collectors.toList());
+        }
     }
 
 }
