@@ -22,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.worker.core.domain.SubTask;
 import org.limbo.flowjob.worker.core.domain.Task;
 import org.limbo.flowjob.worker.core.executor.MapReduceTaskExecutor;
-import org.limbo.flowjob.worker.core.rpc.WorkerAgentRpc;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -40,10 +39,6 @@ public class MapReduceExecutorDemo extends MapReduceTaskExecutor {
 
     private static final String KEY = "k";
 
-    public MapReduceExecutorDemo(WorkerAgentRpc agentRpc) {
-        super(agentRpc);
-    }
-
     @Override
     public void sharding(Task task) {
         for (int i = 0; i < 5; i++) {
@@ -54,7 +49,7 @@ public class MapReduceExecutorDemo extends MapReduceTaskExecutor {
             // 测试多次提交子任务
             submitSubTasks(task, Collections.singletonList(SubTask.builder()
                     .taskId("SUB_" + i)
-                    .attributes(taskParam)
+                    .data(taskParam)
                     .build())
             );
         }

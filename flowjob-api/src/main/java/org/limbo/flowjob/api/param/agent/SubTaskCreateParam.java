@@ -26,6 +26,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 作业执行反馈
@@ -62,10 +63,16 @@ public class SubTaskCreateParam implements Serializable {
         private String taskId;
 
         /**
+         * 执行器名称
+         */
+        @Schema(description = "执行器名称")
+        private String executorName;
+
+        /**
          * 返回的数据
          */
         @Schema(description = "返回的数据")
-        private Object data;
+        private Map<String, Object> data;
     }
 
 }

@@ -51,7 +51,7 @@ public class OkHttpAgentRpc extends OKHttpRpc<BaseLBServer> implements WorkerAge
     public Boolean submitSubTasks(Task task, List<SubTask> subTasks) {
         SubTaskCreateParam param = RpcParamFactory.subTaskCreateParam(task.getJobId(), subTasks);
 
-        ResponseDTO<Boolean> response = executePost(task.getAgentRpcUrl() + API_TASK_RECEIVE, param, new TypeReference<ResponseDTO<Boolean>>() {
+        ResponseDTO<Boolean> response = executePost(task.getRpcUrl() + API_TASK_RECEIVE, param, new TypeReference<ResponseDTO<Boolean>>() {
         });
 
         if (response == null || !response.success()) {
@@ -66,7 +66,7 @@ public class OkHttpAgentRpc extends OKHttpRpc<BaseLBServer> implements WorkerAge
     public Boolean reportTask(Task task) {
         TaskReportParam param = RpcParamFactory.taskReportParam(task.getJobId(), task.getTaskId());
 
-        ResponseDTO<Boolean> response = executePost(task.getAgentRpcUrl() + API_TASK_REPORT, param, new TypeReference<ResponseDTO<Boolean>>() {
+        ResponseDTO<Boolean> response = executePost(task.getRpcUrl() + API_TASK_REPORT, param, new TypeReference<ResponseDTO<Boolean>>() {
         });
 
         if (response == null || !response.success()) {
@@ -93,7 +93,7 @@ public class OkHttpAgentRpc extends OKHttpRpc<BaseLBServer> implements WorkerAge
      * 反馈任务执行结果
      */
     private Boolean doFeedbackTask(Task task, TaskFeedbackParam feedbackParam) {
-        ResponseDTO<Boolean> response = executePost(task.getAgentRpcUrl() + API_TASK_FEEDBACK, feedbackParam, new TypeReference<ResponseDTO<Boolean>>() {
+        ResponseDTO<Boolean> response = executePost(task.getRpcUrl() + API_TASK_FEEDBACK, feedbackParam, new TypeReference<ResponseDTO<Boolean>>() {
         });
 
         if (response == null || !response.success()) {

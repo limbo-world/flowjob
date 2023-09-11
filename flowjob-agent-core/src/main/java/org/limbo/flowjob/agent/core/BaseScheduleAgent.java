@@ -21,6 +21,9 @@ package org.limbo.flowjob.agent.core;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.agent.core.entity.Job;
+import org.limbo.flowjob.agent.core.entity.Task;
 import org.limbo.flowjob.agent.core.rpc.AgentBrokerRpc;
 import org.limbo.flowjob.agent.core.service.JobService;
 import org.limbo.flowjob.agent.core.service.TaskService;
@@ -47,6 +50,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -57,6 +61,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 /**
  * @author Devil
@@ -263,26 +268,37 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
     public void receiveSubTasks(SubTaskCreateParam param) {
         assertRunning();
 
-        if (CollectionUtils.isEmpty(param.getSubTasks())) {
+        String jobId = param.getJobId();
+        List<SubTaskCreateParam.SubTaskInfoParam> subTaskParams = param.getSubTasks();
+        if (CollectionUtils.isEmpty(subTaskParams)) {
             throw new IllegalArgumentException("subTasks is empty");
         }
 
-        Job job = jobService.getById(param.getJobId());
+        Job job = jobService.getById(jobId);
         if (job == null) {
-            throw new IllegalArgumentException("job not found jobId:" + param.getJobId());
+            throw new IllegalArgumentException("job not found jobId:" + jobId);
         }
         if (JobType.MAP != job.getType() && JobType.MAP_REDUCE != job.getType()) {
-            throw new IllegalArgumentException("Job Type doesn't match jobId:" + param.getJobId() + " type:" + job.getType());
+            throw new IllegalArgumentException("Job Type doesn't match jobId:" + jobId + " type:" + job.getType());
+        }
+
+        // 防止重复id
+        subTaskParams = subTaskParams.stream().filter(p -> StringUtils.isNotBlank(p.getTaskId())).collect(Collectors.toList());
+        List<String> subTaskIds = subTaskParams.stream().map(SubTaskCreateParam.SubTaskInfoParam::getTaskId).collect(Collectors.toList());
+        Set<String> existTaskIds = taskService.getExistTaskIds(jobId, subTaskIds);
+        subTaskParams = subTaskParams.stream().filter(p -> existTaskIds.contains(p.getTaskId())).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(subTaskParams)) {
+            throw new IllegalArgumentException("subTasks is empty");
         }
 
         List<Task> tasks = new ArrayList<>();
-        for (SubTaskCreateParam.SubTaskInfoParam subTaskInfoParam : param.getSubTasks()) {
+        for (SubTaskCreateParam.SubTaskInfoParam subTaskInfoParam : subTaskParams) {
             Task newTask = TaskFactory.createTask(subTaskInfoParam.getTaskId(), job, subTaskInfoParam.getData(), TaskType.MAP, TaskStatus.SCHEDULING, null);
             tasks.add(newTask);
         }
 
         if (!taskService.batchSave(tasks)) {
-            throw new IllegalArgumentException("batch save task fail jobId:" + param.getJobId());
+            throw new IllegalArgumentException("batch save task fail jobId:" + jobId);
         }
     }
 

@@ -20,8 +20,8 @@ package org.limbo.flowjob.agent.core.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.agent.core.Job;
-import org.limbo.flowjob.agent.core.Task;
+import org.limbo.flowjob.agent.core.entity.Job;
+import org.limbo.flowjob.agent.core.entity.Task;
 import org.limbo.flowjob.agent.core.TaskDispatcher;
 import org.limbo.flowjob.agent.core.TaskFactory;
 import org.limbo.flowjob.agent.core.repository.JobRepository;
@@ -119,9 +119,6 @@ public class JobService {
      * @param tasks 列表
      */
     private boolean saveTasks(List<Task> tasks) {
-        if (CollectionUtils.isEmpty(tasks)) {
-            return true;
-        }
         try {
             return taskRepository.batchSave(tasks);
         } catch (Exception e) {

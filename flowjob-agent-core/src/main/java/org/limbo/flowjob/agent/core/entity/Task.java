@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.agent.core;
+package org.limbo.flowjob.agent.core.entity;
 
 import lombok.Getter;
 import lombok.Setter;

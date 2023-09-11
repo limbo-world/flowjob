@@ -20,6 +20,7 @@ package org.limbo.flowjob.agent.core;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.agent.core.entity.Task;
 import org.limbo.flowjob.agent.core.repository.TaskRepository;
 import org.limbo.flowjob.agent.core.service.TaskService;
 import org.limbo.flowjob.api.constants.TaskStatus;

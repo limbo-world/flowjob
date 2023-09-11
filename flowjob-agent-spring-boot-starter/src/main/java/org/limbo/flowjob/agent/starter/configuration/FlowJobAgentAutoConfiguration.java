@@ -96,6 +96,7 @@ public class FlowJobAgentAutoConfiguration {
         ScheduleAgent agent = new BaseScheduleAgent(fjaAgentServerUrl, resources, rpc, jobService, taskService, embedRpcServer);
         httpHandlerProcessor.setAgent(agent);
         httpHandlerProcessor.setTaskService(taskService);
+        httpHandlerProcessor.setJobService(jobService);
 
         return new SpringDelegatedAgent(agent);
     }

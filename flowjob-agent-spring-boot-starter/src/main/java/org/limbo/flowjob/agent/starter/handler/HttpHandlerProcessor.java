@@ -22,8 +22,9 @@ import io.netty.handler.codec.http.HttpMethod;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.agent.core.Job;
 import org.limbo.flowjob.agent.core.ScheduleAgent;
+import org.limbo.flowjob.agent.core.entity.Job;
+import org.limbo.flowjob.agent.core.service.JobService;
 import org.limbo.flowjob.agent.core.service.TaskService;
 import org.limbo.flowjob.api.constants.ExecuteResult;
 import org.limbo.flowjob.api.constants.JobType;
@@ -40,6 +41,8 @@ import org.limbo.flowjob.common.rpc.IHttpHandlerProcessor;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
+import java.util.List;
+
 import static org.limbo.flowjob.api.constants.rpc.HttpAgentApi.*;
 
 /**
@@ -51,6 +54,9 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
 
     @Setter
     private ScheduleAgent agent;
+
+    @Setter
+    private JobService jobService;
 
     @Setter
     private TaskService taskService;
@@ -90,6 +96,8 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
                 case API_TASK_PAGE:
                     TaskQueryParam taskQueryParam = JacksonUtils.parseObject(data, TaskQueryParam.class);
                     return ResponseDTO.<PageDTO<TaskDTO>>builder().ok(taskService.page(taskQueryParam)).build();
+                case "/api/v1/backdoor/job/list":
+                    return ResponseDTO.<List<Job>>builder().ok(jobService.findAll()).build();
             }
 
             String msg = "Invalid request, Uri NotFound.";

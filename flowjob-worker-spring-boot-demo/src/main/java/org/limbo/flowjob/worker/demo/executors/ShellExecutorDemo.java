@@ -32,7 +32,7 @@ import java.io.IOException;
  * @since 2022-09-11
  */
 @Component
-public class ShellExecutor implements TaskExecutor {
+public class ShellExecutorDemo implements TaskExecutor {
 
     private static final String NAME = "bashShell";
 

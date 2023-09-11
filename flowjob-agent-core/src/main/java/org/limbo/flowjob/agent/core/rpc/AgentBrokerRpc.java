@@ -18,7 +18,7 @@
 
 package org.limbo.flowjob.agent.core.rpc;
 
-import org.limbo.flowjob.agent.core.Job;
+import org.limbo.flowjob.agent.core.entity.Job;
 import org.limbo.flowjob.agent.core.ScheduleAgent;
 import org.limbo.flowjob.agent.core.worker.Worker;
 import org.limbo.flowjob.common.exception.RegisterFailException;

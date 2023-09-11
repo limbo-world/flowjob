@@ -18,7 +18,7 @@
 
 package org.limbo.flowjob.agent.core.rpc;
 
-import org.limbo.flowjob.agent.core.Task;
+import org.limbo.flowjob.agent.core.entity.Task;
 import org.limbo.flowjob.agent.core.worker.Worker;
 
 /**

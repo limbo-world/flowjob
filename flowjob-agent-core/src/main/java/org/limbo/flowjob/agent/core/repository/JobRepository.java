@@ -18,7 +18,7 @@
 
 package org.limbo.flowjob.agent.core.repository;
 
-import org.limbo.flowjob.agent.core.Job;
+import org.limbo.flowjob.agent.core.entity.Job;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -23,8 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.agent.core.CommonThreadPool;
-import org.limbo.flowjob.agent.core.Job;
-import org.limbo.flowjob.agent.core.Task;
+import org.limbo.flowjob.agent.core.entity.Job;
+import org.limbo.flowjob.agent.core.entity.Task;
 import org.limbo.flowjob.agent.core.TaskDispatcher;
 import org.limbo.flowjob.agent.core.TaskFactory;
 import org.limbo.flowjob.agent.core.repository.JobRepository;
@@ -42,6 +42,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -75,10 +76,11 @@ public class TaskService {
     }
 
     public boolean batchSave(Collection<Task> tasks) {
-        if (CollectionUtils.isEmpty(tasks)) {
-            return true;
-        }
         return taskRepository.batchSave(tasks);
+    }
+
+    public Set<String> getExistTaskIds(String jobId, Collection<String> taskIds) {
+        return taskRepository.getExistTaskIds(jobId, taskIds);
     }
 
     /**

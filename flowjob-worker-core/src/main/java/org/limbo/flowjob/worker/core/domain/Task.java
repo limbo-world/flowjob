@@ -36,7 +36,7 @@ public class Task {
 
     private String taskId;
 
-    private URL agentRpcUrl;
+    private URL rpcUrl;
 
     private TaskType type;
 

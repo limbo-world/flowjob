@@ -21,7 +21,7 @@ package org.limbo.flowjob.agent.core.rpc.http;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.agent.core.Task;
+import org.limbo.flowjob.agent.core.entity.Task;
 import org.limbo.flowjob.agent.core.worker.Worker;
 import org.limbo.flowjob.agent.core.rpc.AgentWorkerRpc;
 import org.limbo.flowjob.api.constants.MsgConstants;

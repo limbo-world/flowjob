@@ -21,7 +21,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.limbo.flowjob.worker.core.domain.SubTask;
 import org.limbo.flowjob.worker.core.domain.Task;
-import org.limbo.flowjob.worker.core.rpc.WorkerAgentRpc;
 
 import java.util.List;
 import java.util.Map;
@@ -33,12 +32,6 @@ import java.util.Map;
  * @since 2021/7/24
  */
 public abstract class MapReduceTaskExecutor implements TaskExecutor {
-
-    public WorkerAgentRpc agentRpc;
-
-    public MapReduceTaskExecutor(WorkerAgentRpc agentRpc) {
-        this.agentRpc = agentRpc;
-    }
 
     @Override
     public void run(Task task) {
@@ -65,6 +58,9 @@ public abstract class MapReduceTaskExecutor implements TaskExecutor {
      */
     public abstract void sharding(Task task);
 
+    /**
+     * 业务需要在执行线程中使用此方法，如果放到线程池中调用需要自己处理
+     */
     protected Boolean submitSubTasks(Task task, List<SubTask> subTasks) {
         if (CollectionUtils.isEmpty(subTasks)) {
             throw new IllegalArgumentException("sub task empty");
@@ -73,7 +69,8 @@ public abstract class MapReduceTaskExecutor implements TaskExecutor {
         if (subTasks.size() > maxSize) {
             throw new IllegalArgumentException("sub task size > " + maxSize);
         }
-        return agentRpc.submitSubTasks(task, subTasks);
+        ExecuteContext executeContext = ThreadLocalContext.getExecuteContext();
+        return executeContext.getAgentRpc().submitSubTasks(task, subTasks);
     }
 
     /**

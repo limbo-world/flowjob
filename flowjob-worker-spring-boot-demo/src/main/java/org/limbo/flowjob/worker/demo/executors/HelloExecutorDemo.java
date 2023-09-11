@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class HelloExecutor implements TaskExecutor {
+public class HelloExecutorDemo implements TaskExecutor {
 
     @Override
     public void run(Task task) {

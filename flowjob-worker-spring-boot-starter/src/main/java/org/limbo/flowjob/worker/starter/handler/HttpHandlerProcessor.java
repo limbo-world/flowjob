@@ -102,7 +102,7 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
         task.setJobId(param.getJobId());
         task.setTaskId(param.getTaskId());
         task.setType(taskType);
-        task.setAgentRpcUrl(param.getAgentRpcUrl());
+        task.setRpcUrl(param.getAgentRpcUrl());
         task.setExecutorName(param.getExecutorName());
         task.setContext(param.getContext());
         task.setJobAttributes(param.getAttributes());

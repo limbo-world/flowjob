@@ -19,9 +19,10 @@
 package org.limbo.flowjob.agent.core.repository;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.agent.core.FlowjobConnectionFactory;
-import org.limbo.flowjob.agent.core.Task;
+import org.limbo.flowjob.agent.core.entity.Task;
 import org.limbo.flowjob.agent.core.worker.Worker;
 import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
@@ -41,7 +42,9 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Devil
@@ -116,6 +119,36 @@ public class TaskRepository {
         } catch (Exception e) {
             log.error("TaskRepository.getById error jobId={} taskId={}", jobId, taskId, e);
             return null;
+        }
+    }
+
+    public Set<String> getExistTaskIds(String jobId, Collection<String> taskIds) {
+        if (StringUtils.isBlank(jobId) || CollectionUtils.isEmpty(taskIds)) {
+            return Collections.emptySet();
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("select task_id from ").append(TABLE_NAME).append(" where job_id = ? and task_id in (");
+        for (int i = 0; i < taskIds.size(); i++) {
+            sb.append("?,");
+        }
+        sb.deleteCharAt(sb.length() - 1);
+        sb.append(")");
+        try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sb.toString())) {
+            int i = 0;
+            ps.setString(++i, jobId);
+            for (String taskId : taskIds) {
+                ps.setString(++i, taskId);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                Set<String> existTaskIds = new HashSet<>();
+                while (rs.next()) {
+                    existTaskIds.add(rs.getString("task_id"));
+                }
+                return existTaskIds;
+            }
+        } catch (Exception e) {
+            log.error("TaskRepository.getExistTaskIds error jobId={} taskIds={}", jobId, taskIds, e);
+            return Collections.emptySet();
         }
     }
 
@@ -247,6 +280,9 @@ public class TaskRepository {
     }
 
     public boolean batchSave(Collection<Task> tasks) {
+        if (CollectionUtils.isEmpty(tasks)) {
+            return true;
+        }
         List<String> values = new ArrayList<>();
         for (Task task : tasks) {
             values.add(" (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");

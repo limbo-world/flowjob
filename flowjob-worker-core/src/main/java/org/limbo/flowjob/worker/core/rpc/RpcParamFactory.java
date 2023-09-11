@@ -28,6 +28,7 @@ import org.limbo.flowjob.api.param.broker.WorkerExecutorRegisterParam;
 import org.limbo.flowjob.api.param.broker.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
 import org.limbo.flowjob.api.param.broker.WorkerResourceParam;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.limbo.flowjob.worker.core.domain.SubTask;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.domain.WorkerResources;
@@ -141,7 +142,7 @@ public class RpcParamFactory {
             for (SubTask subTask : subTasks) {
                 SubTaskCreateParam.SubTaskInfoParam subTaskInfoParam = new SubTaskCreateParam.SubTaskInfoParam();
                 subTaskInfoParam.setTaskId(subTask.getTaskId());
-                subTaskInfoParam.setData(subTask.getAttributes());
+                subTaskInfoParam.setData(subTask.getData());
                 subTaskParams.add(subTaskInfoParam);
             }
         }

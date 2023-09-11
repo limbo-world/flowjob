@@ -52,6 +52,7 @@ public class ExecuteContext implements Runnable {
     /**
      * Rpc
      */
+    @Getter
     public final WorkerAgentRpc agentRpc;
 
     /**
@@ -95,6 +96,7 @@ public class ExecuteContext implements Runnable {
         }
 
         try {
+            ThreadLocalContext.setExecuteContext(this);
             // 开启任务上报
             this.taskReportScheduledFuture = scheduledReportPool.scheduleAtFixedRate(new StatusReportRunnable(task), 1, TaskConstant.TASK_REPORT_SECONDS, TimeUnit.SECONDS);
 
@@ -118,6 +120,7 @@ public class ExecuteContext implements Runnable {
                 taskReportScheduledFuture.cancel(true);
             }
             taskRepository.delete(task.getUid());
+            ThreadLocalContext.clear();
         }
     }
 

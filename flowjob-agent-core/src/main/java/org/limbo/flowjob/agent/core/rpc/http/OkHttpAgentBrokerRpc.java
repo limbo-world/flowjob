@@ -22,7 +22,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.agent.core.Job;
+import org.limbo.flowjob.agent.core.entity.Job;
 import org.limbo.flowjob.agent.core.ScheduleAgent;
 import org.limbo.flowjob.agent.core.rpc.AgentBrokerRpc;
 import org.limbo.flowjob.agent.core.rpc.RpcParamFactory;

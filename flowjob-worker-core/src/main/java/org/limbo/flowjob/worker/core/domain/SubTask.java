@@ -37,6 +37,6 @@ public class SubTask {
 
     private String taskId;
 
-    private Map<String, Object> attributes;
+    private Map<String, Object> data;
 
 }

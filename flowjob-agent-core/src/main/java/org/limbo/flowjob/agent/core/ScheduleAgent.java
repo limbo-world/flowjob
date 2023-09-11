@@ -18,6 +18,7 @@
 
 package org.limbo.flowjob.agent.core;
 
+import org.limbo.flowjob.agent.core.entity.Job;
 import org.limbo.flowjob.api.param.agent.SubTaskCreateParam;
 import org.limbo.flowjob.api.param.agent.TaskReportParam;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
