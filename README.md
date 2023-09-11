@@ -2,12 +2,22 @@
 
 **flowjob**主要用于搭建统一的任务调度平台，方便各个业务方进行接入使用。 项目在设计的时候，考虑了扩展性、稳定性、伸缩性等相关问题，可以作为公司的任务调度中间件被使用。
 
+## 在线试用
+
+[在线试用](http://flowjob.tzgo.top)
+
+账号：flowjob
+
+密码：fjdemo
+
 ## 功能介绍
 
 **flowjob**主要分为以下几个部分：
 
-* Broker：中心节点，负责任务的调度。
-* Worker：工作节点，主要负责任务的具体执行。
+* Broker：管控节点，对配置好的任务在集群进行负载，调度任务并下发Agent，同时管理和维护Agent/Worker节点注册等。
+* Agent：代理节点，接收下发的Job信息，生成Task下发给Worker执行，处理Job的生命周期，比如工作流流转等。
+同时此节点可以减少广播/Map/MapReduce等分片任务导致Broker存在的数据/性能压力，以及云原生环境下一些启停导致的数据问题。
+* Worker：工作节点，主要负责Task的具体执行。
 * Console：通过Broker提供的Api，进行任务创建/更新等一些管控操作。
 * Registry：注册中心，目前使用DB做为注册中心。提供了对应接口，可以基于其它组件如zk、nacos等进行灵活的封装。
 * Datasource：数据库用于持久化运行数据
@@ -107,7 +117,7 @@ mvn clean package -Dmaven.test.skip=true -Pdev
 <dependency>
     <groupId>io.github.limbo-world</groupId>
     <artifactId>flowjob-worker-spring-boot-starter</artifactId>
-    <version>1.0.1</version>
+    <version>2.0.0</version>
 </dependency>
 ```
 
@@ -123,10 +133,14 @@ mvn clean package -Dmaven.test.skip=true -Pdev
 | flowjob.worker.heartbeat | Worker 向 Broker 发送心跳请求的间隔，默认 2 秒。                                           |
 | flowjob.worker.tags      | 标签，k=v形式                                                                    |
 
+# 前端应用
+
+结合Api开发了相应的前端页面：[点击跳转](https://github.com/limbo-world/flowjob-console)
+
 # 参与贡献
 
 如果你对本项目有任何建议或想加入我们的，可以通过下面方式：，欢迎提交 issues 进行指正。
 
 - 报告 issue: [github issues](https://github.com/limbo-world/flowjob/issues)
 - 提交PR：[github PR](https://github.com/limbo-world/flowjob/pulls)
-- 加入我们：ysodevilo@gmail.com
+- 加入我们：ysodevilo@163.com
