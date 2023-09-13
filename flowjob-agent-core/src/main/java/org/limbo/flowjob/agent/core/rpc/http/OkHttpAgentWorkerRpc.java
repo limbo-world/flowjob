@@ -28,6 +28,7 @@ import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.param.worker.TaskSubmitParam;
 import org.limbo.flowjob.common.exception.RegisterFailException;
+import org.limbo.flowjob.common.exception.RpcException;
 import org.limbo.flowjob.common.http.OKHttpRpc;
 import org.limbo.flowjob.common.lb.BaseLBServer;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -65,7 +66,7 @@ public class OkHttpAgentWorkerRpc extends OKHttpRpc<BaseLBServer> implements Age
 
         if (response == null || !response.success()) {
             String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
-            throw new RegisterFailException("Agent heartbeat failed: " + msg);
+            throw new RpcException("Agent heartbeat failed: " + msg);
         }
         return response.getData();
     }

@@ -37,6 +37,7 @@ import org.limbo.flowjob.api.dto.broker.BrokerTopologyDTO;
 import org.limbo.flowjob.api.param.broker.AgentRegisterParam;
 import org.limbo.flowjob.api.param.broker.JobFeedbackParam;
 import org.limbo.flowjob.common.exception.RegisterFailException;
+import org.limbo.flowjob.common.exception.RpcException;
 import org.limbo.flowjob.common.http.OKHttpRpc;
 import org.limbo.flowjob.common.lb.BaseLBServer;
 import org.limbo.flowjob.common.lb.LBServerRepository;
@@ -102,7 +103,10 @@ public class OkHttpAgentBrokerRpc extends OKHttpRpc<BaseLBServer> implements Age
         ResponseDTO<AgentRegisterDTO> response = executePost(BASE_URL + API_AGENT_REGISTER, param, new TypeReference<ResponseDTO<AgentRegisterDTO>>() {
         });
 
-        checkResponse(response, API_AGENT_REGISTER);
+        if (response == null || !response.success()) {
+            String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
+            throw new RegisterFailException("Agent register failed: " + msg);
+        }
 
         return response.getData();
     }
@@ -240,7 +244,7 @@ public class OkHttpAgentBrokerRpc extends OKHttpRpc<BaseLBServer> implements Age
     public void checkResponse(ResponseDTO<?> response, String path) {
         if (response == null || !response.success()) {
             String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
-            throw new RegisterFailException("Agent " + path + " failed: " + msg);
+            throw new RpcException("Agent " + path + " failed: " + msg);
         }
     }
 

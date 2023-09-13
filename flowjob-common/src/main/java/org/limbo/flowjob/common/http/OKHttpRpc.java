@@ -29,7 +29,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.limbo.flowjob.api.dto.ResponseDTO;
-import org.limbo.flowjob.common.exception.BrokerRpcException;
+import org.limbo.flowjob.common.exception.RpcException;
 import org.limbo.flowjob.common.lb.LBServer;
 import org.limbo.flowjob.common.lb.LBServerRepository;
 import org.limbo.flowjob.common.lb.LBStrategy;
@@ -75,16 +75,16 @@ public class OKHttpRpc<S extends LBServer> {
             // HTTP 响应状态异常
             Response response = call.execute();
             if (!response.isSuccessful()) {
-                throw new BrokerRpcException("Api access failed; " + logRequest(url) + " code=" + response.code());
+                throw new RpcException("Api access failed; " + logRequest(url) + " code=" + response.code());
             }
 
             // 无响应 body 是异常
             if (response.body() == null) {
-                throw new BrokerRpcException("Api response empty body " + logRequest(url));
+                throw new RpcException("Api response empty body " + logRequest(url));
             }
             return response.body();
         } catch (IOException e) {
-            throw new BrokerRpcException("Api access failed " + logRequest(url), e);
+            throw new RpcException("Api access failed " + logRequest(url), e);
         }
     }
 
@@ -113,16 +113,16 @@ public class OKHttpRpc<S extends LBServer> {
             // HTTP 响应状态异常
             Response response = call.execute();
             if (!response.isSuccessful()) {
-                throw new BrokerRpcException("Api access failed; " + logRequest(url, json) + " code=" + response.code());
+                throw new RpcException("Api access failed; " + logRequest(url, json) + " code=" + response.code());
             }
 
             // 无响应 body 是异常
             if (response.body() == null) {
-                throw new BrokerRpcException("Api response empty body " + logRequest(url, json));
+                throw new RpcException("Api response empty body " + logRequest(url, json));
             }
             return response.body();
         } catch (IOException e) {
-            throw new BrokerRpcException("Api access failed " + logRequest(url, json), e);
+            throw new RpcException("Api access failed " + logRequest(url, json), e);
         }
     }
 
@@ -144,7 +144,7 @@ public class OKHttpRpc<S extends LBServer> {
         try {
             return JacksonUtils.parseObject(responseBody.string(), reference);
         } catch (IOException e) {
-            throw new BrokerRpcException("Api access failed " + logRequest(url, JacksonUtils.toJSONString(param)), e);
+            throw new RpcException("Api access failed " + logRequest(url, JacksonUtils.toJSONString(param)), e);
         }
     }
 
@@ -158,7 +158,7 @@ public class OKHttpRpc<S extends LBServer> {
         try {
             return JacksonUtils.parseObject(responseBody.string(), reference);
         } catch (IOException e) {
-            throw new BrokerRpcException("Api access failed " + logRequest(url), e);
+            throw new RpcException("Api access failed " + logRequest(url), e);
         }
     }
 

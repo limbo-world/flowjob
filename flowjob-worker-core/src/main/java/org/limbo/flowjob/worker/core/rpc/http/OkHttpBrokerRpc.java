@@ -31,6 +31,7 @@ import org.limbo.flowjob.api.dto.broker.BrokerTopologyDTO;
 import org.limbo.flowjob.api.dto.broker.WorkerRegisterDTO;
 import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
 import org.limbo.flowjob.common.exception.RegisterFailException;
+import org.limbo.flowjob.common.exception.RpcException;
 import org.limbo.flowjob.common.http.OKHttpRpc;
 import org.limbo.flowjob.common.lb.BaseLBServer;
 import org.limbo.flowjob.common.lb.LBServerRepository;
@@ -150,7 +151,7 @@ public class OkHttpBrokerRpc extends OKHttpRpc<BaseLBServer> implements WorkerBr
 
         if (response == null || !response.success()) {
             String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
-            throw new RegisterFailException("Worker heartbeat failed: " + msg);
+            throw new RpcException("Worker heartbeat failed: " + msg);
         }
 
         // 更新 broker 节点拓扑

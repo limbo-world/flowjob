@@ -20,7 +20,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.common.constants.WorkerConstant;
-import org.limbo.flowjob.common.exception.BrokerRpcException;
+import org.limbo.flowjob.common.exception.RpcException;
 import org.limbo.flowjob.common.exception.RegisterFailException;
 import org.limbo.flowjob.common.rpc.EmbedRpcServer;
 import org.limbo.flowjob.common.rpc.RpcServerStatus;
@@ -298,7 +298,7 @@ public class BaseWorker implements Worker {
 
         try {
             brokerRpc.heartbeat();
-        } catch (BrokerRpcException e) {
+        } catch (RpcException e) {
             log.warn("Worker send heartbeat failed");
             throw new IllegalStateException("Worker send heartbeat failed", e);
         }

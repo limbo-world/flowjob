@@ -27,6 +27,7 @@ import org.limbo.flowjob.api.param.agent.SubTaskCreateParam;
 import org.limbo.flowjob.api.param.agent.TaskFeedbackParam;
 import org.limbo.flowjob.api.param.agent.TaskReportParam;
 import org.limbo.flowjob.common.exception.RegisterFailException;
+import org.limbo.flowjob.common.exception.RpcException;
 import org.limbo.flowjob.common.http.OKHttpRpc;
 import org.limbo.flowjob.common.lb.BaseLBServer;
 import org.limbo.flowjob.worker.core.domain.SubTask;
@@ -63,7 +64,7 @@ public class OkHttpAgentRpc extends OKHttpRpc<BaseLBServer> implements WorkerAge
 
         if (response == null || !response.success()) {
             String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
-            throw new RegisterFailException("Worker submit sub task failed: " + msg);
+            throw new RpcException("Worker submit sub task failed: " + msg);
         }
 
         return response.getData();
@@ -78,7 +79,7 @@ public class OkHttpAgentRpc extends OKHttpRpc<BaseLBServer> implements WorkerAge
 
         if (response == null || !response.success()) {
             String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
-            throw new RegisterFailException("Worker report task failed: " + msg);
+            throw new RpcException("Worker report task failed: " + msg);
         }
 
         return response.getData();
@@ -93,7 +94,7 @@ public class OkHttpAgentRpc extends OKHttpRpc<BaseLBServer> implements WorkerAge
 
         if (response == null || !response.success()) {
             String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
-            throw new RegisterFailException("Worker report task failed: " + msg);
+            throw new RpcException("Worker report task failed: " + msg);
         }
 
         return response.getData();
@@ -120,7 +121,7 @@ public class OkHttpAgentRpc extends OKHttpRpc<BaseLBServer> implements WorkerAge
 
         if (response == null || !response.success()) {
             String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
-            throw new RegisterFailException("Worker feedback Task failed: " + msg);
+            throw new RpcException("Worker feedback Task failed: " + msg);
         }
         return response.getData();
     }

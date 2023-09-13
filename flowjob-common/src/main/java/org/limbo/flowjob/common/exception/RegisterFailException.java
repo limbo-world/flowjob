@@ -22,7 +22,7 @@ package org.limbo.flowjob.common.exception;
  * @author Brozen
  * @since 2022-08-30
  */
-public class RegisterFailException extends BrokerRpcException {
+public class RegisterFailException extends RpcException {
 
     private static final long serialVersionUID = 1497833814754746853L;
 

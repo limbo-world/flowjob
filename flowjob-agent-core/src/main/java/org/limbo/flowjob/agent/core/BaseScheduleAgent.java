@@ -35,7 +35,7 @@ import org.limbo.flowjob.api.param.agent.SubTaskCreateParam;
 import org.limbo.flowjob.api.param.agent.TaskReportParam;
 import org.limbo.flowjob.common.constants.AgentConstant;
 import org.limbo.flowjob.common.constants.TaskConstant;
-import org.limbo.flowjob.common.exception.BrokerRpcException;
+import org.limbo.flowjob.common.exception.RpcException;
 import org.limbo.flowjob.common.exception.RegisterFailException;
 import org.limbo.flowjob.common.heartbeat.Heartbeat;
 import org.limbo.flowjob.common.heartbeat.HeartbeatPacemaker;
@@ -199,7 +199,7 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
     public void sendHeartbeat() {
         try {
             brokerRpc.heartbeat(this);
-        } catch (BrokerRpcException e) {
+        } catch (RpcException e) {
             log.warn("Agent send heartbeat failed");
             throw new IllegalStateException("Agent send heartbeat failed", e);
         }
@@ -229,20 +229,22 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
             throw new IllegalArgumentException("Agent's queue is full, limit: " + availableQueueSize);
         }
 
-        jobRepository.save(job);
-        try {
-            job.setTaskDispatcher(taskService.getTaskDispatcher());
-            job.setTaskRepository(taskService.getTaskRepository());
-            job.setJobRepository(jobRepository);
-            job.setBrokerRpc(brokerRpc);
-            job.setScheduledReportPool(scheduledReportPool);
+        if (jobRepository.save(job)) {
+            try {
+                job.setTaskDispatcher(taskService.getTaskDispatcher());
+                job.setTaskRepository(taskService.getTaskRepository());
+                job.setJobRepository(jobRepository);
+                job.setBrokerRpc(brokerRpc);
+                job.setScheduledReportPool(scheduledReportPool);
 
-            this.threadPool.submit(job);
-        } catch (RejectedExecutionException e) {
-            jobRepository.delete(job.getId());
-            // 拒绝时候的处理
-            throw new IllegalStateException("Schedule job failed, maybe thread exhausted. job=" + job.getId());
+                this.threadPool.submit(job);
+            } catch (RejectedExecutionException e) {
+                jobRepository.delete(job.getId());
+                // 拒绝时候的处理
+                throw new IllegalStateException("Schedule job failed, maybe thread exhausted. job=" + job.getId());
+            }
         }
+        // 可能重复下发到同个节点，这种时候不需要处理
     }
 
     @Override

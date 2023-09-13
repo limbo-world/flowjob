@@ -22,18 +22,18 @@ package org.limbo.flowjob.common.exception;
  * @author Brozen
  * @since 2022-08-30
  */
-public class BrokerRpcException extends RuntimeException {
+public class RpcException extends RuntimeException {
 
     private static final long serialVersionUID = -3908438587289682349L;
 
-    public BrokerRpcException() {
+    public RpcException() {
     }
 
-    public BrokerRpcException(String message) {
+    public RpcException(String message) {
         super(message);
     }
 
-    public BrokerRpcException(String message, Throwable cause) {
+    public RpcException(String message, Throwable cause) {
         super(message, cause);
     }
 
