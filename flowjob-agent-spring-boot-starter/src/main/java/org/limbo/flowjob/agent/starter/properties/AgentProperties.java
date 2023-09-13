@@ -84,7 +84,7 @@ public class AgentProperties {
     /**
      * 数据库配置
      */
-    private DatasourceConfig datasource;
+    private DatasourceConfig datasource = new DatasourceConfig();
 
     @Data
     public static class DatasourceConfig {

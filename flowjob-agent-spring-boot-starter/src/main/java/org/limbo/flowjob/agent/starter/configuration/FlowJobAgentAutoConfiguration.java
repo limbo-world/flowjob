@@ -130,7 +130,7 @@ public class FlowJobAgentAutoConfiguration {
     public TaskRepository taskRepository(FlowjobConnectionFactory flowjobConnectionFactory) throws SQLException {
         TaskRepository taskRepository = new TaskRepository(flowjobConnectionFactory);
         // 先放这里了后面考虑生命周期
-        if (properties.isInitTable()) {
+        if (properties.getDatasource().isInitTable()) {
             taskRepository.initTable();
         }
         return taskRepository;
@@ -139,7 +139,8 @@ public class FlowJobAgentAutoConfiguration {
     @Bean("fjaConnectionFactory")
     @ConditionalOnMissingBean(FlowjobConnectionFactory.class)
     public FlowjobConnectionFactory flowjobConnectionFactory() {
-        return new H2ConnectionFactory(properties.getDatasourceUrl(), properties.getDatasourceUsername(), properties.getDatasourcePassword());
+        AgentProperties.DatasourceConfig datasource = properties.getDatasource();
+        return new H2ConnectionFactory(datasource.getUrl(), datasource.getUsername(), datasource.getPassword());
     }
 
 
