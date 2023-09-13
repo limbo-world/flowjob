@@ -52,7 +52,9 @@ public class JobRepository {
      */
     public void delete(String id) {
         Job remove = map.remove(id);
-        remove.stop();
+        if (remove != null) {
+            remove.stop();
+        }
     }
 
 

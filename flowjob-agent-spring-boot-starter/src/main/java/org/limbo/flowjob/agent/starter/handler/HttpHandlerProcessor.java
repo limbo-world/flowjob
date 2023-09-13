@@ -107,7 +107,7 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
             log.info(msg + " uri={}", uri);
             return ResponseDTO.<Void>builder().notFound(msg).build();
         } catch (Exception e) {
-            log.error("Request process fail uri={}", uri, e);
+            log.error("Request process fail uri={} param={}", uri, data, e);
             return ResponseDTO.<Void>builder().error(e.getMessage()).build();
         }
     }

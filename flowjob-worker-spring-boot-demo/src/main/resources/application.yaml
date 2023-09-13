@@ -3,3 +3,7 @@ spring:
     active: @profiles.active@
   application:
     name: flowjob-worker-demo
+
+# log
+logging:
+  config: classpath:log4j2.xml
