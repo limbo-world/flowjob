@@ -22,8 +22,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.agent.core.FlowjobConnectionFactory;
-import org.limbo.flowjob.agent.core.entity.Task;
+import org.limbo.flowjob.agent.core.TaskFactory;
 import org.limbo.flowjob.agent.core.Worker;
+import org.limbo.flowjob.agent.core.entity.Task;
 import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.api.param.console.TaskQueryParam;
@@ -163,6 +164,30 @@ public class TaskRepository {
         }
     }
 
+    private static final String DEFAULT_REPORT_TIME_STR = DateTimeUtils.formatYMDHMS(TaskFactory.DEFAULT_REPORT_TIME);
+
+    public List<Task> getUnScheduled(String triggerAt, String startId, Integer limit) {
+        String sql = "select * from " + TABLE_NAME + " where last_report_at = ? and trigger_at < ? and status = ? and task_id > ? order by task_id limit ?";
+        try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            int i = 0;
+            ps.setString(++i, DEFAULT_REPORT_TIME_STR);
+            ps.setString(++i, triggerAt);
+            ps.setInt(++i, TaskStatus.SCHEDULING.status);
+            ps.setString(++i, startId);
+            ps.setInt(++i, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                List<Task> tasks = new ArrayList<>();
+                while (rs.next()) {
+                    tasks.add(convert(rs));
+                }
+                return tasks;
+            }
+        } catch (Exception e) {
+            log.error("TaskRepository.getUnScheduled error startId={} limit={}", startId, limit, e);
+            return Collections.emptyList();
+        }
+    }
+
     public List<Task> getByLastReportBetween(String reportTimeStart, String reportTimeEnd, TaskStatus status, String taskId, Integer limit) {
         String sql = "select * from " + TABLE_NAME + " where last_report_at >= ? and last_report_at <= ? and status = ? and task_id > ? order by task_id limit ?";
         try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -181,6 +206,28 @@ public class TaskRepository {
             }
         } catch (Exception e) {
             log.error("TaskRepository.getByLastReportAtBefore error reportTimeStart={} reportTimeEnd={} limit={}", reportTimeStart, reportTimeEnd, limit, e);
+            return Collections.emptyList();
+        }
+    }
+
+    public List<Task> all(String jobId) {
+        String sql = "select * from " + TABLE_NAME;
+        if (StringUtils.isNotBlank(jobId)) {
+            sql += " where job_id = ?";
+        }
+        try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (StringUtils.isNotBlank(jobId)) {
+                ps.setString(1, jobId);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                List<Task> tasks = new ArrayList<>();
+                while (rs.next()) {
+                    tasks.add(convert(rs));
+                }
+                return tasks;
+            }
+        } catch (Exception e) {
+            log.error("TaskRepository.queryPage error ", e);
             return Collections.emptyList();
         }
     }
@@ -297,7 +344,7 @@ public class TaskRepository {
                 ps.setString(++idx, task.getResult() == null ? "" : task.getResult());
                 ps.setString(++idx, task.getErrorMsg() == null ? "" : task.getErrorMsg());
                 ps.setString(++idx, task.getErrorStackTrace() == null ? "" : task.getErrorStackTrace());
-                ps.setString(++idx, DateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime()));
+                ps.setString(++idx, DateTimeUtils.formatYMDHMS(task.getLastReportAt()));
             }
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
@@ -307,7 +354,7 @@ public class TaskRepository {
     }
 
     public boolean executing(String jobId, String taskId, String workerId, String workerAddress) {
-        String sql = "update " + TABLE_NAME + " set `status` = ?, worker_id = ?, worker_address = ? start_at = ? where job_id = ? and task_id = ?";
+        String sql = "update " + TABLE_NAME + " set `status` = ?, worker_id = ?, worker_address = ?, start_at = ? where job_id = ? and task_id = ?";
         try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             int i = 0;
             ps.setInt(++i, TaskStatus.EXECUTING.status);

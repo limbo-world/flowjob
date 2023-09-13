@@ -55,7 +55,7 @@ public class JobScheduleCheckTask extends FixDelayMetaTask {
 
     private final MetaTaskConverter metaTaskConverter;
 
-    private static final long INTERVAL = 30;
+    private static final long INTERVAL = 10;
 
     public JobScheduleCheckTask(MetaTaskScheduler scheduler,
                                 @Lazy Broker broker,
@@ -86,14 +86,17 @@ public class JobScheduleCheckTask extends FixDelayMetaTask {
 
             // 一段时候后还是 还是 SCHEDULING 状态的，需要重新调度
             Integer limit = 100;
+            String startId = "";
             LocalDateTime currentTime = TimeUtils.currentLocalDateTime();
 
-            List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findInSchedule(planIds, currentTime.plusSeconds(-INTERVAL), currentTime, JobStatus.SCHEDULING.status, limit);
+            List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findInSchedule(planIds, currentTime.plusSeconds(-INTERVAL), currentTime, JobStatus.SCHEDULING.status, startId, limit);
             while (CollectionUtils.isNotEmpty(jobInstanceEntities)) {
                 for (JobInstanceEntity entity : jobInstanceEntities) {
                     JobScheduleTask jobScheduleTask = metaTaskConverter.toJobInstanceScheduleTask(entity);
                     jobScheduleTask.scheduleJob();
                 }
+                startId = jobInstanceEntities.get(jobInstanceEntities.size() - 1).getJobInstanceId();
+                jobInstanceEntities = jobInstanceEntityRepo.findInSchedule(planIds, currentTime.plusSeconds(-INTERVAL), currentTime, JobStatus.SCHEDULING.status, startId, limit);
             }
         } catch (Exception e) {
             log.error("{} execute fail", scheduleId(), e);

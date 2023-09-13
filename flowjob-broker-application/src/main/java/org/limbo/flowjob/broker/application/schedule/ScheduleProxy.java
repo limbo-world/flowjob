@@ -26,9 +26,9 @@ import org.limbo.flowjob.api.constants.ExecuteResult;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.api.constants.WorkerStatus;
 import org.limbo.flowjob.api.dto.broker.AvailableWorkerDTO;
 import org.limbo.flowjob.api.param.broker.JobFeedbackParam;
+import org.limbo.flowjob.broker.application.component.WorkerRegistry;
 import org.limbo.flowjob.broker.application.converter.BrokerConverter;
 import org.limbo.flowjob.broker.application.task.JobScheduleTask;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
@@ -118,6 +118,9 @@ public class ScheduleProxy implements ApplicationContextAware {
 
     @Setter(onMethod_ = @Inject)
     private WorkerSelectorFactory workerSelectorFactory;
+
+    @Setter(onMethod_ = @Inject)
+    private WorkerRegistry workerRegistry;
 
 
     private final Map<PlanType, PlanScheduler> schedulers = new EnumMap<>(PlanType.class);
@@ -272,7 +275,9 @@ public class ScheduleProxy implements ApplicationContextAware {
         JobInstance jobInstance = jobInstanceRepository.get(jobInstanceId);
         JobInfo jobInfo = jobInstance.getJobInfo();
 
-        List<WorkerEntity> workerEntities = workerEntityRepo.findByStatusAndEnabledAndDeleted(WorkerStatus.RUNNING.status, true, false);
+        List<WorkerEntity> workerEntities = workerRegistry.all().stream()
+                .filter(WorkerEntity::isEnabled)
+                .collect(Collectors.toList());
 
         if (CollectionUtils.isEmpty(workerEntities)) {
             return Collections.emptyList();

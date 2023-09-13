@@ -19,6 +19,8 @@
 package org.limbo.flowjob.worker.core.rpc.http;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
 import org.apache.commons.collections4.CollectionUtils;
@@ -34,7 +36,6 @@ import org.limbo.flowjob.common.lb.BaseLBServer;
 import org.limbo.flowjob.common.lb.LBServerRepository;
 import org.limbo.flowjob.common.lb.LBStrategy;
 import org.limbo.flowjob.worker.core.domain.Worker;
-import org.limbo.flowjob.worker.core.domain.WorkerContext;
 import org.limbo.flowjob.worker.core.rpc.RpcParamFactory;
 import org.limbo.flowjob.worker.core.rpc.WorkerBrokerRpc;
 
@@ -61,6 +62,10 @@ public class OkHttpBrokerRpc extends OKHttpRpc<BaseLBServer> implements WorkerBr
 
     private static final Protocol DEFAULT_PROTOCOL = Protocol.HTTP;
 
+    @Getter
+    @Setter
+    private Worker worker;
+
     public OkHttpBrokerRpc(LBServerRepository<BaseLBServer> repository, LBStrategy<BaseLBServer> strategy) {
         super(repository, strategy);
         this.repository = repository;
@@ -69,12 +74,10 @@ public class OkHttpBrokerRpc extends OKHttpRpc<BaseLBServer> implements WorkerBr
     /**
      * {@inheritDoc}
      *
-     * @param worker 需注册的 Worker
-     * @return
      * @throws RegisterFailException
      */
     @Override
-    public void register(Worker worker) throws RegisterFailException {
+    public String register() throws RegisterFailException {
         WorkerRegisterDTO result = null;
         try {
             result = registerWith(RpcParamFactory.registerParam(worker));
@@ -84,8 +87,8 @@ public class OkHttpBrokerRpc extends OKHttpRpc<BaseLBServer> implements WorkerBr
 
         // 注册成功，更新 broker 节点拓扑
         if (result != null) {
-            WorkerContext.setWorkerId(result.getWorkerId());
             updateBrokerTopology(result.getBrokerTopology());
+            return result.getWorkerId();
         } else {
             String msg = "Register failed after tried all broker, please check your configuration";
             throw new RegisterFailException(msg);
@@ -139,12 +142,10 @@ public class OkHttpBrokerRpc extends OKHttpRpc<BaseLBServer> implements WorkerBr
 
     /**
      * {@inheritDoc}
-     *
-     * @param worker 发送心跳的 Worker
      */
     @Override
-    public void heartbeat(Worker worker) {
-        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + API_WORKER_HEARTBEAT + "?id=" + WorkerContext.getWorkerId(), RpcParamFactory.heartbeatParam(worker), new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
+    public void heartbeat() {
+        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + API_WORKER_HEARTBEAT + "?id=" + worker.getId(), RpcParamFactory.heartbeatParam(worker), new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
         });
 
         if (response == null || !response.success()) {

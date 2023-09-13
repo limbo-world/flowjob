@@ -112,7 +112,7 @@ public class PlanLoadTask extends FixDelayMetaTask {
         if (CollectionUtils.isEmpty(planIds)) {
             return Collections.emptyList();
         }
-        List<PlanEntity> planEntities = planEntityRepo.loadUpdatedPlans(planIds, loadTimePoint);
+        List<PlanEntity> planEntities = planEntityRepo.loadUpdatedPlans(planIds, loadTimePoint.plusSeconds(-1)); // 防止部分延迟导致变更丢失
         loadTimePoint = TimeUtils.currentLocalDateTime();
         if (CollectionUtils.isEmpty(planEntities)) {
             return Collections.emptyList();

@@ -96,7 +96,7 @@ public class TaskService {
         switch (task.getType()) {
             case STANDALONE:
             case REDUCE:
-                handleJobSuccess(job);
+                job.handleSuccess();
                 break;
             case SHARDING:
                 break;
@@ -118,12 +118,7 @@ public class TaskService {
         if (taskRepository.countUnSuccess(task.getJobId(), TaskType.BROADCAST) > 0) {
             return; // 交由失败的task 或者后面还在执行的task去做后续逻辑处理
         }
-        handleJobSuccess(job);
-    }
-
-    private void handleJobSuccess(Job job) {
-        brokerRpc.feedbackJobSucceed(job);
-        jobRepository.delete(job.getId());
+        job.handleSuccess();
     }
 
     /**

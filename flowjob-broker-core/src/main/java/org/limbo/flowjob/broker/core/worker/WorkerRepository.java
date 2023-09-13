@@ -58,13 +58,6 @@ public interface WorkerRepository {
 
 
     /**
-     * 获取所有可用的worker。可用指{@link WorkerStatus#RUNNING}状态的worker。
-     * @return 可用的worker。
-     */
-    List<Worker> listAvailableWorkers();
-
-
-    /**
      * 删除一个worker，软删除
      * @param id 需要被移除的workerId
      */

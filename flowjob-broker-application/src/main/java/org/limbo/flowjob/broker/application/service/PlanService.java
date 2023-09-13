@@ -117,6 +117,7 @@ public class PlanService {
             planId = idGenerator.generateId(IDType.PLAN);
 
             PlanEntity planEntity = new PlanEntity();
+            planEntity.setAppId("");
             planEntity.setCurrentVersion(planInfoId);
             planEntity.setRecentlyVersion(planInfoId);
             planEntity.setEnabled(false);

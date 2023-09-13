@@ -64,7 +64,7 @@ public interface ScheduleAgent {
     /**
      * 任务执行中
      */
-    void reportTaskExecuting(TaskReportParam param);
+    boolean reportTaskExecuting(TaskReportParam param);
 
     /**
      * 任务上报

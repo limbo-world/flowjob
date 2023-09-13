@@ -50,7 +50,9 @@ public class LocalNodeManger implements NodeManger {
         if (n == null) {
             slotManager.rehash(map.values());
         }
-        log.debug("[LocalNodeManger] online {}", JacksonUtils.toJSONString(map));
+        if (log.isDebugEnabled()) {
+            log.debug("[LocalNodeManger] online {}", JacksonUtils.toJSONString(map));
+        }
     }
 
     @Override
@@ -59,7 +61,9 @@ public class LocalNodeManger implements NodeManger {
         if (rn != null) {
             slotManager.rehash(map.values());
         }
-        log.debug("[LocalNodeManger] offline {}", JacksonUtils.toJSONString(map));
+        if (log.isDebugEnabled()) {
+            log.debug("[LocalNodeManger] offline {}", JacksonUtils.toJSONString(map));
+        }
     }
 
     @Override
@@ -69,7 +73,7 @@ public class LocalNodeManger implements NodeManger {
 
     @Override
     public Collection<Node> allAlive() {
-        if (map.size() == 0) {
+        if (map.size() == 0 && log.isDebugEnabled()) {
             log.debug("[LocalNodeManger] allAlive {}", JacksonUtils.toJSONString(map));
         }
         return map.values();

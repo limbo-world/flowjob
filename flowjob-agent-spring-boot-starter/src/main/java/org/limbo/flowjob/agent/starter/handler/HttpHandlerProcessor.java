@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.agent.core.ScheduleAgent;
 import org.limbo.flowjob.agent.core.entity.Job;
-import org.limbo.flowjob.agent.core.service.JobService;
+import org.limbo.flowjob.agent.core.repository.JobRepository;
 import org.limbo.flowjob.agent.core.service.TaskService;
 import org.limbo.flowjob.api.constants.ExecuteResult;
 import org.limbo.flowjob.api.constants.JobType;
@@ -56,7 +56,7 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
     private ScheduleAgent agent;
 
     @Setter
-    private JobService jobService;
+    private JobRepository jobRepository;
 
     @Setter
     private TaskService taskService;
@@ -100,7 +100,7 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
                     TaskQueryParam taskQueryParam = JacksonUtils.parseObject(data, TaskQueryParam.class);
                     return ResponseDTO.<PageDTO<TaskDTO>>builder().ok(taskService.page(taskQueryParam)).build();
                 case "/api/v1/backdoor/job/list":
-                    return ResponseDTO.<List<Job>>builder().ok(jobService.findAll()).build();
+                    return ResponseDTO.<List<Job>>builder().ok(jobRepository.findAll()).build();
             }
 
             String msg = "Invalid request, Uri NotFound.";
@@ -137,8 +137,7 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
             if (param == null) {
                 return true;
             }
-            agent.reportTaskExecuting(param);
-            return true;
+            return agent.reportTaskExecuting(param);
         } catch (Exception e) {
             log.error("Failed to report task param={}", param, e);
             return false;

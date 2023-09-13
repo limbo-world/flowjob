@@ -98,12 +98,12 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
                 return;
             }
 
-            LocalDateTime curCheckTime = TimeUtils.currentLocalDateTime().plus(-JobConstant.JOB_REPORT_SECONDS + 5, ChronoUnit.SECONDS);
+            LocalDateTime checkStartTime = lastCheckTime.plusSeconds(-1);
+            LocalDateTime checkEndTime = TimeUtils.currentLocalDateTime().plus(-(JobConstant.JOB_REPORT_SECONDS + 5), ChronoUnit.SECONDS);
 
             Integer limit = 100;
-
-            // todo
-            List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findByExecuteCheck(planIds, JobStatus.EXECUTING.status, lastCheckTime, curCheckTime, limit);
+            String startId = "";
+            List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findByExecuteCheck(planIds, JobStatus.EXECUTING.status, checkStartTime, checkEndTime, startId, limit);
             while (CollectionUtils.isNotEmpty(jobInstanceEntities)) {
                 for (JobInstanceEntity instance : jobInstanceEntities) {
                     CommonThreadPool.IO.submit(() -> {
@@ -118,9 +118,10 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
                         }
                     });
                 }
-                jobInstanceEntities = jobInstanceEntityRepo.findByExecuteCheck(planIds, JobStatus.EXECUTING.status, lastCheckTime, curCheckTime, limit);
+                startId = jobInstanceEntities.get(jobInstanceEntities.size() - 1).getJobInstanceId();
+                jobInstanceEntities = jobInstanceEntityRepo.findByExecuteCheck(planIds, JobStatus.EXECUTING.status, checkStartTime, checkEndTime, startId, limit);
             }
-            lastCheckTime = curCheckTime;
+            lastCheckTime = checkEndTime;
         } catch (Exception e) {
             log.error("{} execute fail", scheduleId(), e);
         }

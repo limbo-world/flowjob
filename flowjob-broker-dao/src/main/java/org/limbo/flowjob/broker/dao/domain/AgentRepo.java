@@ -22,14 +22,13 @@ import lombok.Setter;
 import org.limbo.flowjob.api.constants.AgentStatus;
 import org.limbo.flowjob.broker.core.agent.AgentRepository;
 import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
+import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.AgentEntity;
 import org.limbo.flowjob.broker.dao.repositories.AgentEntityRepo;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import java.net.URL;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Devil
@@ -42,36 +41,12 @@ public class AgentRepo implements AgentRepository {
     protected AgentEntityRepo agentEntityRepo;
 
     @Override
-    public List<ScheduleAgent> listAvailableAgents() {
-        List<AgentEntity> agentEntities = agentEntityRepo.findByStatusAndAvailableQueueLimitGreaterThanAndEnabledAndDeleted(AgentStatus.RUNNING.status, 0, true, false);
-        return agentEntities.stream().map(this::toAgent).collect(Collectors.toList());
-    }
-
-    @Override
     public ScheduleAgent get(String id) {
         AgentEntity agent = agentEntityRepo.findById(id).orElse(null);
         if (agent == null) {
             return null;
         }
-        return toAgent(agent);
-    }
-
-
-    public ScheduleAgent toAgent(AgentEntity entity) {
-        return ScheduleAgent.builder()
-                .id(entity.getAgentId())
-                .status(AgentStatus.parse(entity.getStatus()))
-                .rpcBaseUrl(url(entity))
-                .build();
-
-    }
-
-    public static URL url(AgentEntity entity) {
-        try {
-            return new URL(entity.getProtocol(), entity.getHost(), entity.getPort(), "");
-        } catch (Exception e) {
-            throw new IllegalStateException("parse agent rpc info error", e);
-        }
+        return DomainConverter.toAgent(agent);
     }
 
 }

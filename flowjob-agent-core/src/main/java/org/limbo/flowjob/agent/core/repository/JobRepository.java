@@ -51,7 +51,8 @@ public class JobRepository {
      * 从仓库中移除任务
      */
     public void delete(String id) {
-        map.remove(id);
+        Job remove = map.remove(id);
+        remove.stop();
     }
 
 

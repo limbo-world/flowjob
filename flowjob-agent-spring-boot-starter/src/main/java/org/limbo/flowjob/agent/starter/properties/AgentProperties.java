@@ -93,7 +93,7 @@ public class AgentProperties {
     /**
      * 是否初始化数据库 如果是持久化 task 的则选 false 交由运维管理
      */
-    private boolean initTable;
+    private boolean initTable = true;
 
 
 }

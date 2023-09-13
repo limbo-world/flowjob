@@ -24,5 +24,5 @@ package org.limbo.flowjob.common.constants;
  */
 public interface JobConstant {
 
-    int JOB_REPORT_SECONDS = 60;
+    int JOB_REPORT_SECONDS = 5;
 }

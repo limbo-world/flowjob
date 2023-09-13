@@ -102,8 +102,12 @@ public class FlowJobWorkerAutoConfiguration {
         URL workerBaseUrl = new URL(workerProps.getProtocol().getValue(), host, port, "");
         HttpHandlerProcessor httpHandlerProcessor = new HttpHandlerProcessor();
         EmbedRpcServer embedRpcServer = new EmbedHttpRpcServer(port, httpHandlerProcessor);
+
+        // worker
         BaseWorker worker = new BaseWorker(workerProps.getName(), workerBaseUrl, resources, brokerRpc, agentRpc, embedRpcServer);
         httpHandlerProcessor.setWorker(worker);
+        brokerRpc.setWorker(worker);
+        agentRpc.setWorker(worker);
 
         // 将 tag 添加到 Worker
         if (CollectionUtils.isNotEmpty(workerProps.getTags())) {

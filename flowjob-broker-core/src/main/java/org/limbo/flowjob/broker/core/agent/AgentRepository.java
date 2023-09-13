@@ -18,15 +18,11 @@
 
 package org.limbo.flowjob.broker.core.agent;
 
-import java.util.List;
-
 /**
  * @author Devil
  * @since 2023/8/14
  */
 public interface AgentRepository {
-
-    List<ScheduleAgent> listAvailableAgents();
 
     ScheduleAgent get(String id);
 

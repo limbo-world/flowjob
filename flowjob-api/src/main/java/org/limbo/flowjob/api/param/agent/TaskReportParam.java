@@ -25,6 +25,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.net.URL;
 
 /**
  * @author Devil
@@ -61,6 +62,6 @@ public class TaskReportParam implements Serializable {
      * workerAddress
      */
     @Schema(description = "workerAddress")
-    private String workerAddress;
+    private URL workerAddress;
 
 }

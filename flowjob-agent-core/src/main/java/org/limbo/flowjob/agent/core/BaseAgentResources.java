@@ -20,7 +20,7 @@ package org.limbo.flowjob.agent.core;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import org.limbo.flowjob.agent.core.service.JobService;
+import org.limbo.flowjob.agent.core.repository.JobRepository;
 
 /**
  * @author Brozen
@@ -40,12 +40,12 @@ public class BaseAgentResources implements AgentResources {
      */
     private int queueSize;
 
-    private JobService jobService;
+    private JobRepository jobRepository;
 
-    public BaseAgentResources(int concurrency, int queueSize, JobService jobService) {
+    public BaseAgentResources(int concurrency, int queueSize, JobRepository jobRepository) {
         this.concurrency = concurrency;
         this.queueSize = queueSize;
-        this.jobService = jobService;
+        this.jobRepository = jobRepository;
     }
 
 
@@ -54,7 +54,7 @@ public class BaseAgentResources implements AgentResources {
      * @return
      */
     public int availableQueueSize() {
-        return queueSize - jobService.count();
+        return queueSize - jobRepository.count();
     }
 
 

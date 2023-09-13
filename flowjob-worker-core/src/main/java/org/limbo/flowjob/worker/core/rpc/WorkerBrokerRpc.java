@@ -30,16 +30,16 @@ public interface WorkerBrokerRpc {
 
     /**
      * 向 Broker 注册 Worker
-     * @param worker 需注册的 Worker
      */
-    void register(Worker worker) throws RegisterFailException;
+    String register() throws RegisterFailException;
 
 
     /**
      * 向 Broker 发送心跳
-     * @param worker 发送心跳的 Worker
      */
-    void heartbeat(Worker worker);
+    void heartbeat();
+
+    void setWorker(Worker worker);
 
 //    /**
 //     * 向 Broker 发送心跳

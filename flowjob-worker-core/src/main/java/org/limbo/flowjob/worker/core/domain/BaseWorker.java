@@ -64,6 +64,9 @@ import java.util.function.Supplier;
 public class BaseWorker implements Worker {
 
     @Getter
+    private String id;
+
+    @Getter
     private final String name;
 
     /**
@@ -275,7 +278,7 @@ public class BaseWorker implements Worker {
     protected void registerSelfToBroker() {
         try {
             // 调用 Broker 远程接口，并更新 Broker 信息
-            brokerRpc.register(this);
+            this.id = brokerRpc.register();
         } catch (RegisterFailException e) {
             log.error("Worker register failed", e);
             throw e;
@@ -294,7 +297,7 @@ public class BaseWorker implements Worker {
         assertWorkerRunning();
 
         try {
-            brokerRpc.heartbeat(this);
+            brokerRpc.heartbeat();
         } catch (BrokerRpcException e) {
             log.warn("Worker send heartbeat failed");
             throw new IllegalStateException("Worker send heartbeat failed", e);
@@ -314,14 +317,13 @@ public class BaseWorker implements Worker {
         TaskExecutor executor = executors.get(task.getExecutorName());
         Objects.requireNonNull(executor, "Unsupported executor: " + task.getExecutorName());
 
-        TaskRepository taskRepository = this.resource.taskRepository();
         int availableQueueSize = this.resource.availableQueueSize();
-        if (taskRepository.count() >= availableQueueSize) {
+        if (availableQueueSize <= 0) {
             throw new IllegalArgumentException("Worker's queue is full, limit: " + availableQueueSize);
         }
 
         // 存储任务，并判断是否重复接收任务
-
+        TaskRepository taskRepository = this.resource.taskRepository();
         ExecuteContext context = new ExecuteContext(scheduledReportPool, taskRepository, executor, agentRpc, task);
         if (!taskRepository.save(context)) {
             log.warn("Receive task [{}], but already in repository", task.getTaskId());

@@ -34,6 +34,11 @@ import java.util.Set;
 public interface Worker {
 
     /**
+     * 获取 Worker ID
+     */
+    String getId();
+
+    /**
      * 获取 Worker 名称
      */
     String getName();

@@ -22,27 +22,26 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.agent.core.checker.TaskScheduleChecker;
 import org.limbo.flowjob.agent.core.checker.TaskExecuteChecker;
+import org.limbo.flowjob.agent.core.checker.TaskScheduleChecker;
 import org.limbo.flowjob.agent.core.entity.Job;
 import org.limbo.flowjob.agent.core.entity.Task;
+import org.limbo.flowjob.agent.core.repository.JobRepository;
 import org.limbo.flowjob.agent.core.rpc.AgentBrokerRpc;
-import org.limbo.flowjob.agent.core.service.JobService;
 import org.limbo.flowjob.agent.core.service.TaskService;
 import org.limbo.flowjob.api.constants.JobType;
 import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.api.param.agent.SubTaskCreateParam;
 import org.limbo.flowjob.api.param.agent.TaskReportParam;
 import org.limbo.flowjob.common.constants.AgentConstant;
-import org.limbo.flowjob.common.constants.JobConstant;
 import org.limbo.flowjob.common.constants.TaskConstant;
 import org.limbo.flowjob.common.exception.BrokerRpcException;
-import org.limbo.flowjob.common.exception.JobException;
 import org.limbo.flowjob.common.exception.RegisterFailException;
 import org.limbo.flowjob.common.heartbeat.Heartbeat;
 import org.limbo.flowjob.common.heartbeat.HeartbeatPacemaker;
 import org.limbo.flowjob.common.rpc.EmbedRpcServer;
 import org.limbo.flowjob.common.rpc.RpcServerStatus;
+import org.limbo.flowjob.common.thread.CommonThreadPool;
 import org.limbo.flowjob.common.thread.NamedThreadFactory;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
@@ -58,7 +57,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -116,17 +114,17 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
 
     private TaskService taskService;
 
-    private JobService jobService;
+    private JobRepository jobRepository;
 
-    public BaseScheduleAgent(URL url, AgentResources resource, AgentBrokerRpc brokerRpc, JobService jobService, TaskService taskService,
-                             EmbedRpcServer embedRpcServer) {
+    public BaseScheduleAgent(URL url, AgentResources resource, AgentBrokerRpc brokerRpc, JobRepository jobRepository,
+                             TaskService taskService, EmbedRpcServer embedRpcServer) {
         Objects.requireNonNull(url, "URL can't be null");
         Objects.requireNonNull(brokerRpc, "remote client can't be null");
 
         this.url = url;
         this.brokerRpc = brokerRpc;
         this.embedRpcServer = embedRpcServer;
-        this.jobService = jobService;
+        this.jobRepository = jobRepository;
         this.taskService = taskService;
         this.resource = resource;
 
@@ -227,55 +225,23 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
         assertRunning();
 
         int availableQueueSize = this.resource.availableQueueSize();
-        if (jobService.count() >= availableQueueSize) {
+        if (jobRepository.count() >= availableQueueSize) {
             throw new IllegalArgumentException("Agent's queue is full, limit: " + availableQueueSize);
         }
 
-        jobService.save(job);
+        jobRepository.save(job);
         try {
-            this.threadPool.submit(() -> {
-                ScheduledFuture<?> jobReportScheduledFuture = null;
+            job.setTaskDispatcher(taskService.getTaskDispatcher());
+            job.setTaskRepository(taskService.getTaskRepository());
+            job.setJobRepository(jobRepository);
+            job.setBrokerRpc(brokerRpc);
+            job.setScheduledReportPool(scheduledReportPool);
 
-                try {
-                    // 反馈执行中 -- 排除由于网络问题导致的失败可能性
-                    boolean success = reportJobExecuting(job.getId(), 3);
-                    if (!success) {
-                        jobService.delete(job.getId());
-                        return; // 可能已经下发给其它节点
-                    }
-                    // 开启任务上报
-                    jobReportScheduledFuture = scheduledReportPool.scheduleAtFixedRate(new StatusReportRunnable(job), 1, JobConstant.JOB_REPORT_SECONDS, TimeUnit.SECONDS);
-                    // 提交执行
-                    jobService.schedule(job);
-                } catch (Exception e) {
-                    log.error("Failed to receive job job={}", job, e);
-                    throw new JobException(job.getId(), e.getMessage(), e);
-                } finally {
-                    jobService.delete(job.getId());
-                    taskService.getTaskRepository().deleteByJobId(job.getId());
-                    // 最终都要移除任务
-                    if (jobReportScheduledFuture != null) {
-                        jobReportScheduledFuture.cancel(true);
-                    }
-                }
-            });
+            this.threadPool.submit(job);
         } catch (RejectedExecutionException e) {
-            jobService.delete(job.getId());
+            jobRepository.delete(job.getId());
             // 拒绝时候的处理
             throw new IllegalStateException("Schedule job failed, maybe thread exhausted. job=" + job.getId());
-        }
-    }
-
-    private boolean reportJobExecuting(String id, int retryTimes) {
-        if (retryTimes < 0) {
-            return false;
-        }
-        try {
-            return brokerRpc.reportExecuting(id);
-        } catch (Exception e) {
-            log.error("reportJobExecuting fail job={} times={}", id, retryTimes, e);
-            retryTimes--;
-            return reportJobExecuting(id, retryTimes);
         }
     }
 
@@ -289,7 +255,7 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
             throw new IllegalArgumentException("subTasks is empty");
         }
 
-        Job job = jobService.getById(jobId);
+        Job job = jobRepository.getById(jobId);
         if (job == null) {
             throw new IllegalArgumentException("job not found jobId:" + jobId);
         }
@@ -301,9 +267,12 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
         subTaskParams = subTaskParams.stream().filter(p -> StringUtils.isNotBlank(p.getTaskId())).collect(Collectors.toList());
         List<String> subTaskIds = subTaskParams.stream().map(SubTaskCreateParam.SubTaskInfoParam::getTaskId).collect(Collectors.toList());
         Set<String> existTaskIds = taskService.getExistTaskIds(jobId, subTaskIds);
-        subTaskParams = subTaskParams.stream().filter(p -> existTaskIds.contains(p.getTaskId())).collect(Collectors.toList());
+        subTaskParams = subTaskParams.stream().filter(p -> !existTaskIds.contains(p.getTaskId())).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(subTaskParams)) {
-            throw new IllegalArgumentException("subTasks is empty");
+            if (log.isDebugEnabled()) {
+                log.debug("subTasks is empty param={}", param);
+            }
+            return;
         }
 
         List<Task> tasks = new ArrayList<>();
@@ -315,13 +284,23 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
         if (!taskService.batchSave(tasks)) {
             throw new IllegalArgumentException("batch save task fail jobId:" + jobId);
         }
+
+        for (Task task : tasks) {
+            CommonThreadPool.IO.submit(() -> taskService.getTaskDispatcher().dispatch(task));
+        }
     }
 
     @Override
-    public void reportTaskExecuting(TaskReportParam param) {
+    public boolean reportTaskExecuting(TaskReportParam param) {
         assertRunning();
 
-        taskService.getTaskRepository().executing(param.getJobId(), param.getTaskId(), param.getWorkerId(), param.getWorkerAddress());
+        if (param == null || param.getWorkerId() == null) {
+            return false;
+        }
+
+        String url = param.getWorkerAddress() == null ? "" : param.getWorkerAddress().toString();
+
+        return taskService.getTaskRepository().executing(param.getJobId(), param.getTaskId(), param.getWorkerId(), url);
     }
 
     @Override
@@ -374,20 +353,6 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
     @Override
     public void beat() {
         this.sendHeartbeat();
-    }
-
-    private class StatusReportRunnable implements Runnable {
-
-        private Job job;
-
-        public StatusReportRunnable(Job job) {
-            this.job = job;
-        }
-
-        @Override
-        public void run() {
-            brokerRpc.reportJob(job.getId());
-        }
     }
 
 }

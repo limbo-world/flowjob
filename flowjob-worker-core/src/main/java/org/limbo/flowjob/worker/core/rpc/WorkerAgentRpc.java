@@ -20,6 +20,7 @@ package org.limbo.flowjob.worker.core.rpc;
 
 import org.limbo.flowjob.worker.core.domain.SubTask;
 import org.limbo.flowjob.worker.core.domain.Task;
+import org.limbo.flowjob.worker.core.domain.Worker;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -53,4 +54,6 @@ public interface WorkerAgentRpc {
      * @param ex 导致任务失败的异常信息，可以为 null
      */
     Boolean feedbackTaskFailed(Task task, @Nullable Throwable ex);
+
+    void setWorker(Worker worker);
 }

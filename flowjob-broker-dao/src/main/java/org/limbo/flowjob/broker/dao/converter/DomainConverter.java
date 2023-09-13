@@ -20,14 +20,17 @@ package org.limbo.flowjob.broker.dao.converter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.api.constants.AgentStatus;
 import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
+import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.domain.plan.NormalPlan;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
+import org.limbo.flowjob.broker.dao.entity.AgentEntity;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
@@ -37,6 +40,7 @@ import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
+import java.net.URL;
 import java.time.Duration;
 import java.util.List;
 
@@ -112,6 +116,22 @@ public class DomainConverter {
         entity.setEndAt(jobInstance.getEndAt());
         entity.setLastReportAt(TimeUtils.currentLocalDateTime());
         return entity;
+    }
+
+    public static ScheduleAgent toAgent(AgentEntity entity) {
+        return ScheduleAgent.builder()
+                .id(entity.getAgentId())
+                .status(AgentStatus.parse(entity.getStatus()))
+                .rpcBaseUrl(url(entity))
+                .build();
+    }
+
+    public static URL url(AgentEntity entity) {
+        try {
+            return new URL(entity.getProtocol(), entity.getHost(), entity.getPort(), "");
+        } catch (Exception e) {
+            throw new IllegalStateException("parse agent rpc info error", e);
+        }
     }
 
 }

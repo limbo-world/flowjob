@@ -55,14 +55,6 @@ class WorkerRepoTest {
     }
 
     @Test
-    void findWorker() {
-        List<WorkerEntity> workerEntities = workerEntityRepo.findByStatusAndEnabledAndDeleted(WorkerStatus.RUNNING.status, true, false);
-        for (WorkerEntity workerEntity : workerEntities) {
-            System.out.println(workerEntity.getId() + " " + workerEntity.getStatus() + workerEntity.isDeleted());
-        }
-    }
-
-    @Test
     @Transactional
     void delete() {
         int d = workerExecutorEntityRepo.deleteByWorkerId("1234566");

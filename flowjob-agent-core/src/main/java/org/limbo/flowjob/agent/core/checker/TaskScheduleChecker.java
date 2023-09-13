@@ -21,12 +21,11 @@ package org.limbo.flowjob.agent.core.checker;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.agent.core.TaskDispatcher;
-import org.limbo.flowjob.agent.core.TaskFactory;
 import org.limbo.flowjob.agent.core.entity.Task;
 import org.limbo.flowjob.agent.core.repository.TaskRepository;
 import org.limbo.flowjob.agent.core.service.TaskService;
-import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.common.utils.time.DateTimeUtils;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
 import java.util.List;
@@ -54,8 +53,6 @@ public class TaskScheduleChecker {
     private boolean running;
 
     private TaskService taskService;
-
-    private String DEFAULT_REPORT_TIME_STR = DateTimeUtils.formatYMDHMS(TaskFactory.DEFAULT_REPORT_TIME);
 
     private static final String CHECKER_NAME = "TaskDispatchChecker";
 
@@ -86,13 +83,16 @@ public class TaskScheduleChecker {
 
                     Integer limit = 100;
                     String startId = "";
-                    List<Task> tasks = taskRepository.getByLastReportBetween(DEFAULT_REPORT_TIME_STR, DEFAULT_REPORT_TIME_STR, TaskStatus.SCHEDULING, startId, limit);
+
+                    String triggerAt = DateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime().plusSeconds(-5));
+
+                    List<Task> tasks = taskRepository.getUnScheduled(triggerAt, startId, limit);
                     while (CollectionUtils.isNotEmpty(tasks)) {
                         for (Task t : tasks) {
                             taskDispatcher.dispatch(t);
                         }
                         startId = tasks.get(tasks.size() - 1).getTaskId();
-                        tasks = taskRepository.getByLastReportBetween(DEFAULT_REPORT_TIME_STR, DEFAULT_REPORT_TIME_STR, TaskStatus.SCHEDULING, startId, limit);
+                        tasks = taskRepository.getUnScheduled(triggerAt, startId, limit);
                     }
                 } catch (Exception e) {
                     log.error("[{}] error", CHECKER_NAME, e);

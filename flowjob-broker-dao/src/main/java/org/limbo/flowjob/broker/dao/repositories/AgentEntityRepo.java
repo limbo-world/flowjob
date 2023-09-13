@@ -19,6 +19,7 @@
 package org.limbo.flowjob.broker.dao.repositories;
 
 import org.limbo.flowjob.broker.dao.entity.AgentEntity;
+import org.limbo.flowjob.broker.dao.entity.BrokerEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -26,6 +27,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -38,11 +40,7 @@ public interface AgentEntityRepo extends JpaRepository<AgentEntity, String>, Jpa
 
     List<AgentEntity> findByAgentIdInAndDeleted(List<String> agentIds, boolean deleted);
 
-    /**
-     * 查询状态启动未删除 todo 性能
-     */
-    List<AgentEntity> findByStatusAndAvailableQueueLimitGreaterThanAndEnabledAndDeleted(Integer status, Integer availableQueueLimit, boolean enabled, boolean deleted);
-
+    List<AgentEntity> findByLastHeartbeatAtBetween(LocalDateTime startTime, LocalDateTime endTime);
 
     @Transactional
     @Modifying(clearAutomatically = true)

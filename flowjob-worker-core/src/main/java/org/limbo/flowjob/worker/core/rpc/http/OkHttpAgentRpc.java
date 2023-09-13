@@ -19,6 +19,8 @@
 package org.limbo.flowjob.worker.core.rpc.http;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import lombok.Getter;
+import lombok.Setter;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.param.agent.SubTaskCreateParam;
@@ -29,7 +31,7 @@ import org.limbo.flowjob.common.http.OKHttpRpc;
 import org.limbo.flowjob.common.lb.BaseLBServer;
 import org.limbo.flowjob.worker.core.domain.SubTask;
 import org.limbo.flowjob.worker.core.domain.Task;
-import org.limbo.flowjob.worker.core.domain.WorkerContext;
+import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.rpc.RpcParamFactory;
 import org.limbo.flowjob.worker.core.rpc.WorkerAgentRpc;
 
@@ -43,6 +45,10 @@ import static org.limbo.flowjob.api.constants.rpc.HttpAgentApi.*;
  * @since 2023/8/7
  */
 public class OkHttpAgentRpc extends OKHttpRpc<BaseLBServer> implements WorkerAgentRpc {
+
+    @Setter
+    @Getter
+    private Worker worker;
 
     public OkHttpAgentRpc() {
         super(null, null);
@@ -65,7 +71,7 @@ public class OkHttpAgentRpc extends OKHttpRpc<BaseLBServer> implements WorkerAge
 
     @Override
     public Boolean reportTaskExecuting(Task task) {
-        TaskReportParam param = RpcParamFactory.taskReportParam(task.getJobId(), task.getTaskId(), WorkerContext.getWorkerId());
+        TaskReportParam param = RpcParamFactory.taskReportParam(task.getJobId(), task.getTaskId(), worker.getId(), worker.getRpcBaseURL());
 
         ResponseDTO<Boolean> response = executePost(task.getRpcUrl() + API_TASK_EXECUTING, param, new TypeReference<ResponseDTO<Boolean>>() {
         });
@@ -80,7 +86,7 @@ public class OkHttpAgentRpc extends OKHttpRpc<BaseLBServer> implements WorkerAge
 
     @Override
     public Boolean reportTask(Task task) {
-        TaskReportParam param = RpcParamFactory.taskReportParam(task.getJobId(), task.getTaskId(), WorkerContext.getWorkerId());
+        TaskReportParam param = RpcParamFactory.taskReportParam(task.getJobId(), task.getTaskId(), worker.getId(), worker.getRpcBaseURL());
 
         ResponseDTO<Boolean> response = executePost(task.getRpcUrl() + API_TASK_REPORT, param, new TypeReference<ResponseDTO<Boolean>>() {
         });

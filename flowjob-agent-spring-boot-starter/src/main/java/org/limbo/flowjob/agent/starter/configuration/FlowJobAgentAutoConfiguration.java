@@ -33,7 +33,6 @@ import org.limbo.flowjob.agent.core.rpc.AgentBrokerRpc;
 import org.limbo.flowjob.agent.core.rpc.AgentWorkerRpc;
 import org.limbo.flowjob.agent.core.rpc.http.OkHttpAgentBrokerRpc;
 import org.limbo.flowjob.agent.core.rpc.http.OkHttpAgentWorkerRpc;
-import org.limbo.flowjob.agent.core.service.JobService;
 import org.limbo.flowjob.agent.core.service.TaskService;
 import org.limbo.flowjob.agent.starter.SpringDelegatedAgent;
 import org.limbo.flowjob.agent.starter.component.H2ConnectionFactory;
@@ -87,13 +86,13 @@ public class FlowJobAgentAutoConfiguration {
      * @param rpc broker rpc 通信模块
      */
     @Bean("fjaHttpScheduleAgent")
-    public ScheduleAgent httpAgent(URL fjaAgentServerUrl, AgentResources resources, AgentBrokerRpc rpc, JobService jobService, TaskService taskService) {
+    public ScheduleAgent httpAgent(URL fjaAgentServerUrl, AgentResources resources, AgentBrokerRpc rpc, JobRepository jobRepository, TaskService taskService) {
         HttpHandlerProcessor httpHandlerProcessor = new HttpHandlerProcessor();
         EmbedRpcServer embedRpcServer = new EmbedHttpRpcServer(fjaAgentServerUrl.getPort(), httpHandlerProcessor);
-        ScheduleAgent agent = new BaseScheduleAgent(fjaAgentServerUrl, resources, rpc, jobService, taskService, embedRpcServer);
+        ScheduleAgent agent = new BaseScheduleAgent(fjaAgentServerUrl, resources, rpc, jobRepository, taskService, embedRpcServer);
         httpHandlerProcessor.setAgent(agent);
         httpHandlerProcessor.setTaskService(taskService);
-        httpHandlerProcessor.setJobService(jobService);
+        httpHandlerProcessor.setJobRepository(jobRepository);
 
         return new SpringDelegatedAgent(agent);
     }
@@ -117,14 +116,8 @@ public class FlowJobAgentAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(AgentResources.class)
-    public AgentResources agentResource(JobService jobService) {
-        return new BaseAgentResources(properties.getConcurrency(), properties.getQueueSize(), jobService);
-    }
-
-    @Bean("fjaJobService")
-    public JobService jobService(JobRepository jobRepository, TaskRepository taskRepository, AgentBrokerRpc brokerRpc,
-                                 TaskDispatcher taskDispatcher) {
-        return new JobService(jobRepository, taskRepository, brokerRpc, taskDispatcher);
+    public AgentResources agentResource(JobRepository jobRepository) {
+        return new BaseAgentResources(properties.getConcurrency(), properties.getQueueSize(), jobRepository);
     }
 
     @Bean("fjaTaskService")

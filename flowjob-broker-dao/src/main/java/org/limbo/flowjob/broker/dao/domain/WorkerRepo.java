@@ -156,29 +156,6 @@ public class WorkerRepo implements WorkerRepository {
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * @return
-     */
-    @Override
-    public List<Worker> listAvailableWorkers() {
-        return workerEntityRepo.findByStatusAndEnabledAndDeleted(WorkerStatus.RUNNING.status, true, false)
-                .stream()
-                .map(this::toWorkerWithLazyInit)
-                .filter(worker -> {
-                    // 处理心跳过期的
-                    if (worker.getMetric().getLastHeartbeatAt().isBefore(TimeUtils.currentLocalDateTime().plusSeconds(-heartbeatExpireInterval / 1000))) {
-                        workerEntityRepo.updateStatus(worker.getId(), WorkerStatus.RUNNING.status, WorkerStatus.TERMINATED.status);
-                        return false;
-                    } else {
-                        return true;
-                    }
-                })
-                .collect(Collectors.toList());
-    }
-
-
-    /**
      * 将 Worker 持久化对象转为领域模型，并为其中的属性设置为懒加载。
      */
     private Worker toWorkerWithLazyInit(WorkerEntity worker) {

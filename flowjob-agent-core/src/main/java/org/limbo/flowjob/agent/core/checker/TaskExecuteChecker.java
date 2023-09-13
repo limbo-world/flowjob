@@ -88,10 +88,14 @@ public class TaskExecuteChecker {
             public void run() {
                 try {
                     TaskRepository taskRepository = taskService.getTaskRepository();
-                    LocalDateTime curCheckTime = TimeUtils.currentLocalDateTime().plus(-period.toMillis(), ChronoUnit.MILLIS);
+
+                    String checkStartTimeStr = DateTimeUtils.formatYMDHMS(lastCheckTime.plusSeconds(-1));
+                    LocalDateTime checkEndTime = TimeUtils.currentLocalDateTime().plus(-period.toMillis(), ChronoUnit.MILLIS);
+                    String checkEndTimeStr = DateTimeUtils.formatYMDHMS(checkEndTime);
+
                     Integer limit = 100;
                     String startId = "";
-                    List<Task> tasks = taskRepository.getByLastReportBetween(DateTimeUtils.formatYMDHMS(lastCheckTime), DateTimeUtils.formatYMDHMS(curCheckTime), TaskStatus.EXECUTING, startId, limit);
+                    List<Task> tasks = taskRepository.getByLastReportBetween(checkStartTimeStr, checkEndTimeStr, TaskStatus.EXECUTING, startId, limit);
                     while (CollectionUtils.isNotEmpty(tasks)) {
                         for (Task t : tasks) {
                             if (t.getWorker() != null) {
@@ -101,10 +105,10 @@ public class TaskExecuteChecker {
                             }
                         }
                         startId = tasks.get(tasks.size() - 1).getTaskId();
-                        tasks = taskRepository.getByLastReportBetween(DateTimeUtils.formatYMDHMS(lastCheckTime), DateTimeUtils.formatYMDHMS(curCheckTime), TaskStatus.EXECUTING, startId, limit);
+                        tasks = taskRepository.getByLastReportBetween(checkStartTimeStr, checkEndTimeStr, TaskStatus.EXECUTING, startId, limit);
                     }
 
-                    lastCheckTime = curCheckTime;
+                    lastCheckTime = checkEndTime;
                 } catch (Exception e) {
                     log.error("[{}] error", CHECKER_NAME, e);
                 }

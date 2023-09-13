@@ -125,11 +125,12 @@ public class RpcParamFactory {
         return feedbackParam;
     }
 
-    public static TaskReportParam taskReportParam(String jobId, String taskId, String workerId) {
+    public static TaskReportParam taskReportParam(String jobId, String taskId, String workerId, URL workerAddress) {
         return TaskReportParam.builder()
                 .jobId(jobId)
                 .taskId(taskId)
                 .workerId(workerId)
+                .workerAddress(workerAddress)
                 .build();
     }
 
