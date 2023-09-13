@@ -61,7 +61,7 @@ public class WorkerProperties {
 
     /**
      * worker 注册时，向 broker 提交的 RPC 通信端口，默认为 null。
-     * 如果未指定此配置，则尝试使用 ${server.port} 配置；如 ${server.port} 配置也不存在，则使用 8080，
+     * 如果未指定此配置，则尝试使用 ${server.port} 配置；如 ${server.port} 配置也不存在，则使用 9877，
      */
     private Integer port = null;
 

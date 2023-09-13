@@ -106,7 +106,7 @@ mvn clean package -Dmaven.test.skip=true -Pdev
 
 ## Worker部署
 
-对于需要使用worker的Web应用（宿主应用），可以参考[Demo](https://github.com/limbo-world/flowjob/tree/master/worker-spring-boot-demo)。
+对于需要使用worker的Web应用（宿主应用），可以参考[Demo](https://github.com/limbo-world/flowjob/tree/master/flowjob-worker-spring-boot-demo)。
 
 
 ### Step1: 添加依赖
@@ -123,15 +123,32 @@ mvn clean package -Dmaven.test.skip=true -Pdev
 
 ### Step2: 修改配置
 
-| 配置项                      | 说明                                                                          |
-|--------------------------|-----------------------------------------------------------------------------|
-| flowjob.worker.name      | 节点名称，保持全局唯一。默认不配置自动生成即可                                                     |
-| flowjob.worker.scheme    | RPC 通信协议类型。默认为 http。于broker保持一致                                             |
-| flowjob.worker.host      | RPC host。可以是域名或 IP 地址，如不填写则自动发现本机非 127.0.0.1 的地址。多网卡场景下，建议显式配置 host。        |
-| flowjob.worker.port      | RPC port 如果未指定此配置，则尝试使用 ${server.port} 配置；如 ${server.port} 配置也不存在，则使用 8080， |
-| flowjob.worker.brokers   | Broker节点地址，可配置多个，参考DEMO中的配置                                                 |
-| flowjob.worker.heartbeat | Worker 向 Broker 发送心跳请求的间隔，默认 2 秒。                                           |
-| flowjob.worker.tags      | 标签，k=v形式                                                                    |
+#### Worker配置
+
+| 配置项                      | 说明                                                                  |
+|--------------------------|---------------------------------------------------------------------|
+| flowjob.worker.name      | 节点名称，保持全局唯一。默认不配置自动生成即可                                             |
+| flowjob.worker.scheme    | RPC 通信协议类型。默认为 http。于broker保持一致                                     |
+| flowjob.worker.host      | RPC host。可以是域名或 IP 地址，如不填写则自动发现本机非 127.0.0.1 的地址。多网卡场景下，建议显式配置 host。 |
+| flowjob.worker.port      | RPC port 如果未指定此配置，默认 9877                                        |
+| flowjob.worker.brokers   | Broker节点地址，可配置多个，参考DEMO中的配置                                         |
+| flowjob.worker.heartbeat | Worker 向 Broker 发送心跳请求的间隔，默认 2 秒。                                   |
+| flowjob.worker.tags      | 标签，k=v形式                                                            |
+
+#### Agent配置
+
+如果想单独部署，可以参考[Demo](https://github.com/limbo-world/flowjob/tree/master/flowjob-agent-application)。
+
+| 配置项                                | 说明                                                                   |
+|------------------------------------|----------------------------------------------------------------------|
+| flowjob.agent.enabled              | 是否启动Agent                                                            |
+| flowjob.agent.autoStart            | 是否自动启动 agent。flase情况下用户可以自行发送启动事件来启动                                 |
+| flowjob.agent.host                 | RPC host。可以是域名或 IP 地址，如不填写则自动发现本机非 127.0.0.1 的地址。多网卡场景下，建议显式配置 host。 |
+| flowjob.agent.port                 | RPC port 如果未指定此配置，默认 9876                                            |
+| flowjob.agent.brokers              | Broker节点地址，可配置多个，参考DEMO中的配置                                          |
+| flowjob.agent.datasource.url       | h2数据库连接地址，参考DEMO中的配置                                                           |
+| flowjob.agent.datasource.initTable | 是否初始化数据表，true时会drop后创建。如果是持久化 task 的则选 false 交由运维管理                  |
+
 
 # 前端应用
 

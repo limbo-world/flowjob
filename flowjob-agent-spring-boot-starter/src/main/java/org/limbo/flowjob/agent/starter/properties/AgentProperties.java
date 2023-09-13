@@ -62,7 +62,7 @@ public class AgentProperties {
 
     /**
      * worker 注册时，向 broker 提交的 RPC 通信端口，默认为 null。
-     * 如果未指定此配置，则尝试使用 ${server.port} 配置；如 ${server.port} 配置也不存在，则使用 8080，
+     * 如果未指定此配置，则尝试使用 ${server.port} 配置；如 ${server.port} 配置也不存在，则使用 9876，
      */
     private Integer port = null;
 
@@ -82,18 +82,19 @@ public class AgentProperties {
     private int queueSize = 1024;
 
     /**
-     * 数据连接地址
+     * 数据库配置
      */
-    private String datasourceUrl;
+    private DatasourceConfig datasource;
 
-    private String datasourceUsername;
-
-    private String datasourcePassword;
-
-    /**
-     * 是否初始化数据库 如果是持久化 task 的则选 false 交由运维管理
-     */
-    private boolean initTable = true;
-
+    @Data
+    public static class DatasourceConfig {
+        private String url;
+        private String username;
+        private String password;
+        /**
+         * 是否初始化数据库 如果是持久化 task 的则选 false 交由运维管理
+         */
+        private boolean initTable = true;
+    }
 
 }
