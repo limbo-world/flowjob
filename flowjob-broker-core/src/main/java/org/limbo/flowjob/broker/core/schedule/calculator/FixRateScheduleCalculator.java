@@ -24,6 +24,7 @@ import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
+import java.time.Instant;
 
 /**
  * 固定速度作业调度时间计算器
@@ -54,6 +55,14 @@ public class FixRateScheduleCalculator extends ScheduleCalculator {
             log.error("cannot calculate next trigger timestamp of {} because interval is not assigned!", calculated);
             return ScheduleCalculator.NO_TRIGGER;
         }
+
+        // 如果上次为空则根据 delay 来
+        if (calculated.lastTriggerAt() == null) {
+            Instant nowInstant = TimeUtils.currentInstant();
+            long startScheduleAt = calculateStartScheduleTimestamp(calculated.scheduleOption());
+            return Math.max(startScheduleAt, nowInstant.getEpochSecond());
+        }
+
         long now = TimeUtils.currentInstant().toEpochMilli();
         long scheduleAt = TimeUtils.toInstant(calculated.lastTriggerAt()).toEpochMilli() + interval.toMillis();
         return Math.max(scheduleAt, now);

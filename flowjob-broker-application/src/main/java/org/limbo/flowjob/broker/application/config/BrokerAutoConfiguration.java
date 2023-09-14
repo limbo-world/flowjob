@@ -112,7 +112,7 @@ public class BrokerAutoConfiguration {
      */
     @Bean
     public MetaTaskScheduler metaTaskScheduler() {
-        return new MetaTaskScheduler(1000L, TimeUnit.MILLISECONDS);
+        return new MetaTaskScheduler(100L, TimeUnit.MILLISECONDS);
     }
 
     @Bean

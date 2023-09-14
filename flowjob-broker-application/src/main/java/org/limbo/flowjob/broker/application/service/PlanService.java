@@ -24,6 +24,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.console.PlanDTO;
@@ -41,6 +42,7 @@ import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
+import org.limbo.flowjob.broker.core.schedule.calculator.CronScheduleCalculator;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
@@ -112,6 +114,18 @@ public class PlanService {
 
         String planInfoId = idGenerator.generateId(IDType.PLAN_INFO);
 
+        // 校验 cron表达式
+        ScheduleOptionParam scheduleOption = param.getScheduleOption();
+        if (ScheduleType.CRON == scheduleOption.getScheduleType()) {
+            Verifies.notBlank(scheduleOption.getScheduleCron(), "cron表达式不能为空");
+            Verifies.notBlank(scheduleOption.getScheduleCronType(), "cron表达式类型不能为空");
+            try {
+                CronScheduleCalculator.getCron(scheduleOption.getScheduleCron(), scheduleOption.getScheduleCronType());
+            } catch (IllegalArgumentException e) {
+                throw new VerifyException(e.getMessage());
+            }
+        }
+
         if (StringUtils.isBlank(planId)) {
             // create
             planId = idGenerator.generateId(IDType.PLAN);
@@ -149,7 +163,6 @@ public class PlanService {
         planInfoEntity.setDescription(param.getDescription());
         planInfoEntity.setTriggerType(param.getTriggerType().type);
         // ScheduleOption
-        ScheduleOptionParam scheduleOption = param.getScheduleOption();
         planInfoEntity.setScheduleType(scheduleOption.getScheduleType().type);
         planInfoEntity.setScheduleStartAt(scheduleOption.getScheduleStartAt());
         planInfoEntity.setScheduleEndAt(scheduleOption.getScheduleEndAt());

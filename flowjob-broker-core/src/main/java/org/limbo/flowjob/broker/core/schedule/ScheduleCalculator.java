@@ -62,13 +62,6 @@ public abstract class ScheduleCalculator {
      * @return 下次触发调度的时间戳，当返回非正数时，表示作业不会有触发时间。
      */
     public Long calculate(Calculated calculated) {
-        // 计算第一次调度
-        if (calculated.lastTriggerAt() == null) {
-            Instant nowInstant = TimeUtils.currentInstant();
-            long startScheduleAt = calculateStartScheduleTimestamp(calculated.scheduleOption());
-            return Math.max(startScheduleAt, nowInstant.getEpochSecond());
-        }
-
         return doCalculate(calculated);
     }
 

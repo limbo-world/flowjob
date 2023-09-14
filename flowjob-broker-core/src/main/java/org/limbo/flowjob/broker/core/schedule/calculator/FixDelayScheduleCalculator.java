@@ -24,6 +24,7 @@ import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 /**
@@ -51,7 +52,14 @@ public class FixDelayScheduleCalculator extends ScheduleCalculator {
         LocalDateTime lastFeedbackAt = calculated.lastFeedbackAt();
         // 如果为空，表示此次上次任务还没反馈，等待反馈后重新调度
         if (lastFeedbackAt == null) {
-            return ScheduleCalculator.NO_TRIGGER;
+            // 如果上次触发为空表示这是第一次
+            if (calculated.lastTriggerAt() == null) {
+                Instant nowInstant = TimeUtils.currentInstant();
+                long startScheduleAt = calculateStartScheduleTimestamp(calculated.scheduleOption());
+                return Math.max(startScheduleAt, nowInstant.getEpochSecond());
+            } else {
+                return ScheduleCalculator.NO_TRIGGER;
+            }
         }
 
         Duration interval = scheduleOption.getScheduleInterval();
