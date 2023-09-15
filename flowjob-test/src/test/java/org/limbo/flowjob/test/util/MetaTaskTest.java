@@ -22,11 +22,14 @@ import com.cronutils.model.CronType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.junit.jupiter.api.Test;
+import org.limbo.flowjob.api.constants.ScheduleType;
+import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.CronMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixRateMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
+import org.limbo.flowjob.common.thread.CommonThreadPool;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
@@ -118,7 +121,8 @@ class MetaTaskTest {
     @Test
     void testCron() throws InterruptedException {
         log.info("start test {}", TimeUtils.currentLocalDateTime());
-        metaTaskScheduler.schedule(new CronMetaTask("0/60 * * * * ? *", CronType.QUARTZ.name(), metaTaskScheduler) {
+        metaTaskScheduler.schedule(new CronMetaTask("0/10 * * * * ? *", CronType.QUARTZ.name(), metaTaskScheduler) {
+//        metaTaskScheduler.schedule(new CronMetaTask("0/60 * * * * ? *", CronType.QUARTZ.name(), metaTaskScheduler) {
 //        metaTaskScheduler.schedule(new CronMetaTask("0-20/5 * * * * ? *", CronType.QUARTZ.name(), metaTaskScheduler) {
 
             @Override
@@ -145,4 +149,5 @@ class MetaTaskTest {
 
         Thread.sleep(300000);
     }
+
 }

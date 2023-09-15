@@ -27,7 +27,9 @@ import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.constants.rpc.HttpAgentApi;
 import org.limbo.flowjob.broker.application.component.AgentRegistry;
+import org.limbo.flowjob.broker.application.converter.MetaTaskConverter;
 import org.limbo.flowjob.broker.application.service.PlanInstanceService;
+import org.limbo.flowjob.broker.application.task.PlanScheduleTask;
 import org.limbo.flowjob.broker.core.agent.AgentRepository;
 import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
@@ -84,6 +86,9 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
 
     @Setter(onMethod_ = @Inject)
     protected MetaTaskScheduler metaTaskScheduler;
+
+    @Setter(onMethod_ = @Inject)
+    protected MetaTaskConverter metaTaskConverter;
 
     @Setter(onMethod_ = @Inject)
     protected PlanInstanceService planInstanceService;
@@ -172,9 +177,11 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
             LocalDateTime startAt = planInstanceEntity.getStartAt() == null ? current : planInstanceEntity.getStartAt();
             planInstanceEntityRepo.fail(planInstanceId, startAt, current);
         }
+        // 下发 fixed_delay 任务
         if (ScheduleType.FIXED_DELAY == ScheduleType.parse(planInstanceEntity.getScheduleType())) {
-            // 如果为 FIXED_DELAY 更新 plan  使得 UpdatedPlanLoadTask 进行重新加载
-            planEntityRepo.updateTime(planInstanceEntity.getPlanId(), TimeUtils.currentLocalDateTime());
+            PlanScheduleTask metaTask = metaTaskConverter.toPlanScheduleTask(planInstanceEntity.getPlanId(), TriggerType.SCHEDULE);
+            metaTaskScheduler.unschedule(metaTask.scheduleId());
+            metaTaskScheduler.schedule(metaTask);
         }
     }
 

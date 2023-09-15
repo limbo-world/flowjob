@@ -95,6 +95,8 @@ public class Job implements Runnable {
 
     private ScheduledFuture<?> reportScheduledFuture = null;
 
+    private ScheduledFuture<?> completeScheduledFuture = null;
+
     @Override
     public void run() {
         start();
@@ -123,6 +125,9 @@ public class Job implements Runnable {
     public void stop() {
         if (reportScheduledFuture != null) {
             reportScheduledFuture.cancel(true);
+        }
+        if (completeScheduledFuture != null) {
+            completeScheduledFuture.cancel(true);
         }
     }
 
@@ -153,8 +158,16 @@ public class Job implements Runnable {
      * 通知/更新job状态
      */
     public void handleSuccess() {
-        brokerRpc.feedbackJobSucceed(this);
-        jobRepository.delete(id);
+        // 开启任务执行完成反馈
+        completeScheduledFuture = scheduledReportPool.scheduleAtFixedRate(new CompleteReportRunnable(this, true, null), 0, 1, TimeUnit.SECONDS);
+    }
+
+    /**
+     * 通知/更新job状态
+     */
+    public void handleFail(String errorMsg) {
+        // 开启任务执行完成反馈
+        completeScheduledFuture = scheduledReportPool.scheduleAtFixedRate(new CompleteReportRunnable(this, false, errorMsg), 0, 1, TimeUnit.SECONDS);
     }
 
     private boolean reportJobExecuting(String id, int retryTimes) {
@@ -202,6 +215,38 @@ public class Job implements Runnable {
         @Override
         public void run() {
             brokerRpc.reportJob(id);
+        }
+    }
+
+    private class CompleteReportRunnable implements Runnable {
+
+        private Job job;
+
+        private boolean success;
+
+        private String errorMsg;
+
+        public CompleteReportRunnable(Job job, boolean success, String errorMsg) {
+            this.job = job;
+            this.success = success;
+            this.errorMsg = errorMsg;
+        }
+
+        @Override
+        public void run() {
+            try {
+                if (success) {
+                    if (brokerRpc.feedbackJobSucceed(job)) {
+                        jobRepository.delete(job.getId());
+                    }
+                } else {
+                    if (brokerRpc.feedbackJobFail(job, errorMsg)) {
+                        jobRepository.delete(job.getId());
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Job Complete Fail job={} success={} errorMsg={}", job, success, errorMsg, e);
+            }
         }
     }
 

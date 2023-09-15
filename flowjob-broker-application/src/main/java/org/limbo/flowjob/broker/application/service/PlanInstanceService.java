@@ -98,14 +98,13 @@ public class PlanInstanceService {
 
             Verifies.verify(planEntity.isEnabled(), "plan " + planId + " is not enabled");
 
-            slotManager.checkPlanId(planId);
-
             // 校验是否重复创建
             PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findLatelyTrigger(planId, planInfoEntity.getPlanInfoId(), planInfoEntity.getScheduleType(), triggerType.type);
             ScheduleType scheduleType = ScheduleType.parse(planInfoEntity.getScheduleType());
             switch (scheduleType) {
                 case FIXED_RATE:
                 case CRON:
+                    slotManager.checkPlanId(planId); // fixed_delay 可以在不同节点触发
                     Verifies.verify(planInstanceEntity == null || !triggerAt.isEqual(planInstanceEntity.getTriggerAt()),
                             MessageFormat.format("Duplicate create PlanInstance,triggerAt:{0} planId[{1}] Version[{2}] oldPlanInstance[{3}]",
                                     triggerAt, planId, version, JacksonUtils.toJSONString(planInstanceEntity))

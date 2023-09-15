@@ -156,9 +156,7 @@ public class TaskService {
         task.setErrorMsg(errorMsg);
         task.setErrorStackTrace(errorStackTrace);
         taskRepository.fail(task);
-        if (brokerRpc.feedbackJobFail(job, errorMsg)) {
-            jobRepository.delete(job.getId());
-        }
+        job.handleFail(errorMsg);
         // 终止其它执行中的task
     }
 
