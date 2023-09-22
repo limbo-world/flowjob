@@ -74,10 +74,10 @@ public class TaskDispatcher {
             if (dispatched) {
                 log.info("Task dispatch success task={} worker={}", task.getTaskId(), worker);
             } else {
-                log.info("Task dispatch failed: task={} worker={}", task.getTaskId(), worker == null ? "" : worker.getId());
+                log.info("Task dispatch failed: task={} worker={}", task.getTaskId(), worker);
             }
         } catch (Exception e) {
-            log.error("Task dispatch failed: task={} worker={}", task.getTaskId(), worker == null ? "" : worker.getId(), e);
+            log.error("Task dispatch failed: task={} worker={}", task.getTaskId(), worker, e);
         }
         return dispatched;
     }
