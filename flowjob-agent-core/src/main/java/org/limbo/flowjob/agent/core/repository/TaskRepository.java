@@ -437,6 +437,7 @@ public class TaskRepository {
         task.setStartAt(StringUtils.isBlank(startAtStr) ? null : DateTimeUtils.parseYMDHMS(startAtStr));
         task.setEndAt(StringUtils.isBlank(endAtStr) ? null : DateTimeUtils.parseYMDHMS(endAtStr));
 
+        task.setDispatchFailTimes(rs.getInt("dispatch_fail_times"));
         task.setContext(new Attributes(rs.getString("context")));
         task.setJobAttributes(new Attributes(rs.getString("job_attributes")));
         task.setTaskAttributes(rs.getString("task_attributes"));
