@@ -38,10 +38,10 @@ public enum TaskStatus {
      */
     SCHEDULING(ConstantsPool.TASK_SCHEDULING, "调度中"),
 
-    /**
-     * 任务尝试下发给worker
-     */
-    DISPATCHING(ConstantsPool.TASK_DISPATCHING, "下发中"),
+//    /**
+//     * 任务尝试下发给worker
+//     */
+//    DISPATCHING(ConstantsPool.TASK_DISPATCHING, "下发中"),
 
     /**
      * 任务已下发给worker成功，正在执行中

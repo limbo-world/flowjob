@@ -45,12 +45,15 @@ public class ConsistentHashLBStrategy<S extends LBServer> extends AbstractLBStra
     public static final String HASH_PARAM_NAME = "consistentHash.hashParamName";
 
     /**
-     * 一致性哈希算法中，计算 LBServer 虚拟节点时的分片数量。默认 160。
+     * 一致性哈希算法中，计算 LBServer 虚拟节点时的分片数量。默认 64。
      */
     @Setter
-    private int replicas = 160;
+    private int replicas = 64;
 
 
+    /**
+     * 存储 url 对应的 一致性hash选择器
+     */
     private final ConcurrentHashMap<String, ConsistentHashSelector<S>> selectors = new ConcurrentHashMap<>();
 
 
@@ -108,6 +111,7 @@ public class ConsistentHashLBStrategy<S extends LBServer> extends AbstractLBStra
         public Optional<SERVER> select(Invocation invocation) {
             Map<String, String> parameters = invocation.getLBParameters();
             String paramName = parameters.get(HASH_PARAM_NAME);
+            // 基于配置的hash 参数名称 从参数里面获取对应参数
             Object hashObj = StringUtils.isNotBlank(paramName) ? parameters.get(paramName) : null;
             hashObj = hashObj == null ? invocation : hashObj;
 

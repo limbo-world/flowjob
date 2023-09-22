@@ -23,7 +23,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.agent.core.TaskDispatcher;
 import org.limbo.flowjob.agent.core.entity.Task;
 import org.limbo.flowjob.agent.core.repository.TaskRepository;
-import org.limbo.flowjob.agent.core.service.TaskService;
 import org.limbo.flowjob.common.utils.time.DateTimeUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
@@ -52,12 +51,15 @@ public class TaskScheduleChecker {
      */
     private boolean running;
 
-    private TaskService taskService;
+    private TaskRepository taskRepository;
+
+    private TaskDispatcher taskDispatcher;
 
     private static final String CHECKER_NAME = "TaskDispatchChecker";
 
-    public TaskScheduleChecker(TaskService taskService, Duration period) {
-        this.taskService = taskService;
+    public TaskScheduleChecker(TaskRepository taskRepository, TaskDispatcher taskDispatcher, Duration period) {
+        this.taskRepository = taskRepository;
+        this.taskDispatcher = taskDispatcher;
         this.timer = new Timer(CHECKER_NAME);
         this.period = period;
         this.running = false;
@@ -78,9 +80,6 @@ public class TaskScheduleChecker {
             @Override
             public void run() {
                 try {
-                    TaskRepository taskRepository = taskService.getTaskRepository();
-                    TaskDispatcher taskDispatcher = taskService.getTaskDispatcher();
-
                     Integer limit = 100;
                     String startId = "";
 

@@ -288,25 +288,6 @@ public class TaskRepository {
         }
     }
 
-    public long countUnSuccess(String jobId, TaskType type) {
-        String sql = "select count(*) from " + TABLE_NAME + " where job_id = ? and `type` = ? and `status` != ? ";
-        try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, jobId);
-            ps.setInt(2, type.type);
-            ps.setInt(3, TaskStatus.SUCCEED.status);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                } else {
-                    return 0L;
-                }
-            }
-        } catch (Exception e) {
-            log.error("TaskRepository.countUnSuccess error jobId={} type={}", jobId, type, e);
-            return 0L;
-        }
-    }
-
     public boolean batchSave(Collection<Task> tasks) {
         if (CollectionUtils.isEmpty(tasks)) {
             return true;

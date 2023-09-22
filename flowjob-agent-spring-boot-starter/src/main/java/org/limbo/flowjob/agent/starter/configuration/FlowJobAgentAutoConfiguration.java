@@ -86,10 +86,12 @@ public class FlowJobAgentAutoConfiguration {
      * @param rpc broker rpc 通信模块
      */
     @Bean("fjaHttpScheduleAgent")
-    public ScheduleAgent httpAgent(URL fjaAgentServerUrl, AgentResources resources, AgentBrokerRpc rpc, JobRepository jobRepository, TaskService taskService) {
+    public ScheduleAgent httpAgent(URL fjaAgentServerUrl, AgentResources resources, AgentBrokerRpc rpc,
+                                   JobRepository jobRepository, TaskService taskService, TaskRepository taskRepository,
+                                   TaskDispatcher taskDispatcher) {
         HttpHandlerProcessor httpHandlerProcessor = new HttpHandlerProcessor();
         EmbedRpcServer embedRpcServer = new EmbedHttpRpcServer(fjaAgentServerUrl.getPort(), httpHandlerProcessor);
-        ScheduleAgent agent = new BaseScheduleAgent(fjaAgentServerUrl, resources, rpc, jobRepository, taskService, embedRpcServer);
+        ScheduleAgent agent = new BaseScheduleAgent(fjaAgentServerUrl, resources, rpc, jobRepository, taskRepository, taskDispatcher, embedRpcServer);
         httpHandlerProcessor.setAgent(agent);
         httpHandlerProcessor.setTaskService(taskService);
         httpHandlerProcessor.setJobRepository(jobRepository);
@@ -121,9 +123,8 @@ public class FlowJobAgentAutoConfiguration {
     }
 
     @Bean("fjaTaskService")
-    public TaskService taskService(TaskRepository taskRepository, JobRepository jobRepository,
-                                   TaskDispatcher taskDispatcher, AgentBrokerRpc brokerRpc) {
-        return new TaskService(taskRepository, jobRepository, taskDispatcher, brokerRpc);
+    public TaskService taskService(TaskRepository taskRepository) {
+        return new TaskService(taskRepository);
     }
 
     @Bean("fjaTaskRepository")

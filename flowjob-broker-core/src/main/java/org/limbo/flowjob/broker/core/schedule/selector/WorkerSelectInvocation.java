@@ -56,10 +56,7 @@ public class WorkerSelectInvocation implements Invocation {
                 .filter(entry -> StringUtils.isNotBlank(entry.getKey()) && entry.getValue() != null)
                 .filter(entry -> entry.getKey().startsWith(LB_PREFIX))
                 .filter(entry -> entry.getValue() instanceof String)
-                .forEach(entry -> {
-                    String value = (String) entry.getValue();
-                    attrMap.put(entry.getKey(), value.replace(LB_PREFIX, ""));
-                });
+                .forEach(entry -> attrMap.put(entry.getKey().replace(LB_PREFIX, ""), (String) entry.getValue()));
     }
 
     @Override

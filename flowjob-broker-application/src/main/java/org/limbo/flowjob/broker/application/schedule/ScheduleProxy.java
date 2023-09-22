@@ -41,6 +41,7 @@ import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.selector.WorkerSelectInvocation;
 import org.limbo.flowjob.broker.core.schedule.selector.WorkerSelector;
 import org.limbo.flowjob.broker.core.schedule.selector.WorkerSelectorFactory;
+import org.limbo.flowjob.broker.core.schedule.selector.WorkerStatisticsRepository;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.dispatch.DispatchOption;
@@ -54,7 +55,6 @@ import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerExecutorEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerMetricEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerTagEntityRepo;
@@ -99,7 +99,7 @@ public class ScheduleProxy implements ApplicationContextAware {
     private PlanRepository planRepository;
 
     @Setter(onMethod_ = @Inject)
-    private WorkerEntityRepo workerEntityRepo;
+    private WorkerStatisticsRepository workerStatisticsRepository;
 
     @Setter(onMethod_ = @Inject)
     private WorkerExecutorEntityRepo workerExecutorEntityRepo;
@@ -304,7 +304,7 @@ public class ScheduleProxy implements ApplicationContextAware {
         DispatchOption dispatchOption = jobInfo.getDispatchOption();
         if (dispatchOption == null) {
             log.warn("Job has none dispatchOption id={}", jobInstance.getJobInstanceId());
-            return aliveWorkers.stream().map(BrokerConverter::toWorkerDTO).collect(Collectors.toList());
+            return Collections.emptyList();
         }
 
         // 过滤
@@ -323,8 +323,16 @@ public class ScheduleProxy implements ApplicationContextAware {
             WorkerSelectInvocation invocation = new WorkerSelectInvocation(jobInfo.getExecutorName(), jobInstance.getAttributes());
             WorkerSelector workerSelector = workerSelectorFactory.newSelector(jobInfo.getDispatchOption().getLoadBalanceType());
             Worker select = workerSelector.select(invocation, workerFilter.get());
-            return Collections.singletonList(BrokerConverter.toWorkerDTO(select));
+            if (select == null) {
+                return Collections.emptyList();
+            } else {
+                workerStatisticsRepository.recordDispatched(select);
+                return Collections.singletonList(BrokerConverter.toWorkerDTO(select));
+            }
         } else {
+            for (Worker worker : workerFilter.get()) {
+                workerStatisticsRepository.recordDispatched(worker);
+            }
             return workerFilter.get().stream().map(BrokerConverter::toWorkerDTO).collect(Collectors.toList());
         }
     }
