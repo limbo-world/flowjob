@@ -4,7 +4,7 @@
         <property name="LOG_HOME">./logs</property>
         <Property name="LOG_EXCEPTION_CONVERSION_WORD">%xThrowable</Property>
         <property name="pattern_base">%d{yy-MM-dd HH:mm:ss}  %5level %pid --- </property>
-        <property name="CONSOLE_LOG_PATTERN">${pattern_base} [%t] %-40.40c{1.} - %L : %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</property>
+        <property name="pattern">${pattern_base} [%t] %-40.40c{1.} - %L : %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</property>
     </Properties>
     <Appenders>
         <!-- info log-->
