@@ -15,7 +15,7 @@
 **flowjob**主要分为以下几个部分：
 
 * Broker：管控节点，对配置好的任务在集群进行负载，调度任务并下发Agent，同时管理和维护Agent/Worker节点注册等。
-* Agent：代理节点，接收下发的Job信息，生成Task下发给Worker执行，处理Job的生命周期，比如工作流流转等。
+* Agent：代理节点，接收下发的Job信息，生成Task下发给Worker执行，处理Job的生命周期，比如工作流流转等。可以独立部署，也可以依赖宿主启动。
 同时此节点可以减少广播/Map/MapReduce等分片任务导致Broker存在的数据/性能压力，以及云原生环境下一些启停导致的数据问题。
 * Worker：工作节点，主要负责Task的具体执行。
 * Console：通过Broker提供的Api，进行任务创建/更新等一些管控操作。
