@@ -151,8 +151,8 @@ public class FlowJobAgentAutoConfiguration {
     }
 
     @Bean("fjaTaskDispatcher")
-    public TaskDispatcher taskDispatcher(AgentBrokerRpc brokerRpc, AgentWorkerRpc workerRpc) {
-        return new TaskDispatcher(brokerRpc, workerRpc);
+    public TaskDispatcher taskDispatcher(JobRepository jobRepository, TaskRepository taskRepository, AgentBrokerRpc brokerRpc, AgentWorkerRpc workerRpc) {
+        return new TaskDispatcher(jobRepository, taskRepository, brokerRpc, workerRpc);
     }
 
     @Bean("fjaAgentWorkerRpc")

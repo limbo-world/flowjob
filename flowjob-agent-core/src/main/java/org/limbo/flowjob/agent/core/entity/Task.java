@@ -78,6 +78,11 @@ public class Task {
     private LocalDateTime endAt;
 
     /**
+     * 下发失败次数
+     */
+    private Integer dispatchFailTimes;
+
+    /**
      * 全局上下文
      */
     private Attributes context = new Attributes();
