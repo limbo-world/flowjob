@@ -91,6 +91,9 @@ public class PlanInstanceService {
         // 比如 5s 执行一次 分别在 5s 10s 15s 在11s的时候内存里下次执行为 15s 此时修改为 2s 执行一次 那么重新加载plan后应该为 12s 14s 所以15s这次可以跳过
         Verifies.verify(Objects.equals(version, planEntity.getCurrentVersion()), MessageFormat.format("plan:{0} version {1} change to {2}", planId, version, planEntity.getCurrentVersion()));
 
+        PlanInstanceEntity planInstanceEntityCheck = planInstanceEntityRepo.findById(planInstanceId).orElse(null);
+        Verifies.isNull(planInstanceEntityCheck, MessageFormat.format("plan:{0} version {1} create instance by id {2} but is already exist", planId, version, planInstanceId));
+
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(version).orElseThrow(VerifyException.supplier(MessageFormat.format("does not find {0} plan info by version {1}", planId, version)));
 
         // 判断是否由当前节点执行
