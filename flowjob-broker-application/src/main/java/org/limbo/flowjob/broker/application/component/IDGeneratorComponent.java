@@ -29,9 +29,9 @@ import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.IdEntity;
 import org.limbo.flowjob.broker.dao.repositories.IdEntityRepo;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -50,7 +50,6 @@ public class IDGeneratorComponent implements IDGenerator {
     private IdEntityRepo idEntityRepo;
 
     @Override
-    @Transactional
     public String generateId(IDType type) {
         Long randomAutoId = gainRandomAutoId(type);
         return String.valueOf(randomAutoId);
@@ -61,7 +60,6 @@ public class IDGeneratorComponent implements IDGenerator {
             ID id = ID_MAP.get(type);
             if (id == null || !id.valid()) {
                 id = getNewId(type);
-                ID_MAP.put(type, id);
             }
             return id.getCurrentId().incrementAndGet();
         }
