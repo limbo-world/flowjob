@@ -29,10 +29,9 @@ public interface AgentWorkerRpc {
 
     /**
      * 发送一个作业到worker执行。当worker接受此task后，将触发返回
-     * @param worker 下发的worker
      * @param task 任务
      * @return worker接受task后触发
      */
-    boolean dispatch(Worker worker, Task task);
+    boolean dispatch(Task task);
 
 }

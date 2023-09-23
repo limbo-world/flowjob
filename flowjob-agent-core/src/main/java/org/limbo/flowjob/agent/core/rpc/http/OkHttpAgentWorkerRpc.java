@@ -55,7 +55,8 @@ public class OkHttpAgentWorkerRpc extends OKHttpRpc<BaseLBServer> implements Age
     }
 
     @Override
-    public boolean dispatch(Worker worker, Task task) {
+    public boolean dispatch(Task task) {
+        Worker worker = task.getWorker();
         if (worker == null) {
             return false;
         }

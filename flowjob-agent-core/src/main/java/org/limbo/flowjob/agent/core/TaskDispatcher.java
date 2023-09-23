@@ -66,33 +66,31 @@ public class TaskDispatcher {
         }
 
         boolean dispatched = false;
-        Worker worker = null;
         try {
             if (task.getWorker() == null) {
                 List<Worker> workers = agentBrokerRpc.availableWorkers(task.getJobId(), true, true, true, true);
                 if (CollectionUtils.isNotEmpty(workers)) {
-                    worker = workers.get(0);
+                    task.setWorker(workers.get(0));
                 }
-                task.setWorker(worker);
             }
 
             if (task.getWorker() != null) {
-                dispatched = agentWorkerRpc.dispatch(worker, task);
+                dispatched = agentWorkerRpc.dispatch(task);
             }
 
             if (dispatched) {
-                log.info("Task dispatch success task={} worker={}", task.getTaskId(), worker);
+                log.info("Task dispatch success task={} worker={}", task.getTaskId(), task.getWorker());
             } else {
                 task.setDispatchFailTimes(task.getDispatchFailTimes() + 1);
-                log.info("Task dispatch failed: task={} worker={} times={}", task.getTaskId(), worker, task.getDispatchFailTimes());
+                log.error("Task dispatch failed: task={} worker={} times={}", task.getTaskId(), task.getWorker(), task.getDispatchFailTimes());
                 taskRepository.dispatchFail(task.getJobId(), task.getTaskId());
                 if (task.getDispatchFailTimes() >= 3) {
                     Job job = jobRepository.getById(task.getJobId());
-                    job.taskFail(task, String.format("task dispatch fail over limit last worker is %s", worker == null ? "" : worker), "");
+                    job.taskFail(task, String.format("task dispatch fail over limit last worker is %s", task.getWorker() == null ? "" : task.getWorker()), "");
                 }
             }
         } catch (Exception e) {
-            log.error("Task dispatch failed: task={} worker={}", task.getTaskId(), worker, e);
+            log.error("Task dispatch failed: task={} worker={}", task.getTaskId(), task.getWorker(), e);
         }
     }
 
