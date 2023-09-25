@@ -18,6 +18,8 @@
 
 package org.limbo.flowjob.broker.application.service;
 
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -47,6 +49,7 @@ import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
+import org.limbo.flowjob.broker.dao.entity.QPlanEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
@@ -62,8 +65,8 @@ import javax.persistence.criteria.Predicate;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -236,54 +239,39 @@ public class PlanService {
         return dto;
     }
 
-    public PageDTO<PlanDTO> page(PlanQueryParam param) {
-        Specification<PlanEntity> sf = (root, query, cb) -> {
-            //用于添加所有查询条件
-            List<Predicate> p = new ArrayList<>();
-            if (StringUtils.isNotBlank(param.getName())) {
-                Predicate p3 = cb.like(root.get("name").as(String.class), param.getName() + "%");
-                p.add(p3);
-            }
-            Predicate[] pre = new Predicate[p.size()];
-            Predicate and = cb.and(p.toArray(pre));
-            query.where(and);
 
-            //设置排序
-            List<Order> orders = new ArrayList<>();
-            orders.add(cb.desc(root.get("planId")));
-            return query.orderBy(orders).getRestriction();
-        };
-        Pageable pageable = JpaHelper.pageable(param);
-        Page<PlanEntity> queryResult = planEntityRepo.findAll(sf, pageable);
-        List<PlanEntity> planEntities = queryResult.getContent();
-        PageDTO<PlanDTO> page = PageDTO.convertByPage(param);
-        page.setTotal(queryResult.getTotalElements());
-        if (CollectionUtils.isNotEmpty(planEntities)) {
-            List<PlanInfoEntity> planInfoEntities = planInfoEntityRepo.findAllById(planEntities.stream().map(PlanEntity::getCurrentVersion).collect(Collectors.toList()));
-            Map<String, PlanInfoEntity> planInfoEntityMap = planInfoEntities.stream().collect(Collectors.toMap(PlanInfoEntity::getPlanInfoId, e -> e));
-            page.setData(planEntities.stream().map(planEntity -> {
-                PlanInfoEntity planInfoEntity = planInfoEntityMap.get(planEntity.getCurrentVersion());
-                PlanDTO vo = new PlanDTO();
-                vo.setPlanId(planEntity.getPlanId());
-                vo.setCurrentVersion(planEntity.getCurrentVersion());
-                vo.setRecentlyVersion(planEntity.getRecentlyVersion());
-                vo.setEnabled(planEntity.isEnabled());
-                vo.setName(planInfoEntity.getName());
-                vo.setDescription(planInfoEntity.getDescription());
-                vo.setPlanType(planInfoEntity.getPlanType());
-                vo.setScheduleType(planInfoEntity.getScheduleType());
-                vo.setTriggerType(planInfoEntity.getTriggerType());
-                vo.setScheduleStartAt(planInfoEntity.getScheduleStartAt());
-                vo.setScheduleEndAt(planInfoEntity.getScheduleEndAt());
-                vo.setScheduleDelay(planInfoEntity.getScheduleDelay());
-                vo.setScheduleInterval(planInfoEntity.getScheduleInterval());
-                vo.setScheduleCron(planInfoEntity.getScheduleCron());
-                vo.setScheduleCronType(planInfoEntity.getScheduleCronType());
-                return vo;
-            }).collect(Collectors.toList()));
+    /**
+     * 分页查询任务
+     */
+    public PageDTO<PlanDTO> page(PlanQueryParam param) {
+        // 查询条件
+        BooleanBuilder condition = new BooleanBuilder();
+        if (StringUtils.isNotBlank(param.getName())) {
+            condition.and(QPlanEntity.planEntity.name.like("%" + param.getName() + "%"));
         }
+
+        // 分页条件
+        OrderSpecifier<String> orderBy = QPlanEntity.planEntity.planId.desc();
+        Pageable pageable = JpaHelper.qPageable(param, orderBy);
+
+        // 查询 Plan
+        Page<PlanEntity> queryResult = planEntityRepo.findAll(condition, pageable);
+        List<PlanEntity> plans = queryResult.getContent();
+
+        // 查询 PlanInfo
+        Set<String> versions = plans.stream()
+                .map(PlanEntity::getCurrentVersion)
+                .collect(Collectors.toSet());
+        List<PlanInfoEntity> planInfos = CollectionUtils.isEmpty(versions)
+                ? new ArrayList<>() : planInfoEntityRepo.findAllById(versions);
+
+        // 封装分页返回结果
+        PageDTO<PlanDTO> page = PageDTO.convertByPage(param);
+        page.setData(planConverter.toPlanDTO(plans, planInfos));
+        page.setTotal(queryResult.getTotalElements());
         return page;
     }
+
 
     public PageDTO<PlanVersionDTO> versionPage(PlanVersionParam param) {
         Specification<PlanInfoEntity> sf = (root, query, cb) -> {

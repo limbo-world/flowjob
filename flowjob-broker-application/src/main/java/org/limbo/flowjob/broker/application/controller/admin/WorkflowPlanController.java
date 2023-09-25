@@ -21,10 +21,14 @@ package org.limbo.flowjob.broker.application.controller.admin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Setter;
+import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.console.PlanInfoDTO;
+import org.limbo.flowjob.api.dto.console.PlanVersionDTO;
 import org.limbo.flowjob.api.param.console.PlanParam;
+import org.limbo.flowjob.api.param.console.PlanVersionParam;
 import org.limbo.flowjob.api.param.console.WorkflowPlanUpdateParam;
+import org.limbo.flowjob.broker.application.service.PlanService;
 import org.limbo.flowjob.broker.application.service.WorkflowPlanService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,6 +49,9 @@ import javax.validation.constraints.NotBlank;
 public class WorkflowPlanController {
 
     @Setter(onMethod_ = @Inject)
+    private PlanService planService;
+
+    @Setter(onMethod_ = @Inject)
     private WorkflowPlanService workflowPlanService;
 
     /**
@@ -58,13 +65,25 @@ public class WorkflowPlanController {
 
 
     /**
-     * 替换工作流计划
+     * 更新工作流计划
      */
-    @Operation(summary = "替换工作流计划")
+    @Operation(summary = "更新工作流计划")
     @PostMapping("/api/v1/workflow-plan/update")
     public ResponseDTO<String> update(@Validated @RequestBody WorkflowPlanUpdateParam param) {
         return ResponseDTO.ok(workflowPlanService.update(param));
     }
+
+
+    /**
+     * 更新工作量 plan 的生效版本
+     */
+    @Operation(summary = "更新工作量 plan 的生效版本")
+    @PostMapping("/api/v1/workflow-plan/version")
+    public ResponseDTO<Boolean> versionUpdate(@NotBlank(message = "ID不能为空") @RequestParam("planId") String planId,
+                                              @NotBlank(message = "version不能为空") @RequestParam("version") String version) {
+        return ResponseDTO.<Boolean>builder().ok(planService.versionUpdate(planId, version)).build();
+    }
+    
 
     /**
      * 获取工作流 plan 详情
@@ -75,6 +94,15 @@ public class WorkflowPlanController {
         return ResponseDTO.ok(workflowPlanService.getWorkflowPlan(planId));
     }
 
+
+    /**
+     * 获取工作流 plan 版本列表
+     */
+    @Operation(summary = "获取工作流 plan 版本列表")
+    @GetMapping("/api/v1/workflow-plan/version/page")
+    public ResponseDTO<PageDTO<PlanVersionDTO>> versionPage(PlanVersionParam param) {
+        return ResponseDTO.ok(planService.versionPage(param));
+    }
 
 
 }

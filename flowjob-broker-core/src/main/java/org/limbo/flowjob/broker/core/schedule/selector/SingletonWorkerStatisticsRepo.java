@@ -97,8 +97,7 @@ public class SingletonWorkerStatisticsRepo extends Lockable<List<SingletonWorker
         runInReadLock(records -> {
             for (int i = records.size() - 1; i >= 0; i--) {
                 WorkerDispatchRecord record = records.get(i);
-                if (workerIds.contains(record.workerId)
-                        && record.dispatchAt.isAfter(limit)) {
+                if (workerIds.contains(record.workerId) && record.dispatchAt.isAfter(limit)) {
                     MutableWorkerLBStatistics s = statistics.computeIfAbsent(
                             record.workerId,
                             MutableWorkerLBStatistics::new

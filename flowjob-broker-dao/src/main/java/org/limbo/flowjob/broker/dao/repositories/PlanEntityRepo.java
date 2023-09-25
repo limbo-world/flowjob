@@ -23,6 +23,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
@@ -33,7 +34,8 @@ import java.util.List;
  * @author Devil
  * @since 2022/6/22
  */
-public interface PlanEntityRepo extends JpaRepository<PlanEntity, String>, JpaSpecificationExecutor<PlanEntity> {
+public interface PlanEntityRepo extends JpaRepository<PlanEntity, String>,
+        JpaSpecificationExecutor<PlanEntity>, QuerydslPredicateExecutor<PlanEntity> {
 
     @Query(value = "select * from flowjob_plan where plan_id = :planId for update", nativeQuery = true)
     PlanEntity selectForUpdate(@Param("planId") String planId);

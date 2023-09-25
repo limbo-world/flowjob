@@ -21,6 +21,7 @@ import lombok.Setter;
 import org.apache.commons.collections4.ListUtils;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.dto.console.PlanInfoDTO;
+import org.limbo.flowjob.api.dto.console.WorkflowJobDTO;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -42,9 +43,6 @@ public class WorkflowPlanConverter {
     private PlanConverter converter;
 
 
-
-
-
     /**
      * 转换为 DAG 任务详情 DTO
      * @param planInfo DAG 任务持久化对象
@@ -62,10 +60,30 @@ public class WorkflowPlanConverter {
         TypeReference<List<WorkflowJobInfo>> typeRef = new TypeReference<List<WorkflowJobInfo>>() { /* ignore */ };
         List<WorkflowJobInfo> jobs = JacksonUtils.parseObject(planInfo.getJobInfo(), typeRef);
         dto.setWorkflow(ListUtils.emptyIfNull(jobs).stream()
-                .map(converter::toWorkflowJobDTO)
+                .map(this::toWorkflowJobDTO)
                 .collect(Collectors.toList())
         );
 
+        return dto;
+    }
+
+
+    /**
+     * 转换为单个 DAG 作业 DTO
+     */
+    public WorkflowJobDTO toWorkflowJobDTO(WorkflowJobInfo job) {
+        WorkflowJobDTO dto = new WorkflowJobDTO();
+        dto.setId(job.getId());
+        dto.setName(job.getName());
+        dto.setDescription(job.getDescription());
+        dto.setType(job.getType());
+        dto.setAttributes(job.getAttributes().toMap());
+        dto.setRetryOption(converter.convertToRetryOption(job.getRetryOption()));
+        dto.setDispatchOption(converter.convertJobDispatchOption(job.getDispatchOption()));
+        dto.setExecutorName(job.getExecutorName());
+        dto.setChildren(job.getChildrenIds());
+        dto.setTriggerType(job.getTriggerType());
+        dto.setContinueWhenFail(job.isContinueWhenFail());
         return dto;
     }
 
