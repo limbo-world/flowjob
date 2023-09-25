@@ -91,6 +91,7 @@ public class TaskRepository {
                     "    `trigger_at`        datetime(6) DEFAULT NULL,\n" +
                     "    `start_at`          datetime(6) DEFAULT NULL,\n" +
                     "    `end_at`            datetime(6) DEFAULT NULL,\n" +
+                    "    `dispatch_fail_times`    int(3) DEFAULT 0,\n" +
                     "    `result`            varchar(255) DEFAULT '',\n" +
                     "    `error_msg`         varchar(255) DEFAULT '',\n" +
                     "    `last_report_at`    datetime(6) NOT NULL," +
@@ -288,25 +289,6 @@ public class TaskRepository {
         }
     }
 
-    public long countUnSuccess(String jobId, TaskType type) {
-        String sql = "select count(*) from " + TABLE_NAME + " where job_id = ? and `type` = ? and `status` != ? ";
-        try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, jobId);
-            ps.setInt(2, type.type);
-            ps.setInt(3, TaskStatus.SUCCEED.status);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                } else {
-                    return 0L;
-                }
-            }
-        } catch (Exception e) {
-            log.error("TaskRepository.countUnSuccess error jobId={} type={}", jobId, type, e);
-            return 0L;
-        }
-    }
-
     public boolean batchSave(Collection<Task> tasks) {
         if (CollectionUtils.isEmpty(tasks)) {
             return true;
@@ -349,6 +331,19 @@ public class TaskRepository {
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             log.error("TaskRepository.batchSave error", e);
+            return false;
+        }
+    }
+
+    public boolean dispatchFail(String jobId, String taskId) {
+        String sql = "update " + TABLE_NAME + " set `dispatch_fail_times` = `dispatch_fail_times` + 1 where job_id = ? and task_id = ?";
+        try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            int i = 0;
+            ps.setString(++i, jobId);
+            ps.setString(++i, taskId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            log.error("TaskRepository.dispatchFail error jobId={} taskId={}", jobId, taskId, e);
             return false;
         }
     }
@@ -442,6 +437,7 @@ public class TaskRepository {
         task.setStartAt(StringUtils.isBlank(startAtStr) ? null : DateTimeUtils.parseYMDHMS(startAtStr));
         task.setEndAt(StringUtils.isBlank(endAtStr) ? null : DateTimeUtils.parseYMDHMS(endAtStr));
 
+        task.setDispatchFailTimes(rs.getInt("dispatch_fail_times"));
         task.setContext(new Attributes(rs.getString("context")));
         task.setJobAttributes(new Attributes(rs.getString("job_attributes")));
         task.setTaskAttributes(rs.getString("task_attributes"));

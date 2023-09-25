@@ -20,9 +20,10 @@ package org.limbo.flowjob.agent.core.checker;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.agent.core.entity.Job;
 import org.limbo.flowjob.agent.core.entity.Task;
+import org.limbo.flowjob.agent.core.repository.JobRepository;
 import org.limbo.flowjob.agent.core.repository.TaskRepository;
-import org.limbo.flowjob.agent.core.service.TaskService;
 import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.common.utils.time.DateTimeUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
@@ -54,7 +55,9 @@ public class TaskExecuteChecker {
      */
     private boolean running;
 
-    private TaskService taskService;
+    private TaskRepository taskRepository;
+
+    private JobRepository jobRepository;
 
     /**
      * 上次检测时间
@@ -63,8 +66,9 @@ public class TaskExecuteChecker {
 
     private static final String CHECKER_NAME = "TaskExecuteChecker";
 
-    public TaskExecuteChecker(TaskService taskService, Duration period) {
-        this.taskService = taskService;
+    public TaskExecuteChecker(JobRepository jobRepository, TaskRepository taskRepository, Duration period) {
+        this.jobRepository = jobRepository;
+        this.taskRepository = taskRepository;
         this.timer = new Timer(CHECKER_NAME);
         this.period = period;
         this.running = false;
@@ -87,8 +91,6 @@ public class TaskExecuteChecker {
             @Override
             public void run() {
                 try {
-                    TaskRepository taskRepository = taskService.getTaskRepository();
-
                     String checkStartTimeStr = DateTimeUtils.formatYMDHMS(lastCheckTime.plusSeconds(-1));
                     LocalDateTime checkEndTime = TimeUtils.currentLocalDateTime().plus(-period.toMillis(), ChronoUnit.MILLIS);
                     String checkEndTimeStr = DateTimeUtils.formatYMDHMS(checkEndTime);
@@ -98,10 +100,11 @@ public class TaskExecuteChecker {
                     List<Task> tasks = taskRepository.getByLastReportBetween(checkStartTimeStr, checkEndTimeStr, TaskStatus.EXECUTING, startId, limit);
                     while (CollectionUtils.isNotEmpty(tasks)) {
                         for (Task t : tasks) {
+                            Job job = jobRepository.getById(t.getJobId());
                             if (t.getWorker() != null) {
-                                taskService.taskFail(t, String.format("worker %s is offline", t.getWorker().getId()), "");
+                                job.taskFail(t, String.format("worker %s is offline", t.getWorker().getId()), "");
                             } else {
-                                taskService.taskFail(t, "no worker", "");
+                                job.taskFail(t, "no worker", "");
                             }
                         }
                         startId = tasks.get(tasks.size() - 1).getTaskId();

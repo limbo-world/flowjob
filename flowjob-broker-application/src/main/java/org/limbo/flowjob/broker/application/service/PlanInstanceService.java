@@ -86,10 +86,13 @@ public class PlanInstanceService {
         PlanEntity planEntity = planEntityRepo.selectForUpdate(planId);
         Verifies.notNull(planEntity, MsgConstants.CANT_FIND_PLAN + planId);
         Verifies.verify(!planEntity.isDeleted(), "plan:" + planId + " is deleted!");
-        Verifies.verify(planEntity.isEnabled(), "plan:" + planId + " is not enabled!");
+
         // 判断任务配置信息是否变动：任务是由之前时间创建的 调度时候如果版本改变 可能会有调度时间的变化本次就无需执行
         // 比如 5s 执行一次 分别在 5s 10s 15s 在11s的时候内存里下次执行为 15s 此时修改为 2s 执行一次 那么重新加载plan后应该为 12s 14s 所以15s这次可以跳过
         Verifies.verify(Objects.equals(version, planEntity.getCurrentVersion()), MessageFormat.format("plan:{0} version {1} change to {2}", planId, version, planEntity.getCurrentVersion()));
+
+        PlanInstanceEntity planInstanceEntityCheck = planInstanceEntityRepo.findById(planInstanceId).orElse(null);
+        Verifies.isNull(planInstanceEntityCheck, MessageFormat.format("plan:{0} version {1} create instance by id {2} but is already exist", planId, version, planInstanceId));
 
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(version).orElseThrow(VerifyException.supplier(MessageFormat.format("does not find {0} plan info by version {1}", planId, version)));
 

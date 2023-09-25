@@ -20,7 +20,10 @@ package org.limbo.flowjob.agent.core;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.agent.core.entity.Job;
 import org.limbo.flowjob.agent.core.entity.Task;
+import org.limbo.flowjob.agent.core.repository.JobRepository;
+import org.limbo.flowjob.agent.core.repository.TaskRepository;
 import org.limbo.flowjob.agent.core.rpc.AgentBrokerRpc;
 import org.limbo.flowjob.agent.core.rpc.AgentWorkerRpc;
 import org.limbo.flowjob.api.constants.TaskStatus;
@@ -34,11 +37,17 @@ import java.util.List;
 @Slf4j
 public class TaskDispatcher {
 
+    private final JobRepository jobRepository;
+
+    private final TaskRepository taskRepository;
+
     private final AgentBrokerRpc agentBrokerRpc;
 
     private final AgentWorkerRpc agentWorkerRpc;
 
-    public TaskDispatcher(AgentBrokerRpc agentBrokerRpc, AgentWorkerRpc agentWorkerRpc) {
+    public TaskDispatcher(JobRepository jobRepository, TaskRepository taskRepository, AgentBrokerRpc agentBrokerRpc, AgentWorkerRpc agentWorkerRpc) {
+        this.jobRepository = jobRepository;
+        this.taskRepository = taskRepository;
         this.agentBrokerRpc = agentBrokerRpc;
         this.agentWorkerRpc = agentWorkerRpc;
     }
@@ -47,39 +56,42 @@ public class TaskDispatcher {
      * 将任务下发给worker。
      * task status -> EXECUTING or FAILED
      */
-    public boolean dispatch(Task task) {
+    public void dispatch(Task task) {
         if (log.isDebugEnabled()) {
             log.debug("start dispatch task={}", task);
         }
 
         if (task.getStatus() != TaskStatus.SCHEDULING) {
-            return false;
+            return;
         }
 
         boolean dispatched = false;
-        Worker worker = null;
         try {
             if (task.getWorker() == null) {
                 List<Worker> workers = agentBrokerRpc.availableWorkers(task.getJobId(), true, true, true, true);
                 if (CollectionUtils.isNotEmpty(workers)) {
-                    worker = workers.get(0);
+                    task.setWorker(workers.get(0));
                 }
-                task.setWorker(worker);
             }
 
             if (task.getWorker() != null) {
-                dispatched = agentWorkerRpc.dispatch(worker, task);
+                dispatched = agentWorkerRpc.dispatch(task);
             }
 
             if (dispatched) {
-                log.info("Task dispatch success task={} worker={}", task.getTaskId(), worker);
+                log.info("Task dispatch success task={} worker={}", task.getTaskId(), task.getWorker());
             } else {
-                log.info("Task dispatch failed: task={} worker={}", task.getTaskId(), worker == null ? "" : worker.getId());
+                task.setDispatchFailTimes(task.getDispatchFailTimes() + 1);
+                log.error("Task dispatch failed: task={} worker={} times={}", task.getTaskId(), task.getWorker(), task.getDispatchFailTimes());
+                taskRepository.dispatchFail(task.getJobId(), task.getTaskId());
+                if (task.getDispatchFailTimes() >= 3) {
+                    Job job = jobRepository.getById(task.getJobId());
+                    job.taskFail(task, String.format("task dispatch fail over limit last worker is %s", task.getWorker() == null ? "" : task.getWorker()), "");
+                }
             }
         } catch (Exception e) {
-            log.error("Task dispatch failed: task={} worker={}", task.getTaskId(), worker == null ? "" : worker.getId(), e);
+            log.error("Task dispatch failed: task={} worker={}", task.getTaskId(), task.getWorker(), e);
         }
-        return dispatched;
     }
 
 }

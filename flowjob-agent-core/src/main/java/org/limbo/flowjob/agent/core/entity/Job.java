@@ -18,9 +18,11 @@
 
 package org.limbo.flowjob.agent.core.entity;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.agent.core.TaskDispatcher;
 import org.limbo.flowjob.agent.core.TaskFactory;
 import org.limbo.flowjob.agent.core.Worker;
@@ -34,12 +36,19 @@ import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.common.constants.JobConstant;
 import org.limbo.flowjob.common.exception.JobException;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * @author Devil
@@ -97,6 +106,8 @@ public class Job implements Runnable {
 
     private ScheduledFuture<?> completeScheduledFuture = null;
 
+    private TaskCounter taskCounter;
+
     @Override
     public void run() {
         start();
@@ -112,6 +123,8 @@ public class Job implements Runnable {
             }
             // 开启任务上报
             reportScheduledFuture = scheduledReportPool.scheduleAtFixedRate(new StatusReportRunnable(), 1, JobConstant.JOB_REPORT_SECONDS, TimeUnit.SECONDS);
+            // 计数
+            taskCounter = new TaskCounter();
             // 执行
             schedule();
         } catch (Exception e) {
@@ -120,6 +133,15 @@ public class Job implements Runnable {
             taskRepository.deleteByJobId(id);
             throw new JobException(id, e.getMessage(), e);
         }
+    }
+
+    public boolean saveTask(Collection<Task> tasks) {
+        boolean saved = taskRepository.batchSave(tasks);
+        if (saved) {
+            taskCounter.total.addAndGet(tasks.size());
+            taskCounter.scheduling.addAndGet(tasks.size());
+        }
+        return saved;
     }
 
     public void stop() {
@@ -144,7 +166,7 @@ public class Job implements Runnable {
         }
 
         try {
-            if (taskRepository.batchSave(tasks)) {
+            if (saveTask(tasks)) {
                 for (Task task : tasks) {
                     taskDispatcher.dispatch(task);
                 }
@@ -154,20 +176,103 @@ public class Job implements Runnable {
         }
     }
 
+    public boolean taskExecuting(String taskId, String workerId, URL workerAddress) {
+        String url = workerAddress == null ? "" : workerAddress.toString();
+        boolean updated = taskRepository.executing(id, taskId, workerId, url);
+        if (updated) {
+            taskCounter.executing.incrementAndGet();
+        }
+        return updated;
+    }
+
     /**
-     * 通知/更新job状态
+     * task 成功处理
      */
-    public void handleSuccess() {
-        // 开启任务执行完成反馈
-        completeScheduledFuture = scheduledReportPool.scheduleAtFixedRate(new CompleteReportRunnable(this, true, null), 0, 1, TimeUnit.SECONDS);
+    public void taskSuccess(Task task, Attributes context, String result) {
+        task.setContext(context);
+        task.setResult(result);
+        boolean updated = taskRepository.success(task);
+        if (!updated) { // 已经被更新 无需重复处理
+            return;
+        }
+
+        taskCounter.succeed.incrementAndGet();
+
+        switch (task.getType()) {
+            case STANDALONE:
+            case REDUCE:
+            case BROADCAST:
+                handleSuccess();
+                break;
+            case SHARDING:
+                break;
+            case MAP:
+                dealMapTaskSuccess(task);
+                break;
+        }
+
+    }
+
+    /**
+     * 检测是否所有task都已经完成
+     * 如果已经完成 下发 ReduceTask
+     */
+    private void dealMapTaskSuccess(Task task) {
+        if (taskCounter.total.get() > taskCounter.succeed.get()) {
+            return; // 交由失败的task 或者后面还在执行的task去做后续逻辑处理
+        }
+
+        List<String> results = taskRepository.getAllTaskResult(task.getJobId(), TaskType.MAP);
+        List<Map<String, Object>> mapResults = results.stream()
+                .map(r -> JacksonUtils.parseObject(r, new TypeReference<Map<String, Object>>() {
+                }))
+                .collect(Collectors.toList());
+        Task reduceTask = TaskFactory.createTask(TaskType.REDUCE.name(), this, mapResults, TaskType.REDUCE, null);
+        saveTask(Collections.singletonList(reduceTask));
+        taskDispatcher.dispatch(reduceTask);
     }
 
     /**
      * 通知/更新job状态
      */
-    public void handleFail(String errorMsg) {
-        // 开启任务执行完成反馈
-        completeScheduledFuture = scheduledReportPool.scheduleAtFixedRate(new CompleteReportRunnable(this, false, errorMsg), 0, 1, TimeUnit.SECONDS);
+    public synchronized void handleSuccess() {
+        if (taskCounter.total.get() == taskCounter.succeed.get()) {
+            // 开启任务执行完成反馈
+            completeScheduledFuture = scheduledReportPool.scheduleAtFixedRate(new CompleteReportRunnable(this, true, null), 0, 1, TimeUnit.SECONDS);
+        }
+    }
+
+    /**
+     * task失败处理
+     */
+    public void taskFail(Task task, String errorMsg, String errorStackTrace) {
+        if (StringUtils.isBlank(errorMsg)) {
+            errorMsg = "";
+        }
+        if (StringUtils.isBlank(errorStackTrace)) {
+            errorStackTrace = "";
+        }
+        task.setErrorMsg(errorMsg);
+        task.setErrorStackTrace(errorStackTrace);
+        boolean updated = taskRepository.fail(task);
+        if (!updated) { // 已经被更新 无需重复处理
+            return;
+        }
+        taskCounter.failed.incrementAndGet();
+
+        // 判断是否为最后一个task
+        handleFail(errorMsg);
+        // 终止其它执行中的task
+    }
+
+    /**
+     * 通知/更新job状态
+     */
+    public synchronized void handleFail(String errorMsg) {
+        if (taskCounter.succeed.get() + taskCounter.failed.get() == taskCounter.total.get()) {
+            // 开启任务执行完成反馈
+            completeScheduledFuture = scheduledReportPool.scheduleAtFixedRate(new CompleteReportRunnable(this, false, errorMsg), 0, 1, TimeUnit.SECONDS);
+        }
     }
 
     private boolean reportJobExecuting(String id, int retryTimes) {
@@ -208,6 +313,20 @@ public class Job implements Runnable {
         }
 
         return tasks;
+    }
+
+    private class TaskCounter {
+
+        AtomicInteger total = new AtomicInteger(0);
+
+        AtomicInteger scheduling = new AtomicInteger(0);
+
+        AtomicInteger executing = new AtomicInteger(0);
+
+        AtomicInteger succeed = new AtomicInteger(0);
+
+        AtomicInteger failed = new AtomicInteger(0);
+
     }
 
     private class StatusReportRunnable implements Runnable {

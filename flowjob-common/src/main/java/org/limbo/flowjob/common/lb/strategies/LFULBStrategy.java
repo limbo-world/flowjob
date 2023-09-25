@@ -52,19 +52,15 @@ public class LFULBStrategy<S extends LBServer> extends AbstractLBStrategy<S> {
     /**
      * 统计使用次数时，查询多久的统计数据
      */
-    private Duration interval = Duration.ofMinutes(10);
+    private Duration interval;
+
+    private RandomLBStrategy<S> randomLBStrategy;
 
 
     public LFULBStrategy(LBServerStatisticsProvider statisticsProvider) {
         this.statisticsProvider = Objects.requireNonNull(statisticsProvider);
-    }
-
-
-    /**
-     * @param statisticsProvider 不可为 null
-     */
-    public void setStatisticsProvider(LBServerStatisticsProvider statisticsProvider) {
-        this.statisticsProvider = Objects.requireNonNull(statisticsProvider);
+        this.interval = Duration.ofMinutes(10);
+        this.randomLBStrategy = new RandomLBStrategy<>();
     }
 
 
@@ -94,7 +90,8 @@ public class LFULBStrategy<S extends LBServer> extends AbstractLBStrategy<S> {
 
         List<LBServerStatistics> statistics = statisticsProvider.getStatistics(serverIds, this.interval);
         if (CollectionUtils.isEmpty(statistics)) {
-            return Optional.empty();
+            // 随机兜底
+            return randomLBStrategy.select(servers, invocation);
         }
 
         return statistics.stream()

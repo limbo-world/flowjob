@@ -27,16 +27,16 @@ import org.limbo.flowjob.agent.core.checker.TaskScheduleChecker;
 import org.limbo.flowjob.agent.core.entity.Job;
 import org.limbo.flowjob.agent.core.entity.Task;
 import org.limbo.flowjob.agent.core.repository.JobRepository;
+import org.limbo.flowjob.agent.core.repository.TaskRepository;
 import org.limbo.flowjob.agent.core.rpc.AgentBrokerRpc;
-import org.limbo.flowjob.agent.core.service.TaskService;
 import org.limbo.flowjob.api.constants.JobType;
 import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.api.param.agent.SubTaskCreateParam;
 import org.limbo.flowjob.api.param.agent.TaskReportParam;
 import org.limbo.flowjob.common.constants.AgentConstant;
 import org.limbo.flowjob.common.constants.TaskConstant;
-import org.limbo.flowjob.common.exception.RpcException;
 import org.limbo.flowjob.common.exception.RegisterFailException;
+import org.limbo.flowjob.common.exception.RpcException;
 import org.limbo.flowjob.common.heartbeat.Heartbeat;
 import org.limbo.flowjob.common.heartbeat.HeartbeatPacemaker;
 import org.limbo.flowjob.common.rpc.EmbedRpcServer;
@@ -112,12 +112,15 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
 
     private EmbedRpcServer embedRpcServer;
 
-    private TaskService taskService;
+    private TaskDispatcher taskDispatcher;
 
     private JobRepository jobRepository;
 
-    public BaseScheduleAgent(URL url, AgentResources resource, AgentBrokerRpc brokerRpc, JobRepository jobRepository,
-                             TaskService taskService, EmbedRpcServer embedRpcServer) {
+    private TaskRepository taskRepository;
+
+    public BaseScheduleAgent(URL url, AgentResources resource, AgentBrokerRpc brokerRpc,
+                             JobRepository jobRepository, TaskRepository taskRepository,
+                             TaskDispatcher taskDispatcher, EmbedRpcServer embedRpcServer) {
         Objects.requireNonNull(url, "URL can't be null");
         Objects.requireNonNull(brokerRpc, "remote client can't be null");
 
@@ -125,7 +128,8 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
         this.brokerRpc = brokerRpc;
         this.embedRpcServer = embedRpcServer;
         this.jobRepository = jobRepository;
-        this.taskService = taskService;
+        this.taskRepository = taskRepository;
+        this.taskDispatcher = taskDispatcher;
         this.resource = resource;
 
         this.status = embedRpcServer.getStatus();
@@ -180,13 +184,13 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
 
         // task执行检测
         if (taskExecuteChecker == null) {
-            taskExecuteChecker = new TaskExecuteChecker(taskService, Duration.ofSeconds(TaskConstant.TASK_REPORT_SECONDS + 5));
+            taskExecuteChecker = new TaskExecuteChecker(jobRepository, taskRepository, Duration.ofSeconds(TaskConstant.TASK_REPORT_SECONDS + 5));
         }
         taskExecuteChecker.start();
 
         // tas下发检测
         if (taskScheduleChecker == null) {
-            taskScheduleChecker = new TaskScheduleChecker(taskService, Duration.ofSeconds(5));
+            taskScheduleChecker = new TaskScheduleChecker(taskRepository, taskDispatcher, Duration.ofSeconds(5));
         }
         taskScheduleChecker.start();
 
@@ -231,8 +235,8 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
 
         if (jobRepository.save(job)) {
             try {
-                job.setTaskDispatcher(taskService.getTaskDispatcher());
-                job.setTaskRepository(taskService.getTaskRepository());
+                job.setTaskDispatcher(taskDispatcher);
+                job.setTaskRepository(taskRepository);
                 job.setJobRepository(jobRepository);
                 job.setBrokerRpc(brokerRpc);
                 job.setScheduledReportPool(scheduledReportPool);
@@ -268,7 +272,7 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
         // 防止重复id
         subTaskParams = subTaskParams.stream().filter(p -> StringUtils.isNotBlank(p.getTaskId())).collect(Collectors.toList());
         List<String> subTaskIds = subTaskParams.stream().map(SubTaskCreateParam.SubTaskInfoParam::getTaskId).collect(Collectors.toList());
-        Set<String> existTaskIds = taskService.getExistTaskIds(jobId, subTaskIds);
+        Set<String> existTaskIds = taskRepository.getExistTaskIds(jobId, subTaskIds);
         subTaskParams = subTaskParams.stream().filter(p -> !existTaskIds.contains(p.getTaskId())).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(subTaskParams)) {
             if (log.isDebugEnabled()) {
@@ -283,12 +287,12 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
             tasks.add(newTask);
         }
 
-        if (!taskService.batchSave(tasks)) {
+        if (!job.saveTask(tasks)) {
             throw new IllegalArgumentException("batch save task fail jobId:" + jobId);
         }
 
         for (Task task : tasks) {
-            CommonThreadPool.IO.submit(() -> taskService.getTaskDispatcher().dispatch(task));
+            CommonThreadPool.IO.submit(() -> taskDispatcher.dispatch(task));
         }
     }
 
@@ -299,41 +303,42 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
         if (param == null || param.getWorkerId() == null) {
             return false;
         }
+        Job job = jobRepository.getById(param.getJobId());
+        return job.taskExecuting(param.getTaskId(), param.getWorkerId(), param.getWorkerAddress());
 
-        String url = param.getWorkerAddress() == null ? "" : param.getWorkerAddress().toString();
-
-        return taskService.getTaskRepository().executing(param.getJobId(), param.getTaskId(), param.getWorkerId(), url);
     }
 
     @Override
     public void reportTask(TaskReportParam param) {
         assertRunning();
 
-        taskService.getTaskRepository().report(param.getJobId(), param.getTaskId());
+        taskRepository.report(param.getJobId(), param.getTaskId());
     }
 
     @Override
     public void taskSuccess(String jobId, String taskId, Attributes context, String result) {
         assertRunning();
 
-        Task task = taskService.getTaskRepository().getById(jobId, taskId);
+        Task task = taskRepository.getById(jobId, taskId);
         if (task == null) {
             throw new IllegalArgumentException("task not found jobId:" + jobId + " taskId:" + taskId);
         }
 
-        taskService.taskSuccess(task, context, result);
+        Job job = jobRepository.getById(jobId);
+        job.taskSuccess(task, context, result);
     }
 
     @Override
     public void taskFail(String jobId, String taskId, String errorMsg, String errorStackTrace) {
         assertRunning();
 
-        Task task = taskService.getTaskRepository().getById(jobId, taskId);
+        Task task = taskRepository.getById(jobId, taskId);
         if (task == null) {
             throw new IllegalArgumentException("task not found jobId:" + jobId + " taskId:" + taskId);
         }
 
-        taskService.taskFail(task, errorMsg, errorStackTrace);
+        Job job = jobRepository.getById(task.getJobId());
+        job.taskFail(task, errorMsg, errorStackTrace);
     }
 
     /**

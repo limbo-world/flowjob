@@ -130,6 +130,9 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
         // 当前节点的子节点
         List<WorkflowJobInfo> subJobInfos = dag.subNodes(jobId);
 
+        // 防止并发问题，两个任务结束后并发过来后，由于无法读取到未提交数据，可能导致都认为不需要下发而导致失败
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.selectForUpdate(planInstanceId);
+
         if (CollectionUtils.isEmpty(subJobInfos)) {
             // 当前节点为叶子节点 检测 Plan 实例是否已经执行完成
             // 1. 所有节点都已经成功或者失败 2. 这里只关心plan的成功更新，失败是在task回调
@@ -137,8 +140,6 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
                 handlerPlanComplete(planInstanceId, true);
             }
         } else {
-            PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(planInstanceId).orElse(null);
-
             LocalDateTime triggerAt = TimeUtils.currentLocalDateTime();
             // 后续作业存在，则检测是否可触发，并继续下发作业
             List<JobInstance> subJobInstances = new ArrayList<>();

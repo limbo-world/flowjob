@@ -96,15 +96,23 @@ public class SingletonWorkerStatisticsRepo extends Lockable<List<SingletonWorker
         Map<String, MutableWorkerLBStatistics> statistics = new HashMap<>();
         runInReadLock(records -> {
             for (int i = records.size() - 1; i >= 0; i--) {
-                WorkerDispatchRecord record = records.get(i);
-                if (workerIds.contains(record.workerId) && record.dispatchAt.isAfter(limit)) {
+                WorkerDispatchRecord dispatchRecord = records.get(i);
+                if (workerIds.contains(dispatchRecord.workerId) && dispatchRecord.dispatchAt.isAfter(limit)) {
                     MutableWorkerLBStatistics s = statistics.computeIfAbsent(
-                            record.workerId,
+                            dispatchRecord.workerId,
                             MutableWorkerLBStatistics::new
                     );
-                    s.statisticRecord(record);
+                    s.statisticRecord(dispatchRecord);
                 }
             }
+
+            for (String workerId : workerIds) {
+                statistics.computeIfAbsent(
+                        workerId,
+                        MutableWorkerLBStatistics::new
+                );
+            }
+
         });
 
         return statistics.values().stream()
@@ -123,10 +131,9 @@ public class SingletonWorkerStatisticsRepo extends Lockable<List<SingletonWorker
             this.workerId = workerId;
         }
 
-        void statisticRecord(WorkerDispatchRecord record) {
-            if (this.lastDispatchTaskAt == null
-                    || this.lastDispatchTaskAt.isBefore(record.dispatchAt)) {
-                this.lastDispatchTaskAt = record.dispatchAt;
+        void statisticRecord(WorkerDispatchRecord dispatchRecord) {
+            if (this.lastDispatchTaskAt == null || this.lastDispatchTaskAt.isBefore(dispatchRecord.dispatchAt)) {
+                this.lastDispatchTaskAt = dispatchRecord.dispatchAt;
             }
 
             this.dispatchTimes++;
@@ -141,6 +148,9 @@ public class SingletonWorkerStatisticsRepo extends Lockable<List<SingletonWorker
 
         public final String workerId;
 
+        /**
+         * 下发时间点
+         */
         public final Instant dispatchAt;
 
     }
