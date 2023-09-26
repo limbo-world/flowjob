@@ -1,6 +1,5 @@
 package org.limbo.flowjob.broker.dao.entity;
 
-import com.querydsl.core.annotations.QueryEntity;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
@@ -21,10 +20,10 @@ import javax.persistence.Table;
 @Getter
 @Table(name = "flowjob_plan")
 @Entity
-@QueryEntity
 @DynamicInsert
 @DynamicUpdate
 public class PlanEntity extends BaseEntity {
+
     private static final long serialVersionUID = -6323915044280199312L;
 
     /**

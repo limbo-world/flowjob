@@ -18,12 +18,9 @@
 
 package org.limbo.flowjob.broker.application.support;
 
-import com.querydsl.core.types.OrderSpecifier;
-import org.hibernate.sql.ordering.antlr.SortSpecification;
 import org.limbo.flowjob.api.param.PageParam;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.querydsl.QPageRequest;
 
 /**
  * @author KaiFengCai
@@ -37,14 +34,6 @@ public class JpaHelper {
     public static Pageable pageable(PageParam param) {
         // PageParam 从 1 开始 Pageable 从 0 开始
         return PageRequest.of(param.getCurrent() - 1, param.getSize());
-    }
-
-    /**
-     * PageParam 转换为 Pageable
-     */
-    public static Pageable qPageable(PageParam param, OrderSpecifier<?> order) {
-        // PageParam 从 1 开始 Pageable 从 0 开始
-        return QPageRequest.of(param.getCurrent() - 1, param.getSize(), order);
     }
 
 }

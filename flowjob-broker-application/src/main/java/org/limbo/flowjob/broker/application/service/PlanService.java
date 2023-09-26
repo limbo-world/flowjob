@@ -18,8 +18,6 @@
 
 package org.limbo.flowjob.broker.application.service;
 
-import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.OrderSpecifier;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -49,7 +47,6 @@ import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
-import org.limbo.flowjob.broker.dao.entity.QPlanEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
@@ -60,6 +57,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.transaction.Transactional;
@@ -245,14 +243,23 @@ public class PlanService {
      */
     public PageDTO<PlanDTO> page(PlanQueryParam param) {
         // 查询条件
-        BooleanBuilder condition = new BooleanBuilder();
-        if (StringUtils.isNotBlank(param.getName())) {
-            condition.and(QPlanEntity.planEntity.name.like("%" + param.getName() + "%"));
-        }
+        Specification<PlanEntity> condition = (root, query, criteriaBuilder) -> {
+            // 名称模糊查询
+            String nameParam = param.getName();
+            if (StringUtils.isNotBlank(nameParam)) {
+                Expression<String> name = root.get("name").as(String.class);
+                String pattern = "%" + nameParam + "%";
+                query.where(criteriaBuilder.like(name, pattern));
+            }
+
+            // 排序
+            query.orderBy(criteriaBuilder.desc(root.get("planId")));
+
+            return query.getRestriction();
+        };
 
         // 分页条件
-        OrderSpecifier<String> orderBy = QPlanEntity.planEntity.planId.desc();
-        Pageable pageable = JpaHelper.qPageable(param, orderBy);
+        Pageable pageable = JpaHelper.pageable(param);
 
         // 查询 Plan
         Page<PlanEntity> queryResult = planEntityRepo.findAll(condition, pageable);
