@@ -27,7 +27,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>flowjob-common</artifactId>
-    <version>2.0.0</version>
+    <version>${project.parent.version}</version>
 
     <dependencies>
         <dependency>
