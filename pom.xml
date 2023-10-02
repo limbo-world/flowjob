@@ -281,9 +281,9 @@
             </properties>
         </profile>
 
-        <!-- mvn clean deploy -Dmaven.test.skip=true -P release -->
+        <!-- mvn clean deploy -Dmaven.test.skip=true -Pdeploy -->
         <profile>
-            <id>release</id>
+            <id>deploy</id>
             <build>
                 <plugins>
                     <!-- 生成源码 -->
