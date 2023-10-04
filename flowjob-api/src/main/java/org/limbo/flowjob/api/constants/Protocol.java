@@ -20,10 +20,12 @@ package org.limbo.flowjob.api.constants;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
 
 /**
  * 服务的通信协议
  */
+@Getter
 public enum Protocol {
 
     UNKNOWN("", 0),

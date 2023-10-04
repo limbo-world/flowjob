@@ -24,12 +24,12 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.api.constants.MsgConstants;
+import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.broker.core.schedule.Calculated;
 import org.limbo.flowjob.broker.core.schedule.ScheduleCalculator;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.core.schedule.calculator.ScheduleCalculatorFactory;
-import org.limbo.flowjob.api.constants.MsgConstants;
-import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.LocalDateTime;
@@ -43,7 +43,7 @@ import java.time.LocalDateTime;
  */
 @Slf4j
 @Getter
-public abstract class LoopMetaTask implements MetaTask, Calculated {
+public abstract class LoopMetaTask extends MetaTask implements Calculated {
 
     /**
      * 上次任务触发时间
@@ -62,28 +62,17 @@ public abstract class LoopMetaTask implements MetaTask, Calculated {
 
     private final ScheduleOption scheduleOption;
 
-//    /**
-//     * 是否终止
-//     */
-//    protected boolean terminated;
-
     @JsonIgnore
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ToString.Exclude
     protected ScheduleCalculator scheduleCalculator;
 
-    @JsonIgnore
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    @ToString.Exclude
-    protected MetaTaskScheduler metaTaskScheduler;
-
     protected LoopMetaTask(LocalDateTime lastTriggerAt, LocalDateTime lastFeedbackAt, ScheduleOption scheduleOption, MetaTaskScheduler metaTaskScheduler) {
+        super(metaTaskScheduler);
         this.lastTriggerAt = lastTriggerAt;
         this.lastFeedbackAt = lastFeedbackAt;
         this.scheduleOption = scheduleOption;
-        this.metaTaskScheduler = metaTaskScheduler;
         this.nextTriggerAt = calNextTriggerAt();
     }
 
@@ -162,6 +151,11 @@ public abstract class LoopMetaTask implements MetaTask, Calculated {
     @Override
     public LocalDateTime lastFeedbackAt() {
         return lastFeedbackAt;
+    }
+
+    @Override
+    public void afterExecute(Throwable thrown) {
+
     }
 
     /**

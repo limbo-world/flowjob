@@ -18,7 +18,7 @@
 
 package org.limbo.flowjob.broker.application.support;
 
-import org.limbo.flowjob.api.PageParam;
+import org.limbo.flowjob.api.param.PageParam;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -35,4 +35,5 @@ public class JpaHelper {
         // PageParam 从 1 开始 Pageable 从 0 开始
         return PageRequest.of(param.getCurrent() - 1, param.getSize());
     }
+
 }

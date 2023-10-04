@@ -19,9 +19,11 @@
 package org.limbo.flowjob.broker.core.schedule.scheduler;
 
 import io.netty.util.HashedWheelTimer;
+import io.netty.util.Timeout;
 import io.netty.util.Timer;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.schedule.Scheduled;
+import org.limbo.flowjob.common.thread.NamedThreadFactory;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
@@ -59,21 +61,17 @@ public abstract class HashedWheelTimerScheduler<T extends Scheduled> implements 
             Throwable thrown = null;
             try {
                 // 已经取消调度了，则不再重新调度作业
-                if (!isScheduling(scheduled.scheduleId())) {
+                if (scheduled.stopped()) {
                     return;
                 }
-
                 scheduled.execute();
-
             } catch (Exception e) {
                 log.error("[HashedWheelTimerScheduler] schedule fail id:{}", scheduled.scheduleId(), e);
                 thrown = e;
             } finally {
-                afterExecute(scheduled, thrown);
+                scheduled.afterExecute(thrown);
             }
         }, delay, TimeUnit.MILLISECONDS);
     }
-
-    protected void afterExecute(T scheduled, Throwable t) { }
 
 }

@@ -94,6 +94,11 @@ public class PlanInfoEntity extends BaseEntity {
     private LocalDateTime scheduleStartAt;
 
     /**
+     * 从何时结束调度作业
+     */
+    private LocalDateTime scheduleEndAt;
+
+    /**
      * 作业调度延迟时间，单位秒
      */
     private Long scheduleDelay;
@@ -112,12 +117,6 @@ public class PlanInfoEntity extends BaseEntity {
      * 作业调度的CRON表达式
      */
     private String scheduleCronType;
-
-    /**
-     * 重试次数 超过执行就失败
-     * job上的这个版本不设计了，用户本来就需要做幂等处理
-     */
-    private Integer retry;
 
     /**
      * single 存储job信息

@@ -20,7 +20,8 @@ package org.limbo.flowjob.broker.application.task;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.application.component.SlotManager;
+import org.limbo.flowjob.api.constants.TriggerType;
+import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.application.converter.MetaTaskConverter;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
@@ -29,19 +30,21 @@ import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
-import org.limbo.flowjob.api.constants.TriggerType;
+import org.limbo.flowjob.common.utils.time.DateTimeUtils;
+import org.limbo.flowjob.common.utils.time.Formatters;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 /**
  * 获取plan下发
- * 相比update的任务比较久
- * 此任务主要为防止 plan 调度中异常导致 在时间轮中丢失
+ * 第一次会获取所有的，后续则获取近期更新的
  */
 @Slf4j
 @Component
@@ -51,19 +54,21 @@ public class PlanLoadTask extends FixDelayMetaTask {
 
     private final MetaTaskConverter metaTaskConverter;
 
-    private final SlotManager slotManager;
+    private final BrokerSlotManager slotManager;
 
     private final Broker broker;
 
     private final NodeManger nodeManger;
 
+    private LocalDateTime loadTimePoint = DateTimeUtils.parse("2000-01-01 00:00:00", Formatters.YMD_HMS);
+
     public PlanLoadTask(MetaTaskScheduler scheduler,
                         PlanEntityRepo planEntityRepo,
                         MetaTaskConverter metaTaskConverter,
-                        SlotManager slotManager,
+                        BrokerSlotManager slotManager,
                         @Lazy Broker broker,
                         NodeManger nodeManger) {
-        super(Duration.ofSeconds(30), scheduler);
+        super(Duration.ofSeconds(1), scheduler);
         this.planEntityRepo = planEntityRepo;
         this.metaTaskConverter = metaTaskConverter;
         this.slotManager = slotManager;
@@ -87,11 +92,14 @@ public class PlanLoadTask extends FixDelayMetaTask {
             if (CollectionUtils.isEmpty(plans)) {
                 return;
             }
-            for (PlanScheduleTask plan : plans) {
-                metaTaskScheduler.schedule(plan);
+            for (PlanScheduleTask metaTask : plans) {
+                // 移除老的
+                metaTaskScheduler.unschedule(metaTask.scheduleId());
+                // 调度新的
+                metaTaskScheduler.schedule(metaTask);
             }
         } catch (Exception e) {
-            log.error("{} load and schedule plan task fail", scheduleId(), e);
+            log.error("{} execute fail", scheduleId(), e);
         }
     }
 
@@ -104,7 +112,8 @@ public class PlanLoadTask extends FixDelayMetaTask {
         if (CollectionUtils.isEmpty(planIds)) {
             return Collections.emptyList();
         }
-        List<PlanEntity> planEntities = planEntityRepo.loadPlans(planIds);
+        List<PlanEntity> planEntities = planEntityRepo.loadUpdatedPlans(planIds, loadTimePoint.plusSeconds(-1)); // 防止部分延迟导致变更丢失
+        loadTimePoint = TimeUtils.currentLocalDateTime();
         if (CollectionUtils.isEmpty(planEntities)) {
             return Collections.emptyList();
         }

@@ -17,7 +17,7 @@
 package org.limbo.flowjob.worker.starter.properties;
 
 import lombok.Data;
-import org.limbo.flowjob.api.constants.RpcScheme;
+import org.limbo.flowjob.api.constants.Protocol;
 import org.limbo.flowjob.worker.starter.processor.event.WorkerReadyEvent;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -51,7 +51,7 @@ public class WorkerProperties {
     /**
      * worker 注册时，向 broker 提交的 RPC 通信协议类型。默认为 http。
      */
-    private RpcScheme scheme = RpcScheme.http;
+    private Protocol protocol = Protocol.HTTP;
 
     /**
      * worker 注册时，向 broker 提交的 RPC 通信 host，可以是域名或 IP 地址，如不填写则自动发现本机非 127.0.0.1 的地址。
@@ -61,7 +61,7 @@ public class WorkerProperties {
 
     /**
      * worker 注册时，向 broker 提交的 RPC 通信端口，默认为 null。
-     * 如果未指定此配置，则尝试使用 ${server.port} 配置；如 ${server.port} 配置也不存在，则使用 8080，
+     * 如果未指定此配置，则尝试使用 ${server.port} 配置；如 ${server.port} 配置也不存在，则使用 9877，
      */
     private Integer port = null;
 
@@ -73,12 +73,12 @@ public class WorkerProperties {
     /**
      * 任务执行并发数量。worker 将允许同时执行的任务个数，同时执行的任务数量超出此限制后，后续接收的任务将放入积压队列中。默认为系统 CPU 核数。
      */
-    private int taskConcurrency = Runtime.getRuntime().availableProcessors();
+    private int concurrency = Runtime.getRuntime().availableProcessors();
 
     /**
      * 任务积压队列容量。如积压队列已满，则 worker 无法继续接收任务。为0情况下队列数大小等于任务执行并发数。
      */
-    private int taskQueueSize = 0;
+    private int queueSize = 0;
 
     /**
      * worker 节点标签，可用于下发任务时进行过滤。

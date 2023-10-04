@@ -37,4 +37,6 @@ public interface WorkerTagEntityRepo extends JpaRepository<WorkerTagEntity, Stri
 
     List<WorkerTagEntity> findByWorkerId(String workerId);
 
+    List<WorkerTagEntity> findByWorkerIdIn(List<String> workerIds);
+
 }

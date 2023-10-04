@@ -16,6 +16,7 @@
 
 package org.limbo.flowjob.broker.core.schedule.calculator;
 
+import com.cronutils.model.Cron;
 import com.cronutils.model.CronType;
 import com.cronutils.model.definition.CronDefinition;
 import com.cronutils.model.definition.CronDefinitionBuilder;
@@ -55,10 +56,7 @@ public class CronScheduleCalculator extends ScheduleCalculator {
         String cron = scheduleOption.getScheduleCron();
         String cronType = scheduleOption.getScheduleCronType();
         try {
-            // 校验CRON表达式
-            CronDefinition cronDefinition = CronDefinitionBuilder.instanceDefinitionFor(CronType.valueOf(cronType));
-            CronParser parser = new CronParser(cronDefinition);
-            ExecutionTime executionTime = ExecutionTime.forCron(parser.parse(cron));
+            ExecutionTime executionTime = ExecutionTime.forCron(getCron(cron, cronType));
 
             // 解析下次触发时间
             Optional<ZonedDateTime> nextSchedule = executionTime.nextExecution(ZonedDateTime.now());
@@ -71,7 +69,13 @@ public class CronScheduleCalculator extends ScheduleCalculator {
             log.error("parse cron expression {} {} failed!", cron, cronType, e);
             return ScheduleCalculator.NO_TRIGGER;
         }
+    }
 
+    public static Cron getCron(String cron, String cronType) {
+        // 校验CRON表达式
+        CronDefinition cronDefinition = CronDefinitionBuilder.instanceDefinitionFor(CronType.valueOf(cronType));
+        CronParser parser = new CronParser(cronDefinition);
+        return parser.parse(cron);
     }
 
 }

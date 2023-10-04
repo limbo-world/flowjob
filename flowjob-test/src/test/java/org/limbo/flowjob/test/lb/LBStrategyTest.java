@@ -21,6 +21,7 @@ package org.limbo.flowjob.test.lb;
 import com.google.common.collect.Maps;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.limbo.flowjob.common.rpc.RPCInvocation;
 import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
 
@@ -32,6 +33,7 @@ import java.util.stream.IntStream;
  * @author Brozen
  * @since 2022-12-14
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class LBStrategyTest {
 
 

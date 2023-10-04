@@ -51,7 +51,12 @@ public class JobInstance implements Serializable {
     /**
      * 当前是第几次重试
      */
-    private int retryTimes = 1;
+    private int retryTimes = 0;
+
+    /**
+     * agent ID
+     */
+    private String agentId;
 
     /**
      * 触发时间
@@ -59,14 +64,14 @@ public class JobInstance implements Serializable {
     private LocalDateTime triggerAt;
 
     /**
-     * 全局上下文
+     * 全局上下文 todo 目前这个功能有点模糊，plan创建时候传入/流程中动态更新？？
      */
     private Attributes context;
 
     /**
-     * job 节点动态参数
+     * job 参数 plan + job
      */
-    private Attributes jobAttributes;
+    private Attributes attributes;
 
     /**
      * 开始时间
@@ -98,6 +103,7 @@ public class JobInstance implements Serializable {
         this.triggerAt = TimeUtils.currentLocalDateTime().plusSeconds(retryInterval);
         this.jobInstanceId = id;
         this.status = JobStatus.SCHEDULING;
+        this.retryTimes++;
     }
 
     /**
@@ -105,7 +111,7 @@ public class JobInstance implements Serializable {
      * @return 是否能重试
      */
     public boolean canRetry() {
-        return retryTimes >= jobInfo.getRetryOption().getRetry();
+        return retryTimes < jobInfo.getRetryOption().getRetry();
     }
 
 }

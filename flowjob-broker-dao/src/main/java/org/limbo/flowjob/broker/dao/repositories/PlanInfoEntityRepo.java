@@ -18,13 +18,15 @@
 
 package org.limbo.flowjob.broker.dao.repositories;
 
+import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 /**
  * @author Devil
  * @since 2022/6/23
  */
-public interface PlanInfoEntityRepo extends JpaRepository<PlanInfoEntity, String> {
+public interface PlanInfoEntityRepo extends JpaRepository<PlanInfoEntity, String>, JpaSpecificationExecutor<PlanInfoEntity> {
 
 }

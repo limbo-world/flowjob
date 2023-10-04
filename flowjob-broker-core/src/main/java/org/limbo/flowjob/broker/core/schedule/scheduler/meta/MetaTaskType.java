@@ -28,21 +28,19 @@ public enum MetaTaskType {
 
     PLAN,
 
+    PLAN_INSTANCE,
+
     PLAN_LOAD,
 
-    UPDATED_PLAN_LOAD,
-
-    PLAN_EXECUTE_CHECK,
+    JOB_SCHEDULE_CHECK,
 
     JOB_EXECUTE_CHECK,
 
-    TASK,
+    JOB,
 
-    TASK_DISPATCH_CHECK,
+    WORKER_STATUS,
 
-    TASK_EXECUTE_CHECK,
-
-    WORKER_OFFLINE,
+    AGENT_STATUS,
 
     ;
 

@@ -38,4 +38,6 @@ public interface WorkerExecutorEntityRepo extends JpaRepository<WorkerExecutorEn
 
     List<WorkerExecutorEntity> findByWorkerId(String workerId);
 
+    List<WorkerExecutorEntity> findByWorkerIdIn(List<String> workerIds);
+
 }

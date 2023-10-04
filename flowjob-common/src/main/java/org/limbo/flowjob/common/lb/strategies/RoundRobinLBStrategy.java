@@ -72,8 +72,7 @@ public class RoundRobinLBStrategy<S extends LBServer> extends AbstractLBStrategy
     protected Optional<S> doSelect(List<S> servers, Invocation invocation) {
 
         String targetId = invocation.getInvokeTargetId();
-        Map<String, RoundRobinIndexer> indexerMap =
-                this.indexers.computeIfAbsent(targetId, k -> new ConcurrentHashMap<>());
+        Map<String, RoundRobinIndexer> indexerMap = this.indexers.computeIfAbsent(targetId, k -> new ConcurrentHashMap<>());
 
         long now = System.currentTimeMillis();
         Map<String, Integer> weights = weightSupplier.apply(servers);
@@ -84,8 +83,7 @@ public class RoundRobinLBStrategy<S extends LBServer> extends AbstractLBStrategy
         RoundRobinIndexer selectedIndexer = null;
         for (S server : servers) {
             int weight = Math.max(weights.getOrDefault(server.getServerId(), 0), 0);
-            RoundRobinIndexer indexer = indexerMap
-                    .computeIfAbsent(server.getServerId(), sid -> new RoundRobinIndexer(weight));
+            RoundRobinIndexer indexer = indexerMap.computeIfAbsent(server.getServerId(), sid -> new RoundRobinIndexer(weight));
 
             if (indexer.weight != weight) {
                 indexer.weight = weight;

@@ -23,6 +23,7 @@ import javax.persistence.Table;
 @DynamicInsert
 @DynamicUpdate
 public class PlanEntity extends BaseEntity {
+
     private static final long serialVersionUID = -6323915044280199312L;
 
     /**

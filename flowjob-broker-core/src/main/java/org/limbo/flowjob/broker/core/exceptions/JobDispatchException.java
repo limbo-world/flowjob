@@ -17,6 +17,7 @@
 package org.limbo.flowjob.broker.core.exceptions;
 
 import lombok.Getter;
+import org.limbo.flowjob.common.exception.JobException;
 
 /**
  * @author Brozen

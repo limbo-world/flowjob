@@ -17,8 +17,8 @@
 package org.limbo.flowjob.worker.core.domain;
 
 import org.limbo.flowjob.worker.core.executor.TaskExecutor;
-import org.limbo.flowjob.worker.core.utils.collections.ImmutableMultiValueMap;
-import org.limbo.flowjob.worker.core.utils.collections.MultiValueMap;
+import org.limbo.flowjob.common.utils.collections.ImmutableMultiValueMap;
+import org.limbo.flowjob.common.utils.collections.MultiValueMap;
 
 import java.net.URL;
 import java.time.Duration;
@@ -32,6 +32,11 @@ import java.util.Set;
  * @since 2022-09-11
  */
 public interface Worker {
+
+    /**
+     * 获取 Worker ID
+     */
+    String getId();
 
     /**
      * 获取 Worker 名称

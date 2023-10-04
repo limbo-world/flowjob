@@ -19,81 +19,66 @@
 package org.limbo.flowjob.worker.core.rpc.http;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.net.HttpHeaders;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.Call;
 import okhttp3.HttpUrl;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.api.ResponseDTO;
-import org.limbo.flowjob.api.remote.dto.BrokerTopologyDTO;
-import org.limbo.flowjob.api.remote.dto.WorkerRegisterDTO;
-import org.limbo.flowjob.api.remote.param.TaskFeedbackParam;
-import org.limbo.flowjob.api.remote.param.WorkerRegisterParam;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.Protocol;
+import org.limbo.flowjob.api.dto.ResponseDTO;
+import org.limbo.flowjob.api.dto.broker.BrokerTopologyDTO;
+import org.limbo.flowjob.api.dto.broker.WorkerRegisterDTO;
+import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
+import org.limbo.flowjob.common.exception.RegisterFailException;
+import org.limbo.flowjob.common.exception.RpcException;
+import org.limbo.flowjob.common.http.OKHttpRpc;
+import org.limbo.flowjob.common.lb.BaseLBServer;
 import org.limbo.flowjob.common.lb.LBServerRepository;
 import org.limbo.flowjob.common.lb.LBStrategy;
-import org.limbo.flowjob.common.utils.json.JacksonUtils;
-import org.limbo.flowjob.worker.core.domain.Task;
 import org.limbo.flowjob.worker.core.domain.Worker;
-import org.limbo.flowjob.worker.core.executor.ExecuteContext;
-import org.limbo.flowjob.worker.core.rpc.BrokerNode;
-import org.limbo.flowjob.worker.core.rpc.BrokerRpc;
 import org.limbo.flowjob.worker.core.rpc.RpcParamFactory;
-import org.limbo.flowjob.worker.core.rpc.exceptions.BrokerRpcException;
-import org.limbo.flowjob.worker.core.rpc.exceptions.RegisterFailException;
+import org.limbo.flowjob.worker.core.rpc.WorkerBrokerRpc;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.API_WORKER_HEARTBEAT;
+import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.API_WORKER_REGISTER;
 
 /**
  * @author Brozen
  * @since 2022-08-31
  */
 @Slf4j
-public class OkHttpBrokerRpc implements BrokerRpc {
-
-    private final OkHttpClient client;
+public class OkHttpBrokerRpc extends OKHttpRpc<BaseLBServer> implements WorkerBrokerRpc {
 
     /**
      * Broker 负载均衡
      */
-    private final LBServerRepository<BrokerNode> repository;
-
-    // application/json; charset=utf-8
-    private static final String JSON_UTF_8 = com.google.common.net.MediaType.JSON_UTF_8.toString();
-
-    private static final MediaType MEDIA_TYPE = MediaType.parse(JSON_UTF_8);
+    private final LBServerRepository<BaseLBServer> repository;
 
     private static final String BASE_URL = "http://0.0.0.0:8080";
 
     private static final Protocol DEFAULT_PROTOCOL = Protocol.HTTP;
 
-    private String workerId = "";
+    @Getter
+    @Setter
+    private Worker worker;
 
-    public OkHttpBrokerRpc(LBServerRepository<BrokerNode> repository, LBStrategy<BrokerNode> strategy) {
+    public OkHttpBrokerRpc(LBServerRepository<BaseLBServer> repository, LBStrategy<BaseLBServer> strategy) {
+        super(repository, strategy);
         this.repository = repository;
-        this.client = new OkHttpClient.Builder().addInterceptor(new LoadBalanceInterceptor<>(repository, strategy)).build();
     }
 
     /**
      * {@inheritDoc}
      *
-     * @param worker 需注册的 Worker
-     * @return
      * @throws RegisterFailException
      */
     @Override
-    public void register(Worker worker) throws RegisterFailException {
+    public String register() throws RegisterFailException {
         WorkerRegisterDTO result = null;
         try {
             result = registerWith(RpcParamFactory.registerParam(worker));
@@ -103,8 +88,8 @@ public class OkHttpBrokerRpc implements BrokerRpc {
 
         // 注册成功，更新 broker 节点拓扑
         if (result != null) {
-            workerId = result.getWorkerId();
             updateBrokerTopology(result.getBrokerTopology());
+            return result.getWorkerId();
         } else {
             String msg = "Register failed after tried all broker, please check your configuration";
             throw new RegisterFailException(msg);
@@ -116,7 +101,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
      * 向指定 broker 节点发起注册请求
      */
     private WorkerRegisterDTO registerWith(WorkerRegisterParam param) throws RegisterFailException {
-        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + "/api/v1/rpc/worker", param, new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
+        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + API_WORKER_REGISTER, param, new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
         });
 
         if (response == null || !response.success()) {
@@ -139,7 +124,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
         Set<HttpUrl> realtime = topo.getBrokers().stream()
                 .map(b -> new HttpUrl.Builder().scheme(DEFAULT_PROTOCOL.value).host(b.getHost()).port(b.getPort()).build())
                 .collect(Collectors.toSet());
-        List<BrokerNode> brokerNodes = repository.listAliveServers().stream().filter(b -> realtime.contains(HttpUrl.get(b.getUrl()))).collect(Collectors.toList());
+        List<BaseLBServer> brokerNodes = repository.listAliveServers().stream().filter(b -> realtime.contains(HttpUrl.get(b.getUrl()))).collect(Collectors.toList());
 
         // 新增添加的
         Set<HttpUrl> saved = brokerNodes.stream()
@@ -150,7 +135,7 @@ public class OkHttpBrokerRpc implements BrokerRpc {
                 continue;
             }
 
-            brokerNodes.add(new BrokerNode(url.url()));
+            brokerNodes.add(new BaseLBServer(url.url()));
         }
 
         repository.updateServers(brokerNodes);
@@ -158,17 +143,15 @@ public class OkHttpBrokerRpc implements BrokerRpc {
 
     /**
      * {@inheritDoc}
-     *
-     * @param worker 发送心跳的 Worker
      */
     @Override
-    public void heartbeat(Worker worker) {
-        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + "/api/v1/rpc/worker/" + workerId + "/heartbeat", RpcParamFactory.heartbeatParam(worker), new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
+    public void heartbeat() {
+        ResponseDTO<WorkerRegisterDTO> response = executePost(BASE_URL + API_WORKER_HEARTBEAT + "?id=" + worker.getId(), RpcParamFactory.heartbeatParam(worker), new TypeReference<ResponseDTO<WorkerRegisterDTO>>() {
         });
 
         if (response == null || !response.success()) {
             String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
-            throw new RegisterFailException("Worker heartbeat failed: " + msg);
+            throw new RpcException("Worker heartbeat failed: " + msg);
         }
 
         // 更新 broker 节点拓扑
@@ -176,85 +159,6 @@ public class OkHttpBrokerRpc implements BrokerRpc {
             WorkerRegisterDTO data = response.getData();
             updateBrokerTopology(data.getBrokerTopology());
         }
-    }
-
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param context 任务执行上下文
-     */
-    @Override
-    public void feedbackTaskSucceed(ExecuteContext context) {
-        Task task = context.getTask();
-        doFeedbackTask(task.getTaskId(), RpcParamFactory.taskFeedbackParam(task.getContext(), task.getJobAttributes(), task.getResult(), null));
-    }
-
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param context 任务执行上下文
-     * @param ex      导致任务失败的异常信息
-     */
-    @Override
-    public void feedbackTaskFailed(ExecuteContext context, @Nullable Throwable ex) {
-        Task task = context.getTask();
-        doFeedbackTask(context.getTask().getTaskId(), RpcParamFactory.taskFeedbackParam(task.getContext(), task.getJobAttributes(), task.getResult(), ex));
-    }
-
-
-    /**
-     * 反馈任务执行结果
-     */
-    private void doFeedbackTask(String taskId, TaskFeedbackParam feedbackParam) {
-        ResponseDTO<Void> response = executePost(BASE_URL + "/api/v1/rpc/worker/task/" + taskId + "/feedback", feedbackParam, new TypeReference<ResponseDTO<Void>>() {
-        });
-
-        if (response == null || !response.success()) {
-            String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
-            throw new RegisterFailException("Worker feedback Task failed: " + msg);
-        }
-    }
-
-    /**
-     * 通过 OkHttp 执行请求，并获取响应
-     */
-    private <T> ResponseDTO<T> executePost(String url, Object param, TypeReference<ResponseDTO<T>> reference) {
-        Objects.requireNonNull(reference);
-
-        String json = JacksonUtils.toJSONString(param);
-        RequestBody body = RequestBody.create(MEDIA_TYPE, json);
-
-        Request request = new Request.Builder()
-                .url(url)
-                .header(HttpHeaders.CONTENT_TYPE, JSON_UTF_8)
-                .post(body).build();
-        Call call = client.newCall(request);
-
-        if (log.isDebugEnabled()) {
-            log.debug("call broker {}", logRequest(url, json));
-        }
-
-        try {
-            // HTTP 响应状态异常
-            Response response = call.execute();
-            if (!response.isSuccessful()) {
-                throw new BrokerRpcException("Broker api access failed; " + logRequest(url, json) + " code=" + response.code());
-            }
-
-            // 无响应 body 是异常
-            if (response.body() == null) {
-                throw new BrokerRpcException("Broker api response empty body " + logRequest(url, json));
-            }
-            return JacksonUtils.parseObject(response.body().string(), reference);
-        } catch (IOException e) {
-            throw new BrokerRpcException("Broker api access failed " + logRequest(url, json), e);
-        }
-    }
-
-    private String logRequest(String url, String param) {
-        return String.format("request[url=%s, param=%s]", url, param);
     }
 
 }

@@ -51,25 +51,28 @@ public class AppointLBStrategy<S extends LBServer> extends AbstractLBStrategy<S>
     /**
      * 从调用参数中解析指定节点的类型。
      */
-    private Predicate<S> getPredicate(Invocation invocation) {
+    private boolean filter(S server, Invocation invocation) {
+        if (server == null || server.getUrl() == null) {
+            return false;
+        }
         Map<String, String> params = invocation.getLBParameters();
-        String byUrl = params.get(PARAM_BY_URL);
-        if (StringUtils.isNotBlank(byUrl)) {
-            return server -> server.getUrl().toString().equals(byUrl);
-        }
-
         String byServerId = params.get(PARAM_BY_SERVER_ID);
-        if (StringUtils.isNotBlank(byServerId)) {
-            return server -> StringUtils.equals(server.getServerId(), byServerId);
+        if (StringUtils.isNotBlank(byServerId) && StringUtils.equals(server.getServerId(), byServerId)) {
+            return true;
         }
 
-        // 如果找不到参数，则使用第一个
-        return server -> true;
+        String byUrl = params.get(PARAM_BY_URL);
+        if (StringUtils.isNotBlank(byUrl) && server.getUrl().toString().equals(byUrl)) {
+            return true;
+        }
+
+        return false;
     }
 
 
     /**
      * {@inheritDoc}
+     *
      * @param servers
      * @param invocation
      * @return
@@ -81,7 +84,7 @@ public class AppointLBStrategy<S extends LBServer> extends AbstractLBStrategy<S>
         }
 
         return servers.stream()
-                .filter(getPredicate(invocation))
+                .filter(server -> filter(server, invocation))
                 .findFirst();
     }
 

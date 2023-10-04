@@ -28,6 +28,8 @@ public enum IDType {
 
     TENANT,
 
+    AGENT,
+
     WORKER,
 
     WORKER_EXECUTOR,
@@ -44,7 +46,6 @@ public enum IDType {
 
     JOB_INSTANCE,
 
-    TASK,
     ;
 
 }

@@ -19,10 +19,14 @@ package org.limbo.flowjob.worker.core.executor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.common.constants.TaskConstant;
 import org.limbo.flowjob.worker.core.domain.Task;
-import org.limbo.flowjob.worker.core.rpc.BrokerRpc;
+import org.limbo.flowjob.worker.core.rpc.WorkerAgentRpc;
 
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -36,6 +40,8 @@ public class ExecuteContext implements Runnable {
         WAITING, RUNNING, SUCCEED, FAILED, CANCELED
     }
 
+    private ScheduledExecutorService scheduledReportPool;
+
     public final TaskRepository taskRepository;
 
     /**
@@ -44,9 +50,10 @@ public class ExecuteContext implements Runnable {
     public final TaskExecutor executor;
 
     /**
-     * Broker 通信
+     * Rpc
      */
-    public final BrokerRpc brokerRpc;
+    @Getter
+    public final WorkerAgentRpc agentRpc;
 
     /**
      * 从 Broker 接收到的任务
@@ -65,10 +72,13 @@ public class ExecuteContext implements Runnable {
      */
     private final AtomicReference<Status> status;
 
-    public ExecuteContext(TaskRepository taskRepository, TaskExecutor executor, BrokerRpc brokerRpc, Task task) {
+    private ScheduledFuture<?> taskReportScheduledFuture;
+
+    public ExecuteContext(ScheduledExecutorService scheduledReportPool, TaskRepository taskRepository, TaskExecutor executor, WorkerAgentRpc agentRpc, Task task) {
+        this.scheduledReportPool = scheduledReportPool;
         this.taskRepository = taskRepository;
         this.executor = executor;
-        this.brokerRpc = brokerRpc;
+        this.agentRpc = agentRpc;
         this.task = task;
 
         this.status = new AtomicReference<>(Status.WAITING);
@@ -86,29 +96,60 @@ public class ExecuteContext implements Runnable {
         }
 
         try {
+            // 反馈执行中 -- 排除由于网络问题导致的失败可能性
+            boolean success = reportTaskExecuting(task, 3);
+            if (!success) {
+                taskRepository.delete(task.getUid());
+                return; // 可能已经下发给其它节点
+            }
+
+
+            ThreadLocalContext.setExecuteContext(this);
+            // 开启任务上报
+            this.taskReportScheduledFuture = scheduledReportPool.scheduleAtFixedRate(new StatusReportRunnable(task), 1, TaskConstant.TASK_REPORT_SECONDS, TimeUnit.SECONDS);
+
             // 执行任务
             executor.run(task);
 
             // 执行成功
             this.status.set(Status.SUCCEED);
-            this.brokerRpc.feedbackTaskSucceed(this);
+            this.agentRpc.feedbackTaskSucceed(task);
         } catch (Exception e) {
 
             // 执行异常
             log.error("Task execute error", e);
             this.status.set(Status.FAILED);
 
-            this.brokerRpc.feedbackTaskFailed(this, e);
+            this.agentRpc.feedbackTaskFailed(task, e);
 
         } finally {
             // 最终都要移除任务
-            taskRepository.delete(task.getTaskId());
+            if (taskReportScheduledFuture != null) {
+                taskReportScheduledFuture.cancel(true);
+            }
+            taskRepository.delete(task.getUid());
+            ThreadLocalContext.clear();
+        }
+    }
+
+    private class StatusReportRunnable implements Runnable {
+
+        private Task task;
+
+        public StatusReportRunnable(Task task) {
+            this.task = task;
+        }
+
+        @Override
+        public void run() {
+            agentRpc.reportTask(task);
         }
     }
 
 
     /**
      * 取消当前任务上下文的执行
+     *
      * @return 任务是否被成功取消。如果返回 false，可能是任务已经开始执行，或执行完成。
      */
     public boolean cancel() {
@@ -117,6 +158,19 @@ public class ExecuteContext implements Runnable {
         }
 
         return this.status.compareAndSet(Status.WAITING, Status.CANCELED);
+    }
+
+    private boolean reportTaskExecuting(Task task, int retryTimes) {
+        if (retryTimes < 0) {
+            return false;
+        }
+        try {
+            return agentRpc.reportTaskExecuting(task);
+        } catch (Exception e) {
+            log.error("ReportTaskExecuting fail task={} times={}", task.getTaskId(), retryTimes, e);
+            retryTimes--;
+            return reportTaskExecuting(task, retryTimes);
+        }
     }
 
 }

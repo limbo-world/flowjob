@@ -1,0 +1,18 @@
+server:
+  port: 8084
+
+flowjob:
+  worker:
+    port: 9877
+    brokers:
+      - http://localhost:8081
+    queue-size: 64
+    tags:
+      - a=b
+      - c=d
+  agent:
+    port: 9878
+    brokers:
+      - http://localhost:8081
+    datasource:
+      url: jdbc:h2:mem:flowjob_db;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false;MODE=mysql;

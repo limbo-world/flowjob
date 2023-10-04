@@ -18,31 +18,25 @@
 
 package org.limbo.flowjob.broker.application.converter;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.api.console.param.DispatchOptionParam;
-import org.limbo.flowjob.api.console.param.JobParam;
-import org.limbo.flowjob.api.console.param.RetryOptionParam;
-import org.limbo.flowjob.api.console.param.ScheduleOptionParam;
-import org.limbo.flowjob.api.console.param.TagFilterParam;
-import org.limbo.flowjob.api.console.param.WorkflowJobParam;
-import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
-import org.limbo.flowjob.broker.core.dispatch.RetryOption;
-import org.limbo.flowjob.broker.core.dispatch.TagFilterOption;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
-import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
-import org.limbo.flowjob.api.constants.JobType;
-import org.limbo.flowjob.api.constants.LoadBalanceType;
 import org.limbo.flowjob.api.constants.ScheduleType;
-import org.limbo.flowjob.api.constants.TagFilterCondition;
-import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.common.utils.attribute.Attributes;
-import org.limbo.flowjob.common.utils.dag.DAG;
+import org.limbo.flowjob.api.dto.console.DispatchOptionDTO;
+import org.limbo.flowjob.api.dto.console.PlanDTO;
+import org.limbo.flowjob.api.dto.console.PlanInfoDTO;
+import org.limbo.flowjob.api.dto.console.RetryOptionDTO;
+import org.limbo.flowjob.api.dto.console.ScheduleOptionDTO;
+import org.limbo.flowjob.api.dto.console.TagFilterDTO;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.worker.dispatch.DispatchOption;
+import org.limbo.flowjob.broker.core.worker.dispatch.RetryOption;
+import org.limbo.flowjob.broker.core.worker.dispatch.TagFilterOption;
+import org.limbo.flowjob.broker.dao.entity.PlanEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -54,99 +48,113 @@ import java.util.stream.Collectors;
 public class PlanConverter {
 
     /**
-     * 生成更新计划 JobDAG
+     * 转换为任务 DTO
      */
-    public DAG<WorkflowJobInfo> convertJob(List<WorkflowJobParam> jobParams) {
-        return new DAG<>(convertJobs(jobParams));
+    public List<PlanDTO> toPlanDTO(List<PlanEntity> plans, List<PlanInfoEntity> planInfos) {
+        Map<String, PlanInfoEntity> groupedPlanInfo = planInfos.stream()
+                .collect(Collectors.toMap(PlanInfoEntity::getPlanInfoId, e -> e));
+
+        return plans.stream()
+                .map(plan -> {
+                    PlanInfoEntity planInfo = groupedPlanInfo.get(plan.getCurrentVersion());
+                    return toPlanDTO(plan, planInfo);
+                })
+                .collect(Collectors.toList());
     }
 
-    public JobInfo covertJob(String id, JobParam jobParam) {
-        JobInfo jobInfo = new JobInfo();
-        jobInfo.setId(id);
-        jobInfo.setType(JobType.parse(jobParam.getType()));
-        jobInfo.setAttributes(new Attributes(jobParam.getAttributes()));
-        jobInfo.setRetryOption(convertToRetryOption(jobParam.getRetryOption()));
-        jobInfo.setDispatchOption(convertJobDispatchOption(jobParam.getDispatchOption()));
-        jobInfo.setExecutorName(jobParam.getExecutorName());
-        return jobInfo;
+
+    /**
+     * 转换为任务 DTO
+     */
+    public PlanDTO toPlanDTO(PlanEntity plan, PlanInfoEntity planInfo) {
+        PlanDTO dto = new PlanDTO();
+        dto.setPlanId(plan.getPlanId());
+        dto.setCurrentVersion(plan.getCurrentVersion());
+        dto.setRecentlyVersion(plan.getRecentlyVersion());
+        dto.setEnabled(plan.isEnabled());
+        dto.setName(planInfo.getName());
+        dto.setDescription(planInfo.getDescription());
+        dto.setPlanType(planInfo.getPlanType());
+        dto.setScheduleType(planInfo.getScheduleType());
+        dto.setTriggerType(planInfo.getTriggerType());
+        dto.setScheduleStartAt(planInfo.getScheduleStartAt());
+        dto.setScheduleEndAt(planInfo.getScheduleEndAt());
+        dto.setScheduleDelay(planInfo.getScheduleDelay());
+        dto.setScheduleInterval(planInfo.getScheduleInterval());
+        dto.setScheduleCron(planInfo.getScheduleCron());
+        dto.setScheduleCronType(planInfo.getScheduleCronType());
+        return dto;
     }
 
-    public List<WorkflowJobInfo> convertJobs(List<WorkflowJobParam> jobParams) {
-        List<WorkflowJobInfo> joblist = Lists.newArrayList();
-        for (WorkflowJobParam jobParam : jobParams) {
-            joblist.add(convertJob(jobParam));
+
+    /**
+     * 填充作业信息到作业 DTO 中，非 DAG 作业
+     */
+    public void assemble(PlanInfoDTO.NormalPlanInfoDTO dto, JobInfo jobInfo) {
+        dto.setType(jobInfo.getType());
+        dto.setAttributes(jobInfo.getAttributes().toMap());
+        dto.setExecutorName(jobInfo.getExecutorName());
+        dto.setRetryOption(convertToRetryOption(jobInfo.getRetryOption()));
+        dto.setDispatchOption(convertJobDispatchOption(jobInfo.getDispatchOption()));
+    }
+
+
+    /**
+     * 转换为任务调度配置 DTO
+     * @param planInfo 任务持久化对象
+     */
+    public ScheduleOptionDTO toScheduleOptionDTO(PlanInfoEntity planInfo) {
+        ScheduleOptionDTO dto = new ScheduleOptionDTO();
+        dto.setScheduleType(ScheduleType.parse(planInfo.getScheduleType()));
+        dto.setScheduleStartAt(planInfo.getScheduleStartAt());
+        dto.setScheduleEndAt(planInfo.getScheduleEndAt());
+        dto.setScheduleDelay(planInfo.getScheduleDelay());
+        dto.setScheduleInterval(planInfo.getScheduleInterval());
+        dto.setScheduleCron(planInfo.getScheduleCron());
+        dto.setScheduleCronType(planInfo.getScheduleCronType());
+        return dto;
+    }
+
+
+    /**
+     * 转换为作业重试 DTO
+     */
+    public RetryOptionDTO convertToRetryOption(RetryOption option) {
+        if (option == null) {
+            return new RetryOptionDTO();
         }
-        return joblist;
-
-    }
-
-
-    /**
-     * 生成单个作业
-     */
-    public WorkflowJobInfo convertJob(WorkflowJobParam param) {
-        WorkflowJobInfo jobInfo = new WorkflowJobInfo();
-        jobInfo.setId(param.getId());
-        jobInfo.setName(param.getName());
-        jobInfo.setDescription(param.getDescription());
-        jobInfo.setTriggerType(TriggerType.parse(param.getTriggerType()));
-        jobInfo.setContinueWhenFail(param.isContinueWhenFail());
-        jobInfo.setType(JobType.parse(param.getType()));
-        jobInfo.setAttributes(new Attributes(param.getAttributes()));
-        jobInfo.setRetryOption(convertToRetryOption(param.getRetryOption()));
-        jobInfo.setDispatchOption(convertJobDispatchOption(param.getDispatchOption()));
-        jobInfo.setExecutorName(param.getExecutorName());
-        return jobInfo;
-    }
-
-
-    /**
-     * 新增计划参数转换为 计划调度配置
-     */
-    public ScheduleOption convertScheduleOption(ScheduleOptionParam param) {
-        return new ScheduleOption(
-                ScheduleType.parse(param.getScheduleType()),
-                param.getScheduleStartAt(),
-                param.getScheduleDelay(),
-                param.getScheduleInterval(),
-                param.getScheduleCron(),
-                param.getScheduleCronType()
-        );
-    }
-
-    /**
-     * 生成作业重试参数
-     */
-    public RetryOption convertToRetryOption(RetryOptionParam param) {
-        if (param == null) {
-            return new RetryOption();
-        }
-        return RetryOption.builder()
-                .retry(param.getRetry())
-                .retryInterval(param.getRetryInterval())
+        return RetryOptionDTO.builder()
+                .retry(option.getRetry())
+                .retryInterval(option.getRetryInterval())
+                .retryType(option.getRetryInterval())
                 .build();
     }
 
+
     /**
-     * 生成作业分发参数
+     * 转换为作业分发参数 DTO
      */
-    public DispatchOption convertJobDispatchOption(DispatchOptionParam param) {
-        return DispatchOption.builder()
-                .loadBalanceType(LoadBalanceType.parse(param.getLoadBalanceType()))
-                .cpuRequirement(param.getCpuRequirement())
-                .ramRequirement(param.getRamRequirement())
-                .tagFilters(covertTagFilterOption(param.getTagFilters()))
+    public DispatchOptionDTO convertJobDispatchOption(DispatchOption option) {
+        return DispatchOptionDTO.builder()
+                .loadBalanceType(option.getLoadBalanceType())
+                .cpuRequirement(option.getCpuRequirement())
+                .ramRequirement(option.getRamRequirement())
+                .tagFilters(covertTagFilterOptionDTO(option.getTagFilters()))
                 .build();
     }
 
-    public List<TagFilterOption> covertTagFilterOption(List<TagFilterParam> params) {
-        if (CollectionUtils.isEmpty(params)) {
+
+    /**
+     * 转换为作业过滤标签 DTO
+     */
+    public List<TagFilterDTO> covertTagFilterOptionDTO(List<TagFilterOption> options) {
+        if (CollectionUtils.isEmpty(options)) {
             return Collections.emptyList();
         }
-        return params.stream().map(param -> TagFilterOption.builder()
-                .tagName(param.getTagName())
-                .tagValue(param.getTagValue())
-                .condition(TagFilterCondition.parse(param.getCondition()))
+        return options.stream().map(option -> TagFilterDTO.builder()
+                .tagName(option.getTagName())
+                .tagValue(option.getTagValue())
+                .condition(option.getCondition())
                 .build()).collect(Collectors.toList());
     }
 

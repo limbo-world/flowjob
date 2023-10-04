@@ -24,37 +24,38 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.JobStatus;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.ScheduleType;
-import org.limbo.flowjob.api.constants.TaskStatus;
-import org.limbo.flowjob.api.constants.TaskType;
-import org.limbo.flowjob.broker.application.task.JobInstanceScheduleTask;
-import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
+import org.limbo.flowjob.api.constants.TriggerType;
+import org.limbo.flowjob.api.constants.rpc.HttpAgentApi;
+import org.limbo.flowjob.broker.application.component.AgentRegistry;
+import org.limbo.flowjob.broker.application.converter.MetaTaskConverter;
+import org.limbo.flowjob.broker.application.service.PlanInstanceService;
+import org.limbo.flowjob.broker.application.task.PlanScheduleTask;
+import org.limbo.flowjob.broker.core.agent.AgentRepository;
+import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.job.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.core.domain.task.Task;
-import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
-import org.limbo.flowjob.broker.core.exceptions.JobException;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
+import org.limbo.flowjob.broker.dao.entity.AgentEntity;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
-import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.TaskEntityRepo;
+import org.limbo.flowjob.common.lb.LBStrategy;
+import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
+import org.limbo.flowjob.common.rpc.RPCInvocation;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
-import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -66,13 +67,7 @@ import java.util.stream.Collectors;
 public abstract class AbstractPlanScheduler implements PlanScheduler {
 
     @Setter(onMethod_ = @Inject)
-    protected TaskFactory taskFactory;
-
-    @Setter(onMethod_ = @Inject)
     protected JobInstanceEntityRepo jobInstanceEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
-    protected TaskEntityRepo taskEntityRepo;
 
     @Setter(onMethod_ = @Inject)
     protected JobInstanceRepository jobInstanceRepository;
@@ -87,66 +82,40 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
     protected IDGenerator idGenerator;
 
     @Setter(onMethod_ = @Inject)
-    protected TaskDispatcher taskDispatcher;
+    protected AgentRepository agentRepository;
 
     @Setter(onMethod_ = @Inject)
     protected MetaTaskScheduler metaTaskScheduler;
 
     @Setter(onMethod_ = @Inject)
-    protected ScheduleStrategy scheduleStrategy;
+    protected MetaTaskConverter metaTaskConverter;
+
+    @Setter(onMethod_ = @Inject)
+    protected PlanInstanceService planInstanceService;
+
+    @Setter(onMethod_ = @Inject)
+    protected AgentRegistry agentRegistry;
+
+    protected LBStrategy<ScheduleAgent> lbStrategy = new RoundRobinLBStrategy<>();
 
     @Transactional
-    public void schedule(Plan plan, String planInstanceId, LocalDateTime triggerAt) {
-        List<JobInstance> jobInstances = createJobInstances(plan, planInstanceId, triggerAt);
+    public void schedule(TriggerType triggerType, Plan plan, Attributes planAttributes, LocalDateTime triggerAt) {
+        // 悲观锁快速释放，不阻塞后续任务
+        String planInstanceId = idGenerator.generateId(IDType.PLAN_INSTANCE);
+        planInstanceService.save(planInstanceId, planAttributes, triggerType, plan, triggerAt); // 可以考虑 PlanInstance 对象来处理后续流程
+        List<JobInstance> jobInstances = createJobInstances(plan, planAttributes, planInstanceId, triggerAt);
         saveAndScheduleJobInstances(jobInstances);
+        planInstanceEntityRepo.dispatching(planInstanceId);
     }
 
+    // 如是定时1小时后执行，task的创建问题 比如任务执行失败后，重试间隔可能导致这个问题
+    // 比如广播模式下，一小时后的节点数和当前的肯定是不同的
     protected void saveAndScheduleJobInstances(List<JobInstance> jobInstances) {
         saveJobInstances(jobInstances);
-        for (JobInstance jobInstance : jobInstances) {
-            LocalDateTime now = TimeUtils.currentLocalDateTime();
-            if (jobInstance.getTriggerAt().isAfter(now)) {
-                metaTaskScheduler.schedule(new JobInstanceScheduleTask(jobInstance, scheduleStrategy));
-            } else {
-                schedule(jobInstance);
-            }
-        }
+        ScheduleContext.waitScheduleJobs(jobInstances);
     }
 
-    public abstract List<JobInstance> createJobInstances(Plan plan, String planInstanceId, LocalDateTime triggerAt);
-
-
-    @Override
-    @Transactional
-    public void schedule(JobInstance jobInstance) {
-        List<Task> tasks = new ArrayList<>();
-        // 根据job类型创建task
-        List<Task> jobTasks;
-        JobInfo jobInfo = jobInstance.getJobInfo();
-        switch (jobInfo.getType()) {
-            case NORMAL:
-                jobTasks = taskFactory.create(jobInstance, TaskType.NORMAL);
-                break;
-            case BROADCAST:
-                jobTasks = taskFactory.create(jobInstance, TaskType.BROADCAST);
-                break;
-            case MAP:
-            case MAP_REDUCE:
-                jobTasks = taskFactory.create(jobInstance, TaskType.SPLIT);
-                break;
-            default:
-                throw new JobException(jobInfo.getId(), MsgConstants.UNKNOWN + " job type:" + jobInfo.getType().type);
-        }
-
-        // 如果可以创建的任务为空（只有广播任务）
-        if (CollectionUtils.isEmpty(jobTasks)) {
-            handleJobSuccess(jobInstance);
-        } else {
-            tasks.addAll(jobTasks);
-        }
-
-        saveTasks(tasks);
-    }
+    public abstract List<JobInstance> createJobInstances(Plan plan, Attributes planAttributes, String planInstanceId, LocalDateTime triggerAt);
 
     @Transactional
     public void saveJobInstances(List<JobInstance> jobInstances) {
@@ -154,145 +123,74 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
             return;
         }
 
+        // 如果是 plan instance 的检测，那么 job instance 已经创建，则无需再度创建
+
         // 保存 jobInstance
         List<JobInstanceEntity> jobInstanceEntities = jobInstances.stream().map(DomainConverter::toJobInstanceEntity).collect(Collectors.toList());
         jobInstanceEntityRepo.saveAll(jobInstanceEntities);
         jobInstanceEntityRepo.flush();
     }
 
+    @Override
     @Transactional
-    public void handleSuccess(Task task, Object result) {
-        int num = taskEntityRepo.success(task.getTaskId(), TimeUtils.currentLocalDateTime(),
-                task.getContext().toString(), task.getJobAttributes().toString(), JacksonUtils.toJSONString(result)
-        );
-
-        if (num != 1) { // 已经被更新 无需重复处理
+    public void schedule(JobInstance jobInstance) {
+        // 加锁 同时只能有一个在执行下发逻辑
+        if (jobInstance.getStatus() != JobStatus.SCHEDULING) {
             return;
         }
 
-        JobInstance jobInstance = jobInstanceRepository.get(task.getJobInstanceId());
-        if (JobStatus.EXECUTING != jobInstance.getStatus()) {
-            log.warn("task:{} update status success but jobInstance:{} is already changed", task.getTaskId(), task.getJobInstanceId());
-            return;
-        }
-        // 检查task是否都已经完成
-        List<TaskEntity> taskEntities = taskEntityRepo.findByJobInstanceIdAndType(task.getJobInstanceId(), task.getType().type);
-        boolean success = taskEntities.stream().allMatch(entity -> TaskStatus.SUCCEED == TaskStatus.parse(entity.getStatus()));
-        if (!success) {
-            return; // 交由失败的task 或者后面还在执行的task去做后续逻辑处理
-        }
-        // 聚合上下文内容
-        Attributes context = new Attributes();
-        for (TaskEntity taskEntity : taskEntities) {
-            Attributes taskContext = new Attributes(taskEntity.getContext());
-            context.put(taskContext);
-        }
-        jobInstance.setContext(context);
-        // 聚合job参数
-        Attributes jobAttributes = jobInstance.getJobAttributes();
-        for (TaskEntity taskEntity : taskEntities) {
-            Attributes taskJobAttrs = new Attributes(taskEntity.getJobAttributes());
-            jobAttributes.put(taskJobAttrs);
-        }
-        // 判断当前 job 类型 进行后续处理
-        JobInfo jobInfo = jobInstance.getJobInfo();
-        switch (jobInfo.getType()) {
-            case NORMAL:
-            case BROADCAST:
-                handleJobSuccess(jobInstance);
-                break;
-            case MAP:
-                handleMapJobSuccess(task, jobInstance);
-                break;
-            case MAP_REDUCE:
-                handleMapReduceJobSuccess(task, jobInstance);
-                break;
-            default:
-                throw new IllegalArgumentException(MsgConstants.UNKNOWN + " JobType in jobInstance:" + jobInstance.getJobInstanceId());
-        }
-    }
-
-    public abstract void handleJobSuccess(JobInstance jobInstance);
-
-    /**
-     * 处理 map job 执行成功
-     */
-    private void handleMapJobSuccess(Task task, JobInstance jobInstance) {
-        switch (task.getType()) {
-            case SPLIT:
-                handleSplitTaskSuccess(jobInstance);
-                break;
-            case MAP:
-                handleJobSuccess(jobInstance);
-                break;
-            default:
-                throw new IllegalArgumentException("Illegal TaskType in task:" + task.getTaskId());
-        }
-    }
-
-    /**
-     * 处理 map/reduce job 执行成功
-     */
-    private void handleMapReduceJobSuccess(Task task, JobInstance jobInstance) {
-        switch (task.getType()) {
-            case SPLIT:
-                handleSplitTaskSuccess(jobInstance);
-                break;
-            case MAP:
-                saveTasks(taskFactory.create(jobInstance, TaskType.REDUCE));
-                break;
-            case REDUCE:
-                handleJobSuccess(jobInstance);
-                break;
-            default:
-                throw new IllegalArgumentException("Illegal TaskType in task:" + task.getTaskId());
-        }
-    }
-
-    /**
-     * 处理分片任务
-     */
-    private void handleSplitTaskSuccess(JobInstance jobInstance) {
-        List<Task> tasks = taskFactory.create(jobInstance, TaskType.MAP);
-        if (CollectionUtils.isEmpty(tasks)) {
-            handleJobSuccess(jobInstance);
-        } else {
-            saveTasks(tasks);
-        }
-    }
-
-    @Transactional
-    public void saveTasks(List<Task> tasks) {
-        if (CollectionUtils.isEmpty(tasks)) {
+        // 选择 agent
+        List<ScheduleAgent> agents = agentRegistry.all().stream()
+                .filter(a -> a.getAvailableQueueLimit() > 0)
+                .filter(AgentEntity::isEnabled)
+                .map(DomainConverter::toAgent)
+                .collect(Collectors.toList());
+        RPCInvocation lbInvocation = RPCInvocation.builder()
+                .path(HttpAgentApi.API_JOB_RECEIVE)
+                .build();
+        ScheduleAgent agent = lbStrategy.select(agents, lbInvocation).orElse(null);
+        if (agent == null) {
+            // 状态检测的时候自动重试
+            if (log.isDebugEnabled()) {
+                log.debug("No alive server for job={}", jobInstance.getJobInstanceId());
+            }
             return;
         }
 
-        List<TaskEntity> taskEntities = tasks.stream().map(DomainConverter::toTaskEntity).collect(Collectors.toList());
-        taskEntityRepo.saveAll(taskEntities);
-        taskEntityRepo.flush();
+        // rpc 执行
+        try {
+            log.info("Try dispatch JobInstance id={} to agent={}", jobInstance.getJobInstanceId(), agent.getId());
+            boolean dispatched = agent.dispatch(jobInstance); // 可能存在接口超时导致重复下发，HttpBrokerApi.API_JOB_EXECUTING 由对应接口处理
+            log.info("Dispatch JobInstance id={} to agent={} success={}", jobInstance.getJobInstanceId(), agent.getId(), dispatched);
+        } catch (Exception e) {
+            log.error("Dispatch JobInstance id={} to agent={} fail", jobInstance.getJobInstanceId(), agent.getId(), e);
+        }
 
-        // task保存后才进行下发
-        ScheduleContext.waitScheduleTasks(tasks);
     }
 
     public void handlerPlanComplete(String planInstanceId, boolean success) {
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(planInstanceId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INSTANCE + planInstanceId));
         if (success) {
             planInstanceEntityRepo.success(planInstanceId, TimeUtils.currentLocalDateTime());
         } else {
-            planInstanceEntityRepo.fail(planInstanceId, TimeUtils.currentLocalDateTime());
+            LocalDateTime current = TimeUtils.currentLocalDateTime();
+            LocalDateTime startAt = planInstanceEntity.getStartAt() == null ? current : planInstanceEntity.getStartAt();
+            planInstanceEntityRepo.fail(planInstanceId, startAt, current);
         }
-        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(planInstanceId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INSTANCE + planInstanceId));
+        // 下发 fixed_delay 任务
         if (ScheduleType.FIXED_DELAY == ScheduleType.parse(planInstanceEntity.getScheduleType())) {
-            // 如果为 FIXED_DELAY 更新 plan  使得 UpdatedPlanLoadTask 进行重新加载
-            planEntityRepo.updateTime(planInstanceEntity.getPlanId(), TimeUtils.currentLocalDateTime());
+            PlanScheduleTask metaTask = metaTaskConverter.toPlanScheduleTask(planInstanceEntity.getPlanId(), TriggerType.SCHEDULE);
+            metaTaskScheduler.unschedule(metaTask.scheduleId());
+            metaTaskScheduler.schedule(metaTask);
         }
     }
 
-    public JobInstance createJobInstance(String planId, String planVersion, String planInstanceId,
+    public JobInstance createJobInstance(String planId, String planVersion, String planInstanceId, Attributes planAttributes,
                                          Attributes context, JobInfo jobInfo, LocalDateTime triggerAt) {
         String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
         JobInstance instance = new JobInstance();
         instance.setJobInstanceId(jobInstanceId);
+        instance.setAgentId("");
         instance.setJobInfo(jobInfo);
         instance.setPlanType(getPlanType());
         instance.setPlanId(planId);
@@ -301,7 +199,10 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
         instance.setStatus(JobStatus.SCHEDULING);
         instance.setTriggerAt(triggerAt);
         instance.setContext(context == null ? new Attributes() : context);
-        instance.setJobAttributes(jobInfo.getAttributes() == null ? new Attributes() : jobInfo.getAttributes());
+        Attributes attributes = new Attributes();
+        attributes.put(planAttributes);
+        attributes.put(jobInfo.getAttributes());
+        instance.setAttributes(attributes);
         return instance;
     }
 

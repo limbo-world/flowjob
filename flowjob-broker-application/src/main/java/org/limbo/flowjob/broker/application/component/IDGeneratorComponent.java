@@ -22,16 +22,16 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
+import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.IdEntity;
 import org.limbo.flowjob.broker.dao.repositories.IdEntityRepo;
-import org.limbo.flowjob.api.constants.MsgConstants;
-import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -50,39 +50,23 @@ public class IDGeneratorComponent implements IDGenerator {
     private IdEntityRepo idEntityRepo;
 
     @Override
-    @Transactional
     public String generateId(IDType type) {
         Long randomAutoId = gainRandomAutoId(type);
-//        String id = randomAutoId + String.format("%2d", planId).replace(" ", "0") + String.format("%4d", jobId % 10000).replace(" ", "0");
         return String.valueOf(randomAutoId);
     }
 
     private Long gainRandomAutoId(final IDType type) {
-        ID id = ID_MAP.get(type);
-        if (id == null) {
-            id = getNewId(type);
-        }
-
-        int time = 0;
-        while (time < 10) {
-            long currentId = id.getCurrentId().incrementAndGet();
-            if (currentId >= id.getEndId()) {
+        synchronized (type) {
+            ID id = ID_MAP.get(type);
+            if (id == null || !id.valid()) {
                 id = getNewId(type);
-            } else {
-                return currentId;
             }
-            time++;
+            return id.getCurrentId().incrementAndGet();
         }
-        throw new IllegalStateException("The system is busy, Try again later!!!");
     }
 
-    private synchronized ID getNewId(IDType type) {
+    private ID getNewId(IDType type) {
         Verifies.notNull(type, MsgConstants.UNKNOWN + " type: " + type);
-
-        // 防止并发情况下，重复执行后续代码
-        if (ID_MAP.containsKey(type)) {
-            return ID_MAP.get(type);
-        }
 
         String typeName = type.name();
 
@@ -95,7 +79,9 @@ public class IDGeneratorComponent implements IDGenerator {
         while (updateNum <= 0 && time < 10) {
             // 加锁 获取 类型
             IdEntity idEntity = idEntityRepo.findById(typeName).orElse(null);
-            Verifies.notNull(idEntity, MsgConstants.UNKNOWN + " ID Type of " + typeName);
+            if (idEntity == null) {
+                throw new IllegalStateException(MsgConstants.UNKNOWN + " ID Type of " + typeName);
+            }
             startId = idEntity.getCurrentId();
             endId = idEntity.getCurrentId() + idEntity.getStep();
             updateNum = idEntityRepo.casGainId(typeName, endId, startId);
@@ -108,7 +94,7 @@ public class IDGeneratorComponent implements IDGenerator {
             time++;
         }
 
-        if (updateNum < 0) {
+        if (updateNum <= 0) {
             throw new IllegalStateException("The system is busy, Try again later!!!");
         }
 
@@ -123,6 +109,10 @@ public class IDGeneratorComponent implements IDGenerator {
         private AtomicLong currentId;
 
         private Long endId;
+
+        public boolean valid() {
+            return currentId.get() < endId;
+        }
     }
 
 }

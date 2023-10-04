@@ -20,8 +20,8 @@ package org.limbo.flowjob.broker.application.support;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.api.ResponseDTO;
-import org.limbo.flowjob.api.remote.constants.WorkerHeaders;
+import org.limbo.flowjob.api.dto.ResponseDTO;
+import org.limbo.flowjob.api.constants.rpc.HttpHeaders;
 import org.limbo.flowjob.broker.application.utils.JWTUtil;
 import org.limbo.flowjob.broker.application.utils.WebUtil;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -40,13 +40,13 @@ public class WorkerInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         // 验证会话存在
-        String token = request.getHeader(WorkerHeaders.TOKEN_HEADER);
+        String token = request.getHeader(HttpHeaders.TOKEN_HEADER);
         if (StringUtils.isBlank(token)) {
             WebUtil.writeToResponse(response, JacksonUtils.toJSONString(new ResponseDTO.Builder<Void>().unauthorized("unauthorized").build()));
             return false;
         }
         try {
-            JWTUtil.verifyToken(token, WorkerHeaders.TOKEN_KEY);
+            JWTUtil.verifyToken(token, HttpHeaders.TOKEN_KEY);
         } catch (Exception e) {
             WebUtil.writeToResponse(response, JacksonUtils.toJSONString(new ResponseDTO.Builder<Void>().forbidden("authenticate fail!").build()));
             return false;

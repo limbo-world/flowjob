@@ -16,9 +16,7 @@
         <logger name="org.apache.commons" level="INFO" />
         <logger name="org.apache.http" level="INFO" />
         <logger name="org.springframework" level="INFO" />
-        <logger name="org.springframework.web" level="DEBUG" />
-        <logger name="com.netflix.discovery" level="INFO" />
-        <logger name="org.springframework.cloud.client.discovery" level="INFO" />
+        <logger name="org.springframework.web" level="INFO" />
         <Root level="DEBUG">
 <!--        <Root level="INFO">-->
             <AppenderRef ref="Console" />

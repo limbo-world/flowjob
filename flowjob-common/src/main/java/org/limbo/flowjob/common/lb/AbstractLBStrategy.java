@@ -41,11 +41,15 @@ public abstract class AbstractLBStrategy<S extends LBServer> implements LBStrate
     public Optional<S> select(List<S> servers, Invocation invocation) {
         // 有服务存在，但是如果所有服务都挂了的话，也返回空
         if (CollectionUtils.isEmpty(servers)) {
-            log.warn("No alive server for load strategy [{}]", getClass().getName());
             return Optional.empty();
         }
 
-        return doSelect(servers, invocation);
+        try {
+            return doSelect(servers, invocation);
+        } catch (Exception e) {
+            log.error("[{}] select with error servers={} invocation={}", getClass().getSimpleName(), servers, invocation);
+            throw new LoadBalanceException(e);
+        }
     }
 
 

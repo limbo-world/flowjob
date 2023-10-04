@@ -74,7 +74,7 @@ public class PlanRepo implements PlanRepository {
     private Plan assemble(PlanEntity planEntity, PlanInfoEntity planInfoEntity) {
         Plan plan;
         PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
-        if (PlanType.NORMAL == planType) {
+        if (PlanType.STANDALONE == planType) {
             plan = new NormalPlan(
                     planInfoEntity.getPlanId(),
                     planInfoEntity.getPlanInfoId(),

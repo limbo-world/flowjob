@@ -19,9 +19,6 @@ package org.limbo.flowjob.broker.core.schedule.scheduler.meta;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.schedule.scheduler.HashedWheelTimerScheduler;
 
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -33,26 +30,21 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class MetaTaskScheduler extends HashedWheelTimerScheduler<MetaTask> {
 
-    private final Map<MetaTaskType, Map<String, MetaTask>> scheduling;
+    private final Map<String, MetaTask> scheduling;
 
     public MetaTaskScheduler(long tickDuration, TimeUnit unit) {
         super(tickDuration, unit);
-        this.scheduling = new EnumMap<>(MetaTaskType.class);
-        for (MetaTaskType type : MetaTaskType.values()) {
-            this.scheduling.put(type, new ConcurrentHashMap<>());
-        }
+        this.scheduling = new ConcurrentHashMap<>();
     }
 
     @Override
     public void schedule(MetaTask task) {
         String scheduleId = task.scheduleId();
         try {
-            if (isScheduling(scheduleId)) {
+            // 存在就不需要重新放入
+            if (scheduling.putIfAbsent(scheduleId, task) != null) {
                 return;
             }
-
-            // 放入缓存
-            scheduling.get(task.getType()).put(scheduleId, task);
 
             calAndSchedule(task);
         } catch (Exception e) {
@@ -61,47 +53,16 @@ public class MetaTaskScheduler extends HashedWheelTimerScheduler<MetaTask> {
     }
 
     @Override
-    protected void afterExecute(MetaTask scheduled, Throwable t) {
-        super.afterExecute(scheduled, t);
-        if (t != null) {
-            unschedule(scheduled.scheduleId());
-        }
-    }
-
-    @Override
     public void unschedule(String id) {
-        Map<String, MetaTask> metaTaskMap = scheduling.get(getType(id));
-        metaTaskMap.remove(id);
-    }
-
-    @Override
-    public boolean isScheduling(String id) {
-        Map<String, MetaTask> metaTaskMap = scheduling.get(getType(id));
-        return metaTaskMap.containsKey(id);
-    }
-
-
-    /**
-     * org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask#scheduleId()
-     */
-    private MetaTaskType getType(String scheduleId) {
-        String[] split = scheduleId.split("-");
-        return MetaTaskType.parse(split[0]);
-    }
-
-    /**
-     * 返回调度中的数据
-     */
-    public List<MetaTask> getSchedulingByType(MetaTaskType type) {
-        return new ArrayList<>(scheduling.get(type).values());
+        MetaTask task = scheduling.remove(id);
+        if (task != null) {
+            task.stop();
+        }
     }
 
     public void reschedule(MetaTask task) {
         String scheduleId = task.scheduleId();
         try {
-            if (!isScheduling(scheduleId)) {
-                return;
-            }
             calAndSchedule(task);
         } catch (Exception e) {
             log.error("Meta task [{}] reschedule failed", scheduleId, e);

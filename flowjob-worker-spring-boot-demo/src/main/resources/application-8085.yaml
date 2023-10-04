@@ -2,13 +2,17 @@ server:
   port: 8085
 spring:
   application:
-    name: job-worker
+    name: flowjob-worker
+
+# log
+logging:
+  config: classpath:log4j2.xml
 
 flowjob:
   worker:
     brokers:
       - http://localhost:8081
-    taskQueueSize: 64
+    queue-size: 64
     tags:
       - a=b
       - c=d

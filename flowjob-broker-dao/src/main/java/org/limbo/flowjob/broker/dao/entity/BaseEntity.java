@@ -41,14 +41,14 @@ public abstract class BaseEntity implements Serializable {
     /**
      * 记录创建时间
      */
-    @Transient
+//    @Transient
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
     /**
      * 记录更新时间
      */
-    @Transient
+//    @Transient
     @Column(updatable = false)
     private LocalDateTime updatedAt;
 

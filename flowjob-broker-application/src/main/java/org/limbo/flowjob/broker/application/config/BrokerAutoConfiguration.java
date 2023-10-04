@@ -21,24 +21,26 @@ package org.limbo.flowjob.broker.application.config;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.broker.application.component.AgentRegistry;
+import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.application.component.BrokerStarter;
 import org.limbo.flowjob.broker.application.component.DBBrokerRegistry;
-import org.limbo.flowjob.broker.application.support.NodeMangerImpl;
+import org.limbo.flowjob.broker.application.component.LocalNodeManger;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
-import org.limbo.flowjob.broker.core.dispatch.DispatchOption;
-import org.limbo.flowjob.broker.core.dispatch.TaskDispatcher;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
-import org.limbo.flowjob.broker.core.domain.task.TaskFactory;
-import org.limbo.flowjob.broker.core.domain.task.TaskManager;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.core.statistics.WorkerStatisticsRepository;
-import org.limbo.flowjob.broker.core.worker.WorkerRepository;
-import org.limbo.flowjob.broker.dao.domain.SingletonWorkerStatisticsRepo;
+import org.limbo.flowjob.broker.core.schedule.selector.SingletonWorkerStatisticsRepo;
+import org.limbo.flowjob.broker.core.schedule.selector.WorkerSelectorFactory;
+import org.limbo.flowjob.broker.core.schedule.selector.WorkerStatisticsRepository;
+import org.limbo.flowjob.broker.dao.repositories.AgentEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.AgentSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.BrokerEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.WorkerSlotEntityRepo;
 import org.limbo.flowjob.common.utils.NetUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -79,7 +81,22 @@ public class BrokerAutoConfiguration {
      * worker 管理，持久化等
      */
     @Bean
-    public Broker broker(NodeManger nodeManger, MetaTaskScheduler metaTaskScheduler, List<MetaTask> metaTasks) throws MalformedURLException {
+    public Broker broker(URL brokerUrl, NodeManger nodeManger, MetaTaskScheduler metaTaskScheduler, List<MetaTask> metaTasks) {
+        return new BrokerStarter(brokerProperties.getName(), brokerUrl, brokerRegistry, nodeManger, metaTaskScheduler, metaTasks);
+    }
+
+    @Bean
+    public NodeManger brokerManger(BrokerSlotManager slotManager) {
+        return new LocalNodeManger(slotManager);
+    }
+
+    @Bean
+    public BrokerSlotManager slotManager(URL brokerUrl, PlanSlotEntityRepo planSlotEntityRepo, WorkerSlotEntityRepo workerSlotEntityRepo, AgentSlotEntityRepo agentSlotEntityRepo) {
+        return new BrokerSlotManager(brokerUrl.getHost(), brokerUrl.getPort(), planSlotEntityRepo, workerSlotEntityRepo, agentSlotEntityRepo);
+    }
+
+    @Bean
+    public URL brokerUrl() throws MalformedURLException {
         Integer port = brokerProperties.getPort() != null ? brokerProperties.getPort() : httpServerPort;
         // 优先使用指定的 host，如未指定则自动寻找本机 IP
         String host = brokerProperties.getHost();
@@ -87,48 +104,7 @@ public class BrokerAutoConfiguration {
             host = NetUtils.getLocalIp();
         }
         Assert.isTrue(port > 0, "port must be a positive integer in range 1 ~ 65534");
-        URL baseUrl = new URL(brokerProperties.getScheme().name(), host, port, "");
-        return new BrokerStarter(brokerProperties.getName(), baseUrl, brokerRegistry, nodeManger, metaTaskScheduler, metaTasks);
-    }
-
-    @Bean
-    public NodeManger brokerManger() {
-        return new NodeMangerImpl();
-    }
-
-    @Bean
-    public TaskFactory taskFactory(WorkerRepository workerRepository, TaskManager taskManager, IDGenerator idGenerator) {
-        return new TaskFactory(workerRepository, taskManager, idGenerator);
-    }
-
-
-    /**
-     * 如果未声明 WorkerStatisticsRepository 类型的 Bean，则使用基于内存统计的单机模式
-     */
-    @Bean
-    @ConditionalOnMissingBean(WorkerStatisticsRepository.class)
-    public WorkerStatisticsRepository workerStatisticsRepository() {
-        return new SingletonWorkerStatisticsRepo();
-    }
-
-
-    /**
-     * 用于生成 Worker 选择器，内部封装了 LB 算法的调用。
-     */
-    @Bean
-    public DispatchOption.WorkerSelectorFactory workerSelectorFactory(WorkerStatisticsRepository statisticsRepository) {
-        DispatchOption.WorkerSelectorFactory factory = new DispatchOption.WorkerSelectorFactory();
-        factory.setLbServerStatisticsProvider(statisticsRepository);
-        return factory;
-    }
-
-
-    /**
-     * 用于分发任务
-     */
-    @Bean
-    public TaskDispatcher taskDispatcher(WorkerRepository workerRepository, DispatchOption.WorkerSelectorFactory factory, WorkerStatisticsRepository statisticsRepository) {
-        return new TaskDispatcher(workerRepository, factory, statisticsRepository);
+        return new URL(brokerProperties.getProtocol().getValue(), host, port, "");
     }
 
     /**
@@ -136,12 +112,32 @@ public class BrokerAutoConfiguration {
      */
     @Bean
     public MetaTaskScheduler metaTaskScheduler() {
-        return new MetaTaskScheduler(1000L, TimeUnit.MILLISECONDS);
+        return new MetaTaskScheduler(100L, TimeUnit.MILLISECONDS);
     }
 
     @Bean
     public DBBrokerRegistry brokerRegistry(BrokerConfig config, BrokerEntityRepo brokerEntityRepo, IDGenerator idGenerator) {
-        return new DBBrokerRegistry(1000, config.getHeartbeatInterval(), config.getHeartbeatTimeout(), brokerEntityRepo, idGenerator);
+        return new DBBrokerRegistry(config.getHeartbeatInterval(), config.getHeartbeatTimeout(), brokerEntityRepo, idGenerator);
+    }
+
+    /**
+     * 如果未声明 WorkerStatisticsRepository 类型的 Bean，则使用基于内存统计的单机模式
+     */
+    @Bean("fjWorkerStatisticsRepository")
+    @ConditionalOnMissingBean(WorkerStatisticsRepository.class)
+    public WorkerStatisticsRepository workerStatisticsRepository() {
+        return new SingletonWorkerStatisticsRepo();
+    }
+
+    /**
+     * 用于生成 Worker 选择器，内部封装了 LB 算法的调用。
+     */
+    @Bean("fjWorkerSelectorFactory")
+    @ConditionalOnMissingBean(WorkerSelectorFactory.class)
+    public WorkerSelectorFactory workerSelectorFactory(WorkerStatisticsRepository statisticsRepository) {
+        WorkerSelectorFactory factory = new WorkerSelectorFactory();
+        factory.setLbServerStatisticsProvider(statisticsRepository);
+        return factory;
     }
 
 }

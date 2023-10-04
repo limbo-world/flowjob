@@ -18,6 +18,7 @@
 
 package org.limbo.flowjob.broker.application.component;
 
+import org.limbo.flowjob.agent.starter.component.AgentStartEvent;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
@@ -55,8 +56,8 @@ public class BrokerStarter extends Broker implements ApplicationEventPublisherAw
         // 启动所有元任务调度
         metaTasks.forEach(metaTaskScheduler::schedule);
 
-//        // 将自己注册为worker
-//        eventPublisher.publishEvent(new WorkerReadyEvent());
+        // 将自己注册为agent
+        eventPublisher.publishEvent(new AgentStartEvent());
     }
 
     @Override

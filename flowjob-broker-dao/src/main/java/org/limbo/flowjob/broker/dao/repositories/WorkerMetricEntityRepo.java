@@ -21,11 +21,17 @@ package org.limbo.flowjob.broker.dao.repositories;
 import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 /**
  * @author Devil
  * @since 2022/6/24
  */
 public interface WorkerMetricEntityRepo extends JpaRepository<WorkerMetricEntity, String> {
 
+    List<WorkerMetricEntity> findByWorkerIdIn(List<String> workerIds);
+
+    List<WorkerMetricEntity> findByLastHeartbeatAtBetween(LocalDateTime startTime, LocalDateTime endTime);
 
 }

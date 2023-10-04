@@ -19,11 +19,12 @@
 package org.limbo.flowjob.worker.demo.executors;
 
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.worker.core.domain.SubTask;
 import org.limbo.flowjob.worker.core.domain.Task;
 import org.limbo.flowjob.worker.core.executor.MapReduceTaskExecutor;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,44 +35,38 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-public class MapReduceExecutorDemo implements MapReduceTaskExecutor {
+public class MapReduceExecutorDemo extends MapReduceTaskExecutor {
 
     private static final String KEY = "k";
 
-    private static final String COUNT_KEY = "count";
-
-    private static final String NUM_KEY = "num";
-
     @Override
-    public List<Map<String, Object>> split(Task task) {
-        List<Map<String, Object>> result = new ArrayList<>();
+    public void sharding(Task task) {
         for (int i = 0; i < 5; i++) {
             Map<String, Object> taskParam = new HashMap<>();
             taskParam.put(KEY, i);
             // add context
             task.setContextValue("t" + KEY, i);
-            // add task
-            result.add(taskParam);
+            // 测试多次提交子任务
+            submitSubTasks(task, Collections.singletonList(SubTask.builder()
+                    .taskId("SUB_" + i)
+                    .data(taskParam)
+                    .build())
+            );
         }
-        // job
-        testPutJobAttr(task);
-        return result;
     }
 
     @Override
     public Map<String, Object> map(Task task) {
         Map<String, Object> result = new HashMap<>();
-        Map<String, Object> mapAttributes = task.getMapAttributes();
+        Map<String, Object> mapAttributes = task.getTaskAttributes();
         int v = (int) mapAttributes.get(KEY) + 100;
         result.put(KEY, v);
-        // add context
-        String ck = "m" + KEY;
-        if (task.getContextValue(ck) != null) {
-            v += (int) task.getContextValue(ck);
-        }
-        task.setContextValue("m" + KEY, v);
-        // job
-        testPutJobAttr(task);
+        // add context 现实场景中不建议在 map 任务中设置上下文
+//        String ck = "m" + KEY;
+//        if (task.getContextValue(ck) != null) {
+//            v += (int) task.getContextValue(ck);
+//        }
+//        task.setContextValue("m" + KEY, v);
         return result;
     }
 
@@ -84,23 +79,7 @@ public class MapReduceExecutorDemo implements MapReduceTaskExecutor {
             sum += v;
         }
         task.setContextValue("sum", sum);
-        // job
-        testPutJobAttr(task);
         log.info("sum = {}", sum);
-    }
-
-    private void testPutJobAttr(Task task) {
-        if (task.getJobAttribute(COUNT_KEY) == null) {
-            task.setJobAttribute(COUNT_KEY, 1);
-        } else {
-            task.setJobAttribute(COUNT_KEY, 1 + (int) task.getJobAttribute(COUNT_KEY));
-        }
-
-        if (task.getJobAttribute(NUM_KEY) == null) {
-            task.setJobAttribute(NUM_KEY, 10);
-        } else {
-            task.setJobAttribute(NUM_KEY, 10 + (int) task.getJobAttribute(NUM_KEY));
-        }
     }
 
 }

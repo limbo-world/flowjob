@@ -20,6 +20,7 @@ import lombok.Data;
 import org.apache.commons.collections4.MapUtils;
 import org.limbo.flowjob.api.constants.TaskType;
 
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,15 +32,11 @@ import java.util.Map;
 @Data
 public class Task {
 
-    private String taskId;
-
-    private String planId;
-
-    private String planInstanceId;
-
     private String jobId;
 
-    private String jobInstanceId;
+    private String taskId;
+
+    private URL rpcUrl;
 
     private TaskType type;
 
@@ -61,7 +58,7 @@ public class Task {
     /**
      * 每个map task单独的属性
      */
-    private Map<String, Object> mapAttributes;
+    private Map<String, Object> taskAttributes;
 
     /**
      * reduce时候使用的
@@ -71,7 +68,11 @@ public class Task {
     /**
      * 结果数据
      */
-    private Object result;
+    private String result;
+
+    public String getUid() {
+        return jobId + "-" + taskId;
+    }
 
     public void setContext(Map<String, Object> context) {
         if (MapUtils.isEmpty(context)) {
@@ -88,10 +89,6 @@ public class Task {
 
     public Object getContextValue(String key) {
         return context.get(key);
-    }
-
-    public Object setJobAttribute(String key, Object value) {
-        return jobAttributes.put(key, value);
     }
 
     public Object getJobAttribute(String key) {

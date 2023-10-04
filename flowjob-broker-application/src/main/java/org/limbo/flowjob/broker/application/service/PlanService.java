@@ -18,36 +18,38 @@
 
 package org.limbo.flowjob.broker.application.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.api.PageDTO;
-import org.limbo.flowjob.api.console.param.PlanParam;
-import org.limbo.flowjob.api.console.param.PlanQueryParam;
-import org.limbo.flowjob.api.console.param.ScheduleOptionParam;
-import org.limbo.flowjob.api.console.vo.PlanVO;
-import org.limbo.flowjob.broker.application.component.SlotManager;
+import org.limbo.flowjob.api.constants.MsgConstants;
+import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.ScheduleType;
+import org.limbo.flowjob.api.constants.TriggerType;
+import org.limbo.flowjob.api.dto.PageDTO;
+import org.limbo.flowjob.api.dto.console.PlanDTO;
+import org.limbo.flowjob.api.dto.console.PlanInfoDTO;
+import org.limbo.flowjob.api.dto.console.PlanVersionDTO;
+import org.limbo.flowjob.api.param.console.PlanParam;
+import org.limbo.flowjob.api.param.console.PlanQueryParam;
+import org.limbo.flowjob.api.param.console.PlanVersionParam;
+import org.limbo.flowjob.api.param.console.ScheduleOptionParam;
+import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.application.converter.PlanConverter;
+import org.limbo.flowjob.broker.application.converter.factory.PlanFactory;
 import org.limbo.flowjob.broker.application.support.JpaHelper;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.exceptions.VerifyException;
+import org.limbo.flowjob.broker.core.schedule.calculator.CronScheduleCalculator;
+import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
-import org.limbo.flowjob.api.constants.MsgConstants;
-import org.limbo.flowjob.api.constants.PlanType;
-import org.limbo.flowjob.api.constants.ScheduleType;
-import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.core.exceptions.VerifyException;
-import org.limbo.flowjob.broker.core.utils.Verifies;
-import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -55,13 +57,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -85,39 +88,51 @@ public class PlanService {
     private IDGenerator idGenerator;
 
     @Setter(onMethod_ = @Inject)
-    private SlotManager slotManager;
+    private BrokerSlotManager slotManager;
+
+    @Setter(onMethod_ = @Inject)
+    private PlanFactory factory;
 
     @Setter(onMethod_ = @Inject)
     private PlanConverter planConverter;
 
     @Transactional
-    public String save(String planId, PlanParam param) {
-        PlanType planType = PlanType.parse(param.getPlanType());
-        Verifies.verify(param.getPlanType() != null && PlanType.UNKNOWN != planType, MsgConstants.UNKNOWN + " Plan Type");
+    public String add(PlanParam.NormalPlanParam param) {
+        JobInfo jobInfo = factory.createJob(param);
+        return save(null, PlanType.STANDALONE, param, JacksonUtils.toJSONString(jobInfo));
+    }
 
+    @Transactional
+    public String update(String planId, PlanParam.NormalPlanParam param) {
+        JobInfo jobInfo = factory.createJob(param);
+        return save(planId, PlanType.STANDALONE, param, JacksonUtils.toJSONString(jobInfo));
+    }
+
+    @Transactional
+    public String save(String planId, PlanType planType, PlanParam param, String jobInfo) {
         PlanInfoEntity planInfoEntity = new PlanInfoEntity();
-        if (PlanType.NORMAL == planType) {
-            Verifies.notNull(param.getJob(), "Job can't be null with " + PlanType.NORMAL.name() + " Type");
-            JobInfo jobInfo = planConverter.covertJob("0", param.getJob());
-            planInfoEntity.setJobInfo(JacksonUtils.toJSONString(jobInfo));
-        } else {
-            Verifies.notEmpty(param.getWorkflow(), "Workflow can't be empty with " + PlanType.WORKFLOW.name() + " Type");
-            DAG<WorkflowJobInfo> workflow = planConverter.convertJob(param.getWorkflow());
-            try {
-                planInfoEntity.setJobInfo(workflow.json());
-            } catch (JsonProcessingException e) {
-                log.error("To DAG Json failed! dag={}", workflow, e);
-                throw new VerifyException("Dag Node verify fail!");
-            }
-        }
+        planInfoEntity.setJobInfo(jobInfo);
 
         String planInfoId = idGenerator.generateId(IDType.PLAN_INFO);
+
+        // 校验 cron表达式
+        ScheduleOptionParam scheduleOption = param.getScheduleOption();
+        if (ScheduleType.CRON == scheduleOption.getScheduleType()) {
+            Verifies.notBlank(scheduleOption.getScheduleCron(), "cron表达式不能为空");
+            Verifies.notBlank(scheduleOption.getScheduleCronType(), "cron表达式类型不能为空");
+            try {
+                CronScheduleCalculator.getCron(scheduleOption.getScheduleCron(), scheduleOption.getScheduleCronType());
+            } catch (IllegalArgumentException e) {
+                throw new VerifyException(e.getMessage());
+            }
+        }
 
         if (StringUtils.isBlank(planId)) {
             // create
             planId = idGenerator.generateId(IDType.PLAN);
 
             PlanEntity planEntity = new PlanEntity();
+            planEntity.setAppId("");
             planEntity.setCurrentVersion(planInfoId);
             planEntity.setRecentlyVersion(planInfoId);
             planEntity.setEnabled(false);
@@ -133,9 +148,9 @@ public class PlanService {
             planSlotEntityRepo.saveAndFlush(planSlotEntity);
         } else {
             // update
-            planEntityRepo.findById(planId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN + planId));
+            PlanEntity planEntity = planEntityRepo.findById(planId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN + planId));
             // 更新 Plan 版本信息
-            int effected = planEntityRepo.updateVersion(planInfoId, planInfoId, param.getName(), planId, param.getCurrentVersion(), param.getRecentlyVersion());
+            int effected = planEntityRepo.updateVersion(planInfoId, planInfoId, param.getName(), planId, planEntity.getCurrentVersion(), planEntity.getRecentlyVersion());
             if (effected < 1) {
                 throw new IllegalStateException("并发操作，更新Plan版本失败");
             }
@@ -147,14 +162,15 @@ public class PlanService {
         planInfoEntity.setPlanType(planType.type);
         planInfoEntity.setName(param.getName());
         planInfoEntity.setDescription(param.getDescription());
-        planInfoEntity.setTriggerType(TriggerType.parse(param.getTriggerType()).type);
+        planInfoEntity.setTriggerType(param.getTriggerType().type);
         // ScheduleOption
-        ScheduleOptionParam scheduleOption = param.getScheduleOption();
-        planInfoEntity.setScheduleType(ScheduleType.parse(scheduleOption.getScheduleType()).type);
+        planInfoEntity.setScheduleType(scheduleOption.getScheduleType().type);
         planInfoEntity.setScheduleStartAt(scheduleOption.getScheduleStartAt());
-        planInfoEntity.setScheduleDelay(scheduleOption.getScheduleDelay() == null ? 0L : scheduleOption.getScheduleDelay().toMillis());
-        planInfoEntity.setScheduleInterval(scheduleOption.getScheduleInterval() == null ? 0L : scheduleOption.getScheduleInterval().toMillis());
+        planInfoEntity.setScheduleEndAt(scheduleOption.getScheduleEndAt());
+        planInfoEntity.setScheduleDelay(scheduleOption.getScheduleDelay() == null ? 0L : scheduleOption.getScheduleDelay());
+        planInfoEntity.setScheduleInterval(scheduleOption.getScheduleInterval() == null ? 0L : scheduleOption.getScheduleInterval());
         planInfoEntity.setScheduleCron(scheduleOption.getScheduleCron());
+        planInfoEntity.setScheduleCronType(scheduleOption.getScheduleCronType());
 
         // 保存版本信息
         planInfoEntityRepo.saveAndFlush(planInfoEntity);
@@ -201,54 +217,116 @@ public class PlanService {
         return planEntityRepo.updateEnable(planEntity.getPlanId(), true, false) == 1;
     }
 
-    public PageDTO<PlanVO> page(PlanQueryParam param) {
-        Specification<PlanEntity> sf = (root, query, cb) -> {
+    public PlanInfoDTO.NormalPlanInfoDTO get(String planId) {
+        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(planId);
+        Verifies.verify(planEntityOptional.isPresent(), String.format("Cannot find Plan %s", planId));
+
+        PlanEntity planEntity = planEntityOptional.get();
+        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(planEntity.getCurrentVersion()).get();
+
+        PlanInfoDTO.NormalPlanInfoDTO dto = new PlanInfoDTO.NormalPlanInfoDTO();
+        dto.setPlanInfoId(planInfoEntity.getPlanInfoId());
+        dto.setPlanId(planId);
+        dto.setName(planInfoEntity.getName());
+        dto.setDescription(planInfoEntity.getDescription());
+        dto.setTriggerType(TriggerType.parse(planInfoEntity.getTriggerType()));
+        dto.setScheduleOption(planConverter.toScheduleOptionDTO(planInfoEntity));
+
+        JobInfo jobInfo = JacksonUtils.parseObject(planInfoEntity.getJobInfo(), JobInfo.class);
+        planConverter.assemble(dto, jobInfo);
+        return dto;
+    }
+
+
+    /**
+     * 分页查询任务
+     */
+    public PageDTO<PlanDTO> page(PlanQueryParam param) {
+        // 查询条件
+        Specification<PlanEntity> condition = (root, query, criteriaBuilder) -> {
+            // 名称模糊查询
+            String nameParam = param.getName();
+            if (StringUtils.isNotBlank(nameParam)) {
+                Expression<String> name = root.get("name").as(String.class);
+                String pattern = "%" + nameParam + "%";
+                query.where(criteriaBuilder.like(name, pattern));
+            }
+
+            // 排序
+            query.orderBy(criteriaBuilder.desc(root.get("planId")));
+
+            return query.getRestriction();
+        };
+
+        // 分页条件
+        Pageable pageable = JpaHelper.pageable(param);
+
+        // 查询 Plan
+        Page<PlanEntity> queryResult = planEntityRepo.findAll(condition, pageable);
+        List<PlanEntity> plans = queryResult.getContent();
+
+        // 查询 PlanInfo
+        Set<String> versions = plans.stream()
+                .map(PlanEntity::getCurrentVersion)
+                .collect(Collectors.toSet());
+        List<PlanInfoEntity> planInfos = CollectionUtils.isEmpty(versions)
+                ? new ArrayList<>() : planInfoEntityRepo.findAllById(versions);
+
+        // 封装分页返回结果
+        PageDTO<PlanDTO> page = PageDTO.convertByPage(param);
+        page.setData(planConverter.toPlanDTO(plans, planInfos));
+        page.setTotal(queryResult.getTotalElements());
+        return page;
+    }
+
+
+    public PageDTO<PlanVersionDTO> versionPage(PlanVersionParam param) {
+        Specification<PlanInfoEntity> sf = (root, query, cb) -> {
+            // 设置查询字段
+            query.multiselect(root.get("planId"), root.get("planInfoId"), root.get("name"), root.get("createdAt"));
             //用于添加所有查询条件
             List<Predicate> p = new ArrayList<>();
-            if (StringUtils.isNotBlank(param.getName())) {
-                Predicate p3 = cb.like(root.get("name").as(String.class), param.getName() + "%");
-                p.add(p3);
-            }
+            Predicate p3 = cb.like(root.get("planId").as(String.class), param.getPlanId());
+            p.add(p3);
             Predicate[] pre = new Predicate[p.size()];
             Predicate and = cb.and(p.toArray(pre));
             query.where(and);
 
             //设置排序
             List<Order> orders = new ArrayList<>();
-            orders.add(cb.desc(root.get("planId")));
+            orders.add(cb.desc(root.get("planInfoId")));
             return query.orderBy(orders).getRestriction();
         };
         Pageable pageable = JpaHelper.pageable(param);
-        Page<PlanEntity> queryResult = planEntityRepo.findAll(sf, pageable);
-        List<PlanEntity> planEntities = queryResult.getContent();
-        PageDTO<PlanVO> page = PageDTO.convertByPage(param);
+        Page<PlanInfoEntity> queryResult = planInfoEntityRepo.findAll(sf, pageable);
+        List<PlanInfoEntity> planInfoEntities = queryResult.getContent();
+        PageDTO<PlanVersionDTO> page = PageDTO.convertByPage(param);
         page.setTotal(queryResult.getTotalElements());
-        if (CollectionUtils.isNotEmpty(planEntities)) {
-            List<PlanInfoEntity> planInfoEntities = planInfoEntityRepo.findAllById(planEntities.stream().map(PlanEntity::getCurrentVersion).collect(Collectors.toList()));
-            Map<String, PlanInfoEntity> planInfoEntityMap = planInfoEntities.stream().collect(Collectors.toMap(PlanInfoEntity::getPlanInfoId, e -> e));
-            page.setData(planEntities.stream().map(planEntity -> {
-                PlanInfoEntity planInfoEntity = planInfoEntityMap.get(planEntity.getCurrentVersion());
-                PlanVO vo = new PlanVO();
-                vo.setPlanId(planEntity.getPlanId());
-                vo.setCurrentVersion(planEntity.getCurrentVersion());
-                vo.setRecentlyVersion(planEntity.getRecentlyVersion());
-                vo.setEnabled(planEntity.isEnabled());
-                vo.setName(planInfoEntity.getName());
-                vo.setDescription(planInfoEntity.getDescription());
-                vo.setPlanType(planInfoEntity.getPlanType());
-                vo.setScheduleType(planInfoEntity.getScheduleType());
-                vo.setTriggerType(planInfoEntity.getTriggerType());
-                vo.setScheduleStartAt(planInfoEntity.getScheduleStartAt());
-                vo.setScheduleDelay(planInfoEntity.getScheduleDelay());
-                vo.setScheduleInterval(planInfoEntity.getScheduleInterval());
-                vo.setScheduleCron(planInfoEntity.getScheduleCron());
-                vo.setScheduleCronType(planInfoEntity.getScheduleCronType());
-                vo.setRetry(planInfoEntity.getRetry());
-                return vo;
-            }).collect(Collectors.toList()));
+        List<PlanVersionDTO> data = new ArrayList<>();
+        page.setData(data);
+        if (CollectionUtils.isEmpty(planInfoEntities)) {
+            return page;
+        }
+        for (PlanInfoEntity planInfoEntity : planInfoEntities) {
+            PlanVersionDTO dto = new PlanVersionDTO();
+            dto.setPlanInfoId(planInfoEntity.getPlanInfoId());
+            dto.setName(planInfoEntity.getName());
+            dto.setCreatedAt(planInfoEntity.getCreatedAt());
+            data.add(dto);
         }
         return page;
     }
 
+    @Transactional
+    public boolean versionUpdate(String planId, String version) {
+        Optional<PlanEntity> planEntityOptional = planEntityRepo.findById(planId);
+        Verifies.verify(planEntityOptional.isPresent(), String.format("Cannot find Plan %s", planId));
+        Optional<PlanInfoEntity> planInfoEntityOptional = planInfoEntityRepo.findById(version);
+        Verifies.verify(planInfoEntityOptional.isPresent(), String.format("Cannot find Version %s", version));
+        PlanEntity planEntity = planEntityOptional.get();
+        // 更新 Plan 版本信息
+        int effected = planEntityRepo.updateVersion(version, planId, planEntity.getCurrentVersion());
+        return effected > 0;
+    }
 
 }

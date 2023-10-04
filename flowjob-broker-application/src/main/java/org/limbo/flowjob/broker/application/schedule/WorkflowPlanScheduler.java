@@ -21,27 +21,24 @@ package org.limbo.flowjob.broker.application.schedule;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.api.constants.JobStatus;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.PlanType;
-import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
-import org.limbo.flowjob.broker.core.domain.task.Task;
+import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
-import org.limbo.flowjob.broker.dao.domain.JobInstanceRepo;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
-import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
+import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
+import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
-import org.limbo.flowjob.common.utils.dag.DAGNode;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
 
@@ -50,63 +47,69 @@ import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author Devil
- * @since 2023/5/8
+ * @since 2023/8/7
  */
 @Slf4j
 @Component
 public class WorkflowPlanScheduler extends AbstractPlanScheduler {
 
     @Setter(onMethod_ = @Inject)
-    private JobInstanceEntityRepo jobInstanceEntityRepo;
+    protected PlanInfoEntityRepo planInfoEntityRepo;
 
     @Override
-    public PlanType getPlanType() {
-        return PlanType.WORKFLOW;
-    }
-
-    @Override
-    public void scheduleJob(Plan plan, String planInstanceId, String jobId, boolean manualRetry) {
+    @Transactional
+    public void scheduleJob(Plan plan, String planInstanceId, String jobId) {
         WorkflowPlan workflowPlan = (WorkflowPlan) plan;
         DAG<WorkflowJobInfo> dag = workflowPlan.getDag();
         WorkflowJobInfo jobInfo = dag.getNode(jobId);
 
         Verifies.verify(checkJobsSuccess(planInstanceId, dag.preNodes(jobInfo.getId()), true), "previous job is not complete, please wait!");
 
-        List<JobInstance> jobInstances;
-        if (manualRetry) {
-            JobInstance jobInstance = jobInstanceRepository.getLatest(planInstanceId, jobId);// 获取最后一条
-            String newJobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
-            jobInstance.retryReset(newJobInstanceId, 0);
-            jobInstances = Collections.singletonList(jobInstance);
-        } else {
-            Verifies.verify(TriggerType.API == jobInfo.getTriggerType(), "only api triggerType job can schedule by api");
+        Verifies.verify(TriggerType.API == jobInfo.getTriggerType(), "only api triggerType job can schedule by api");
 
-            jobInstances = createJobInstances(plan, planInstanceId, TimeUtils.currentLocalDateTime());
-        }
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(planInstanceId).orElse(null);
+
+        List<JobInstance> jobInstances = createJobInstances(plan, new Attributes(planInstanceEntity.getAttributes()), planInstanceId, TimeUtils.currentLocalDateTime());
+
+        saveAndScheduleJobInstances(jobInstances);
+    }
+
+    // todo 执行的时候可以选择 是就重新计算当前的还是后续节点是否也重新执行一遍
+    @Override
+    @Transactional
+    public void manualScheduleJob(Plan plan, String planInstanceId, String jobId) {
+        WorkflowPlan workflowPlan = (WorkflowPlan) plan;
+        DAG<WorkflowJobInfo> dag = workflowPlan.getDag();
+        WorkflowJobInfo jobInfo = dag.getNode(jobId);
+
+        Verifies.verify(checkJobsSuccess(planInstanceId, dag.preNodes(jobInfo.getId()), true), "previous job is not complete, please wait!");
+
+        JobInstance jobInstance = jobInstanceRepository.getLatest(planInstanceId, jobId);// 获取最后一条
+        String newJobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
+        jobInstance.retryReset(newJobInstanceId, 0);
+        List<JobInstance> jobInstances = Collections.singletonList(jobInstance);
 
         saveAndScheduleJobInstances(jobInstances);
     }
 
     @Override
-    public List<JobInstance> createJobInstances(Plan plan, String planInstanceId, LocalDateTime triggerAt) {
+    public List<JobInstance> createJobInstances(Plan plan, Attributes planAttributes, String planInstanceId, LocalDateTime triggerAt) {
         List<JobInstance> jobInstances = new ArrayList<>();
         // 获取头部节点
         for (WorkflowJobInfo jobInfo : ((WorkflowPlan) plan).getDag().origins()) {
             if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
-                jobInstances.add(createJobInstance(plan.getPlanId(), plan.getVersion(), planInstanceId, new Attributes(), jobInfo, triggerAt));
+                jobInstances.add(createJobInstance(plan.getPlanId(), plan.getVersion(), planInstanceId, planAttributes, new Attributes(), jobInfo, triggerAt));
             }
         }
         return jobInstances;
     }
 
     @Override
+    @Transactional
     public void handleJobSuccess(JobInstance jobInstance) {
         int num = jobInstanceEntityRepo.success(jobInstance.getJobInstanceId(), TimeUtils.currentLocalDateTime(), jobInstance.getContext().toString());
         if (num < 1) {
@@ -120,10 +123,15 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
         WorkflowJobInfo jobInfo = (WorkflowJobInfo) jobInstance.getJobInfo();
         String jobId = jobInfo.getId();
 
-        DAG<WorkflowJobInfo> dag = DomainConverter.toJobDag(jobId);
+
+        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(version).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INSTANCE + planId));
+        DAG<WorkflowJobInfo> dag = DomainConverter.toJobDag(planInfoEntity.getJobInfo());
 
         // 当前节点的子节点
         List<WorkflowJobInfo> subJobInfos = dag.subNodes(jobId);
+
+        // 防止并发问题，两个任务结束后并发过来后，由于无法读取到未提交数据，可能导致都认为不需要下发而导致失败
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.selectForUpdate(planInstanceId);
 
         if (CollectionUtils.isEmpty(subJobInfos)) {
             // 当前节点为叶子节点 检测 Plan 实例是否已经执行完成
@@ -138,7 +146,7 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
             for (WorkflowJobInfo subJobInfo : subJobInfos) {
                 // 前置节点已经完成则可以下发
                 if (checkJobsSuccess(planInstanceId, dag.preNodes(subJobInfo.getId()), true)) {
-                    JobInstance subJobInstance = createJobInstance(planId, version, planInstanceId, jobInstance.getContext(), subJobInfo, triggerAt);
+                    JobInstance subJobInstance = createJobInstance(planId, version, planInstanceId, new Attributes(planInstanceEntity.getAttributes()), jobInstance.getContext(), subJobInfo, triggerAt);
                     subJobInstances.add(subJobInstance);
                 }
             }
@@ -150,26 +158,16 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
         }
     }
 
+    @Override
     @Transactional
-    public void handleFail(Task task, String errorMsg, String errorStackTrace) {
-        if (StringUtils.isBlank(errorMsg)) {
-            errorMsg = "";
-        }
-        if (StringUtils.isBlank(errorStackTrace)) {
-            errorStackTrace = "";
-        }
-        int num = taskEntityRepo.fail(task.getTaskId(), task.getStatus().status, TimeUtils.currentLocalDateTime(), errorMsg, errorStackTrace);
-
-        if (num < 1) {
-            return; // 并发更新过了 正常来说前面job更新成功 这个不可能会进来
-        }
-
-        num = jobInstanceEntityRepo.fail(task.getJobInstanceId(), MsgConstants.TASK_FAIL);
+    public void handleJobFail(JobInstance jobInstance, String errorMsg) {
+        LocalDateTime current = TimeUtils.currentLocalDateTime();
+        LocalDateTime startAt = jobInstance.getStartAt() == null ? current : jobInstance.getStartAt();
+        int num = jobInstanceEntityRepo.fail(jobInstance.getJobInstanceId(), jobInstance.getStatus().status, startAt, current, errorMsg);
         if (num < 1) {
             return; // 可能被其他的task处理了
         }
 
-        JobInstance jobInstance = jobInstanceRepository.get(task.getJobInstanceId());
         WorkflowJobInfo jobInfo = (WorkflowJobInfo) jobInstance.getJobInfo();
         String planInstanceId = jobInstance.getPlanInstanceId();
         // 是否需要重试
@@ -186,45 +184,8 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
     }
 
     @Override
-    public void schedule(Task task) {
-        if (task.getStatus() != TaskStatus.SCHEDULING) {
-            return;
-        }
-
-        // todo 根据job id 分组 取最新的 判断是否失败 如果已经有 job 失败且终止的，则直接返回失败
-//        List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findByPlanInstanceId(task.getPlanInstanceId());
-//        Map<String, List<JobInstanceEntity>> jobInstanceMap = jobInstanceEntities.stream().collect(Collectors.groupingBy(JobInstanceEntity::getPlanInstanceId));
-//        for (Map.Entry<String, List<JobInstanceEntity>> entry : jobInstanceMap.entrySet()) {
-//            List<JobInstanceEntity> entities = entry.getValue();
-//            if (CollectionUtils.isEmpty(entities)) {
-//                continue;
-//            }
-//            entities = entities.stream().sorted((o1, o2) -> (int) (o2.getId() - o1.getId())).collect(Collectors.toList());
-//            JobInstanceEntity latest = entities.get(0);
-//            if (JobStatus.FAILED.getStatus() == latest.getStatus() && BooleanUtils.isTrue(latest.getTerminateWithFail())) {
-//                handleFail(task, MsgConstants.TERMINATE_BY_OTHER_JOB, null);
-//                break;
-//            }
-//        }
-
-        int num = taskEntityRepo.dispatching(task.getTaskId());
-        if (num < 1) {
-            return; // 可能多个节点操作同个task
-        }
-        task.setStatus(TaskStatus.DISPATCHING);
-
-        // 下面两个可能会被其他task更新 但是这是正常的
-        jobInstanceEntityRepo.executing(task.getJobInstanceId(), TimeUtils.currentLocalDateTime());
-        planInstanceEntityRepo.executing(task.getPlanInstanceId(), TimeUtils.currentLocalDateTime());
-
-        boolean dispatched = taskDispatcher.dispatch(task);
-        if (dispatched) {
-            // 下发成功
-            taskEntityRepo.executing(task.getTaskId(), task.getWorkerId(), TimeUtils.currentLocalDateTime());
-        } else {
-            // 下发失败
-            handleFail(task, MsgConstants.DISPATCH_FAIL, null);
-        }
+    public PlanType getPlanType() {
+        return PlanType.WORKFLOW;
     }
 
     /**

@@ -43,12 +43,14 @@ public class NormalPlan extends Plan {
 
     public NormalPlan(String planId, String version, TriggerType triggerType,
                       ScheduleOption scheduleOption, JobInfo jobInfo) {
-        super(planId, version, PlanType.NORMAL, triggerType, scheduleOption);
+        super(planId, version, PlanType.STANDALONE, triggerType, scheduleOption);
         this.jobInfo = jobInfo;
     }
 
     @Override
     public PlanType planType() {
-        return PlanType.NORMAL;
+        return PlanType.STANDALONE;
     }
+
+
 }

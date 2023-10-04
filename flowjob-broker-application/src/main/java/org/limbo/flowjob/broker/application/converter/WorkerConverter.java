@@ -21,20 +21,23 @@ package org.limbo.flowjob.broker.application.converter;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.api.console.vo.WorkerVO;
-import org.limbo.flowjob.api.remote.dto.BrokerDTO;
-import org.limbo.flowjob.api.remote.dto.BrokerTopologyDTO;
-import org.limbo.flowjob.api.remote.dto.WorkerRegisterDTO;
-import org.limbo.flowjob.api.remote.param.WorkerExecutorRegisterParam;
-import org.limbo.flowjob.api.remote.param.WorkerHeartbeatParam;
-import org.limbo.flowjob.api.remote.param.WorkerRegisterParam;
-import org.limbo.flowjob.api.remote.param.WorkerResourceParam;
+import org.limbo.flowjob.api.dto.broker.BrokerDTO;
+import org.limbo.flowjob.api.dto.broker.BrokerTopologyDTO;
+import org.limbo.flowjob.api.dto.broker.WorkerRegisterDTO;
+import org.limbo.flowjob.api.dto.console.WorkerDTO;
+import org.limbo.flowjob.api.dto.console.WorkerTagDTO;
+import org.limbo.flowjob.api.param.broker.WorkerExecutorRegisterParam;
+import org.limbo.flowjob.api.param.broker.WorkerHeartbeatParam;
+import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
+import org.limbo.flowjob.api.param.broker.WorkerResourceParam;
 import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
+import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.util.ArrayList;
@@ -50,7 +53,6 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class WorkerConverter {
-
 
     /**
      * 根据注册参数，生成 worker tag 信息
@@ -80,7 +82,6 @@ public class WorkerConverter {
     public static WorkerMetric toWorkerMetric(WorkerRegisterParam options) {
         WorkerResourceParam resource = options.getAvailableResource();
         return WorkerMetric.builder()
-                .executingJobs(Lists.newArrayList()) // TODO ??? 是否需要记录执行中的作业？
                 .availableResource(new WorkerAvailableResource(
                         resource.getAvailableCpu(),
                         resource.getAvailableRAM(),
@@ -98,7 +99,6 @@ public class WorkerConverter {
     public static WorkerMetric toWorkerMetric(WorkerHeartbeatParam options) {
         WorkerResourceParam resource = options.getAvailableResource();
         return WorkerMetric.builder()
-                .executingJobs(Lists.newArrayList()) // TODO ??? 是否需要记录？
                 .availableResource(new WorkerAvailableResource(
                         resource.getAvailableCpu(),
                         resource.getAvailableRAM(),
@@ -158,16 +158,25 @@ public class WorkerConverter {
         return brokerTopologyDTO;
     }
 
-    public static WorkerVO toVO(WorkerEntity workerEntity) {
-        WorkerVO workerVO = new WorkerVO();
-        workerVO.setWorkerId(workerEntity.getWorkerId());
-        workerVO.setName(workerEntity.getName());
-        workerVO.setProtocol(workerEntity.getProtocol());
-        workerVO.setHost(workerEntity.getHost());
-        workerVO.setPort(workerEntity.getPort());
-        workerVO.setStatus(workerEntity.getStatus());
-        workerVO.setEnabled(workerEntity.isEnabled());
-        return workerVO;
+    public static WorkerDTO toVO(WorkerEntity workerEntity, WorkerMetricEntity workerMetric, List<WorkerTagEntity> workerTagEntities) {
+        WorkerDTO workerDTO = new WorkerDTO();
+        workerDTO.setWorkerId(workerEntity.getWorkerId());
+        workerDTO.setName(workerEntity.getName());
+        workerDTO.setProtocol(workerEntity.getProtocol());
+        workerDTO.setHost(workerEntity.getHost());
+        workerDTO.setPort(workerEntity.getPort());
+        workerDTO.setStatus(workerEntity.getStatus());
+        workerDTO.setTags(new ArrayList<>());
+        workerDTO.setAvailableCpu(workerMetric.getAvailableCpu());
+        workerDTO.setAvailableRam(workerMetric.getAvailableRam() / 1024 / 1024);
+        workerDTO.setAvailableQueueLimit(workerMetric.getAvailableQueueLimit());
+        if (CollectionUtils.isNotEmpty(workerTagEntities)) {
+            for (WorkerTagEntity workerTagEntity : workerTagEntities) {
+                workerDTO.getTags().add(new WorkerTagDTO(workerTagEntity.getTagKey(), workerTagEntity.getTagValue()));
+            }
+        }
+        workerDTO.setEnabled(workerEntity.isEnabled());
+        return workerDTO;
     }
 
 }

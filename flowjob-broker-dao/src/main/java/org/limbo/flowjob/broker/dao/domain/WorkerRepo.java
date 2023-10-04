@@ -22,6 +22,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.limbo.flowjob.api.constants.WorkerStatus;
+import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
@@ -34,7 +36,6 @@ import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerExecutorEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerMetricEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerTagEntityRepo;
-import org.limbo.flowjob.api.constants.WorkerStatus;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
@@ -66,7 +67,7 @@ public class WorkerRepo implements WorkerRepository {
     private WorkerTagEntityRepo tagEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private WorkerEntityConverter converter;
+    private IDGenerator idGenerator;
 
     /**
      * worker 心跳过期时间 毫秒
@@ -85,19 +86,19 @@ public class WorkerRepo implements WorkerRepository {
     public void save(Worker worker) {
         String workerId = worker.getId();
 
-        WorkerEntity entity = converter.toWorkerEntity(worker);
+        WorkerEntity entity = WorkerEntityConverter.toWorkerEntity(worker);
         Objects.requireNonNull(entity);
         entity.setUpdatedAt(TimeUtils.currentLocalDateTime());
         workerEntityRepo.saveAndFlush(entity);
 
         // Metric 存储
         WorkerMetric metric = worker.getMetric();
-        WorkerMetricEntity metricPo = converter.toMetricEntity(workerId, metric);
+        WorkerMetricEntity metricPo = WorkerEntityConverter.toMetricEntity(workerId, metric);
         metricEntityRepo.saveAndFlush(Objects.requireNonNull(metricPo));
 
         // Executors 存储
         executorEntityRepo.deleteByWorkerId(workerId);
-        List<WorkerExecutorEntity> executorPos = converter.toExecutorEntities(workerId, worker);
+        List<WorkerExecutorEntity> executorPos = WorkerEntityConverter.toExecutorEntities(workerId, worker, idGenerator);
         if (CollectionUtils.isNotEmpty(executorPos)) {
             executorEntityRepo.saveAll(executorPos);
             executorEntityRepo.flush();
@@ -105,7 +106,7 @@ public class WorkerRepo implements WorkerRepository {
 
         // Tags 存储
         tagEntityRepo.deleteByWorkerId(workerId);
-        List<WorkerTagEntity> tagPos = converter.toTagEntities(workerId, worker);
+        List<WorkerTagEntity> tagPos = WorkerEntityConverter.toTagEntities(workerId, worker, idGenerator);
         if (CollectionUtils.isNotEmpty(tagPos)) {
             tagEntityRepo.saveAll(tagPos);
             tagEntityRepo.flush();
@@ -122,7 +123,7 @@ public class WorkerRepo implements WorkerRepository {
     public void saveMetric(Worker worker) {
         // Metric 存储
         WorkerMetric metric = worker.getMetric();
-        WorkerMetricEntity metricPo = converter.toMetricEntity(worker.getId(), metric);
+        WorkerMetricEntity metricPo = WorkerEntityConverter.toMetricEntity(worker.getId(), metric);
         metricEntityRepo.saveAndFlush(Objects.requireNonNull(metricPo));
     }
 
@@ -155,29 +156,6 @@ public class WorkerRepo implements WorkerRepository {
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * @return
-     */
-    @Override
-    public List<Worker> listAvailableWorkers() {
-        return workerEntityRepo.findByStatusAndEnabledAndDeleted(WorkerStatus.RUNNING.status, true, false)
-                .stream()
-                .map(this::toWorkerWithLazyInit)
-                .filter(worker -> {
-                    // 处理心跳过期的
-                    if (worker.getMetric().getLastHeartbeatAt().isBefore(TimeUtils.currentLocalDateTime().plusSeconds(-heartbeatExpireInterval / 1000))) {
-                        workerEntityRepo.updateStatus(worker.getId(), WorkerStatus.RUNNING.status, WorkerStatus.TERMINATED.status);
-                        return false;
-                    } else {
-                        return true;
-                    }
-                })
-                .collect(Collectors.toList());
-    }
-
-
-    /**
      * 将 Worker 持久化对象转为领域模型，并为其中的属性设置为懒加载。
      */
     private Worker toWorkerWithLazyInit(WorkerEntity worker) {
@@ -185,10 +163,10 @@ public class WorkerRepo implements WorkerRepository {
             return null;
         }
         String workerId = worker.getWorkerId();
-        return converter.toWorker(worker,
-                converter.toTags(tagEntityRepo.findByWorkerId(workerId)),
-                converter.toExecutors(executorEntityRepo.findByWorkerId(workerId)),
-                converter.toMetric(metricEntityRepo.getOne(workerId))
+        return WorkerEntityConverter.toWorker(worker,
+                executorEntityRepo.findByWorkerId(workerId),
+                tagEntityRepo.findByWorkerId(workerId),
+                metricEntityRepo.getOne(workerId)
         );
     }
 

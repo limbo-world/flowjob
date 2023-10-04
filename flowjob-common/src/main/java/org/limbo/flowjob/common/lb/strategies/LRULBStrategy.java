@@ -28,7 +28,6 @@ import org.limbo.flowjob.common.lb.LBServerStatistics;
 import org.limbo.flowjob.common.lb.LBServerStatisticsProvider;
 
 import java.time.Duration;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -52,19 +51,16 @@ public class LRULBStrategy<S extends LBServer> extends AbstractLBStrategy<S> {
     /**
      * 统计使用次数时，查询多久的统计数据
      */
-    private Duration interval = Duration.ofMinutes(10);
+    private Duration interval;
+
+    private RandomLBStrategy<S> randomLBStrategy;
 
     public LRULBStrategy(LBServerStatisticsProvider statisticsProvider) {
         this.statisticsProvider = Objects.requireNonNull(statisticsProvider);
-    }
+        this.interval = Duration.ofMinutes(10);
+        this.randomLBStrategy = new RandomLBStrategy<>();
 
-    /**
-     * @param statisticsProvider 不可为 null
-     */
-    public void setStatisticsProvider(LBServerStatisticsProvider statisticsProvider) {
-        this.statisticsProvider = Objects.requireNonNull(statisticsProvider);
     }
-
 
     /**
      * @param interval 不可为空，不可为 0 或负值。
@@ -92,11 +88,20 @@ public class LRULBStrategy<S extends LBServer> extends AbstractLBStrategy<S> {
 
         List<LBServerStatistics> statistics = statisticsProvider.getStatistics(serverIds, this.interval);
         if (CollectionUtils.isEmpty(statistics)) {
-            return Optional.empty();
+            // 随机兜底
+            return randomLBStrategy.select(servers, invocation);
         }
 
         return statistics.stream()
-                .min(Comparator.comparing(LBServerStatistics::getLatestAccessAt))
+                .min((o1, o2) -> {
+                    if (o1.getLatestAccessAt() == null) {
+                        return -1;
+                    }
+                    if (o2.getLatestAccessAt() == null) {
+                        return 1;
+                    }
+                    return o1.getLatestAccessAt().compareTo(o2.getLatestAccessAt());
+                })
                 .flatMap(s -> servers.stream()
                         .filter(server -> StringUtils.equals(server.getServerId(), s.getServerId()))
                         .findFirst()

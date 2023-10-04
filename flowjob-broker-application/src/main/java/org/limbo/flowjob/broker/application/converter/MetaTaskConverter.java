@@ -21,22 +21,17 @@ package org.limbo.flowjob.broker.application.converter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.application.schedule.ScheduleStrategy;
-import org.limbo.flowjob.broker.application.task.JobInstanceScheduleTask;
-import org.limbo.flowjob.broker.application.task.PlanInstanceScheduleTask;
+import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
+import org.limbo.flowjob.broker.application.task.JobScheduleTask;
 import org.limbo.flowjob.broker.application.task.PlanScheduleTask;
-import org.limbo.flowjob.broker.application.task.TaskScheduleTask;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.job.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
-import org.limbo.flowjob.broker.core.domain.task.Task;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
-import org.limbo.flowjob.broker.dao.entity.TaskEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.springframework.stereotype.Component;
 
@@ -56,7 +51,7 @@ public class MetaTaskConverter {
     private PlanInstanceEntityRepo planInstanceEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private ScheduleStrategy scheduleStrategy;
+    private ScheduleProxy scheduleProxy;
 
     @Setter(onMethod_ = @Inject)
     private MetaTaskScheduler metaTaskScheduler;
@@ -81,29 +76,15 @@ public class MetaTaskConverter {
                 plan,
                 latelyTriggerAt,
                 latelyFeedbackAt,
-                scheduleStrategy,
+                scheduleProxy,
                 metaTaskScheduler
         );
 
     }
 
-    public TaskScheduleTask toTaskScheduleTask(Task task) {
-        return new TaskScheduleTask(task, scheduleStrategy);
-    }
-
-    public TaskScheduleTask toTaskScheduleTask(TaskEntity entity) {
-        Task task = DomainConverter.toTask(entity);
-        return new TaskScheduleTask(task, scheduleStrategy);
-    }
-
-    public PlanInstanceScheduleTask toPlanInstanceScheduleTask(PlanInstanceEntity entity) {
-        Plan plan = planRepository.getByVersion(entity.getPlanId(), entity.getPlanInfoId());
-        return new PlanInstanceScheduleTask(entity.getPlanInstanceId(), plan, entity.getTriggerAt(), scheduleStrategy);
-    }
-
-    public JobInstanceScheduleTask toJobInstanceScheduleTask(JobInstanceEntity entity) {
+    public JobScheduleTask toJobInstanceScheduleTask(JobInstanceEntity entity) {
         JobInstance jobInstance = jobInstanceRepository.get(entity.getJobInstanceId());
-        return new JobInstanceScheduleTask(jobInstance, scheduleStrategy);
+        return new JobScheduleTask(jobInstance, scheduleProxy, metaTaskScheduler);
     }
 
 }

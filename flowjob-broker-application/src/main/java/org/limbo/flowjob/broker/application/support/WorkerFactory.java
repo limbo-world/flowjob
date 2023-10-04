@@ -21,14 +21,14 @@ package org.limbo.flowjob.broker.application.support;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.api.remote.param.WorkerExecutorRegisterParam;
-import org.limbo.flowjob.api.remote.param.WorkerRegisterParam;
-import org.limbo.flowjob.api.remote.param.WorkerResourceParam;
+import org.limbo.flowjob.api.constants.WorkerStatus;
+import org.limbo.flowjob.api.param.broker.WorkerExecutorRegisterParam;
+import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
+import org.limbo.flowjob.api.param.broker.WorkerResourceParam;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
-import org.limbo.flowjob.api.constants.WorkerStatus;
 import org.limbo.flowjob.common.utils.UUIDUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
@@ -53,10 +53,10 @@ public class WorkerFactory {
         return Worker.builder()
                 .id(workerId)
                 .name(name)
-                .rpcBaseUrl(options.getUrl())
+                .url(options.getUrl())
                 .executors(executors(options.getExecutors()))
                 .tags(Maps.newHashMap())
-                .metric(metric(Collections.emptyList(), options.getAvailableResource()))
+                .metric(metric(options.getAvailableResource()))
                 .status(WorkerStatus.TERMINATED)
                 .build();
     }
@@ -69,9 +69,8 @@ public class WorkerFactory {
         return executorsParam.stream().map(param -> new WorkerExecutor(param.getName(), param.getDescription())).collect(Collectors.toList());
     }
 
-    private static WorkerMetric metric(List<String> executingJobs, WorkerResourceParam availableResource) {
+    private static WorkerMetric metric(WorkerResourceParam availableResource) {
         return new WorkerMetric(
-                executingJobs,
                 new WorkerAvailableResource(
                         availableResource.getAvailableCpu(),
                         availableResource.getAvailableRAM(),

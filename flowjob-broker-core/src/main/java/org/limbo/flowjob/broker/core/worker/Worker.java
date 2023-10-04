@@ -21,12 +21,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.experimental.Delegate;
+import org.limbo.flowjob.api.constants.WorkerStatus;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
-import org.limbo.flowjob.broker.core.worker.rpc.WorkerRpc;
-import org.limbo.flowjob.broker.core.worker.rpc.WorkerRpcFactory;
-import org.limbo.flowjob.api.constants.WorkerStatus;
 import org.limbo.flowjob.common.lb.LBServer;
 
 import java.net.URL;
@@ -46,7 +43,7 @@ import java.util.Objects;
 @Setter(AccessLevel.NONE)
 @ToString
 @Builder(builderClassName = "Builder")
-public class Worker implements WorkerRpc, LBServer {
+public class Worker implements LBServer {
 
     /**
      * Worker ID
@@ -61,7 +58,7 @@ public class Worker implements WorkerRpc, LBServer {
     /**
      * worker 通信的基础 URL
      */
-    private URL rpcBaseUrl;
+    private URL url;
 
     /**
      * worker节点状态
@@ -72,11 +69,6 @@ public class Worker implements WorkerRpc, LBServer {
      * 是否启用 不启用则无法下发任务
      */
     private Boolean isEnabled;
-
-    /**
-     * Worker 的 RPC 通信协议
-     */
-    private volatile WorkerRpc rpc;
 
     /**
      * Worker 执行器
@@ -117,12 +109,9 @@ public class Worker implements WorkerRpc, LBServer {
         return WorkerStatus.RUNNING == status;
     }
 
-    /**
-     * 获取 worker RPC 通信时的接口访问地址
-     */
     @Override
     public URL getUrl() {
-        return rpcBaseUrl;
+        return url;
     }
 
 
@@ -131,7 +120,7 @@ public class Worker implements WorkerRpc, LBServer {
      */
     public void register(URL rpcBaseUrl, Map<String, List<String>> tags,
                          List<WorkerExecutor> executors, WorkerMetric metric) {
-        this.rpcBaseUrl = Objects.requireNonNull(rpcBaseUrl, "rpcBaseUrl");
+        this.url = Objects.requireNonNull(rpcBaseUrl, "rpcBaseUrl");
         setTags(tags);
         setExecutors(executors);
         setMetric(metric);
@@ -157,20 +146,6 @@ public class Worker implements WorkerRpc, LBServer {
         HashMap<String, List<String>> tempTags = new HashMap<>();
         tags.forEach((k, v) -> tempTags.put(k, new ArrayList<>(v)));
         this.tags = tempTags;
-    }
-
-
-    /**
-     * 懒加载 Worker RPC 模块
-     */
-    @Delegate(types = WorkerRpc.class)
-    private synchronized WorkerRpc getRPC() {
-        if (this.rpc == null) {
-            WorkerRpcFactory factory = WorkerRpcFactory.getInstance();
-            this.rpc = factory.createRPC(this);
-        }
-
-        return this.rpc;
     }
 
 }

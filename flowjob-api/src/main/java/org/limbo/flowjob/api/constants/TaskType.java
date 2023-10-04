@@ -33,21 +33,21 @@ public enum TaskType {
     /**
      * 给一个节点下发的任务
      */
-    NORMAL(1, "普通类型"),
+    STANDALONE(1, "单机任务"),
     /**
      * 给每个可选中节点下发任务
      */
-    BROADCAST(2, "广播类型"),
+    BROADCAST(2, "广播任务"),
     /**
      * 拆分子任务的任务
      * 分割任务 产生后续task的切割情况
      * 后续有且只有一个map任务
      */
-    SPLIT(3, "split任务"),
+    SHARDING(3, "分片任务"),
     /**
      * map任务
-     * 根据splite返回值创建对应task
-     * 前继有且只有一个splite任务
+     * 根据分片返回值创建对应task
+     * 前继有且只有一个分片任务
      */
     MAP(4, "Map任务"),
     /**
@@ -59,6 +59,7 @@ public enum TaskType {
     ;
 
     @JsonValue
+    @Getter
     public final int type;
 
     @Getter

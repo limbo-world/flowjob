@@ -47,6 +47,8 @@ public class JobInstanceEntity extends BaseEntity {
      */
     private String jobId;
 
+    private String agentId;
+
     /**
      * 状态
      * @see JobStatus
@@ -69,19 +71,24 @@ public class JobInstanceEntity extends BaseEntity {
     private String context;
 
     /**
-     * 调度触发时间
+     * 计划时间
      */
     private LocalDateTime triggerAt;
 
     /**
-     * 执行开始时间
+     * 开始时间
      */
     private LocalDateTime startAt;
 
     /**
-     * 执行结束时间
+     * 结束时间
      */
     private LocalDateTime endAt;
+
+    /**
+     * 上次上报时间戳，毫秒
+     */
+    private LocalDateTime lastReportAt;
 
     @Override
     public Object getUid() {

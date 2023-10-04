@@ -1,0 +1,5 @@
+spring:
+  profiles:
+    active: @profiles.active@
+  application:
+    name: flowjob-agent

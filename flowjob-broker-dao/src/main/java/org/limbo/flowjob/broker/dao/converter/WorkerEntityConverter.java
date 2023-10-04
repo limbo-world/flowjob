@@ -16,12 +16,11 @@
 
 package org.limbo.flowjob.broker.dao.converter;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.limbo.flowjob.api.constants.WorkerStatus;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.worker.Worker;
@@ -32,12 +31,7 @@ import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
-import org.limbo.flowjob.api.constants.WorkerStatus;
-import org.limbo.flowjob.common.utils.json.JacksonUtils;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.Nonnull;
-import javax.inject.Inject;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,19 +44,16 @@ import java.util.stream.Stream;
  * @author Brozen
  * @since 2022-09-22
  */
-@Component
 public class WorkerEntityConverter {
-
-    @Setter(onMethod_ = @Inject)
-    private IDGenerator idGenerator;
 
     /**
      * 将持久化对象{@link WorkerEntity}转换为领域对象{@link Worker}
+     *
      * @param po {@link WorkerEntity}持久化对象
      * @return {@link Worker}领域对象
      */
-    public Worker toWorker(WorkerEntity po, Map<String, List<String>> tags,
-                           List<WorkerExecutor> executors, WorkerMetric metric) {
+    public static Worker toWorker(WorkerEntity po, List<WorkerExecutorEntity> executors, List<WorkerTagEntity> tags,
+                                  WorkerMetricEntity metric) {
         // 已删除则不返回
         if (po == null || po.isDeleted()) {
             return null;
@@ -71,12 +62,12 @@ public class WorkerEntityConverter {
         return Worker.builder()
                 .id(po.getWorkerId())
                 .name(po.getName())
-                .rpcBaseUrl(workerRpcBaseUrl(po))
+                .url(workerRpcBaseUrl(po))
                 .status(WorkerStatus.parse(po.getStatus()))
                 .enabled(po.isEnabled())
-                .tags(tags)
-                .executors(executors)
-                .metric(metric)
+                .tags(toTags(tags))
+                .executors(toExecutors(executors))
+                .metric(toMetric(metric))
                 .build();
     }
 
@@ -84,8 +75,7 @@ public class WorkerEntityConverter {
     /**
      * 解析 worker 通信 URL
      */
-    @Nonnull
-    private URL workerRpcBaseUrl(WorkerEntity po) {
+    public static URL workerRpcBaseUrl(WorkerEntity po) {
         try {
             return new URL(po.getProtocol(), po.getHost(), po.getPort(), "");
         } catch (Exception e) {
@@ -96,18 +86,19 @@ public class WorkerEntityConverter {
 
     /**
      * 将领域对象{@link Worker}转换为持久化对象{@link WorkerEntity}
+     *
      * @param worker {@link Worker}领域对象
      * @return {@link WorkerEntity}持久化对象
      */
-    public WorkerEntity toWorkerEntity(Worker worker) {
+    public static WorkerEntity toWorkerEntity(Worker worker) {
         WorkerEntity po = new WorkerEntity();
         po.setWorkerId(worker.getId());
         po.setName(worker.getName());
-        po.setProtocol(worker.getRpcBaseUrl().getProtocol());
-        po.setHost(worker.getRpcBaseUrl().getHost());
-        po.setPort(worker.getRpcBaseUrl().getPort());
+        po.setProtocol(worker.getUrl().getProtocol());
+        po.setHost(worker.getUrl().getHost());
+        po.setPort(worker.getUrl().getPort());
         po.setStatus(worker.getStatus().status);
-        po.setAppId(""); // todo
+        po.setAppId("");
         po.setEnabled(true);
         po.setDeleted(false);
         return po;
@@ -119,13 +110,11 @@ public class WorkerEntityConverter {
      * @param metric {@link WorkerMetricEntity}持久化对象
      * @return {@link WorkerMetric}值对象
      */
-    public WorkerMetric toMetric(WorkerMetricEntity metric) {
+    public static WorkerMetric toMetric(WorkerMetricEntity metric) {
         return WorkerMetric.builder()
                 .availableResource(new WorkerAvailableResource(
                         metric.getAvailableCpu(), metric.getAvailableRam(), metric.getAvailableQueueLimit()
                 ))
-                .executingJobs(JacksonUtils.parseObject(metric.getExecutingJobs(), new TypeReference<List<String>>() {
-                }))
                 .lastHeartbeatAt(metric.getLastHeartbeatAt())
                 .build();
     }
@@ -137,7 +126,7 @@ public class WorkerEntityConverter {
      * @param vo {@link WorkerMetric}值对象
      * @return {@link WorkerMetricEntity}持久化对象
      */
-    public WorkerMetricEntity toMetricEntity(String workerId, WorkerMetric vo) {
+    public static WorkerMetricEntity toMetricEntity(String workerId, WorkerMetric vo) {
         WorkerMetricEntity po = new WorkerMetricEntity();
         po.setWorkerId(workerId);
 
@@ -146,8 +135,6 @@ public class WorkerEntityConverter {
         po.setAvailableRam(availableResource.getAvailableRam());
         po.setAvailableQueueLimit(availableResource.getAvailableQueueLimit());
 
-        // 执行中的任务
-        po.setExecutingJobs(JacksonUtils.toJSONString(vo.getExecutingJobs()));
         po.setLastHeartbeatAt(vo.getLastHeartbeatAt());
 
         return po;
@@ -157,7 +144,7 @@ public class WorkerEntityConverter {
     /**
      * 将执行器持久化对象转为领域模型
      */
-    public List<WorkerExecutor> toExecutors(List<WorkerExecutorEntity> entities) {
+    public static List<WorkerExecutor> toExecutors(List<WorkerExecutorEntity> entities) {
         if (CollectionUtils.isEmpty(entities)) {
             return Lists.newArrayList();
         }
@@ -174,7 +161,7 @@ public class WorkerEntityConverter {
     /**
      * 提取 Worker 中的 executors，转为持久化对象列表
      */
-    public List<WorkerExecutorEntity> toExecutorEntities(String workerId, Worker worker) {
+    public static List<WorkerExecutorEntity> toExecutorEntities(String workerId, Worker worker, IDGenerator idGenerator) {
         List<WorkerExecutor> executors = worker.getExecutors();
         if (CollectionUtils.isEmpty(executors)) {
             return Lists.newArrayList();
@@ -196,7 +183,7 @@ public class WorkerEntityConverter {
     /**
      * 提取 Worker 中的 tags，转为持久化对象列表
      */
-    public Map<String, List<String>> toTags(List<WorkerTagEntity> tags) {
+    public static Map<String, List<String>> toTags(List<WorkerTagEntity> tags) {
         if (CollectionUtils.isEmpty(tags)) {
             return Maps.newHashMap();
         }
@@ -214,7 +201,7 @@ public class WorkerEntityConverter {
     /**
      * 提取 Worker 中的 tags，转为持久化对象列表
      */
-    public List<WorkerTagEntity> toTagEntities(String workerId, Worker worker) {
+    public static List<WorkerTagEntity> toTagEntities(String workerId, Worker worker, IDGenerator idGenerator) {
         Map<String, List<String>> tags = worker.getTags();
         if (MapUtils.isEmpty(tags)) {
             return Lists.newArrayList();

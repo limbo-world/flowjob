@@ -23,6 +23,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
 
 /**
  * @author Devil
@@ -30,6 +33,7 @@ import org.springframework.data.repository.query.Param;
  */
 public interface IdEntityRepo extends JpaRepository<IdEntity, String> {
 
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
     @Modifying(clearAutomatically = true)
     @Query(value = "update IdEntity set currentId = :newCurrentId where currentId = :oldCurrentId and type = :type")
     int casGainId(@Param("type") String type, @Param("newCurrentId") Long newCurrentId, @Param("oldCurrentId") Long oldCurrentId);

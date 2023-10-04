@@ -37,8 +37,20 @@ public interface Scheduled {
     void execute();
 
     /**
+     * 停止
+     */
+    void stop();
+
+    /**
+     * 是否已经停止
+     */
+    boolean stopped();
+
+    /**
      * 任务应该被执行的时间
      */
     LocalDateTime scheduleAt();
+
+    void afterExecute(Throwable thrown);
 
 }

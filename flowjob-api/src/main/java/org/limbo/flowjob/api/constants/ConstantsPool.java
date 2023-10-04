@@ -18,6 +18,8 @@
 
 package org.limbo.flowjob.api.constants;
 
+import java.time.LocalDateTime;
+
 /**
  * @author Devil
  * @since 2022/12/3
@@ -26,10 +28,29 @@ public interface ConstantsPool {
 
     int UNKNOWN = 0;
 
-    // schedule status
-    int SCHEDULE_STATUS_SCHEDULING = 10;
-    int SCHEDULE_STATUS_DISPATCHING = 20;
-    int SCHEDULE_STATUS_EXECUTING = 30;
-    int SCHEDULE_STATUS_EXECUTE_SUCCEED = 40;
-    int SCHEDULE_STATUS_EXECUTE_FAILED = 50;
+    // =========== plan status ==================
+    int PLAN_SCHEDULING = 10;
+    int PLAN_DISPATCHING = 20;
+    int PLAN_EXECUTING = 30;
+    int PLAN_EXECUTE_SUCCEED = 40;
+    int PLAN_EXECUTE_FAILED = 50;
+    // =========== plan status ==================
+
+    // =========== job status ==================
+    int JOB_SCHEDULING = 10;
+//    int JOB_DISPATCHING = 20;
+    int JOB_EXECUTING = 30;
+    int JOB_EXECUTE_SUCCEED = 40;
+    int JOB_EXECUTE_FAILED = 50;
+    // =========== job status ==================
+
+
+    // =========== task status ==================
+    int TASK_SCHEDULING = 10;
+    int TASK_DISPATCHING = 20;
+    int TASK_EXECUTING = 30;
+    int TASK_EXECUTE_SUCCEED = 40;
+    int TASK_EXECUTE_FAILED = 50;
+    // =========== task status ==================
+
 }

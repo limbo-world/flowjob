@@ -18,21 +18,26 @@
 
 package org.limbo.flowjob.worker.core.rpc;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.limbo.flowjob.api.remote.param.TaskFeedbackParam;
-import org.limbo.flowjob.api.remote.param.WorkerExecutorRegisterParam;
-import org.limbo.flowjob.api.remote.param.WorkerHeartbeatParam;
-import org.limbo.flowjob.api.remote.param.WorkerRegisterParam;
-import org.limbo.flowjob.api.remote.param.WorkerResourceParam;
 import org.limbo.flowjob.api.constants.ExecuteResult;
+import org.limbo.flowjob.api.param.agent.SubTaskCreateParam;
+import org.limbo.flowjob.api.param.agent.TaskFeedbackParam;
+import org.limbo.flowjob.api.param.agent.TaskReportParam;
+import org.limbo.flowjob.api.param.broker.WorkerExecutorRegisterParam;
+import org.limbo.flowjob.api.param.broker.WorkerHeartbeatParam;
+import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
+import org.limbo.flowjob.api.param.broker.WorkerResourceParam;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
+import org.limbo.flowjob.worker.core.domain.SubTask;
 import org.limbo.flowjob.worker.core.domain.Worker;
 import org.limbo.flowjob.worker.core.domain.WorkerResources;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -106,17 +111,45 @@ public class RpcParamFactory {
         return heartbeatParam;
     }
 
-    public static TaskFeedbackParam taskFeedbackParam(Map<String, Object> context, Map<String, Object> jobAttributes, Object result, Throwable ex) {
+    public static TaskFeedbackParam taskFeedbackParam(String jobId, String taskId, String result, Throwable ex) {
         TaskFeedbackParam feedbackParam = new TaskFeedbackParam();
-        feedbackParam.setResult(ExecuteResult.SUCCEED.result);
-        feedbackParam.setContext(context);
-        feedbackParam.setJobAttributes(jobAttributes);
+        feedbackParam.setJobId(jobId);
+        feedbackParam.setTaskId(taskId);
+        feedbackParam.setResult(ExecuteResult.SUCCEED);
         feedbackParam.setResultData(result);
 
         if (ex != null) {
-            feedbackParam.setResult(ExecuteResult.FAILED.result);
+            feedbackParam.setResult(ExecuteResult.FAILED);
             feedbackParam.setErrorStackTrace(ExceptionUtils.getStackTrace(ex));
         }
         return feedbackParam;
     }
+
+    public static TaskReportParam taskReportParam(String jobId, String taskId, String workerId, URL workerAddress) {
+        return TaskReportParam.builder()
+                .jobId(jobId)
+                .taskId(taskId)
+                .workerId(workerId)
+                .workerAddress(workerAddress)
+                .build();
+    }
+
+    public static SubTaskCreateParam subTaskCreateParam(String jobId, List<SubTask> subTasks) {
+        SubTaskCreateParam param = new SubTaskCreateParam();
+        param.setJobId(jobId);
+
+        List<SubTaskCreateParam.SubTaskInfoParam> subTaskParams = Collections.emptyList();
+        if (CollectionUtils.isNotEmpty(subTasks)) {
+            subTaskParams = new ArrayList<>();
+            for (SubTask subTask : subTasks) {
+                SubTaskCreateParam.SubTaskInfoParam subTaskInfoParam = new SubTaskCreateParam.SubTaskInfoParam();
+                subTaskInfoParam.setTaskId(subTask.getTaskId());
+                subTaskInfoParam.setData(subTask.getData());
+                subTaskParams.add(subTaskInfoParam);
+            }
+        }
+        param.setSubTasks(subTaskParams);
+        return param;
+    }
+
 }
