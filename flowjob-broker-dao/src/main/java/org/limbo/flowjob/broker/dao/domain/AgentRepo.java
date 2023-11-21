@@ -19,7 +19,7 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
-import org.limbo.flowjob.api.constants.AgentStatus;
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.agent.AgentRepository;
 import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
@@ -28,7 +28,10 @@ import org.limbo.flowjob.broker.dao.repositories.AgentEntityRepo;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
-import java.net.URL;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Devil
@@ -47,6 +50,15 @@ public class AgentRepo implements AgentRepository {
             return null;
         }
         return DomainConverter.toAgent(agent);
+    }
+
+    @Override
+    public List<ScheduleAgent> findByLastHeartbeatAtBetween(LocalDateTime startTime, LocalDateTime endTime) {
+        List<AgentEntity> agentEntities = agentEntityRepo.findByLastHeartbeatAtBetween(startTime, endTime);
+        if (CollectionUtils.isEmpty(agentEntities)) {
+            return Collections.emptyList();
+        }
+        return agentEntities.stream().map(DomainConverter::toAgent).collect(Collectors.toList());
     }
 
 }

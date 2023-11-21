@@ -30,6 +30,7 @@ import org.limbo.flowjob.broker.core.agent.rpc.AgentRpcFactory;
 import org.limbo.flowjob.common.lb.LBServer;
 
 import java.net.URL;
+import java.time.LocalDateTime;
 
 /**
  * @author Devil
@@ -50,6 +51,21 @@ public class ScheduleAgent implements AgentRpc, LBServer {
      * 通信的基础 URL
      */
     private URL rpcBaseUrl;
+
+    /**
+     * 任务队列剩余可排队数
+     */
+    private Integer availableQueueLimit;
+
+    /**
+     * 上次心跳上报时间戳，毫秒
+     */
+    private LocalDateTime lastHeartbeatAt;
+
+    /**
+     * 是否启用 不启用则不会进行任务下发
+     */
+    private boolean enabled;
 
     /**
      * 节点状态

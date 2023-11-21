@@ -26,10 +26,10 @@ import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.constants.rpc.HttpAgentApi;
-import org.limbo.flowjob.broker.application.component.AgentRegistry;
 import org.limbo.flowjob.broker.application.converter.MetaTaskConverter;
 import org.limbo.flowjob.broker.application.service.PlanInstanceService;
 import org.limbo.flowjob.broker.application.task.PlanScheduleTask;
+import org.limbo.flowjob.broker.core.agent.AgentRegistry;
 import org.limbo.flowjob.broker.core.agent.AgentRepository;
 import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
@@ -41,7 +41,6 @@ import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
-import org.limbo.flowjob.broker.dao.entity.AgentEntity;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
@@ -142,8 +141,7 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
         // 选择 agent
         List<ScheduleAgent> agents = agentRegistry.all().stream()
                 .filter(a -> a.getAvailableQueueLimit() > 0)
-                .filter(AgentEntity::isEnabled)
-                .map(DomainConverter::toAgent)
+                .filter(ScheduleAgent::isEnabled)
                 .collect(Collectors.toList());
         RPCInvocation lbInvocation = RPCInvocation.builder()
                 .path(HttpAgentApi.API_JOB_RECEIVE)

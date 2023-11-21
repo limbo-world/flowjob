@@ -175,7 +175,7 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
             String newJobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
             jobInstance.retryReset(newJobInstanceId, jobInfo.getRetryOption().getRetryInterval());
             saveAndScheduleJobInstances(Collections.singletonList(jobInstance));
-        } else if (jobInfo.isContinueWhenFail()) {
+        } else if (jobInfo.isSkipWhenFail()) {
             // 如果 配置job失败了也继续执行
             handleJobSuccess(jobInstance);
         } else {
@@ -190,9 +190,9 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
 
     /**
      * 校验 planInstance 下对应 job 的 jobInstance 是否都执行成功 或者失败了但是可以忽略失败
-     * @param checkContinueWhenFail 和 continueWithFail 同时 true，当job执行失败，会认为执行成功
+     * @param checkSkipWhenFail 和 continueWithFail 同时 true，当job执行失败，会认为执行成功
      */
-    public boolean checkJobsSuccess(String planInstanceId, List<WorkflowJobInfo> jobInfos, boolean checkContinueWhenFail) {
+    public boolean checkJobsSuccess(String planInstanceId, List<WorkflowJobInfo> jobInfos, boolean checkSkipWhenFail) {
         if (CollectionUtils.isEmpty(jobInfos)) {
             return true;
         }
@@ -205,7 +205,7 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
                 return false;
             }
             if (entity.getStatus() == JobStatus.FAILED.status) {
-                if (!checkContinueWhenFail || !jobInfo.isContinueWhenFail()) {
+                if (!checkSkipWhenFail || !jobInfo.isSkipWhenFail()) {
                     return false;
                 }
 

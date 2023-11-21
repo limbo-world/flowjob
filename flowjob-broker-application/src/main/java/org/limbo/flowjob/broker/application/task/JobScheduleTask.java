@@ -26,7 +26,6 @@ import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
 import org.limbo.flowjob.common.thread.CommonThreadPool;
 
 import java.time.LocalDateTime;
@@ -78,8 +77,8 @@ public class JobScheduleTask extends MetaTask {
     }
 
     @Override
-    public MetaTaskType getType() {
-        return MetaTaskType.JOB;
+    public String getType() {
+        return "JOB";
     }
 
     @Override

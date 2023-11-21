@@ -27,7 +27,6 @@ import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.common.utils.time.DateTimeUtils;
@@ -126,8 +125,8 @@ public class PlanLoadTask extends FixDelayMetaTask {
 
 
     @Override
-    public MetaTaskType getType() {
-        return MetaTaskType.PLAN_LOAD;
+    public String getType() {
+        return "PLAN_LOAD";
     }
 
     @Override

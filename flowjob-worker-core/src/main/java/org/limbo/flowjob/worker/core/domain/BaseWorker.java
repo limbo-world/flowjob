@@ -44,11 +44,11 @@ import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -84,7 +84,7 @@ public class BaseWorker implements Worker {
     /**
      * 任务执行线程池
      */
-    private ExecutorService threadPool;
+    private ScheduledExecutorService schedulePool;
 
     /**
      * 任务执行线程池
@@ -250,9 +250,8 @@ public class BaseWorker implements Worker {
         BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(resource.queueSize() <= 0 ?
                 resource.concurrency() : resource.queueSize()
         );
-        this.threadPool = new ThreadPoolExecutor(
-                resource.concurrency(), resource.concurrency(),
-                5, TimeUnit.SECONDS, queue,
+        this.schedulePool = new ScheduledThreadPoolExecutor(
+                resource.concurrency(),
                 NamedThreadFactory.newInstance("FlowJobWorkerTaskExecutor"),
                 (r, e) -> {
                     throw new RejectedExecutionException();
@@ -332,7 +331,7 @@ public class BaseWorker implements Worker {
 
         try {
             // 提交执行
-            Future<?> future = this.threadPool.submit(context);
+            Future<?> future = this.schedulePool.submit(context);
             context.setScheduleFuture(future);
         } catch (RejectedExecutionException e) {
             throw new IllegalStateException("Schedule task in worker failed, maybe work thread exhausted");

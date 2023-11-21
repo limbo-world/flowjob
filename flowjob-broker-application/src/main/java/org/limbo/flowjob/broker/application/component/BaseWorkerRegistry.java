@@ -16,19 +16,29 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.agent;
+package org.limbo.flowjob.broker.application.component;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.broker.core.worker.WorkerRegistry;
+import org.limbo.flowjob.broker.core.worker.WorkerRepository;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Devil
- * @since 2023/8/14
+ * @since 2023/9/12
  */
-public interface AgentRepository {
+@Slf4j
+@Component
+public class BaseWorkerRegistry extends WorkerRegistry implements InitializingBean {
 
-    ScheduleAgent get(String id);
+    public BaseWorkerRegistry(WorkerRepository workerRepository) {
+        super(workerRepository);
+    }
 
-    List<ScheduleAgent> findByLastHeartbeatAtBetween(LocalDateTime startTime, LocalDateTime endTime);
+    @Override
+    public void afterPropertiesSet() {
+        init();
+    }
 
 }

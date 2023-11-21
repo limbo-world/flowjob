@@ -28,7 +28,6 @@ import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.dto.broker.AvailableWorkerDTO;
 import org.limbo.flowjob.api.param.broker.JobFeedbackParam;
-import org.limbo.flowjob.broker.application.component.WorkerRegistry;
 import org.limbo.flowjob.broker.application.converter.BrokerConverter;
 import org.limbo.flowjob.broker.application.task.JobScheduleTask;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
@@ -44,15 +43,11 @@ import org.limbo.flowjob.broker.core.schedule.selector.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.schedule.selector.WorkerStatisticsRepository;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.core.worker.Worker;
+import org.limbo.flowjob.broker.core.worker.WorkerRegistry;
 import org.limbo.flowjob.broker.core.worker.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.worker.dispatch.WorkerFilter;
-import org.limbo.flowjob.broker.dao.converter.WorkerEntityConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
-import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
-import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
-import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
-import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerExecutorEntityRepo;
@@ -69,7 +64,6 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
@@ -275,30 +269,12 @@ public class ScheduleProxy implements ApplicationContextAware {
         JobInstance jobInstance = jobInstanceRepository.get(jobInstanceId);
         JobInfo jobInfo = jobInstance.getJobInfo();
 
-        List<WorkerEntity> workerEntities = workerRegistry.all().stream()
-                .filter(WorkerEntity::isEnabled)
+        List<Worker> workers = workerRegistry.all().stream()
+                .filter(Worker::isEnabled)
                 .collect(Collectors.toList());
 
-        if (CollectionUtils.isEmpty(workerEntities)) {
+        if (CollectionUtils.isEmpty(workers)) {
             return Collections.emptyList();
-        }
-
-        // 转换
-        List<String> workerIds = workerEntities.stream().map(WorkerEntity::getWorkerId).collect(Collectors.toList());
-        List<WorkerExecutorEntity> workerExecutorEntities = workerExecutorEntityRepo.findByWorkerIdIn(workerIds);
-        Map<String, List<WorkerExecutorEntity>> workerExecutorMap = workerExecutorEntities.stream().collect(Collectors.groupingBy(WorkerExecutorEntity::getWorkerId));
-        List<WorkerTagEntity> workerTagEntities = workerTagEntityRepo.findByWorkerIdIn(workerIds);
-        Map<String, List<WorkerTagEntity>> workerTagMap = workerTagEntities.stream().collect(Collectors.groupingBy(WorkerTagEntity::getWorkerId));
-        List<WorkerMetricEntity> workerMetricEntities = workerMetricEntityRepo.findByWorkerIdIn(workerIds);
-        Map<String, WorkerMetricEntity> workerMetricMap = workerMetricEntities.stream().collect(Collectors.toMap(WorkerMetricEntity::getWorkerId, e -> e));
-
-        List<Worker> aliveWorkers = new ArrayList<>();
-        for (WorkerEntity entity : workerEntities) {
-            List<WorkerExecutorEntity> executors = workerExecutorMap.get(entity.getWorkerId());
-            List<WorkerTagEntity> tags = workerTagMap.get(entity.getWorkerId());
-            WorkerMetricEntity metric = workerMetricMap.get(entity.getWorkerId());
-            Worker worker = WorkerEntityConverter.toWorker(entity, executors, tags, metric);
-            aliveWorkers.add(worker);
         }
 
         DispatchOption dispatchOption = jobInfo.getDispatchOption();
@@ -308,7 +284,7 @@ public class ScheduleProxy implements ApplicationContextAware {
         }
 
         // 过滤
-        WorkerFilter workerFilter = new WorkerFilter(jobInfo.getExecutorName(), dispatchOption.getTagFilters(), aliveWorkers);
+        WorkerFilter workerFilter = new WorkerFilter(jobInfo.getExecutorName(), dispatchOption.getTagFilters(), workers);
         if (filterExecutor) {
             workerFilter.filterExecutor();
         }

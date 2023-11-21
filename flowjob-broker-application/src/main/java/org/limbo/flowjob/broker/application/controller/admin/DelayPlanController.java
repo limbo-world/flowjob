@@ -16,19 +16,16 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.agent;
+package org.limbo.flowjob.broker.application.controller.admin;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Devil
- * @since 2023/8/14
+ * @since 2021/7/24
  */
-public interface AgentRepository {
-
-    ScheduleAgent get(String id);
-
-    List<ScheduleAgent> findByLastHeartbeatAtBetween(LocalDateTime startTime, LocalDateTime endTime);
-
+@Tag(name = "plan console api")
+@RestController
+public class DelayPlanController {
 }

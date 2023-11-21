@@ -51,13 +51,13 @@ public abstract class MetaTask implements Scheduled {
 
     @Override
     public String scheduleId() {
-        return getType().name() + "-" + getMetaId();
+        return getType() + "-" + getMetaId();
     }
 
     /**
      * @return 任务类型
      */
-    public abstract MetaTaskType getType();
+    public abstract String getType();
 
     /**
      * @return 任务id

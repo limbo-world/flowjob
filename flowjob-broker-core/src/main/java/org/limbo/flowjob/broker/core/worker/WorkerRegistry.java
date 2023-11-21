@@ -16,21 +16,17 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.component;
+package org.limbo.flowjob.broker.core.worker;
 
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.dao.entity.AgentEntity;
-import org.limbo.flowjob.broker.dao.repositories.AgentEntityRepo;
-import org.limbo.flowjob.common.constants.AgentConstant;
+import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
+import org.limbo.flowjob.common.constants.WorkerConstant;
 import org.limbo.flowjob.common.utils.time.Formatters;
 import org.limbo.flowjob.common.utils.time.TimeFormateUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
+import java.net.URL;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -42,35 +38,36 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Devil
- * @since 2023/9/12
+ * @since 2023/11/21
  */
 @Slf4j
-@Component
-public class AgentRegistry implements InitializingBean {
+public class WorkerRegistry {
 
-    private static final Map<String, AgentEntity> map = new ConcurrentHashMap<>();
-
-    @Setter(onMethod_ = @Inject)
-    private AgentEntityRepo agentEntityRepo;
+    private static final Map<String, Worker> ONLINE_WORKER_MAP = new ConcurrentHashMap<>();
 
     /**
      * 心跳超时时间，毫秒
      */
-    private Duration heartbeatTimeout = Duration.ofSeconds(AgentConstant.HEARTBEAT_TIMEOUT_SECOND);
+    private final Duration heartbeatTimeout = Duration.ofSeconds(WorkerConstant.HEARTBEAT_TIMEOUT_SECOND);
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        new Timer().schedule(new AgentOnlineCheckTask(), 0, heartbeatTimeout.toMillis());
-        new Timer().schedule(new AgentOfflineCheckTask(), 0, heartbeatTimeout.toMillis());
+    private WorkerRepository workerRepository;
+
+    public WorkerRegistry(WorkerRepository workerRepository) {
+        this.workerRepository = workerRepository;
     }
 
-    public Collection<AgentEntity> all() {
-        return map.values();
+    public void init() {
+        new Timer().schedule(new WorkerOnlineCheckTask(), 0, heartbeatTimeout.toMillis());
+        new Timer().schedule(new WorkerOfflineCheckTask(), 0, heartbeatTimeout.toMillis());
     }
 
-    private class AgentOnlineCheckTask extends TimerTask {
+    public Collection<Worker> all() {
+        return ONLINE_WORKER_MAP.values();
+    }
 
-        private static final String TASK_NAME = "[AgentOnlineCheckTask]";
+    private class WorkerOnlineCheckTask extends TimerTask {
+
+        private static final String TASK_NAME = "[WorkerOnlineCheckTask]";
 
         LocalDateTime lastCheckTime = TimeUtils.currentLocalDateTime().plusSeconds(-heartbeatTimeout.getSeconds());
 
@@ -82,12 +79,14 @@ public class AgentRegistry implements InitializingBean {
                 if (log.isDebugEnabled()) {
                     log.info("{} checkOnline start:{} end:{}", TASK_NAME, TimeFormateUtils.format(startTime, Formatters.YMD_HMS), TimeFormateUtils.format(endTime, Formatters.YMD_HMS));
                 }
-                List<AgentEntity> onlines = agentEntityRepo.findByLastHeartbeatAtBetween(startTime, endTime);
-                if (CollectionUtils.isNotEmpty(onlines)) {
-                    for (AgentEntity agent : onlines) {
-                        AgentEntity n = map.putIfAbsent(agent.getAgentId(), agent);
+                List<Worker> onlineWorkers = workerRepository.findByLastHeartbeatAtBetween(startTime, endTime);
+                if (CollectionUtils.isNotEmpty(onlineWorkers)) {
+                    for (Worker worker : onlineWorkers) {
+                        URL url = worker.getUrl();
+                        WorkerMetric metric = worker.getMetric();
+                        Worker n = ONLINE_WORKER_MAP.put(worker.getId(), worker);
                         if (n == null && log.isDebugEnabled()) {
-                            log.debug("{} find online id: {}, host: {}, port: {} lastHeartbeat:{}", TASK_NAME, agent.getAgentId(), agent.getHost(), agent.getPort(), TimeFormateUtils.format(agent.getLastHeartbeatAt(), Formatters.YMD_HMS));
+                            log.debug("{} find online id: {}, host: {}, port: {} lastHeartbeat:{}", TASK_NAME, worker.getId(), url.getHost(), url.getPort(), TimeFormateUtils.format(metric.getLastHeartbeatAt(), Formatters.YMD_HMS));
                         }
                     }
                 }
@@ -99,9 +98,9 @@ public class AgentRegistry implements InitializingBean {
 
     }
 
-    private class AgentOfflineCheckTask extends TimerTask {
+    private class WorkerOfflineCheckTask extends TimerTask {
 
-        private static final String TASK_NAME = "[AgentOfflineCheckTask]";
+        private static final String TASK_NAME = "[WorkerOfflineCheckTask]";
 
         LocalDateTime lastCheckTime = TimeUtils.currentLocalDateTime().plusSeconds(-2 * heartbeatTimeout.getSeconds());
 
@@ -113,13 +112,14 @@ public class AgentRegistry implements InitializingBean {
                 if (log.isDebugEnabled()) {
                     log.debug("{} checkOffline start:{} end:{}", TASK_NAME, TimeFormateUtils.format(startTime, Formatters.YMD_HMS), TimeFormateUtils.format(endTime, Formatters.YMD_HMS));
                 }
-                List<AgentEntity> offlines = agentEntityRepo.findByLastHeartbeatAtBetween(startTime, endTime);
+                List<Worker> offlines = workerRepository.findByLastHeartbeatAtBetween(startTime, endTime);
                 if (CollectionUtils.isNotEmpty(offlines)) {
-                    for (AgentEntity agent : offlines) {
+                    for (Worker worker : offlines) {
+                        WorkerMetric metric = worker.getMetric();
                         if (log.isDebugEnabled()) {
-                            log.debug("{} find offline id: {}, host: {}, port: {} lastHeartbeat:{}", TASK_NAME, agent.getAgentId(), agent.getHost(), agent.getPort(), TimeFormateUtils.format(agent.getLastHeartbeatAt(), Formatters.YMD_HMS));
+                            log.debug("{} find offline id: {} lastHeartbeat:{}", TASK_NAME, worker.getId(), TimeFormateUtils.format(metric.getLastHeartbeatAt(), Formatters.YMD_HMS));
                         }
-                        map.remove(agent.getAgentId());
+                        ONLINE_WORKER_MAP.remove(worker.getId());
                     }
                 }
                 lastCheckTime = endTime;
@@ -128,5 +128,4 @@ public class AgentRegistry implements InitializingBean {
             }
         }
     }
-
 }

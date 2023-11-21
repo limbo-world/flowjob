@@ -66,11 +66,6 @@ public class Worker implements LBServer {
     private WorkerStatus status;
 
     /**
-     * 是否启用 不启用则无法下发任务
-     */
-    private Boolean isEnabled;
-
-    /**
      * Worker 执行器
      */
     @Setter
@@ -88,7 +83,7 @@ public class Worker implements LBServer {
     private WorkerMetric metric;
 
     /**
-     * 是否启用
+     * 是否启用 不启用则无法下发任务
      */
     private boolean enabled;
 

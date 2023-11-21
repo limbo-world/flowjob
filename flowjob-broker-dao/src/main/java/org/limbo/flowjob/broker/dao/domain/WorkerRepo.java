@@ -22,7 +22,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.api.constants.WorkerStatus;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
@@ -42,7 +41,11 @@ import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -184,6 +187,35 @@ public class WorkerRepo implements WorkerRepository {
             workerEntity.setDeleted(true);
             workerEntityRepo.saveAndFlush(workerEntity);
         }
+    }
+
+    @Override
+    public List<Worker> findByLastHeartbeatAtBetween(LocalDateTime startTime, LocalDateTime endTime) {
+        List<WorkerMetricEntity> workerMetricEntities = metricEntityRepo.findByLastHeartbeatAtBetween(startTime, endTime);
+        if (CollectionUtils.isEmpty(workerMetricEntities)) {
+            return Collections.emptyList();
+        }
+        List<String> workerIds = workerMetricEntities.stream().map(WorkerMetricEntity::getWorkerId).collect(Collectors.toList());
+        Map<String, WorkerMetricEntity> workerMetricEntityMap = workerMetricEntities.stream().collect(Collectors.toMap(WorkerMetricEntity::getWorkerId, m -> m));
+
+        List<WorkerExecutorEntity> workerExecutorEntities = executorEntityRepo.findByWorkerIdIn(workerIds);
+        Map<String, List<WorkerExecutorEntity>> workerExecutorEntityMap = workerExecutorEntities.stream().collect(Collectors.groupingBy(WorkerExecutorEntity::getWorkerId));
+
+        List<WorkerTagEntity> workerTagEntities = tagEntityRepo.findByWorkerIdIn(workerIds);
+        Map<String, List<WorkerTagEntity>> workerTagEntityMap = workerTagEntities.stream().collect(Collectors.groupingBy(WorkerTagEntity::getWorkerId));
+
+        List<WorkerEntity> workerEntities = workerEntityRepo.findAllById(workerIds);
+        List<Worker> workers = new ArrayList<>();
+        for (WorkerEntity workerEntity : workerEntities) {
+            String workerId = workerEntity.getWorkerId();
+            workers.add(WorkerEntityConverter.toWorker(
+                    workerEntity,
+                    workerExecutorEntityMap.get(workerId),
+                    workerTagEntityMap.get(workerId),
+                    workerMetricEntityMap.get(workerId)
+            ));
+        }
+        return workers;
     }
 
 }

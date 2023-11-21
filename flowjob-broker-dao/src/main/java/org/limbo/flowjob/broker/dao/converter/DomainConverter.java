@@ -25,6 +25,8 @@ import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.domain.plan.NormalPlan;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
@@ -34,8 +36,6 @@ import org.limbo.flowjob.broker.dao.entity.AgentEntity;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
@@ -123,6 +123,9 @@ public class DomainConverter {
                 .id(entity.getAgentId())
                 .status(AgentStatus.parse(entity.getStatus()))
                 .rpcBaseUrl(url(entity))
+                .availableQueueLimit(entity.getAvailableQueueLimit())
+                .lastHeartbeatAt(entity.getLastHeartbeatAt())
+                .enabled(entity.isEnabled())
                 .build();
     }
 

@@ -30,7 +30,6 @@ import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.LoopMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
 import org.limbo.flowjob.common.thread.CommonThreadPool;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
@@ -110,8 +109,8 @@ public class PlanScheduleTask extends LoopMetaTask {
     }
 
     @Override
-    public MetaTaskType getType() {
-        return MetaTaskType.PLAN;
+    public String getType() {
+        return "PLAN";
     }
 
     @Override

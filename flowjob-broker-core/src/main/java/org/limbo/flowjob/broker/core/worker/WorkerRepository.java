@@ -16,9 +16,8 @@
 
 package org.limbo.flowjob.broker.core.worker;
 
-import org.limbo.flowjob.api.constants.WorkerStatus;
-
 import javax.annotation.Nullable;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -62,5 +61,7 @@ public interface WorkerRepository {
      * @param id 需要被移除的workerId
      */
     void delete(String id);
+
+    List<Worker> findByLastHeartbeatAtBetween(LocalDateTime startTime, LocalDateTime endTime);
 
 }

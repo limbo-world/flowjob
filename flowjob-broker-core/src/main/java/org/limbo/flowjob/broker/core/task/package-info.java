@@ -16,19 +16,10 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.agent;
-
-import java.time.LocalDateTime;
-import java.util.List;
-
 /**
+ * 关键性定时任务
+ *
  * @author Devil
- * @since 2023/8/14
+ * @since 2023/11/21
  */
-public interface AgentRepository {
-
-    ScheduleAgent get(String id);
-
-    List<ScheduleAgent> findByLastHeartbeatAtBetween(LocalDateTime startTime, LocalDateTime endTime);
-
-}
+package org.limbo.flowjob.broker.core.task;

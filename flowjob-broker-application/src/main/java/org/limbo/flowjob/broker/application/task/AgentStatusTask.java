@@ -27,7 +27,6 @@ import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
 import org.limbo.flowjob.broker.dao.entity.AgentEntity;
 import org.limbo.flowjob.broker.dao.repositories.AgentEntityRepo;
 import org.limbo.flowjob.common.constants.AgentConstant;
@@ -119,8 +118,8 @@ public class AgentStatusTask extends FixDelayMetaTask {
 
 
     @Override
-    public MetaTaskType getType() {
-        return MetaTaskType.AGENT_STATUS;
+    public String getType() {
+        return "AGENT_STATUS";
     }
 
     @Override

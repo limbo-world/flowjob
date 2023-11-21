@@ -87,7 +87,7 @@ public class WorkflowPlanFactory {
         jobInfo.setName(param.getName());
         jobInfo.setDescription(param.getDescription());
         jobInfo.setTriggerType(param.getTriggerType());
-        jobInfo.setContinueWhenFail(param.isContinueWhenFail());
+        jobInfo.setSkipWhenFail(param.isSkipWhenFail());
         jobInfo.setType(param.getType());
         jobInfo.setAttributes(new Attributes(param.getAttributes()));
         jobInfo.setRetryOption(factory.createRetryOption(param.getRetryOption()));

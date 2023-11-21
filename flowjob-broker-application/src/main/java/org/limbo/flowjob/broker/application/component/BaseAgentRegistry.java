@@ -16,45 +16,29 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.schedule.scheduler.meta;
+package org.limbo.flowjob.broker.application.component;
 
-import org.apache.commons.lang3.StringUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.broker.core.agent.AgentRegistry;
+import org.limbo.flowjob.broker.core.agent.AgentRepository;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Devil
- * @since 2022/12/18
+ * @since 2023/9/12
  */
-public enum MetaTaskType {
+@Slf4j
+@Component
+public class BaseAgentRegistry extends AgentRegistry implements InitializingBean {
 
-    PLAN,
+    public BaseAgentRegistry(AgentRepository agentRepository) {
+        super(agentRepository);
+    }
 
-    PLAN_INSTANCE,
-
-    PLAN_LOAD,
-
-    JOB_SCHEDULE_CHECK,
-
-    JOB_EXECUTE_CHECK,
-
-    JOB,
-
-    WORKER_STATUS,
-
-    AGENT_STATUS,
-
-    ;
-
-    public static MetaTaskType parse(String value) {
-        if (StringUtils.isBlank(value)) {
-            return null;
-        }
-
-        for (MetaTaskType type : values()) {
-            if (type.name().equalsIgnoreCase(value)) {
-                return type;
-            }
-        }
-        return null;
+    @Override
+    public void afterPropertiesSet() {
+        init();
     }
 
 }

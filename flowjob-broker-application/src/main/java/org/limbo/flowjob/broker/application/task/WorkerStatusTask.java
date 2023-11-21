@@ -28,7 +28,6 @@ import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskType;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
@@ -131,8 +130,8 @@ public class WorkerStatusTask extends FixDelayMetaTask {
 
 
     @Override
-    public MetaTaskType getType() {
-        return MetaTaskType.WORKER_STATUS;
+    public String getType() {
+        return "WORKER_STATUS";
     }
 
     @Override

@@ -83,7 +83,7 @@ public class WorkflowPlanConverter {
         dto.setExecutorName(job.getExecutorName());
         dto.setChildren(job.getChildrenIds());
         dto.setTriggerType(job.getTriggerType());
-        dto.setContinueWhenFail(job.isContinueWhenFail());
+        dto.setSkipWhenFail(job.isSkipWhenFail());
         return dto;
     }
 

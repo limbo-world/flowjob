@@ -31,6 +31,7 @@ public enum PlanType {
     UNKNOWN(ConstantsPool.UNKNOWN, "未知"),
     STANDALONE(1, "单例任务"),
     WORKFLOW(2, "工作流任务"),
+    DELAY_STANDALONE(3, "延迟单例任务"),
     ;
 
     @JsonValue
