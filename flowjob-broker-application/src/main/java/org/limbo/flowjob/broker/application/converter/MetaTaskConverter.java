@@ -66,6 +66,7 @@ public class MetaTaskConverter {
         Plan plan = planRepository.get(planId);
         // 获取最近一次调度的planInstance和最近一次结束的planInstance
         ScheduleOption scheduleOption = plan.getScheduleOption();
+        // todo @ys
         PlanInstanceEntity latelyTrigger = planInstanceEntityRepo.findLatelyTrigger(planId, plan.getVersion(), scheduleOption.getScheduleType().type, triggerType.type);
         PlanInstanceEntity latelyFeedback = planInstanceEntityRepo.findLatelyFeedback(planId, plan.getVersion(), scheduleOption.getScheduleType().type, triggerType.type);
 
@@ -84,7 +85,7 @@ public class MetaTaskConverter {
 
     public JobScheduleTask toJobInstanceScheduleTask(JobInstanceEntity entity) {
         JobInstance jobInstance = jobInstanceRepository.get(entity.getJobInstanceId());
-        return new JobScheduleTask(jobInstance, scheduleProxy, metaTaskScheduler);
+        return new JobScheduleTask(jobInstance, scheduleProxy);
     }
 
 }

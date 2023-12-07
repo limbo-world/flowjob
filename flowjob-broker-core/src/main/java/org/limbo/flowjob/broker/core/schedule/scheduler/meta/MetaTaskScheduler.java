@@ -60,6 +60,13 @@ public class MetaTaskScheduler extends HashedWheelTimerScheduler<MetaTask> {
         }
     }
 
+    @Override
+    protected void afterExecute(MetaTask scheduled, Throwable thrown) {
+        if (scheduled.isStopWhenError()) {
+            unschedule(scheduled.scheduleId());
+        }
+    }
+
     public void reschedule(MetaTask task) {
         String scheduleId = task.scheduleId();
         try {

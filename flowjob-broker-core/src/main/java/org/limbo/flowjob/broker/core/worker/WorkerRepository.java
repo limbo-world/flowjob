@@ -64,4 +64,6 @@ public interface WorkerRepository {
 
     List<Worker> findByLastHeartbeatAtBetween(LocalDateTime startTime, LocalDateTime endTime);
 
+    boolean updateStatus(String workerId, Integer oldStatus, Integer newStatus);
+
 }

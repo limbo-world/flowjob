@@ -69,9 +69,11 @@ public abstract class HashedWheelTimerScheduler<T extends Scheduled> implements 
                 log.error("[HashedWheelTimerScheduler] schedule fail id:{}", scheduled.scheduleId(), e);
                 thrown = e;
             } finally {
-                scheduled.afterExecute(thrown);
+                afterExecute(scheduled, thrown);
             }
         }, delay, TimeUnit.MILLISECONDS);
     }
+
+    protected abstract void afterExecute(T scheduled, Throwable thrown);
 
 }

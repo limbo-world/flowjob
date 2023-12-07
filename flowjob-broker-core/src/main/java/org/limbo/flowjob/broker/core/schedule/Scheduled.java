@@ -51,6 +51,4 @@ public interface Scheduled {
      */
     LocalDateTime scheduleAt();
 
-    void afterExecute(Throwable thrown);
-
 }

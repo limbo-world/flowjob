@@ -25,7 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.common.thread.CommonThreadPool;
 
 import java.time.LocalDateTime;
@@ -52,8 +51,7 @@ public class JobScheduleTask extends MetaTask {
     @ToString.Exclude
     private final ScheduleProxy scheduleProxy;
 
-    public JobScheduleTask(JobInstance jobInstance, ScheduleProxy scheduleProxy, MetaTaskScheduler metaTaskScheduler) {
-        super(metaTaskScheduler);
+    public JobScheduleTask(JobInstance jobInstance, ScheduleProxy scheduleProxy) {
         this.jobInstance = jobInstance;
         this.triggerAt = jobInstance.getTriggerAt();
         this.scheduleProxy = scheduleProxy;

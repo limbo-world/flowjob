@@ -28,6 +28,7 @@ import org.limbo.flowjob.broker.dao.repositories.AgentEntityRepo;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -59,6 +60,12 @@ public class AgentRepo implements AgentRepository {
             return Collections.emptyList();
         }
         return agentEntities.stream().map(DomainConverter::toAgent).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public boolean updateStatus(String agentId, Integer oldStatus, Integer newStatus) {
+        return agentEntityRepo.updateStatus(agentId, oldStatus, newStatus) > 0;
     }
 
 }

@@ -98,6 +98,7 @@ public abstract class AbstractPlanScheduler implements PlanScheduler {
     protected LBStrategy<ScheduleAgent> lbStrategy = new RoundRobinLBStrategy<>();
 
     @Transactional
+    // todo @ys 性能优化
     public void schedule(TriggerType triggerType, Plan plan, Attributes planAttributes, LocalDateTime triggerAt) {
         // 悲观锁快速释放，不阻塞后续任务
         String planInstanceId = idGenerator.generateId(IDType.PLAN_INSTANCE);

@@ -78,7 +78,7 @@ public class WorkflowPlanScheduler extends AbstractPlanScheduler {
         saveAndScheduleJobInstances(jobInstances);
     }
 
-    // todo 执行的时候可以选择 是就重新计算当前的还是后续节点是否也重新执行一遍
+    // todo 执行的时候可以选择 是就只重新计算当前的节点还是后续节点是否也重新执行一遍
     @Override
     @Transactional
     public void manualScheduleJob(Plan plan, String planInstanceId, String jobId) {

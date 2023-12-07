@@ -31,4 +31,5 @@ public interface AgentRepository {
 
     List<ScheduleAgent> findByLastHeartbeatAtBetween(LocalDateTime startTime, LocalDateTime endTime);
 
+    boolean updateStatus(String agentId, Integer oldStatus, Integer newStatus);
 }

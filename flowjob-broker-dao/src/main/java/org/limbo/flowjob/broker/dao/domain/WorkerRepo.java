@@ -218,4 +218,10 @@ public class WorkerRepo implements WorkerRepository {
         return workers;
     }
 
+    @Override
+    @Transactional
+    public boolean updateStatus(String workerId, Integer oldStatus, Integer newStatus) {
+        return workerEntityRepo.updateStatus(workerId, oldStatus, newStatus) > 0;
+    }
+
 }

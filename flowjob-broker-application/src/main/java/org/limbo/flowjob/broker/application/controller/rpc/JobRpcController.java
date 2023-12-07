@@ -25,6 +25,7 @@ import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.broker.AvailableWorkerDTO;
 import org.limbo.flowjob.api.param.broker.JobFeedbackParam;
 import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
+import org.limbo.flowjob.broker.application.service.WorkerService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,7 +36,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-
 import java.util.List;
 
 import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.*;
@@ -50,6 +50,9 @@ public class JobRpcController {
 
     @Setter(onMethod_ = @Inject)
     private ScheduleProxy scheduleProxy;
+
+    @Setter(onMethod_ = @Inject)
+    private WorkerService workerService;
 
     /**
      * job开始执行反馈
@@ -93,12 +96,12 @@ public class JobRpcController {
      */
     @Operation(summary = "任务可执行worker")
     @GetMapping(API_JOB_FILTER_WORKER)
-    public ResponseDTO<List<AvailableWorkerDTO>> jobFilterWorkers(@Validated @NotNull(message = "no job") @RequestParam("jobInstanceId") String jobInstanceId,
-                                                            @RequestParam(value = "filterExecutor", required = false) boolean filterExecutor,
-                                                            @RequestParam(value = "filterTag", required = false) boolean filterTag,
-                                                            @RequestParam(value = "filterResource", required = false) boolean filterResource,
-                                                            @RequestParam(value = "lbSelect", required = false) boolean lbSelect) {
-        List<AvailableWorkerDTO> workerDTOS = scheduleProxy.jobFilterWorker(jobInstanceId, filterExecutor, filterTag, filterResource, lbSelect);
+    public ResponseDTO<List<AvailableWorkerDTO>> filterJobWorkers(@Validated @NotNull(message = "no job") @RequestParam("jobInstanceId") String jobInstanceId,
+                                                                  @RequestParam(value = "filterExecutor", required = false) boolean filterExecutor,
+                                                                  @RequestParam(value = "filterTag", required = false) boolean filterTag,
+                                                                  @RequestParam(value = "filterResource", required = false) boolean filterResource,
+                                                                  @RequestParam(value = "lbSelect", required = false) boolean lbSelect) {
+        List<AvailableWorkerDTO> workerDTOS = workerService.filterJobWorkers(jobInstanceId, filterExecutor, filterTag, filterResource, lbSelect);
         return ResponseDTO.<List<AvailableWorkerDTO>>builder().ok(workerDTOS).build();
     }
 

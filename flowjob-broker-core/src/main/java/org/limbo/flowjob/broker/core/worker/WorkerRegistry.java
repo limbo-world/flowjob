@@ -20,6 +20,7 @@ package org.limbo.flowjob.broker.core.worker;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.api.constants.WorkerStatus;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.common.constants.WorkerConstant;
 import org.limbo.flowjob.common.utils.time.Formatters;
@@ -43,14 +44,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class WorkerRegistry {
 
-    private static final Map<String, Worker> ONLINE_WORKER_MAP = new ConcurrentHashMap<>();
+    private static final Map<String, Worker> RUNNING_WORKER_MAP = new ConcurrentHashMap<>();
 
     /**
      * 心跳超时时间，毫秒
      */
     private final Duration heartbeatTimeout = Duration.ofSeconds(WorkerConstant.HEARTBEAT_TIMEOUT_SECOND);
 
-    private WorkerRepository workerRepository;
+    private final WorkerRepository workerRepository;
 
     public WorkerRegistry(WorkerRepository workerRepository) {
         this.workerRepository = workerRepository;
@@ -58,11 +59,12 @@ public class WorkerRegistry {
 
     public void init() {
         new Timer().schedule(new WorkerOnlineCheckTask(), 0, heartbeatTimeout.toMillis());
-        new Timer().schedule(new WorkerOfflineCheckTask(), 0, heartbeatTimeout.toMillis());
+        new Timer().schedule(new WorkerFusingCheckTask(), 0, heartbeatTimeout.toMillis());
+        new Timer().schedule(new WorkerTerminatedCheckTask(), 0, heartbeatTimeout.toMillis());
     }
 
     public Collection<Worker> all() {
-        return ONLINE_WORKER_MAP.values();
+        return RUNNING_WORKER_MAP.values();
     }
 
     private class WorkerOnlineCheckTask extends TimerTask {
@@ -79,12 +81,12 @@ public class WorkerRegistry {
                 if (log.isDebugEnabled()) {
                     log.info("{} checkOnline start:{} end:{}", TASK_NAME, TimeFormateUtils.format(startTime, Formatters.YMD_HMS), TimeFormateUtils.format(endTime, Formatters.YMD_HMS));
                 }
-                List<Worker> onlineWorkers = workerRepository.findByLastHeartbeatAtBetween(startTime, endTime);
-                if (CollectionUtils.isNotEmpty(onlineWorkers)) {
-                    for (Worker worker : onlineWorkers) {
+                List<Worker> workers = workerRepository.findByLastHeartbeatAtBetween(startTime, endTime);
+                if (CollectionUtils.isNotEmpty(workers)) {
+                    for (Worker worker : workers) {
                         URL url = worker.getUrl();
                         WorkerMetric metric = worker.getMetric();
-                        Worker n = ONLINE_WORKER_MAP.put(worker.getId(), worker);
+                        Worker n = RUNNING_WORKER_MAP.put(worker.getId(), worker);
                         if (n == null && log.isDebugEnabled()) {
                             log.debug("{} find online id: {}, host: {}, port: {} lastHeartbeat:{}", TASK_NAME, worker.getId(), url.getHost(), url.getPort(), TimeFormateUtils.format(metric.getLastHeartbeatAt(), Formatters.YMD_HMS));
                         }
@@ -98,9 +100,9 @@ public class WorkerRegistry {
 
     }
 
-    private class WorkerOfflineCheckTask extends TimerTask {
+    private class WorkerFusingCheckTask extends TimerTask {
 
-        private static final String TASK_NAME = "[WorkerOfflineCheckTask]";
+        private static final String TASK_NAME = "[WorkerFusingCheckTask]";
 
         LocalDateTime lastCheckTime = TimeUtils.currentLocalDateTime().plusSeconds(-2 * heartbeatTimeout.getSeconds());
 
@@ -110,16 +112,20 @@ public class WorkerRegistry {
                 LocalDateTime startTime = lastCheckTime;
                 LocalDateTime endTime = TimeUtils.currentLocalDateTime().plusSeconds(-heartbeatTimeout.getSeconds());
                 if (log.isDebugEnabled()) {
-                    log.debug("{} checkOffline start:{} end:{}", TASK_NAME, TimeFormateUtils.format(startTime, Formatters.YMD_HMS), TimeFormateUtils.format(endTime, Formatters.YMD_HMS));
+                    log.debug("{} check start:{} end:{}", TASK_NAME, TimeFormateUtils.format(startTime, Formatters.YMD_HMS), TimeFormateUtils.format(endTime, Formatters.YMD_HMS));
                 }
-                List<Worker> offlines = workerRepository.findByLastHeartbeatAtBetween(startTime, endTime);
-                if (CollectionUtils.isNotEmpty(offlines)) {
-                    for (Worker worker : offlines) {
+                List<Worker> workers = workerRepository.findByLastHeartbeatAtBetween(startTime, endTime);
+                if (CollectionUtils.isNotEmpty(workers)) {
+                    for (Worker worker : workers) {
                         WorkerMetric metric = worker.getMetric();
                         if (log.isDebugEnabled()) {
-                            log.debug("{} find offline id: {} lastHeartbeat:{}", TASK_NAME, worker.getId(), TimeFormateUtils.format(metric.getLastHeartbeatAt(), Formatters.YMD_HMS));
+                            log.debug("{} find id: {} lastHeartbeat:{}", TASK_NAME, worker.getId(), TimeFormateUtils.format(metric.getLastHeartbeatAt(), Formatters.YMD_HMS));
                         }
-                        ONLINE_WORKER_MAP.remove(worker.getId());
+                        RUNNING_WORKER_MAP.remove(worker.getId());
+                        // 更新状态
+                        if (WorkerStatus.RUNNING == worker.getStatus()) {
+                            workerRepository.updateStatus(worker.getId(), WorkerStatus.RUNNING.status, WorkerStatus.FUSING.status);
+                        }
                     }
                 }
                 lastCheckTime = endTime;
@@ -128,4 +134,40 @@ public class WorkerRegistry {
             }
         }
     }
+
+    private class WorkerTerminatedCheckTask extends TimerTask {
+
+        private static final String TASK_NAME = "[WorkerTerminatedCheckTask]";
+
+        LocalDateTime lastCheckTime = TimeUtils.currentLocalDateTime().plusSeconds(-3 * heartbeatTimeout.getSeconds());
+
+        @Override
+        public void run() {
+            try {
+                LocalDateTime startTime = lastCheckTime;
+                LocalDateTime endTime = TimeUtils.currentLocalDateTime().plusSeconds(-2 * heartbeatTimeout.getSeconds());
+                if (log.isDebugEnabled()) {
+                    log.debug("{} check start:{} end:{}", TASK_NAME, TimeFormateUtils.format(startTime, Formatters.YMD_HMS), TimeFormateUtils.format(endTime, Formatters.YMD_HMS));
+                }
+                List<Worker> workers = workerRepository.findByLastHeartbeatAtBetween(startTime, endTime);
+                if (CollectionUtils.isNotEmpty(workers)) {
+                    for (Worker worker : workers) {
+                        WorkerMetric metric = worker.getMetric();
+                        if (log.isDebugEnabled()) {
+                            log.debug("{} find id: {} lastHeartbeat:{}", TASK_NAME, worker.getId(), TimeFormateUtils.format(metric.getLastHeartbeatAt(), Formatters.YMD_HMS));
+                        }
+                        RUNNING_WORKER_MAP.remove(worker.getId());
+                        // 更新状态
+                        if (WorkerStatus.FUSING == worker.getStatus()) {
+                            workerRepository.updateStatus(worker.getId(), WorkerStatus.FUSING.status, WorkerStatus.TERMINATED.status);
+                        }
+                    }
+                }
+                lastCheckTime = endTime;
+            } catch (Exception e) {
+                log.error("{} check fail", TASK_NAME, e);
+            }
+        }
+    }
+
 }

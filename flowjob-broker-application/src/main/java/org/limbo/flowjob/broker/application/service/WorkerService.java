@@ -26,21 +26,33 @@ import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.Protocol;
 import org.limbo.flowjob.api.constants.WorkerStatus;
 import org.limbo.flowjob.api.dto.PageDTO;
+import org.limbo.flowjob.api.dto.broker.AvailableWorkerDTO;
 import org.limbo.flowjob.api.dto.broker.WorkerRegisterDTO;
 import org.limbo.flowjob.api.dto.console.WorkerDTO;
 import org.limbo.flowjob.api.param.broker.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
 import org.limbo.flowjob.api.param.console.WorkerQueryParam;
 import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
+import org.limbo.flowjob.broker.application.converter.BrokerConverter;
 import org.limbo.flowjob.broker.application.converter.WorkerConverter;
 import org.limbo.flowjob.broker.application.support.JpaHelper;
 import org.limbo.flowjob.broker.application.support.WorkerFactory;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
+import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.core.domain.job.JobInstanceRepository;
+import org.limbo.flowjob.broker.core.schedule.selector.WorkerSelectInvocation;
+import org.limbo.flowjob.broker.core.schedule.selector.WorkerSelector;
+import org.limbo.flowjob.broker.core.schedule.selector.WorkerSelectorFactory;
+import org.limbo.flowjob.broker.core.schedule.selector.WorkerStatisticsRepository;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.core.worker.Worker;
+import org.limbo.flowjob.broker.core.worker.WorkerRegistry;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
+import org.limbo.flowjob.broker.core.worker.dispatch.DispatchOption;
+import org.limbo.flowjob.broker.core.worker.dispatch.WorkerFilter;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerSlotEntity;
@@ -59,6 +71,7 @@ import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -98,6 +111,17 @@ public class WorkerService {
     @Setter(onMethod_ = @Inject)
     private WorkerMetricEntityRepo workerMetricEntityRepo;
 
+    @Setter(onMethod_ = @Inject)
+    private JobInstanceRepository jobInstanceRepository;
+
+    @Setter(onMethod_ = @Inject)
+    private WorkerRegistry workerRegistry;
+
+    @Setter(onMethod_ = @Inject)
+    private WorkerSelectorFactory workerSelectorFactory;
+
+    @Setter(onMethod_ = @Inject)
+    private WorkerStatisticsRepository workerStatisticsRepository;
 
     /**
      * worker注册
@@ -253,6 +277,54 @@ public class WorkerService {
             page.setData(workerDTOS);
         }
         return page;
+    }
+
+    public List<AvailableWorkerDTO> filterJobWorkers(String jobInstanceId, boolean filterExecutor, boolean filterTag, boolean filterResource, boolean lbSelect) {
+        JobInstance jobInstance = jobInstanceRepository.get(jobInstanceId);
+        JobInfo jobInfo = jobInstance.getJobInfo();
+
+        List<Worker> workers = workerRegistry.all().stream()
+                .filter(Worker::isEnabled)
+                .collect(Collectors.toList());
+
+        if (CollectionUtils.isEmpty(workers)) {
+            return Collections.emptyList();
+        }
+
+        DispatchOption dispatchOption = jobInfo.getDispatchOption();
+        if (dispatchOption == null) {
+            log.warn("Job has none dispatchOption id={}", jobInstance.getJobInstanceId());
+            return Collections.emptyList();
+        }
+
+        // 过滤
+        WorkerFilter workerFilter = new WorkerFilter(jobInfo.getExecutorName(), dispatchOption.getTagFilters(), workers);
+        if (filterExecutor) {
+            workerFilter.filterExecutor();
+        }
+        if (filterTag) {
+            workerFilter.filterTags();
+        }
+        if (filterResource) {
+            workerFilter.filterResources(dispatchOption.getCpuRequirement(), dispatchOption.getRamRequirement());
+        }
+
+        if (lbSelect) {
+            WorkerSelectInvocation invocation = new WorkerSelectInvocation(jobInfo.getExecutorName(), jobInstance.getAttributes());
+            WorkerSelector workerSelector = workerSelectorFactory.newSelector(jobInfo.getDispatchOption().getLoadBalanceType());
+            Worker select = workerSelector.select(invocation, workerFilter.get());
+            if (select == null) {
+                return Collections.emptyList();
+            } else {
+                workerStatisticsRepository.recordDispatched(select);
+                return Collections.singletonList(BrokerConverter.toWorkerDTO(select));
+            }
+        } else {
+            for (Worker worker : workerFilter.get()) {
+                workerStatisticsRepository.recordDispatched(worker);
+            }
+            return workerFilter.get().stream().map(BrokerConverter::toWorkerDTO).collect(Collectors.toList());
+        }
     }
 
 
