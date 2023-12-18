@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.task;
+package org.limbo.flowjob.broker.core.task;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -24,9 +24,9 @@ import org.limbo.flowjob.api.constants.ExecuteResult;
 import org.limbo.flowjob.api.constants.JobStatus;
 import org.limbo.flowjob.api.param.broker.JobFeedbackParam;
 import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
-import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
+import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
@@ -53,6 +53,7 @@ import java.util.List;
  */
 @Slf4j
 @Component
+// todo
 public class JobExecuteCheckTask extends FixDelayMetaTask {
 
     private final JobInstanceEntityRepo jobInstanceEntityRepo;
@@ -63,7 +64,7 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
 
     private final NodeManger nodeManger;
 
-    private final ScheduleProxy scheduleProxy;
+    private final SchedulerProcessor schedulerProcessor;
 
     /**
      * 上次检测时间
@@ -75,13 +76,13 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
                                BrokerSlotManager slotManager,
                                @Lazy Broker broker,
                                NodeManger nodeManger,
-                               ScheduleProxy scheduleProxy) {
+                               SchedulerProcessor schedulerProcessor) {
         super(Duration.ofSeconds(5), metaTaskScheduler);
         this.jobInstanceEntityRepo = jobInstanceEntityRepo;
         this.slotManager = slotManager;
         this.broker = broker;
         this.nodeManger = nodeManger;
-        this.scheduleProxy = scheduleProxy;
+        this.schedulerProcessor = schedulerProcessor;
     }
 
     @Override
@@ -111,7 +112,7 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
                                     .result(ExecuteResult.FAILED)
                                     .errorMsg(String.format("agent %s is offline", instance.getAgentId()))
                                     .build();
-                            scheduleProxy.feedback(instance.getJobInstanceId(), param);
+                            schedulerProcessor.feedback(instance.getJobInstanceId(), param);
                         } catch (Exception e) {
                             log.error("[JobExecuteCheckTask] handler job fail with error jobInstanceId={}", instance.getJobInstanceId(), e);
                         }

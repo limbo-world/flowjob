@@ -18,89 +18,77 @@
 
 package org.limbo.flowjob.broker.core.domain.plan;
 
-import lombok.Getter;
-import lombok.ToString;
+import lombok.Data;
 import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * 执行计划。一个计划{@link Plan}对应至少一个作业{@link WorkflowJobInfo}
- * 主要是对plan的管理
- *
- * @author Brozen
- * @since 2021-07-12
+ * @author Devil
+ * @since 2023/12/13
  */
-@Getter
-@ToString
-public class Plan implements Serializable {
+@Data
+public class PlanInstance implements Serializable {
 
-    private static final long serialVersionUID = 5657376836197403211L;
+    private static final long serialVersionUID = -7477209105170967854L;
+
+    private String id;
 
     /**
      * 作业执行计划ID
      */
-    private final String planId;
+    private String planId;
 
     /**
      * 版本
      */
-    private final String version;
+    private String version;
 
     /**
      * 类型
      */
-    private final PlanType type;
+    private PlanType type;
 
     /**
      * 触发类型
      */
-    private final TriggerType triggerType;
+    private TriggerType triggerType;
 
     /**
      * 作业计划调度配置参数
      */
-    private final ScheduleOption scheduleOption;
+    private ScheduleOption scheduleOption;
 
     /**
      * 作业计划对应的Job，以DAG数据结构组织
      */
-    private final DAG<WorkflowJobInfo> dag;
+    private DAG<WorkflowJobInfo> dag;
+
+    private Integer status;
 
     /**
-     * 上次触发时间
+     * 属性
      */
-    private final LocalDateTime latelyTriggerAt;
+    private Attributes attributes;
 
     /**
-     * 上次回调时间
+     * 期望的调度触发时间
      */
-    private final LocalDateTime latelyFeedbackAt;
+    private LocalDateTime triggerAt;
 
     /**
-     * 是否启用
+     * 执行开始时间
      */
-    private final boolean enabled;
+    private LocalDateTime startAt;
 
-    public Plan(String planId, String version, PlanType type, TriggerType triggerType,
-                ScheduleOption scheduleOption, DAG<WorkflowJobInfo> dag,
-                LocalDateTime latelyTriggerAt, LocalDateTime latelyFeedbackAt,
-                boolean enabled) {
-        this.planId = planId;
-        this.version = version;
-        this.type = type;
-        this.triggerType = triggerType;
-        this.scheduleOption = scheduleOption;
-        this.dag = dag;
-        this.latelyTriggerAt = latelyTriggerAt;
-        this.latelyFeedbackAt = latelyFeedbackAt;
-        this.enabled = enabled;
-    }
-
-
+    /**
+     * 执行结束时间
+     */
+    private LocalDateTime feedbackAt;
 }

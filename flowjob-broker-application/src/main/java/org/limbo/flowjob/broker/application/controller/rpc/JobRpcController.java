@@ -24,8 +24,8 @@ import lombok.Setter;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.broker.AvailableWorkerDTO;
 import org.limbo.flowjob.api.param.broker.JobFeedbackParam;
-import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
 import org.limbo.flowjob.broker.application.service.WorkerService;
+import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,7 +49,7 @@ import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.*;
 public class JobRpcController {
 
     @Setter(onMethod_ = @Inject)
-    private ScheduleProxy scheduleProxy;
+    private SchedulerProcessor schedulerProcessor;
 
     @Setter(onMethod_ = @Inject)
     private WorkerService workerService;
@@ -61,7 +61,7 @@ public class JobRpcController {
     @PostMapping(API_JOB_EXECUTING)
     public ResponseDTO<Boolean> executing(@Validated @NotNull(message = "no agentId") @RequestParam("agentId") String agentId,
                                           @Validated @NotNull(message = "no jobInstanceId") @RequestParam("jobInstanceId") String jobInstanceId) {
-        return ResponseDTO.<Boolean>builder().ok(scheduleProxy.jobExecuting(agentId, jobInstanceId)).build();
+        return ResponseDTO.<Boolean>builder().ok(schedulerProcessor.jobExecuting(agentId, jobInstanceId)).build();
     }
 
     /**
@@ -70,7 +70,7 @@ public class JobRpcController {
     @Operation(summary = "job执行上报")
     @PostMapping(API_JOB_REPORT)
     public ResponseDTO<Boolean> report(@Validated @NotNull(message = "no jobInstanceId") @RequestParam("jobInstanceId") String jobInstanceId) {
-        return ResponseDTO.<Boolean>builder().ok(scheduleProxy.jobReport(jobInstanceId)).build();
+        return ResponseDTO.<Boolean>builder().ok(schedulerProcessor.jobReport(jobInstanceId)).build();
     }
 
     /**
@@ -80,7 +80,7 @@ public class JobRpcController {
     @PostMapping(API_JOB_FEEDBACK)
     public ResponseDTO<Boolean> feedback(@Validated @NotNull(message = "no job") @RequestParam("jobInstanceId") String jobInstanceId,
                                          @Valid @RequestBody JobFeedbackParam feedback) {
-        scheduleProxy.feedback(jobInstanceId, feedback);
+        schedulerProcessor.feedback(jobInstanceId, feedback);
         return ResponseDTO.<Boolean>builder().ok(true).build();
     }
 

@@ -35,6 +35,7 @@ import java.util.List;
  */
 public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity, String>, JpaSpecificationExecutor<PlanInstanceEntity> {
 
+    // todo 创建 jobinstance用于锁定
     @Query(value = "select * from flowjob_plan_instance where plan_instance_id = :planInstanceId for update", nativeQuery = true)
     PlanInstanceEntity selectForUpdate(@Param("planInstanceId") String planInstanceId);
 
@@ -49,12 +50,6 @@ public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity
             "where plan_id = :planId and schedule_type = :scheduleType and trigger_type = :triggerType and plan_info_id =:planInfoId " +
             "order by feedback_at desc limit 1", nativeQuery = true)
     PlanInstanceEntity findLatelyFeedback(@Param("planId") String planId, @Param("planInfoId") String planInfoId, @Param("scheduleType") Integer scheduleType, @Param("triggerType") Integer triggerType);
-
-    @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanInstanceEntity " +
-            " set status = " + ConstantsPool.PLAN_DISPATCHING +
-            " where planInstanceId = :planInstanceId and status = " + ConstantsPool.PLAN_SCHEDULING)
-    int dispatching(@Param("planInstanceId") String planInstanceId);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanInstanceEntity set status = " + ConstantsPool.PLAN_EXECUTING + ", startAt = :startAt " +

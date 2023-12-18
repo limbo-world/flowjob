@@ -23,7 +23,7 @@ import org.limbo.flowjob.api.dto.console.PlanInfoDTO;
 import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.WorkflowPlanUpdateParam;
 import org.limbo.flowjob.broker.application.converter.WorkflowPlanConverter;
-import org.limbo.flowjob.broker.application.converter.factory.WorkflowPlanFactory;
+import org.limbo.flowjob.broker.application.converter.WorkflowPlanParamConverter;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.utils.Verifies;
@@ -54,7 +54,7 @@ public class WorkflowPlanService {
     private PlanInfoEntityRepo planInfoEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private WorkflowPlanFactory factory;
+    private WorkflowPlanParamConverter factory;
 
     @Setter(onMethod_ = @Inject)
     private WorkflowPlanConverter converter;

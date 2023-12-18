@@ -68,7 +68,7 @@ public class WorkflowJobInfo extends JobInfo implements DAGNode {
      * true  会继续执行后续作业
      * false 终止环节
      */
-    private boolean skipWhenFail;
+    private boolean skipWhenFail = false;
 
     private Set<String> parentIds = new HashSet<>();
 

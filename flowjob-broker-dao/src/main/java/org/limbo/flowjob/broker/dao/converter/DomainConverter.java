@@ -21,20 +21,14 @@ package org.limbo.flowjob.broker.dao.converter;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.constants.AgentStatus;
-import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.ScheduleType;
-import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
-import org.limbo.flowjob.broker.core.domain.plan.NormalPlan;
-import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.dao.entity.AgentEntity;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
-import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -52,31 +46,6 @@ import java.util.List;
  */
 @Slf4j
 public class DomainConverter {
-
-    public static Plan toPlan(PlanEntity entity, PlanInfoEntity planInfoEntity) {
-        Plan plan;
-        PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
-        if (PlanType.STANDALONE == planType) {
-            plan = new NormalPlan(
-                    planInfoEntity.getPlanId(),
-                    planInfoEntity.getPlanInfoId(),
-                    TriggerType.parse(planInfoEntity.getTriggerType()),
-                    toScheduleOption(planInfoEntity),
-                    JacksonUtils.parseObject(planInfoEntity.getJobInfo(), JobInfo.class)
-            );
-        } else if (PlanType.WORKFLOW == planType) {
-            plan = new WorkflowPlan(
-                    planInfoEntity.getPlanId(),
-                    planInfoEntity.getPlanInfoId(),
-                    TriggerType.parse(planInfoEntity.getTriggerType()),
-                    toScheduleOption(planInfoEntity),
-                    toJobDag(planInfoEntity.getJobInfo())
-            );
-        } else {
-            throw new IllegalArgumentException("Illegal PlanType in plan:" + entity.getPlanId() + " version:" + entity.getCurrentVersion());
-        }
-        return plan;
-    }
 
     public static ScheduleOption toScheduleOption(PlanInfoEntity entity) {
         return new ScheduleOption(

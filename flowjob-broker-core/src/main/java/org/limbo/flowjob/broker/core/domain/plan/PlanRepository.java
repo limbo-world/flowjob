@@ -18,6 +18,8 @@
 
 package org.limbo.flowjob.broker.core.domain.plan;
 
+import java.util.List;
+
 /**
  * @author Devil
  * @since 2023/5/8
@@ -26,6 +28,10 @@ public interface PlanRepository {
 
     Plan get(String id);
 
+    Plan lockAndGet(String id);
+
     Plan getByVersion(String id, String version);
+
+    List<Plan> loadUpdatedPlans();
 
 }

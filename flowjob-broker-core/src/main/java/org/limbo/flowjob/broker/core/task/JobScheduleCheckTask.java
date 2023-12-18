@@ -16,15 +16,17 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.task;
+package org.limbo.flowjob.broker.core.task;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.JobStatus;
 import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
-import org.limbo.flowjob.broker.application.converter.MetaTaskConverter;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.core.domain.job.JobInstanceRepository;
+import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
@@ -38,10 +40,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 处理长时间还在调度中，未进行下发的 PlanInstance
+ * 处理长时间还在调度中，未进行下发的 JobInstance
  */
 @Slf4j
 @Component
+// todo
 public class JobScheduleCheckTask extends FixDelayMetaTask {
 
     private final Broker broker;
@@ -52,22 +55,26 @@ public class JobScheduleCheckTask extends FixDelayMetaTask {
 
     private final BrokerSlotManager slotManager;
 
-    private final MetaTaskConverter metaTaskConverter;
+    private final SchedulerProcessor schedulerProcessor;
+
+    private final JobInstanceRepository jobInstanceRepository;
 
     private static final long INTERVAL = 10;
 
     public JobScheduleCheckTask(MetaTaskScheduler scheduler,
                                 @Lazy Broker broker,
                                 NodeManger nodeManger,
+                                SchedulerProcessor schedulerProcessor,
+                                JobInstanceRepository jobInstanceRepository,
                                 JobInstanceEntityRepo jobInstanceEntityRepo,
-                                BrokerSlotManager slotManager,
-                                MetaTaskConverter metaTaskConverter) {
+                                BrokerSlotManager slotManager) {
         super(Duration.ofSeconds(INTERVAL), scheduler);
         this.broker = broker;
         this.nodeManger = nodeManger;
+        this.schedulerProcessor = schedulerProcessor;
+        this.jobInstanceRepository = jobInstanceRepository;
         this.jobInstanceEntityRepo = jobInstanceEntityRepo;
         this.slotManager = slotManager;
-        this.metaTaskConverter = metaTaskConverter;
     }
 
     @Override
@@ -91,8 +98,12 @@ public class JobScheduleCheckTask extends FixDelayMetaTask {
             List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findInSchedule(planIds, currentTime.plusSeconds(-INTERVAL), currentTime, JobStatus.SCHEDULING.status, startId, limit);
             while (CollectionUtils.isNotEmpty(jobInstanceEntities)) {
                 for (JobInstanceEntity entity : jobInstanceEntities) {
-                    JobScheduleTask jobScheduleTask = metaTaskConverter.toJobInstanceScheduleTask(entity);
-                    jobScheduleTask.scheduleJob();
+                    JobInstance jobInstance = jobInstanceRepository.get(entity.getJobInstanceId());
+                    try {
+                        schedulerProcessor.schedule(jobInstance);
+                    } catch (Exception e) {
+                        log.error("jobInstance {} schedule fail", jobInstance.getJobInstanceId(), e);
+                    }
                 }
                 startId = jobInstanceEntities.get(jobInstanceEntities.size() - 1).getJobInstanceId();
                 jobInstanceEntities = jobInstanceEntityRepo.findInSchedule(planIds, currentTime.plusSeconds(-INTERVAL), currentTime, JobStatus.SCHEDULING.status, startId, limit);

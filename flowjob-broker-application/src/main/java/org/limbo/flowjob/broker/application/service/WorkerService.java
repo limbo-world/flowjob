@@ -35,8 +35,8 @@ import org.limbo.flowjob.api.param.console.WorkerQueryParam;
 import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.application.converter.BrokerConverter;
 import org.limbo.flowjob.broker.application.converter.WorkerConverter;
-import org.limbo.flowjob.broker.application.support.JpaHelper;
-import org.limbo.flowjob.broker.application.support.WorkerFactory;
+import org.limbo.flowjob.broker.dao.support.JpaHelper;
+import org.limbo.flowjob.broker.application.converter.WorkerParamConverter;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
@@ -142,7 +142,7 @@ public class WorkerService {
         // 新增 or 更新 worker
         Worker worker = Optional
                 .ofNullable(workerRepository.getByName(options.getName()))
-                .orElseGet(() -> WorkerFactory.newWorker(idGenerator.generateId(IDType.WORKER), options));
+                .orElseGet(() -> WorkerParamConverter.newWorker(idGenerator.generateId(IDType.WORKER), options));
 
         // 更新注册信息
         worker.register(

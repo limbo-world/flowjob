@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.support;
+package org.limbo.flowjob.broker.application.converter;
 
 import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
  * @author Brozen
  * @since 2022-08-29
  */
-public class WorkerFactory {
+public class WorkerParamConverter {
 
     /**
      * 生成新的worker，根据注册参数创建

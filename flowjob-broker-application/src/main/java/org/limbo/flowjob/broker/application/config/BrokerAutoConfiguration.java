@@ -30,13 +30,17 @@ import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
+import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
+import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.selector.SingletonWorkerStatisticsRepo;
 import org.limbo.flowjob.broker.core.schedule.selector.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.schedule.selector.WorkerStatisticsRepository;
+import org.limbo.flowjob.broker.core.task.PlanLoadTask;
 import org.limbo.flowjob.broker.dao.repositories.AgentSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.BrokerEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerSlotEntityRepo;
 import org.limbo.flowjob.common.utils.NetUtils;
@@ -47,6 +51,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.util.Assert;
 
 import javax.inject.Inject;
@@ -136,6 +141,17 @@ public class BrokerAutoConfiguration {
         WorkerSelectorFactory factory = new WorkerSelectorFactory();
         factory.setLbServerStatisticsProvider(statisticsRepository);
         return factory;
+    }
+
+    @Bean
+    public PlanLoadTask planLoadTask(MetaTaskScheduler scheduler,
+                              PlanEntityRepo planEntityRepo,
+                              PlanRepository planRepository,
+                              SchedulerProcessor schedulerProcessor,
+                              BrokerSlotManager slotManager,
+                              @Lazy Broker broker,
+                              NodeManger nodeManger) {
+        return planLoadTask(scheduler, planEntityRepo, planRepository, schedulerProcessor, slotManager, broker, nodeManger);
     }
 
 }

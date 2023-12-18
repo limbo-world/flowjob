@@ -26,7 +26,7 @@ import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.param.broker.PlanJobScheduleParam;
 import org.limbo.flowjob.api.param.broker.PlanScheduleParam;
-import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
+import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
@@ -52,7 +52,7 @@ public class PlanRpcController {
     private PlanRepository planRepository;
 
     @Setter(onMethod_ = @Inject)
-    private ScheduleProxy scheduleProxy;
+    private SchedulerProcessor schedulerProcessor;
 
     /**
      * 手动触发对应 plan
@@ -60,12 +60,11 @@ public class PlanRpcController {
     @Operation(summary = "触发对应plan调度")
     @PostMapping(API_PLAN_SCHEDULE)
     public ResponseDTO<Void> schedulePlan(@RequestBody PlanScheduleParam param) {
-        Plan plan = planRepository.get(param.getPlanId());
         Attributes planAttribute = null;
         if (MapUtils.isEmpty(param.getAttributes())) {
             planAttribute = new Attributes(param.getAttributes());
         }
-        scheduleProxy.schedule(TriggerType.API, plan, planAttribute, TimeUtils.currentLocalDateTime());
+        schedulerProcessor.schedule(param.getPlanId(), TriggerType.API, planAttribute, TimeUtils.currentLocalDateTime());
         return ResponseDTO.<Void>builder().ok().build();
     }
 
@@ -75,7 +74,7 @@ public class PlanRpcController {
     @Operation(summary = "触发对应job调度")
     @PostMapping(API_PLAN_INSTANCE_JOB_SCHEDULE)
     public ResponseDTO<Void> scheduleJob(@RequestBody PlanJobScheduleParam param) {
-        scheduleProxy.scheduleJob(param.getPlanInstanceId(), param.getJobId());
+        schedulerProcessor.scheduleJob(param.getPlanInstanceId(), param.getJobId());
         return ResponseDTO.<Void>builder().ok().build();
     }
 

@@ -16,15 +16,16 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.task;
+package org.limbo.flowjob.broker.core.task;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
-import org.limbo.flowjob.broker.application.converter.MetaTaskConverter;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
+import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
+import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
@@ -47,11 +48,14 @@ import java.util.List;
  */
 @Slf4j
 @Component
+// todo
 public class PlanLoadTask extends FixDelayMetaTask {
 
     private final PlanEntityRepo planEntityRepo;
 
-    private final MetaTaskConverter metaTaskConverter;
+    private final PlanRepository planRepository;
+
+    private final SchedulerProcessor schedulerProcessor;
 
     private final BrokerSlotManager slotManager;
 
@@ -63,13 +67,15 @@ public class PlanLoadTask extends FixDelayMetaTask {
 
     public PlanLoadTask(MetaTaskScheduler scheduler,
                         PlanEntityRepo planEntityRepo,
-                        MetaTaskConverter metaTaskConverter,
+                        PlanRepository planRepository,
+                        SchedulerProcessor schedulerProcessor,
                         BrokerSlotManager slotManager,
                         @Lazy Broker broker,
                         NodeManger nodeManger) {
         super(Duration.ofSeconds(1), scheduler);
         this.planEntityRepo = planEntityRepo;
-        this.metaTaskConverter = metaTaskConverter;
+        this.planRepository = planRepository;
+        this.schedulerProcessor = schedulerProcessor;
         this.slotManager = slotManager;
         this.broker = broker;
         this.nodeManger = nodeManger;
@@ -94,6 +100,7 @@ public class PlanLoadTask extends FixDelayMetaTask {
             for (PlanScheduleTask metaTask : plans) {
                 // 移除老的
                 metaTaskScheduler.unschedule(metaTask.scheduleId());
+                // todo 过滤掉非调度的 比如配置改为 api下发的
                 // 调度新的
                 metaTaskScheduler.schedule(metaTask);
             }
@@ -118,7 +125,8 @@ public class PlanLoadTask extends FixDelayMetaTask {
         }
         List<PlanScheduleTask> plans = new ArrayList<>();
         for (PlanEntity planEntity : planEntities) {
-            plans.add(metaTaskConverter.toPlanScheduleTask(planEntity.getPlanId(), TriggerType.SCHEDULE));
+            Plan plan = planRepository.get(planEntity.getPlanId());
+            plans.add(new PlanScheduleTask(plan.getPlanId(), plan.getScheduleOption(), plan.getLatelyTriggerAt(), plan.getLatelyFeedbackAt(), schedulerProcessor, metaTaskScheduler));
         }
         return plans;
     }

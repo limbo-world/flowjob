@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.task;
+package org.limbo.flowjob.broker.core.task;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AccessLevel;
@@ -24,10 +24,11 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
-import org.limbo.flowjob.broker.core.domain.plan.Plan;
+import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
+import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.LoopMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.common.thread.CommonThreadPool;
@@ -43,23 +44,24 @@ import java.time.temporal.ChronoUnit;
  * @date 2023/1/9
  */
 @Slf4j
+// todo
 public class PlanScheduleTask extends LoopMetaTask {
 
     @Getter
-    @JsonIgnore
-    private final Plan plan;
+    private final String planId;
 
     @JsonIgnore
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ToString.Exclude
-    private final ScheduleProxy scheduleProxy;
+    private final SchedulerProcessor schedulerProcessor;
 
-    public PlanScheduleTask(Plan plan, LocalDateTime lastTriggerAt, LocalDateTime lastFeedbackAt,
-                            ScheduleProxy scheduleProxy, MetaTaskScheduler metaTaskScheduler) {
-        super(lastTriggerAt, lastFeedbackAt, plan.getScheduleOption(), metaTaskScheduler);
-        this.plan = plan;
-        this.scheduleProxy = scheduleProxy;
+    public PlanScheduleTask(String planId, ScheduleOption scheduleOption,
+                            LocalDateTime lastTriggerAt, LocalDateTime lastFeedbackAt,
+                            SchedulerProcessor schedulerProcessor, MetaTaskScheduler metaTaskScheduler) {
+        super(lastTriggerAt, lastFeedbackAt, scheduleOption, metaTaskScheduler);
+        this.planId = planId;
+        this.schedulerProcessor = schedulerProcessor;
     }
 
     /**
@@ -73,11 +75,8 @@ public class PlanScheduleTask extends LoopMetaTask {
 
     @Override
     public void execute() {
-        if (plan == null) {
+        if (StringUtils.isBlank(planId)) {
             log.error("{} plan is null", scheduleId());
-            return;
-        }
-        if (TriggerType.SCHEDULE != plan.getTriggerType()) {
             return;
         }
         super.execute();
@@ -92,11 +91,11 @@ public class PlanScheduleTask extends LoopMetaTask {
             } else {
                 triggerAt = getLastTriggerAt();
             }
-            LocalDateTime scheduleEndAt = plan.getScheduleOption().getScheduleEndAt();
+            LocalDateTime scheduleEndAt = getScheduleOption().getScheduleEndAt();
             if (scheduleEndAt != null && scheduleEndAt.isBefore(TimeUtils.currentLocalDateTime())) {
                 return;
             }
-            CommonThreadPool.IO.submit(() -> scheduleProxy.schedule(TriggerType.SCHEDULE, plan, null, triggerAt));
+            CommonThreadPool.IO.submit(() -> schedulerProcessor.schedule(planId, TriggerType.SCHEDULE, null, triggerAt));
         } catch (Exception e) {
             log.error("{} execute fail", scheduleId(), e);
         }
@@ -115,6 +114,6 @@ public class PlanScheduleTask extends LoopMetaTask {
 
     @Override
     public String getMetaId() {
-        return plan.getPlanId() + "-" + plan.getVersion();
+        return planId;
     }
 }

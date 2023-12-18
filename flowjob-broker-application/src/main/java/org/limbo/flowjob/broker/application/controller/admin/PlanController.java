@@ -31,14 +31,13 @@ import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.console.PlanDTO;
 import org.limbo.flowjob.api.dto.console.PlanInfoDTO;
 import org.limbo.flowjob.api.dto.console.PlanVersionDTO;
+import org.limbo.flowjob.api.param.broker.PlanScheduleParam;
 import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.PlanQueryParam;
-import org.limbo.flowjob.api.param.broker.PlanScheduleParam;
 import org.limbo.flowjob.api.param.console.PlanVersionParam;
-import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
 import org.limbo.flowjob.broker.application.service.PlanService;
-import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
+import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.validation.annotation.Validated;
@@ -66,7 +65,7 @@ public class PlanController {
     private PlanRepository planRepository;
 
     @Setter(onMethod_ = @Inject)
-    private ScheduleProxy scheduleProxy;
+    private SchedulerProcessor schedulerProcessor;
 
     /**
      * 新增计划
@@ -128,12 +127,11 @@ public class PlanController {
     @Operation(summary = "触发对应plan调度")
     @PostMapping("/api/v1/plan/schedule")
     public ResponseDTO<Void> schedulePlan(@RequestBody PlanScheduleParam param) {
-        Plan plan = planRepository.get(param.getPlanId());
         Attributes attributes = null;
         if (MapUtils.isEmpty(param.getAttributes())) {
             attributes = new Attributes(param.getAttributes());
         }
-        scheduleProxy.schedule(TriggerType.API, plan, attributes, TimeUtils.currentLocalDateTime());
+        schedulerProcessor.schedule(param.getPlanId(), TriggerType.API, attributes, TimeUtils.currentLocalDateTime());
         return ResponseDTO.<Void>builder().ok().build();
     }
 

@@ -25,8 +25,8 @@ import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.console.PlanInstanceDTO;
 import org.limbo.flowjob.api.param.console.PlanInstanceQueryParam;
-import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
 import org.limbo.flowjob.broker.application.service.PlanInstanceService;
+import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,7 +45,7 @@ import javax.validation.constraints.NotNull;
 public class PlanInstanceController {
 
     @Setter(onMethod_ = @Inject)
-    private ScheduleProxy scheduleProxy;
+    private SchedulerProcessor schedulerProcessor;
 
     @Setter(onMethod_ = @Inject)
     private PlanInstanceService planInstanceService;
@@ -66,7 +66,7 @@ public class PlanInstanceController {
     @PostMapping("/api/v1/plan-instance/job/schedule")
     public ResponseDTO<Void> scheduleJob(@Validated @NotNull(message = "no planInstanceId") @RequestParam("planInstanceId") String planInstanceId,
                                          @Validated @NotNull(message = "no jobId") @RequestParam("jobId") String jobId) {
-        scheduleProxy.manualScheduleJob(planInstanceId, jobId);
+        schedulerProcessor.manualScheduleJob(planInstanceId, jobId);
         return ResponseDTO.<Void>builder().ok().build();
     }
 

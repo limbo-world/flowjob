@@ -19,6 +19,7 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.JobStatus;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.PlanType;
@@ -37,9 +38,14 @@ import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Devil
@@ -65,6 +71,45 @@ public class JobInstanceRepo implements JobInstanceRepository {
         } else {
             return getByEntity(entity);
         }
+    }
+
+    @Override
+    @Transactional
+    public void saveAll(List<JobInstance> jobInstances) {
+        if (CollectionUtils.isEmpty(jobInstances)) {
+            return;
+        }
+
+        // 如果是 plan instance 的检测，那么 job instance 已经创建，则无需再度创建
+
+        // 保存 jobInstance
+        List<JobInstanceEntity> jobInstanceEntities = jobInstances.stream().map(DomainConverter::toJobInstanceEntity).collect(Collectors.toList());
+        jobInstanceEntityRepo.saveAll(jobInstanceEntities);
+        jobInstanceEntityRepo.flush();
+    }
+
+    @Override
+    @Transactional
+    public boolean executing(String jobInstanceId, String agentId, LocalDateTime startAt) {
+        return jobInstanceEntityRepo.executing(jobInstanceId, agentId, TimeUtils.currentLocalDateTime()) > 0;
+    }
+
+    @Override
+    @Transactional
+    public boolean success(String jobInstanceId, LocalDateTime endAt, String context) {
+        return jobInstanceEntityRepo.success(jobInstanceId, endAt, context) > 0;
+    }
+
+    @Override
+    @Transactional
+    public boolean fail(String jobInstanceId, Integer oldStatus, LocalDateTime startAt, LocalDateTime endAt, String errorMsg) {
+        return jobInstanceEntityRepo.fail(jobInstanceId, oldStatus, startAt, endAt, errorMsg) > 0;
+    }
+
+    @Override
+    @Transactional
+    public boolean report(String jobInstanceId, LocalDateTime lastReportAt) {
+        return jobInstanceEntityRepo.report(jobInstanceId, lastReportAt) > 0;
     }
 
     @Override

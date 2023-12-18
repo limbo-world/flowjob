@@ -16,29 +16,16 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.domain.job;
-
-import java.time.LocalDateTime;
-import java.util.List;
+package org.limbo.flowjob.broker.core.schedule;
 
 /**
+ * todo 管理Job生命周期
+ *
  * @author Devil
- * @since 2023/5/8
+ * @since 2023/12/18
  */
-public interface JobInstanceRepository {
+public class JobTracker {
 
-    JobInstance get(String id);
 
-    void saveAll(List<JobInstance> jobInstances);
-
-    boolean executing(String jobInstanceId, String agentId, LocalDateTime startAt);
-
-    boolean success(String jobInstanceId, LocalDateTime endAt, String context);
-
-    boolean fail(String jobInstanceId, Integer oldStatus, LocalDateTime startAt, LocalDateTime endAt, String errorMsg);
-
-    boolean report(String jobInstanceId, LocalDateTime lastReportAt);
-
-    JobInstance getLatest(String planInstanceId, String jobId);
 
 }

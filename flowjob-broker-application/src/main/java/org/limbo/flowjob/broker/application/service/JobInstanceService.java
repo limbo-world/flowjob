@@ -24,7 +24,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.console.JobInstanceDTO;
 import org.limbo.flowjob.api.param.console.JobInstanceQueryParam;
-import org.limbo.flowjob.broker.application.support.JpaHelper;
+import org.limbo.flowjob.broker.dao.support.JpaHelper;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.springframework.data.domain.Page;
