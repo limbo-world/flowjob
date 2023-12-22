@@ -20,7 +20,6 @@ package org.limbo.flowjob.broker.core.task;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
@@ -28,13 +27,9 @@ import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
 import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.dao.entity.PlanEntity;
-import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.common.utils.time.DateTimeUtils;
 import org.limbo.flowjob.common.utils.time.Formatters;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -47,18 +42,16 @@ import java.util.List;
  * 第一次会获取所有的，后续则获取近期更新的
  */
 @Slf4j
-@Component
 // todo
 public class PlanLoadTask extends FixDelayMetaTask {
-
-    private final PlanEntityRepo planEntityRepo;
 
     private final PlanRepository planRepository;
 
     private final SchedulerProcessor schedulerProcessor;
 
-    private final BrokerSlotManager slotManager;
-
+    /**
+     * 当前节点
+     */
     private final Broker broker;
 
     private final NodeManger nodeManger;
@@ -66,17 +59,13 @@ public class PlanLoadTask extends FixDelayMetaTask {
     private LocalDateTime loadTimePoint = DateTimeUtils.parse("2000-01-01 00:00:00", Formatters.YMD_HMS);
 
     public PlanLoadTask(MetaTaskScheduler scheduler,
-                        PlanEntityRepo planEntityRepo,
                         PlanRepository planRepository,
                         SchedulerProcessor schedulerProcessor,
-                        BrokerSlotManager slotManager,
-                        @Lazy Broker broker,
+                        Broker broker,
                         NodeManger nodeManger) {
         super(Duration.ofSeconds(1), scheduler);
-        this.planEntityRepo = planEntityRepo;
         this.planRepository = planRepository;
         this.schedulerProcessor = schedulerProcessor;
-        this.slotManager = slotManager;
         this.broker = broker;
         this.nodeManger = nodeManger;
     }
@@ -114,21 +103,16 @@ public class PlanLoadTask extends FixDelayMetaTask {
      * 加载触发时间在指定时间之前的 Plan。
      */
     private List<PlanScheduleTask> loadTasks() {
-        List<String> planIds = slotManager.planIds();
-        if (CollectionUtils.isEmpty(planIds)) {
-            return Collections.emptyList();
-        }
-        List<PlanEntity> planEntities = planEntityRepo.loadUpdatedPlans(planIds, loadTimePoint.plusSeconds(-1)); // 防止部分延迟导致变更丢失
+        List<Plan> plans = planRepository.loadUpdatedPlans(broker.getRpcBaseURL(), loadTimePoint.plusSeconds(-1)); // 防止部分延迟导致变更丢失
         loadTimePoint = TimeUtils.currentLocalDateTime();
-        if (CollectionUtils.isEmpty(planEntities)) {
+        if (CollectionUtils.isEmpty(plans)) {
             return Collections.emptyList();
         }
-        List<PlanScheduleTask> plans = new ArrayList<>();
-        for (PlanEntity planEntity : planEntities) {
-            Plan plan = planRepository.get(planEntity.getPlanId());
-            plans.add(new PlanScheduleTask(plan.getPlanId(), plan.getScheduleOption(), plan.getLatelyTriggerAt(), plan.getLatelyFeedbackAt(), schedulerProcessor, metaTaskScheduler));
+        List<PlanScheduleTask> planScheduleTasks = new ArrayList<>();
+        for (Plan plan : plans) {
+            planScheduleTasks.add(new PlanScheduleTask(plan, schedulerProcessor, metaTaskScheduler));
         }
-        return plans;
+        return planScheduleTasks;
     }
 
 

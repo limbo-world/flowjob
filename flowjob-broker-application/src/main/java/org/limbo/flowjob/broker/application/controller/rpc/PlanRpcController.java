@@ -21,14 +21,13 @@ package org.limbo.flowjob.broker.application.controller.rpc;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Setter;
-import org.apache.commons.collections4.MapUtils;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.param.broker.PlanJobScheduleParam;
 import org.limbo.flowjob.api.param.broker.PlanScheduleParam;
-import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
+import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -60,11 +59,10 @@ public class PlanRpcController {
     @Operation(summary = "触发对应plan调度")
     @PostMapping(API_PLAN_SCHEDULE)
     public ResponseDTO<Void> schedulePlan(@RequestBody PlanScheduleParam param) {
-        Attributes planAttribute = null;
-        if (MapUtils.isEmpty(param.getAttributes())) {
-            planAttribute = new Attributes(param.getAttributes());
-        }
-        schedulerProcessor.schedule(param.getPlanId(), TriggerType.API, planAttribute, TimeUtils.currentLocalDateTime());
+        Plan plan = planRepository.get(param.getPlanId());
+        Attributes attributes = new Attributes();
+        attributes.putAll(param.getAttributes());
+        schedulerProcessor.schedule(plan, TriggerType.API, attributes, TimeUtils.currentLocalDateTime());
         return ResponseDTO.<Void>builder().ok().build();
     }
 

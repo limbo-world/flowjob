@@ -104,7 +104,7 @@ public class DBBrokerRegistry implements NodeRegistry {
         @Override
         public void run() {
             try {
-                BrokerEntity broker = brokerEntityRepo.findByName(name).orElse(null);
+                BrokerEntity broker = brokerEntityRepo.findByHostAndPort(host, port);
                 LocalDateTime now = TimeUtils.currentLocalDateTime();
                 if (broker == null) {
                     broker = new BrokerEntity();

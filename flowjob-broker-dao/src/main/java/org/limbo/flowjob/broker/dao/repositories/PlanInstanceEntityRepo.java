@@ -35,7 +35,6 @@ import java.util.List;
  */
 public interface PlanInstanceEntityRepo extends JpaRepository<PlanInstanceEntity, String>, JpaSpecificationExecutor<PlanInstanceEntity> {
 
-    // todo 创建 jobinstance用于锁定
     @Query(value = "select * from flowjob_plan_instance where plan_instance_id = :planInstanceId for update", nativeQuery = true)
     PlanInstanceEntity selectForUpdate(@Param("planInstanceId") String planInstanceId);
 

@@ -18,6 +18,9 @@
 
 package org.limbo.flowjob.broker.core.domain.plan;
 
+import org.limbo.flowjob.api.constants.ScheduleType;
+import org.limbo.flowjob.api.constants.TriggerType;
+
 import java.time.LocalDateTime;
 
 /**
@@ -27,6 +30,10 @@ import java.time.LocalDateTime;
 public interface PlanInstanceRepository {
 
     PlanInstance get(String id);
+
+    PlanInstance lockAndGet(String id);
+
+    PlanInstance getLatelyTrigger(String planId, String version, ScheduleType scheduleType, TriggerType triggerType);
 
     void save(PlanInstance planInstance);
 

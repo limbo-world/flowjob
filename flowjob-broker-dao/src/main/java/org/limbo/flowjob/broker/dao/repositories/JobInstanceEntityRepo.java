@@ -36,22 +36,22 @@ import java.util.List;
 public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, String>, JpaSpecificationExecutor<JobInstanceEntity> {
 
     @Query(value = "select * from flowjob_job_instance" +
-            " where plan_id in :planIds and status = :status and last_report_at >= :lastReportAtStart and last_report_at <= :lastReportAtEnd and job_instance_id > :startId" +
+            " where broker_url = :brokerUrl and status = " + ConstantsPool.JOB_EXECUTING +
+            " and last_report_at >= :lastReportAtStart and last_report_at <= :lastReportAtEnd and job_instance_id > :startId" +
             " order by job_instance_id LIMIT :limit", nativeQuery = true)
-    List<JobInstanceEntity> findByExecuteCheck(@Param("planIds") List<String> planIds,
-                                               @Param("status") Integer status,
+    List<JobInstanceEntity> findByExecuteCheck(@Param("brokerUrl") String brokerUrl,
                                                @Param("lastReportAtStart") LocalDateTime lastReportAtStart,
                                                @Param("lastReportAtEnd") LocalDateTime lastReportAtEnd,
                                                @Param("startId") String startId,
                                                @Param("limit") Integer limit);
 
     @Query(value = "select * from flowjob_job_instance" +
-            " where plan_id in :planIds and  status = :status and last_report_at <= :lastReportAt and trigger_at <= :triggerAt and job_instance_id > :startId " +
+            " where broker_url in :brokerUrl and  status = " + ConstantsPool.JOB_SCHEDULING +
+            " and last_report_at <= :lastReportAt and trigger_at <= :triggerAt and job_instance_id > :startId " +
             " order by job_instance_id LIMIT :limit", nativeQuery = true)
-    List<JobInstanceEntity> findInSchedule(@Param("planIds") List<String> planIds,
+    List<JobInstanceEntity> findInSchedule(@Param("brokerUrl") String brokerUrl,
                                            @Param("lastReportAt") LocalDateTime lastReportAt,
                                            @Param("triggerAt") LocalDateTime triggerAt,
-                                           @Param("status") Integer status,
                                            @Param("startId") String startId,
                                            @Param("limit") Integer limit);
 

@@ -19,16 +19,27 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
-import org.limbo.flowjob.api.constants.PlanStatus;
+import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.ScheduleType;
+import org.limbo.flowjob.api.constants.TriggerType;
+import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
 import org.limbo.flowjob.broker.core.domain.plan.PlanInstanceRepository;
+import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
+import org.limbo.flowjob.broker.dao.converter.DomainConverter;
+import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
+import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
+import org.limbo.flowjob.common.utils.dag.DAG;
+import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.Collections;
 
 /**
  * @author Devil
@@ -40,9 +51,58 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
     @Setter(onMethod_ = @Inject)
     private PlanInstanceEntityRepo planInstanceEntityRepo;
 
+    @Setter(onMethod_ = @Inject)
+    private PlanInfoEntityRepo planInfoEntityRepo;
+
     @Override
     public PlanInstance get(String id) {
-        return null;
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.getOne(id);
+        return assemble(planInstanceEntity);
+    }
+
+    @Override
+    public PlanInstance lockAndGet(String id) {
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.selectForUpdate(id);
+        return assemble(planInstanceEntity);
+    }
+
+    @Override
+    public PlanInstance getLatelyTrigger(String planId, String version, ScheduleType scheduleType, TriggerType triggerType) {
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findLatelyTrigger(planId, version, scheduleType.type, triggerType.type);
+        return assemble(planInstanceEntity);
+    }
+
+    private PlanInstance assemble(PlanInstanceEntity planInstanceEntity) {
+        if (planInstanceEntity == null) {
+            return null;
+        }
+        PlanInfoEntity planInfoEntity = planInfoEntityRepo.getOne(planInstanceEntity.getPlanInfoId());
+
+        PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
+
+        ScheduleOption scheduleOption = DomainConverter.toScheduleOption(planInfoEntity);
+
+        PlanInstance planInstance = new PlanInstance();
+        planInstance.setId(String.valueOf(planInstanceEntity.getId()));
+        planInstance.setPlanId(planInstanceEntity.getPlanId());
+        planInstance.setVersion(planInstanceEntity.getPlanInfoId());
+        planInstance.setTriggerType(TriggerType.parse(planInstanceEntity.getTriggerType()));
+        planInstance.setType(planType);
+        planInstance.setScheduleOption(scheduleOption);
+        DAG<WorkflowJobInfo> dag;
+        if (PlanType.STANDALONE == planType) {
+            WorkflowJobInfo jobInfo = JacksonUtils.parseObject(planInfoEntity.getJobInfo(), WorkflowJobInfo.class);
+            dag = new DAG<>(Collections.singletonList(jobInfo));
+        } else {
+            dag = DomainConverter.toJobDag(planInfoEntity.getJobInfo());
+        }
+        planInstance.setDag(dag);
+        planInstance.setStatus(planInstanceEntity.getStatus());
+        planInstance.setAttributes(new Attributes(planInstanceEntity.getAttributes()));
+        planInstance.setTriggerAt(planInstanceEntity.getTriggerAt());
+        planInstance.setStartAt(planInstanceEntity.getStartAt());
+        planInstance.setFeedbackAt(planInstanceEntity.getFeedbackAt());
+        return planInstance;
     }
 
     @Override

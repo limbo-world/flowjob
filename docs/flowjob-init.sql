@@ -105,7 +105,8 @@ CREATE TABLE `flowjob_plan`
     `created_at`       datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`       datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_id` (`plan_id`)
+    UNIQUE KEY `uk_id` (`plan_id`),
+    KEY                `idx_update_broker` (`updated_at`, `broker_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

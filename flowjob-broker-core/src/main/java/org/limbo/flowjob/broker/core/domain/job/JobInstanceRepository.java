@@ -18,6 +18,7 @@
 
 package org.limbo.flowjob.broker.core.domain.job;
 
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -40,5 +41,9 @@ public interface JobInstanceRepository {
     boolean report(String jobInstanceId, LocalDateTime lastReportAt);
 
     JobInstance getLatest(String planInstanceId, String jobId);
+
+    List<JobInstance> findByExecuteCheck(URL brokerUrl, LocalDateTime lastReportAtStart, LocalDateTime lastReportAtEnd, String startId, Integer limit);
+
+    List<JobInstance> findInSchedule(URL brokerUrl, LocalDateTime lastReportAt, LocalDateTime triggerAt, String startId, Integer limit);
 
 }

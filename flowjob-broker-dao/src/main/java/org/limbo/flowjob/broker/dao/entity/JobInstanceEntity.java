@@ -36,6 +36,11 @@ public class JobInstanceEntity extends BaseEntity {
     @Id
     private String jobInstanceId;
 
+    /**
+     * 分配的节点 ip:host
+     */
+    private String brokerUrl;
+
     private String planInstanceId;
 
     private String planId;

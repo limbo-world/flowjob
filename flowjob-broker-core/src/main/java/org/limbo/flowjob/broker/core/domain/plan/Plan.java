@@ -45,7 +45,7 @@ public class Plan implements Serializable {
     /**
      * 作业执行计划ID
      */
-    private final String planId;
+    private final String id;
 
     /**
      * 版本
@@ -87,11 +87,11 @@ public class Plan implements Serializable {
      */
     private final boolean enabled;
 
-    public Plan(String planId, String version, PlanType type, TriggerType triggerType,
+    public Plan(String id, String version, PlanType type, TriggerType triggerType,
                 ScheduleOption scheduleOption, DAG<WorkflowJobInfo> dag,
                 LocalDateTime latelyTriggerAt, LocalDateTime latelyFeedbackAt,
                 boolean enabled) {
-        this.planId = planId;
+        this.id = id;
         this.version = version;
         this.type = type;
         this.triggerType = triggerType;

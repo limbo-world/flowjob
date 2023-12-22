@@ -24,14 +24,13 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
+import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.LoopMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.common.thread.CommonThreadPool;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.LocalDateTime;
@@ -44,11 +43,10 @@ import java.time.temporal.ChronoUnit;
  * @date 2023/1/9
  */
 @Slf4j
-// todo
 public class PlanScheduleTask extends LoopMetaTask {
 
     @Getter
-    private final String planId;
+    private final Plan plan;
 
     @JsonIgnore
     @Getter(AccessLevel.NONE)
@@ -56,11 +54,9 @@ public class PlanScheduleTask extends LoopMetaTask {
     @ToString.Exclude
     private final SchedulerProcessor schedulerProcessor;
 
-    public PlanScheduleTask(String planId, ScheduleOption scheduleOption,
-                            LocalDateTime lastTriggerAt, LocalDateTime lastFeedbackAt,
-                            SchedulerProcessor schedulerProcessor, MetaTaskScheduler metaTaskScheduler) {
-        super(lastTriggerAt, lastFeedbackAt, scheduleOption, metaTaskScheduler);
-        this.planId = planId;
+    public PlanScheduleTask(Plan plan, SchedulerProcessor schedulerProcessor, MetaTaskScheduler metaTaskScheduler) {
+        super(plan.getLatelyTriggerAt(), plan.getLatelyFeedbackAt(), plan.getScheduleOption(), metaTaskScheduler);
+        this.plan = plan;
         this.schedulerProcessor = schedulerProcessor;
     }
 
@@ -75,7 +71,7 @@ public class PlanScheduleTask extends LoopMetaTask {
 
     @Override
     public void execute() {
-        if (StringUtils.isBlank(planId)) {
+        if (plan == null) {
             log.error("{} plan is null", scheduleId());
             return;
         }
@@ -85,17 +81,12 @@ public class PlanScheduleTask extends LoopMetaTask {
     @Override
     protected void executeTask() {
         try {
-            LocalDateTime triggerAt;
-            if (ScheduleType.FIXED_DELAY == getScheduleOption().getScheduleType()) {
-                triggerAt = getNextTriggerAt();
-            } else {
-                triggerAt = getLastTriggerAt();
-            }
+            LocalDateTime triggerAt = getLastTriggerAt();
             LocalDateTime scheduleEndAt = getScheduleOption().getScheduleEndAt();
             if (scheduleEndAt != null && scheduleEndAt.isBefore(TimeUtils.currentLocalDateTime())) {
                 return;
             }
-            CommonThreadPool.IO.submit(() -> schedulerProcessor.schedule(planId, TriggerType.SCHEDULE, null, triggerAt));
+            CommonThreadPool.IO.submit(() -> schedulerProcessor.schedule(plan, TriggerType.SCHEDULE, new Attributes(), triggerAt));
         } catch (Exception e) {
             log.error("{} execute fail", scheduleId(), e);
         }
@@ -114,6 +105,6 @@ public class PlanScheduleTask extends LoopMetaTask {
 
     @Override
     public String getMetaId() {
-        return planId;
+        return plan.getId();
     }
 }

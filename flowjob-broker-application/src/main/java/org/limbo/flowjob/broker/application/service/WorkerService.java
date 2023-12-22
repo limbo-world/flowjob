@@ -32,10 +32,8 @@ import org.limbo.flowjob.api.dto.console.WorkerDTO;
 import org.limbo.flowjob.api.param.broker.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
 import org.limbo.flowjob.api.param.console.WorkerQueryParam;
-import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.application.converter.BrokerConverter;
 import org.limbo.flowjob.broker.application.converter.WorkerConverter;
-import org.limbo.flowjob.broker.dao.support.JpaHelper;
 import org.limbo.flowjob.broker.application.converter.WorkerParamConverter;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
@@ -55,12 +53,11 @@ import org.limbo.flowjob.broker.core.worker.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.worker.dispatch.WorkerFilter;
 import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
-import org.limbo.flowjob.broker.dao.entity.WorkerSlotEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
 import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerMetricEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.WorkerSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.WorkerTagEntityRepo;
+import org.limbo.flowjob.broker.dao.support.JpaHelper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -101,12 +98,6 @@ public class WorkerService {
 
     @Setter(onMethod_ = @Inject)
     private IDGenerator idGenerator;
-
-    @Setter(onMethod_ = @Inject)
-    private BrokerSlotManager slotManager;
-
-    @Setter(onMethod_ = @Inject)
-    private WorkerSlotEntityRepo workerSlotEntityRepo;
 
     @Setter(onMethod_ = @Inject)
     private WorkerMetricEntityRepo workerMetricEntityRepo;
@@ -155,15 +146,6 @@ public class WorkerService {
         // 保存 worker
         workerRepository.save(worker);
         log.info("worker registered " + worker);
-
-        // 槽位保存
-        if (workerSlotEntityRepo.findByWorkerId(worker.getId()) == null) {
-            WorkerSlotEntity slotEntity = new WorkerSlotEntity();
-            slotEntity.setSlot(slotManager.slot(worker.getId()));
-            slotEntity.setWorkerId(worker.getId());
-            workerSlotEntityRepo.saveAndFlush(slotEntity);
-        }
-
         return WorkerConverter.toRegisterDTO(worker, nodeManger.allAlive());
     }
 

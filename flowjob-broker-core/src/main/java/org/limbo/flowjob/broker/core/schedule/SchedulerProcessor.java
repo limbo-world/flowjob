@@ -72,19 +72,19 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SchedulerProcessor {
 
-    private MetaTaskScheduler metaTaskScheduler;
+    private final MetaTaskScheduler metaTaskScheduler;
 
-    private IDGenerator idGenerator;
+    private final IDGenerator idGenerator;
 
-    private AgentRegistry agentRegistry;
+    private final AgentRegistry agentRegistry;
 
-    private PlanRepository planRepository;
+    private final PlanRepository planRepository;
 
-    private PlanInstanceRepository planInstanceRepository;
+    private final PlanInstanceRepository planInstanceRepository;
 
-    private JobInstanceRepository jobInstanceRepository;
+    private final JobInstanceRepository jobInstanceRepository;
 
-    private LBStrategy<ScheduleAgent> lbStrategy;
+    private final LBStrategy<ScheduleAgent> lbStrategy;
 
     public SchedulerProcessor(MetaTaskScheduler metaTaskScheduler,
                               IDGenerator idGenerator,
@@ -103,60 +103,60 @@ public class SchedulerProcessor {
 
     // 如是定时1小时后执行，task的创建问题 比如任务执行失败后，重试间隔可能导致这个问题
     // 比如广播模式下，一小时后的节点数和当前的肯定是不同的
-    public void schedule(String planId, TriggerType triggerType, Attributes planAttributes, LocalDateTime triggerAt) {
-        List<JobInstance> jobInstances = schedulePlan(planId, triggerType, planAttributes, triggerAt);
+    public void schedule(Plan plan, TriggerType triggerType, Attributes planAttributes, LocalDateTime triggerAt) {
+        List<JobInstance> jobInstances = schedulePlan(plan, triggerType, planAttributes, triggerAt);
         scheduleJobs(jobInstances);
     }
 
     // todo @ys 性能优化
-    public List<JobInstance> schedulePlan(String planId, TriggerType triggerType, Attributes planAttributes, LocalDateTime triggerAt) {
+    public List<JobInstance> schedulePlan(Plan plan, TriggerType triggerType, Attributes planAttributes, LocalDateTime triggerAt) {
 
-        Plan plan = planRepository.lockAndGet(planId);
+        Plan currentPlan = planRepository.lockAndGet(plan.getId());
+
+        String planId = plan.getId();
+        String version = plan.getVersion();
 
         // 悲观锁快速释放，不阻塞后续任务
-        PlanInstance planInstance = createPlanInstance(plan, planAttributes, triggerAt);
+        PlanInstance planInstance = createPlanInstance(currentPlan, planAttributes, triggerAt);
 
         // 判断任务配置信息是否变动：任务是由之前时间创建的 调度时候如果版本改变 可能会有调度时间的变化本次就无需执行
         // 比如 5s 执行一次 分别在 5s 10s 15s 在11s的时候内存里下次执行为 15s 此时修改为 2s 执行一次 那么重新加载plan后应该为 12s 14s 所以15s这次可以跳过
-        // todo 这个是不是还需要
-        Verifies.verify(Objects.equals(version, planEntity.getCurrentVersion()), MessageFormat.format("plan:{0} version {1} change to {2}", planId, version, planEntity.getCurrentVersion()));
+        Verifies.verify(Objects.equals(plan.getVersion(), currentPlan.getVersion()), MessageFormat.format("plan:{0} version {1} change to {2}", planId, version, currentPlan.getVersion()));
 
-        PlanInstanceEntity planInstanceEntityCheck = planInstanceEntityRepo.findById(planInstanceId).orElse(null);
-        Verifies.isNull(planInstanceEntityCheck, MessageFormat.format("plan:{0} version {1} create instance by id {2} but is already exist", planId, version, planInstanceId));
+        PlanInstance existPlanInstance = planInstanceRepository.get(planInstance.getId());
+        Verifies.isNull(existPlanInstance, MessageFormat.format("plan:{0} version {1} create instance by id {2} but is already exist", planId, version, planInstance.getId()));
 
-        ScheduleOption scheduleOption = plan.getScheduleOption();
+        ScheduleOption scheduleOption = currentPlan.getScheduleOption();
 
         // 判断是否由当前节点执行
         if (TriggerType.API != triggerType) {
 
-            Verifies.verify(plan.isEnabled(), "plan " + planId + " is not enabled");
+            Verifies.verify(currentPlan.isEnabled(), "plan " + planId + " is not enabled");
 
             // 校验是否重复创建
-            PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findLatelyTrigger(planId, planInfoEntity.getPlanInfoId(), planInfoEntity.getScheduleType(), triggerType.type);
+            PlanInstance latelyPlanInstance = planInstanceRepository.getLatelyTrigger(planId, version, currentPlan.getScheduleOption().getScheduleType(), triggerType);
             switch (scheduleOption.getScheduleType()) {
                 case FIXED_RATE:
                 case CRON:
-                    slotManager.checkPlanId(planId); // fixed_delay 可以在不同节点触发
-                    Verifies.verify(planInstanceEntity == null || !triggerAt.isEqual(planInstanceEntity.getTriggerAt()),
+                    Verifies.verify(latelyPlanInstance == null || !triggerAt.isEqual(latelyPlanInstance.getTriggerAt()),
                             MessageFormat.format("Duplicate create PlanInstance,triggerAt:{0} planId[{1}] Version[{2}] oldPlanInstance[{3}]",
-                                    triggerAt, planId, version, JacksonUtils.toJSONString(planInstanceEntity))
+                                    triggerAt, planId, version, JacksonUtils.toJSONString(latelyPlanInstance))
                     );
                     break;
                 case FIXED_DELAY:
-                    Verifies.verify(planInstanceEntity == null || (!triggerAt.isEqual(planInstanceEntity.getTriggerAt()) && PlanStatus.parse(planInstanceEntity.getStatus()).isCompleted()),
+                    Verifies.verify(latelyPlanInstance == null || (!triggerAt.isEqual(latelyPlanInstance.getTriggerAt()) && PlanStatus.parse(latelyPlanInstance.getStatus()).isCompleted()),
                             MessageFormat.format("Please wait last PlanInstance[{0}] complete.Plan[{1}] Version[{2}]",
-                                    JacksonUtils.toJSONString(planInstanceEntity), planId, version)
+                                    JacksonUtils.toJSONString(latelyPlanInstance), planId, version)
                     );
                     break;
                 default:
-                    throw new VerifyException(MsgConstants.UNKNOWN + " scheduleType:" + plan.getScheduleOption().getScheduleType());
+                    throw new VerifyException(MsgConstants.UNKNOWN + " scheduleType:" + currentPlan.getScheduleOption().getScheduleType());
             }
         }
 
 
-
         planInstanceRepository.save(planInstance);
-        List<JobInstance> jobInstances = createScheduleJobInstances(plan, planAttributes, planInstance.getId(), triggerAt);
+        List<JobInstance> jobInstances = createScheduleJobInstances(currentPlan, planAttributes, planInstance.getId(), triggerAt);
         jobInstanceRepository.saveAll(jobInstances);
         return jobInstances;
     }
@@ -217,7 +217,6 @@ public class SchedulerProcessor {
         jobInstanceRepository.saveAll(jobInstances);
         return jobInstances;
     }
-
 
 
     /**
@@ -329,7 +328,7 @@ public class SchedulerProcessor {
         List<WorkflowJobInfo> subJobInfos = dag.subNodes(jobId);
 
         // 防止并发问题，两个任务结束后并发过来后，由于无法读取到未提交数据，可能导致都认为不需要下发而导致失败
-        PlanInstance planInstance = planInstanceEntityRepo.selectForUpdate(planInstanceId); // todo lock
+        PlanInstance planInstance = planInstanceRepository.lockAndGet(planInstanceId);
 
         if (CollectionUtils.isEmpty(subJobInfos)) {
             // 当前节点为叶子节点 检测 Plan 实例是否已经执行完成
@@ -407,7 +406,8 @@ public class SchedulerProcessor {
         }
         // 下发 fixed_delay 任务
         if (ScheduleType.FIXED_DELAY == planInstance.getScheduleOption().getScheduleType()) {
-            PlanScheduleTask metaTask = metaTaskConverter.toPlanScheduleTask(planInstance.getPlanId(), TriggerType.SCHEDULE);
+            Plan plan = planRepository.get(planInstance.getPlanId());
+            PlanScheduleTask metaTask = new PlanScheduleTask(plan, this, metaTaskScheduler);
             metaTaskScheduler.unschedule(metaTask.scheduleId());
             metaTaskScheduler.schedule(metaTask);
         }
@@ -415,6 +415,7 @@ public class SchedulerProcessor {
 
     /**
      * 校验 planInstance 下对应 job 的 jobInstance 是否都执行成功 或者失败了但是可以忽略失败
+     *
      * @param checkSkipWhenFail 和 continueWithFail 同时 true，当job执行失败，会认为执行成功
      */
     public boolean checkJobsSuccess(String planInstanceId, List<WorkflowJobInfo> jobInfos, boolean checkSkipWhenFail) {
@@ -447,9 +448,9 @@ public class SchedulerProcessor {
     private List<JobInstance> createScheduleJobInstances(Plan plan, Attributes planAttributes, String planInstanceId, LocalDateTime triggerAt) {
         List<JobInstance> jobInstances = new ArrayList<>();
         // 获取头部节点
-        for (WorkflowJobInfo jobInfo :  plan.getDag().origins()) {
+        for (WorkflowJobInfo jobInfo : plan.getDag().origins()) {
             if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
-                jobInstances.add(createJobInstance(plan.getPlanId(), plan.getVersion(), plan.getType(), planInstanceId, planAttributes, new Attributes(), jobInfo, triggerAt));
+                jobInstances.add(createJobInstance(plan.getId(), plan.getVersion(), plan.getType(), planInstanceId, planAttributes, new Attributes(), jobInfo, triggerAt));
             }
         }
         return jobInstances;
@@ -459,7 +460,7 @@ public class SchedulerProcessor {
         String id = idGenerator.generateId(IDType.PLAN_INSTANCE);
         PlanInstance planInstance = new PlanInstance();
         planInstance.setId(id);
-        planInstance.setPlanId(plan.getPlanId());
+        planInstance.setPlanId(plan.getId());
         planInstance.setVersion(plan.getVersion());
         planInstance.setStatus(ConstantsPool.PLAN_DISPATCHING);
         planInstance.setType(plan.getType());
@@ -472,7 +473,7 @@ public class SchedulerProcessor {
     }
 
     private JobInstance createJobInstance(String planId, String planVersion, PlanType planType, String planInstanceId, Attributes planAttributes,
-                                         Attributes context, JobInfo jobInfo, LocalDateTime triggerAt) {
+                                          Attributes context, JobInfo jobInfo, LocalDateTime triggerAt) {
         String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
         JobInstance instance = new JobInstance();
         instance.setJobInstanceId(jobInstanceId);

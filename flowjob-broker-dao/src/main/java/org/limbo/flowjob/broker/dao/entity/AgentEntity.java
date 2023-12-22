@@ -54,6 +54,11 @@ public class AgentEntity extends BaseEntity {
     private String agentId;
 
     /**
+     * 分配的节点 ip:host
+     */
+    private String brokerUrl;
+
+    /**
      * 服务使用的通信协议
      */
     private String protocol;

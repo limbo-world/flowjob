@@ -18,6 +18,8 @@
 
 package org.limbo.flowjob.broker.core.domain.plan;
 
+import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -32,6 +34,6 @@ public interface PlanRepository {
 
     Plan getByVersion(String id, String version);
 
-    List<Plan> loadUpdatedPlans();
+    List<Plan> loadUpdatedPlans(URL brokerUrl, LocalDateTime updatedAt);
 
 }

@@ -19,6 +19,7 @@
 package org.limbo.flowjob.broker.dao.domain;
 
 import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.TriggerType;
@@ -33,17 +34,22 @@ import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
+import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author Devil
@@ -58,12 +64,15 @@ public class PlanRepo implements PlanRepository {
     @Setter(onMethod_ = @Inject)
     private PlanInfoEntityRepo planInfoEntityRepo;
 
+    @Setter(onMethod_ = @Inject)
+    private PlanInstanceEntityRepo planInstanceEntityRepo;
+
     @Override
     public Plan get(String id) {
         PlanEntity planEntity = planEntityRepo.findById(id).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN + id));
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(planEntity.getCurrentVersion())
                 .orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INFO + planEntity.getCurrentVersion()));
-        return assemble(planInfoEntity);
+        return assemble(planEntity, planInfoEntity);
     }
 
     @Override
@@ -72,7 +81,7 @@ public class PlanRepo implements PlanRepository {
         PlanEntity planEntity = planEntityRepo.selectForUpdate(id);
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(planEntity.getCurrentVersion())
                 .orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INFO + planEntity.getCurrentVersion()));
-        return assemble(planInfoEntity);
+        return assemble(planEntity, planInfoEntity);
     }
 
     @Override
@@ -83,51 +92,56 @@ public class PlanRepo implements PlanRepository {
         if (!Objects.equals(planInfoEntity.getPlanId(), planEntity.getPlanId())) {
             throw new IllegalArgumentException("plan:" + id + " version:" + version + " not match");
         }
-        return assemble(planInfoEntity);
+        return assemble(planEntity, planInfoEntity);
     }
 
     @Override
-    public List<Plan> loadUpdatedPlans() {
-        // todo
-        return null;
+    public List<Plan> loadUpdatedPlans(URL brokerUrl, LocalDateTime updatedAt) {
+        List<PlanEntity> planEntities = planEntityRepo.loadUpdatedPlans(brokerUrl.toString(), updatedAt);
+        if (CollectionUtils.isEmpty(planEntities)) {
+            return Collections.emptyList();
+        }
+        List<String> versions = planEntities.stream().map(PlanEntity::getCurrentVersion).collect(Collectors.toList());
+        List<PlanInfoEntity> planInfoEntities = planInfoEntityRepo.findAllById(versions);
+        Map<String, PlanInfoEntity> planInfoEntityMap = planInfoEntities.stream().collect(Collectors.toMap(PlanInfoEntity::getPlanInfoId, p -> p));
+        List<Plan> list = new ArrayList<>();
+        for (PlanEntity planEntity : planEntities) {
+            list.add(assemble(planEntity, planInfoEntityMap.get(planEntity.getCurrentVersion())));
+        }
+        return list;
     }
 
-    private Plan assemble(PlanInfoEntity planInfoEntity) {
+    private Plan assemble(PlanEntity planEntity, PlanInfoEntity planInfoEntity) {
         PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
+        TriggerType triggerType = TriggerType.parse(planInfoEntity.getTriggerType());
 
         // 获取最近一次调度的planInstance和最近一次结束的planInstance
-        ScheduleOption scheduleOption = plan.getScheduleOption();
+        ScheduleOption scheduleOption = DomainConverter.toScheduleOption(planInfoEntity);
 
-        PlanInstanceEntity latelyTrigger = planInstanceEntityRepo.findLatelyTrigger(planId, plan.getVersion(), scheduleOption.getScheduleType().type, triggerType.type);
-        PlanInstanceEntity latelyFeedback = planInstanceEntityRepo.findLatelyFeedback(planId, plan.getVersion(), scheduleOption.getScheduleType().type, triggerType.type);
+        PlanInstanceEntity latelyTrigger = planInstanceEntityRepo.findLatelyTrigger(planEntity.getPlanId(), planEntity.getCurrentVersion(), scheduleOption.getScheduleType().type, triggerType.type);
+        PlanInstanceEntity latelyFeedback = planInstanceEntityRepo.findLatelyFeedback(planEntity.getPlanId(), planEntity.getCurrentVersion(), scheduleOption.getScheduleType().type, triggerType.type);
 
         LocalDateTime latelyTriggerAt = latelyTrigger == null || latelyTrigger.getTriggerAt() == null ? null : latelyTrigger.getTriggerAt().truncatedTo(ChronoUnit.SECONDS);
         LocalDateTime latelyFeedbackAt = latelyFeedback == null || latelyFeedback.getFeedbackAt() == null ? null : latelyFeedback.getFeedbackAt().truncatedTo(ChronoUnit.SECONDS);
 
+        DAG<WorkflowJobInfo> dag;
         if (PlanType.STANDALONE == planType) {
             WorkflowJobInfo jobInfo = JacksonUtils.parseObject(planInfoEntity.getJobInfo(), WorkflowJobInfo.class);
-            return new Plan(
-                    planInfoEntity.getPlanId(),
-                    planInfoEntity.getPlanInfoId(),
-                    planType,
-                    TriggerType.parse(planInfoEntity.getTriggerType()),
-                    DomainConverter.toScheduleOption(planInfoEntity),
-                    new DAG<>(Collections.singletonList(jobInfo)),
-                    latelyTriggerAt,
-                    latelyFeedbackAt
-            );
+            dag = new DAG<>(Collections.singletonList(jobInfo));
         } else {
-            return new Plan(
-                    planInfoEntity.getPlanId(),
-                    planInfoEntity.getPlanInfoId(),
-                    planType,
-                    TriggerType.parse(planInfoEntity.getTriggerType()),
-                    DomainConverter.toScheduleOption(planInfoEntity),
-                    DomainConverter.toJobDag(planInfoEntity.getJobInfo()),
-                    latelyTriggerAt,
-                    latelyFeedbackAt
-            );
+            dag = DomainConverter.toJobDag(planInfoEntity.getJobInfo());
         }
+        return new Plan(
+                planInfoEntity.getPlanId(),
+                planInfoEntity.getPlanInfoId(),
+                planType,
+                triggerType,
+                scheduleOption,
+                dag,
+                latelyTriggerAt,
+                latelyFeedbackAt,
+                planEntity.isEnabled()
+        );
     }
 
 }

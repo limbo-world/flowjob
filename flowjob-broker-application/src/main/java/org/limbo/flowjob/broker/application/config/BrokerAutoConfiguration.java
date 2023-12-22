@@ -21,7 +21,6 @@ package org.limbo.flowjob.broker.application.config;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.application.component.BrokerStarter;
 import org.limbo.flowjob.broker.application.component.DBBrokerRegistry;
 import org.limbo.flowjob.broker.application.component.LocalNodeManger;
@@ -30,6 +29,7 @@ import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
+import org.limbo.flowjob.broker.core.domain.job.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
 import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
@@ -37,12 +37,10 @@ import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.selector.SingletonWorkerStatisticsRepo;
 import org.limbo.flowjob.broker.core.schedule.selector.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.schedule.selector.WorkerStatisticsRepository;
+import org.limbo.flowjob.broker.core.task.JobExecuteCheckTask;
+import org.limbo.flowjob.broker.core.task.JobScheduleCheckTask;
 import org.limbo.flowjob.broker.core.task.PlanLoadTask;
-import org.limbo.flowjob.broker.dao.repositories.AgentSlotEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.BrokerEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.WorkerSlotEntityRepo;
 import org.limbo.flowjob.common.utils.NetUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -89,13 +87,8 @@ public class BrokerAutoConfiguration {
     }
 
     @Bean
-    public NodeManger brokerManger(BrokerSlotManager slotManager) {
-        return new LocalNodeManger(slotManager);
-    }
-
-    @Bean
-    public BrokerSlotManager slotManager(URL brokerUrl, PlanSlotEntityRepo planSlotEntityRepo, WorkerSlotEntityRepo workerSlotEntityRepo, AgentSlotEntityRepo agentSlotEntityRepo) {
-        return new BrokerSlotManager(brokerUrl.getHost(), brokerUrl.getPort(), planSlotEntityRepo, workerSlotEntityRepo, agentSlotEntityRepo);
+    public NodeManger brokerManger() {
+        return new LocalNodeManger();
     }
 
     @Bean
@@ -145,13 +138,29 @@ public class BrokerAutoConfiguration {
 
     @Bean
     public PlanLoadTask planLoadTask(MetaTaskScheduler scheduler,
-                              PlanEntityRepo planEntityRepo,
-                              PlanRepository planRepository,
-                              SchedulerProcessor schedulerProcessor,
-                              BrokerSlotManager slotManager,
-                              @Lazy Broker broker,
-                              NodeManger nodeManger) {
-        return planLoadTask(scheduler, planEntityRepo, planRepository, schedulerProcessor, slotManager, broker, nodeManger);
+                                     PlanRepository planRepository,
+                                     SchedulerProcessor schedulerProcessor,
+                                     @Lazy Broker broker,
+                                     NodeManger nodeManger) {
+        return new PlanLoadTask(scheduler, planRepository, schedulerProcessor, broker, nodeManger);
+    }
+
+    @Bean
+    public JobExecuteCheckTask jobExecuteCheckTask(MetaTaskScheduler metaTaskScheduler,
+                                                   JobInstanceRepository jobInstanceRepository,
+                                                   @Lazy Broker broker,
+                                                   NodeManger nodeManger,
+                                                   SchedulerProcessor schedulerProcessor) {
+        return new JobExecuteCheckTask(metaTaskScheduler, jobInstanceRepository, broker, nodeManger, schedulerProcessor);
+    }
+
+    @Bean
+    public JobScheduleCheckTask jobScheduleCheckTask(MetaTaskScheduler scheduler,
+                                                     @Lazy Broker broker,
+                                                     NodeManger nodeManger,
+                                                     SchedulerProcessor schedulerProcessor,
+                                                     JobInstanceRepository jobInstanceRepository) {
+        return new JobScheduleCheckTask(scheduler, broker, nodeManger, schedulerProcessor, jobInstanceRepository);
     }
 
 }

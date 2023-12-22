@@ -36,6 +36,7 @@ import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.PlanQueryParam;
 import org.limbo.flowjob.api.param.console.PlanVersionParam;
 import org.limbo.flowjob.broker.application.service.PlanService;
+import org.limbo.flowjob.broker.core.domain.plan.Plan;
 import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
 import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
@@ -127,11 +128,10 @@ public class PlanController {
     @Operation(summary = "触发对应plan调度")
     @PostMapping("/api/v1/plan/schedule")
     public ResponseDTO<Void> schedulePlan(@RequestBody PlanScheduleParam param) {
-        Attributes attributes = null;
-        if (MapUtils.isEmpty(param.getAttributes())) {
-            attributes = new Attributes(param.getAttributes());
-        }
-        schedulerProcessor.schedule(param.getPlanId(), TriggerType.API, attributes, TimeUtils.currentLocalDateTime());
+        Plan plan = planRepository.get(param.getPlanId());
+        Attributes attributes = new Attributes();
+        attributes.putAll(param.getAttributes());
+        schedulerProcessor.schedule(plan, TriggerType.API, attributes, TimeUtils.currentLocalDateTime());
         return ResponseDTO.<Void>builder().ok().build();
     }
 

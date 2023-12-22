@@ -34,23 +34,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2022/7/20
  */
 @Slf4j
-// todo
 public class LocalNodeManger implements NodeManger {
 
     private static final Map<String, Node> map = new ConcurrentHashMap<>();
 
-    private BrokerSlotManager slotManager;
-
-    public LocalNodeManger(BrokerSlotManager slotManager) {
-        this.slotManager = slotManager;
-    }
-
     @Override
     public void online(Node node) {
-        Node n = map.putIfAbsent(node.getName(), node);
-        if (n == null) {
-            slotManager.rehash(map.values());
-        }
+        map.putIfAbsent(node.getName(), node);
         if (log.isDebugEnabled()) {
             log.debug("[LocalNodeManger] online {}", JacksonUtils.toJSONString(map));
         }
@@ -58,10 +48,7 @@ public class LocalNodeManger implements NodeManger {
 
     @Override
     public void offline(Node node) {
-        Node rn = map.remove(node.getName());
-        if (rn != null) {
-            slotManager.rehash(map.values());
-        }
+        map.remove(node.getName());
         if (log.isDebugEnabled()) {
             log.debug("[LocalNodeManger] offline {}", JacksonUtils.toJSONString(map));
         }

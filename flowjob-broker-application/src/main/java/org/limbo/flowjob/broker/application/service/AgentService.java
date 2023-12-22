@@ -26,16 +26,13 @@ import org.limbo.flowjob.api.constants.Protocol;
 import org.limbo.flowjob.api.dto.broker.AgentRegisterDTO;
 import org.limbo.flowjob.api.param.broker.AgentHeartbeatParam;
 import org.limbo.flowjob.api.param.broker.AgentRegisterParam;
-import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.application.converter.BrokerConverter;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.AgentEntity;
-import org.limbo.flowjob.broker.dao.entity.AgentSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.AgentEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.AgentSlotEntityRepo;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Service;
 
@@ -60,12 +57,6 @@ public class AgentService {
 
     @Setter(onMethod_ = @Inject)
     private NodeManger nodeManger;
-
-    @Setter(onMethod_ = @Inject)
-    private AgentSlotEntityRepo agentSlotEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private BrokerSlotManager slotManager;
 
     /**
      * 注册
@@ -93,15 +84,6 @@ public class AgentService {
         agentEntityRepo.saveAndFlush(agent);
 
         log.info("agent registered " + agent);
-
-        // 槽位保存
-        if (agentSlotEntityRepo.findByAgentId(agent.getAgentId()) == null) {
-            AgentSlotEntity slotEntity = new AgentSlotEntity();
-            slotEntity.setSlot(slotManager.slot(agent.getAgentId()));
-            slotEntity.setAgentId(agent.getAgentId());
-            agentSlotEntityRepo.saveAndFlush(slotEntity);
-        }
-
         return toDTO(agent.getAgentId());
     }
 

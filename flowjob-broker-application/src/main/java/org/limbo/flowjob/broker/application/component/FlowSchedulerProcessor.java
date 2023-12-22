@@ -62,10 +62,10 @@ public class FlowSchedulerProcessor extends SchedulerProcessor {
     }
 
     @Override
-    public List<JobInstance> schedulePlan(String planId, TriggerType triggerType, Attributes planAttributes, LocalDateTime triggerAt) {
+    public List<JobInstance> schedulePlan(Plan plan, TriggerType triggerType, Attributes planAttributes, LocalDateTime triggerAt) {
         TransactionStatus transaction = platformTransactionManager.getTransaction(new DefaultTransactionDefinition());
         try {
-            List<JobInstance> result = super.schedulePlan(planId, triggerType, planAttributes, triggerAt);
+            List<JobInstance> result = super.schedulePlan(plan, triggerType, planAttributes, triggerAt);
             platformTransactionManager.commit(transaction);
             return result;
         } catch (Exception e) {

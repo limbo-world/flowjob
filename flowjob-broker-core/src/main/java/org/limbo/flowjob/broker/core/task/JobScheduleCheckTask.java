@@ -20,8 +20,6 @@ package org.limbo.flowjob.broker.core.task;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.api.constants.JobStatus;
-import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.domain.job.JobInstance;
@@ -29,11 +27,7 @@ import org.limbo.flowjob.broker.core.domain.job.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
-import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -43,17 +37,11 @@ import java.util.List;
  * 处理长时间还在调度中，未进行下发的 JobInstance
  */
 @Slf4j
-@Component
-// todo
 public class JobScheduleCheckTask extends FixDelayMetaTask {
 
     private final Broker broker;
 
     private final NodeManger nodeManger;
-
-    private final JobInstanceEntityRepo jobInstanceEntityRepo;
-
-    private final BrokerSlotManager slotManager;
 
     private final SchedulerProcessor schedulerProcessor;
 
@@ -62,19 +50,15 @@ public class JobScheduleCheckTask extends FixDelayMetaTask {
     private static final long INTERVAL = 10;
 
     public JobScheduleCheckTask(MetaTaskScheduler scheduler,
-                                @Lazy Broker broker,
+                                Broker broker,
                                 NodeManger nodeManger,
                                 SchedulerProcessor schedulerProcessor,
-                                JobInstanceRepository jobInstanceRepository,
-                                JobInstanceEntityRepo jobInstanceEntityRepo,
-                                BrokerSlotManager slotManager) {
+                                JobInstanceRepository jobInstanceRepository) {
         super(Duration.ofSeconds(INTERVAL), scheduler);
         this.broker = broker;
         this.nodeManger = nodeManger;
         this.schedulerProcessor = schedulerProcessor;
         this.jobInstanceRepository = jobInstanceRepository;
-        this.jobInstanceEntityRepo = jobInstanceEntityRepo;
-        this.slotManager = slotManager;
     }
 
     @Override
@@ -85,28 +69,22 @@ public class JobScheduleCheckTask extends FixDelayMetaTask {
                 return;
             }
 
-            List<String> planIds = slotManager.planIds();
-            if (CollectionUtils.isEmpty(planIds)) {
-                return;
-            }
-
             // 一段时候后还是 还是 SCHEDULING 状态的，需要重新调度
             Integer limit = 100;
             String startId = "";
             LocalDateTime currentTime = TimeUtils.currentLocalDateTime();
 
-            List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findInSchedule(planIds, currentTime.plusSeconds(-INTERVAL), currentTime, JobStatus.SCHEDULING.status, startId, limit);
-            while (CollectionUtils.isNotEmpty(jobInstanceEntities)) {
-                for (JobInstanceEntity entity : jobInstanceEntities) {
-                    JobInstance jobInstance = jobInstanceRepository.get(entity.getJobInstanceId());
+            List<JobInstance> jobInstances = jobInstanceRepository.findInSchedule(broker.getRpcBaseURL(), currentTime.plusSeconds(-INTERVAL), currentTime, startId, limit);
+            while (CollectionUtils.isNotEmpty(jobInstances)) {
+                for (JobInstance jobInstance : jobInstances) {
                     try {
                         schedulerProcessor.schedule(jobInstance);
                     } catch (Exception e) {
                         log.error("jobInstance {} schedule fail", jobInstance.getJobInstanceId(), e);
                     }
                 }
-                startId = jobInstanceEntities.get(jobInstanceEntities.size() - 1).getJobInstanceId();
-                jobInstanceEntities = jobInstanceEntityRepo.findInSchedule(planIds, currentTime.plusSeconds(-INTERVAL), currentTime, JobStatus.SCHEDULING.status, startId, limit);
+                startId = jobInstances.get(jobInstances.size() - 1).getJobInstanceId();
+                jobInstances = jobInstanceRepository.findInSchedule(broker.getRpcBaseURL(), currentTime.plusSeconds(-INTERVAL), currentTime, startId, limit);
             }
         } catch (Exception e) {
             log.error("{} execute fail", scheduleId(), e);

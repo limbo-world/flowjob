@@ -43,6 +43,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -120,6 +121,20 @@ public class JobInstanceRepo implements JobInstanceRepository {
         } else {
             return getByEntity(entity);
         }
+    }
+
+    @Override
+    public List<JobInstance> findByExecuteCheck(URL brokerUrl, LocalDateTime lastReportAtStart, LocalDateTime lastReportAtEnd, String startId, Integer limit) {
+        List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findByExecuteCheck(brokerUrl.toString(), lastReportAtStart, lastReportAtEnd, startId, limit);
+        // todo
+        return null;
+    }
+
+    @Override
+    public List<JobInstance> findInSchedule(URL brokerUrl, LocalDateTime lastReportAt, LocalDateTime triggerAt, String startId, Integer limit) {
+        List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findInSchedule(brokerUrl.toString(), lastReportAt, triggerAt, startId, limit);
+        // todo
+        return null;
     }
 
     private JobInstance getByEntity(JobInstanceEntity entity) {

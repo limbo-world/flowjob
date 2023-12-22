@@ -34,10 +34,8 @@ import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.PlanQueryParam;
 import org.limbo.flowjob.api.param.console.PlanVersionParam;
 import org.limbo.flowjob.api.param.console.ScheduleOptionParam;
-import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.application.converter.PlanConverter;
 import org.limbo.flowjob.broker.application.converter.PlanParamConverter;
-import org.limbo.flowjob.broker.dao.support.JpaHelper;
 import org.limbo.flowjob.broker.core.domain.IDGenerator;
 import org.limbo.flowjob.broker.core.domain.IDType;
 import org.limbo.flowjob.broker.core.domain.job.JobInfo;
@@ -46,10 +44,9 @@ import org.limbo.flowjob.broker.core.schedule.calculator.CronScheduleCalculator;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
-import org.limbo.flowjob.broker.dao.entity.PlanSlotEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
+import org.limbo.flowjob.broker.dao.support.JpaHelper;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -79,16 +76,10 @@ public class PlanService {
     private PlanEntityRepo planEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private PlanSlotEntityRepo planSlotEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
     private PlanInfoEntityRepo planInfoEntityRepo;
 
     @Setter(onMethod_ = @Inject)
     private IDGenerator idGenerator;
-
-    @Setter(onMethod_ = @Inject)
-    private BrokerSlotManager slotManager;
 
     @Setter(onMethod_ = @Inject)
     private PlanParamConverter factory;
@@ -140,12 +131,6 @@ public class PlanService {
             planEntity.setName(param.getName());
 
             planEntity = planEntityRepo.saveAndFlush(planEntity);
-
-            // 槽位保存
-            PlanSlotEntity planSlotEntity = new PlanSlotEntity();
-            planSlotEntity.setSlot(slotManager.slot(planEntity.getPlanId()));
-            planSlotEntity.setPlanId(planEntity.getPlanId());
-            planSlotEntityRepo.saveAndFlush(planSlotEntity);
         } else {
             // update
             PlanEntity planEntity = planEntityRepo.findById(planId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN + planId));

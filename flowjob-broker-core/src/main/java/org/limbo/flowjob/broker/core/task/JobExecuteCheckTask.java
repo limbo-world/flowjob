@@ -21,23 +21,19 @@ package org.limbo.flowjob.broker.core.task;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.ExecuteResult;
-import org.limbo.flowjob.api.constants.JobStatus;
 import org.limbo.flowjob.api.param.broker.JobFeedbackParam;
-import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
+import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.core.domain.job.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
-import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.limbo.flowjob.common.constants.JobConstant;
 import org.limbo.flowjob.common.thread.CommonThreadPool;
 import org.limbo.flowjob.common.utils.time.DateTimeUtils;
 import org.limbo.flowjob.common.utils.time.Formatters;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -52,13 +48,9 @@ import java.util.List;
  * 3. agent完成job调用broker的接口失败
  */
 @Slf4j
-@Component
-// todo
 public class JobExecuteCheckTask extends FixDelayMetaTask {
 
-    private final JobInstanceEntityRepo jobInstanceEntityRepo;
-
-    private final BrokerSlotManager slotManager;
+    private final JobInstanceRepository jobInstanceRepository;
 
     private final Broker broker;
 
@@ -72,14 +64,12 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
     private LocalDateTime lastCheckTime = DateTimeUtils.parse("2000-01-01 00:00:00", Formatters.YMD_HMS);
 
     public JobExecuteCheckTask(MetaTaskScheduler metaTaskScheduler,
-                               JobInstanceEntityRepo jobInstanceEntityRepo,
-                               BrokerSlotManager slotManager,
-                               @Lazy Broker broker,
+                               JobInstanceRepository jobInstanceRepository,
+                               Broker broker,
                                NodeManger nodeManger,
                                SchedulerProcessor schedulerProcessor) {
         super(Duration.ofSeconds(5), metaTaskScheduler);
-        this.jobInstanceEntityRepo = jobInstanceEntityRepo;
-        this.slotManager = slotManager;
+        this.jobInstanceRepository = jobInstanceRepository;
         this.broker = broker;
         this.nodeManger = nodeManger;
         this.schedulerProcessor = schedulerProcessor;
@@ -93,19 +83,14 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
                 return;
             }
 
-            List<String> planIds = slotManager.planIds();
-            if (CollectionUtils.isEmpty(planIds)) {
-                return;
-            }
-
             LocalDateTime checkStartTime = lastCheckTime.plusSeconds(-1);
             LocalDateTime checkEndTime = TimeUtils.currentLocalDateTime().plus(-(JobConstant.JOB_REPORT_SECONDS + 5), ChronoUnit.SECONDS);
 
             Integer limit = 100;
             String startId = "";
-            List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findByExecuteCheck(planIds, JobStatus.EXECUTING.status, checkStartTime, checkEndTime, startId, limit);
-            while (CollectionUtils.isNotEmpty(jobInstanceEntities)) {
-                for (JobInstanceEntity instance : jobInstanceEntities) {
+            List<JobInstance> jobInstances = jobInstanceRepository.findByExecuteCheck(broker.getRpcBaseURL(), checkStartTime, checkEndTime, startId, limit);
+            while (CollectionUtils.isNotEmpty(jobInstances)) {
+                for (JobInstance instance : jobInstances) {
                     CommonThreadPool.IO.submit(() -> {
                         try {
                             JobFeedbackParam param = JobFeedbackParam.builder()
@@ -118,8 +103,8 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
                         }
                     });
                 }
-                startId = jobInstanceEntities.get(jobInstanceEntities.size() - 1).getJobInstanceId();
-                jobInstanceEntities = jobInstanceEntityRepo.findByExecuteCheck(planIds, JobStatus.EXECUTING.status, checkStartTime, checkEndTime, startId, limit);
+                startId = jobInstances.get(jobInstances.size() - 1).getJobInstanceId();
+                jobInstances = jobInstanceRepository.findByExecuteCheck(broker.getRpcBaseURL(), checkStartTime, checkEndTime, startId, limit);
             }
             lastCheckTime = checkEndTime;
         } catch (Exception e) {

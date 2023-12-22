@@ -21,10 +21,12 @@ package org.limbo.flowjob.common.utils.attribute;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -102,6 +104,14 @@ public class Attributes implements Serializable {
         attributes.putIfAbsent(key, value);
     }
 
+    public void putAll(Map<String, Object> map) {
+        if (MapUtils.isEmpty(map)) {
+            return;
+        }
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            attributes.putIfAbsent(entry.getKey(), entry.getValue());
+        }
+    }
 
 
     @Override
