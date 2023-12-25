@@ -16,13 +16,13 @@
  *
  */
 
-package org.limbo.flowjob.broker.dao.domain;
+package org.limbo.flowjob.broker.dao.repositories;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.broker.core.domain.IDGenerator;
+import org.limbo.flowjob.broker.core.context.IDGenerator;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.WorkerRepository;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
@@ -31,10 +31,6 @@ import org.limbo.flowjob.broker.dao.entity.WorkerEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerExecutorEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
-import org.limbo.flowjob.broker.dao.repositories.WorkerEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.WorkerExecutorEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.WorkerMetricEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.WorkerTagEntityRepo;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;

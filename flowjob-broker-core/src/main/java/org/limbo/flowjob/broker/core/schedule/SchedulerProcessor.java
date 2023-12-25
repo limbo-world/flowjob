@@ -32,16 +32,16 @@ import org.limbo.flowjob.api.constants.rpc.HttpAgentApi;
 import org.limbo.flowjob.api.param.broker.JobFeedbackParam;
 import org.limbo.flowjob.broker.core.agent.AgentRegistry;
 import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
-import org.limbo.flowjob.broker.core.domain.IDGenerator;
-import org.limbo.flowjob.broker.core.domain.IDType;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
-import org.limbo.flowjob.broker.core.domain.job.JobInstanceRepository;
-import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
-import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.domain.plan.PlanInstanceRepository;
-import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
+import org.limbo.flowjob.broker.core.context.IDGenerator;
+import org.limbo.flowjob.broker.core.context.IDType;
+import org.limbo.flowjob.broker.core.context.job.JobInfo;
+import org.limbo.flowjob.broker.core.context.job.JobInstance;
+import org.limbo.flowjob.broker.core.context.job.JobInstanceRepository;
+import org.limbo.flowjob.broker.core.context.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.context.plan.Plan;
+import org.limbo.flowjob.broker.core.context.plan.PlanInstance;
+import org.limbo.flowjob.broker.core.context.plan.PlanInstanceRepository;
+import org.limbo.flowjob.broker.core.context.plan.PlanRepository;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.task.PlanScheduleTask;
@@ -239,18 +239,18 @@ public class SchedulerProcessor {
         if (agent == null) {
             // 状态检测的时候自动重试
             if (log.isDebugEnabled()) {
-                log.debug("No alive server for job={}", jobInstance.getJobInstanceId());
+                log.debug("No alive server for job={}", jobInstance.getId());
             }
             return;
         }
 
         // rpc 执行
         try {
-            log.info("Try dispatch JobInstance id={} to agent={}", jobInstance.getJobInstanceId(), agent.getId());
+            log.info("Try dispatch JobInstance id={} to agent={}", jobInstance.getId(), agent.getId());
             boolean dispatched = agent.dispatch(jobInstance); // 可能存在接口超时导致重复下发，HttpBrokerApi.API_JOB_EXECUTING 由对应接口处理
-            log.info("Dispatch JobInstance id={} to agent={} success={}", jobInstance.getJobInstanceId(), agent.getId(), dispatched);
+            log.info("Dispatch JobInstance id={} to agent={} success={}", jobInstance.getId(), agent.getId(), dispatched);
         } catch (Exception e) {
-            log.error("Dispatch JobInstance id={} to agent={} fail", jobInstance.getJobInstanceId(), agent.getId(), e);
+            log.error("Dispatch JobInstance id={} to agent={} fail", jobInstance.getId(), agent.getId(), e);
         }
     }
 
@@ -310,7 +310,7 @@ public class SchedulerProcessor {
      * 处理某个job实例执行成功
      */
     public List<JobInstance> handleJobSuccess(JobInstance jobInstance) {
-        if (!jobInstanceRepository.success(jobInstance.getJobInstanceId(), TimeUtils.currentLocalDateTime(), jobInstance.getContext().toString())) {
+        if (!jobInstanceRepository.success(jobInstance.getId(), TimeUtils.currentLocalDateTime(), jobInstance.getContext().toString())) {
             return Collections.emptyList(); // 被其他更新
         }
 
@@ -363,7 +363,7 @@ public class SchedulerProcessor {
     public List<JobInstance> handleJobFail(JobInstance jobInstance, String errorMsg) {
         LocalDateTime current = TimeUtils.currentLocalDateTime();
         LocalDateTime startAt = jobInstance.getStartAt() == null ? current : jobInstance.getStartAt();
-        if (!jobInstanceRepository.fail(jobInstance.getJobInstanceId(), jobInstance.getStatus().status, startAt, current, errorMsg)) {
+        if (!jobInstanceRepository.fail(jobInstance.getId(), jobInstance.getStatus().status, startAt, current, errorMsg)) {
             return Collections.emptyList(); // 可能被其他的task处理了
         }
 
@@ -476,7 +476,7 @@ public class SchedulerProcessor {
                                           Attributes context, JobInfo jobInfo, LocalDateTime triggerAt) {
         String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
         JobInstance instance = new JobInstance();
-        instance.setJobInstanceId(jobInstanceId);
+        instance.setId(jobInstanceId);
         instance.setAgentId("");
         instance.setJobInfo(jobInfo);
         instance.setPlanType(planType);

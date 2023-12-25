@@ -41,6 +41,13 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, String>, JpaSp
     @Query(value = "select * from flowjob_plan where plan_id in :planIds and is_enabled = true and is_deleted = false", nativeQuery = true)
     List<PlanEntity> loadPlans(@Param("planIds") List<String> planIds);
 
+    @Query(value = "select * from flowjob_plan where broker_url = :brokerUrl and is_enabled = true and is_deleted = false limit 1 ", nativeQuery = true)
+    PlanEntity findOneByBrokerUrl(@Param("brokerUrl") String brokerUrl);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "update PlanEntity set brokerUrl = :newBrokerUrl where planId = :planId and brokerUrl = :oldBrokerUrl ")
+    int updateBroker(@Param("planId") String planId, @Param("oldBrokerUrl") String oldBrokerUrl, @Param("newBrokerUrl") String newBrokerUrl);
+
     /**
      * 修改过的plan
      */
@@ -49,13 +56,14 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, String>, JpaSp
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanEntity set currentVersion = :newCurrentVersion, recentlyVersion = :newRecentlyVersion, name = :name" +
-            " where planId = :planId and currentVersion = :currentVersion and recentlyVersion = :recentlyVersion")
+            " where planId = :planId and currentVersion = :currentVersion and recentlyVersion = :recentlyVersion and brokerUrl = :brokerUrl ")
     int updateVersion(@Param("newCurrentVersion") String newCurrentVersion,
                       @Param("newRecentlyVersion") String newRecentlyVersion,
                       @Param("name") String name,
                       @Param("planId") String planId,
                       @Param("currentVersion") String currentVersion,
-                      @Param("recentlyVersion") String recentlyVersion);
+                      @Param("recentlyVersion") String recentlyVersion,
+                      @Param("brokerUrl") String brokerUrl);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanEntity set currentVersion = :newCurrentVersion where planId = :planId and currentVersion = :currentVersion ")
@@ -64,8 +72,11 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, String>, JpaSp
                       @Param("currentVersion") String currentVersion);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanEntity set enabled = :newValue where planId = :planId and enabled = :oldValue")
-    int updateEnable(@Param("planId") String planId, @Param("oldValue") boolean oldValue, @Param("newValue") boolean newValue);
+    @Query(value = "update PlanEntity set enabled = :newValue where planId = :planId and enabled = :oldValue and brokerUrl = :brokerUrl ")
+    int updateEnable(@Param("planId") String planId,
+                     @Param("oldValue") boolean oldValue,
+                     @Param("newValue") boolean newValue,
+                     @Param("brokerUrl") String brokerUrl);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update flowjob_plan set updated_at = :updatedAt where plan_id = :planId and is_enabled = true and is_deleted = false", nativeQuery = true)

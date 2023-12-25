@@ -23,7 +23,7 @@ import org.limbo.flowjob.api.param.console.DispatchOptionParam;
 import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.RetryOptionParam;
 import org.limbo.flowjob.api.param.console.TagFilterParam;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.context.job.JobInfo;
 import org.limbo.flowjob.broker.core.worker.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.worker.dispatch.RetryOption;
 import org.limbo.flowjob.broker.core.worker.dispatch.TagFilterOption;

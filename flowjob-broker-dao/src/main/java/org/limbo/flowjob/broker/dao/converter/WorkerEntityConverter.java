@@ -21,8 +21,8 @@ import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.limbo.flowjob.api.constants.WorkerStatus;
-import org.limbo.flowjob.broker.core.domain.IDGenerator;
-import org.limbo.flowjob.broker.core.domain.IDType;
+import org.limbo.flowjob.broker.core.context.IDGenerator;
+import org.limbo.flowjob.broker.core.context.IDType;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
@@ -63,6 +63,7 @@ public class WorkerEntityConverter {
                 .id(po.getWorkerId())
                 .name(po.getName())
                 .url(workerRpcBaseUrl(po))
+                .brokerUrl(DomainConverter.brokerUrl(po.getBrokerUrl()))
                 .status(WorkerStatus.parse(po.getStatus()))
                 .enabled(po.isEnabled())
                 .tags(toTags(tags))
@@ -83,7 +84,6 @@ public class WorkerEntityConverter {
         }
     }
 
-
     /**
      * 将领域对象{@link Worker}转换为持久化对象{@link WorkerEntity}
      *
@@ -97,6 +97,7 @@ public class WorkerEntityConverter {
         po.setProtocol(worker.getUrl().getProtocol());
         po.setHost(worker.getUrl().getHost());
         po.setPort(worker.getUrl().getPort());
+        po.setBrokerUrl(worker.getBrokerUrl().toString());
         po.setStatus(worker.getStatus().status);
         po.setAppId("");
         po.setEnabled(true);

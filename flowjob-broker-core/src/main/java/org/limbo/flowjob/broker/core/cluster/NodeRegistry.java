@@ -18,6 +18,8 @@
 
 package org.limbo.flowjob.broker.core.cluster;
 
+import java.net.URL;
+
 /**
  * @author Devil
  * @since 2022/7/15
@@ -27,7 +29,7 @@ public interface NodeRegistry {
     /**
      * 注册broker
      */
-    void register(String name, String host, int port);
+    void register(String name, URL url);
 
     /**
      * 订阅监听

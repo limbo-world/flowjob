@@ -16,25 +16,22 @@
  *
  */
 
-package org.limbo.flowjob.broker.dao.domain;
+package org.limbo.flowjob.broker.dao.repositories;
 
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.JobStatus;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.PlanType;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
-import org.limbo.flowjob.broker.core.domain.job.JobInstanceRepository;
-import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.context.job.JobInfo;
+import org.limbo.flowjob.broker.core.context.job.JobInstance;
+import org.limbo.flowjob.broker.core.context.job.JobInstanceRepository;
+import org.limbo.flowjob.broker.core.context.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
-import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -45,7 +42,10 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -126,21 +126,46 @@ public class JobInstanceRepo implements JobInstanceRepository {
     @Override
     public List<JobInstance> findByExecuteCheck(URL brokerUrl, LocalDateTime lastReportAtStart, LocalDateTime lastReportAtEnd, String startId, Integer limit) {
         List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findByExecuteCheck(brokerUrl.toString(), lastReportAtStart, lastReportAtEnd, startId, limit);
-        // todo
-        return null;
+        if (CollectionUtils.isEmpty(jobInstanceEntities)) {
+            return Collections.emptyList();
+        }
+        return getByEntities(jobInstanceEntities);
     }
 
     @Override
     public List<JobInstance> findInSchedule(URL brokerUrl, LocalDateTime lastReportAt, LocalDateTime triggerAt, String startId, Integer limit) {
         List<JobInstanceEntity> jobInstanceEntities = jobInstanceEntityRepo.findInSchedule(brokerUrl.toString(), lastReportAt, triggerAt, startId, limit);
-        // todo
-        return null;
+        if (CollectionUtils.isEmpty(jobInstanceEntities)) {
+            return Collections.emptyList();
+        }
+        return getByEntities(jobInstanceEntities);
+    }
+
+    @Override
+    public JobInstance getIdByBroker(URL brokerUrl) {
+        JobInstanceEntity entity = jobInstanceEntityRepo.findOneByBrokerUrl(brokerUrl.toString());
+        return getByEntity(entity);
+    }
+
+    @Override
+    public boolean updateBroker(JobInstance instance, URL brokerUrl) {
+        return jobInstanceEntityRepo.updateBroker(instance.getId(), instance.getBrokerUrl().toString(), brokerUrl.toString()) > 0;
     }
 
     private JobInstance getByEntity(JobInstanceEntity entity) {
         PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getPlanInfoId())
                 .orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INSTANCE + entity.getPlanId()));
+        return assemble(entity, planInfoEntity);
+    }
 
+    private List<JobInstance> getByEntities(List<JobInstanceEntity> entities) {
+        Set<String> planInfoIds = entities.stream().map(JobInstanceEntity::getPlanInfoId).collect(Collectors.toSet());
+        List<PlanInfoEntity> planInfoEntities = planInfoEntityRepo.findAllById(planInfoIds);
+        Map<String, PlanInfoEntity> planInfoEntityMap = planInfoEntities.stream().collect(Collectors.toMap(PlanInfoEntity::getPlanInfoId, e -> e));
+        return entities.stream().map(e -> assemble(e, planInfoEntityMap.get(e.getPlanInfoId()))).collect(Collectors.toList());
+    }
+
+    private JobInstance assemble(JobInstanceEntity entity, PlanInfoEntity planInfoEntity) {
         JobInstance jobInstance = new JobInstance();
         PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
         JobInfo jobInfo;
@@ -161,6 +186,7 @@ public class JobInstanceRepo implements JobInstanceRepository {
         jobInstance.setRetryTimes(entity.getRetryTimes());
         jobInstance.setPlanInstanceId(entity.getPlanInstanceId());
         jobInstance.setPlanVersion(entity.getPlanInfoId());
+        jobInstance.setBrokerUrl(DomainConverter.brokerUrl(entity.getBrokerUrl()));
         jobInstance.setStatus(JobStatus.SCHEDULING);
         jobInstance.setTriggerAt(entity.getTriggerAt());
         jobInstance.setContext(new Attributes(entity.getContext()));
@@ -170,10 +196,11 @@ public class JobInstanceRepo implements JobInstanceRepository {
         attributes.put(jobInfo.getAttributes());
         jobInstance.setAttributes(attributes);
 
-        jobInstance.setJobInstanceId(entity.getJobInstanceId());
+        jobInstance.setId(entity.getJobInstanceId());
         jobInstance.setStatus(JobStatus.parse(entity.getStatus()));
         jobInstance.setStartAt(entity.getStartAt());
         jobInstance.setEndAt(entity.getEndAt());
         return jobInstance;
     }
+
 }

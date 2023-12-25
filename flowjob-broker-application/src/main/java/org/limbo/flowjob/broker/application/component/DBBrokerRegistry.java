@@ -23,14 +23,15 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.NodeEvent;
 import org.limbo.flowjob.broker.core.cluster.NodeListener;
 import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
-import org.limbo.flowjob.broker.core.domain.IDGenerator;
-import org.limbo.flowjob.broker.core.domain.IDType;
+import org.limbo.flowjob.broker.core.context.IDGenerator;
+import org.limbo.flowjob.broker.core.context.IDType;
 import org.limbo.flowjob.broker.dao.entity.BrokerEntity;
 import org.limbo.flowjob.broker.dao.repositories.BrokerEntityRepo;
 import org.limbo.flowjob.common.utils.time.Formatters;
 import org.limbo.flowjob.common.utils.time.TimeFormateUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
+import java.net.URL;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -47,9 +48,9 @@ import java.util.TimerTask;
 @Slf4j
 public class DBBrokerRegistry implements NodeRegistry {
 
-    private BrokerEntityRepo brokerEntityRepo;
+    private final BrokerEntityRepo brokerEntityRepo;
 
-    private IDGenerator idGenerator;
+    private final IDGenerator idGenerator;
 
     /**
      * 心跳超时时间，毫秒
@@ -72,9 +73,9 @@ public class DBBrokerRegistry implements NodeRegistry {
     private final List<NodeListener> listeners = new ArrayList<>();
 
     @Override
-    public void register(String name, String host, int port) {
+    public void register(String name, URL url) {
         // 开启定时任务 维持心跳
-        new Timer().schedule(new HeartbeatTask(name, host, port), 0, heartbeatInterval.toMillis());
+        new Timer().schedule(new HeartbeatTask(name, url), 0, heartbeatInterval.toMillis());
 
         // 开启定时任务，监听broker心跳情况
         new Timer().schedule(new NodeOnlineCheckTask(), 0, heartbeatTimeout.toMillis());
@@ -92,19 +93,20 @@ public class DBBrokerRegistry implements NodeRegistry {
     private class HeartbeatTask extends TimerTask {
         private static final String TASK_NAME = "[HeartbeatTask]";
         private final String name;
-        private final String host;
-        private final Integer port;
+        private final URL url;
 
-        public HeartbeatTask(String name, String host, Integer port) {
+        public HeartbeatTask(String name, URL url) {
             this.name = name;
-            this.host = host;
-            this.port = port;
+            this.url = url;
         }
 
         @Override
         public void run() {
             try {
-                BrokerEntity broker = brokerEntityRepo.findByHostAndPort(host, port);
+                String protocol = url.getProtocol();
+                String host = url.getHost();
+                Integer port = url.getPort();
+                BrokerEntity broker = brokerEntityRepo.findByProtocolAndHostAndPort(protocol, host, port);
                 LocalDateTime now = TimeUtils.currentLocalDateTime();
                 if (broker == null) {
                     broker = new BrokerEntity();
@@ -114,6 +116,7 @@ public class DBBrokerRegistry implements NodeRegistry {
                     broker.setOnlineTime(now);
                 }
                 broker.setName(name);
+                broker.setProtocol(protocol);
                 broker.setHost(host);
                 broker.setPort(port);
                 broker.setLastHeartbeat(now);
@@ -149,7 +152,7 @@ public class DBBrokerRegistry implements NodeRegistry {
                             log.debug("{} find online broker name: {}, host: {}, port: {} lastHeartbeat:{}", TASK_NAME, broker.getName(), broker.getHost(), broker.getPort(), TimeFormateUtils.format(broker.getLastHeartbeat(), Formatters.YMD_HMS));
                         }
                         for (NodeListener listener : listeners) {
-                            listener.event(new NodeEvent(NodeEvent.Type.ONLINE, broker.getName(), broker.getHost(), broker.getPort()));
+                            listener.event(new NodeEvent(NodeEvent.Type.ONLINE, broker.getName(), url(broker)));
                         }
                     }
                 }
@@ -159,6 +162,14 @@ public class DBBrokerRegistry implements NodeRegistry {
             }
         }
 
+    }
+
+    public static URL url(BrokerEntity po) {
+        try {
+            return new URL(po.getProtocol(), po.getHost(), po.getPort(), "");
+        } catch (Exception e) {
+            throw new IllegalStateException("parse worker rpc info error", e);
+        }
     }
 
     private class NodeOfflineCheckTask extends TimerTask {
@@ -182,7 +193,7 @@ public class DBBrokerRegistry implements NodeRegistry {
                             log.debug("{} find offline broker name: {}, host: {}, port: {} lastHeartbeat:{}", TASK_NAME, broker.getName(), broker.getHost(), broker.getPort(), TimeFormateUtils.format(broker.getLastHeartbeat(), Formatters.YMD_HMS));
                         }
                         for (NodeListener listener : listeners) {
-                            listener.event(new NodeEvent(NodeEvent.Type.OFFLINE, broker.getName(), broker.getHost(), broker.getPort()));
+                            listener.event(new NodeEvent(NodeEvent.Type.OFFLINE, broker.getName(), url(broker)));
                         }
                     }
                 }

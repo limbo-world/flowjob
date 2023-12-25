@@ -19,7 +19,7 @@ package org.limbo.flowjob.broker.core.agent.rpc;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.console.TaskDTO;
 import org.limbo.flowjob.api.param.console.TaskQueryParam;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.core.context.job.JobInstance;
 import org.limbo.flowjob.broker.core.rpc.IRpc;
 
 /**

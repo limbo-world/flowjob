@@ -16,79 +16,88 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.domain.plan;
+package org.limbo.flowjob.broker.core.context.plan;
 
-import lombok.Data;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.cluster.Broker;
+import org.limbo.flowjob.broker.core.context.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
-import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 
 import java.io.Serializable;
+import java.net.URL;
 import java.time.LocalDateTime;
 
 /**
- * @author Devil
- * @since 2023/12/13
+ * 执行计划。一个计划{@link Plan}对应至少一个作业{@link WorkflowJobInfo}
+ * 主要是对plan的管理
+ *
+ * @author Brozen
+ * @since 2021-07-12
  */
-@Data
-public class PlanInstance implements Serializable {
+@Getter
+@Setter(AccessLevel.NONE)
+@ToString
+@Builder(builderClassName = "Builder")
+public class Plan implements Serializable {
 
-    private static final long serialVersionUID = -7477209105170967854L;
-
-    private String id;
+    private static final long serialVersionUID = 5657376836197403211L;
 
     /**
      * 作业执行计划ID
      */
-    private String planId;
+    private final String id;
 
     /**
      * 版本
      */
-    private String version;
+    private final String version;
 
     /**
      * 类型
      */
-    private PlanType type;
+    private final PlanType type;
 
     /**
      * 触发类型
      */
-    private TriggerType triggerType;
+    private final TriggerType triggerType;
 
     /**
      * 作业计划调度配置参数
      */
-    private ScheduleOption scheduleOption;
+    private final ScheduleOption scheduleOption;
 
     /**
      * 作业计划对应的Job，以DAG数据结构组织
      */
-    private DAG<WorkflowJobInfo> dag;
-
-    private Integer status;
+    private final DAG<WorkflowJobInfo> dag;
 
     /**
-     * 属性
+     * 上次触发时间
      */
-    private Attributes attributes;
+    private final LocalDateTime latelyTriggerAt;
 
     /**
-     * 期望的调度触发时间
+     * 上次回调时间
      */
-    private LocalDateTime triggerAt;
+    private final LocalDateTime latelyFeedbackAt;
 
     /**
-     * 执行开始时间
+     * 对应的broker
      */
-    private LocalDateTime startAt;
+    private final URL brokerUrl;
 
     /**
-     * 执行结束时间
+     * 是否启用
      */
-    private LocalDateTime feedbackAt;
+    private final boolean enabled;
+
+
 }

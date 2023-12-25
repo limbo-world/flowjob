@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.domain;
+package org.limbo.flowjob.broker.core.context;
 
 /**
  * @author Devil

@@ -22,8 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
-import org.limbo.flowjob.broker.core.domain.job.JobInstanceRepository;
+import org.limbo.flowjob.broker.core.context.job.JobInstance;
+import org.limbo.flowjob.broker.core.context.job.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
@@ -65,7 +65,7 @@ public class JobScheduleCheckTask extends FixDelayMetaTask {
     protected void executeTask() {
         try {
             // 判断自己是否存在 --- 可能由于心跳异常导致不存活
-            if (!nodeManger.alive(broker.getName())) {
+            if (!nodeManger.alive(broker.getRpcBaseURL().toString())) {
                 return;
             }
 
@@ -80,10 +80,10 @@ public class JobScheduleCheckTask extends FixDelayMetaTask {
                     try {
                         schedulerProcessor.schedule(jobInstance);
                     } catch (Exception e) {
-                        log.error("jobInstance {} schedule fail", jobInstance.getJobInstanceId(), e);
+                        log.error("jobInstance {} schedule fail", jobInstance.getId(), e);
                     }
                 }
-                startId = jobInstances.get(jobInstances.size() - 1).getJobInstanceId();
+                startId = jobInstances.get(jobInstances.size() - 1).getId();
                 jobInstances = jobInstanceRepository.findInSchedule(broker.getRpcBaseURL(), currentTime.plusSeconds(-INTERVAL), currentTime, startId, limit);
             }
         } catch (Exception e) {

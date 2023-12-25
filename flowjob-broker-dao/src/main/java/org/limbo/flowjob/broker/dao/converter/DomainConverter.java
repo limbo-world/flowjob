@@ -23,9 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.constants.AgentStatus;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
-import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.context.job.JobInfo;
+import org.limbo.flowjob.broker.core.context.job.JobInstance;
+import org.limbo.flowjob.broker.core.context.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.dao.entity.AgentEntity;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
@@ -73,8 +73,9 @@ public class DomainConverter {
         JobInfo jobInfo = jobInstance.getJobInfo();
         JobInstanceEntity entity = new JobInstanceEntity();
         entity.setJobId(jobInfo.getId());
-        entity.setJobInstanceId(jobInstance.getJobInstanceId());
+        entity.setJobInstanceId(jobInstance.getId());
         entity.setAgentId(jobInstance.getAgentId());
+        entity.setBrokerUrl(jobInstance.getBrokerUrl().toString());
         entity.setRetryTimes(jobInstance.getRetryTimes());
         entity.setPlanInstanceId(jobInstance.getPlanInstanceId());
         entity.setPlanId(jobInstance.getPlanId());
@@ -103,6 +104,17 @@ public class DomainConverter {
             return new URL(entity.getProtocol(), entity.getHost(), entity.getPort(), "");
         } catch (Exception e) {
             throw new IllegalStateException("parse agent rpc info error", e);
+        }
+    }
+
+    /**
+     * 解析 broker 通信 URL
+     */
+    public static URL brokerUrl(String url) {
+        try {
+            return new URL(url);
+        } catch (Exception e) {
+            throw new IllegalStateException("parse broker rpc info error", e);
         }
     }
 

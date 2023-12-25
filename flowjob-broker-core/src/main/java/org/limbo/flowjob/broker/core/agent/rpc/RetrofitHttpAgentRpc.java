@@ -26,7 +26,7 @@ import org.limbo.flowjob.api.param.agent.JobSubmitParam;
 import org.limbo.flowjob.api.param.console.TaskQueryParam;
 import org.limbo.flowjob.broker.core.agent.AgentConverter;
 import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
+import org.limbo.flowjob.broker.core.context.job.JobInstance;
 import org.limbo.flowjob.broker.core.exceptions.RpcException;
 import org.limbo.flowjob.broker.core.rpc.AbstractRpc;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;

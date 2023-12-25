@@ -24,7 +24,7 @@ import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.WorkflowPlanUpdateParam;
 import org.limbo.flowjob.broker.application.converter.WorkflowPlanConverter;
 import org.limbo.flowjob.broker.application.converter.WorkflowPlanParamConverter;
-import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.context.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;

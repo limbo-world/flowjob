@@ -16,30 +16,39 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.domain.plan;
+package org.limbo.flowjob.broker.core.context.plan;
 
-import org.limbo.flowjob.api.constants.ScheduleType;
-import org.limbo.flowjob.api.constants.TriggerType;
-
+import java.net.URL;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author Devil
- * @since 2023/12/13
+ * @since 2023/5/8
  */
-public interface PlanInstanceRepository {
+public interface PlanRepository {
 
-    PlanInstance get(String id);
+    Plan get(String id);
 
-    PlanInstance lockAndGet(String id);
+    Plan lockAndGet(String id);
 
-    PlanInstance getLatelyTrigger(String planId, String version, ScheduleType scheduleType, TriggerType triggerType);
+    Plan getByVersion(String id, String version);
 
-    void save(PlanInstance planInstance);
+    List<Plan> loadUpdatedPlans(URL brokerUrl, LocalDateTime updatedAt);
 
-    boolean executing(String planInstanceId, LocalDateTime startAt);
+    /**
+     * 基于broker获取一个planId
+     * @param brokerUrl
+     * @return
+     */
+    Plan getIdByBroker(URL brokerUrl);
 
-    boolean success(String planInstanceId, LocalDateTime feedbackAt);
+    /**
+     * 更新绑定的broker
+     * @param plan
+     * @param brokerUrl 新的broker
+     * @return
+     */
+    boolean updateBroker(Plan plan, URL brokerUrl);
 
-    boolean fail(String planInstanceId, LocalDateTime startAt, LocalDateTime feedbackAt);
 }

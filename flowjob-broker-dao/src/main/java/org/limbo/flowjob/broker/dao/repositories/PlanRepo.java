@@ -16,25 +16,22 @@
  *
  */
 
-package org.limbo.flowjob.broker.dao.domain;
+package org.limbo.flowjob.broker.dao.repositories;
 
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
-import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
+import org.limbo.flowjob.broker.core.context.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.context.plan.Plan;
+import org.limbo.flowjob.broker.core.context.plan.PlanRepository;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
-import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Repository;
@@ -111,6 +108,22 @@ public class PlanRepo implements PlanRepository {
         return list;
     }
 
+    @Override
+    public Plan getIdByBroker(URL brokerUrl) {
+        PlanEntity planEntity = planEntityRepo.findOneByBrokerUrl(brokerUrl.toString());
+        if (planEntity == null) {
+            return null;
+        }
+        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(planEntity.getCurrentVersion()).orElse(null);
+        return assemble(planEntity, planInfoEntity);
+    }
+
+    @Override
+    @Transactional
+    public boolean updateBroker(Plan plan, URL brokerUrl) {
+        return planEntityRepo.updateBroker(plan.getId(), plan.getBrokerUrl().toString(), brokerUrl.toString()) > 0;
+    }
+
     private Plan assemble(PlanEntity planEntity, PlanInfoEntity planInfoEntity) {
         PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
         TriggerType triggerType = TriggerType.parse(planInfoEntity.getTriggerType());
@@ -131,17 +144,19 @@ public class PlanRepo implements PlanRepository {
         } else {
             dag = DomainConverter.toJobDag(planInfoEntity.getJobInfo());
         }
-        return new Plan(
-                planInfoEntity.getPlanId(),
-                planInfoEntity.getPlanInfoId(),
-                planType,
-                triggerType,
-                scheduleOption,
-                dag,
-                latelyTriggerAt,
-                latelyFeedbackAt,
-                planEntity.isEnabled()
-        );
+
+        return Plan.builder()
+                .id(planInfoEntity.getPlanId())
+                .version(planInfoEntity.getPlanInfoId())
+                .type(planType)
+                .triggerType(triggerType)
+                .scheduleOption(scheduleOption)
+                .dag(dag)
+                .latelyTriggerAt(latelyTriggerAt)
+                .latelyFeedbackAt(latelyFeedbackAt)
+                .brokerUrl(DomainConverter.brokerUrl(planEntity.getBrokerUrl()))
+                .enabled(planEntity.isEnabled())
+                .build();
     }
 
 }

@@ -35,12 +35,13 @@ import org.limbo.flowjob.api.param.console.WorkerQueryParam;
 import org.limbo.flowjob.broker.application.converter.BrokerConverter;
 import org.limbo.flowjob.broker.application.converter.WorkerConverter;
 import org.limbo.flowjob.broker.application.converter.WorkerParamConverter;
+import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
-import org.limbo.flowjob.broker.core.domain.IDGenerator;
-import org.limbo.flowjob.broker.core.domain.IDType;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
-import org.limbo.flowjob.broker.core.domain.job.JobInstanceRepository;
+import org.limbo.flowjob.broker.core.context.IDGenerator;
+import org.limbo.flowjob.broker.core.context.IDType;
+import org.limbo.flowjob.broker.core.context.job.JobInfo;
+import org.limbo.flowjob.broker.core.context.job.JobInstance;
+import org.limbo.flowjob.broker.core.context.job.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.schedule.selector.WorkerSelectInvocation;
 import org.limbo.flowjob.broker.core.schedule.selector.WorkerSelector;
 import org.limbo.flowjob.broker.core.schedule.selector.WorkerSelectorFactory;
@@ -67,6 +68,7 @@ import javax.inject.Inject;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.transaction.Transactional;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -138,6 +140,7 @@ public class WorkerService {
         // 更新注册信息
         worker.register(
                 options.getUrl(),
+                elect(worker),
                 WorkerConverter.toWorkerTags(options),
                 WorkerConverter.toWorkerExecutors(options),
                 WorkerConverter.toWorkerMetric(options)
@@ -160,8 +163,10 @@ public class WorkerService {
         Worker worker = workerRepository.get(workerId);
         Verifies.requireNotNull(worker, "worker不存在！");
 
+        URL brokerUrl = elect(worker);
+
         // 更新状态
-        workerEntityRepo.updateStatus(workerId, WorkerStatus.RUNNING.status);
+        workerEntityRepo.updateStatus(workerId, brokerUrl.toString(), WorkerStatus.RUNNING.status);
 
         // 更新metric
         worker.heartbeat(WorkerConverter.toWorkerMetric(option));
@@ -174,9 +179,15 @@ public class WorkerService {
         return WorkerConverter.toRegisterDTO(worker, nodeManger.allAlive());
     }
 
-    @Transactional
-    public boolean updateStatus(String workerId, Integer oldStatus, Integer newStatus) {
-        return workerEntityRepo.updateStatus(workerId, oldStatus, newStatus) > 0;
+    private URL elect(Worker worker) {
+        URL url;
+        if (!nodeManger.alive(worker.getBrokerUrl().toString())) {
+            Node elect = nodeManger.elect(worker.getId());
+            url = elect.getUrl();
+        } else {
+            url = worker.getBrokerUrl();
+        }
+        return url;
     }
 
     /**
@@ -275,7 +286,7 @@ public class WorkerService {
 
         DispatchOption dispatchOption = jobInfo.getDispatchOption();
         if (dispatchOption == null) {
-            log.warn("Job has none dispatchOption id={}", jobInstance.getJobInstanceId());
+            log.warn("Job has none dispatchOption id={}", jobInstance.getId());
             return Collections.emptyList();
         }
 

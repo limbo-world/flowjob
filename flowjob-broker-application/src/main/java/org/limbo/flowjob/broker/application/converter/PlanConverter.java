@@ -26,7 +26,7 @@ import org.limbo.flowjob.api.dto.console.PlanInfoDTO;
 import org.limbo.flowjob.api.dto.console.RetryOptionDTO;
 import org.limbo.flowjob.api.dto.console.ScheduleOptionDTO;
 import org.limbo.flowjob.api.dto.console.TagFilterDTO;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.context.job.JobInfo;
 import org.limbo.flowjob.broker.core.worker.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.worker.dispatch.RetryOption;
 import org.limbo.flowjob.broker.core.worker.dispatch.TagFilterOption;

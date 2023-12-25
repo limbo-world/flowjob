@@ -27,9 +27,10 @@ import org.limbo.flowjob.api.dto.broker.AgentRegisterDTO;
 import org.limbo.flowjob.api.param.broker.AgentHeartbeatParam;
 import org.limbo.flowjob.api.param.broker.AgentRegisterParam;
 import org.limbo.flowjob.broker.application.converter.BrokerConverter;
+import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
-import org.limbo.flowjob.broker.core.domain.IDGenerator;
-import org.limbo.flowjob.broker.core.domain.IDType;
+import org.limbo.flowjob.broker.core.context.IDGenerator;
+import org.limbo.flowjob.broker.core.context.IDType;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.AgentEntity;
 import org.limbo.flowjob.broker.dao.repositories.AgentEntityRepo;
@@ -39,7 +40,6 @@ import org.springframework.stereotype.Service;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.net.URL;
-import java.util.Optional;
 
 /**
  * @author Devil
@@ -77,11 +77,21 @@ public class AgentService {
         URL url = options.getUrl();
 
         // 新增 or 更新
-        AgentEntity agent = Optional
-                .ofNullable(agentEntityRepo.findByHostAndPort(url.getHost(), url.getPort()))
-                .orElseGet(() -> newAgent(options));
-        // 保存
-        agentEntityRepo.saveAndFlush(agent);
+        AgentEntity agent = agentEntityRepo.findByHostAndPort(url.getHost(), url.getPort());
+        if (agent == null) {
+            agent = newAgent(options);
+            Node elect = nodeManger.elect(agent.getAgentId());
+            agent.setBrokerUrl(elect.getUrl().toString());
+            // 保存
+            agentEntityRepo.saveAndFlush(agent);
+        } else {
+            String brokerUrl = agent.getBrokerUrl();
+            if (!nodeManger.alive(brokerUrl)) {
+                Node elect = nodeManger.elect(agent.getAgentId());
+                agent.setBrokerUrl(elect.getUrl().toString());
+                agentEntityRepo.saveAndFlush(agent);
+            }
+        }
 
         log.info("agent registered " + agent);
         return toDTO(agent.getAgentId());
@@ -97,6 +107,12 @@ public class AgentService {
         AgentEntity agent = agentEntityRepo.findById(agentId).get();
         Verifies.requireNotNull(agent, "agent不存在！");
 
+        String brokerUrl = agent.getBrokerUrl();
+        if (!nodeManger.alive(brokerUrl)) {
+            Node elect = nodeManger.elect(agentId);
+            agent.setBrokerUrl(elect.getUrl().toString());
+        }
+
         // 更新
         agent.setAvailableQueueLimit(option.getAvailableResource().getAvailableQueueLimit());
         agent.setLastHeartbeatAt(TimeUtils.currentLocalDateTime());
@@ -109,7 +125,6 @@ public class AgentService {
 
         return toDTO(agentId);
     }
-
 
     public AgentRegisterDTO toDTO(String agentId) {
         AgentRegisterDTO registerResult = new AgentRegisterDTO();

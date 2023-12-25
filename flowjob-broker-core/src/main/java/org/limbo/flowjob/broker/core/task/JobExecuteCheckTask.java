@@ -24,8 +24,8 @@ import org.limbo.flowjob.api.constants.ExecuteResult;
 import org.limbo.flowjob.api.param.broker.JobFeedbackParam;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
-import org.limbo.flowjob.broker.core.domain.job.JobInstanceRepository;
+import org.limbo.flowjob.broker.core.context.job.JobInstance;
+import org.limbo.flowjob.broker.core.context.job.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
@@ -79,7 +79,7 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
     protected void executeTask() {
         try {
             // 判断自己是否存在 --- 可能由于心跳异常导致不存活
-            if (!nodeManger.alive(broker.getName())) {
+            if (!nodeManger.alive(broker.getRpcBaseURL().toString())) {
                 return;
             }
 
@@ -97,13 +97,13 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
                                     .result(ExecuteResult.FAILED)
                                     .errorMsg(String.format("agent %s is offline", instance.getAgentId()))
                                     .build();
-                            schedulerProcessor.feedback(instance.getJobInstanceId(), param);
+                            schedulerProcessor.feedback(instance.getId(), param);
                         } catch (Exception e) {
-                            log.error("[JobExecuteCheckTask] handler job fail with error jobInstanceId={}", instance.getJobInstanceId(), e);
+                            log.error("[JobExecuteCheckTask] handler job fail with error jobInstanceId={}", instance.getId(), e);
                         }
                     });
                 }
-                startId = jobInstances.get(jobInstances.size() - 1).getJobInstanceId();
+                startId = jobInstances.get(jobInstances.size() - 1).getId();
                 jobInstances = jobInstanceRepository.findByExecuteCheck(broker.getRpcBaseURL(), checkStartTime, checkEndTime, startId, limit);
             }
             lastCheckTime = checkEndTime;

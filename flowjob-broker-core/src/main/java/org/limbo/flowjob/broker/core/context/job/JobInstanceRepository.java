@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.domain.job;
+package org.limbo.flowjob.broker.core.context.job;
 
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -45,5 +45,20 @@ public interface JobInstanceRepository {
     List<JobInstance> findByExecuteCheck(URL brokerUrl, LocalDateTime lastReportAtStart, LocalDateTime lastReportAtEnd, String startId, Integer limit);
 
     List<JobInstance> findInSchedule(URL brokerUrl, LocalDateTime lastReportAt, LocalDateTime triggerAt, String startId, Integer limit);
+
+    /**
+     * 基于broker获取一个planId
+     * @param brokerUrl
+     * @return
+     */
+    JobInstance getIdByBroker(URL brokerUrl);
+
+    /**
+     * 更新绑定的broker
+     * @param instance
+     * @param brokerUrl 新的broker
+     * @return
+     */
+    boolean updateBroker(JobInstance instance, URL brokerUrl);
 
 }

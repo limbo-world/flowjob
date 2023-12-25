@@ -20,10 +20,11 @@ package org.limbo.flowjob.broker.core.task;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
-import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.core.domain.plan.PlanRepository;
+import org.limbo.flowjob.broker.core.context.plan.Plan;
+import org.limbo.flowjob.broker.core.context.plan.PlanRepository;
 import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
@@ -42,7 +43,6 @@ import java.util.List;
  * 第一次会获取所有的，后续则获取近期更新的
  */
 @Slf4j
-// todo
 public class PlanLoadTask extends FixDelayMetaTask {
 
     private final PlanRepository planRepository;
@@ -77,7 +77,7 @@ public class PlanLoadTask extends FixDelayMetaTask {
     protected void executeTask() {
         try {
             // 判断自己是否存在 --- 可能由于心跳异常导致不存活
-            if (!nodeManger.alive(broker.getName())) {
+            if (!nodeManger.alive(broker.getRpcBaseURL().toString())) {
                 return;
             }
 
@@ -89,7 +89,6 @@ public class PlanLoadTask extends FixDelayMetaTask {
             for (PlanScheduleTask metaTask : plans) {
                 // 移除老的
                 metaTaskScheduler.unschedule(metaTask.scheduleId());
-                // todo 过滤掉非调度的 比如配置改为 api下发的
                 // 调度新的
                 metaTaskScheduler.schedule(metaTask);
             }
@@ -110,7 +109,9 @@ public class PlanLoadTask extends FixDelayMetaTask {
         }
         List<PlanScheduleTask> planScheduleTasks = new ArrayList<>();
         for (Plan plan : plans) {
-            planScheduleTasks.add(new PlanScheduleTask(plan, schedulerProcessor, metaTaskScheduler));
+            if (TriggerType.SCHEDULE == plan.getTriggerType()) {
+                planScheduleTasks.add(new PlanScheduleTask(plan, schedulerProcessor, metaTaskScheduler));
+            }
         }
         return planScheduleTasks;
     }

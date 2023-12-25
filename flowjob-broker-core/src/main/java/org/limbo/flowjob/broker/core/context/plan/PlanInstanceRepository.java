@@ -16,24 +16,30 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.domain.plan;
+package org.limbo.flowjob.broker.core.context.plan;
 
-import java.net.URL;
+import org.limbo.flowjob.api.constants.ScheduleType;
+import org.limbo.flowjob.api.constants.TriggerType;
+
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * @author Devil
- * @since 2023/5/8
+ * @since 2023/12/13
  */
-public interface PlanRepository {
+public interface PlanInstanceRepository {
 
-    Plan get(String id);
+    PlanInstance get(String id);
 
-    Plan lockAndGet(String id);
+    PlanInstance lockAndGet(String id);
 
-    Plan getByVersion(String id, String version);
+    PlanInstance getLatelyTrigger(String planId, String version, ScheduleType scheduleType, TriggerType triggerType);
 
-    List<Plan> loadUpdatedPlans(URL brokerUrl, LocalDateTime updatedAt);
+    void save(PlanInstance planInstance);
 
+    boolean executing(String planInstanceId, LocalDateTime startAt);
+
+    boolean success(String planInstanceId, LocalDateTime feedbackAt);
+
+    boolean fail(String planInstanceId, LocalDateTime startAt, LocalDateTime feedbackAt);
 }

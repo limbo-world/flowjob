@@ -16,15 +16,15 @@
  *
  */
 
-package org.limbo.flowjob.broker.dao.domain;
+package org.limbo.flowjob.broker.dao.repositories;
 
 import lombok.Setter;
 import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
-import org.limbo.flowjob.broker.core.domain.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.domain.plan.PlanInstanceRepository;
+import org.limbo.flowjob.broker.core.context.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.context.plan.PlanInstance;
+import org.limbo.flowjob.broker.core.context.plan.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;

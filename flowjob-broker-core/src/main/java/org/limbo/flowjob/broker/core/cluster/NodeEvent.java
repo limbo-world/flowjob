@@ -20,6 +20,8 @@ package org.limbo.flowjob.broker.core.cluster;
 
 import lombok.Getter;
 
+import java.net.URL;
+
 /**
  * @author Devil
  * @since 2022/7/18
@@ -29,9 +31,7 @@ public class NodeEvent {
 
     private final String name;
 
-    private final String host;
-
-    private final int port;
+    private final URL url;
 
     private final Type type;
 
@@ -40,10 +40,9 @@ public class NodeEvent {
         OFFLINE
     }
 
-    public NodeEvent(Type type, String name, String host, int port) {
+    public NodeEvent(Type type, String name, URL url) {
         this.type = type;
         this.name = name;
-        this.host = host;
-        this.port = port;
+        this.url = url;
     }
 }

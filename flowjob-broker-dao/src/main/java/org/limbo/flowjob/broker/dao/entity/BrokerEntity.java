@@ -53,6 +53,11 @@ public class BrokerEntity extends BaseEntity {
 
     private String name;
 
+    /**
+     * 服务使用的通信协议
+     */
+    private String protocol;
+
     private String host;
 
     private Integer port;

@@ -20,6 +20,7 @@ package org.limbo.flowjob.broker.dao.repositories;
 
 import org.limbo.flowjob.api.constants.ConstantsPool;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -85,5 +86,12 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
              @Param("startAt") LocalDateTime startAt,
              @Param("endAt") LocalDateTime endAt,
              @Param("errorMsg") String errorMsg);
+
+    @Query(value = "select * from flowjob_job_instance where broker_url = :brokerUrl limit 1 ", nativeQuery = true)
+    JobInstanceEntity findOneByBrokerUrl(@Param("brokerUrl") String brokerUrl);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "update JobInstanceEntity set brokerUrl = :newBrokerUrl where jobInstanceId = :jobInstanceId and brokerUrl = :oldBrokerUrl ")
+    int updateBroker(@Param("jobInstanceId") String jobInstanceId, @Param("oldBrokerUrl") String oldBrokerUrl, @Param("newBrokerUrl") String newBrokerUrl);
 
 }

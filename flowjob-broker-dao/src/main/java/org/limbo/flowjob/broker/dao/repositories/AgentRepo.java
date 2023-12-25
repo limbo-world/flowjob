@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.dao.domain;
+package org.limbo.flowjob.broker.dao.repositories;
 
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;

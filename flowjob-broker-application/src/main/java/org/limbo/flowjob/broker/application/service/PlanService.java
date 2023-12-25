@@ -36,9 +36,11 @@ import org.limbo.flowjob.api.param.console.PlanVersionParam;
 import org.limbo.flowjob.api.param.console.ScheduleOptionParam;
 import org.limbo.flowjob.broker.application.converter.PlanConverter;
 import org.limbo.flowjob.broker.application.converter.PlanParamConverter;
-import org.limbo.flowjob.broker.core.domain.IDGenerator;
-import org.limbo.flowjob.broker.core.domain.IDType;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.cluster.Node;
+import org.limbo.flowjob.broker.core.cluster.NodeManger;
+import org.limbo.flowjob.broker.core.context.IDGenerator;
+import org.limbo.flowjob.broker.core.context.IDType;
+import org.limbo.flowjob.broker.core.context.job.JobInfo;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.schedule.calculator.CronScheduleCalculator;
 import org.limbo.flowjob.broker.core.utils.Verifies;
@@ -87,6 +89,9 @@ public class PlanService {
     @Setter(onMethod_ = @Inject)
     private PlanConverter planConverter;
 
+    @Setter(onMethod_ = @Inject)
+    private NodeManger nodeManger;
+
     @Transactional
     public String add(PlanParam.NormalPlanParam param) {
         JobInfo jobInfo = factory.createJob(param);
@@ -130,12 +135,21 @@ public class PlanService {
             planEntity.setPlanId(planId);
             planEntity.setName(param.getName());
 
+            Node elect = nodeManger.elect(planId);
+            planEntity.setBrokerUrl(elect.getUrl().toString());
+
             planEntity = planEntityRepo.saveAndFlush(planEntity);
         } else {
             // update
             PlanEntity planEntity = planEntityRepo.findById(planId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN + planId));
+            String brokerUrl = planEntity.getBrokerUrl();
+            if (!nodeManger.alive(brokerUrl)) {
+                Node elect = nodeManger.elect(planId);
+                brokerUrl = elect.getUrl().toString();
+            }
+
             // 更新 Plan 版本信息
-            int effected = planEntityRepo.updateVersion(planInfoId, planInfoId, param.getName(), planId, planEntity.getCurrentVersion(), planEntity.getRecentlyVersion());
+            int effected = planEntityRepo.updateVersion(planInfoId, planInfoId, param.getName(), planId, planEntity.getCurrentVersion(), planEntity.getRecentlyVersion(), brokerUrl);
             if (effected < 1) {
                 throw new IllegalStateException("并发操作，更新Plan版本失败");
             }
@@ -179,7 +193,13 @@ public class PlanService {
             return true;
         }
 
-        return planEntityRepo.updateEnable(planEntity.getPlanId(), false, true) == 1;
+        String brokerUrl = planEntity.getBrokerUrl();
+        if (!nodeManger.alive(brokerUrl)) {
+            Node elect = nodeManger.elect(planId);
+            brokerUrl = elect.getUrl().toString();
+        }
+
+        return planEntityRepo.updateEnable(planEntity.getPlanId(), false, true, brokerUrl) == 1;
     }
 
     /**
@@ -199,7 +219,7 @@ public class PlanService {
         }
 
         // 停用计划
-        return planEntityRepo.updateEnable(planEntity.getPlanId(), true, false) == 1;
+        return planEntityRepo.updateEnable(planEntity.getPlanId(), true, false, planEntity.getBrokerUrl()) == 1;
     }
 
     public PlanInfoDTO.NormalPlanInfoDTO get(String planId) {

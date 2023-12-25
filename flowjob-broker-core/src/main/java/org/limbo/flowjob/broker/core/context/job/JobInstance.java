@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.domain.job;
+package org.limbo.flowjob.broker.core.context.job;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +26,7 @@ import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.io.Serializable;
+import java.net.URL;
 import java.time.LocalDateTime;
 
 /**
@@ -38,7 +39,7 @@ public class JobInstance implements Serializable {
 
     private static final long serialVersionUID = -7913375595969578408L;
 
-    private String jobInstanceId;
+    private String id;
 
     private String planInstanceId;
 
@@ -52,6 +53,11 @@ public class JobInstance implements Serializable {
      * 当前是第几次重试
      */
     private int retryTimes = 0;
+
+    /**
+     * 绑定的broker
+     */
+    private URL brokerUrl;
 
     /**
      * agent ID
@@ -101,7 +107,7 @@ public class JobInstance implements Serializable {
             throw new IllegalArgumentException("retry times limit");
         }
         this.triggerAt = TimeUtils.currentLocalDateTime().plusSeconds(retryInterval);
-        this.jobInstanceId = id;
+        this.id = id;
         this.status = JobStatus.SCHEDULING;
         this.retryTimes++;
     }
