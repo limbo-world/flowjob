@@ -38,9 +38,9 @@ import org.limbo.flowjob.broker.application.converter.PlanConverter;
 import org.limbo.flowjob.broker.application.converter.PlanParamConverter;
 import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
-import org.limbo.flowjob.broker.core.context.IDGenerator;
-import org.limbo.flowjob.broker.core.context.IDType;
-import org.limbo.flowjob.broker.core.context.job.JobInfo;
+import org.limbo.flowjob.broker.core.meta.IDGenerator;
+import org.limbo.flowjob.broker.core.meta.IDType;
+import org.limbo.flowjob.broker.core.meta.job.JobInfo;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.schedule.calculator.CronScheduleCalculator;
 import org.limbo.flowjob.broker.core.utils.Verifies;
@@ -72,7 +72,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-public class PlanService {
+public class PlanAppService {
 
     @Setter(onMethod_ = @Inject)
     private PlanEntityRepo planEntityRepo;

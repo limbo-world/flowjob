@@ -20,31 +20,32 @@ package org.limbo.flowjob.broker.core.schedule;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.limbo.flowjob.api.constants.ConstantsPool;
 import org.limbo.flowjob.api.constants.ExecuteResult;
 import org.limbo.flowjob.api.constants.JobStatus;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.PlanStatus;
-import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.constants.rpc.HttpAgentApi;
 import org.limbo.flowjob.api.param.broker.JobFeedbackParam;
 import org.limbo.flowjob.broker.core.agent.AgentRegistry;
 import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
-import org.limbo.flowjob.broker.core.context.IDGenerator;
-import org.limbo.flowjob.broker.core.context.IDType;
-import org.limbo.flowjob.broker.core.context.job.JobInfo;
-import org.limbo.flowjob.broker.core.context.job.JobInstance;
-import org.limbo.flowjob.broker.core.context.job.JobInstanceRepository;
-import org.limbo.flowjob.broker.core.context.job.WorkflowJobInfo;
-import org.limbo.flowjob.broker.core.context.plan.Plan;
-import org.limbo.flowjob.broker.core.context.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.context.plan.PlanInstanceRepository;
-import org.limbo.flowjob.broker.core.context.plan.PlanRepository;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
+import org.limbo.flowjob.broker.core.meta.IDGenerator;
+import org.limbo.flowjob.broker.core.meta.IDType;
+import org.limbo.flowjob.broker.core.meta.job.JobInfo;
+import org.limbo.flowjob.broker.core.meta.job.JobInstance;
+import org.limbo.flowjob.broker.core.meta.job.JobInstanceFactory;
+import org.limbo.flowjob.broker.core.meta.job.JobInstanceRepository;
+import org.limbo.flowjob.broker.core.meta.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.meta.plan.Plan;
+import org.limbo.flowjob.broker.core.meta.plan.PlanInstance;
+import org.limbo.flowjob.broker.core.meta.plan.PlanInstanceFactory;
+import org.limbo.flowjob.broker.core.meta.plan.PlanInstanceRepository;
+import org.limbo.flowjob.broker.core.meta.plan.PlanRepository;
+import org.limbo.flowjob.broker.core.meta.task.PlanScheduleTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.broker.core.task.PlanScheduleTask;
+import org.limbo.flowjob.broker.core.service.TransactionService;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.common.lb.LBStrategy;
 import org.limbo.flowjob.common.lb.strategies.RoundRobinLBStrategy;
@@ -86,15 +87,19 @@ public class SchedulerProcessor {
 
     private final LBStrategy<ScheduleAgent> lbStrategy;
 
+    private final TransactionService transactionService;
+
     public SchedulerProcessor(MetaTaskScheduler metaTaskScheduler,
                               IDGenerator idGenerator,
                               AgentRegistry agentRegistry,
                               PlanRepository planRepository,
+                              TransactionService transactionService,
                               PlanInstanceRepository planInstanceRepository,
                               JobInstanceRepository jobInstanceRepository) {
         this.metaTaskScheduler = metaTaskScheduler;
         this.idGenerator = idGenerator;
         this.agentRegistry = agentRegistry;
+        this.transactionService = transactionService;
         this.planRepository = planRepository;
         this.planInstanceRepository = planInstanceRepository;
         this.jobInstanceRepository = jobInstanceRepository;
@@ -104,61 +109,67 @@ public class SchedulerProcessor {
     // 如是定时1小时后执行，task的创建问题 比如任务执行失败后，重试间隔可能导致这个问题
     // 比如广播模式下，一小时后的节点数和当前的肯定是不同的
     public void schedule(Plan plan, TriggerType triggerType, Attributes planAttributes, LocalDateTime triggerAt) {
-        List<JobInstance> jobInstances = schedulePlan(plan, triggerType, planAttributes, triggerAt);
-        scheduleJobs(jobInstances);
-    }
+        List<JobInstance> jobInstances = new ArrayList<>();
+        transactionService.transactional(() -> {
+            Plan currentPlan = planRepository.lockAndGet(plan.getId());
 
-    // todo @ys 性能优化
-    public List<JobInstance> schedulePlan(Plan plan, TriggerType triggerType, Attributes planAttributes, LocalDateTime triggerAt) {
+            String planId = plan.getId();
+            String version = plan.getVersion();
 
-        Plan currentPlan = planRepository.lockAndGet(plan.getId());
+            // 悲观锁快速释放，不阻塞后续任务
+            String id = idGenerator.generateId(IDType.PLAN_INSTANCE);
+            PlanInstance planInstance = PlanInstanceFactory.create(id, currentPlan, planAttributes, triggerAt);
 
-        String planId = plan.getId();
-        String version = plan.getVersion();
+            // 判断任务配置信息是否变动：任务是由之前时间创建的 调度时候如果版本改变 可能会有调度时间的变化本次就无需执行
+            // 比如 5s 执行一次 分别在 5s 10s 15s 在11s的时候内存里下次执行为 15s 此时修改为 2s 执行一次 那么重新加载plan后应该为 12s 14s 所以15s这次可以跳过
+            Verifies.verify(Objects.equals(plan.getVersion(), currentPlan.getVersion()), MessageFormat.format("plan:{0} version {1} change to {2}", planId, version, currentPlan.getVersion()));
 
-        // 悲观锁快速释放，不阻塞后续任务
-        PlanInstance planInstance = createPlanInstance(currentPlan, planAttributes, triggerAt);
+            PlanInstance existPlanInstance = planInstanceRepository.get(planInstance.getId());
+            Verifies.isNull(existPlanInstance, MessageFormat.format("plan:{0} version {1} create instance by id {2} but is already exist", planId, version, planInstance.getId()));
 
-        // 判断任务配置信息是否变动：任务是由之前时间创建的 调度时候如果版本改变 可能会有调度时间的变化本次就无需执行
-        // 比如 5s 执行一次 分别在 5s 10s 15s 在11s的时候内存里下次执行为 15s 此时修改为 2s 执行一次 那么重新加载plan后应该为 12s 14s 所以15s这次可以跳过
-        Verifies.verify(Objects.equals(plan.getVersion(), currentPlan.getVersion()), MessageFormat.format("plan:{0} version {1} change to {2}", planId, version, currentPlan.getVersion()));
+            ScheduleOption scheduleOption = currentPlan.getScheduleOption();
 
-        PlanInstance existPlanInstance = planInstanceRepository.get(planInstance.getId());
-        Verifies.isNull(existPlanInstance, MessageFormat.format("plan:{0} version {1} create instance by id {2} but is already exist", planId, version, planInstance.getId()));
+            // 判断是否由当前节点执行
+            if (TriggerType.API != triggerType) {
 
-        ScheduleOption scheduleOption = currentPlan.getScheduleOption();
+                Verifies.verify(currentPlan.isEnabled(), "plan " + planId + " is not enabled");
 
-        // 判断是否由当前节点执行
-        if (TriggerType.API != triggerType) {
-
-            Verifies.verify(currentPlan.isEnabled(), "plan " + planId + " is not enabled");
-
-            // 校验是否重复创建
-            PlanInstance latelyPlanInstance = planInstanceRepository.getLatelyTrigger(planId, version, currentPlan.getScheduleOption().getScheduleType(), triggerType);
-            switch (scheduleOption.getScheduleType()) {
-                case FIXED_RATE:
-                case CRON:
-                    Verifies.verify(latelyPlanInstance == null || !triggerAt.isEqual(latelyPlanInstance.getTriggerAt()),
-                            MessageFormat.format("Duplicate create PlanInstance,triggerAt:{0} planId[{1}] Version[{2}] oldPlanInstance[{3}]",
-                                    triggerAt, planId, version, JacksonUtils.toJSONString(latelyPlanInstance))
-                    );
-                    break;
-                case FIXED_DELAY:
-                    Verifies.verify(latelyPlanInstance == null || (!triggerAt.isEqual(latelyPlanInstance.getTriggerAt()) && PlanStatus.parse(latelyPlanInstance.getStatus()).isCompleted()),
-                            MessageFormat.format("Please wait last PlanInstance[{0}] complete.Plan[{1}] Version[{2}]",
-                                    JacksonUtils.toJSONString(latelyPlanInstance), planId, version)
-                    );
-                    break;
-                default:
-                    throw new VerifyException(MsgConstants.UNKNOWN + " scheduleType:" + currentPlan.getScheduleOption().getScheduleType());
+                // 校验是否重复创建
+                PlanInstance latelyPlanInstance = planInstanceRepository.getLatelyTrigger(planId, version, currentPlan.getScheduleOption().getScheduleType(), triggerType);
+                switch (scheduleOption.getScheduleType()) {
+                    case FIXED_RATE:
+                    case CRON:
+                        Verifies.verify(latelyPlanInstance == null || !triggerAt.isEqual(latelyPlanInstance.getTriggerAt()),
+                                MessageFormat.format("Duplicate create PlanInstance,triggerAt:{0} planId[{1}] Version[{2}] oldPlanInstance[{3}]",
+                                        triggerAt, planId, version, JacksonUtils.toJSONString(latelyPlanInstance))
+                        );
+                        break;
+                    case FIXED_DELAY:
+                        Verifies.verify(latelyPlanInstance == null || (!triggerAt.isEqual(latelyPlanInstance.getTriggerAt()) && PlanStatus.parse(latelyPlanInstance.getStatus()).isCompleted()),
+                                MessageFormat.format("Please wait last PlanInstance[{0}] complete.Plan[{1}] Version[{2}]",
+                                        JacksonUtils.toJSONString(latelyPlanInstance), planId, version)
+                        );
+                        break;
+                    default:
+                        throw new VerifyException(MsgConstants.UNKNOWN + " scheduleType:" + currentPlan.getScheduleOption().getScheduleType());
+                }
             }
-        }
 
 
-        planInstanceRepository.save(planInstance);
-        List<JobInstance> jobInstances = createScheduleJobInstances(currentPlan, planAttributes, planInstance.getId(), triggerAt);
-        jobInstanceRepository.saveAll(jobInstances);
-        return jobInstances;
+            planInstanceRepository.save(planInstance);
+
+            // 获取头部节点
+            for (WorkflowJobInfo jobInfo : plan.getDag().origins()) {
+                if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
+                    String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
+                    jobInstances.add(JobInstanceFactory.create(jobInstanceId, plan.getId(), plan.getVersion(), plan.getType(), planInstance.getId(), planAttributes, new Attributes(), jobInfo, triggerAt));
+                }
+            }
+            jobInstanceRepository.saveAll(jobInstances);
+            return null;
+        });
+
+        scheduleJobs(jobInstances);
     }
 
     /**
@@ -168,27 +179,75 @@ public class SchedulerProcessor {
         PlanInstance planInstance = planInstanceRepository.get(planInstanceId);
         Verifies.notNull(planInstance, MsgConstants.CANT_FIND_PLAN_INSTANCE + planInstanceId);
         Plan plan = planRepository.getByVersion(planInstance.getPlanId(), planInstance.getVersion());
-        List<JobInstance> jobInstances = scheduleJob(plan, planInstanceId, jobId);
-        scheduleJobs(jobInstances);
+        JobInstance jobInstance = transactionService.transactional(() -> {
+            DAG<WorkflowJobInfo> dag = plan.getDag();
+            WorkflowJobInfo jobInfo = dag.getNode(jobId);
+
+            Verifies.verify(checkJobsSuccess(planInstanceId, dag.preNodes(jobInfo.getId()), true), "previous job is not complete, please wait!");
+
+            Verifies.verify(TriggerType.API == jobInfo.getTriggerType(), "only api triggerType job can schedule by api");
+
+            String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
+            JobInstance newJobInstance = JobInstanceFactory.create(jobInstanceId, plan.getId(), plan.getVersion(), plan.getType(), planInstanceId, planInstance.getAttributes(), new Attributes(), jobInfo, TimeUtils.currentLocalDateTime());
+            jobInstanceRepository.save(newJobInstance);
+            return newJobInstance;
+        });
+        scheduleJobs(Collections.singletonList(jobInstance));
     }
 
     /**
-     * 调度planInstance下对应job
+     * job开始执行的反馈
      */
-    public List<JobInstance> scheduleJob(Plan plan, String planInstanceId, String jobId) {
-        DAG<WorkflowJobInfo> dag = plan.getDag();
-        WorkflowJobInfo jobInfo = dag.getNode(jobId);
+    public boolean jobExecuting(String agentId, String jobInstanceId) {
+        log.info("Receive Job executing info agentId={} jobInstanceId={}", agentId, jobInstanceId);
+        JobInstance jobInstance = jobInstanceRepository.get(jobInstanceId);
+        return transactionService.transactional(() -> {
+            planInstanceRepository.executing(jobInstance.getPlanInstanceId(), TimeUtils.currentLocalDateTime());
+            return jobInstanceRepository.executing(jobInstanceId, agentId, TimeUtils.currentLocalDateTime());
+        });
+    }
 
-        Verifies.verify(checkJobsSuccess(planInstanceId, dag.preNodes(jobInfo.getId()), true), "previous job is not complete, please wait!");
+    /**
+     * job执行上报
+     */
+    public boolean jobReport(String jobInstanceId) {
+        log.info("Receive Job report jobInstanceId={}", jobInstanceId);
+        return transactionService.transactional(() -> {
+            return jobInstanceRepository.report(jobInstanceId, TimeUtils.currentLocalDateTime());
+        });
+    }
 
-        Verifies.verify(TriggerType.API == jobInfo.getTriggerType(), "only api triggerType job can schedule by api");
+    /**
+     * 任务执行反馈
+     *
+     * @param jobInstanceId Id
+     * @param param         反馈参数
+     */
+    public void feedback(String jobInstanceId, JobFeedbackParam param) {
+        ExecuteResult result = param.getResult();
+        if (log.isDebugEnabled()) {
+            log.debug("receive job feedback id:{} result:{}", jobInstanceId, result);
+        }
 
-        PlanInstance planInstance = planInstanceRepository.get(planInstanceId);
+        JobInstance jobInstance = jobInstanceRepository.get(jobInstanceId);
+        Verifies.notNull(jobInstance, "job instance is null id:" + jobInstanceId);
+        List<JobInstance> jobInstances = transactionService.transactional(() -> {
+            switch (result) {
+                case SUCCEED:
+                    return handleJobSuccess(jobInstance);
 
-        List<JobInstance> jobInstances = createScheduleJobInstances(plan, planInstance.getAttributes(), planInstanceId, TimeUtils.currentLocalDateTime());
+                case FAILED:
+                    return handleJobFail(jobInstance, param.getErrorMsg());
 
-        jobInstanceRepository.saveAll(jobInstances);
-        return jobInstances;
+                case TERMINATED:
+                    throw new UnsupportedOperationException("暂不支持手动终止任务");
+
+                default:
+                    throw new IllegalStateException("Unexpect execute result: " + param.getResult());
+            }
+        });
+
+        scheduleJobs(jobInstances);
     }
 
     /**
@@ -204,18 +263,20 @@ public class SchedulerProcessor {
 
     // todo 执行的时候可以选择 是就只重新计算当前的节点还是后续节点是否也重新执行一遍
     public List<JobInstance> manualScheduleJob(Plan plan, String planInstanceId, String jobId) {
-        DAG<WorkflowJobInfo> dag = plan.getDag();
-        WorkflowJobInfo jobInfo = dag.getNode(jobId);
+        return transactionService.transactional(() -> {
+            DAG<WorkflowJobInfo> dag = plan.getDag();
+            WorkflowJobInfo jobInfo = dag.getNode(jobId);
 
-        Verifies.verify(checkJobsSuccess(planInstanceId, dag.preNodes(jobInfo.getId()), true), "previous job is not complete, please wait!");
+            Verifies.verify(checkJobsSuccess(planInstanceId, dag.preNodes(jobInfo.getId()), true), "previous job is not complete, please wait!");
 
-        JobInstance jobInstance = jobInstanceRepository.getLatest(planInstanceId, jobId);// 获取最后一条
-        String newJobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
-        jobInstance.retryReset(newJobInstanceId, 0);
-        List<JobInstance> jobInstances = Collections.singletonList(jobInstance);
+            JobInstance jobInstance = jobInstanceRepository.getLatest(planInstanceId, jobId);// 获取最后一条
+            String newJobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
+            jobInstance.retryReset(newJobInstanceId, 0);
+            List<JobInstance> jobInstances = Collections.singletonList(jobInstance);
 
-        jobInstanceRepository.saveAll(jobInstances);
-        return jobInstances;
+            jobInstanceRepository.saveAll(jobInstances);
+            return jobInstances;
+        });
     }
 
 
@@ -255,61 +316,9 @@ public class SchedulerProcessor {
     }
 
     /**
-     * job开始执行的反馈
-     */
-    public boolean jobExecuting(String agentId, String jobInstanceId) {
-        log.info("Receive Job executing info agentId={} jobInstanceId={}", agentId, jobInstanceId);
-        JobInstance jobInstance = jobInstanceRepository.get(jobInstanceId);
-        planInstanceRepository.executing(jobInstance.getPlanInstanceId(), TimeUtils.currentLocalDateTime());
-        return jobInstanceRepository.executing(jobInstanceId, agentId, TimeUtils.currentLocalDateTime());
-    }
-
-    /**
-     * job执行上报
-     */
-    public boolean jobReport(String jobInstanceId) {
-        log.info("Receive Job report jobInstanceId={}", jobInstanceId);
-        return jobInstanceRepository.report(jobInstanceId, TimeUtils.currentLocalDateTime());
-    }
-
-    /**
-     * 任务执行反馈
-     *
-     * @param jobInstanceId Id
-     * @param param         反馈参数
-     */
-    public void feedback(String jobInstanceId, JobFeedbackParam param) {
-        ExecuteResult result = param.getResult();
-        if (log.isDebugEnabled()) {
-            log.debug("receive job feedback id:{} result:{}", jobInstanceId, result);
-        }
-
-        JobInstance jobInstance = jobInstanceRepository.get(jobInstanceId);
-        Verifies.notNull(jobInstance, "job instance is null id:" + jobInstanceId);
-        List<JobInstance> jobInstances;
-        switch (result) {
-            case SUCCEED:
-//                    jobInstance.setContext(new Attributes(param.getContext()));
-                jobInstances = handleJobSuccess(jobInstance);
-                break;
-
-            case FAILED:
-                jobInstances = handleJobFail(jobInstance, param.getErrorMsg());
-                break;
-
-            case TERMINATED:
-                throw new UnsupportedOperationException("暂不支持手动终止任务");
-
-            default:
-                throw new IllegalStateException("Unexpect execute result: " + param.getResult());
-        }
-        scheduleJobs(jobInstances);
-    }
-
-    /**
      * 处理某个job实例执行成功
      */
-    public List<JobInstance> handleJobSuccess(JobInstance jobInstance) {
+    private List<JobInstance> handleJobSuccess(JobInstance jobInstance) {
         if (!jobInstanceRepository.success(jobInstance.getId(), TimeUtils.currentLocalDateTime(), jobInstance.getContext().toString())) {
             return Collections.emptyList(); // 被其他更新
         }
@@ -334,7 +343,7 @@ public class SchedulerProcessor {
             // 当前节点为叶子节点 检测 Plan 实例是否已经执行完成
             // 1. 所有节点都已经成功或者失败 2. 这里只关心plan的成功更新，失败是在task回调
             if (checkJobsSuccess(planInstanceId, dag.lasts(), true)) {
-                handlerPlanComplete(planInstanceId, true); // todo 这里需要调度
+                handlerPlanComplete(planInstanceId, true);
             }
             return Collections.emptyList();
         } else {
@@ -343,8 +352,9 @@ public class SchedulerProcessor {
             List<JobInstance> subJobInstances = new ArrayList<>();
             for (WorkflowJobInfo subJobInfo : subJobInfos) {
                 // 前置节点已经完成则可以下发
-                if (checkJobsSuccess(planInstanceId, dag.preNodes(subJobInfo.getId()), true)) {
-                    JobInstance subJobInstance = createJobInstance(planId, version, planInstance.getType(), planInstanceId, planInstance.getAttributes(), jobInstance.getContext(), subJobInfo, triggerAt);
+                if (checkJobsSuccess(planInstanceId, dag.preNodes(subJobInfo.getId()), true) && TriggerType.SCHEDULE == subJobInfo.getTriggerType()) {
+                    String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
+                    JobInstance subJobInstance = JobInstanceFactory.create(jobInstanceId, planId, version, planInstance.getType(), planInstanceId, planInstance.getAttributes(), jobInstance.getContext(), subJobInfo, triggerAt);
                     subJobInstances.add(subJobInstance);
                 }
             }
@@ -360,7 +370,7 @@ public class SchedulerProcessor {
     /**
      * 处理job实例执行失败
      */
-    public List<JobInstance> handleJobFail(JobInstance jobInstance, String errorMsg) {
+    private List<JobInstance> handleJobFail(JobInstance jobInstance, String errorMsg) {
         LocalDateTime current = TimeUtils.currentLocalDateTime();
         LocalDateTime startAt = jobInstance.getStartAt() == null ? current : jobInstance.getStartAt();
         if (!jobInstanceRepository.fail(jobInstance.getId(), jobInstance.getStatus().status, startAt, current, errorMsg)) {
@@ -394,7 +404,7 @@ public class SchedulerProcessor {
         }
     }
 
-    public void handlerPlanComplete(String planInstanceId, boolean success) {
+    private void handlerPlanComplete(String planInstanceId, boolean success) {
         PlanInstance planInstance = planInstanceRepository.get(planInstanceId);
         Verifies.notNull(planInstance, MsgConstants.CANT_FIND_PLAN_INSTANCE + planInstanceId);
         if (success) {
@@ -406,6 +416,7 @@ public class SchedulerProcessor {
         }
         // 下发 fixed_delay 任务
         if (ScheduleType.FIXED_DELAY == planInstance.getScheduleOption().getScheduleType()) {
+            // todo 这里需要在事务外调度
             Plan plan = planRepository.get(planInstance.getPlanId());
             PlanScheduleTask metaTask = new PlanScheduleTask(plan, this, metaTaskScheduler);
             metaTaskScheduler.unschedule(metaTask.scheduleId());
@@ -440,57 +451,6 @@ public class SchedulerProcessor {
             }
         }
         return true;
-    }
-
-    /**
-     * 创建调度触发的job
-     */
-    private List<JobInstance> createScheduleJobInstances(Plan plan, Attributes planAttributes, String planInstanceId, LocalDateTime triggerAt) {
-        List<JobInstance> jobInstances = new ArrayList<>();
-        // 获取头部节点
-        for (WorkflowJobInfo jobInfo : plan.getDag().origins()) {
-            if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
-                jobInstances.add(createJobInstance(plan.getId(), plan.getVersion(), plan.getType(), planInstanceId, planAttributes, new Attributes(), jobInfo, triggerAt));
-            }
-        }
-        return jobInstances;
-    }
-
-    private PlanInstance createPlanInstance(Plan plan, Attributes planAttributes, LocalDateTime triggerAt) {
-        String id = idGenerator.generateId(IDType.PLAN_INSTANCE);
-        PlanInstance planInstance = new PlanInstance();
-        planInstance.setId(id);
-        planInstance.setPlanId(plan.getId());
-        planInstance.setVersion(plan.getVersion());
-        planInstance.setStatus(ConstantsPool.PLAN_DISPATCHING);
-        planInstance.setType(plan.getType());
-        planInstance.setTriggerType(plan.getTriggerType());
-        planInstance.setScheduleOption(plan.getScheduleOption());
-        planInstance.setDag(plan.getDag());
-        planInstance.setAttributes(planAttributes == null ? new Attributes() : planAttributes);
-        planInstance.setTriggerAt(triggerAt);
-        return planInstance;
-    }
-
-    private JobInstance createJobInstance(String planId, String planVersion, PlanType planType, String planInstanceId, Attributes planAttributes,
-                                          Attributes context, JobInfo jobInfo, LocalDateTime triggerAt) {
-        String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
-        JobInstance instance = new JobInstance();
-        instance.setId(jobInstanceId);
-        instance.setAgentId("");
-        instance.setJobInfo(jobInfo);
-        instance.setPlanType(planType);
-        instance.setPlanId(planId);
-        instance.setPlanInstanceId(planInstanceId);
-        instance.setPlanVersion(planVersion);
-        instance.setStatus(JobStatus.SCHEDULING);
-        instance.setTriggerAt(triggerAt);
-        instance.setContext(context == null ? new Attributes() : context);
-        Attributes attributes = new Attributes();
-        attributes.put(planAttributes);
-        attributes.put(jobInfo.getAttributes());
-        instance.setAttributes(attributes);
-        return instance;
     }
 
 }

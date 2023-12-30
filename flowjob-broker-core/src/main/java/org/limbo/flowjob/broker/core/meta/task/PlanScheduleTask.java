@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.task;
+package org.limbo.flowjob.broker.core.meta.task;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AccessLevel;
@@ -25,7 +25,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.core.context.plan.Plan;
+import org.limbo.flowjob.broker.core.meta.plan.Plan;
 import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.LoopMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;

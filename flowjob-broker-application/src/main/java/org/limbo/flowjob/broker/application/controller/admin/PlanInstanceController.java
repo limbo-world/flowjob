@@ -25,7 +25,7 @@ import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.console.PlanInstanceDTO;
 import org.limbo.flowjob.api.param.console.PlanInstanceQueryParam;
-import org.limbo.flowjob.broker.application.service.PlanInstanceService;
+import org.limbo.flowjob.broker.application.service.PlanInstanceAppService;
 import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,7 +48,7 @@ public class PlanInstanceController {
     private SchedulerProcessor schedulerProcessor;
 
     @Setter(onMethod_ = @Inject)
-    private PlanInstanceService planInstanceService;
+    private PlanInstanceAppService planInstanceAppService;
 
     /**
      * 计划列表
@@ -56,7 +56,7 @@ public class PlanInstanceController {
     @Operation(summary = "计划列表")
     @GetMapping("/api/v1/plan-instance/page")
     public ResponseDTO<PageDTO<PlanInstanceDTO>> page(PlanInstanceQueryParam param) {
-        return ResponseDTO.<PageDTO<PlanInstanceDTO>>builder().ok(planInstanceService.page(param)).build();
+        return ResponseDTO.<PageDTO<PlanInstanceDTO>>builder().ok(planInstanceAppService.page(param)).build();
     }
 
     /**

@@ -38,7 +38,7 @@ import javax.inject.Inject;
  */
 @Slf4j
 @Service
-public class TaskService {
+public class TaskAppService {
 
     @Setter(onMethod_ = @Inject)
     private JobInstanceEntityRepo jobInstanceEntityRepo;

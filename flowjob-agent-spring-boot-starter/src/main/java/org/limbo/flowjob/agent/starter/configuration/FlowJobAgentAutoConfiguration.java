@@ -35,6 +35,7 @@ import org.limbo.flowjob.agent.core.rpc.http.OkHttpAgentBrokerRpc;
 import org.limbo.flowjob.agent.core.rpc.http.OkHttpAgentWorkerRpc;
 import org.limbo.flowjob.agent.core.service.TaskService;
 import org.limbo.flowjob.agent.starter.SpringDelegatedAgent;
+import org.limbo.flowjob.agent.starter.component.AgentConverter;
 import org.limbo.flowjob.agent.starter.component.H2ConnectionFactory;
 import org.limbo.flowjob.agent.starter.handler.HttpHandlerProcessor;
 import org.limbo.flowjob.agent.starter.properties.AgentProperties;
@@ -88,15 +89,29 @@ public class FlowJobAgentAutoConfiguration {
     @Bean("fjaHttpScheduleAgent")
     public ScheduleAgent httpAgent(URL fjaAgentServerUrl, AgentResources resources, AgentBrokerRpc rpc,
                                    JobRepository jobRepository, TaskService taskService, TaskRepository taskRepository,
-                                   TaskDispatcher taskDispatcher) {
+                                   TaskDispatcher taskDispatcher, AgentConverter agentConverter) {
         HttpHandlerProcessor httpHandlerProcessor = new HttpHandlerProcessor();
         EmbedRpcServer embedRpcServer = new EmbedHttpRpcServer(fjaAgentServerUrl.getPort(), httpHandlerProcessor);
         ScheduleAgent agent = new BaseScheduleAgent(fjaAgentServerUrl, resources, rpc, jobRepository, taskRepository, taskDispatcher, embedRpcServer);
         httpHandlerProcessor.setAgent(agent);
         httpHandlerProcessor.setTaskService(taskService);
         httpHandlerProcessor.setJobRepository(jobRepository);
+        httpHandlerProcessor.setAgentConverter(agentConverter);
 
         return new SpringDelegatedAgent(agent);
+    }
+
+    @Bean("fjaAgentConverter")
+    public AgentConverter agentConverter(TaskDispatcher taskDispatcher,
+                                         TaskRepository taskRepository,
+                                         JobRepository jobRepository,
+                                         AgentBrokerRpc brokerRpc) {
+        AgentConverter agentConverter = new AgentConverter();
+        agentConverter.setTaskRepository(taskRepository);
+        agentConverter.setTaskDispatcher(taskDispatcher);
+        agentConverter.setJobRepository(jobRepository);
+        agentConverter.setBrokerRpc(brokerRpc);
+        return agentConverter;
     }
 
     @Bean("fjaAgentServerUrl")
@@ -160,7 +175,6 @@ public class FlowJobAgentAutoConfiguration {
     public AgentWorkerRpc workerRpc(URL fjaAgentServerUrl) {
         return new OkHttpAgentWorkerRpc(fjaAgentServerUrl);
     }
-
 
 
     /**

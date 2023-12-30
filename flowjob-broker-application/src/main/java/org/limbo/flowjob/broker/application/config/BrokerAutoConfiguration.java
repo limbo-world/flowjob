@@ -23,22 +23,27 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.broker.application.component.BrokerStarter;
 import org.limbo.flowjob.broker.application.component.DBBrokerRegistry;
+import org.limbo.flowjob.broker.core.agent.AgentRegistry;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
-import org.limbo.flowjob.broker.core.context.IDGenerator;
-import org.limbo.flowjob.broker.core.context.job.JobInstanceRepository;
-import org.limbo.flowjob.broker.core.context.plan.PlanRepository;
+import org.limbo.flowjob.broker.core.meta.IDGenerator;
+import org.limbo.flowjob.broker.core.meta.job.JobInstanceRepository;
+import org.limbo.flowjob.broker.core.meta.plan.PlanInstanceRepository;
+import org.limbo.flowjob.broker.core.meta.plan.PlanRepository;
+import org.limbo.flowjob.broker.core.meta.task.JobExecuteCheckTask;
+import org.limbo.flowjob.broker.core.meta.task.JobScheduleCheckTask;
+import org.limbo.flowjob.broker.core.meta.task.PlanLoadTask;
 import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.selector.SingletonWorkerStatisticsRepo;
 import org.limbo.flowjob.broker.core.schedule.selector.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.schedule.selector.WorkerStatisticsRepository;
-import org.limbo.flowjob.broker.core.task.JobExecuteCheckTask;
-import org.limbo.flowjob.broker.core.task.JobScheduleCheckTask;
-import org.limbo.flowjob.broker.core.task.PlanLoadTask;
+import org.limbo.flowjob.broker.core.service.TransactionService;
+import org.limbo.flowjob.broker.core.worker.WorkerDomainService;
+import org.limbo.flowjob.broker.core.worker.WorkerRegistry;
 import org.limbo.flowjob.broker.dao.repositories.BrokerEntityRepo;
 import org.limbo.flowjob.common.utils.NetUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -160,6 +165,24 @@ public class BrokerAutoConfiguration {
                                                      SchedulerProcessor schedulerProcessor,
                                                      JobInstanceRepository jobInstanceRepository) {
         return new JobScheduleCheckTask(scheduler, broker, nodeManger, schedulerProcessor, jobInstanceRepository);
+    }
+
+    @Bean
+    public WorkerDomainService workerDomainService(WorkerRegistry workerRegistry,
+                                                   WorkerSelectorFactory workerSelectorFactory,
+                                                   WorkerStatisticsRepository workerStatisticsRepository) {
+        return new WorkerDomainService(workerRegistry, workerSelectorFactory, workerStatisticsRepository);
+    }
+
+    @Bean
+    public SchedulerProcessor schedulerProcessor(MetaTaskScheduler metaTaskScheduler,
+                                                 IDGenerator idGenerator,
+                                                 AgentRegistry agentRegistry,
+                                                 PlanRepository planRepository,
+                                                 TransactionService transactionService,
+                                                 PlanInstanceRepository planInstanceRepository,
+                                                 JobInstanceRepository jobInstanceRepository) {
+        return new SchedulerProcessor(metaTaskScheduler, idGenerator, agentRegistry, planRepository, transactionService, planInstanceRepository, jobInstanceRepository);
     }
 
 }

@@ -16,9 +16,11 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.context.job;
+package org.limbo.flowjob.broker.core.meta.job;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.constants.JobStatus;
 import org.limbo.flowjob.api.constants.PlanType;
@@ -34,7 +36,8 @@ import java.time.LocalDateTime;
  * @since 2021/9/1
  */
 @Slf4j
-@Data
+@Getter
+@Builder
 public class JobInstance implements Serializable {
 
     private static final long serialVersionUID = -7913375595969578408L;

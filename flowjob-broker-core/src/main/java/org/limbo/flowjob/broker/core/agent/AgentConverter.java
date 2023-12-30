@@ -19,8 +19,8 @@
 package org.limbo.flowjob.broker.core.agent;
 
 import org.limbo.flowjob.api.param.agent.JobSubmitParam;
-import org.limbo.flowjob.broker.core.context.job.JobInfo;
-import org.limbo.flowjob.broker.core.context.job.JobInstance;
+import org.limbo.flowjob.broker.core.meta.job.JobInfo;
+import org.limbo.flowjob.broker.core.meta.job.JobInstance;
 
 /**
  * @author Devil
@@ -33,6 +33,7 @@ public class AgentConverter {
 
         JobSubmitParam param = new JobSubmitParam();
         param.setJobInstanceId(instance.getId());
+        param.setPlanInstanceId(instance.getPlanInstanceId());
         param.setType(jobInfo.getType().type);
         param.setExecutorName(jobInfo.getExecutorName());
         param.setLoadBalanceType(jobInfo.getDispatchOption().getLoadBalanceType().type);

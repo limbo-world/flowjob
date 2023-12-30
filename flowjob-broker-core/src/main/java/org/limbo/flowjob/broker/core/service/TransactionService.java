@@ -16,36 +16,21 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.context;
+package org.limbo.flowjob.broker.core.service;
+
+import java.util.function.Supplier;
 
 /**
  * @author Devil
- * @since 2022/11/27
+ * @since 2023/12/29
  */
-public enum IDType {
+public interface TransactionService {
 
-    APP,
-
-    TENANT,
-
-    AGENT,
-
-    WORKER,
-
-    WORKER_EXECUTOR,
-
-    WORKER_TAG,
-
-    BROKER,
-
-    PLAN,
-
-    PLAN_INFO,
-
-    PLAN_INSTANCE,
-
-    JOB_INSTANCE,
-
-    ;
-
+    /**
+     * 包装在事务中的处理
+     * @param supplier 处理逻辑
+     * @param <T> 返回类型
+     * @return 返回数据
+     */
+    <T> T transactional(Supplier<T> supplier);
 }

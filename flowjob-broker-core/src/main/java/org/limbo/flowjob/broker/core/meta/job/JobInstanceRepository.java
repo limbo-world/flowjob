@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.context.job;
+package org.limbo.flowjob.broker.core.meta.job;
 
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -29,6 +29,8 @@ import java.util.List;
 public interface JobInstanceRepository {
 
     JobInstance get(String id);
+
+    void save(JobInstance jobInstance);
 
     void saveAll(List<JobInstance> jobInstances);
 

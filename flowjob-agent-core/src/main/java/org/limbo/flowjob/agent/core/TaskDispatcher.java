@@ -79,18 +79,18 @@ public class TaskDispatcher {
             }
 
             if (dispatched) {
-                log.info("Task dispatch success task={} worker={}", task.getTaskId(), task.getWorker());
+                log.info("Task dispatch success task={} worker={}", task.getId(), task.getWorker());
             } else {
-                task.setDispatchFailTimes(task.getDispatchFailTimes() + 1);
-                log.error("Task dispatch failed: task={} worker={} times={}", task.getTaskId(), task.getWorker(), task.getDispatchFailTimes());
-                taskRepository.dispatchFail(task.getJobId(), task.getTaskId());
+                task.dispatchFail();
+                log.error("Task dispatch failed: task={} worker={} times={}", task.getId(), task.getWorker(), task.getDispatchFailTimes());
+                taskRepository.dispatchFail(task.getJobId(), task.getId());
                 if (task.getDispatchFailTimes() >= 3) {
                     Job job = jobRepository.getById(task.getJobId());
                     job.taskFail(task, String.format("task dispatch fail over limit last worker is %s", task.getWorker() == null ? "" : task.getWorker()), "");
                 }
             }
         } catch (Exception e) {
-            log.error("Task dispatch failed: task={} worker={}", task.getTaskId(), task.getWorker(), e);
+            log.error("Task dispatch failed: task={} worker={}", task.getId(), task.getWorker(), e);
         }
     }
 

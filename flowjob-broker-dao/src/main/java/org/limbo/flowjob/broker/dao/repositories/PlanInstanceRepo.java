@@ -22,15 +22,13 @@ import lombok.Setter;
 import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.core.context.job.WorkflowJobInfo;
-import org.limbo.flowjob.broker.core.context.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.context.plan.PlanInstanceRepository;
+import org.limbo.flowjob.broker.core.meta.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.meta.plan.PlanInstance;
+import org.limbo.flowjob.broker.core.meta.plan.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
-import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
@@ -81,14 +79,6 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
         PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
 
         ScheduleOption scheduleOption = DomainConverter.toScheduleOption(planInfoEntity);
-
-        PlanInstance planInstance = new PlanInstance();
-        planInstance.setId(String.valueOf(planInstanceEntity.getId()));
-        planInstance.setPlanId(planInstanceEntity.getPlanId());
-        planInstance.setVersion(planInstanceEntity.getPlanInfoId());
-        planInstance.setTriggerType(TriggerType.parse(planInstanceEntity.getTriggerType()));
-        planInstance.setType(planType);
-        planInstance.setScheduleOption(scheduleOption);
         DAG<WorkflowJobInfo> dag;
         if (PlanType.STANDALONE == planType) {
             WorkflowJobInfo jobInfo = JacksonUtils.parseObject(planInfoEntity.getJobInfo(), WorkflowJobInfo.class);
@@ -96,13 +86,21 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
         } else {
             dag = DomainConverter.toJobDag(planInfoEntity.getJobInfo());
         }
-        planInstance.setDag(dag);
-        planInstance.setStatus(planInstanceEntity.getStatus());
-        planInstance.setAttributes(new Attributes(planInstanceEntity.getAttributes()));
-        planInstance.setTriggerAt(planInstanceEntity.getTriggerAt());
-        planInstance.setStartAt(planInstanceEntity.getStartAt());
-        planInstance.setFeedbackAt(planInstanceEntity.getFeedbackAt());
-        return planInstance;
+
+        return PlanInstance.builder()
+                .id(planInstanceEntity.getPlanInstanceId())
+                .planId(planInstanceEntity.getPlanId())
+                .version(planInstanceEntity.getPlanInfoId())
+                .status(planInstanceEntity.getStatus())
+                .type(planType)
+                .triggerType(TriggerType.parse(planInstanceEntity.getTriggerType()))
+                .scheduleOption(scheduleOption)
+                .dag(dag)
+                .attributes(new Attributes(planInstanceEntity.getAttributes()))
+                .triggerAt(planInstanceEntity.getTriggerAt())
+                .startAt(planInstanceEntity.getStartAt())
+                .feedbackAt(planInstanceEntity.getFeedbackAt())
+                .build();
     }
 
     @Override

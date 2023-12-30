@@ -19,7 +19,10 @@
 package org.limbo.flowjob.agent.core.entity;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Data;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -51,17 +54,26 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
+ * Job生命周期管理
+ *
  * @author Devil
  * @since 2023/8/4
  */
 @Slf4j
 @Data
+@Setter(AccessLevel.NONE)
+@Builder
 public class Job implements Runnable {
 
     /**
-     * 实例id
+     * job d
      */
     private String id;
+
+    /**
+     * 实例
+     */
+    private String instanceId;
 
     /**
      * 类型
@@ -90,6 +102,13 @@ public class Job implements Runnable {
      */
     private Attributes attributes;
 
+    private ScheduledExecutorService scheduledReportPool;
+
+    private ScheduledFuture<?> reportScheduledFuture = null;
+
+    private ScheduledFuture<?> completeScheduledFuture = null;
+
+    private TaskCounter taskCounter;
 
     // =======  注入 ========
     private TaskDispatcher taskDispatcher;
@@ -99,14 +118,6 @@ public class Job implements Runnable {
     private JobRepository jobRepository;
 
     private AgentBrokerRpc brokerRpc;
-
-    private ScheduledExecutorService scheduledReportPool;
-
-    private ScheduledFuture<?> reportScheduledFuture = null;
-
-    private ScheduledFuture<?> completeScheduledFuture = null;
-
-    private TaskCounter taskCounter;
 
     @Override
     public void run() {
@@ -189,8 +200,7 @@ public class Job implements Runnable {
      * task 成功处理
      */
     public void taskSuccess(Task task, Attributes context, String result) {
-        task.setContext(context);
-        task.setResult(result);
+        task.success(context, result);
         boolean updated = taskRepository.success(task);
         if (!updated) { // 已经被更新 无需重复处理
             return;
@@ -227,7 +237,7 @@ public class Job implements Runnable {
                 .map(r -> JacksonUtils.parseObject(r, new TypeReference<Map<String, Object>>() {
                 }))
                 .collect(Collectors.toList());
-        Task reduceTask = TaskFactory.createTask(TaskType.REDUCE.name(), this, mapResults, TaskType.REDUCE, null);
+        Task reduceTask = TaskFactory.create(TaskType.REDUCE.name(), this, mapResults, TaskType.REDUCE, null);
         saveTask(Collections.singletonList(reduceTask));
         taskDispatcher.dispatch(reduceTask);
     }
@@ -252,8 +262,7 @@ public class Job implements Runnable {
         if (StringUtils.isBlank(errorStackTrace)) {
             errorStackTrace = "";
         }
-        task.setErrorMsg(errorMsg);
-        task.setErrorStackTrace(errorStackTrace);
+        task.fail(errorMsg, errorStackTrace);
         boolean updated = taskRepository.fail(task);
         if (!updated) { // 已经被更新 无需重复处理
             return;
@@ -276,16 +285,15 @@ public class Job implements Runnable {
     }
 
     private boolean reportJobExecuting(String id, int retryTimes) {
-        if (retryTimes < 0) {
-            return false;
+        while (retryTimes > 0) {
+            try {
+                return brokerRpc.reportExecuting(id);
+            } catch (Exception e) {
+                log.error("reportJobExecuting fail job={} times={}", id, retryTimes, e);
+                retryTimes--;
+            }
         }
-        try {
-            return brokerRpc.reportExecuting(id);
-        } catch (Exception e) {
-            log.error("reportJobExecuting fail job={} times={}", id, retryTimes, e);
-            retryTimes--;
-            return reportJobExecuting(id, retryTimes);
-        }
+        return false;
     }
 
     public List<Task> createRootTasks() {
@@ -293,20 +301,20 @@ public class Job implements Runnable {
         List<Task> tasks = new ArrayList<>();
         switch (job.getType()) {
             case STANDALONE:
-                tasks.add(TaskFactory.createTask(job.getType().name(), job, null, TaskType.STANDALONE, null));
+                tasks.add(TaskFactory.create(job.getType().name(), job, null, TaskType.STANDALONE, null));
                 break;
             case BROADCAST:
                 List<Worker> workers = brokerRpc.availableWorkers(job.getId(), true, true, false, false);
                 int idx = 1;
                 for (Worker worker : workers) {
-                    Task task = TaskFactory.createTask(String.valueOf(idx), job, null, TaskType.BROADCAST, worker);
+                    Task task = TaskFactory.create(String.valueOf(idx), job, null, TaskType.BROADCAST, worker);
                     tasks.add(task);
                     idx++;
                 }
                 break;
             case MAP:
             case MAP_REDUCE:
-                tasks.add(TaskFactory.createTask(TaskType.SHARDING.name(), job, null, TaskType.SHARDING, null));
+                tasks.add(TaskFactory.create(TaskType.SHARDING.name(), job, null, TaskType.SHARDING, null));
                 break;
             default:
                 throw new JobException(job.getId(), MsgConstants.UNKNOWN + " job type:" + job.getType().type);

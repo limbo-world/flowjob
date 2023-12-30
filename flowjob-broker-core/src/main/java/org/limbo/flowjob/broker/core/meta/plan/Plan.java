@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.context.plan;
+package org.limbo.flowjob.broker.core.meta.plan;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -25,8 +25,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.core.cluster.Broker;
-import org.limbo.flowjob.broker.core.context.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.meta.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.utils.dag.DAG;
 

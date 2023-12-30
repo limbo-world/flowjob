@@ -35,6 +35,8 @@ public class JobSubmitParam implements Serializable {
 
     private String jobInstanceId;
 
+    private String planInstanceId;
+
     /**
      * 类型
      *

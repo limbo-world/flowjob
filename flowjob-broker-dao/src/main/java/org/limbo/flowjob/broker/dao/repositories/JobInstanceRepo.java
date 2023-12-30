@@ -23,11 +23,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.JobStatus;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.PlanType;
-import org.limbo.flowjob.broker.core.context.job.JobInfo;
-import org.limbo.flowjob.broker.core.context.job.JobInstance;
-import org.limbo.flowjob.broker.core.context.job.JobInstanceRepository;
-import org.limbo.flowjob.broker.core.context.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
+import org.limbo.flowjob.broker.core.meta.job.JobInfo;
+import org.limbo.flowjob.broker.core.meta.job.JobInstance;
+import org.limbo.flowjob.broker.core.meta.job.JobInstanceRepository;
+import org.limbo.flowjob.broker.core.meta.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
@@ -72,6 +72,13 @@ public class JobInstanceRepo implements JobInstanceRepository {
         } else {
             return getByEntity(entity);
         }
+    }
+
+    @Override
+    @Transactional
+    public void save(JobInstance jobInstance) {
+        JobInstanceEntity jobInstanceEntity = DomainConverter.toJobInstanceEntity(jobInstance);
+        jobInstanceEntityRepo.saveAndFlush(jobInstanceEntity);
     }
 
     @Override
@@ -166,7 +173,6 @@ public class JobInstanceRepo implements JobInstanceRepository {
     }
 
     private JobInstance assemble(JobInstanceEntity entity, PlanInfoEntity planInfoEntity) {
-        JobInstance jobInstance = new JobInstance();
         PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
         JobInfo jobInfo;
         if (PlanType.STANDALONE == planType) {
@@ -179,28 +185,25 @@ public class JobInstanceRepo implements JobInstanceRepository {
         }
 
         PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(entity.getPlanInstanceId()).orElse(null);
-
-        jobInstance.setJobInfo(jobInfo);
-        jobInstance.setPlanType(planType);
-        jobInstance.setPlanId(entity.getPlanId());
-        jobInstance.setRetryTimes(entity.getRetryTimes());
-        jobInstance.setPlanInstanceId(entity.getPlanInstanceId());
-        jobInstance.setPlanVersion(entity.getPlanInfoId());
-        jobInstance.setBrokerUrl(DomainConverter.brokerUrl(entity.getBrokerUrl()));
-        jobInstance.setStatus(JobStatus.SCHEDULING);
-        jobInstance.setTriggerAt(entity.getTriggerAt());
-        jobInstance.setContext(new Attributes(entity.getContext()));
-
         Attributes attributes = new Attributes();
         attributes.put(new Attributes(planInstanceEntity.getAttributes()));
         attributes.put(jobInfo.getAttributes());
-        jobInstance.setAttributes(attributes);
-
-        jobInstance.setId(entity.getJobInstanceId());
-        jobInstance.setStatus(JobStatus.parse(entity.getStatus()));
-        jobInstance.setStartAt(entity.getStartAt());
-        jobInstance.setEndAt(entity.getEndAt());
-        return jobInstance;
+        return JobInstance.builder()
+                .id(entity.getJobInstanceId())
+                .jobInfo(jobInfo)
+                .planType(planType)
+                .planId(entity.getPlanId())
+                .retryTimes(entity.getRetryTimes())
+                .planInstanceId(entity.getPlanInstanceId())
+                .planVersion(entity.getPlanInfoId())
+                .brokerUrl(DomainConverter.brokerUrl(entity.getBrokerUrl()))
+                .triggerAt(entity.getTriggerAt())
+                .context(new Attributes(entity.getContext()))
+                .attributes(attributes)
+                .status(JobStatus.parse(entity.getStatus()))
+                .startAt(entity.getStartAt())
+                .endAt(entity.getEndAt())
+                .build();
     }
 
 }

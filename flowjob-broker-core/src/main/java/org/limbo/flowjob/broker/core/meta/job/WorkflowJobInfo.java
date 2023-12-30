@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.context.job;
+package org.limbo.flowjob.broker.core.meta.job;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

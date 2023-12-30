@@ -22,7 +22,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.limbo.flowjob.broker.application.service.PlanService;
+import org.limbo.flowjob.broker.application.service.PlanAppService;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -38,10 +38,10 @@ import javax.transaction.Transactional;
 @Slf4j
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-class PlanServiceTest {
+class PlanAppServiceTest {
 
     @Setter(onMethod_ = @Inject)
-    private PlanService planService;
+    private PlanAppService planAppService;
 
     @Test
 //    @Transactional

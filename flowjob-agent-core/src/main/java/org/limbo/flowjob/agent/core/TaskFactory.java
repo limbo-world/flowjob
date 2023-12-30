@@ -37,20 +37,20 @@ public class TaskFactory {
 
     public static final LocalDateTime DEFAULT_REPORT_TIME = DateTimeUtils.parse("2000-01-01 00:00:00", Formatters.YMD_HMS);
 
-    public static Task createTask(String taskId, Job job, Object taskAttributes, TaskType type, Worker worker) {
-        Task task = new Task();
-        task.setTaskId(taskId);
-        task.setJobId(job.getId());
-        task.setType(type);
-        task.setExecutorName(job.getExecutorName());
-        task.setStatus(TaskStatus.SCHEDULING);
-        task.setContext(job.getContext());
-        task.setJobAttributes(job.getAttributes());
-        task.setTaskAttributes(taskAttributes == null ? "" : JacksonUtils.toJSONString(taskAttributes));
-        task.setWorker(worker);
-        task.setLastReportAt(DEFAULT_REPORT_TIME);
-        task.setTriggerAt(TimeUtils.currentLocalDateTime());
-        return task;
+    public static Task create(String id, Job job, Object taskAttributes, TaskType type, Worker worker) {
+        return Task.builder()
+                .id(id)
+                .jobId(job.getId())
+                .type(type)
+                .executorName(job.getExecutorName())
+                .status(TaskStatus.SCHEDULING)
+                .context(job.getContext())
+                .jobAttributes(job.getAttributes())
+                .taskAttributes(taskAttributes == null ? "" : JacksonUtils.toJSONString(taskAttributes))
+                .worker(worker)
+                .lastReportAt(DEFAULT_REPORT_TIME)
+                .triggerAt(TimeUtils.currentLocalDateTime())
+                .build();
     }
 
 }

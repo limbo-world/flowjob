@@ -16,14 +16,14 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.task;
+package org.limbo.flowjob.broker.core.meta.task;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
-import org.limbo.flowjob.broker.core.context.job.JobInstance;
-import org.limbo.flowjob.broker.core.context.job.JobInstanceRepository;
+import org.limbo.flowjob.broker.core.meta.job.JobInstance;
+import org.limbo.flowjob.broker.core.meta.job.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;

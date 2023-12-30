@@ -16,12 +16,13 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.context.plan;
+package org.limbo.flowjob.broker.core.meta.plan;
 
-import lombok.Data;
+import lombok.Builder;
+import lombok.Getter;
 import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.core.context.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.meta.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
@@ -33,7 +34,8 @@ import java.time.LocalDateTime;
  * @author Devil
  * @since 2023/12/13
  */
-@Data
+@Getter
+@Builder
 public class PlanInstance implements Serializable {
 
     private static final long serialVersionUID = -7477209105170967854L;

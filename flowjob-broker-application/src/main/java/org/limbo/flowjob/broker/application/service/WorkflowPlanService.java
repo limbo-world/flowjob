@@ -24,7 +24,7 @@ import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.WorkflowPlanUpdateParam;
 import org.limbo.flowjob.broker.application.converter.WorkflowPlanConverter;
 import org.limbo.flowjob.broker.application.converter.WorkflowPlanParamConverter;
-import org.limbo.flowjob.broker.core.context.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.meta.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
@@ -45,7 +45,7 @@ import javax.transaction.Transactional;
 public class WorkflowPlanService {
 
     @Setter(onMethod_ = @Inject)
-    private PlanService planService;
+    private PlanAppService planAppService;
 
     @Setter(onMethod_ = @Inject)
     private PlanEntityRepo planEntityRepo;
@@ -71,7 +71,7 @@ public class WorkflowPlanService {
         String jobInfo = workflow.json();
         Verifies.notBlank(jobInfo, "Dag Node verify fail!");
 
-        return planService.save(null, PlanType.WORKFLOW, param, jobInfo);
+        return planAppService.save(null, PlanType.WORKFLOW, param, jobInfo);
     }
 
 
@@ -86,7 +86,7 @@ public class WorkflowPlanService {
         String jobInfo = workflow.json();
         Verifies.notBlank(jobInfo);
 
-        return planService.save(param.getPlanId(), PlanType.WORKFLOW, param, jobInfo);
+        return planAppService.save(param.getPlanId(), PlanType.WORKFLOW, param, jobInfo);
     }
 
 

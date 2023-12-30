@@ -107,7 +107,7 @@ public class TaskExecuteChecker {
                                 job.taskFail(t, "no worker", "");
                             }
                         }
-                        startId = tasks.get(tasks.size() - 1).getTaskId();
+                        startId = tasks.get(tasks.size() - 1).getId();
                         tasks = taskRepository.getByLastReportBetween(checkStartTimeStr, checkEndTimeStr, TaskStatus.EXECUTING, startId, limit);
                     }
 

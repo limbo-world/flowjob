@@ -16,39 +16,36 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.context.plan;
-
-import java.net.URL;
-import java.time.LocalDateTime;
-import java.util.List;
+package org.limbo.flowjob.broker.core.meta;
 
 /**
  * @author Devil
- * @since 2023/5/8
+ * @since 2022/11/27
  */
-public interface PlanRepository {
+public enum IDType {
 
-    Plan get(String id);
+    APP,
 
-    Plan lockAndGet(String id);
+    TENANT,
 
-    Plan getByVersion(String id, String version);
+    AGENT,
 
-    List<Plan> loadUpdatedPlans(URL brokerUrl, LocalDateTime updatedAt);
+    WORKER,
 
-    /**
-     * 基于broker获取一个planId
-     * @param brokerUrl
-     * @return
-     */
-    Plan getIdByBroker(URL brokerUrl);
+    WORKER_EXECUTOR,
 
-    /**
-     * 更新绑定的broker
-     * @param plan
-     * @param brokerUrl 新的broker
-     * @return
-     */
-    boolean updateBroker(Plan plan, URL brokerUrl);
+    WORKER_TAG,
+
+    BROKER,
+
+    PLAN,
+
+    PLAN_INFO,
+
+    PLAN_INSTANCE,
+
+    JOB_INSTANCE,
+
+    ;
 
 }

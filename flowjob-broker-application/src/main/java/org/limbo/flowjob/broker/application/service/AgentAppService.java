@@ -29,8 +29,8 @@ import org.limbo.flowjob.api.param.broker.AgentRegisterParam;
 import org.limbo.flowjob.broker.application.converter.BrokerConverter;
 import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
-import org.limbo.flowjob.broker.core.context.IDGenerator;
-import org.limbo.flowjob.broker.core.context.IDType;
+import org.limbo.flowjob.broker.core.meta.IDGenerator;
+import org.limbo.flowjob.broker.core.meta.IDType;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.AgentEntity;
 import org.limbo.flowjob.broker.dao.repositories.AgentEntityRepo;
@@ -47,7 +47,7 @@ import java.net.URL;
  */
 @Slf4j
 @Service
-public class AgentService {
+public class AgentAppService {
 
     @Setter(onMethod_ = @Inject)
     private AgentEntityRepo agentEntityRepo;

@@ -50,7 +50,7 @@ public interface AgentBrokerRpc {
      *
      * @return
      */
-    boolean reportExecuting(String jobInstanceId);
+    boolean reportExecuting(String instanceId);
 
     /**
      * 反馈任务执行状态

@@ -90,7 +90,7 @@ public class TaskScheduleChecker {
                         for (Task t : tasks) {
                             taskDispatcher.dispatch(t);
                         }
-                        startId = tasks.get(tasks.size() - 1).getTaskId();
+                        startId = tasks.get(tasks.size() - 1).getId();
                         tasks = taskRepository.getUnScheduled(triggerAt, startId, limit);
                     }
                 } catch (Exception e) {

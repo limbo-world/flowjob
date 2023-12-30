@@ -23,12 +23,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Setter;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.ResponseDTO;
-import org.limbo.flowjob.api.dto.console.JobInstanceDTO;
 import org.limbo.flowjob.api.dto.console.TaskDTO;
-import org.limbo.flowjob.api.param.console.JobInstanceQueryParam;
 import org.limbo.flowjob.api.param.console.TaskQueryParam;
-import org.limbo.flowjob.broker.application.service.JobInstanceService;
-import org.limbo.flowjob.broker.application.service.TaskService;
+import org.limbo.flowjob.broker.application.service.TaskAppService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -43,7 +40,7 @@ import javax.inject.Inject;
 public class TaskController {
 
     @Setter(onMethod_ = @Inject)
-    private TaskService taskService;
+    private TaskAppService taskAppService;
 
     /**
      * 计划列表
@@ -51,7 +48,7 @@ public class TaskController {
     @Operation(summary = "任务列表")
     @GetMapping("/api/v1/task/page")
     public ResponseDTO<PageDTO<TaskDTO>> page(TaskQueryParam param) {
-        return ResponseDTO.<PageDTO<TaskDTO>>builder().ok(taskService.page(param)).build();
+        return ResponseDTO.<PageDTO<TaskDTO>>builder().ok(taskAppService.page(param)).build();
     }
 
 }

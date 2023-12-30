@@ -305,7 +305,7 @@ public class TaskRepository {
         try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             int idx = 0;
             for (Task task : tasks) {
-                ps.setString(++idx, task.getTaskId());
+                ps.setString(++idx, task.getId());
                 ps.setString(++idx, task.getJobId());
                 if (task.getWorker() != null) {
                     ps.setString(++idx, task.getWorker().getId());
@@ -387,7 +387,7 @@ public class TaskRepository {
             ps.setString(3, task.getResult());
             ps.setString(4, task.getContext().toString());
             ps.setString(5, task.getJobId());
-            ps.setString(6, task.getTaskId());
+            ps.setString(6, task.getId());
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             log.error("TaskRepository.success error task={} ", task, e);
@@ -406,7 +406,7 @@ public class TaskRepository {
             ps.setString(++i, task.getErrorMsg());
             ps.setString(++i, task.getErrorStackTrace());
             ps.setString(++i, task.getJobId());
-            ps.setString(++i, task.getTaskId());
+            ps.setString(++i, task.getId());
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             log.error("TaskRepository.fail error task={} ", task, e);
@@ -415,37 +415,36 @@ public class TaskRepository {
     }
 
     private Task convert(ResultSet rs) throws SQLException, MalformedURLException {
-        Task task = new Task();
-        task.setTaskId(rs.getString("task_id"));
-        task.setJobId(rs.getString("job_id"));
-        task.setExecutorName(rs.getString("executor_name"));
-        task.setType(TaskType.parse(rs.getInt("type")));
-        task.setStatus(TaskStatus.parse(rs.getInt("status")));
-
         String workerId = rs.getString("worker_id");
         String workerAddress = rs.getString("worker_address");
         Worker worker = null;
         if (StringUtils.isNotBlank(workerId) && StringUtils.isNotBlank(workerAddress)) {
             worker = new Worker(workerId, new URL(workerAddress));
         }
-        task.setWorker(worker);
 
         String triggerAtStr = rs.getString("trigger_at");
         String startAtStr = rs.getString("start_at");
         String endAtStr = rs.getString("end_at");
-        task.setTriggerAt(StringUtils.isBlank(triggerAtStr) ? null : DateTimeUtils.parseYMDHMS(triggerAtStr));
-        task.setStartAt(StringUtils.isBlank(startAtStr) ? null : DateTimeUtils.parseYMDHMS(startAtStr));
-        task.setEndAt(StringUtils.isBlank(endAtStr) ? null : DateTimeUtils.parseYMDHMS(endAtStr));
 
-        task.setDispatchFailTimes(rs.getInt("dispatch_fail_times"));
-        task.setContext(new Attributes(rs.getString("context")));
-        task.setJobAttributes(new Attributes(rs.getString("job_attributes")));
-        task.setTaskAttributes(rs.getString("task_attributes"));
-        task.setResult(rs.getString("result"));
-        task.setErrorMsg(rs.getString("error_msg"));
-        task.setErrorStackTrace(rs.getString("error_stack_trace"));
-        task.setLastReportAt(DateTimeUtils.parseYMDHMS(rs.getString("last_report_at")));
-        return task;
+        return Task.builder()
+                .id(rs.getString("task_id"))
+                .jobId(rs.getString("job_id"))
+                .executorName(rs.getString("executor_name"))
+                .type(TaskType.parse(rs.getInt("type")))
+                .status(TaskStatus.parse(rs.getInt("status")))
+                .worker(worker)
+                .triggerAt(StringUtils.isBlank(triggerAtStr) ? null : DateTimeUtils.parseYMDHMS(triggerAtStr))
+                .startAt(StringUtils.isBlank(startAtStr) ? null : DateTimeUtils.parseYMDHMS(startAtStr))
+                .endAt(StringUtils.isBlank(endAtStr) ? null : DateTimeUtils.parseYMDHMS(endAtStr))
+                .dispatchFailTimes(rs.getInt("dispatch_fail_times"))
+                .context(new Attributes(rs.getString("context")))
+                .jobAttributes(new Attributes(rs.getString("job_attributes")))
+                .taskAttributes(rs.getString("task_attributes"))
+                .result(rs.getString("result"))
+                .errorMsg(rs.getString("error_msg"))
+                .errorStackTrace(rs.getString("error_stack_trace"))
+                .lastReportAt(DateTimeUtils.parseYMDHMS(rs.getString("last_report_at")))
+                .build();
     }
 
 }
