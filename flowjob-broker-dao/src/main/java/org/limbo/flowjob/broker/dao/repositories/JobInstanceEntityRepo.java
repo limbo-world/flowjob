@@ -47,7 +47,7 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
                                                @Param("limit") Integer limit);
 
     @Query(value = "select * from flowjob_job_instance" +
-            " where broker_url in :brokerUrl and  status = " + ConstantsPool.JOB_SCHEDULING +
+            " where broker_url = :brokerUrl and  status = " + ConstantsPool.JOB_SCHEDULING +
             " and last_report_at <= :lastReportAt and trigger_at <= :triggerAt and job_instance_id > :startId " +
             " order by job_instance_id LIMIT :limit", nativeQuery = true)
     List<JobInstanceEntity> findInSchedule(@Param("brokerUrl") String brokerUrl,

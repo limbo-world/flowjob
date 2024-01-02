@@ -53,11 +53,6 @@ public class WorkerEntity extends BaseEntity {
     private String workerId;
 
     /**
-     * 分配的节点 ip:host
-     */
-    private String brokerUrl;
-
-    /**
      * 所属应用
      */
     private String appId;

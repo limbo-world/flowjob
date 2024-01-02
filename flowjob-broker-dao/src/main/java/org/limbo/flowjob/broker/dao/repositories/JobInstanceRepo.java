@@ -155,8 +155,8 @@ public class JobInstanceRepo implements JobInstanceRepository {
     }
 
     @Override
-    public boolean updateBroker(JobInstance instance, URL brokerUrl) {
-        return jobInstanceEntityRepo.updateBroker(instance.getId(), instance.getBrokerUrl().toString(), brokerUrl.toString()) > 0;
+    public boolean updateBroker(JobInstance instance, URL newBrokerUrl) {
+        return jobInstanceEntityRepo.updateBroker(instance.getId(), instance.getBrokerUrl().toString(), newBrokerUrl.toString()) > 0;
     }
 
     private JobInstance getByEntity(JobInstanceEntity entity) {

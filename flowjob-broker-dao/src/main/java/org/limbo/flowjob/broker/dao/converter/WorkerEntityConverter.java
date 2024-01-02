@@ -63,7 +63,6 @@ public class WorkerEntityConverter {
                 .id(po.getWorkerId())
                 .name(po.getName())
                 .url(workerRpcBaseUrl(po))
-                .brokerUrl(DomainConverter.brokerUrl(po.getBrokerUrl()))
                 .status(WorkerStatus.parse(po.getStatus()))
                 .enabled(po.isEnabled())
                 .tags(toTags(tags))
@@ -97,7 +96,6 @@ public class WorkerEntityConverter {
         po.setProtocol(worker.getUrl().getProtocol());
         po.setHost(worker.getUrl().getHost());
         po.setPort(worker.getUrl().getPort());
-        po.setBrokerUrl(worker.getBrokerUrl().toString());
         po.setStatus(worker.getStatus().status);
         po.setAppId("");
         po.setEnabled(true);

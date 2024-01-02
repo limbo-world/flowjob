@@ -105,6 +105,6 @@ public class PlanScheduleTask extends LoopMetaTask {
 
     @Override
     public String getMetaId() {
-        return plan.getId();
+        return plan.getId() + "-" + plan.getVersion();
     }
 }

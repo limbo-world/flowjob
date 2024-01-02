@@ -58,9 +58,9 @@ public interface JobInstanceRepository {
     /**
      * 更新绑定的broker
      * @param instance
-     * @param brokerUrl 新的broker
+     * @param newBrokerUrl 新的broker
      * @return
      */
-    boolean updateBroker(JobInstance instance, URL brokerUrl);
+    boolean updateBroker(JobInstance instance, URL newBrokerUrl);
 
 }

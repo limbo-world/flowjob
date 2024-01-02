@@ -42,7 +42,7 @@ public interface WorkerEntityRepo extends JpaRepository<WorkerEntity, String>, J
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update WorkerEntity set status = :status where workerId = :workerId")
-    int updateStatus(@Param("workerId") String workerId, @Param("brokerUrl") String brokerUrl, @Param("status") Integer status);
+    int updateStatus(@Param("workerId") String workerId, @Param("status") Integer status);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update WorkerEntity set status = :newStatus where workerId = :workerId and status = :oldStatus ")

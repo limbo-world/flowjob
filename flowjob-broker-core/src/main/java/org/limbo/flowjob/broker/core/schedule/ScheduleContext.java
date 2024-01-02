@@ -16,41 +16,31 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.meta.plan;
+package org.limbo.flowjob.broker.core.schedule;
 
-import java.net.URL;
-import java.time.LocalDateTime;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.broker.core.meta.job.JobInstance;
+import org.limbo.flowjob.broker.core.meta.plan.Plan;
+
 import java.util.List;
 
 /**
  * @author Devil
- * @since 2023/5/8
+ * @since 2023/2/8
  */
-public interface PlanRepository {
-
-    Plan get(String id);
-
-    Plan lockAndGet(String id);
-
-    Plan getByVersion(String id, String version);
-
-    List<Plan> loadUpdatedPlans(URL brokerUrl, LocalDateTime updatedAt);
+@Slf4j
+@Data
+public class ScheduleContext {
 
     /**
-     * 基于broker获取一个planId
-     *
-     * @param brokerUrl
-     * @return
+     * 调度中后续调度的plan
      */
-    Plan getIdByBroker(URL brokerUrl);
+    private Plan waitSchedulePlan;
 
     /**
-     * 更新绑定的broker
-     *
-     * @param plan         当前plan
-     * @param newBrokerUrl 新的broker
-     * @return 是否成功
+     * 调度中产生的需要后续下发的job
      */
-    boolean updateBroker(Plan plan, URL newBrokerUrl);
+    private List<JobInstance> waitScheduleJobs;
 
 }

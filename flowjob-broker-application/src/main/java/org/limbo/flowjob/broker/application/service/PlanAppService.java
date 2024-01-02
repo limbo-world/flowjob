@@ -38,10 +38,10 @@ import org.limbo.flowjob.broker.application.converter.PlanConverter;
 import org.limbo.flowjob.broker.application.converter.PlanParamConverter;
 import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
+import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.meta.IDGenerator;
 import org.limbo.flowjob.broker.core.meta.IDType;
 import org.limbo.flowjob.broker.core.meta.job.JobInfo;
-import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.schedule.calculator.CronScheduleCalculator;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
@@ -138,7 +138,7 @@ public class PlanAppService {
             Node elect = nodeManger.elect(planId);
             planEntity.setBrokerUrl(elect.getUrl().toString());
 
-            planEntity = planEntityRepo.saveAndFlush(planEntity);
+            planEntityRepo.saveAndFlush(planEntity);
         } else {
             // update
             PlanEntity planEntity = planEntityRepo.findById(planId).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN + planId));
@@ -199,7 +199,7 @@ public class PlanAppService {
             brokerUrl = elect.getUrl().toString();
         }
 
-        return planEntityRepo.updateEnable(planEntity.getPlanId(), false, true, brokerUrl) == 1;
+        return planEntityRepo.updateEnableAndBrokerUrl(planEntity.getPlanId(), false, true, brokerUrl) == 1;
     }
 
     /**
@@ -219,7 +219,7 @@ public class PlanAppService {
         }
 
         // 停用计划
-        return planEntityRepo.updateEnable(planEntity.getPlanId(), true, false, planEntity.getBrokerUrl()) == 1;
+        return planEntityRepo.updateEnable(planEntity.getPlanId(), true, false) == 1;
     }
 
     public PlanInfoDTO.NormalPlanInfoDTO get(String planId) {

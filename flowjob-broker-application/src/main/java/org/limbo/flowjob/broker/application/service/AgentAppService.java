@@ -27,7 +27,6 @@ import org.limbo.flowjob.api.dto.broker.AgentRegisterDTO;
 import org.limbo.flowjob.api.param.broker.AgentHeartbeatParam;
 import org.limbo.flowjob.api.param.broker.AgentRegisterParam;
 import org.limbo.flowjob.broker.application.converter.BrokerConverter;
-import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.meta.IDGenerator;
 import org.limbo.flowjob.broker.core.meta.IDType;
@@ -80,17 +79,8 @@ public class AgentAppService {
         AgentEntity agent = agentEntityRepo.findByHostAndPort(url.getHost(), url.getPort());
         if (agent == null) {
             agent = newAgent(options);
-            Node elect = nodeManger.elect(agent.getAgentId());
-            agent.setBrokerUrl(elect.getUrl().toString());
             // 保存
             agentEntityRepo.saveAndFlush(agent);
-        } else {
-            String brokerUrl = agent.getBrokerUrl();
-            if (!nodeManger.alive(brokerUrl)) {
-                Node elect = nodeManger.elect(agent.getAgentId());
-                agent.setBrokerUrl(elect.getUrl().toString());
-                agentEntityRepo.saveAndFlush(agent);
-            }
         }
 
         log.info("agent registered " + agent);
@@ -106,13 +96,6 @@ public class AgentAppService {
     public AgentRegisterDTO heartbeat(String agentId, AgentHeartbeatParam option) {
         AgentEntity agent = agentEntityRepo.findById(agentId).get();
         Verifies.requireNotNull(agent, "agent不存在！");
-
-        String brokerUrl = agent.getBrokerUrl();
-        if (!nodeManger.alive(brokerUrl)) {
-            Node elect = nodeManger.elect(agentId);
-            agent.setBrokerUrl(elect.getUrl().toString());
-        }
-
         // 更新
         agent.setAvailableQueueLimit(option.getAvailableResource().getAvailableQueueLimit());
         agent.setLastHeartbeatAt(TimeUtils.currentLocalDateTime());

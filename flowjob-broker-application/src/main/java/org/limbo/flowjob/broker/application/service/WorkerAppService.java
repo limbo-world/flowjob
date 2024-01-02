@@ -35,7 +35,6 @@ import org.limbo.flowjob.api.param.console.WorkerQueryParam;
 import org.limbo.flowjob.broker.application.converter.BrokerConverter;
 import org.limbo.flowjob.broker.application.converter.WorkerConverter;
 import org.limbo.flowjob.broker.application.converter.WorkerParamConverter;
-import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.meta.IDGenerator;
 import org.limbo.flowjob.broker.core.meta.IDType;
@@ -61,7 +60,6 @@ import javax.inject.Inject;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.transaction.Transactional;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -126,7 +124,6 @@ public class WorkerAppService {
         // 更新注册信息
         worker.register(
                 options.getUrl(),
-                elect(worker),
                 WorkerConverter.toWorkerTags(options),
                 WorkerConverter.toWorkerExecutors(options),
                 WorkerConverter.toWorkerMetric(options)
@@ -149,10 +146,8 @@ public class WorkerAppService {
         Worker worker = workerRepository.get(workerId);
         Verifies.requireNotNull(worker, "worker不存在！");
 
-        URL brokerUrl = elect(worker);
-
         // 更新状态
-        workerEntityRepo.updateStatus(workerId, brokerUrl.toString(), WorkerStatus.RUNNING.status);
+        workerEntityRepo.updateStatus(workerId, WorkerStatus.RUNNING.status);
 
         // 更新metric
         worker.heartbeat(WorkerConverter.toWorkerMetric(option));
@@ -163,17 +158,6 @@ public class WorkerAppService {
         }
 
         return WorkerConverter.toRegisterDTO(worker, nodeManger.allAlive());
-    }
-
-    private URL elect(Worker worker) {
-        URL url;
-        if (!nodeManger.alive(worker.getBrokerUrl().toString())) {
-            Node elect = nodeManger.elect(worker.getId());
-            url = elect.getUrl();
-        } else {
-            url = worker.getBrokerUrl();
-        }
-        return url;
     }
 
     /**

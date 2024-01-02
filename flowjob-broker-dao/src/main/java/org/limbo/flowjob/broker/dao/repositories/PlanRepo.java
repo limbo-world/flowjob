@@ -120,8 +120,8 @@ public class PlanRepo implements PlanRepository {
 
     @Override
     @Transactional
-    public boolean updateBroker(Plan plan, URL brokerUrl) {
-        return planEntityRepo.updateBroker(plan.getId(), plan.getBrokerUrl().toString(), brokerUrl.toString()) > 0;
+    public boolean updateBroker(Plan plan, URL newBrokerUrl) {
+        return planEntityRepo.updateBroker(plan.getId(), plan.getBrokerUrl().toString(), newBrokerUrl.toString()) > 0;
     }
 
     private Plan assemble(PlanEntity planEntity, PlanInfoEntity planInfoEntity) {

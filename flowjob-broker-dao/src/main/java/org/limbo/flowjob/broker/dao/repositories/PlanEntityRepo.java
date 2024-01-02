@@ -72,11 +72,17 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, String>, JpaSp
                       @Param("currentVersion") String currentVersion);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanEntity set enabled = :newValue where planId = :planId and enabled = :oldValue and brokerUrl = :brokerUrl ")
+    @Query(value = "update PlanEntity set enabled = :newValue where planId = :planId and enabled = :oldValue ")
     int updateEnable(@Param("planId") String planId,
                      @Param("oldValue") boolean oldValue,
-                     @Param("newValue") boolean newValue,
-                     @Param("brokerUrl") String brokerUrl);
+                     @Param("newValue") boolean newValue);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "update PlanEntity set enabled = :newValue, brokerUrl = :brokerUrl where planId = :planId and enabled = :oldValue ")
+    int updateEnableAndBrokerUrl(@Param("planId") String planId,
+                                 @Param("oldValue") boolean oldValue,
+                                 @Param("newValue") boolean newValue,
+                                 @Param("brokerUrl") String brokerUrl);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update flowjob_plan set updated_at = :updatedAt where plan_id = :planId and is_enabled = true and is_deleted = false", nativeQuery = true)

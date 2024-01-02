@@ -61,6 +61,7 @@ CREATE TABLE `flowjob_broker`
     `name`           varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `host`           varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `port`           int                                                             DEFAULT NULL,
+    `protocol`       varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `online_time`    datetime(6) DEFAULT NULL,
     `last_heartbeat` datetime(6) DEFAULT NULL,
     `is_deleted`     bit(1)                                                 NOT NULL DEFAULT 0,
@@ -100,13 +101,14 @@ CREATE TABLE `flowjob_plan`
     `current_version`  int(8) unsigned NOT NULL,
     `recently_version` int(8) unsigned NOT NULL,
     `name`             varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `broker_url`       varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `is_enabled`       bit(1)                                                          DEFAULT NULL,
     `is_deleted`       bit(1)                                                 NOT NULL DEFAULT 0,
     `created_at`       datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`       datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_id` (`plan_id`),
-    KEY                `idx_update_broker` (`updated_at`, `broker_id`)
+    KEY                `idx_update_broker` (`updated_at`, `broker_url`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -222,6 +224,7 @@ CREATE TABLE `flowjob_job_instance`
     `retry_times`      int unsigned NOT NULL DEFAULT 1,
     `plan_id`          varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `plan_info_id`     varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `broker_url`       varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `trigger_at`       datetime(6) NOT NULL,
     `context`          text COLLATE utf8mb4_bin,
     `start_at`         datetime(6) DEFAULT NULL,
@@ -235,7 +238,7 @@ CREATE TABLE `flowjob_job_instance`
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_id` (`job_instance_id`),
     UNIQUE KEY `uk_plan_instance_job` (`plan_instance_id`, `job_id`, `retry_times`),
-    KEY                `idx_report_plan` (`last_report_at`, `plan_id`)
+    KEY                `idx_report_broker` (`last_report_at`, `broker_url`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -387,7 +390,8 @@ CREATE TABLE `flowjob_worker_metric`
     `created_at`            datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`            datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_id` (`worker_id`)
+    UNIQUE KEY `uk_id` (`worker_id`),
+    KEY                     `idx_heartbeat` (`last_heartbeat_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

@@ -61,11 +61,6 @@ public class Worker implements LBServer {
     private URL url;
 
     /**
-     * 与broker通信 URL
-     */
-    private URL brokerUrl;
-
-    /**
      * worker节点状态
      */
     private WorkerStatus status;
@@ -118,10 +113,9 @@ public class Worker implements LBServer {
     /**
      * 更新 worker 的注册信息
      */
-    public void register(URL rpcBaseUrl, URL brokerUrl, Map<String, List<String>> tags,
+    public void register(URL rpcBaseUrl, Map<String, List<String>> tags,
                          List<WorkerExecutor> executors, WorkerMetric metric) {
         this.url = Objects.requireNonNull(rpcBaseUrl, "rpcBaseUrl");
-        this.brokerUrl = Objects.requireNonNull(brokerUrl, "brokerUrl");
         setTags(tags);
         setExecutors(executors);
         setMetric(metric);

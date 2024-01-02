@@ -78,7 +78,7 @@ public class JobScheduleCheckTask extends FixDelayMetaTask {
             while (CollectionUtils.isNotEmpty(jobInstances)) {
                 for (JobInstance jobInstance : jobInstances) {
                     try {
-                        schedulerProcessor.schedule(jobInstance);
+                        schedulerProcessor.dispatch(jobInstance);
                     } catch (Exception e) {
                         log.error("jobInstance {} schedule fail", jobInstance.getId(), e);
                     }
