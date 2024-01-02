@@ -21,6 +21,7 @@ package org.limbo.flowjob.broker.core.meta.plan;
 import lombok.Builder;
 import lombok.Getter;
 import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.broker.core.meta.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
@@ -65,7 +66,7 @@ public class PlanInstance implements Serializable {
     /**
      * 作业计划调度配置参数
      */
-    private ScheduleOption scheduleOption;
+    private ScheduleType scheduleType;
 
     /**
      * 作业计划对应的Job，以DAG数据结构组织

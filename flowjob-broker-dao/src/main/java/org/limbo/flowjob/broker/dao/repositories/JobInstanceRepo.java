@@ -174,7 +174,7 @@ public class JobInstanceRepo implements JobInstanceRepository {
 
     private JobInstance assemble(JobInstanceEntity entity, PlanInfoEntity planInfoEntity) {
         PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
-        JobInfo jobInfo;
+        WorkflowJobInfo jobInfo;
         if (PlanType.STANDALONE == planType) {
             jobInfo = JacksonUtils.parseObject(planInfoEntity.getJobInfo(), WorkflowJobInfo.class);
         } else if (PlanType.WORKFLOW == planType) {

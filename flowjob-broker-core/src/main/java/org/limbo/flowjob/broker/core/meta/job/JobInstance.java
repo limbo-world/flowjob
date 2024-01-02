@@ -100,7 +100,7 @@ public class JobInstance implements Serializable {
     /**
      * 任务信息
      */
-    private JobInfo jobInfo;
+    private WorkflowJobInfo jobInfo;
 
     /**
      * 设置为 retry 状态

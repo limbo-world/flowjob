@@ -19,6 +19,7 @@
 package org.limbo.flowjob.broker.core.meta.plan;
 
 import org.limbo.flowjob.api.constants.ConstantsPool;
+import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
 import java.time.LocalDateTime;
@@ -30,6 +31,7 @@ import java.time.LocalDateTime;
 public class PlanInstanceFactory {
 
     public static PlanInstance create(String id, Plan plan, Attributes planAttributes, LocalDateTime triggerAt) {
+        ScheduleOption scheduleOption = plan.getScheduleOption();
         return PlanInstance.builder()
                 .id(id)
                 .planId(plan.getId())
@@ -37,7 +39,7 @@ public class PlanInstanceFactory {
                 .status(ConstantsPool.PLAN_DISPATCHING)
                 .type(plan.getType())
                 .triggerType(plan.getTriggerType())
-                .scheduleOption(plan.getScheduleOption())
+                .scheduleType(scheduleOption.getScheduleType())
                 .dag(plan.getDag())
                 .attributes(planAttributes == null ? new Attributes() : planAttributes)
                 .triggerAt(triggerAt)

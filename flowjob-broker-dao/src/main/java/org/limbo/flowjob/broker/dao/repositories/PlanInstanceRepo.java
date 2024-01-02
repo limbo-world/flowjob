@@ -106,7 +106,7 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
                 .status(planInstanceEntity.getStatus())
                 .type(planType)
                 .triggerType(TriggerType.parse(planInstanceEntity.getTriggerType()))
-                .scheduleOption(scheduleOption)
+                .scheduleType(scheduleOption.getScheduleType())
                 .dag(dag)
                 .attributes(new Attributes(planInstanceEntity.getAttributes()))
                 .triggerAt(planInstanceEntity.getTriggerAt())
@@ -124,7 +124,7 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
         planInstanceEntity.setPlanInfoId(planInstance.getVersion());
         planInstanceEntity.setStatus(planInstance.getStatus());
         planInstanceEntity.setTriggerType(planInstance.getTriggerType().type);
-        planInstanceEntity.setScheduleType(planInstance.getScheduleOption().getScheduleType().type);
+        planInstanceEntity.setScheduleType(planInstance.getScheduleType().type);
         planInstanceEntity.setAttributes(planInstance.getAttributes().toString());
         planInstanceEntity.setTriggerAt(planInstance.getTriggerAt());
         planInstanceEntity.setStartAt(planInstance.getStartAt());

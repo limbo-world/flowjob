@@ -35,7 +35,6 @@ import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.meta.IDGenerator;
 import org.limbo.flowjob.broker.core.meta.IDType;
-import org.limbo.flowjob.broker.core.meta.job.JobInfo;
 import org.limbo.flowjob.broker.core.meta.job.JobInstance;
 import org.limbo.flowjob.broker.core.meta.job.JobInstanceFactory;
 import org.limbo.flowjob.broker.core.meta.job.JobInstanceRepository;
@@ -325,7 +324,7 @@ public class SchedulerProcessor {
         String planInstanceId = jobInstance.getPlanInstanceId();
         String planId = jobInstance.getPlanId();
         String version = jobInstance.getPlanVersion();
-        JobInfo jobInfo = jobInstance.getJobInfo();
+        WorkflowJobInfo jobInfo = jobInstance.getJobInfo();
         String jobId = jobInfo.getId();
 
         // 防止并发问题，两个任务结束后并发过来后，由于无法读取到未提交数据，可能导致都认为不需要下发而导致失败
@@ -384,7 +383,7 @@ public class SchedulerProcessor {
             return scheduleContext; // 可能被其他的task处理了
         }
 
-        WorkflowJobInfo jobInfo = (WorkflowJobInfo) jobInstance.getJobInfo();
+        WorkflowJobInfo jobInfo = jobInstance.getJobInfo();
         String planInstanceId = jobInstance.getPlanInstanceId();
         // 是否需要重试
         if (jobInstance.canRetry()) {
@@ -432,7 +431,7 @@ public class SchedulerProcessor {
             planInstanceRepository.fail(planInstanceId, startAt, current);
         }
         // 下发 fixed_delay 任务
-        if (ScheduleType.FIXED_DELAY == planInstance.getScheduleOption().getScheduleType()) {
+        if (ScheduleType.FIXED_DELAY == planInstance.getScheduleType()) {
             return planRepository.get(planInstance.getPlanId());
         }
         return null;

@@ -32,7 +32,7 @@ import java.time.LocalDateTime;
 public class JobInstanceFactory {
 
     public static JobInstance create(String id, String planId, String planVersion, PlanType planType, String planInstanceId,
-                                     URL brokerUrl, Attributes planAttributes, Attributes context, JobInfo jobInfo, LocalDateTime triggerAt) {
+                                     URL brokerUrl, Attributes planAttributes, Attributes context, WorkflowJobInfo jobInfo, LocalDateTime triggerAt) {
         Attributes attributes = new Attributes();
         attributes.put(planAttributes);
         attributes.put(jobInfo.getAttributes());
