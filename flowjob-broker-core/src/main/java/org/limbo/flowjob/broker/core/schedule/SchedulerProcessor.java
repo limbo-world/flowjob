@@ -30,6 +30,8 @@ import org.limbo.flowjob.api.constants.rpc.HttpAgentApi;
 import org.limbo.flowjob.api.param.broker.JobFeedbackParam;
 import org.limbo.flowjob.broker.core.agent.AgentRegistry;
 import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
+import org.limbo.flowjob.broker.core.cluster.Node;
+import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.meta.IDGenerator;
 import org.limbo.flowjob.broker.core.meta.IDType;
@@ -53,7 +55,6 @@ import org.limbo.flowjob.common.rpc.RPCInvocation;
 import org.limbo.flowjob.common.thread.CommonThreadPool;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
-import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.text.MessageFormat;
@@ -87,10 +88,13 @@ public class SchedulerProcessor {
 
     private final LBStrategy<ScheduleAgent> lbStrategy;
 
+    private final NodeManger nodeManger;
+
     private final TransactionService transactionService;
 
     public SchedulerProcessor(MetaTaskScheduler metaTaskScheduler,
                               IDGenerator idGenerator,
+                              NodeManger nodeManger,
                               AgentRegistry agentRegistry,
                               PlanRepository planRepository,
                               TransactionService transactionService,
@@ -98,6 +102,7 @@ public class SchedulerProcessor {
                               JobInstanceRepository jobInstanceRepository) {
         this.metaTaskScheduler = metaTaskScheduler;
         this.idGenerator = idGenerator;
+        this.nodeManger = nodeManger;
         this.agentRegistry = agentRegistry;
         this.transactionService = transactionService;
         this.planRepository = planRepository;
@@ -132,23 +137,21 @@ public class SchedulerProcessor {
             // 判断是否由当前节点执行
             if (TriggerType.API != triggerType) {
 
-                Verifies.verify(currentPlan.isEnabled(), "plan " + planId + " is not enabled");
-
                 // 校验是否重复创建
                 PlanInstance latelyPlanInstance = planInstanceRepository.getLatelyTrigger(planId, version, currentPlan.getScheduleOption().getScheduleType(), triggerType);
                 switch (scheduleOption.getScheduleType()) {
                     case FIXED_RATE:
                     case CRON:
-                        Verifies.verify(latelyPlanInstance == null || !triggerAt.isEqual(latelyPlanInstance.getTriggerAt()),
-                                MessageFormat.format("Duplicate create PlanInstance,triggerAt:{0} planId[{1}] Version[{2}] oldPlanInstance[{3}]",
-                                        triggerAt, planId, version, JacksonUtils.toJSONString(latelyPlanInstance))
-                        );
+                        if (!(latelyPlanInstance == null || !triggerAt.isEqual(latelyPlanInstance.getTriggerAt()))) {
+                            throw new VerifyException(MessageFormat.format("Duplicate create PlanInstance,triggerAt:{0} planId[{1}] Version[{2}] oldPlanInstance[{3}]",
+                                    triggerAt, planId, version, latelyPlanInstance.getId()));
+                        }
                         break;
                     case FIXED_DELAY:
-                        Verifies.verify(latelyPlanInstance == null || (!triggerAt.isEqual(latelyPlanInstance.getTriggerAt()) && PlanStatus.parse(latelyPlanInstance.getStatus()).isCompleted()),
-                                MessageFormat.format("Please wait last PlanInstance[{0}] complete.Plan[{1}] Version[{2}]",
-                                        JacksonUtils.toJSONString(latelyPlanInstance), planId, version)
-                        );
+                        if (!(latelyPlanInstance == null || (!triggerAt.isEqual(latelyPlanInstance.getTriggerAt()) && PlanStatus.parse(latelyPlanInstance.getStatus()).isCompleted()))) {
+                            throw new VerifyException(MessageFormat.format("Please wait last PlanInstance[{0}] complete.Plan[{1}] Version[{2}]",
+                                    latelyPlanInstance.getId(), planId, version));
+                        }
                         break;
                     default:
                         throw new VerifyException(MsgConstants.UNKNOWN + " scheduleType:" + currentPlan.getScheduleOption().getScheduleType());
@@ -163,7 +166,8 @@ public class SchedulerProcessor {
             for (WorkflowJobInfo jobInfo : plan.getDag().origins()) {
                 if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
                     String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
-                    jobInstances.add(JobInstanceFactory.create(jobInstanceId, plan.getId(), plan.getVersion(), plan.getType(), planInstance.getId(), planAttributes, new Attributes(), jobInfo, triggerAt));
+                    Node elect = nodeManger.elect(jobInstanceId);
+                    jobInstances.add(JobInstanceFactory.create(jobInstanceId, plan.getId(), plan.getVersion(), plan.getType(), planInstance.getId(), elect.getUrl(), planAttributes, new Attributes(), jobInfo, triggerAt));
                 }
             }
             jobInstanceRepository.saveAll(jobInstances);
@@ -191,7 +195,8 @@ public class SchedulerProcessor {
             Verifies.verify(TriggerType.API == jobInfo.getTriggerType(), "only api triggerType job can schedule by api");
 
             String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
-            JobInstance jobInstance = JobInstanceFactory.create(jobInstanceId, plan.getId(), plan.getVersion(), plan.getType(), planInstanceId, planInstance.getAttributes(), new Attributes(), jobInfo, TimeUtils.currentLocalDateTime());
+            Node elect = nodeManger.elect(jobInstanceId);
+            JobInstance jobInstance = JobInstanceFactory.create(jobInstanceId, plan.getId(), plan.getVersion(), plan.getType(), planInstanceId, elect.getUrl(), planInstance.getAttributes(), new Attributes(), jobInfo, TimeUtils.currentLocalDateTime());
             jobInstanceRepository.save(jobInstance);
             scheduleContext.setWaitScheduleJobs(Collections.singletonList(jobInstance));
             return jobInstance;
@@ -317,26 +322,26 @@ public class SchedulerProcessor {
      * 处理某个job实例执行成功
      */
     private ScheduleContext handleJobSuccess(JobInstance jobInstance) {
-        ScheduleContext scheduleContext = new ScheduleContext();
-        if (!jobInstanceRepository.success(jobInstance.getId(), TimeUtils.currentLocalDateTime(), jobInstance.getContext().toString())) {
-            return scheduleContext; // 被其他更新
-        }
-
         String planInstanceId = jobInstance.getPlanInstanceId();
-
         String planId = jobInstance.getPlanId();
         String version = jobInstance.getPlanVersion();
         JobInfo jobInfo = jobInstance.getJobInfo();
         String jobId = jobInfo.getId();
+
+        // 防止并发问题，两个任务结束后并发过来后，由于无法读取到未提交数据，可能导致都认为不需要下发而导致失败
+        // 考虑到可能是RR级别，如果放到 jobInstanceRepository.success 之后 checkJobsSuccess 获取的数据可能是非完成状态导致一直无法完成
+        PlanInstance planInstance = planInstanceRepository.lockAndGet(planInstanceId);
+
+        ScheduleContext scheduleContext = new ScheduleContext();
+        if (!jobInstanceRepository.success(jobInstance.getId(), TimeUtils.currentLocalDateTime(), jobInstance.getContext().toString())) {
+            return scheduleContext; // 被其他更新
+        }
 
         Plan plan = planRepository.getByVersion(planId, version);
         DAG<WorkflowJobInfo> dag = plan.getDag();
 
         // 当前节点的子节点
         List<WorkflowJobInfo> subJobInfos = dag.subNodes(jobId);
-
-        // 防止并发问题，两个任务结束后并发过来后，由于无法读取到未提交数据，可能导致都认为不需要下发而导致失败
-        PlanInstance planInstance = planInstanceRepository.lockAndGet(planInstanceId);
 
         if (CollectionUtils.isEmpty(subJobInfos)) {
             // 当前节点为叶子节点 检测 Plan 实例是否已经执行完成
@@ -354,7 +359,8 @@ public class SchedulerProcessor {
                 // 前置节点已经完成则可以下发
                 if (checkJobsSuccess(planInstanceId, dag.preNodes(subJobInfo.getId()), true) && TriggerType.SCHEDULE == subJobInfo.getTriggerType()) {
                     String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
-                    JobInstance subJobInstance = JobInstanceFactory.create(jobInstanceId, planId, version, planInstance.getType(), planInstanceId, planInstance.getAttributes(), jobInstance.getContext(), subJobInfo, triggerAt);
+                    Node elect = nodeManger.elect(jobInstanceId);
+                    JobInstance subJobInstance = JobInstanceFactory.create(jobInstanceId, planId, version, planInstance.getType(), planInstanceId, elect.getUrl(), planInstance.getAttributes(), jobInstance.getContext(), subJobInfo, triggerAt);
                     subJobInstances.add(subJobInstance);
                 }
             }

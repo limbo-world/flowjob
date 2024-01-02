@@ -28,14 +28,12 @@ import org.limbo.flowjob.broker.core.meta.plan.PlanRepository;
 import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.common.utils.time.LocalDateTimeUtils;
 import org.limbo.flowjob.common.utils.time.Formatters;
+import org.limbo.flowjob.common.utils.time.LocalDateTimeUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -82,38 +80,23 @@ public class PlanLoadTask extends FixDelayMetaTask {
             }
 
             // 调度当前时间以及未来的任务
-            List<PlanScheduleTask> plans = loadTasks();
+            List<Plan> plans = planRepository.loadUpdatedPlans(broker.getRpcBaseURL(), loadTimePoint.plusSeconds(-1)); // 防止部分延迟导致变更丢失
+            loadTimePoint = TimeUtils.currentLocalDateTime();
             if (CollectionUtils.isEmpty(plans)) {
                 return;
             }
-            for (PlanScheduleTask metaTask : plans) {
+            for (Plan plan : plans) {
+                PlanScheduleTask metaTask = new PlanScheduleTask(plan, schedulerProcessor, metaTaskScheduler);
                 // 移除老的
                 metaTaskScheduler.unschedule(metaTask.scheduleId());
                 // 调度新的
-                metaTaskScheduler.schedule(metaTask);
+                if (TriggerType.SCHEDULE == plan.getTriggerType() && plan.isEnabled()) {
+                    metaTaskScheduler.schedule(metaTask);
+                }
             }
         } catch (Exception e) {
             log.error("{} execute fail", scheduleId(), e);
         }
-    }
-
-
-    /**
-     * 加载触发时间在指定时间之前的 Plan。
-     */
-    private List<PlanScheduleTask> loadTasks() {
-        List<Plan> plans = planRepository.loadUpdatedPlans(broker.getRpcBaseURL(), loadTimePoint.plusSeconds(-1)); // 防止部分延迟导致变更丢失
-        loadTimePoint = TimeUtils.currentLocalDateTime();
-        if (CollectionUtils.isEmpty(plans)) {
-            return Collections.emptyList();
-        }
-        List<PlanScheduleTask> planScheduleTasks = new ArrayList<>();
-        for (Plan plan : plans) {
-            if (TriggerType.SCHEDULE == plan.getTriggerType()) {
-                planScheduleTasks.add(new PlanScheduleTask(plan, schedulerProcessor, metaTaskScheduler));
-            }
-        }
-        return planScheduleTasks;
     }
 
 

@@ -24,6 +24,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.broker.core.meta.plan.Plan;
 import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
@@ -81,11 +82,22 @@ public class PlanScheduleTask extends LoopMetaTask {
     @Override
     protected void executeTask() {
         try {
-            LocalDateTime triggerAt = getLastTriggerAt();
+            LocalDateTime triggerAt;
+            if (ScheduleType.FIXED_DELAY == getScheduleOption().getScheduleType()) {
+                triggerAt = getNextTriggerAt();
+            } else {
+                triggerAt = getLastTriggerAt();
+            }
             LocalDateTime scheduleEndAt = getScheduleOption().getScheduleEndAt();
             if (scheduleEndAt != null && scheduleEndAt.isBefore(TimeUtils.currentLocalDateTime())) {
                 return;
             }
+            if (!plan.isEnabled()) {
+                metaTaskScheduler.unschedule(scheduleId());
+                log.warn("plan:{} is not enabled", plan.getId());
+                return;
+            }
+
             CommonThreadPool.IO.submit(() -> schedulerProcessor.schedule(plan, TriggerType.SCHEDULE, new Attributes(), triggerAt));
         } catch (Exception e) {
             log.error("{} execute fail", scheduleId(), e);

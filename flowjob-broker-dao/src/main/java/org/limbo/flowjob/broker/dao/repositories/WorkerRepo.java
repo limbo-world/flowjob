@@ -165,7 +165,7 @@ public class WorkerRepo implements WorkerRepository {
         return WorkerEntityConverter.toWorker(worker,
                 executorEntityRepo.findByWorkerId(workerId),
                 tagEntityRepo.findByWorkerId(workerId),
-                metricEntityRepo.getOne(workerId)
+                metricEntityRepo.findById(workerId).orElse(null)
         );
     }
 

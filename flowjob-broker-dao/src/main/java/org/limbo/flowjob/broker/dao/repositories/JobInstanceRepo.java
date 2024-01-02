@@ -176,7 +176,7 @@ public class JobInstanceRepo implements JobInstanceRepository {
         PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
         JobInfo jobInfo;
         if (PlanType.STANDALONE == planType) {
-            jobInfo = JacksonUtils.parseObject(planInfoEntity.getJobInfo(), JobInfo.class);
+            jobInfo = JacksonUtils.parseObject(planInfoEntity.getJobInfo(), WorkflowJobInfo.class);
         } else if (PlanType.WORKFLOW == planType) {
             DAG<WorkflowJobInfo> dag = DomainConverter.toJobDag(planInfoEntity.getJobInfo());
             jobInfo = dag.getNode(entity.getJobId());

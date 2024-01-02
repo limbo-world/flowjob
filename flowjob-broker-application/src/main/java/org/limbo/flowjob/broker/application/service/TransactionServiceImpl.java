@@ -58,10 +58,11 @@ public class TransactionServiceImpl implements TransactionService {
     private TransactionStatus begin() {
         DefaultTransactionDefinition def = new DefaultTransactionDefinition();
         // 事物隔离级别，开启新事务
-        def.setIsolationLevel(TransactionDefinition.ISOLATION_REPEATABLE_READ);
+//        def.setIsolationLevel(TransactionDefinition.ISOLATION_REPEATABLE_READ);
+//        def.setIsolationLevel(TransactionDefinition.ISOLATION_READ_COMMITTED);
         // 事务传播行为
         def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
-        //将拿到的事务返回进去，才能提交。
+        // 将拿到的事务返回进去，才能提交。
         return platformTransactionManager.getTransaction(def);
     }
 

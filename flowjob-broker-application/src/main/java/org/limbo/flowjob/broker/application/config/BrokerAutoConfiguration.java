@@ -177,12 +177,13 @@ public class BrokerAutoConfiguration {
     @Bean
     public SchedulerProcessor schedulerProcessor(MetaTaskScheduler metaTaskScheduler,
                                                  IDGenerator idGenerator,
+                                                 NodeManger nodeManger,
                                                  AgentRegistry agentRegistry,
                                                  PlanRepository planRepository,
                                                  TransactionService transactionService,
                                                  PlanInstanceRepository planInstanceRepository,
                                                  JobInstanceRepository jobInstanceRepository) {
-        return new SchedulerProcessor(metaTaskScheduler, idGenerator, agentRegistry, planRepository, transactionService, planInstanceRepository, jobInstanceRepository);
+        return new SchedulerProcessor(metaTaskScheduler, idGenerator, nodeManger, agentRegistry, planRepository, transactionService, planInstanceRepository, jobInstanceRepository);
     }
 
 }

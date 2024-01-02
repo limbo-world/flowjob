@@ -54,13 +54,20 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
 
     @Override
     public PlanInstance get(String id) {
-        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.getOne(id);
+        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(id).orElse(null);
+        if (planInstanceEntity == null) {
+            return null;
+        }
         return assemble(planInstanceEntity);
     }
 
     @Override
+    @Transactional
     public PlanInstance lockAndGet(String id) {
         PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.selectForUpdate(id);
+        if (planInstanceEntity == null) {
+            return null;
+        }
         return assemble(planInstanceEntity);
     }
 
@@ -74,7 +81,12 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
         if (planInstanceEntity == null) {
             return null;
         }
-        PlanInfoEntity planInfoEntity = planInfoEntityRepo.getOne(planInstanceEntity.getPlanInfoId());
+        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(planInstanceEntity.getPlanInfoId()).orElse(null);
+        if (planInfoEntity == null) {
+            return PlanInstance.builder()
+                    .id(planInstanceEntity.getPlanInstanceId())
+                    .build();
+        }
 
         PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
 

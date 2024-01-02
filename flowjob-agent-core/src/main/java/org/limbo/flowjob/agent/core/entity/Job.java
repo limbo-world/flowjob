@@ -21,7 +21,7 @@ package org.limbo.flowjob.agent.core.entity;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -38,6 +38,7 @@ import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.common.constants.JobConstant;
 import org.limbo.flowjob.common.exception.JobException;
+import org.limbo.flowjob.common.thread.NamedThreadFactory;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
@@ -47,6 +48,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -60,7 +62,7 @@ import java.util.stream.Collectors;
  * @since 2023/8/4
  */
 @Slf4j
-@Data
+@Getter
 @Setter(AccessLevel.NONE)
 @Builder
 public class Job implements Runnable {
@@ -104,9 +106,9 @@ public class Job implements Runnable {
 
     private ScheduledExecutorService scheduledReportPool;
 
-    private ScheduledFuture<?> reportScheduledFuture = null;
+    private ScheduledFuture<?> reportScheduledFuture;
 
-    private ScheduledFuture<?> completeScheduledFuture = null;
+    private ScheduledFuture<?> completeScheduledFuture;
 
     private TaskCounter taskCounter;
 
@@ -132,6 +134,7 @@ public class Job implements Runnable {
                 jobRepository.delete(id);
                 return; // 可能已经下发给其它节点
             }
+            this.scheduledReportPool = Executors.newScheduledThreadPool(2, NamedThreadFactory.newInstance("FlowJobJobTrackerReportPool"));
             // 开启任务上报
             reportScheduledFuture = scheduledReportPool.scheduleAtFixedRate(new StatusReportRunnable(), 1, JobConstant.JOB_REPORT_SECONDS, TimeUnit.SECONDS);
             // 计数
@@ -161,6 +164,9 @@ public class Job implements Runnable {
         }
         if (completeScheduledFuture != null) {
             completeScheduledFuture.cancel(true);
+        }
+        if (scheduledReportPool != null) {
+            scheduledReportPool.shutdown();
         }
     }
 
@@ -218,6 +224,9 @@ public class Job implements Runnable {
                 break;
             case MAP:
                 dealMapTaskSuccess(task);
+                break;
+            default:
+                log.warn("can' find task type id:{} type:{}", task.getId(), task.getType());
                 break;
         }
 
@@ -323,7 +332,7 @@ public class Job implements Runnable {
         return tasks;
     }
 
-    private class TaskCounter {
+    private static class TaskCounter {
 
         AtomicInteger total = new AtomicInteger(0);
 
@@ -347,11 +356,11 @@ public class Job implements Runnable {
 
     private class CompleteReportRunnable implements Runnable {
 
-        private Job job;
+        private final Job job;
 
-        private boolean success;
+        private final boolean success;
 
-        private String errorMsg;
+        private final String errorMsg;
 
         public CompleteReportRunnable(Job job, boolean success, String errorMsg) {
             this.job = job;

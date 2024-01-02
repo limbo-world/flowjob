@@ -75,7 +75,7 @@ public class DomainConverter {
         entity.setJobId(jobInfo.getId());
         entity.setJobInstanceId(jobInstance.getId());
         entity.setAgentId(jobInstance.getAgentId());
-        entity.setBrokerUrl(jobInstance.getBrokerUrl().toString());
+        entity.setBrokerUrl(jobInstance.getBrokerUrl() == null ? "" : jobInstance.getBrokerUrl().toString());
         entity.setRetryTimes(jobInstance.getRetryTimes());
         entity.setPlanInstanceId(jobInstance.getPlanInstanceId());
         entity.setPlanId(jobInstance.getPlanId());
