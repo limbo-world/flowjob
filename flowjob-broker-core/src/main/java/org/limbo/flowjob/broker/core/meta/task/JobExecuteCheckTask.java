@@ -31,7 +31,7 @@ import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.common.constants.JobConstant;
 import org.limbo.flowjob.common.thread.CommonThreadPool;
-import org.limbo.flowjob.common.utils.time.DateTimeUtils;
+import org.limbo.flowjob.common.utils.time.LocalDateTimeUtils;
 import org.limbo.flowjob.common.utils.time.Formatters;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
@@ -61,7 +61,7 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
     /**
      * 上次检测时间
      */
-    private LocalDateTime lastCheckTime = DateTimeUtils.parse("2000-01-01 00:00:00", Formatters.YMD_HMS);
+    private LocalDateTime lastCheckTime = LocalDateTimeUtils.parse("2000-01-01 00:00:00", Formatters.YMD_HMS);
 
     public JobExecuteCheckTask(MetaTaskScheduler metaTaskScheduler,
                                JobInstanceRepository jobInstanceRepository,

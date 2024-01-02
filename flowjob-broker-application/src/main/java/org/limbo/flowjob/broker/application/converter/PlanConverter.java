@@ -32,6 +32,7 @@ import org.limbo.flowjob.broker.core.worker.dispatch.RetryOption;
 import org.limbo.flowjob.broker.core.worker.dispatch.TagFilterOption;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -40,7 +41,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- *
  * @author Brozen
  * @since 2022-06-11
  */
@@ -77,8 +77,8 @@ public class PlanConverter {
         dto.setPlanType(planInfo.getPlanType());
         dto.setScheduleType(planInfo.getScheduleType());
         dto.setTriggerType(planInfo.getTriggerType());
-        dto.setScheduleStartAt(planInfo.getScheduleStartAt());
-        dto.setScheduleEndAt(planInfo.getScheduleEndAt());
+        dto.setScheduleStartAt(TimeUtils.toTimestamp(planInfo.getScheduleStartAt()));
+        dto.setScheduleEndAt(TimeUtils.toTimestamp(planInfo.getScheduleEndAt()));
         dto.setScheduleDelay(planInfo.getScheduleDelay());
         dto.setScheduleInterval(planInfo.getScheduleInterval());
         dto.setScheduleCron(planInfo.getScheduleCron());
@@ -101,6 +101,7 @@ public class PlanConverter {
 
     /**
      * 转换为任务调度配置 DTO
+     *
      * @param planInfo 任务持久化对象
      */
     public ScheduleOptionDTO toScheduleOptionDTO(PlanInfoEntity planInfo) {

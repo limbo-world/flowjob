@@ -22,8 +22,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.limbo.flowjob.api.constants.ScheduleType;
 
-import java.time.LocalDateTime;
-
 /**
  * @author KaiFengCai
  * @since 2023/1/30
@@ -64,18 +62,18 @@ public class PlanInstanceDTO {
      * 期望的调度触发时间
      */
     @Schema(title = "期望的调度触发时间")
-    private LocalDateTime triggerAt;
+    private Long triggerAt;
 
     /**
      * 执行开始时间
      */
     @Schema(title = "执行开始时间")
-    private LocalDateTime startAt;
+    private Long startAt;
 
     /**
      * 执行结束时间
      */
     @Schema(title = "执行结束时间")
-    private LocalDateTime feedbackAt;
+    private Long feedbackAt;
 
 }

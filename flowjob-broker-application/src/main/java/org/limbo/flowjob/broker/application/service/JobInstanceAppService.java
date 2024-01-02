@@ -24,9 +24,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.console.JobInstanceDTO;
 import org.limbo.flowjob.api.param.console.JobInstanceQueryParam;
-import org.limbo.flowjob.broker.dao.support.JpaHelper;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
+import org.limbo.flowjob.broker.dao.support.JpaHelper;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -81,9 +82,9 @@ public class JobInstanceAppService {
                 dto.setRetryTimes(jobInstanceEntity.getRetryTimes());
                 dto.setErrorMsg(jobInstanceEntity.getErrorMsg());
                 dto.setContext(jobInstanceEntity.getContext());
-                dto.setTriggerAt(jobInstanceEntity.getTriggerAt());
-                dto.setStartAt(jobInstanceEntity.getStartAt());
-                dto.setEndAt(jobInstanceEntity.getEndAt());
+                dto.setTriggerAt(TimeUtils.toTimestamp(jobInstanceEntity.getTriggerAt()));
+                dto.setStartAt(TimeUtils.toTimestamp(jobInstanceEntity.getStartAt()));
+                dto.setEndAt(TimeUtils.toTimestamp(jobInstanceEntity.getEndAt()));
                 return dto;
             }).collect(Collectors.toList()));
         }

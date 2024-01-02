@@ -29,7 +29,7 @@ import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
 import org.limbo.flowjob.api.param.console.TaskQueryParam;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
-import org.limbo.flowjob.common.utils.time.DateTimeUtils;
+import org.limbo.flowjob.common.utils.time.LocalDateTimeUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.net.MalformedURLException;
@@ -165,7 +165,7 @@ public class TaskRepository {
         }
     }
 
-    private static final String DEFAULT_REPORT_TIME_STR = DateTimeUtils.formatYMDHMS(TaskFactory.DEFAULT_REPORT_TIME);
+    private static final String DEFAULT_REPORT_TIME_STR = LocalDateTimeUtils.formatYMDHMS(TaskFactory.DEFAULT_REPORT_TIME);
 
     public List<Task> getUnScheduled(String triggerAt, String startId, Integer limit) {
         String sql = "select * from " + TABLE_NAME + " where last_report_at = ? and trigger_at < ? and status = ? and task_id > ? order by task_id limit ?";
@@ -320,13 +320,13 @@ public class TaskRepository {
                 ps.setString(++idx, task.getTaskAttributes());
                 ps.setInt(++idx, task.getType().type);
                 ps.setInt(++idx, task.getStatus().status);
-                ps.setString(++idx, task.getTriggerAt() == null ? null : DateTimeUtils.formatYMDHMS(task.getTriggerAt()));
-                ps.setString(++idx, task.getStartAt() == null ? null : DateTimeUtils.formatYMDHMS(task.getStartAt()));
-                ps.setString(++idx, task.getEndAt() == null ? null : DateTimeUtils.formatYMDHMS(task.getEndAt()));
+                ps.setString(++idx, task.getTriggerAt() == null ? null : LocalDateTimeUtils.formatYMDHMS(task.getTriggerAt()));
+                ps.setString(++idx, task.getStartAt() == null ? null : LocalDateTimeUtils.formatYMDHMS(task.getStartAt()));
+                ps.setString(++idx, task.getEndAt() == null ? null : LocalDateTimeUtils.formatYMDHMS(task.getEndAt()));
                 ps.setString(++idx, task.getResult() == null ? "" : task.getResult());
                 ps.setString(++idx, task.getErrorMsg() == null ? "" : task.getErrorMsg());
                 ps.setString(++idx, task.getErrorStackTrace() == null ? "" : task.getErrorStackTrace());
-                ps.setString(++idx, DateTimeUtils.formatYMDHMS(task.getLastReportAt()));
+                ps.setString(++idx, LocalDateTimeUtils.formatYMDHMS(task.getLastReportAt()));
             }
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
@@ -355,7 +355,7 @@ public class TaskRepository {
             ps.setInt(++i, TaskStatus.EXECUTING.status);
             ps.setString(++i, workerId);
             ps.setString(++i, workerAddress);
-            ps.setString(++i, DateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime()));
+            ps.setString(++i, LocalDateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime()));
             ps.setString(++i, jobId);
             ps.setString(++i, taskId);
             return ps.executeUpdate() > 0;
@@ -368,7 +368,7 @@ public class TaskRepository {
     public boolean report(String jobId, String taskId) {
         String sql = "update " + TABLE_NAME + " set `last_report_at` = ? where job_id = ? and task_id = ? and status = ?";
         try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, DateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime()));
+            ps.setString(1, LocalDateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime()));
             ps.setString(2, jobId);
             ps.setString(3, taskId);
             ps.setInt(4, TaskStatus.EXECUTING.status);
@@ -383,7 +383,7 @@ public class TaskRepository {
         String sql = "update " + TABLE_NAME + " set `status` = ?, end_at = ?, `result` = ?, context = ? where job_id = ? and task_id = ?";
         try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, TaskStatus.SUCCEED.status);
-            ps.setString(2, DateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime()));
+            ps.setString(2, LocalDateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime()));
             ps.setString(3, task.getResult());
             ps.setString(4, task.getContext().toString());
             ps.setString(5, task.getJobId());
@@ -399,9 +399,9 @@ public class TaskRepository {
         String sql = "update " + TABLE_NAME + " set `status` = ?, start_at = ?, end_at = ?, error_msg = ?, error_stack_trace = ? where job_id = ? and task_id = ?";
         try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             int i = 0;
-            String curTimeStr = DateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime());
+            String curTimeStr = LocalDateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime());
             ps.setInt(++i, TaskStatus.FAILED.status);
-            ps.setString(++i, task.getStartAt() == null ? curTimeStr : DateTimeUtils.formatYMDHMS(task.getStartAt()));
+            ps.setString(++i, task.getStartAt() == null ? curTimeStr : LocalDateTimeUtils.formatYMDHMS(task.getStartAt()));
             ps.setString(++i, curTimeStr);
             ps.setString(++i, task.getErrorMsg());
             ps.setString(++i, task.getErrorStackTrace());
@@ -433,9 +433,9 @@ public class TaskRepository {
                 .type(TaskType.parse(rs.getInt("type")))
                 .status(TaskStatus.parse(rs.getInt("status")))
                 .worker(worker)
-                .triggerAt(StringUtils.isBlank(triggerAtStr) ? null : DateTimeUtils.parseYMDHMS(triggerAtStr))
-                .startAt(StringUtils.isBlank(startAtStr) ? null : DateTimeUtils.parseYMDHMS(startAtStr))
-                .endAt(StringUtils.isBlank(endAtStr) ? null : DateTimeUtils.parseYMDHMS(endAtStr))
+                .triggerAt(StringUtils.isBlank(triggerAtStr) ? null : LocalDateTimeUtils.parseYMDHMS(triggerAtStr))
+                .startAt(StringUtils.isBlank(startAtStr) ? null : LocalDateTimeUtils.parseYMDHMS(startAtStr))
+                .endAt(StringUtils.isBlank(endAtStr) ? null : LocalDateTimeUtils.parseYMDHMS(endAtStr))
                 .dispatchFailTimes(rs.getInt("dispatch_fail_times"))
                 .context(new Attributes(rs.getString("context")))
                 .jobAttributes(new Attributes(rs.getString("job_attributes")))
@@ -443,7 +443,7 @@ public class TaskRepository {
                 .result(rs.getString("result"))
                 .errorMsg(rs.getString("error_msg"))
                 .errorStackTrace(rs.getString("error_stack_trace"))
-                .lastReportAt(DateTimeUtils.parseYMDHMS(rs.getString("last_report_at")))
+                .lastReportAt(LocalDateTimeUtils.parseYMDHMS(rs.getString("last_report_at")))
                 .build();
     }
 

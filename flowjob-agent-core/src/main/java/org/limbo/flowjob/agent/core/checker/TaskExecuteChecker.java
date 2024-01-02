@@ -25,7 +25,7 @@ import org.limbo.flowjob.agent.core.entity.Task;
 import org.limbo.flowjob.agent.core.repository.JobRepository;
 import org.limbo.flowjob.agent.core.repository.TaskRepository;
 import org.limbo.flowjob.api.constants.TaskStatus;
-import org.limbo.flowjob.common.utils.time.DateTimeUtils;
+import org.limbo.flowjob.common.utils.time.LocalDateTimeUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
@@ -91,9 +91,9 @@ public class TaskExecuteChecker {
             @Override
             public void run() {
                 try {
-                    String checkStartTimeStr = DateTimeUtils.formatYMDHMS(lastCheckTime.plusSeconds(-1));
+                    String checkStartTimeStr = LocalDateTimeUtils.formatYMDHMS(lastCheckTime.plusSeconds(-1));
                     LocalDateTime checkEndTime = TimeUtils.currentLocalDateTime().plus(-period.toMillis(), ChronoUnit.MILLIS);
-                    String checkEndTimeStr = DateTimeUtils.formatYMDHMS(checkEndTime);
+                    String checkEndTimeStr = LocalDateTimeUtils.formatYMDHMS(checkEndTime);
 
                     Integer limit = 100;
                     String startId = "";

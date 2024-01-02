@@ -50,6 +50,7 @@ import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
 import org.limbo.flowjob.broker.dao.repositories.PlanInfoEntityRepo;
 import org.limbo.flowjob.broker.dao.support.JpaHelper;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -164,6 +165,8 @@ public class PlanAppService {
         planInfoEntity.setTriggerType(param.getTriggerType().type);
         // ScheduleOption
         planInfoEntity.setScheduleType(scheduleOption.getScheduleType().type);
+//        planInfoEntity.setScheduleStartAt(TimeUtils.toLocalDateTime(scheduleOption.getScheduleStartAt()));
+//        planInfoEntity.setScheduleEndAt(TimeUtils.toLocalDateTime(scheduleOption.getScheduleEndAt()));
         planInfoEntity.setScheduleStartAt(scheduleOption.getScheduleStartAt());
         planInfoEntity.setScheduleEndAt(scheduleOption.getScheduleEndAt());
         planInfoEntity.setScheduleDelay(scheduleOption.getScheduleDelay() == null ? 0L : scheduleOption.getScheduleDelay());
@@ -316,7 +319,7 @@ public class PlanAppService {
             PlanVersionDTO dto = new PlanVersionDTO();
             dto.setPlanInfoId(planInfoEntity.getPlanInfoId());
             dto.setName(planInfoEntity.getName());
-            dto.setCreatedAt(planInfoEntity.getCreatedAt());
+            dto.setCreatedAt(TimeUtils.toTimestamp(planInfoEntity.getCreatedAt()));
             data.add(dto);
         }
         return page;

@@ -28,6 +28,7 @@ import org.limbo.flowjob.api.param.console.PlanInstanceQueryParam;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanInstanceEntityRepo;
 import org.limbo.flowjob.broker.dao.support.JpaHelper;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -83,9 +84,9 @@ public class PlanInstanceAppService {
                 dto.setStatus(planInstanceEntity.getStatus());
                 dto.setTriggerType(planInstanceEntity.getTriggerType());
                 dto.setScheduleType(planInstanceEntity.getScheduleType());
-                dto.setTriggerAt(planInstanceEntity.getTriggerAt());
-                dto.setStartAt(planInstanceEntity.getStartAt());
-                dto.setFeedbackAt(planInstanceEntity.getFeedbackAt());
+                dto.setTriggerAt(TimeUtils.toTimestamp(planInstanceEntity.getTriggerAt()));
+                dto.setStartAt(TimeUtils.toTimestamp(planInstanceEntity.getStartAt()));
+                dto.setFeedbackAt(TimeUtils.toTimestamp(planInstanceEntity.getFeedbackAt()));
                 return dto;
             }).collect(Collectors.toList()));
         }

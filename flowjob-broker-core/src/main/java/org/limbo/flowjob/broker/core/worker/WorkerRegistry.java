@@ -24,7 +24,7 @@ import org.limbo.flowjob.api.constants.WorkerStatus;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerMetric;
 import org.limbo.flowjob.common.constants.WorkerConstant;
 import org.limbo.flowjob.common.utils.time.Formatters;
-import org.limbo.flowjob.common.utils.time.TimeFormateUtils;
+import org.limbo.flowjob.common.utils.time.LocalTimeUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.net.URL;
@@ -79,7 +79,7 @@ public class WorkerRegistry {
                 LocalDateTime startTime = lastCheckTime;
                 LocalDateTime endTime = TimeUtils.currentLocalDateTime();
                 if (log.isDebugEnabled()) {
-                    log.info("{} checkOnline start:{} end:{}", TASK_NAME, TimeFormateUtils.format(startTime, Formatters.YMD_HMS), TimeFormateUtils.format(endTime, Formatters.YMD_HMS));
+                    log.info("{} checkOnline start:{} end:{}", TASK_NAME, LocalTimeUtils.format(startTime, Formatters.YMD_HMS), LocalTimeUtils.format(endTime, Formatters.YMD_HMS));
                 }
                 List<Worker> workers = workerRepository.findByLastHeartbeatAtBetween(startTime, endTime);
                 if (CollectionUtils.isNotEmpty(workers)) {
@@ -88,7 +88,7 @@ public class WorkerRegistry {
                         WorkerMetric metric = worker.getMetric();
                         Worker n = RUNNING_WORKER_MAP.put(worker.getId(), worker);
                         if (n == null && log.isDebugEnabled()) {
-                            log.debug("{} find online id: {}, host: {}, port: {} lastHeartbeat:{}", TASK_NAME, worker.getId(), url.getHost(), url.getPort(), TimeFormateUtils.format(metric.getLastHeartbeatAt(), Formatters.YMD_HMS));
+                            log.debug("{} find online id: {}, host: {}, port: {} lastHeartbeat:{}", TASK_NAME, worker.getId(), url.getHost(), url.getPort(), LocalTimeUtils.format(metric.getLastHeartbeatAt(), Formatters.YMD_HMS));
                         }
                     }
                 }
@@ -112,14 +112,14 @@ public class WorkerRegistry {
                 LocalDateTime startTime = lastCheckTime;
                 LocalDateTime endTime = TimeUtils.currentLocalDateTime().plusSeconds(-heartbeatTimeout.getSeconds());
                 if (log.isDebugEnabled()) {
-                    log.debug("{} check start:{} end:{}", TASK_NAME, TimeFormateUtils.format(startTime, Formatters.YMD_HMS), TimeFormateUtils.format(endTime, Formatters.YMD_HMS));
+                    log.debug("{} check start:{} end:{}", TASK_NAME, LocalTimeUtils.format(startTime, Formatters.YMD_HMS), LocalTimeUtils.format(endTime, Formatters.YMD_HMS));
                 }
                 List<Worker> workers = workerRepository.findByLastHeartbeatAtBetween(startTime, endTime);
                 if (CollectionUtils.isNotEmpty(workers)) {
                     for (Worker worker : workers) {
                         WorkerMetric metric = worker.getMetric();
                         if (log.isDebugEnabled()) {
-                            log.debug("{} find id: {} lastHeartbeat:{}", TASK_NAME, worker.getId(), TimeFormateUtils.format(metric.getLastHeartbeatAt(), Formatters.YMD_HMS));
+                            log.debug("{} find id: {} lastHeartbeat:{}", TASK_NAME, worker.getId(), LocalTimeUtils.format(metric.getLastHeartbeatAt(), Formatters.YMD_HMS));
                         }
                         RUNNING_WORKER_MAP.remove(worker.getId());
                         // 更新状态
@@ -147,14 +147,14 @@ public class WorkerRegistry {
                 LocalDateTime startTime = lastCheckTime;
                 LocalDateTime endTime = TimeUtils.currentLocalDateTime().plusSeconds(-2 * heartbeatTimeout.getSeconds());
                 if (log.isDebugEnabled()) {
-                    log.debug("{} check start:{} end:{}", TASK_NAME, TimeFormateUtils.format(startTime, Formatters.YMD_HMS), TimeFormateUtils.format(endTime, Formatters.YMD_HMS));
+                    log.debug("{} check start:{} end:{}", TASK_NAME, LocalTimeUtils.format(startTime, Formatters.YMD_HMS), LocalTimeUtils.format(endTime, Formatters.YMD_HMS));
                 }
                 List<Worker> workers = workerRepository.findByLastHeartbeatAtBetween(startTime, endTime);
                 if (CollectionUtils.isNotEmpty(workers)) {
                     for (Worker worker : workers) {
                         WorkerMetric metric = worker.getMetric();
                         if (log.isDebugEnabled()) {
-                            log.debug("{} find id: {} lastHeartbeat:{}", TASK_NAME, worker.getId(), TimeFormateUtils.format(metric.getLastHeartbeatAt(), Formatters.YMD_HMS));
+                            log.debug("{} find id: {} lastHeartbeat:{}", TASK_NAME, worker.getId(), LocalTimeUtils.format(metric.getLastHeartbeatAt(), Formatters.YMD_HMS));
                         }
                         RUNNING_WORKER_MAP.remove(worker.getId());
                         // 更新状态

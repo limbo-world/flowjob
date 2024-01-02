@@ -20,11 +20,6 @@ package org.limbo.flowjob.api.dto.console;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.limbo.flowjob.api.constants.PlanType;
-import org.limbo.flowjob.api.constants.ScheduleType;
-import org.limbo.flowjob.api.constants.TriggerType;
-
-import java.time.LocalDateTime;
 
 /**
  * @author KaiFengCai
@@ -41,6 +36,6 @@ public class PlanVersionDTO {
     private String name;
 
     @Schema(title = "创建时间")
-    private LocalDateTime createdAt;
+    private Long createdAt;
 
 }

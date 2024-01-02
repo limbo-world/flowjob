@@ -28,7 +28,7 @@ import org.limbo.flowjob.broker.core.meta.IDType;
 import org.limbo.flowjob.broker.dao.entity.BrokerEntity;
 import org.limbo.flowjob.broker.dao.repositories.BrokerEntityRepo;
 import org.limbo.flowjob.common.utils.time.Formatters;
-import org.limbo.flowjob.common.utils.time.TimeFormateUtils;
+import org.limbo.flowjob.common.utils.time.LocalTimeUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.net.URL;
@@ -122,7 +122,7 @@ public class DBBrokerRegistry implements NodeRegistry {
                 broker.setLastHeartbeat(now);
                 brokerEntityRepo.saveAndFlush(broker);
                 if (log.isDebugEnabled()) {
-                    log.debug("{} send heartbeat name: {}, host: {}, port: {} time:{}", TASK_NAME, name, host, port, TimeFormateUtils.format(TimeUtils.currentLocalDateTime(), Formatters.YMD_HMS));
+                    log.debug("{} send heartbeat name: {}, host: {}, port: {} time:{}", TASK_NAME, name, host, port, LocalTimeUtils.format(TimeUtils.currentLocalDateTime(), Formatters.YMD_HMS));
                 }
             } catch (Exception e) {
                 log.error("{} send heartbeat fail", TASK_NAME, e);
@@ -143,13 +143,13 @@ public class DBBrokerRegistry implements NodeRegistry {
                 LocalDateTime startTime = lastCheckTime;
                 LocalDateTime endTime = TimeUtils.currentLocalDateTime();
                 if (log.isDebugEnabled()) {
-                    log.info("{} checkOnline start:{} end:{}", TASK_NAME, TimeFormateUtils.format(startTime, Formatters.YMD_HMS), TimeFormateUtils.format(endTime, Formatters.YMD_HMS));
+                    log.info("{} checkOnline start:{} end:{}", TASK_NAME, LocalTimeUtils.format(startTime, Formatters.YMD_HMS), LocalTimeUtils.format(endTime, Formatters.YMD_HMS));
                 }
                 List<BrokerEntity> onlineBrokers = brokerEntityRepo.findByOnlineTimeBetween(startTime, endTime);
                 if (CollectionUtils.isNotEmpty(onlineBrokers)) {
                     for (BrokerEntity broker : onlineBrokers) {
                         if (log.isDebugEnabled()) {
-                            log.debug("{} find online broker name: {}, host: {}, port: {} lastHeartbeat:{}", TASK_NAME, broker.getName(), broker.getHost(), broker.getPort(), TimeFormateUtils.format(broker.getLastHeartbeat(), Formatters.YMD_HMS));
+                            log.debug("{} find online broker name: {}, host: {}, port: {} lastHeartbeat:{}", TASK_NAME, broker.getName(), broker.getHost(), broker.getPort(), LocalTimeUtils.format(broker.getLastHeartbeat(), Formatters.YMD_HMS));
                         }
                         for (NodeListener listener : listeners) {
                             listener.event(new NodeEvent(NodeEvent.Type.ONLINE, broker.getName(), url(broker)));
@@ -184,13 +184,13 @@ public class DBBrokerRegistry implements NodeRegistry {
                 LocalDateTime startTime = lastCheckTime;
                 LocalDateTime endTime = TimeUtils.currentLocalDateTime().plusSeconds(-heartbeatTimeout.getSeconds());
                 if (log.isDebugEnabled()) {
-                    log.debug("{} checkOffline start:{} end:{}", TASK_NAME, TimeFormateUtils.format(startTime, Formatters.YMD_HMS), TimeFormateUtils.format(endTime, Formatters.YMD_HMS));
+                    log.debug("{} checkOffline start:{} end:{}", TASK_NAME, LocalTimeUtils.format(startTime, Formatters.YMD_HMS), LocalTimeUtils.format(endTime, Formatters.YMD_HMS));
                 }
                 List<BrokerEntity> offlineBrokers = brokerEntityRepo.findByLastHeartbeatBetween(startTime, endTime);
                 if (CollectionUtils.isNotEmpty(offlineBrokers)) {
                     for (BrokerEntity broker : offlineBrokers) {
                         if (log.isDebugEnabled()) {
-                            log.debug("{} find offline broker name: {}, host: {}, port: {} lastHeartbeat:{}", TASK_NAME, broker.getName(), broker.getHost(), broker.getPort(), TimeFormateUtils.format(broker.getLastHeartbeat(), Formatters.YMD_HMS));
+                            log.debug("{} find offline broker name: {}, host: {}, port: {} lastHeartbeat:{}", TASK_NAME, broker.getName(), broker.getHost(), broker.getPort(), LocalTimeUtils.format(broker.getLastHeartbeat(), Formatters.YMD_HMS));
                         }
                         for (NodeListener listener : listeners) {
                             listener.event(new NodeEvent(NodeEvent.Type.OFFLINE, broker.getName(), url(broker)));

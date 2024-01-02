@@ -30,7 +30,7 @@ import java.time.ZoneId;
  * @since 1.0
  */
 @UtilityClass
-public class DateTimeUtils {
+public class LocalDateTimeUtils {
 
     /**
      * 将{@link LocalDateTime}格式化为指定格式，并格式化时进行时区转换。

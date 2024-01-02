@@ -50,6 +50,10 @@ public class TimeUtils {
         return localDateTime == null ? null : localDateTime.toInstant(zoneOffset());
     }
 
+    public static Long toTimestamp(LocalDateTime localDateTime) {
+        return localDateTime == null ? null : localDateTime.toInstant(TimeUtils.zoneOffset()).toEpochMilli();
+    }
+
     public static LocalDateTime currentLocalDateTime() {
         return LocalDateTime.now(CLOCK);
     }
@@ -59,7 +63,10 @@ public class TimeUtils {
     }
 
 
-    public static LocalDateTime toLocalDateTime(long timestamp) {
+    public static LocalDateTime toLocalDateTime(Long timestamp) {
+        if (timestamp == null) {
+            return null;
+        }
         Instant instant = Instant.ofEpochMilli(timestamp);
         ZoneId zone = ZoneId.systemDefault();
         return LocalDateTime.ofInstant(instant, zone);
@@ -67,6 +74,7 @@ public class TimeUtils {
 
     /**
      * 获取时分秒均为0的时间。
+     *
      * @return 今天的开始
      */
     public static LocalTime beginningOfToday() {
@@ -76,6 +84,7 @@ public class TimeUtils {
 
     /**
      * 获取23时59分59秒999毫秒的时间。
+     *
      * @return 今天的结束
      */
     public static LocalTime endingOfToday() {

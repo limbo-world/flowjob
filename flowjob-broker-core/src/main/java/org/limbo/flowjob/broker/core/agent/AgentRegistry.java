@@ -23,7 +23,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.AgentStatus;
 import org.limbo.flowjob.common.constants.AgentConstant;
 import org.limbo.flowjob.common.utils.time.Formatters;
-import org.limbo.flowjob.common.utils.time.TimeFormateUtils;
+import org.limbo.flowjob.common.utils.time.LocalTimeUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.net.URL;
@@ -81,7 +81,7 @@ public class AgentRegistry {
                 LocalDateTime startTime = lastCheckTime;
                 LocalDateTime endTime = TimeUtils.currentLocalDateTime();
                 if (log.isDebugEnabled()) {
-                    log.info("{} checkOnline start:{} end:{}", TASK_NAME, TimeFormateUtils.format(startTime, Formatters.YMD_HMS), TimeFormateUtils.format(endTime, Formatters.YMD_HMS));
+                    log.info("{} checkOnline start:{} end:{}", TASK_NAME, LocalTimeUtils.format(startTime, Formatters.YMD_HMS), LocalTimeUtils.format(endTime, Formatters.YMD_HMS));
                 }
                 List<ScheduleAgent> onlines = agentRepository.findByLastHeartbeatAtBetween(startTime, endTime);
                 if (CollectionUtils.isNotEmpty(onlines)) {
@@ -90,7 +90,7 @@ public class AgentRegistry {
                         ScheduleAgent n = ONLINE_AGENT_MAP.put(agent.getId(), agent);
                         URL url = agent.getUrl();
                         if (n == null && log.isDebugEnabled()) {
-                            log.debug("{} find online id: {}, host: {}, port: {} lastHeartbeat:{}", TASK_NAME, agent.getId(), url.getHost(), url.getPort(), TimeFormateUtils.format(agent.getLastHeartbeatAt(), Formatters.YMD_HMS));
+                            log.debug("{} find online id: {}, host: {}, port: {} lastHeartbeat:{}", TASK_NAME, agent.getId(), url.getHost(), url.getPort(), LocalTimeUtils.format(agent.getLastHeartbeatAt(), Formatters.YMD_HMS));
                         }
                     }
                 }
@@ -114,14 +114,14 @@ public class AgentRegistry {
                 LocalDateTime startTime = lastCheckTime;
                 LocalDateTime endTime = TimeUtils.currentLocalDateTime().plusSeconds(-heartbeatTimeout.getSeconds());
                 if (log.isDebugEnabled()) {
-                    log.debug("{} check start:{} end:{}", TASK_NAME, TimeFormateUtils.format(startTime, Formatters.YMD_HMS), TimeFormateUtils.format(endTime, Formatters.YMD_HMS));
+                    log.debug("{} check start:{} end:{}", TASK_NAME, LocalTimeUtils.format(startTime, Formatters.YMD_HMS), LocalTimeUtils.format(endTime, Formatters.YMD_HMS));
                 }
                 List<ScheduleAgent> offlines = agentRepository.findByLastHeartbeatAtBetween(startTime, endTime);
                 if (CollectionUtils.isNotEmpty(offlines)) {
                     for (ScheduleAgent agent : offlines) {
                         URL url = agent.getUrl();
                         if (log.isDebugEnabled()) {
-                            log.debug("{} find id: {}, host: {}, port: {} lastHeartbeat:{}", TASK_NAME, agent.getId(), url.getHost(), url.getPort(), TimeFormateUtils.format(agent.getLastHeartbeatAt(), Formatters.YMD_HMS));
+                            log.debug("{} find id: {}, host: {}, port: {} lastHeartbeat:{}", TASK_NAME, agent.getId(), url.getHost(), url.getPort(), LocalTimeUtils.format(agent.getLastHeartbeatAt(), Formatters.YMD_HMS));
                         }
                         ONLINE_AGENT_MAP.remove(agent.getId());
 
@@ -149,14 +149,14 @@ public class AgentRegistry {
                 LocalDateTime startTime = lastCheckTime;
                 LocalDateTime endTime = TimeUtils.currentLocalDateTime().plusSeconds(-2 * heartbeatTimeout.getSeconds());
                 if (log.isDebugEnabled()) {
-                    log.debug("{} check start:{} end:{}", TASK_NAME, TimeFormateUtils.format(startTime, Formatters.YMD_HMS), TimeFormateUtils.format(endTime, Formatters.YMD_HMS));
+                    log.debug("{} check start:{} end:{}", TASK_NAME, LocalTimeUtils.format(startTime, Formatters.YMD_HMS), LocalTimeUtils.format(endTime, Formatters.YMD_HMS));
                 }
                 List<ScheduleAgent> offlines = agentRepository.findByLastHeartbeatAtBetween(startTime, endTime);
                 if (CollectionUtils.isNotEmpty(offlines)) {
                     for (ScheduleAgent agent : offlines) {
                         URL url = agent.getUrl();
                         if (log.isDebugEnabled()) {
-                            log.debug("{} find id: {}, host: {}, port: {} lastHeartbeat:{}", TASK_NAME, agent.getId(), url.getHost(), url.getPort(), TimeFormateUtils.format(agent.getLastHeartbeatAt(), Formatters.YMD_HMS));
+                            log.debug("{} find id: {}, host: {}, port: {} lastHeartbeat:{}", TASK_NAME, agent.getId(), url.getHost(), url.getPort(), LocalTimeUtils.format(agent.getLastHeartbeatAt(), Formatters.YMD_HMS));
                         }
                         ONLINE_AGENT_MAP.remove(agent.getId());
 

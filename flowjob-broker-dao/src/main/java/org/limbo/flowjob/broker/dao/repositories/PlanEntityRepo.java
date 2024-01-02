@@ -55,8 +55,8 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, String>, JpaSp
     List<PlanEntity> loadUpdatedPlans(@Param("brokerUrl") String brokerUrl, @Param("updatedAt") LocalDateTime updatedAt);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanEntity set currentVersion = :newCurrentVersion, recentlyVersion = :newRecentlyVersion, name = :name" +
-            " where planId = :planId and currentVersion = :currentVersion and recentlyVersion = :recentlyVersion and brokerUrl = :brokerUrl ")
+    @Query(value = "update PlanEntity set currentVersion = :newCurrentVersion, recentlyVersion = :newRecentlyVersion, name = :name, brokerUrl = :brokerUrl " +
+            " where planId = :planId and currentVersion = :currentVersion and recentlyVersion = :recentlyVersion ")
     int updateVersion(@Param("newCurrentVersion") String newCurrentVersion,
                       @Param("newRecentlyVersion") String newRecentlyVersion,
                       @Param("name") String name,

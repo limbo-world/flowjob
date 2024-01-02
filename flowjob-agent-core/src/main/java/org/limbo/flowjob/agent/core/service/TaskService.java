@@ -24,6 +24,7 @@ import org.limbo.flowjob.agent.core.repository.TaskRepository;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.console.TaskDTO;
 import org.limbo.flowjob.api.param.console.TaskQueryParam;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -65,8 +66,8 @@ public class TaskService {
             dto.setResult(task.getResult());
             dto.setErrorMsg(task.getErrorMsg());
             dto.setErrorStackTrace(task.getErrorStackTrace());
-            dto.setStartAt(task.getStartAt());
-            dto.setEndAt(task.getEndAt());
+            dto.setStartAt(TimeUtils.toTimestamp(task.getStartAt()));
+            dto.setEndAt(TimeUtils.toTimestamp(task.getEndAt()));
             return dto;
         }).collect(Collectors.toList()));
         return page;
