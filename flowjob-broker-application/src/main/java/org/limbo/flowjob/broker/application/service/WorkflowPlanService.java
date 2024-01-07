@@ -18,13 +18,13 @@ package org.limbo.flowjob.broker.application.service;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.InstanceType;
 import org.limbo.flowjob.api.dto.console.PlanInfoDTO;
 import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.WorkflowPlanUpdateParam;
 import org.limbo.flowjob.broker.application.converter.WorkflowPlanConverter;
 import org.limbo.flowjob.broker.application.converter.WorkflowPlanParamConverter;
-import org.limbo.flowjob.broker.core.meta.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
@@ -65,13 +65,13 @@ public class WorkflowPlanService {
      */
     @Transactional
     public String add(PlanParam.WorkflowPlanParam param) {
-        Verifies.notEmpty(param.getWorkflow(), "Workflow can't be empty with " + PlanType.WORKFLOW.name() + " Type");
+        Verifies.notEmpty(param.getWorkflow(), "Workflow can't be empty with " + InstanceType.WORKFLOW.name() + " Type");
         DAG<WorkflowJobInfo> workflow = factory.createDAG(param.getWorkflow());
 
         String jobInfo = workflow.json();
         Verifies.notBlank(jobInfo, "Dag Node verify fail!");
 
-        return planAppService.save(null, PlanType.WORKFLOW, param, jobInfo);
+        return planAppService.save(null, InstanceType.WORKFLOW, param, jobInfo);
     }
 
 
@@ -86,7 +86,7 @@ public class WorkflowPlanService {
         String jobInfo = workflow.json();
         Verifies.notBlank(jobInfo);
 
-        return planAppService.save(param.getPlanId(), PlanType.WORKFLOW, param, jobInfo);
+        return planAppService.save(param.getPlanId(), InstanceType.WORKFLOW, param, jobInfo);
     }
 
 

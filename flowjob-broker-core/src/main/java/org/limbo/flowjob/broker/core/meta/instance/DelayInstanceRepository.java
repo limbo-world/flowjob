@@ -16,30 +16,27 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.meta.plan;
-
-import org.limbo.flowjob.api.constants.ScheduleType;
-import org.limbo.flowjob.api.constants.TriggerType;
+package org.limbo.flowjob.broker.core.meta.instance;
 
 import java.time.LocalDateTime;
 
 /**
  * @author Devil
- * @since 2023/12/13
+ * @since 2024/1/4
  */
-public interface PlanInstanceRepository {
+public interface DelayInstanceRepository {
 
-    PlanInstance get(String id);
+    DelayInstance get(String topic, String key);
 
-    PlanInstance lockAndGet(String id);
+    DelayInstance get(String id);
 
-    PlanInstance getLatelyTrigger(String planId, String version, ScheduleType scheduleType, TriggerType triggerType);
+    DelayInstance lockAndGet(String id);
 
-    void save(PlanInstance planInstance);
+    void save(DelayInstance instance);
 
-    boolean executing(String planInstanceId, LocalDateTime startAt);
+    boolean executing(String instanceId, LocalDateTime startAt);
 
-    boolean success(String planInstanceId, LocalDateTime feedbackAt);
+    boolean success(String instanceId, LocalDateTime feedbackAt);
 
-    boolean fail(String planInstanceId, LocalDateTime startAt, LocalDateTime feedbackAt);
+    boolean fail(String instanceId, LocalDateTime startAt, LocalDateTime feedbackAt);
 }

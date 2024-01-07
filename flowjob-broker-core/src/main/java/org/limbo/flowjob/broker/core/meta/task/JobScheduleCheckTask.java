@@ -20,11 +20,11 @@ package org.limbo.flowjob.broker.core.meta.task;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.broker.core.agent.AgentRegistry;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.meta.job.JobInstance;
 import org.limbo.flowjob.broker.core.meta.job.JobInstanceRepository;
-import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
@@ -43,21 +43,21 @@ public class JobScheduleCheckTask extends FixDelayMetaTask {
 
     private final NodeManger nodeManger;
 
-    private final SchedulerProcessor schedulerProcessor;
+    private final AgentRegistry agentRegistry;
 
     private final JobInstanceRepository jobInstanceRepository;
 
-    private static final long INTERVAL = 10;
+    public static final long INTERVAL = 10000; // 10s
 
     public JobScheduleCheckTask(MetaTaskScheduler scheduler,
                                 Broker broker,
                                 NodeManger nodeManger,
-                                SchedulerProcessor schedulerProcessor,
+                                AgentRegistry agentRegistry,
                                 JobInstanceRepository jobInstanceRepository) {
-        super(Duration.ofSeconds(INTERVAL), scheduler);
+        super(Duration.ofMillis(INTERVAL), scheduler);
         this.broker = broker;
         this.nodeManger = nodeManger;
-        this.schedulerProcessor = schedulerProcessor;
+        this.agentRegistry = agentRegistry;
         this.jobInstanceRepository = jobInstanceRepository;
     }
 
@@ -77,11 +77,8 @@ public class JobScheduleCheckTask extends FixDelayMetaTask {
             List<JobInstance> jobInstances = jobInstanceRepository.findInSchedule(broker.getRpcBaseURL(), currentTime.plusSeconds(-INTERVAL), currentTime, startId, limit);
             while (CollectionUtils.isNotEmpty(jobInstances)) {
                 for (JobInstance jobInstance : jobInstances) {
-                    try {
-                        schedulerProcessor.dispatch(jobInstance);
-                    } catch (Exception e) {
-                        log.error("jobInstance {} schedule fail", jobInstance.getId(), e);
-                    }
+                    JobInstanceTask metaTask = new JobInstanceTask(jobInstance, agentRegistry);
+                    metaTaskScheduler.schedule(metaTask);
                 }
                 startId = jobInstances.get(jobInstances.size() - 1).getId();
                 jobInstances = jobInstanceRepository.findInSchedule(broker.getRpcBaseURL(), currentTime.plusSeconds(-INTERVAL), currentTime, startId, limit);

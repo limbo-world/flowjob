@@ -16,64 +16,45 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.meta.plan;
+package org.limbo.flowjob.broker.core.meta.instance;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.limbo.flowjob.api.constants.PlanType;
-import org.limbo.flowjob.api.constants.ScheduleType;
-import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.core.meta.job.WorkflowJobInfo;
-import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
+import org.limbo.flowjob.api.constants.InstanceStatus;
+import org.limbo.flowjob.api.constants.InstanceType;
+import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
  * @author Devil
- * @since 2023/12/13
+ * @since 2024/1/4
  */
 @Getter
-@Builder
-public class PlanInstance implements Serializable {
+@AllArgsConstructor
+public abstract class Instance {
 
-    private static final long serialVersionUID = -7477209105170967854L;
-
+    /**
+     * 唯一标识
+     */
     private String id;
-
-    /**
-     * 作业执行计划ID
-     */
-    private String planId;
-
-    /**
-     * 版本
-     */
-    private String version;
 
     /**
      * 类型
      */
-    private PlanType type;
+    private InstanceType type;
 
     /**
-     * 触发类型
+     * 状态
      */
-    private TriggerType triggerType;
-
-    /**
-     * 作业计划调度配置参数
-     */
-    private ScheduleType scheduleType;
+    private InstanceStatus status;
 
     /**
      * 作业计划对应的Job，以DAG数据结构组织
      */
     private DAG<WorkflowJobInfo> dag;
-
-    private Integer status;
 
     /**
      * 属性
@@ -94,4 +75,5 @@ public class PlanInstance implements Serializable {
      * 执行结束时间
      */
     private LocalDateTime feedbackAt;
+
 }

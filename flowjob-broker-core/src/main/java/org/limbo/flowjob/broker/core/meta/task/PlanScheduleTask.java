@@ -26,8 +26,8 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.core.meta.plan.Plan;
-import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
+import org.limbo.flowjob.broker.core.meta.info.Plan;
+import org.limbo.flowjob.broker.core.meta.processor.PlanInstanceProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.LoopMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.common.thread.CommonThreadPool;
@@ -53,12 +53,12 @@ public class PlanScheduleTask extends LoopMetaTask {
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ToString.Exclude
-    private final SchedulerProcessor schedulerProcessor;
+    private final PlanInstanceProcessor processor;
 
-    public PlanScheduleTask(Plan plan, SchedulerProcessor schedulerProcessor, MetaTaskScheduler metaTaskScheduler) {
+    public PlanScheduleTask(Plan plan, PlanInstanceProcessor processor, MetaTaskScheduler metaTaskScheduler) {
         super(plan.getLatelyTriggerAt(), plan.getLatelyFeedbackAt(), plan.getScheduleOption(), metaTaskScheduler);
         this.plan = plan;
-        this.schedulerProcessor = schedulerProcessor;
+        this.processor = processor;
     }
 
     /**
@@ -98,7 +98,7 @@ public class PlanScheduleTask extends LoopMetaTask {
                 return;
             }
 
-            CommonThreadPool.IO.submit(() -> schedulerProcessor.schedule(plan, TriggerType.SCHEDULE, new Attributes(), triggerAt));
+            CommonThreadPool.IO.submit(() -> processor.schedule(plan, TriggerType.SCHEDULE, new Attributes(), triggerAt));
         } catch (Exception e) {
             log.error("{} execute fail", scheduleId(), e);
         }

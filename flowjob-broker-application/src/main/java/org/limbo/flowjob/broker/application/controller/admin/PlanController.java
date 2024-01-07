@@ -35,9 +35,9 @@ import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.PlanQueryParam;
 import org.limbo.flowjob.api.param.console.PlanVersionParam;
 import org.limbo.flowjob.broker.application.service.PlanAppService;
-import org.limbo.flowjob.broker.core.meta.plan.Plan;
-import org.limbo.flowjob.broker.core.meta.plan.PlanRepository;
-import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
+import org.limbo.flowjob.broker.core.meta.info.Plan;
+import org.limbo.flowjob.broker.core.meta.info.PlanRepository;
+import org.limbo.flowjob.broker.core.meta.processor.PlanInstanceProcessor;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.validation.annotation.Validated;
@@ -65,7 +65,7 @@ public class PlanController {
     private PlanRepository planRepository;
 
     @Setter(onMethod_ = @Inject)
-    private SchedulerProcessor schedulerProcessor;
+    private PlanInstanceProcessor processor;
 
     /**
      * 新增计划
@@ -119,19 +119,6 @@ public class PlanController {
     @PostMapping("/api/v1/plan/stop")
     public ResponseDTO<Boolean> stop(@NotBlank(message = "ID不能为空") @RequestParam("planId") String planId) {
         return ResponseDTO.<Boolean>builder().ok(planAppService.stop(planId)).build();
-    }
-
-    /**
-     * 手动触发对应 plan
-     */
-    @Operation(summary = "触发对应plan调度")
-    @PostMapping("/api/v1/plan/schedule")
-    public ResponseDTO<Void> schedulePlan(@RequestBody PlanScheduleParam param) {
-        Plan plan = planRepository.get(param.getPlanId());
-        Attributes attributes = new Attributes();
-        attributes.putAll(param.getAttributes());
-        schedulerProcessor.schedule(plan, TriggerType.API, attributes, TimeUtils.currentLocalDateTime());
-        return ResponseDTO.<Void>builder().ok().build();
     }
 
     /**

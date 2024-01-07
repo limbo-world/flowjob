@@ -19,12 +19,13 @@
 package org.limbo.flowjob.broker.dao.repositories;
 
 import lombok.Setter;
-import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.InstanceType;
+import org.limbo.flowjob.api.constants.InstanceStatus;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.core.meta.job.WorkflowJobInfo;
-import org.limbo.flowjob.broker.core.meta.plan.PlanInstance;
-import org.limbo.flowjob.broker.core.meta.plan.PlanInstanceRepository;
+import org.limbo.flowjob.broker.core.meta.instance.PlanInstance;
+import org.limbo.flowjob.broker.core.meta.instance.PlanInstanceRepository;
+import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
@@ -88,11 +89,12 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
                     .build();
         }
 
-        PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
+        InstanceType instanceType = InstanceType.parse(planInfoEntity.getPlanType());
+        InstanceStatus status = InstanceStatus.parse(planInstanceEntity.getStatus());
 
         ScheduleOption scheduleOption = DomainConverter.toScheduleOption(planInfoEntity);
         DAG<WorkflowJobInfo> dag;
-        if (PlanType.STANDALONE == planType) {
+        if (InstanceType.STANDALONE == instanceType) {
             WorkflowJobInfo jobInfo = JacksonUtils.parseObject(planInfoEntity.getJobInfo(), WorkflowJobInfo.class);
             dag = new DAG<>(Collections.singletonList(jobInfo));
         } else {
@@ -103,8 +105,8 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
                 .id(planInstanceEntity.getPlanInstanceId())
                 .planId(planInstanceEntity.getPlanId())
                 .version(planInstanceEntity.getPlanInfoId())
-                .status(planInstanceEntity.getStatus())
-                .type(planType)
+                .status(status)
+                .type(instanceType)
                 .triggerType(TriggerType.parse(planInstanceEntity.getTriggerType()))
                 .scheduleType(scheduleOption.getScheduleType())
                 .dag(dag)
@@ -117,36 +119,36 @@ public class PlanInstanceRepo implements PlanInstanceRepository {
 
     @Override
     @Transactional
-    public void save(PlanInstance planInstance) {
+    public void save(PlanInstance instance) {
         PlanInstanceEntity planInstanceEntity = new PlanInstanceEntity();
-        planInstanceEntity.setPlanInstanceId(planInstance.getId());
-        planInstanceEntity.setPlanId(planInstance.getPlanId());
-        planInstanceEntity.setPlanInfoId(planInstance.getVersion());
-        planInstanceEntity.setStatus(planInstance.getStatus());
-        planInstanceEntity.setTriggerType(planInstance.getTriggerType().type);
-        planInstanceEntity.setScheduleType(planInstance.getScheduleType().type);
-        planInstanceEntity.setAttributes(planInstance.getAttributes().toString());
-        planInstanceEntity.setTriggerAt(planInstance.getTriggerAt());
-        planInstanceEntity.setStartAt(planInstance.getStartAt());
-        planInstanceEntity.setFeedbackAt(planInstance.getFeedbackAt());
+        planInstanceEntity.setPlanInstanceId(instance.getId());
+        planInstanceEntity.setPlanId(instance.getPlanId());
+        planInstanceEntity.setPlanInfoId(instance.getVersion());
+        planInstanceEntity.setStatus(instance.getStatus().status);
+        planInstanceEntity.setTriggerType(instance.getTriggerType().type);
+        planInstanceEntity.setScheduleType(instance.getScheduleType().type);
+        planInstanceEntity.setAttributes(instance.getAttributes().toString());
+        planInstanceEntity.setTriggerAt(instance.getTriggerAt());
+        planInstanceEntity.setStartAt(instance.getStartAt());
+        planInstanceEntity.setFeedbackAt(instance.getFeedbackAt());
         planInstanceEntityRepo.saveAndFlush(planInstanceEntity);
     }
 
     @Override
     @Transactional
-    public boolean executing(String planInstanceId, LocalDateTime startAt) {
-        return planInstanceEntityRepo.executing(planInstanceId, startAt) > 0;
+    public boolean executing(String instanceId, LocalDateTime startAt) {
+        return planInstanceEntityRepo.executing(instanceId, startAt) > 0;
     }
 
     @Override
     @Transactional
-    public boolean success(String planInstanceId, LocalDateTime feedbackAt) {
-        return planInstanceEntityRepo.success(planInstanceId, feedbackAt) > 0;
+    public boolean success(String instanceId, LocalDateTime feedbackAt) {
+        return planInstanceEntityRepo.success(instanceId, feedbackAt) > 0;
     }
 
     @Override
     @Transactional
-    public boolean fail(String planInstanceId, LocalDateTime startAt, LocalDateTime feedbackAt) {
-        return planInstanceEntityRepo.fail(planInstanceId, startAt, feedbackAt) > 0;
+    public boolean fail(String instanceId, LocalDateTime startAt, LocalDateTime feedbackAt) {
+        return planInstanceEntityRepo.fail(instanceId, startAt, feedbackAt) > 0;
     }
 }

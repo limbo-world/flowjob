@@ -26,13 +26,13 @@ import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.meta.job.JobInstance;
 import org.limbo.flowjob.broker.core.meta.job.JobInstanceRepository;
-import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
+import org.limbo.flowjob.broker.core.meta.processor.PlanInstanceProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.common.constants.JobConstant;
 import org.limbo.flowjob.common.thread.CommonThreadPool;
-import org.limbo.flowjob.common.utils.time.LocalDateTimeUtils;
 import org.limbo.flowjob.common.utils.time.Formatters;
+import org.limbo.flowjob.common.utils.time.LocalDateTimeUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
@@ -56,7 +56,7 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
 
     private final NodeManger nodeManger;
 
-    private final SchedulerProcessor schedulerProcessor;
+    private final PlanInstanceProcessor processor;
 
     /**
      * 上次检测时间
@@ -67,12 +67,12 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
                                JobInstanceRepository jobInstanceRepository,
                                Broker broker,
                                NodeManger nodeManger,
-                               SchedulerProcessor schedulerProcessor) {
+                               PlanInstanceProcessor processor) {
         super(Duration.ofSeconds(5), metaTaskScheduler);
         this.jobInstanceRepository = jobInstanceRepository;
         this.broker = broker;
         this.nodeManger = nodeManger;
-        this.schedulerProcessor = schedulerProcessor;
+        this.processor = processor;
     }
 
     @Override
@@ -97,7 +97,7 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
                                     .result(ExecuteResult.FAILED)
                                     .errorMsg(String.format("agent %s is offline", instance.getAgentId()))
                                     .build();
-                            schedulerProcessor.feedback(instance.getId(), param);
+                            processor.feedback(instance.getId(), param);
                         } catch (Exception e) {
                             log.error("[JobExecuteCheckTask] handler job fail with error jobInstanceId={}", instance.getId(), e);
                         }

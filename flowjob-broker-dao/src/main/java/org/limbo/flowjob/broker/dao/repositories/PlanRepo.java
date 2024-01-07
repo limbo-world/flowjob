@@ -20,12 +20,12 @@ package org.limbo.flowjob.broker.dao.repositories;
 
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.api.constants.InstanceType;
 import org.limbo.flowjob.api.constants.MsgConstants;
-import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.core.meta.job.WorkflowJobInfo;
-import org.limbo.flowjob.broker.core.meta.plan.Plan;
-import org.limbo.flowjob.broker.core.meta.plan.PlanRepository;
+import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.meta.info.Plan;
+import org.limbo.flowjob.broker.core.meta.info.PlanRepository;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
@@ -125,7 +125,7 @@ public class PlanRepo implements PlanRepository {
     }
 
     private Plan assemble(PlanEntity planEntity, PlanInfoEntity planInfoEntity) {
-        PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
+        InstanceType instanceType = InstanceType.parse(planInfoEntity.getPlanType());
         TriggerType triggerType = TriggerType.parse(planInfoEntity.getTriggerType());
 
         // 获取最近一次调度的planInstance和最近一次结束的planInstance
@@ -138,7 +138,7 @@ public class PlanRepo implements PlanRepository {
         LocalDateTime latelyFeedbackAt = latelyFeedback == null || latelyFeedback.getFeedbackAt() == null ? null : latelyFeedback.getFeedbackAt().truncatedTo(ChronoUnit.SECONDS);
 
         DAG<WorkflowJobInfo> dag;
-        if (PlanType.STANDALONE == planType) {
+        if (InstanceType.STANDALONE == instanceType) {
             WorkflowJobInfo jobInfo = JacksonUtils.parseObject(planInfoEntity.getJobInfo(), WorkflowJobInfo.class);
             dag = new DAG<>(Collections.singletonList(jobInfo));
         } else {
@@ -148,7 +148,7 @@ public class PlanRepo implements PlanRepository {
         return Plan.builder()
                 .id(planInfoEntity.getPlanId())
                 .version(planInfoEntity.getPlanInfoId())
-                .type(planType)
+                .type(instanceType)
                 .triggerType(triggerType)
                 .scheduleOption(scheduleOption)
                 .dag(dag)

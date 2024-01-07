@@ -25,7 +25,7 @@ import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.broker.AvailableWorkerDTO;
 import org.limbo.flowjob.api.param.broker.JobFeedbackParam;
 import org.limbo.flowjob.broker.application.service.WorkerAppService;
-import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
+import org.limbo.flowjob.broker.core.meta.processor.PlanInstanceProcessor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,7 +49,7 @@ import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.*;
 public class JobRpcController {
 
     @Setter(onMethod_ = @Inject)
-    private SchedulerProcessor schedulerProcessor;
+    private PlanInstanceProcessor processor;
 
     @Setter(onMethod_ = @Inject)
     private WorkerAppService workerAppService;
@@ -61,7 +61,7 @@ public class JobRpcController {
     @PostMapping(API_JOB_EXECUTING)
     public ResponseDTO<Boolean> executing(@Validated @NotNull(message = "no agentId") @RequestParam("agentId") String agentId,
                                           @Validated @NotNull(message = "no jobInstanceId") @RequestParam("jobInstanceId") String jobInstanceId) {
-        boolean result = schedulerProcessor.jobExecuting(agentId, jobInstanceId);
+        boolean result = processor.jobExecuting(agentId, jobInstanceId);
         return ResponseDTO.<Boolean>builder().ok(result).build();
     }
 
@@ -71,7 +71,7 @@ public class JobRpcController {
     @Operation(summary = "job执行上报")
     @PostMapping(API_JOB_REPORT)
     public ResponseDTO<Boolean> report(@Validated @NotNull(message = "no jobInstanceId") @RequestParam("jobInstanceId") String jobInstanceId) {
-        boolean result = schedulerProcessor.jobReport(jobInstanceId);
+        boolean result = processor.jobReport(jobInstanceId);
         return ResponseDTO.<Boolean>builder().ok(result).build();
     }
 
@@ -82,7 +82,7 @@ public class JobRpcController {
     @PostMapping(API_JOB_FEEDBACK)
     public ResponseDTO<Boolean> feedback(@Validated @NotNull(message = "no job") @RequestParam("jobInstanceId") String jobInstanceId,
                                          @Valid @RequestBody JobFeedbackParam feedback) {
-        schedulerProcessor.feedback(jobInstanceId, feedback);
+        processor.feedback(jobInstanceId, feedback);
         return ResponseDTO.<Boolean>builder().ok(true).build();
     }
 

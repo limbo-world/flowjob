@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.meta.job;
+package org.limbo.flowjob.broker.core.meta.info;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -42,6 +42,8 @@ import java.util.Set;
 public class WorkflowJobInfo extends JobInfo implements DAGNode {
 
     private static final long serialVersionUID = -702096482598918849L;
+
+    private String id;
 
     /**
      * 名称

@@ -23,9 +23,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
-import org.limbo.flowjob.broker.core.meta.plan.Plan;
-import org.limbo.flowjob.broker.core.meta.plan.PlanRepository;
-import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
+import org.limbo.flowjob.broker.core.meta.info.Plan;
+import org.limbo.flowjob.broker.core.meta.info.PlanRepository;
+import org.limbo.flowjob.broker.core.meta.processor.PlanInstanceProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.common.utils.time.Formatters;
@@ -45,7 +45,7 @@ public class PlanLoadTask extends FixDelayMetaTask {
 
     private final PlanRepository planRepository;
 
-    private final SchedulerProcessor schedulerProcessor;
+    private final PlanInstanceProcessor processor;
 
     /**
      * 当前节点
@@ -58,12 +58,12 @@ public class PlanLoadTask extends FixDelayMetaTask {
 
     public PlanLoadTask(MetaTaskScheduler scheduler,
                         PlanRepository planRepository,
-                        SchedulerProcessor schedulerProcessor,
+                        PlanInstanceProcessor processor,
                         Broker broker,
                         NodeManger nodeManger) {
         super(Duration.ofSeconds(1), scheduler);
         this.planRepository = planRepository;
-        this.schedulerProcessor = schedulerProcessor;
+        this.processor = processor;
         this.broker = broker;
         this.nodeManger = nodeManger;
     }
@@ -86,7 +86,7 @@ public class PlanLoadTask extends FixDelayMetaTask {
                 return;
             }
             for (Plan plan : plans) {
-                PlanScheduleTask metaTask = new PlanScheduleTask(plan, schedulerProcessor, metaTaskScheduler);
+                PlanScheduleTask metaTask = new PlanScheduleTask(plan, processor, metaTaskScheduler);
                 // 移除老的
                 metaTaskScheduler.unschedule(metaTask.scheduleId());
                 // 调度新的

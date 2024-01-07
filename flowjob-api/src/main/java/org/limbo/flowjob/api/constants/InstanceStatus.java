@@ -27,13 +27,13 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * @author Brozen
  * @since 2021-05-19
  */
-public enum PlanStatus {
+public enum InstanceStatus {
     UNKNOWN(ConstantsPool.UNKNOWN, "未知"),
-    SCHEDULING(ConstantsPool.PLAN_SCHEDULING, "调度中"), // 时间轮中，还未创建 job 实例
-    DISPATCHING(ConstantsPool.PLAN_DISPATCHING, "下发中"), // 创建完 job 实例，等待 job 下发
-    EXECUTING(ConstantsPool.PLAN_EXECUTING, "执行中"), // 第一个任务切换为执行中的时候
-    SUCCEED(ConstantsPool.PLAN_EXECUTE_SUCCEED, "执行成功"), // 所有节点都执行成功
-    FAILED(ConstantsPool.PLAN_EXECUTE_FAILED, "执行失败"), // 有一个节点执行失败，并触发plan的失败场景
+    SCHEDULING(ConstantsPool.INSTANCE_SCHEDULING, "调度中"), // 时间轮中，还未创建 job 实例
+    DISPATCHING(ConstantsPool.INSTANCE_DISPATCHING, "下发中"), // 创建完 job 实例，等待 job 下发
+    EXECUTING(ConstantsPool.INSTANCE_EXECUTING, "执行中"), // 第一个任务切换为执行中的时候
+    SUCCEED(ConstantsPool.INSTANCE_EXECUTE_SUCCEED, "执行成功"), // 所有节点都执行成功
+    FAILED(ConstantsPool.INSTANCE_EXECUTE_FAILED, "执行失败"), // 有一个节点执行失败，并触发plan的失败场景
     ;
 
     @JsonValue
@@ -42,7 +42,7 @@ public enum PlanStatus {
     public final String desc;
 
     @JsonCreator
-    PlanStatus(int status, String desc) {
+    InstanceStatus(int status, String desc) {
         this.status = status;
         this.desc = desc;
     }
@@ -52,7 +52,7 @@ public enum PlanStatus {
      *
      * @param status 待校验状态值
      */
-    public boolean is(PlanStatus status) {
+    public boolean is(InstanceStatus status) {
         return equals(status);
     }
 
@@ -69,8 +69,8 @@ public enum PlanStatus {
      * 解析上下文状态值
      */
     @JsonCreator
-    public static PlanStatus parse(Number status) {
-        for (PlanStatus statusEnum : values()) {
+    public static InstanceStatus parse(Number status) {
+        for (InstanceStatus statusEnum : values()) {
             if (statusEnum.is(status)) {
                 return statusEnum;
             }

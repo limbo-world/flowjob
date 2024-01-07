@@ -16,36 +16,30 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.meta;
+package org.limbo.flowjob.broker.core.meta.instance;
+
+import org.limbo.flowjob.api.constants.ScheduleType;
+import org.limbo.flowjob.api.constants.TriggerType;
+
+import java.time.LocalDateTime;
 
 /**
  * @author Devil
- * @since 2022/11/27
+ * @since 2023/12/13
  */
-public enum IDType {
+public interface PlanInstanceRepository {
 
-    APP,
+    PlanInstance get(String id);
 
-    TENANT,
+    PlanInstance lockAndGet(String id);
 
-    AGENT,
+    PlanInstance getLatelyTrigger(String planId, String version, ScheduleType scheduleType, TriggerType triggerType);
 
-    WORKER,
+    void save(PlanInstance instance);
 
-    WORKER_EXECUTOR,
+    boolean executing(String instanceId, LocalDateTime startAt);
 
-    WORKER_TAG,
+    boolean success(String instanceId, LocalDateTime feedbackAt);
 
-    BROKER,
-
-    PLAN,
-
-    PLAN_INFO,
-
-    INSTANCE,
-
-    JOB_INSTANCE,
-
-    ;
-
+    boolean fail(String instanceId, LocalDateTime startAt, LocalDateTime feedbackAt);
 }

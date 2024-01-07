@@ -16,16 +16,15 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.meta.plan;
+package org.limbo.flowjob.broker.core.meta.info;
 
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.InstanceType;
 import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.core.meta.job.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.utils.dag.DAG;
 
@@ -61,7 +60,7 @@ public class Plan implements Serializable {
     /**
      * 类型
      */
-    private final PlanType type;
+    private final InstanceType type;
 
     /**
      * 触发类型

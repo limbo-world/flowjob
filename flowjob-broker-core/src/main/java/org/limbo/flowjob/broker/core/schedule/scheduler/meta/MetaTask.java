@@ -62,4 +62,9 @@ public abstract class MetaTask implements Scheduled {
     public boolean isStopWhenError() {
         return stopWhenError;
     }
+
+    @Override
+    public boolean verify() {
+        return true;
+    }
 }

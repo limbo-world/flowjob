@@ -27,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * @author Brozen
  * @since 2021-05-19
  */
-public enum PlanType {
+public enum InstanceType {
     UNKNOWN(ConstantsPool.UNKNOWN, "未知"),
     STANDALONE(1, "单例任务"),
     WORKFLOW(2, "工作流任务"),
@@ -40,12 +40,12 @@ public enum PlanType {
     public final String desc;
 
     @JsonCreator
-    PlanType(int type, String desc) {
+    InstanceType(int type, String desc) {
         this.type = type;
         this.desc = desc;
     }
 
-    public boolean is(PlanType type) {
+    public boolean is(InstanceType type) {
         return equals(type);
     }
 
@@ -57,10 +57,10 @@ public enum PlanType {
      * 解析上下文状态值
      */
     @JsonCreator
-    public static PlanType parse(Number type) {
-        for (PlanType planType : values()) {
-            if (planType.is(type)) {
-                return planType;
+    public static InstanceType parse(Number type) {
+        for (InstanceType instanceType : values()) {
+            if (instanceType.is(type)) {
+                return instanceType;
             }
         }
         return UNKNOWN;

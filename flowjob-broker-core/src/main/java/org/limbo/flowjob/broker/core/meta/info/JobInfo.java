@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.meta.job;
+package org.limbo.flowjob.broker.core.meta.info;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -45,8 +45,6 @@ import java.io.Serializable;
 public class JobInfo implements Serializable {
 
     private static final long serialVersionUID = 5053574296501459651L;
-
-    private String id;
 
     /**
      * 类型

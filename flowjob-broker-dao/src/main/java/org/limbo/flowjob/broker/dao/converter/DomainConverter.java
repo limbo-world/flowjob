@@ -23,9 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.constants.AgentStatus;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
-import org.limbo.flowjob.broker.core.meta.job.JobInfo;
 import org.limbo.flowjob.broker.core.meta.job.JobInstance;
-import org.limbo.flowjob.broker.core.meta.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.dao.entity.AgentEntity;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
@@ -70,14 +69,14 @@ public class DomainConverter {
     }
 
     public static JobInstanceEntity toJobInstanceEntity(JobInstance jobInstance) {
-        JobInfo jobInfo = jobInstance.getJobInfo();
+        WorkflowJobInfo jobInfo = jobInstance.getJobInfo();
         JobInstanceEntity entity = new JobInstanceEntity();
-        entity.setJobId(jobInfo.getId());
+        entity.setJobId(jobInfo.getId() == null ? "" : jobInfo.getId());
         entity.setJobInstanceId(jobInstance.getId());
         entity.setAgentId(jobInstance.getAgentId());
         entity.setBrokerUrl(jobInstance.getBrokerUrl() == null ? "" : jobInstance.getBrokerUrl().toString());
         entity.setRetryTimes(jobInstance.getRetryTimes());
-        entity.setPlanInstanceId(jobInstance.getPlanInstanceId());
+        entity.setPlanInstanceId(jobInstance.getInstanceId());
         entity.setPlanId(jobInstance.getPlanId());
         entity.setPlanInfoId(jobInstance.getPlanVersion());
         entity.setStatus(jobInstance.getStatus().status);

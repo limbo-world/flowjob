@@ -5,7 +5,7 @@ Content-Type: application/json
 {
     "description": "round_robin",
     "triggerType": 2,
-    "planType": 2,
+    "instanceType": 2,
     "scheduleOption": {
         "scheduleType": 1,
         "scheduleDelay": 1,
@@ -33,7 +33,7 @@ Content-Type: application/json
 {
     "description": "round_robin",
     "triggerType": 2,
-    "planType": 2,
+    "instanceType": 2,
     "scheduleOption": {
         "scheduleType": 2,
         "scheduleDelay": 1,

@@ -20,14 +20,13 @@ package org.limbo.flowjob.broker.dao.repositories;
 
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.api.constants.InstanceType;
 import org.limbo.flowjob.api.constants.JobStatus;
 import org.limbo.flowjob.api.constants.MsgConstants;
-import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
-import org.limbo.flowjob.broker.core.meta.job.JobInfo;
 import org.limbo.flowjob.broker.core.meta.job.JobInstance;
 import org.limbo.flowjob.broker.core.meta.job.JobInstanceRepository;
-import org.limbo.flowjob.broker.core.meta.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
@@ -173,11 +172,11 @@ public class JobInstanceRepo implements JobInstanceRepository {
     }
 
     private JobInstance assemble(JobInstanceEntity entity, PlanInfoEntity planInfoEntity) {
-        PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
+        InstanceType instanceType = InstanceType.parse(planInfoEntity.getPlanType());
         WorkflowJobInfo jobInfo;
-        if (PlanType.STANDALONE == planType) {
+        if (InstanceType.STANDALONE == instanceType) {
             jobInfo = JacksonUtils.parseObject(planInfoEntity.getJobInfo(), WorkflowJobInfo.class);
-        } else if (PlanType.WORKFLOW == planType) {
+        } else if (InstanceType.WORKFLOW == instanceType) {
             DAG<WorkflowJobInfo> dag = DomainConverter.toJobDag(planInfoEntity.getJobInfo());
             jobInfo = dag.getNode(entity.getJobId());
         } else {
@@ -191,10 +190,9 @@ public class JobInstanceRepo implements JobInstanceRepository {
         return JobInstance.builder()
                 .id(entity.getJobInstanceId())
                 .jobInfo(jobInfo)
-                .planType(planType)
                 .planId(entity.getPlanId())
                 .retryTimes(entity.getRetryTimes())
-                .planInstanceId(entity.getPlanInstanceId())
+                .instanceId(entity.getPlanInstanceId())
                 .planVersion(entity.getPlanInfoId())
                 .brokerUrl(DomainConverter.brokerUrl(entity.getBrokerUrl()))
                 .triggerAt(entity.getTriggerAt())

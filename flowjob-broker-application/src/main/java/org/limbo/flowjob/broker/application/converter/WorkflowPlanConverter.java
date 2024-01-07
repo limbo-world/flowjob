@@ -22,7 +22,7 @@ import org.apache.commons.collections4.ListUtils;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.dto.console.PlanInfoDTO;
 import org.limbo.flowjob.api.dto.console.WorkflowJobDTO;
-import org.limbo.flowjob.broker.core.meta.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.springframework.stereotype.Component;

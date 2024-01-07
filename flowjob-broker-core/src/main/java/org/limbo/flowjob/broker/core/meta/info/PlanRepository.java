@@ -16,7 +16,7 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.meta.plan;
+package org.limbo.flowjob.broker.core.meta.info;
 
 import java.net.URL;
 import java.time.LocalDateTime;

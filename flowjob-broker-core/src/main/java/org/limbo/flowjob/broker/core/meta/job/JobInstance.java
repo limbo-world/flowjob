@@ -19,11 +19,10 @@
 package org.limbo.flowjob.broker.core.meta.job;
 
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.constants.JobStatus;
-import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
@@ -44,13 +43,11 @@ public class JobInstance implements Serializable {
 
     private String id;
 
-    private String planInstanceId;
+    private String instanceId;
 
     private String planId;
 
     private String planVersion;
-
-    private PlanType planType;
 
     /**
      * 当前是第几次重试

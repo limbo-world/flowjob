@@ -29,13 +29,15 @@ import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
 import org.limbo.flowjob.broker.core.meta.IDGenerator;
+import org.limbo.flowjob.broker.core.meta.info.PlanRepository;
+import org.limbo.flowjob.broker.core.meta.instance.DelayInstanceRepository;
+import org.limbo.flowjob.broker.core.meta.instance.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.meta.job.JobInstanceRepository;
-import org.limbo.flowjob.broker.core.meta.plan.PlanInstanceRepository;
-import org.limbo.flowjob.broker.core.meta.plan.PlanRepository;
+import org.limbo.flowjob.broker.core.meta.processor.DelayInstanceProcessor;
+import org.limbo.flowjob.broker.core.meta.processor.PlanInstanceProcessor;
 import org.limbo.flowjob.broker.core.meta.task.JobExecuteCheckTask;
 import org.limbo.flowjob.broker.core.meta.task.JobScheduleCheckTask;
 import org.limbo.flowjob.broker.core.meta.task.PlanLoadTask;
-import org.limbo.flowjob.broker.core.schedule.SchedulerProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.selector.SingletonWorkerStatisticsRepo;
@@ -143,10 +145,10 @@ public class BrokerAutoConfiguration {
     @Bean
     public PlanLoadTask planLoadTask(MetaTaskScheduler scheduler,
                                      PlanRepository planRepository,
-                                     SchedulerProcessor schedulerProcessor,
+                                     PlanInstanceProcessor processor,
                                      @Lazy Broker broker,
                                      NodeManger nodeManger) {
-        return new PlanLoadTask(scheduler, planRepository, schedulerProcessor, broker, nodeManger);
+        return new PlanLoadTask(scheduler, planRepository, processor, broker, nodeManger);
     }
 
     @Bean
@@ -154,17 +156,17 @@ public class BrokerAutoConfiguration {
                                                    JobInstanceRepository jobInstanceRepository,
                                                    @Lazy Broker broker,
                                                    NodeManger nodeManger,
-                                                   SchedulerProcessor schedulerProcessor) {
-        return new JobExecuteCheckTask(metaTaskScheduler, jobInstanceRepository, broker, nodeManger, schedulerProcessor);
+                                                   PlanInstanceProcessor processor) {
+        return new JobExecuteCheckTask(metaTaskScheduler, jobInstanceRepository, broker, nodeManger, processor);
     }
 
     @Bean
     public JobScheduleCheckTask jobScheduleCheckTask(MetaTaskScheduler scheduler,
                                                      @Lazy Broker broker,
                                                      NodeManger nodeManger,
-                                                     SchedulerProcessor schedulerProcessor,
+                                                     AgentRegistry agentRegistry,
                                                      JobInstanceRepository jobInstanceRepository) {
-        return new JobScheduleCheckTask(scheduler, broker, nodeManger, schedulerProcessor, jobInstanceRepository);
+        return new JobScheduleCheckTask(scheduler, broker, nodeManger, agentRegistry, jobInstanceRepository);
     }
 
     @Bean
@@ -175,15 +177,26 @@ public class BrokerAutoConfiguration {
     }
 
     @Bean
-    public SchedulerProcessor schedulerProcessor(MetaTaskScheduler metaTaskScheduler,
-                                                 IDGenerator idGenerator,
-                                                 NodeManger nodeManger,
-                                                 AgentRegistry agentRegistry,
-                                                 PlanRepository planRepository,
-                                                 TransactionService transactionService,
-                                                 PlanInstanceRepository planInstanceRepository,
-                                                 JobInstanceRepository jobInstanceRepository) {
-        return new SchedulerProcessor(metaTaskScheduler, idGenerator, nodeManger, agentRegistry, planRepository, transactionService, planInstanceRepository, jobInstanceRepository);
+    public PlanInstanceProcessor planInstanceProcessor(MetaTaskScheduler metaTaskScheduler,
+                                                       IDGenerator idGenerator,
+                                                       NodeManger nodeManger,
+                                                       AgentRegistry agentRegistry,
+                                                       PlanRepository planRepository,
+                                                       TransactionService transactionService,
+                                                       PlanInstanceRepository planInstanceRepository,
+                                                       JobInstanceRepository jobInstanceRepository) {
+        return new PlanInstanceProcessor(metaTaskScheduler, idGenerator, nodeManger, agentRegistry, planRepository, transactionService, planInstanceRepository, jobInstanceRepository);
+    }
+
+    @Bean
+    public DelayInstanceProcessor delayInstanceProcessor(MetaTaskScheduler metaTaskScheduler,
+                                                         IDGenerator idGenerator,
+                                                         NodeManger nodeManger,
+                                                         AgentRegistry agentRegistry,
+                                                         TransactionService transactionService,
+                                                         DelayInstanceRepository delayInstanceRepository,
+                                                         JobInstanceRepository jobInstanceRepository) {
+        return new DelayInstanceProcessor(metaTaskScheduler, idGenerator, nodeManger, agentRegistry, transactionService, delayInstanceRepository, jobInstanceRepository);
     }
 
 }

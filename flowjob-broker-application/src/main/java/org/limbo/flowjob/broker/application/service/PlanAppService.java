@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.api.constants.MsgConstants;
-import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.InstanceType;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.dto.PageDTO;
@@ -41,7 +41,7 @@ import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.meta.IDGenerator;
 import org.limbo.flowjob.broker.core.meta.IDType;
-import org.limbo.flowjob.broker.core.meta.job.JobInfo;
+import org.limbo.flowjob.broker.core.meta.info.JobInfo;
 import org.limbo.flowjob.broker.core.schedule.calculator.CronScheduleCalculator;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
@@ -96,17 +96,17 @@ public class PlanAppService {
     @Transactional
     public String add(PlanParam.NormalPlanParam param) {
         JobInfo jobInfo = factory.createJob(param);
-        return save(null, PlanType.STANDALONE, param, JacksonUtils.toJSONString(jobInfo));
+        return save(null, InstanceType.STANDALONE, param, JacksonUtils.toJSONString(jobInfo));
     }
 
     @Transactional
     public String update(String planId, PlanParam.NormalPlanParam param) {
         JobInfo jobInfo = factory.createJob(param);
-        return save(planId, PlanType.STANDALONE, param, JacksonUtils.toJSONString(jobInfo));
+        return save(planId, InstanceType.STANDALONE, param, JacksonUtils.toJSONString(jobInfo));
     }
 
     @Transactional
-    public String save(String planId, PlanType planType, PlanParam param, String jobInfo) {
+    public String save(String planId, InstanceType instanceType, PlanParam param, String jobInfo) {
         PlanInfoEntity planInfoEntity = new PlanInfoEntity();
         planInfoEntity.setJobInfo(jobInfo);
 
@@ -159,7 +159,7 @@ public class PlanAppService {
         // base info
         planInfoEntity.setPlanId(planId);
         planInfoEntity.setPlanInfoId(planInfoId);
-        planInfoEntity.setPlanType(planType.type);
+        planInfoEntity.setPlanType(instanceType.type);
         planInfoEntity.setName(param.getName());
         planInfoEntity.setDescription(param.getDescription());
         planInfoEntity.setTriggerType(param.getTriggerType().type);

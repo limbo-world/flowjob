@@ -23,7 +23,7 @@ import org.limbo.flowjob.api.param.console.DispatchOptionParam;
 import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.RetryOptionParam;
 import org.limbo.flowjob.api.param.console.TagFilterParam;
-import org.limbo.flowjob.broker.core.meta.job.JobInfo;
+import org.limbo.flowjob.broker.core.meta.info.JobInfo;
 import org.limbo.flowjob.broker.core.worker.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.worker.dispatch.RetryOption;
 import org.limbo.flowjob.broker.core.worker.dispatch.TagFilterOption;
@@ -49,7 +49,6 @@ public class PlanParamConverter {
      */
     public JobInfo createJob(PlanParam.NormalPlanParam jobParam) {
         JobInfo jobInfo = new JobInfo();
-        jobInfo.setId("0");
         jobInfo.setType(jobParam.getType());
         jobInfo.setExecutorName(jobParam.getExecutorName());
         jobInfo.setAttributes(new Attributes(jobParam.getAttributes()));

@@ -19,7 +19,7 @@
 package org.limbo.flowjob.broker.core.meta.job;
 
 import org.limbo.flowjob.api.constants.JobStatus;
-import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 
 import java.net.URL;
@@ -31,7 +31,7 @@ import java.time.LocalDateTime;
  */
 public class JobInstanceFactory {
 
-    public static JobInstance create(String id, String planId, String planVersion, PlanType planType, String planInstanceId,
+    public static JobInstance create(String id, String planId, String planVersion, String planInstanceId,
                                      URL brokerUrl, Attributes planAttributes, Attributes context, WorkflowJobInfo jobInfo, LocalDateTime triggerAt) {
         Attributes attributes = new Attributes();
         attributes.put(planAttributes);
@@ -40,10 +40,9 @@ public class JobInstanceFactory {
                 .id(id)
                 .agentId("")
                 .jobInfo(jobInfo)
-                .planType(planType)
                 .planId(planId)
                 .brokerUrl(brokerUrl)
-                .planInstanceId(planInstanceId)
+                .instanceId(planInstanceId)
                 .planVersion(planVersion)
                 .status(JobStatus.SCHEDULING)
                 .triggerAt(triggerAt)

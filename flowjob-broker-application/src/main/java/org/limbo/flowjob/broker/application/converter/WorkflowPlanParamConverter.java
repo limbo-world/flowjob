@@ -22,7 +22,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.Setter;
 import org.limbo.flowjob.api.param.console.WorkflowJobParam;
-import org.limbo.flowjob.broker.core.meta.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.springframework.stereotype.Component;

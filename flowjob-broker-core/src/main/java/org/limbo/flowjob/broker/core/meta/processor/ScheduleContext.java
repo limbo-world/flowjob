@@ -16,12 +16,12 @@
  *
  */
 
-package org.limbo.flowjob.broker.core.schedule;
+package org.limbo.flowjob.broker.core.meta.processor;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.broker.core.meta.job.JobInstance;
-import org.limbo.flowjob.broker.core.meta.plan.Plan;
+import org.limbo.flowjob.broker.core.meta.info.Plan;
 
 import java.util.List;
 
