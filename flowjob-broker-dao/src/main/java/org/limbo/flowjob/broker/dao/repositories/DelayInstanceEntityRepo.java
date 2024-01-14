@@ -37,7 +37,7 @@ public interface DelayInstanceEntityRepo extends JpaRepository<DelayInstanceEnti
     @Query(value = "select * from flowjob_delay_instance where instance_id = :instanceId for update", nativeQuery = true)
     DelayInstanceEntity selectForUpdate(@Param("instanceId") String instanceId);
 
-    DelayInstanceEntity findByTopicAndKey(String topic, String key);
+    DelayInstanceEntity findByBizTypeAndBizId(String bizType, String bizId);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update DelayInstanceEntity set status = " + ConstantsPool.INSTANCE_EXECUTING + ", startAt = :startAt " +

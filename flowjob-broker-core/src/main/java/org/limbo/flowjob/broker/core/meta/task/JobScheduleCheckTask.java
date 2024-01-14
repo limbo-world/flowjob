@@ -31,6 +31,8 @@ import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.List;
 
 /**
@@ -74,14 +76,14 @@ public class JobScheduleCheckTask extends FixDelayMetaTask {
             String startId = "";
             LocalDateTime currentTime = TimeUtils.currentLocalDateTime();
 
-            List<JobInstance> jobInstances = jobInstanceRepository.findInSchedule(broker.getRpcBaseURL(), currentTime.plusSeconds(-INTERVAL), currentTime, startId, limit);
+            List<JobInstance> jobInstances = jobInstanceRepository.findInSchedule(broker.getRpcBaseURL(), currentTime.plus(-INTERVAL, ChronoUnit.MILLIS), currentTime, startId, limit);
             while (CollectionUtils.isNotEmpty(jobInstances)) {
                 for (JobInstance jobInstance : jobInstances) {
                     JobInstanceTask metaTask = new JobInstanceTask(jobInstance, agentRegistry);
                     metaTaskScheduler.schedule(metaTask);
                 }
                 startId = jobInstances.get(jobInstances.size() - 1).getId();
-                jobInstances = jobInstanceRepository.findInSchedule(broker.getRpcBaseURL(), currentTime.plusSeconds(-INTERVAL), currentTime, startId, limit);
+                jobInstances = jobInstanceRepository.findInSchedule(broker.getRpcBaseURL(), currentTime.plus(-INTERVAL, ChronoUnit.MILLIS), currentTime, startId, limit);
             }
         } catch (Exception e) {
             log.error("{} execute fail", scheduleId(), e);
@@ -90,7 +92,7 @@ public class JobScheduleCheckTask extends FixDelayMetaTask {
 
     @Override
     public String getType() {
-        return "JOB_SCHEDULE_CHECK";
+        return "Job_Schedule_Check";
     }
 
     @Override

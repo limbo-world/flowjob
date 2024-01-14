@@ -20,14 +20,11 @@ package org.limbo.flowjob.broker.application.converter;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import lombok.Setter;
 import org.limbo.flowjob.api.param.console.WorkflowJobParam;
 import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.dag.DAG;
-import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -38,17 +35,13 @@ import java.util.Set;
  * @author Brozen
  * @since 2023-08-11
  */
-@Component
 public class WorkflowPlanParamConverter {
-
-    @Setter(onMethod_ = @Inject)
-    private PlanParamConverter factory;
 
 
     /**
      * 生成更新计划 JobDAG
      */
-    public DAG<WorkflowJobInfo> createDAG(List<WorkflowJobParam> jobParams) {
+    public static DAG<WorkflowJobInfo> createDAG(List<WorkflowJobParam> jobParams) {
         return new DAG<>(createWorkflowJobs(jobParams));
     }
 
@@ -56,7 +49,7 @@ public class WorkflowPlanParamConverter {
     /**
      * 生成 DAG 作业实体列表
      */
-    public List<WorkflowJobInfo> createWorkflowJobs(List<WorkflowJobParam> params) {
+    public static List<WorkflowJobInfo> createWorkflowJobs(List<WorkflowJobParam> params) {
         List<WorkflowJobInfo> jobs = Lists.newArrayList();
         Map<String, Set<String>> parents = new HashMap<>();
         Map<String, Set<String>> children = new HashMap<>();
@@ -83,7 +76,7 @@ public class WorkflowPlanParamConverter {
     /**
      * 生成单个 DAG 作业
      */
-    public WorkflowJobInfo createWorkflowJob(WorkflowJobParam param) {
+    public static WorkflowJobInfo createWorkflowJob(WorkflowJobParam param) {
         WorkflowJobInfo jobInfo = new WorkflowJobInfo();
         jobInfo.setId(param.getId());
         jobInfo.setName(param.getName());
@@ -92,8 +85,8 @@ public class WorkflowPlanParamConverter {
         jobInfo.setSkipWhenFail(param.isSkipWhenFail());
         jobInfo.setType(param.getType());
         jobInfo.setAttributes(new Attributes(param.getAttributes()));
-        jobInfo.setRetryOption(factory.createRetryOption(param.getRetryOption()));
-        jobInfo.setDispatchOption(factory.createJobDispatchOption(param.getDispatchOption()));
+        jobInfo.setRetryOption(JobParamConverter.createRetryOption(param.getRetryOption()));
+        jobInfo.setDispatchOption(JobParamConverter.createJobDispatchOption(param.getDispatchOption()));
         jobInfo.setExecutorName(param.getExecutorName());
         return jobInfo;
     }

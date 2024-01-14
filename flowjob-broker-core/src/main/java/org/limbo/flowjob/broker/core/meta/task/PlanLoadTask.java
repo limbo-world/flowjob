@@ -102,7 +102,7 @@ public class PlanLoadTask extends FixDelayMetaTask {
 
     @Override
     public String getType() {
-        return "PLAN_LOAD";
+        return "Plan_Load";
     }
 
     @Override

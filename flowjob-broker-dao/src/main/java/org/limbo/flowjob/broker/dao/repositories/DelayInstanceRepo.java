@@ -45,8 +45,8 @@ public class DelayInstanceRepo implements DelayInstanceRepository {
     private DelayInstanceEntityRepo delayInstanceEntityRepo;
 
     @Override
-    public DelayInstance get(String topic, String key) {
-        DelayInstanceEntity instanceEntity = delayInstanceEntityRepo.findByTopicAndKey(topic, key);
+    public DelayInstance get(String bizType, String bizId) {
+        DelayInstanceEntity instanceEntity = delayInstanceEntityRepo.findByBizTypeAndBizId(bizType, bizId);
         if (instanceEntity == null) {
             return null;
         }
@@ -73,12 +73,13 @@ public class DelayInstanceRepo implements DelayInstanceRepository {
     }
 
     @Override
+    @Transactional
     public void save(DelayInstance instance) {
         DelayInstanceEntity instanceEntity = new DelayInstanceEntity();
         instanceEntity.setInstanceId(instance.getId());
-        instanceEntity.setTopic(instance.getTopic());
-        instanceEntity.setKey(instance.getKey());
-        instanceEntity.setType(instance.getType().type);
+        instanceEntity.setBizType(instance.getBizType());
+        instanceEntity.setBizId(instance.getBizId());
+        instanceEntity.setInstanceType(instance.getType().type);
         instanceEntity.setStatus(instance.getStatus().status);
         instanceEntity.setJobInfo(instance.getDag().json());
         instanceEntity.setAttributes(instance.getAttributes().toString());
@@ -111,15 +112,15 @@ public class DelayInstanceRepo implements DelayInstanceRepository {
             return null;
         }
 
-        InstanceType type = InstanceType.parse(instanceEntity.getType());
+        InstanceType type = InstanceType.parse(instanceEntity.getInstanceType());
         InstanceStatus status = InstanceStatus.parse(instanceEntity.getStatus());
 
         DAG<WorkflowJobInfo> dag = DomainConverter.toJobDag(instanceEntity.getJobInfo());
 
         return DelayInstance.builder()
                 .id(instanceEntity.getInstanceId())
-                .topic(instanceEntity.getTopic())
-                .key(instanceEntity.getKey())
+                .bizType(instanceEntity.getBizType())
+                .bizId(instanceEntity.getBizId())
                 .status(status)
                 .type(type)
                 .dag(dag)

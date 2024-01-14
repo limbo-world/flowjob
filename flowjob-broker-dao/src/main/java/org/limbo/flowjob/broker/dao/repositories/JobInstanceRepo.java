@@ -24,10 +24,11 @@ import org.limbo.flowjob.api.constants.InstanceType;
 import org.limbo.flowjob.api.constants.JobStatus;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
+import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.meta.job.JobInstance;
 import org.limbo.flowjob.broker.core.meta.job.JobInstanceRepository;
-import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
+import org.limbo.flowjob.broker.dao.entity.DelayInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
@@ -41,6 +42,7 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -63,13 +65,16 @@ public class JobInstanceRepo implements JobInstanceRepository {
     @Setter(onMethod_ = @Inject)
     private PlanInfoEntityRepo planInfoEntityRepo;
 
+    @Setter(onMethod_ = @Inject)
+    private DelayInstanceEntityRepo delayInstanceEntityRepo;
+
     @Override
     public JobInstance get(String id) {
         JobInstanceEntity entity = jobInstanceEntityRepo.findById(id).orElse(null);
         if (entity == null) {
             return null;
         } else {
-            return getByEntity(entity);
+            return assemble(entity);
         }
     }
 
@@ -125,7 +130,7 @@ public class JobInstanceRepo implements JobInstanceRepository {
         if (entity == null) {
             return null;
         } else {
-            return getByEntity(entity);
+            return assemble(entity);
         }
     }
 
@@ -135,7 +140,7 @@ public class JobInstanceRepo implements JobInstanceRepository {
         if (CollectionUtils.isEmpty(jobInstanceEntities)) {
             return Collections.emptyList();
         }
-        return getByEntities(jobInstanceEntities);
+        return assemble(jobInstanceEntities);
     }
 
     @Override
@@ -144,13 +149,13 @@ public class JobInstanceRepo implements JobInstanceRepository {
         if (CollectionUtils.isEmpty(jobInstanceEntities)) {
             return Collections.emptyList();
         }
-        return getByEntities(jobInstanceEntities);
+        return assemble(jobInstanceEntities);
     }
 
     @Override
-    public JobInstance getIdByBroker(URL brokerUrl) {
+    public JobInstance getOneByBroker(URL brokerUrl) {
         JobInstanceEntity entity = jobInstanceEntityRepo.findOneByBrokerUrl(brokerUrl.toString());
-        return getByEntity(entity);
+        return assemble(entity);
     }
 
     @Override
@@ -158,42 +163,83 @@ public class JobInstanceRepo implements JobInstanceRepository {
         return jobInstanceEntityRepo.updateBroker(instance.getId(), instance.getBrokerUrl().toString(), newBrokerUrl.toString()) > 0;
     }
 
-    private JobInstance getByEntity(JobInstanceEntity entity) {
-        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(entity.getPlanInfoId())
-                .orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INSTANCE + entity.getPlanId()));
-        return assemble(entity, planInfoEntity);
-    }
-
-    private List<JobInstance> getByEntities(List<JobInstanceEntity> entities) {
-        Set<String> planInfoIds = entities.stream().map(JobInstanceEntity::getPlanInfoId).collect(Collectors.toSet());
-        List<PlanInfoEntity> planInfoEntities = planInfoEntityRepo.findAllById(planInfoIds);
-        Map<String, PlanInfoEntity> planInfoEntityMap = planInfoEntities.stream().collect(Collectors.toMap(PlanInfoEntity::getPlanInfoId, e -> e));
-        return entities.stream().map(e -> assemble(e, planInfoEntityMap.get(e.getPlanInfoId()))).collect(Collectors.toList());
-    }
-
-    private JobInstance assemble(JobInstanceEntity entity, PlanInfoEntity planInfoEntity) {
-        InstanceType instanceType = InstanceType.parse(planInfoEntity.getPlanType());
-        WorkflowJobInfo jobInfo;
-        if (InstanceType.STANDALONE == instanceType) {
-            jobInfo = JacksonUtils.parseObject(planInfoEntity.getJobInfo(), WorkflowJobInfo.class);
-        } else if (InstanceType.WORKFLOW == instanceType) {
-            DAG<WorkflowJobInfo> dag = DomainConverter.toJobDag(planInfoEntity.getJobInfo());
-            jobInfo = dag.getNode(entity.getJobId());
-        } else {
-            throw new IllegalArgumentException("Illegal PlanType in plan:" + planInfoEntity.getPlanId() + " version:" + planInfoEntity.getPlanInfoId());
+    private List<JobInstance> assemble(List<JobInstanceEntity> entities) {
+        Map<Integer, List<JobInstanceEntity>> typeGroup = entities.stream().collect(Collectors.groupingBy(JobInstanceEntity::getInstanceType));
+        List<JobInstance> list = new ArrayList<>();
+        // plan
+        List<JobInstanceEntity> planTypeEntities = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(typeGroup.get(InstanceType.STANDALONE.type))) {
+            planTypeEntities.addAll(typeGroup.get(InstanceType.STANDALONE.type));
+        }
+        if (CollectionUtils.isNotEmpty(typeGroup.get(InstanceType.WORKFLOW.type))) {
+            planTypeEntities.addAll(typeGroup.get(InstanceType.WORKFLOW.type));
+        }
+        if (CollectionUtils.isNotEmpty(planTypeEntities)) {
+            List<String> instanceIds = planTypeEntities.stream().map(JobInstanceEntity::getInstanceId).collect(Collectors.toList());
+            List<PlanInstanceEntity> planInstanceEntities = planInstanceEntityRepo.findAllById(instanceIds);
+            Map<String, PlanInstanceEntity> planInstanceEntityMap = planInstanceEntities.stream().collect(Collectors.toMap(PlanInstanceEntity::getPlanInstanceId, e -> e));
+            Set<String> planInfoIds = planInstanceEntities.stream().map(PlanInstanceEntity::getPlanInfoId).collect(Collectors.toSet());
+            List<PlanInfoEntity> planInfoEntities = planInfoEntityRepo.findAllById(planInfoIds);
+            Map<String, PlanInfoEntity> planInfoEntityMap = planInfoEntities.stream().collect(Collectors.toMap(PlanInfoEntity::getPlanInfoId, e -> e));
+            list.addAll(entities.stream().map(e -> {
+                PlanInstanceEntity planInstanceEntity = planInstanceEntityMap.get(e.getInstanceId());
+                PlanInfoEntity planInfoEntity = planInfoEntityMap.get(planInstanceEntity.getPlanInfoId());
+                return assemble(e, planInstanceEntity.getAttributes(), planInfoEntity.getJobInfo());
+            }).collect(Collectors.toList()));
+        }
+        // delay
+        List<JobInstanceEntity> delayTypeEntities = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(typeGroup.get(InstanceType.DELAY_STANDALONE.type))) {
+            delayTypeEntities.addAll(typeGroup.get(InstanceType.DELAY_STANDALONE.type));
+        }
+        if (CollectionUtils.isNotEmpty(delayTypeEntities)) {
+            List<String> instanceIds = delayTypeEntities.stream().map(JobInstanceEntity::getInstanceId).collect(Collectors.toList());
+            List<DelayInstanceEntity> delayInstanceEntities = delayInstanceEntityRepo.findAllById(instanceIds);
+            Map<String, DelayInstanceEntity> map = delayInstanceEntities.stream().collect(Collectors.toMap(DelayInstanceEntity::getInstanceId, v -> v));
+            list.addAll(delayTypeEntities.stream().map(e -> {
+                DelayInstanceEntity delayInstanceEntity = map.get(e.getInstanceId());
+                return assemble(e, delayInstanceEntity.getAttributes(), delayInstanceEntity.getJobInfo());
+            }).collect(Collectors.toList()));
         }
 
-        PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(entity.getPlanInstanceId()).orElse(null);
+        return list;
+    }
+
+    private JobInstance assemble(JobInstanceEntity entity) {
+        InstanceType instanceType = InstanceType.parse(entity.getInstanceType());
+        if (InstanceType.STANDALONE == instanceType || InstanceType.WORKFLOW == instanceType) {
+            PlanInstanceEntity planInstanceEntity = planInstanceEntityRepo.findById(entity.getInstanceId()).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INSTANCE + entity.getInstanceId()));
+            PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(planInstanceEntity.getPlanInfoId()).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_PLAN_INFO + planInstanceEntity.getPlanInfoId()));
+            return assemble(entity, planInstanceEntity.getAttributes(), planInfoEntity.getJobInfo());
+        } else if (InstanceType.DELAY_STANDALONE == instanceType) {
+            DelayInstanceEntity delayInstanceEntity = delayInstanceEntityRepo.findById(entity.getInstanceId()).orElseThrow(VerifyException.supplier(MsgConstants.CANT_FIND_DELAY_INSTANCE + entity.getInstanceId()));
+            return assemble(entity, delayInstanceEntity.getAttributes(), delayInstanceEntity.getJobInfo());
+        } else {
+            return null;
+        }
+    }
+
+    private JobInstance assemble(JobInstanceEntity entity, String instanceAttributes, String jobInfoJson) {
+        InstanceType instanceType = InstanceType.parse(entity.getInstanceType());
+        WorkflowJobInfo jobInfo;
+        if (InstanceType.STANDALONE == instanceType) {
+            jobInfo = JacksonUtils.parseObject(jobInfoJson, WorkflowJobInfo.class);
+        } else if (InstanceType.WORKFLOW == instanceType || InstanceType.DELAY_STANDALONE == instanceType) {
+            DAG<WorkflowJobInfo> dag = DomainConverter.toJobDag(jobInfoJson);
+            jobInfo = dag.getNode(entity.getJobId());
+        } else {
+            throw new IllegalArgumentException("Illegal InstanceType id:" + entity.getJobInstanceId());
+        }
+
         Attributes attributes = new Attributes();
-        attributes.put(new Attributes(planInstanceEntity.getAttributes()));
+        attributes.put(new Attributes(instanceAttributes));
         attributes.put(jobInfo.getAttributes());
         return JobInstance.builder()
                 .id(entity.getJobInstanceId())
                 .jobInfo(jobInfo)
-                .planId(entity.getPlanId())
                 .retryTimes(entity.getRetryTimes())
-                .instanceId(entity.getPlanInstanceId())
-                .planVersion(entity.getPlanInfoId())
+                .instanceId(entity.getInstanceId())
+                .instanceType(instanceType)
                 .brokerUrl(DomainConverter.brokerUrl(entity.getBrokerUrl()))
                 .triggerAt(entity.getTriggerAt())
                 .context(new Attributes(entity.getContext()))

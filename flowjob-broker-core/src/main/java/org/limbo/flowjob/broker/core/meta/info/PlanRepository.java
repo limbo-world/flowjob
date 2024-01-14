@@ -42,7 +42,7 @@ public interface PlanRepository {
      * @param brokerUrl
      * @return
      */
-    Plan getIdByBroker(URL brokerUrl);
+    Plan getOneByBroker(URL brokerUrl);
 
     /**
      * 更新绑定的broker

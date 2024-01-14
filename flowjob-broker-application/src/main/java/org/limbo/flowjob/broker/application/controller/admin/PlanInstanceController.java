@@ -25,7 +25,8 @@ import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.console.PlanInstanceDTO;
-import org.limbo.flowjob.api.param.broker.PlanScheduleParam;
+import org.limbo.flowjob.api.param.broker.PlanInstanceCommitParam;
+import org.limbo.flowjob.api.param.broker.PlanInstanceJobScheduleParam;
 import org.limbo.flowjob.api.param.console.PlanInstanceQueryParam;
 import org.limbo.flowjob.broker.application.service.PlanInstanceAppService;
 import org.limbo.flowjob.broker.core.meta.info.Plan;
@@ -74,7 +75,7 @@ public class PlanInstanceController {
      */
     @Operation(summary = "触发对应plan调度")
     @PostMapping("/api/v1/plan-instance/create-schedule")
-    public ResponseDTO<Void> createAndSchedulePlan(@RequestBody PlanScheduleParam param) {
+    public ResponseDTO<Void> createAndSchedulePlan(@Validated @RequestBody PlanInstanceCommitParam param) {
         Plan plan = planRepository.get(param.getPlanId());
         Attributes attributes = new Attributes();
         attributes.putAll(param.getAttributes());
@@ -87,9 +88,8 @@ public class PlanInstanceController {
      */
     @Operation(summary = "触发对应job调度")
     @PostMapping("/api/v1/plan-instance/job/schedule")
-    public ResponseDTO<Void> scheduleJob(@Validated @NotNull(message = "no planInstanceId") @RequestParam("planInstanceId") String planInstanceId,
-                                         @Validated @NotNull(message = "no jobId") @RequestParam("jobId") String jobId) {
-        processor.manualScheduleJob(planInstanceId, jobId);
+    public ResponseDTO<Void> scheduleJob(@Validated @RequestBody PlanInstanceJobScheduleParam param) {
+        processor.manualScheduleJob(param.getInstanceId(), param.getJobId());
         return ResponseDTO.<Void>builder().ok().build();
     }
 

@@ -144,8 +144,6 @@ public abstract class InstanceProcessor {
      */
     protected ScheduleContext handleJobSuccess(JobInstance jobInstance) {
         String instanceId = jobInstance.getInstanceId();
-        String planId = jobInstance.getPlanId();
-        String version = jobInstance.getPlanVersion();
         WorkflowJobInfo jobInfo = jobInstance.getJobInfo();
         String jobId = jobInfo.getId();
 
@@ -179,7 +177,7 @@ public abstract class InstanceProcessor {
                 if (checkJobsSuccess(instanceId, dag.preNodes(subJobInfo.getId()), true) && TriggerType.SCHEDULE == subJobInfo.getTriggerType()) {
                     String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
                     Node elect = nodeManger.elect(jobInstanceId);
-                    JobInstance subJobInstance = JobInstanceFactory.create(jobInstanceId, planId, version, instanceId, elect.getUrl(), instance.getAttributes(), jobInstance.getContext(), subJobInfo, triggerAt);
+                    JobInstance subJobInstance = JobInstanceFactory.create(jobInstanceId, instanceId, instance.getType(), elect.getUrl(), instance.getAttributes(), jobInstance.getContext(), subJobInfo, triggerAt);
                     subJobInstances.add(subJobInstance);
                 }
             }
@@ -254,7 +252,7 @@ public abstract class InstanceProcessor {
      * @param checkSkipWhenFail 和 continueWithFail 同时 true，当job执行失败，会认为执行成功
      */
     public boolean checkJobsSuccess(String planInstanceId, List<WorkflowJobInfo> jobInfos, boolean checkSkipWhenFail) {
-        if (CollectionUtils.isEmpty(jobInfos)) {
+        if (CollectionUtils.isEmpty(jobInfos) || jobInfos.size() <= 1) {
             return true;
         }
 

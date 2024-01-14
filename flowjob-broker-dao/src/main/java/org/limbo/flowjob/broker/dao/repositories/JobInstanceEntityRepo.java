@@ -56,8 +56,8 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
                                            @Param("startId") String startId,
                                            @Param("limit") Integer limit);
 
-    @Query(value = "select * from flowjob_job_instance where plan_instance_id = :planInstanceId and  job_id = :jobId order by trigger_at desc limit 1", nativeQuery = true)
-    JobInstanceEntity findByLatest(@Param("planInstanceId") String planInstanceId, @Param("jobId") String jobId);
+    @Query(value = "select * from flowjob_job_instance where instance_id = :instanceId and  job_id = :jobId order by trigger_at desc limit 1", nativeQuery = true)
+    JobInstanceEntity findByLatest(@Param("instanceId") String instanceId, @Param("jobId") String jobId);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity " +

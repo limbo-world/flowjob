@@ -197,15 +197,30 @@ CREATE TABLE `flowjob_plan_instance`
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `flowjob_plan_instance`
+-- Table structure for table `flowjob_delay_instance`
 --
-
-LOCK
-TABLES `flowjob_plan_instance` WRITE;
-/*!40000 ALTER TABLE `flowjob_plan_instance` DISABLE KEYS */;
-/*!40000 ALTER TABLE `flowjob_plan_instance` ENABLE KEYS */;
-UNLOCK
-TABLES;
+DROP TABLE IF EXISTS `flowjob_delay_instance`;
+CREATE TABLE `flowjob_delay_instance`
+(
+    `id`            bigint unsigned NOT NULL AUTO_INCREMENT,
+    `instance_id`   varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `biz_type`      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `biz_id`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `instance_type` tinyint                                                NOT NULL,
+    `status`        tinyint                                                NOT NULL,
+    `job_info`      text COLLATE utf8mb4_bin,
+    `attributes`    text COLLATE utf8mb4_bin,
+    `trigger_at`    datetime(6) NOT NULL,
+    `start_at`      datetime(6) DEFAULT NULL,
+    `feedback_at`   datetime(6) DEFAULT NULL,
+    `is_deleted`    bit(1)                                                 NOT NULL DEFAULT 0,
+    `created_at`    datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`    datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_id` (`instance_id`),
+    UNIQUE KEY `uk_biz` (`biz_type`, `biz_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `flowjob_job_instance`
@@ -214,44 +229,35 @@ TABLES;
 DROP TABLE IF EXISTS `flowjob_job_instance`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
+DROP TABLE IF EXISTS `flowjob_job_instance`;
 CREATE TABLE `flowjob_job_instance`
 (
-    `id`               bigint unsigned NOT NULL AUTO_INCREMENT,
-    `job_instance_id`  varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `job_id`           varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `plan_instance_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `agent_id`         varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `retry_times`      int unsigned NOT NULL DEFAULT 1,
-    `plan_id`          varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `plan_info_id`     varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `broker_url`       varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `trigger_at`       datetime(6) NOT NULL,
-    `context`          text COLLATE utf8mb4_bin,
-    `start_at`         datetime(6) DEFAULT NULL,
-    `end_at`           datetime(6) DEFAULT NULL,
-    `last_report_at`   datetime(6) NOT NULL,
-    `status`           tinyint                                                NOT NULL,
-    `error_msg`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `is_deleted`       bit(1)                                                 NOT NULL DEFAULT 0,
-    `created_at`       datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`       datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `id`              bigint unsigned NOT NULL AUTO_INCREMENT,
+    `job_instance_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `instance_id`     varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `instance_type`   tinyint                                                NOT NULL,
+    `job_id`          varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin          DEFAULT NULL,
+    `agent_id`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `retry_times`     int unsigned NOT NULL DEFAULT 1,
+    `plan_id`         varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `plan_info_id`    varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `broker_url`      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `trigger_at`      datetime(6) NOT NULL,
+    `context`         text COLLATE utf8mb4_bin,
+    `start_at`        datetime(6) DEFAULT NULL,
+    `end_at`          datetime(6) DEFAULT NULL,
+    `last_report_at`  datetime(6) NOT NULL,
+    `status`          tinyint                                                NOT NULL,
+    `error_msg`       varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `is_deleted`      bit(1)                                                 NOT NULL DEFAULT 0,
+    `created_at`      datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`      datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_id` (`job_instance_id`),
-    UNIQUE KEY `uk_plan_instance_job` (`plan_instance_id`, `job_id`, `retry_times`),
-    KEY                `idx_report_broker` (`last_report_at`, `broker_url`)
+    UNIQUE KEY `uk_instance_job` (`instance_id`, `job_id`, `retry_times`),
+    KEY               `idx_report_broker` (`last_report_at`, `broker_url`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `flowjob_job_instance`
---
-
-LOCK
-TABLES `flowjob_job_instance` WRITE;
-/*!40000 ALTER TABLE `flowjob_job_instance` DISABLE KEYS */;
-/*!40000 ALTER TABLE `flowjob_job_instance` ENABLE KEYS */;
-UNLOCK
-TABLES;
 
 --
 -- Table structure for table `flowjob_tenant`
@@ -570,7 +576,7 @@ VALUES ('PLAN', 100000, 1000);
 INSERT INTO flowjob_id(`type`, `current_id`, `step`)
 VALUES ('PLAN_INFO', 100000, 1000);
 INSERT INTO flowjob_id(`type`, `current_id`, `step`)
-VALUES ('PLAN_INSTANCE', 100000, 1000);
+VALUES ('INSTANCE', 100000, 1000);
 INSERT INTO flowjob_id(`type`, `current_id`, `step`)
 VALUES ('JOB_INSTANCE', 100000, 1000);
 INSERT INTO flowjob_id(`type`, `current_id`, `step`)

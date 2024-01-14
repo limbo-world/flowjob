@@ -16,11 +16,11 @@
 
 package org.limbo.flowjob.worker.core.rpc;
 
+import org.limbo.flowjob.api.param.broker.DelayInstanceCommitParam;
+import org.limbo.flowjob.api.param.broker.PlanInstanceCommitParam;
+import org.limbo.flowjob.api.param.broker.PlanInstanceJobScheduleParam;
 import org.limbo.flowjob.common.exception.RegisterFailException;
 import org.limbo.flowjob.worker.core.domain.Worker;
-import org.limbo.flowjob.worker.core.executor.ExecuteContext;
-
-import javax.annotation.Nullable;
 
 /**
  * @author Brozen
@@ -41,16 +41,25 @@ public interface WorkerBrokerRpc {
 
     void setWorker(Worker worker);
 
-//    /**
-//     * 向 Broker 发送心跳
-//     * @param worker 发送心跳的 Worker
-//     */
-//    void schedulePlan(Worker worker);
-//
-//    /**
-//     * 向 Broker 发送心跳
-//     * @param worker 发送心跳的 Worker
-//     */
-//    void schedulePlanJob(Worker worker);
+    /**
+     * 基于Plan 创建实例
+     * @param param 参数
+     * @return id
+     */
+    String commitPlanInstance(PlanInstanceCommitParam param);
+
+    /**
+     * 触发PlanInstance下job执行
+     * @param param 参数
+     * @return id
+     */
+    String schedulePlanInstanceJob(PlanInstanceJobScheduleParam param);
+
+    /**
+     * 提交延迟任务
+     * @param param 参数
+     * @return id
+     */
+    String commitDelayInstance(DelayInstanceCommitParam.StandaloneParam param);
 
 }

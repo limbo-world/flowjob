@@ -93,7 +93,7 @@ public class JobInstanceTask extends MetaTask {
 
     @Override
     public String getType() {
-        return "JOB_INSTANCE";
+        return "Job_Instance";
     }
 
     @Override

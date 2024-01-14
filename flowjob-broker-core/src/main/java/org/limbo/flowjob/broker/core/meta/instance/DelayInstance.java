@@ -36,19 +36,19 @@ import java.time.LocalDateTime;
 public class DelayInstance extends Instance {
 
     /**
-     * 主题
+     * 业务类型
      */
-    private String topic;
+    private String bizType;
 
     /**
-     * 业务ID topic + key 唯一
+     * 业务ID type + id 唯一
      */
-    private String key;
+    private String bizId;
 
     @Builder
-    public DelayInstance(String id, InstanceType type, InstanceStatus status, Attributes attributes, LocalDateTime triggerAt, LocalDateTime startAt, LocalDateTime feedbackAt, String topic, String key, DAG<WorkflowJobInfo> dag) {
+    public DelayInstance(String id, InstanceType type, InstanceStatus status, Attributes attributes, LocalDateTime triggerAt, LocalDateTime startAt, LocalDateTime feedbackAt, String bizType, String bizId, DAG<WorkflowJobInfo> dag) {
         super(id, type, status, dag, attributes, triggerAt, startAt, feedbackAt);
-        this.topic = topic;
-        this.key = key;
+        this.bizType = bizType;
+        this.bizId = bizId;
     }
 }

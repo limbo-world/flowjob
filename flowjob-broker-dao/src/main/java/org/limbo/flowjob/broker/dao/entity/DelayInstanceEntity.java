@@ -39,18 +39,18 @@ public class DelayInstanceEntity extends BaseEntity {
     /**
      * 主题
      */
-    private String topic;
+    private String bizType;
 
     /**
-     * 业务ID topic + key 唯一
+     * 业务ID type + id 唯一
      */
-    private String key;
+    private String bizId;
 
     /**
      * 实例类型
      * @see InstanceType
      */
-    private Integer type;
+    private Integer instanceType;
 
     /**
      * 状态

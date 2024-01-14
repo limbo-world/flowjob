@@ -19,16 +19,18 @@
 package org.limbo.flowjob.broker.application.converter;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.limbo.flowjob.api.constants.JobType;
+import org.limbo.flowjob.api.param.broker.DelayInstanceCommitParam;
 import org.limbo.flowjob.api.param.console.DispatchOptionParam;
 import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.RetryOptionParam;
 import org.limbo.flowjob.api.param.console.TagFilterParam;
 import org.limbo.flowjob.broker.core.meta.info.JobInfo;
+import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.worker.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.worker.dispatch.RetryOption;
 import org.limbo.flowjob.broker.core.worker.dispatch.TagFilterOption;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
-import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,16 +40,12 @@ import java.util.stream.Collectors;
  * @author Brozen
  * @since 2023-08-11
  */
-@Component
-public class PlanParamConverter {
-
-
-
+public class JobParamConverter {
 
     /**
      * 生成非 DAG 作业实体
      */
-    public JobInfo createJob(PlanParam.NormalPlanParam jobParam) {
+    public static JobInfo createJob(PlanParam.NormalPlanParam jobParam) {
         JobInfo jobInfo = new JobInfo();
         jobInfo.setType(jobParam.getType());
         jobInfo.setExecutorName(jobParam.getExecutorName());
@@ -57,12 +55,20 @@ public class PlanParamConverter {
         return jobInfo;
     }
 
-
+    public static WorkflowJobInfo createJob(DelayInstanceCommitParam.StandaloneParam jobParam) {
+        WorkflowJobInfo jobInfo = new WorkflowJobInfo();
+        jobInfo.setType(JobType.parse(jobParam.getType()));
+        jobInfo.setExecutorName(jobParam.getExecutorName());
+        jobInfo.setAttributes(new Attributes(jobParam.getAttributes()));
+        jobInfo.setRetryOption(createRetryOption(jobParam.getRetryOption()));
+        jobInfo.setDispatchOption(createJobDispatchOption(jobParam.getDispatchOption()));
+        return jobInfo;
+    }
 
     /**
      * 生成作业重试参数
      */
-    public RetryOption createRetryOption(RetryOptionParam param) {
+    public static RetryOption createRetryOption(RetryOptionParam param) {
         if (param == null) {
             return new RetryOption();
         }
@@ -78,7 +84,10 @@ public class PlanParamConverter {
     /**
      * 生成作业分发参数
      */
-    public DispatchOption createJobDispatchOption(DispatchOptionParam param) {
+    public static DispatchOption createJobDispatchOption(DispatchOptionParam param) {
+        if (param == null) {
+            return new DispatchOption();
+        }
         return DispatchOption.builder()
                 .loadBalanceType(param.getLoadBalanceType())
                 .cpuRequirement(param.getCpuRequirement())
@@ -92,7 +101,7 @@ public class PlanParamConverter {
     /**
      * 生成作业的过滤标签
      */
-    public List<TagFilterOption> createTagFilterOption(List<TagFilterParam> params) {
+    public static List<TagFilterOption> createTagFilterOption(List<TagFilterParam> params) {
         if (CollectionUtils.isEmpty(params)) {
             return Collections.emptyList();
         }

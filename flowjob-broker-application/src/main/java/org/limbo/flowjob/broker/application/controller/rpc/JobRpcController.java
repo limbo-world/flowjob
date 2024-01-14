@@ -21,11 +21,15 @@ package org.limbo.flowjob.broker.application.controller.rpc;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Setter;
+import org.limbo.flowjob.api.constants.InstanceType;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.broker.AvailableWorkerDTO;
 import org.limbo.flowjob.api.param.broker.JobFeedbackParam;
 import org.limbo.flowjob.broker.application.service.WorkerAppService;
-import org.limbo.flowjob.broker.core.meta.processor.PlanInstanceProcessor;
+import org.limbo.flowjob.broker.core.meta.processor.InstanceProcessor;
+import org.limbo.flowjob.broker.core.meta.processor.ProcessorFactory;
+import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
+import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,7 +53,10 @@ import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.*;
 public class JobRpcController {
 
     @Setter(onMethod_ = @Inject)
-    private PlanInstanceProcessor processor;
+    private ProcessorFactory processorFactory;
+
+    @Setter(onMethod_ = @Inject)
+    private JobInstanceEntityRepo jobInstanceEntityRepo;
 
     @Setter(onMethod_ = @Inject)
     private WorkerAppService workerAppService;
@@ -61,6 +68,7 @@ public class JobRpcController {
     @PostMapping(API_JOB_EXECUTING)
     public ResponseDTO<Boolean> executing(@Validated @NotNull(message = "no agentId") @RequestParam("agentId") String agentId,
                                           @Validated @NotNull(message = "no jobInstanceId") @RequestParam("jobInstanceId") String jobInstanceId) {
+        InstanceProcessor processor = getProcessor(jobInstanceId);
         boolean result = processor.jobExecuting(agentId, jobInstanceId);
         return ResponseDTO.<Boolean>builder().ok(result).build();
     }
@@ -71,6 +79,7 @@ public class JobRpcController {
     @Operation(summary = "job执行上报")
     @PostMapping(API_JOB_REPORT)
     public ResponseDTO<Boolean> report(@Validated @NotNull(message = "no jobInstanceId") @RequestParam("jobInstanceId") String jobInstanceId) {
+        InstanceProcessor processor = getProcessor(jobInstanceId);
         boolean result = processor.jobReport(jobInstanceId);
         return ResponseDTO.<Boolean>builder().ok(result).build();
     }
@@ -82,8 +91,15 @@ public class JobRpcController {
     @PostMapping(API_JOB_FEEDBACK)
     public ResponseDTO<Boolean> feedback(@Validated @NotNull(message = "no job") @RequestParam("jobInstanceId") String jobInstanceId,
                                          @Valid @RequestBody JobFeedbackParam feedback) {
+        InstanceProcessor processor = getProcessor(jobInstanceId);
         processor.feedback(jobInstanceId, feedback);
         return ResponseDTO.<Boolean>builder().ok(true).build();
+    }
+
+    private InstanceProcessor getProcessor(String jobInstanceId) {
+        JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.findById(jobInstanceId).orElse(null);
+        InstanceType instanceType = InstanceType.parse(jobInstanceEntity.getInstanceType());
+        return processorFactory.getProcessor(instanceType);
     }
 
     /**

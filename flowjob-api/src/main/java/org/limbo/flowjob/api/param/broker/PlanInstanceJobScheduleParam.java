@@ -16,36 +16,31 @@
  *
  */
 
-package org.limbo.flowjob.worker.demo.executors;
+package org.limbo.flowjob.api.param.broker;
 
-import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.worker.core.domain.Task;
-import org.limbo.flowjob.worker.core.executor.TaskExecutor;
-import org.springframework.stereotype.Component;
+import lombok.Data;
+
+import javax.validation.constraints.NotBlank;
+import java.io.Serializable;
 
 /**
  * @author Devil
- * @since 2021/7/28
+ * @since 2023/8/17
  */
-@Slf4j
-@Component
-public class HelloExecutorDemo implements TaskExecutor {
+@Data
+public class PlanInstanceJobScheduleParam implements Serializable {
 
-    public static final String NAME = "hello";
+    private static final long serialVersionUID = 5466805029009657155L;
 
-    @Override
-    public void run(Task task) {
-        log.warn("Say hello to {}", task.getTaskId());
-    }
+    @NotBlank(message = "no instanceId")
+    private String instanceId;
 
-    @Override
-    public String getName() {
-        return NAME;
-    }
+    @NotBlank(message = "no jobId")
+    private String jobId;
 
-    @Override
-    public String getDescription() {
-        return null;
-    }
+    // 用于指定执行节点
+//    private String workerId;
+
+//    private Map<String, Object> attributes;
 
 }

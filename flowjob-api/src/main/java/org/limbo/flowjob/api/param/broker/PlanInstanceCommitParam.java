@@ -20,6 +20,7 @@ package org.limbo.flowjob.api.param.broker;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.Map;
 
@@ -28,17 +29,19 @@ import java.util.Map;
  * @since 2023/8/17
  */
 @Data
-public class PlanJobScheduleParam implements Serializable {
+public class PlanInstanceCommitParam implements Serializable {
 
-    private static final long serialVersionUID = 5466805029009657155L;
+    private static final long serialVersionUID = -1054807691136684334L;
 
-    private String planInstanceId;
-
-    private String jobId;
+    @NotBlank(message = "no planId")
+    private String planId;
 
     // 用于指定执行节点
 //    private String workerId;
 
-//    private Map<String, Object> attributes;
+    /**
+     * plan 的参数
+     */
+    private Map<String, Object> attributes;
 
 }

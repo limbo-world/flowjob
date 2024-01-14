@@ -53,7 +53,7 @@ public interface JobInstanceRepository {
      * @param brokerUrl
      * @return
      */
-    JobInstance getIdByBroker(URL brokerUrl);
+    JobInstance getOneByBroker(URL brokerUrl);
 
     /**
      * 更新绑定的broker

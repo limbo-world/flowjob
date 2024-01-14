@@ -24,7 +24,6 @@ import org.limbo.flowjob.broker.core.agent.AgentRepository;
 import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.AgentEntity;
-import org.limbo.flowjob.broker.dao.repositories.AgentEntityRepo;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;

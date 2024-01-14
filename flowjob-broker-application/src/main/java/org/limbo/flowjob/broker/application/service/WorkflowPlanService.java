@@ -24,8 +24,8 @@ import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.WorkflowPlanUpdateParam;
 import org.limbo.flowjob.broker.application.converter.WorkflowPlanConverter;
 import org.limbo.flowjob.broker.application.converter.WorkflowPlanParamConverter;
-import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
+import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
@@ -54,9 +54,6 @@ public class WorkflowPlanService {
     private PlanInfoEntityRepo planInfoEntityRepo;
 
     @Setter(onMethod_ = @Inject)
-    private WorkflowPlanParamConverter factory;
-
-    @Setter(onMethod_ = @Inject)
     private WorkflowPlanConverter converter;
 
 
@@ -66,7 +63,7 @@ public class WorkflowPlanService {
     @Transactional
     public String add(PlanParam.WorkflowPlanParam param) {
         Verifies.notEmpty(param.getWorkflow(), "Workflow can't be empty with " + InstanceType.WORKFLOW.name() + " Type");
-        DAG<WorkflowJobInfo> workflow = factory.createDAG(param.getWorkflow());
+        DAG<WorkflowJobInfo> workflow = WorkflowPlanParamConverter.createDAG(param.getWorkflow());
 
         String jobInfo = workflow.json();
         Verifies.notBlank(jobInfo, "Dag Node verify fail!");
@@ -81,7 +78,7 @@ public class WorkflowPlanService {
     @Transactional
     public String update(WorkflowPlanUpdateParam param) {
         Verifies.notEmpty(param.getWorkflow());
-        DAG<WorkflowJobInfo> workflow = factory.createDAG(param.getWorkflow());
+        DAG<WorkflowJobInfo> workflow = WorkflowPlanParamConverter.createDAG(param.getWorkflow());
 
         String jobInfo = workflow.json();
         Verifies.notBlank(jobInfo);

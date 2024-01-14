@@ -112,7 +112,7 @@ public class PlanScheduleTask extends LoopMetaTask {
 
     @Override
     public String getType() {
-        return "PLAN";
+        return "Plan";
     }
 
     @Override

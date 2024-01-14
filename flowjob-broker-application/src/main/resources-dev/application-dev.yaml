@@ -9,10 +9,12 @@ spring:
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.jdbc.Driver
+#    driver-class-name: net.sf.log4jdbc.DriverSpy
 #    url: jdbc:mysql://10.219.153.31:3306/flow_job?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
 #    username: brozen
 #    password: nSN2ZYAr
     url: jdbc:mysql://127.0.0.1:3306/flow_job?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
+#    url: jdbc:log4jdbc:mysql://127.0.0.1:3306/flow_job?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
     username: root
     password: root
   jpa:

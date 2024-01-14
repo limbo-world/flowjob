@@ -74,9 +74,7 @@ public class JobInstanceAppService {
             page.setData(jobInstanceEntities.stream().map(jobInstanceEntity -> {
                 JobInstanceDTO dto = new JobInstanceDTO();
                 dto.setJobInstanceId(jobInstanceEntity.getJobInstanceId());
-                dto.setPlanInstanceId(jobInstanceEntity.getPlanInstanceId());
-                dto.setPlanId(jobInstanceEntity.getPlanId());
-                dto.setPlanInfoId(jobInstanceEntity.getPlanInfoId());
+                dto.setInstanceId(jobInstanceEntity.getInstanceId());
                 dto.setJobId(jobInstanceEntity.getJobId());
                 dto.setStatus(jobInstanceEntity.getStatus());
                 dto.setRetryTimes(jobInstanceEntity.getRetryTimes());

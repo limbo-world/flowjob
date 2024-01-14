@@ -26,7 +26,8 @@ import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.meta.job.JobInstance;
 import org.limbo.flowjob.broker.core.meta.job.JobInstanceRepository;
-import org.limbo.flowjob.broker.core.meta.processor.PlanInstanceProcessor;
+import org.limbo.flowjob.broker.core.meta.processor.InstanceProcessor;
+import org.limbo.flowjob.broker.core.meta.processor.ProcessorFactory;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.common.constants.JobConstant;
@@ -56,7 +57,7 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
 
     private final NodeManger nodeManger;
 
-    private final PlanInstanceProcessor processor;
+    private final ProcessorFactory processorFactory;
 
     /**
      * 上次检测时间
@@ -67,12 +68,12 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
                                JobInstanceRepository jobInstanceRepository,
                                Broker broker,
                                NodeManger nodeManger,
-                               PlanInstanceProcessor processor) {
+                               ProcessorFactory processorFactory) {
         super(Duration.ofSeconds(5), metaTaskScheduler);
         this.jobInstanceRepository = jobInstanceRepository;
         this.broker = broker;
         this.nodeManger = nodeManger;
-        this.processor = processor;
+        this.processorFactory = processorFactory;
     }
 
     @Override
@@ -97,6 +98,7 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
                                     .result(ExecuteResult.FAILED)
                                     .errorMsg(String.format("agent %s is offline", instance.getAgentId()))
                                     .build();
+                            InstanceProcessor processor = processorFactory.getProcessor(instance.getInstanceType());
                             processor.feedback(instance.getId(), param);
                         } catch (Exception e) {
                             log.error("[JobExecuteCheckTask] handler job fail with error jobInstanceId={}", instance.getId(), e);
@@ -114,7 +116,7 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
 
     @Override
     public String getType() {
-        return "JOB_EXECUTE_CHECK";
+        return "Job_Execute_Check";
     }
 
     @Override

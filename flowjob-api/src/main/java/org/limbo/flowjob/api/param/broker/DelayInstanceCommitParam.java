@@ -16,60 +16,59 @@
  *
  */
 
-package org.limbo.flowjob.api.param.console;
+package org.limbo.flowjob.api.param.broker;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.limbo.flowjob.api.constants.JobType;
+import org.limbo.flowjob.api.param.console.DispatchOptionParam;
+import org.limbo.flowjob.api.param.console.RetryOptionParam;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
  * @author Devil
- * @since 2023/7/12
+ * @since 2023/8/17
  */
 @Data
-public class DelayPlanParam implements Serializable {
-    private static final long serialVersionUID = -3231092512688249235L;
+public class DelayInstanceCommitParam implements Serializable {
+
+    private static final long serialVersionUID = -6987120924376305181L;
     /**
-     * 计划名称
+     * 主题
      */
-    @Schema(title = "任务名称")
-    private String name;
+    private String bizType;
 
     /**
-     * 计划描述
+     * 业务ID type + id 唯一
      */
-    @Schema(title = "任务描述")
-    private String description;
+    private String bizId;
 
     /**
-     * 延迟时间 -- 当前时间多久后调度
+     * 触发时间
      */
-    @Schema(title = "延迟时间",
-            implementation = Float.class,
-            description = "延迟时间 -- 当前时间多久后调度"
-    )
-    private Long scheduleDelay;
+    private LocalDateTime triggerAt;
 
     @Data
     @EqualsAndHashCode(callSuper = true)
     @Schema(title = "普通任务参数")
-    public static class NormalPlanParam extends DelayPlanParam {
-        private static final long serialVersionUID = -7357438560016251502L;
+    public static class StandaloneParam extends DelayInstanceCommitParam {
+
+        private static final long serialVersionUID = -6883938273568167064L;
         /**
          * 作业类型
+         *
          * @see JobType
          */
         @NotNull
         @Schema(title = "作业类型")
-        private JobType type;
+        private Integer type;
 
         /**
          * 属性参数
@@ -97,18 +96,6 @@ public class DelayPlanParam implements Serializable {
         @NotBlank
         @Schema(title = "执行器名称")
         private String executorName;
-    }
-
-    @Data
-    @EqualsAndHashCode(callSuper = true)
-    @Schema(title = "工作流任务参数")
-    public static class WorkflowPlanParam extends DelayPlanParam {
-        private static final long serialVersionUID = 1557756018226054085L;
-        /**
-         * 此执行计划对应的所有作业
-         */
-        @Schema(title = "工作流对应的所有作业")
-        private List<@Valid WorkflowJobParam> workflow;
     }
 
 }

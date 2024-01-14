@@ -21,6 +21,7 @@ package org.limbo.flowjob.broker.core.meta.job;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.api.constants.InstanceType;
 import org.limbo.flowjob.api.constants.JobStatus;
 import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
@@ -45,9 +46,7 @@ public class JobInstance implements Serializable {
 
     private String instanceId;
 
-    private String planId;
-
-    private String planVersion;
+    private InstanceType instanceType;
 
     /**
      * 当前是第几次重试

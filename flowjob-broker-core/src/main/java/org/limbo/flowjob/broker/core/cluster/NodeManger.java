@@ -59,7 +59,8 @@ public class NodeManger {
      * 节点上线
      */
     public void online(Node node) {
-        nodes.putIfAbsent(node.getUrl().toString(), node);
+        URL url = node.getUrl();
+        nodes.putIfAbsent(url.toString(), node);
         if (log.isDebugEnabled()) {
             log.debug("[LocalNodeManger] online {}", JacksonUtils.toJSONString(nodes));
         }
@@ -74,37 +75,6 @@ public class NodeManger {
         if (log.isDebugEnabled()) {
             log.debug("[LocalNodeManger] offline {}", JacksonUtils.toJSONString(nodes));
         }
-
-        // plan rebalance
-        CommonThreadPool.IO.submit(() -> {
-            Plan plan = planRepository.getIdByBroker(url);
-            while (plan != null) {
-                // 如果重新上线了需要忽略
-                if (alive(url.toString())) {
-                    break;
-                }
-
-                planRepository.updateBroker(plan, url);
-
-                plan = planRepository.getIdByBroker(url);
-            }
-        });
-
-        // job rebalance
-        CommonThreadPool.IO.submit(() -> {
-            JobInstance instance = jobInstanceRepository.getIdByBroker(url);
-            while (instance != null) {
-                // 如果重新上线了需要忽略
-                if (alive(url.toString())) {
-                    break;
-                }
-
-                jobInstanceRepository.updateBroker(instance, url);
-
-                instance = jobInstanceRepository.getIdByBroker(url);
-            }
-        });
-
     }
 
     /**

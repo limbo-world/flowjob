@@ -109,7 +109,7 @@ public class PlanRepo implements PlanRepository {
     }
 
     @Override
-    public Plan getIdByBroker(URL brokerUrl) {
+    public Plan getOneByBroker(URL brokerUrl) {
         PlanEntity planEntity = planEntityRepo.findOneByBrokerUrl(brokerUrl.toString());
         if (planEntity == null) {
             return null;

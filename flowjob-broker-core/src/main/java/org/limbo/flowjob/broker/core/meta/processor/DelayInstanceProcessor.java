@@ -68,15 +68,13 @@ public class DelayInstanceProcessor extends InstanceProcessor {
         this.delayInstanceRepository = delayInstanceRepository;
     }
 
-    // 如是定时1小时后执行，task的创建问题 比如任务执行失败后，重试间隔可能导致这个问题
-    // 比如广播模式下，一小时后的节点数和当前的肯定是不同的
-    public void schedule(DelayInstance instance, Attributes attributes, LocalDateTime triggerAt) {
+    public void schedule(DelayInstance instance) {
         ScheduleContext scheduleContext = new ScheduleContext();
         transactionService.transactional(() -> {
-            DelayInstance existInstance = delayInstanceRepository.get(instance.getTopic(), instance.getKey());
-            Verifies.isNull(existInstance, MessageFormat.format("create instance topic:{0} id:{1} but is already exist", instance.getTopic(), instance.getId()));
+            DelayInstance existInstance = delayInstanceRepository.get(instance.getBizType(), instance.getBizId());
+            Verifies.isNull(existInstance, MessageFormat.format("create instance bizType:{0} bizId:{1} but is already exist", instance.getBizType(), instance.getBizId()));
 
-            delayInstanceRepository.save(existInstance);
+            delayInstanceRepository.save(instance);
 
             // 获取头部节点
             List<JobInstance> jobInstances = new ArrayList<>();
@@ -84,7 +82,7 @@ public class DelayInstanceProcessor extends InstanceProcessor {
                 if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
                     String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
                     Node elect = nodeManger.elect(jobInstanceId);
-                    jobInstances.add(JobInstanceFactory.create(jobInstanceId, "", "", instance.getId(), elect.getUrl(), attributes, new Attributes(), jobInfo, triggerAt));
+                    jobInstances.add(JobInstanceFactory.create(jobInstanceId, instance.getId(), instance.getType(), elect.getUrl(), null, new Attributes(), jobInfo, instance.getTriggerAt()));
                 }
             }
             jobInstanceRepository.saveAll(jobInstances);

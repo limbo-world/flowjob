@@ -22,8 +22,8 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.InstanceType;
+import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.dto.PageDTO;
@@ -34,8 +34,8 @@ import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.PlanQueryParam;
 import org.limbo.flowjob.api.param.console.PlanVersionParam;
 import org.limbo.flowjob.api.param.console.ScheduleOptionParam;
+import org.limbo.flowjob.broker.application.converter.JobParamConverter;
 import org.limbo.flowjob.broker.application.converter.PlanConverter;
-import org.limbo.flowjob.broker.application.converter.PlanParamConverter;
 import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
@@ -85,9 +85,6 @@ public class PlanAppService {
     private IDGenerator idGenerator;
 
     @Setter(onMethod_ = @Inject)
-    private PlanParamConverter factory;
-
-    @Setter(onMethod_ = @Inject)
     private PlanConverter planConverter;
 
     @Setter(onMethod_ = @Inject)
@@ -95,13 +92,13 @@ public class PlanAppService {
 
     @Transactional
     public String add(PlanParam.NormalPlanParam param) {
-        JobInfo jobInfo = factory.createJob(param);
+        JobInfo jobInfo = JobParamConverter.createJob(param);
         return save(null, InstanceType.STANDALONE, param, JacksonUtils.toJSONString(jobInfo));
     }
 
     @Transactional
     public String update(String planId, PlanParam.NormalPlanParam param) {
-        JobInfo jobInfo = factory.createJob(param);
+        JobInfo jobInfo = JobParamConverter.createJob(param);
         return save(planId, InstanceType.STANDALONE, param, JacksonUtils.toJSONString(jobInfo));
     }
 

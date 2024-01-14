@@ -19,9 +19,12 @@
 package org.limbo.flowjob.broker.core.meta.instance;
 
 import org.limbo.flowjob.api.constants.InstanceStatus;
+import org.limbo.flowjob.api.constants.InstanceType;
 import org.limbo.flowjob.broker.core.meta.info.Plan;
+import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
+import org.limbo.flowjob.common.utils.dag.DAG;
 
 import java.time.LocalDateTime;
 
@@ -31,7 +34,7 @@ import java.time.LocalDateTime;
  */
 public class InstanceFactory {
 
-    public static PlanInstance create(String id, Plan plan, Attributes planAttributes, LocalDateTime triggerAt) {
+    public static PlanInstance create(String id, Plan plan, Attributes attributes, LocalDateTime triggerAt) {
         ScheduleOption scheduleOption = plan.getScheduleOption();
         return PlanInstance.builder()
                 .id(id)
@@ -42,8 +45,21 @@ public class InstanceFactory {
                 .triggerType(plan.getTriggerType())
                 .scheduleType(scheduleOption.getScheduleType())
                 .dag(plan.getDag())
-                .attributes(planAttributes == null ? new Attributes() : planAttributes)
+                .attributes(attributes == null ? new Attributes() : attributes)
                 .triggerAt(triggerAt)
+                .build();
+    }
+
+    public static DelayInstance create(String id, String bizType, String bizId, InstanceType type, Attributes attributes, LocalDateTime triggerAt, DAG<WorkflowJobInfo> dag) {
+        return DelayInstance.builder()
+                .id(id)
+                .bizType(bizType)
+                .bizId(bizId)
+                .triggerAt(triggerAt)
+                .type(type)
+                .attributes(attributes == null ? new Attributes() : attributes)
+                .status(InstanceStatus.SCHEDULING)
+                .dag(dag)
                 .build();
     }
 }

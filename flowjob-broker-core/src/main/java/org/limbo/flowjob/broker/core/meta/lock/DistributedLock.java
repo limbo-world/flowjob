@@ -16,30 +16,15 @@
  *
  */
 
-package org.limbo.flowjob.api.param.broker;
-
-import lombok.Data;
-
-import java.io.Serializable;
-import java.util.Map;
+package org.limbo.flowjob.broker.core.meta.lock;
 
 /**
  * @author Devil
- * @since 2023/8/17
+ * @since 2024/1/13
  */
-@Data
-public class PlanScheduleParam implements Serializable {
+public interface DistributedLock {
 
-    private static final long serialVersionUID = -1054807691136684334L;
+    boolean tryLock(String name, long time);
 
-    private String planId;
-
-    // 用于指定执行节点
-//    private String workerId;
-
-    /**
-     * plan 的参数
-     */
-    private Map<String, Object> attributes;
-
+    boolean unlock(String name);
 }

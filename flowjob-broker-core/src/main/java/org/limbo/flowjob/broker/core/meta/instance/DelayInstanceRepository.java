@@ -26,7 +26,7 @@ import java.time.LocalDateTime;
  */
 public interface DelayInstanceRepository {
 
-    DelayInstance get(String topic, String key);
+    DelayInstance get(String bizType, String bizId);
 
     DelayInstance get(String id);
 

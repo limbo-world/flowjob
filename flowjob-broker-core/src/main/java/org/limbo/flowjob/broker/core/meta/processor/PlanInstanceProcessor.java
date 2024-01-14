@@ -86,16 +86,16 @@ public class PlanInstanceProcessor extends InstanceProcessor {
 
     // 如是定时1小时后执行，task的创建问题 比如任务执行失败后，重试间隔可能导致这个问题
     // 比如广播模式下，一小时后的节点数和当前的肯定是不同的
-    public void schedule(Plan plan, TriggerType triggerType, Attributes attributes, LocalDateTime triggerAt) {
+    public String schedule(Plan plan, TriggerType triggerType, Attributes attributes, LocalDateTime triggerAt) {
         ScheduleContext scheduleContext = new ScheduleContext();
+        String id = idGenerator.generateId(IDType.INSTANCE);
         transactionService.transactional(() -> {
+            // 悲观锁快速释放，不阻塞后续任务
             Plan currentPlan = planRepository.lockAndGet(plan.getId());
 
             String planId = plan.getId();
             String version = plan.getVersion();
 
-            // 悲观锁快速释放，不阻塞后续任务
-            String id = idGenerator.generateId(IDType.INSTANCE);
             PlanInstance planInstance = InstanceFactory.create(id, currentPlan, attributes, triggerAt);
 
             // 判断任务配置信息是否变动：任务是由之前时间创建的 调度时候如果版本改变 可能会有调度时间的变化本次就无需执行
@@ -140,7 +140,7 @@ public class PlanInstanceProcessor extends InstanceProcessor {
                 if (TriggerType.SCHEDULE == jobInfo.getTriggerType()) {
                     String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
                     Node elect = nodeManger.elect(jobInstanceId);
-                    jobInstances.add(JobInstanceFactory.create(jobInstanceId, plan.getId(), plan.getVersion(), planInstance.getId(), elect.getUrl(), attributes, new Attributes(), jobInfo, triggerAt));
+                    jobInstances.add(JobInstanceFactory.create(jobInstanceId, planInstance.getId(), planInstance.getType(), elect.getUrl(), attributes, new Attributes(), jobInfo, triggerAt));
                 }
             }
             jobInstanceRepository.saveAll(jobInstances);
@@ -149,15 +149,17 @@ public class PlanInstanceProcessor extends InstanceProcessor {
         });
 
         asyncSchedule(scheduleContext);
+        return id;
     }
 
     /**
      * api 方式下发节点任务
      */
-    public void scheduleJob(String planInstanceId, String jobId) {
+    public String scheduleJob(String planInstanceId, String jobId) {
         PlanInstance planInstance = planInstanceRepository.get(planInstanceId);
         Verifies.notNull(planInstance, MsgConstants.CANT_FIND_PLAN_INSTANCE + planInstanceId);
         ScheduleContext scheduleContext = new ScheduleContext();
+        String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
         transactionService.transactional(() -> {
             DAG<WorkflowJobInfo> dag = planInstance.getDag();
             WorkflowJobInfo jobInfo = dag.getNode(jobId);
@@ -166,14 +168,14 @@ public class PlanInstanceProcessor extends InstanceProcessor {
 
             Verifies.verify(TriggerType.API == jobInfo.getTriggerType(), "only api triggerType job can schedule by api");
 
-            String jobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
             Node elect = nodeManger.elect(jobInstanceId);
-            JobInstance jobInstance = JobInstanceFactory.create(jobInstanceId, planInstance.getPlanId(), planInstance.getVersion(), planInstanceId, elect.getUrl(), planInstance.getAttributes(), new Attributes(), jobInfo, TimeUtils.currentLocalDateTime());
+            JobInstance jobInstance = JobInstanceFactory.create(jobInstanceId, planInstanceId, planInstance.getType(), elect.getUrl(), planInstance.getAttributes(), new Attributes(), jobInfo, TimeUtils.currentLocalDateTime());
             jobInstanceRepository.save(jobInstance);
             scheduleContext.setWaitScheduleJobs(Collections.singletonList(jobInstance));
             return jobInstance;
         });
         asyncSchedule(scheduleContext);
+        return jobInstanceId;
     }
 
     @Override
@@ -218,17 +220,17 @@ public class PlanInstanceProcessor extends InstanceProcessor {
      * 手工下发 job
      * todo 执行的时候可以选择 是就只重新计算当前的节点还是后续节点是否也重新执行一遍
      */
-    public void manualScheduleJob(String planInstanceId, String jobId) {
-        PlanInstance planInstance = planInstanceRepository.get(planInstanceId);
-        Verifies.notNull(planInstance, MsgConstants.CANT_FIND_PLAN_INSTANCE + planInstanceId);
+    public void manualScheduleJob(String instanceId, String jobId) {
+        PlanInstance planInstance = planInstanceRepository.get(instanceId);
+        Verifies.notNull(planInstance, MsgConstants.CANT_FIND_PLAN_INSTANCE + instanceId);
         ScheduleContext scheduleContext = new ScheduleContext();
         transactionService.transactional(() -> {
             DAG<WorkflowJobInfo> dag = planInstance.getDag();
             WorkflowJobInfo jobInfo = dag.getNode(jobId);
 
-            Verifies.verify(checkJobsSuccess(planInstanceId, dag.preNodes(jobInfo.getId()), true), "previous job is not complete, please wait!");
+            Verifies.verify(checkJobsSuccess(instanceId, dag.preNodes(jobInfo.getId()), true), "previous job is not complete, please wait!");
 
-            JobInstance jobInstance = jobInstanceRepository.getLatest(planInstanceId, jobId);// 获取最后一条
+            JobInstance jobInstance = jobInstanceRepository.getLatest(instanceId, jobId);// 获取最后一条
             String newJobInstanceId = idGenerator.generateId(IDType.JOB_INSTANCE);
             jobInstance.retryReset(newJobInstanceId, 0);
             jobInstanceRepository.save(jobInstance);

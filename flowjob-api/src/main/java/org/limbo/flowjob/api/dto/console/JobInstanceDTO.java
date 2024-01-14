@@ -16,11 +16,7 @@ public class JobInstanceDTO {
     @Schema(title = "id")
     private String jobInstanceId;
 
-    private String planInstanceId;
-
-    private String planId;
-
-    private String planInfoId;
+    private String instanceId;
 
     /**
      * DAG中的jobId

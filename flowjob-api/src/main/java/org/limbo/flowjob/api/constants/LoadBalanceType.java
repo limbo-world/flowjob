@@ -40,7 +40,7 @@ public enum LoadBalanceType {
 
     UNKNOWN(ConstantsPool.UNKNOWN, "未知"),
     /**
-     * 随机。将作业随机下发给某一个worker执行
+     * 随机。将作业随机下发给某一个worker执行（默认）
      */
     RANDOM(1, "随机"),
 

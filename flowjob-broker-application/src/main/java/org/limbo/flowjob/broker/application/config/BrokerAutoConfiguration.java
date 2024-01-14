@@ -35,6 +35,7 @@ import org.limbo.flowjob.broker.core.meta.instance.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.meta.job.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.meta.processor.DelayInstanceProcessor;
 import org.limbo.flowjob.broker.core.meta.processor.PlanInstanceProcessor;
+import org.limbo.flowjob.broker.core.meta.processor.ProcessorFactory;
 import org.limbo.flowjob.broker.core.meta.task.JobExecuteCheckTask;
 import org.limbo.flowjob.broker.core.meta.task.JobScheduleCheckTask;
 import org.limbo.flowjob.broker.core.meta.task.PlanLoadTask;
@@ -156,8 +157,8 @@ public class BrokerAutoConfiguration {
                                                    JobInstanceRepository jobInstanceRepository,
                                                    @Lazy Broker broker,
                                                    NodeManger nodeManger,
-                                                   PlanInstanceProcessor processor) {
-        return new JobExecuteCheckTask(metaTaskScheduler, jobInstanceRepository, broker, nodeManger, processor);
+                                                   ProcessorFactory processorFactory) {
+        return new JobExecuteCheckTask(metaTaskScheduler, jobInstanceRepository, broker, nodeManger, processorFactory);
     }
 
     @Bean
@@ -197,6 +198,11 @@ public class BrokerAutoConfiguration {
                                                          DelayInstanceRepository delayInstanceRepository,
                                                          JobInstanceRepository jobInstanceRepository) {
         return new DelayInstanceProcessor(metaTaskScheduler, idGenerator, nodeManger, agentRegistry, transactionService, delayInstanceRepository, jobInstanceRepository);
+    }
+
+    @Bean
+    public ProcessorFactory processorFactory(PlanInstanceProcessor planInstanceProcessor, DelayInstanceProcessor delayInstanceProcessor) {
+        return new ProcessorFactory(planInstanceProcessor, delayInstanceProcessor);
     }
 
 }
