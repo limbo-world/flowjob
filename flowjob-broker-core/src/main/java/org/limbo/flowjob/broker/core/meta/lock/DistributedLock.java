@@ -24,7 +24,20 @@ package org.limbo.flowjob.broker.core.meta.lock;
  */
 public interface DistributedLock {
 
-    boolean tryLock(String name, long time);
+    /**
+     * 尝试加锁，如果锁被占有返回失败
+     * 可重入，已有锁对象可以重复加锁刷新锁的过期时间
+     *
+     * @param name   锁名
+     * @param expire 加锁时间/毫秒
+     * @return 是否成功
+     */
+    boolean tryLock(String name, long expire);
 
+    /**
+     * 释放锁
+     *
+     * @param name 锁名
+     */
     boolean unlock(String name);
 }

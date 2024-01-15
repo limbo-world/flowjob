@@ -86,7 +86,9 @@ public class TaskDispatcher {
                 taskRepository.dispatchFail(task.getJobId(), task.getId());
                 if (task.getDispatchFailTimes() >= 3) {
                     Job job = jobRepository.getById(task.getJobId());
-                    job.taskFail(task, String.format("task dispatch fail over limit last worker is %s", task.getWorker() == null ? "" : task.getWorker()), "");
+                    String workerId = task.getWorker() == null ? "" : task.getWorker().getId();
+                    String workerUrl = task.getWorker() == null ? "" : task.getWorker().getUrl().toString();
+                    job.taskFail(task, String.format("task dispatch fail over limit last worker=(id=%s, url=%s)", workerId, workerUrl), "");
                 }
             }
         } catch (Exception e) {

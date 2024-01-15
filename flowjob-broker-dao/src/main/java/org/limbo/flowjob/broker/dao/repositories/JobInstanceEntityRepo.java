@@ -87,8 +87,8 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
              @Param("endAt") LocalDateTime endAt,
              @Param("errorMsg") String errorMsg);
 
-    @Query(value = "select * from flowjob_job_instance where broker_url = :brokerUrl limit 1 ", nativeQuery = true)
-    JobInstanceEntity findOneByBrokerUrl(@Param("brokerUrl") String brokerUrl);
+    @Query(value = "select * from flowjob_job_instance where broker_url not in :brokerUrls limit :limit ", nativeQuery = true)
+    List<JobInstanceEntity> findNotInBrokers(@Param("brokerUrls") List<String> brokerUrls, @Param("limit") Integer limit);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity set brokerUrl = :newBrokerUrl where jobInstanceId = :jobInstanceId and brokerUrl = :oldBrokerUrl ")

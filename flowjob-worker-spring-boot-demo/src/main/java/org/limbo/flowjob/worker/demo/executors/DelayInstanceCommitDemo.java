@@ -52,7 +52,7 @@ public class DelayInstanceCommitDemo {
             @Override
             public void run() {
                 try {
-                    LocalDateTime triggerAt = TimeUtils.currentLocalDateTime().plusSeconds(60);
+                    LocalDateTime triggerAt = TimeUtils.currentLocalDateTime().plusSeconds(20);
                     DelayInstanceCommitParam.StandaloneParam param = new DelayInstanceCommitParam.StandaloneParam();
                     param.setBizType("Test");
                     param.setBizId(System.currentTimeMillis() + "");

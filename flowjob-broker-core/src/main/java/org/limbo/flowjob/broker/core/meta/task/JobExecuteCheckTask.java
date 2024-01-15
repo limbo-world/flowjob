@@ -27,9 +27,7 @@ import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.meta.job.JobInstance;
 import org.limbo.flowjob.broker.core.meta.job.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.meta.processor.InstanceProcessor;
-import org.limbo.flowjob.broker.core.meta.processor.ProcessorFactory;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
+import org.limbo.flowjob.broker.core.meta.processor.InstanceProcessorFactory;
 import org.limbo.flowjob.common.constants.JobConstant;
 import org.limbo.flowjob.common.thread.CommonThreadPool;
 import org.limbo.flowjob.common.utils.time.Formatters;
@@ -40,6 +38,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * job 如果长时间执行中没有进行反馈 需要对其进行状态检查
@@ -49,7 +49,7 @@ import java.util.List;
  * 3. agent完成job调用broker的接口失败
  */
 @Slf4j
-public class JobExecuteCheckTask extends FixDelayMetaTask {
+public class JobExecuteCheckTask {
 
     private final JobInstanceRepository jobInstanceRepository;
 
@@ -57,71 +57,66 @@ public class JobExecuteCheckTask extends FixDelayMetaTask {
 
     private final NodeManger nodeManger;
 
-    private final ProcessorFactory processorFactory;
+    private final InstanceProcessorFactory instanceProcessorFactory;
 
-    /**
-     * 上次检测时间
-     */
-    private LocalDateTime lastCheckTime = LocalDateTimeUtils.parse("2000-01-01 00:00:00", Formatters.YMD_HMS);
-
-    public JobExecuteCheckTask(MetaTaskScheduler metaTaskScheduler,
-                               JobInstanceRepository jobInstanceRepository,
+    public JobExecuteCheckTask(JobInstanceRepository jobInstanceRepository,
                                Broker broker,
                                NodeManger nodeManger,
-                               ProcessorFactory processorFactory) {
-        super(Duration.ofSeconds(5), metaTaskScheduler);
+                               InstanceProcessorFactory instanceProcessorFactory) {
         this.jobInstanceRepository = jobInstanceRepository;
         this.broker = broker;
         this.nodeManger = nodeManger;
-        this.processorFactory = processorFactory;
+        this.instanceProcessorFactory = instanceProcessorFactory;
     }
 
-    @Override
-    protected void executeTask() {
-        try {
-            // 判断自己是否存在 --- 可能由于心跳异常导致不存活
-            if (!nodeManger.alive(broker.getRpcBaseURL().toString())) {
-                return;
-            }
+    public void init() {
+        new Timer().schedule(new InnerTask(), 0, Duration.ofSeconds(5).toMillis());
+    }
 
-            LocalDateTime checkStartTime = lastCheckTime.plusSeconds(-1);
-            LocalDateTime checkEndTime = TimeUtils.currentLocalDateTime().plus(-(JobConstant.JOB_REPORT_SECONDS + 5), ChronoUnit.SECONDS);
+    private class InnerTask extends TimerTask {
 
-            Integer limit = 100;
-            String startId = "";
-            List<JobInstance> jobInstances = jobInstanceRepository.findByExecuteCheck(broker.getRpcBaseURL(), checkStartTime, checkEndTime, startId, limit);
-            while (CollectionUtils.isNotEmpty(jobInstances)) {
-                for (JobInstance instance : jobInstances) {
-                    CommonThreadPool.IO.submit(() -> {
-                        try {
-                            JobFeedbackParam param = JobFeedbackParam.builder()
-                                    .result(ExecuteResult.FAILED)
-                                    .errorMsg(String.format("agent %s is offline", instance.getAgentId()))
-                                    .build();
-                            InstanceProcessor processor = processorFactory.getProcessor(instance.getInstanceType());
-                            processor.feedback(instance.getId(), param);
-                        } catch (Exception e) {
-                            log.error("[JobExecuteCheckTask] handler job fail with error jobInstanceId={}", instance.getId(), e);
-                        }
-                    });
+        /**
+         * 上次检测时间
+         */
+        private LocalDateTime lastCheckTime = LocalDateTimeUtils.parse("2000-01-01 00:00:00", Formatters.YMD_HMS);
+
+        @Override
+        public void run() {
+            try {
+                // 判断自己是否存在 --- 可能由于心跳异常导致不存活
+                if (!nodeManger.alive(broker.getRpcBaseURL().toString())) {
+                    return;
                 }
-                startId = jobInstances.get(jobInstances.size() - 1).getId();
-                jobInstances = jobInstanceRepository.findByExecuteCheck(broker.getRpcBaseURL(), checkStartTime, checkEndTime, startId, limit);
+
+                LocalDateTime checkStartTime = lastCheckTime.plusSeconds(-1);
+                LocalDateTime checkEndTime = TimeUtils.currentLocalDateTime().plus(-(JobConstant.JOB_REPORT_SECONDS + 5), ChronoUnit.SECONDS);
+
+                Integer limit = 100;
+                String startId = "";
+                List<JobInstance> jobInstances = jobInstanceRepository.findByExecuteCheck(broker.getRpcBaseURL(), checkStartTime, checkEndTime, startId, limit);
+                while (CollectionUtils.isNotEmpty(jobInstances)) {
+                    for (JobInstance instance : jobInstances) {
+                        CommonThreadPool.IO.submit(() -> {
+                            try {
+                                JobFeedbackParam param = JobFeedbackParam.builder()
+                                        .result(ExecuteResult.FAILED)
+                                        .errorMsg(String.format("agent %s is offline", instance.getAgentId()))
+                                        .build();
+                                InstanceProcessor processor = instanceProcessorFactory.getProcessor(instance.getInstanceType());
+                                processor.feedback(instance.getId(), param);
+                            } catch (Exception e) {
+                                log.error("[JobExecuteCheckTask] handler job fail with error jobInstanceId={}", instance.getId(), e);
+                            }
+                        });
+                    }
+                    startId = jobInstances.get(jobInstances.size() - 1).getId();
+                    jobInstances = jobInstanceRepository.findByExecuteCheck(broker.getRpcBaseURL(), checkStartTime, checkEndTime, startId, limit);
+                }
+                lastCheckTime = checkEndTime;
+            } catch (Exception e) {
+                log.error("[{}] execute fail", this.getClass().getSimpleName(), e);
             }
-            lastCheckTime = checkEndTime;
-        } catch (Exception e) {
-            log.error("{} execute fail", scheduleId(), e);
         }
-    }
-
-    @Override
-    public String getType() {
-        return "Job_Execute_Check";
-    }
-
-    @Override
-    public String getMetaId() {
-        return this.getClass().getSimpleName();
     }
 
 }

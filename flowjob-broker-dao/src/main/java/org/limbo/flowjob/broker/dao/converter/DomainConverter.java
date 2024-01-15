@@ -20,6 +20,7 @@ package org.limbo.flowjob.broker.dao.converter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.api.constants.AgentStatus;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
@@ -109,6 +110,9 @@ public class DomainConverter {
      * 解析 broker 通信 URL
      */
     public static URL brokerUrl(String url) {
+        if (StringUtils.isBlank(url)) {
+            return null;
+        }
         try {
             return new URL(url);
         } catch (Exception e) {

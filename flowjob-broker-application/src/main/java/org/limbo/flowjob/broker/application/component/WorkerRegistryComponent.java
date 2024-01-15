@@ -30,9 +30,9 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class BaseWorkerRegistry extends WorkerRegistry implements InitializingBean {
+public class WorkerRegistryComponent extends WorkerRegistry implements InitializingBean {
 
-    public BaseWorkerRegistry(WorkerRepository workerRepository) {
+    public WorkerRegistryComponent(WorkerRepository workerRepository) {
         super(workerRepository);
     }
 

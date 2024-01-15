@@ -40,7 +40,7 @@ public class InstanceFactory {
                 .id(id)
                 .planId(plan.getId())
                 .version(plan.getVersion())
-                .status(InstanceStatus.DISPATCHING)
+                .status(InstanceStatus.SCHEDULING)
                 .type(plan.getType())
                 .triggerType(plan.getTriggerType())
                 .scheduleType(scheduleOption.getScheduleType())

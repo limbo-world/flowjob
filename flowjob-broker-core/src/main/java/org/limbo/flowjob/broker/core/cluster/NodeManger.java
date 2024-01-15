@@ -19,11 +19,9 @@
 package org.limbo.flowjob.broker.core.cluster;
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.core.meta.job.JobInstance;
-import org.limbo.flowjob.broker.core.meta.job.JobInstanceRepository;
-import org.limbo.flowjob.broker.core.meta.info.Plan;
+import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.broker.core.meta.info.PlanRepository;
-import org.limbo.flowjob.common.thread.CommonThreadPool;
+import org.limbo.flowjob.broker.core.meta.job.JobInstanceRepository;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 
 import java.net.URL;
@@ -105,6 +103,10 @@ public class NodeManger {
                 .comparing((Function<Node, String>) node -> node.getUrl().getHost())
                 .thenComparingInt(node -> node.getUrl().getPort())
         ).collect(Collectors.toList());
+
+        if (CollectionUtils.isEmpty(sortedNodes)) {
+            return null;
+        }
 
         // hash获取id对应的值
         int idx = id.hashCode() % sortedNodes.size();

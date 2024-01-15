@@ -23,6 +23,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.limbo.flowjob.api.constants.JobType;
 import org.limbo.flowjob.api.param.console.DispatchOptionParam;
+import org.limbo.flowjob.api.param.console.OvertimeOptionParam;
 import org.limbo.flowjob.api.param.console.RetryOptionParam;
 
 import javax.validation.Valid;
@@ -75,6 +76,12 @@ public class DelayInstanceCommitParam implements Serializable {
          */
         @Schema(title = "属性参数")
         private Map<String, Object> attributes;
+
+        /**
+         * 作业超时参数
+         */
+        @Schema(title = "作业超时参数")
+        private OvertimeOptionParam overtimeOption;
 
         /**
          * 作业分发重试参数

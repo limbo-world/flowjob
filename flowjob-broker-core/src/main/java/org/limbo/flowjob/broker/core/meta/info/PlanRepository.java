@@ -21,6 +21,7 @@ package org.limbo.flowjob.broker.core.meta.info;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Devil
@@ -37,20 +38,21 @@ public interface PlanRepository {
     List<Plan> loadUpdatedPlans(URL brokerUrl, LocalDateTime updatedAt);
 
     /**
-     * 基于broker获取一个planId
+     * 获取不属于broker列表中broker管理的plan
      *
-     * @param brokerUrl
-     * @return
+     * @param brokerUrls broker地址列表
+     * @return planId, brokerUrl
      */
-    Plan getOneByBroker(URL brokerUrl);
+    Map<String, URL> findNotInBrokers(List<URL> brokerUrls, int limit);
 
     /**
      * 更新绑定的broker
      *
-     * @param plan         当前plan
+     * @param id           当前plan
+     * @param oldBrokerUrl 旧的broker
      * @param newBrokerUrl 新的broker
      * @return 是否成功
      */
-    boolean updateBroker(Plan plan, URL newBrokerUrl);
+    boolean updateBroker(String id, URL oldBrokerUrl, URL newBrokerUrl);
 
 }

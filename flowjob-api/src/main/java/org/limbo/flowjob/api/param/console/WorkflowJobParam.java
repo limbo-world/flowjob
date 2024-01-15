@@ -78,6 +78,12 @@ public class WorkflowJobParam  {
     private RetryOptionParam retryOption;
 
     /**
+     * 作业超时参数
+     */
+    @Schema(title = "作业超时参数")
+    private OvertimeOptionParam overtimeOption;
+
+    /**
      * 作业分发配置参数
      */
     @Valid

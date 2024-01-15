@@ -85,6 +85,7 @@ public class WorkflowPlanParamConverter {
         jobInfo.setSkipWhenFail(param.isSkipWhenFail());
         jobInfo.setType(param.getType());
         jobInfo.setAttributes(new Attributes(param.getAttributes()));
+        jobInfo.setOvertimeOption(JobParamConverter.createOvertimeOption(param.getOvertimeOption()));
         jobInfo.setRetryOption(JobParamConverter.createRetryOption(param.getRetryOption()));
         jobInfo.setDispatchOption(JobParamConverter.createJobDispatchOption(param.getDispatchOption()));
         jobInfo.setExecutorName(param.getExecutorName());

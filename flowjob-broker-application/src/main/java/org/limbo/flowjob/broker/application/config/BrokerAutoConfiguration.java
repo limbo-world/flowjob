@@ -35,9 +35,7 @@ import org.limbo.flowjob.broker.core.meta.instance.PlanInstanceRepository;
 import org.limbo.flowjob.broker.core.meta.job.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.meta.processor.DelayInstanceProcessor;
 import org.limbo.flowjob.broker.core.meta.processor.PlanInstanceProcessor;
-import org.limbo.flowjob.broker.core.meta.processor.ProcessorFactory;
-import org.limbo.flowjob.broker.core.meta.task.JobExecuteCheckTask;
-import org.limbo.flowjob.broker.core.meta.task.JobScheduleCheckTask;
+import org.limbo.flowjob.broker.core.meta.processor.InstanceProcessorFactory;
 import org.limbo.flowjob.broker.core.meta.task.PlanLoadTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
@@ -153,24 +151,6 @@ public class BrokerAutoConfiguration {
     }
 
     @Bean
-    public JobExecuteCheckTask jobExecuteCheckTask(MetaTaskScheduler metaTaskScheduler,
-                                                   JobInstanceRepository jobInstanceRepository,
-                                                   @Lazy Broker broker,
-                                                   NodeManger nodeManger,
-                                                   ProcessorFactory processorFactory) {
-        return new JobExecuteCheckTask(metaTaskScheduler, jobInstanceRepository, broker, nodeManger, processorFactory);
-    }
-
-    @Bean
-    public JobScheduleCheckTask jobScheduleCheckTask(MetaTaskScheduler scheduler,
-                                                     @Lazy Broker broker,
-                                                     NodeManger nodeManger,
-                                                     AgentRegistry agentRegistry,
-                                                     JobInstanceRepository jobInstanceRepository) {
-        return new JobScheduleCheckTask(scheduler, broker, nodeManger, agentRegistry, jobInstanceRepository);
-    }
-
-    @Bean
     public WorkerDomainService workerDomainService(WorkerRegistry workerRegistry,
                                                    WorkerSelectorFactory workerSelectorFactory,
                                                    WorkerStatisticsRepository workerStatisticsRepository) {
@@ -201,8 +181,8 @@ public class BrokerAutoConfiguration {
     }
 
     @Bean
-    public ProcessorFactory processorFactory(PlanInstanceProcessor planInstanceProcessor, DelayInstanceProcessor delayInstanceProcessor) {
-        return new ProcessorFactory(planInstanceProcessor, delayInstanceProcessor);
+    public InstanceProcessorFactory processorFactory(PlanInstanceProcessor planInstanceProcessor, DelayInstanceProcessor delayInstanceProcessor) {
+        return new InstanceProcessorFactory(planInstanceProcessor, delayInstanceProcessor);
     }
 
 }

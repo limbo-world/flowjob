@@ -21,6 +21,7 @@ package org.limbo.flowjob.broker.core.meta.job;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Devil
@@ -49,18 +50,21 @@ public interface JobInstanceRepository {
     List<JobInstance> findInSchedule(URL brokerUrl, LocalDateTime lastReportAt, LocalDateTime triggerAt, String startId, Integer limit);
 
     /**
-     * 基于broker获取一个planId
-     * @param brokerUrl
-     * @return
+     * 获取不属于broker列表中broker管理的 JobInstance
+     *
+     * @param brokerUrls broker地址列表
+     * @return jobInstanceId, brokerUrl
      */
-    JobInstance getOneByBroker(URL brokerUrl);
+    Map<String, URL> findNotInBrokers(List<URL> brokerUrls, int limit);
 
     /**
      * 更新绑定的broker
-     * @param instance
+     *
+     * @param id           当前plan
+     * @param oldBrokerUrl 旧的broker
      * @param newBrokerUrl 新的broker
-     * @return
+     * @return 是否成功
      */
-    boolean updateBroker(JobInstance instance, URL newBrokerUrl);
+    boolean updateBroker(String id, URL oldBrokerUrl, URL newBrokerUrl);
 
 }

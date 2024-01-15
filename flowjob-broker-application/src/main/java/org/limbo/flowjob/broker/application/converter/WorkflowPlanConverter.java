@@ -45,6 +45,7 @@ public class WorkflowPlanConverter {
 
     /**
      * 转换为 DAG 任务详情 DTO
+     *
      * @param planInfo DAG 任务持久化对象
      */
     public PlanInfoDTO.WorkflowPlanInfoDTO toWorkflowPlanDTO(PlanInfoEntity planInfo) {
@@ -57,7 +58,8 @@ public class WorkflowPlanConverter {
         dto.setScheduleOption(converter.toScheduleOptionDTO(planInfo));
 
         // 填充作业列表
-        TypeReference<List<WorkflowJobInfo>> typeRef = new TypeReference<List<WorkflowJobInfo>>() { /* ignore */ };
+        TypeReference<List<WorkflowJobInfo>> typeRef = new TypeReference<List<WorkflowJobInfo>>() { /* ignore */
+        };
         List<WorkflowJobInfo> jobs = JacksonUtils.parseObject(planInfo.getJobInfo(), typeRef);
         dto.setWorkflow(ListUtils.emptyIfNull(jobs).stream()
                 .map(this::toWorkflowJobDTO)
@@ -78,6 +80,7 @@ public class WorkflowPlanConverter {
         dto.setDescription(job.getDescription());
         dto.setType(job.getType());
         dto.setAttributes(job.getAttributes().toMap());
+        dto.setOvertimeOption(converter.convertToOvertimeOption(job.getOvertimeOption()));
         dto.setRetryOption(converter.convertToRetryOption(job.getRetryOption()));
         dto.setDispatchOption(converter.convertJobDispatchOption(job.getDispatchOption()));
         dto.setExecutorName(job.getExecutorName());

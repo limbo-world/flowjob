@@ -18,20 +18,27 @@
 
 package org.limbo.flowjob.api.param.console;
 
-import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.limbo.flowjob.api.param.PageParam;
+import lombok.NoArgsConstructor;
 
 /**
- * @author KaiFengCai
- * @since 2023/1/30
+ * @author Devil
+ * @since 2021/7/24
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class JobInstanceQueryParam extends PageParam {
+@Schema(title = "作业超时参数")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class OvertimeOptionParam {
 
-    @Parameter(description = "instanceId")
-    private String instanceId;
+    /**
+     * 调度超时
+     */
+    @Schema(title = "调度超时")
+    private Integer schedule;
 
 }

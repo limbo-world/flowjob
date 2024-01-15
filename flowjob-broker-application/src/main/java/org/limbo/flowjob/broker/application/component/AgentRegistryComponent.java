@@ -16,22 +16,29 @@
  *
  */
 
-package org.limbo.flowjob.api.param.console;
+package org.limbo.flowjob.broker.application.component;
 
-import io.swagger.v3.oas.annotations.Parameter;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.limbo.flowjob.api.param.PageParam;
+import lombok.extern.slf4j.Slf4j;
+import org.limbo.flowjob.broker.core.agent.AgentRegistry;
+import org.limbo.flowjob.broker.core.agent.AgentRepository;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.stereotype.Component;
 
 /**
- * @author KaiFengCai
- * @since 2023/1/30
+ * @author Devil
+ * @since 2023/9/12
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class JobInstanceQueryParam extends PageParam {
+@Slf4j
+@Component
+public class AgentRegistryComponent extends AgentRegistry implements InitializingBean {
 
-    @Parameter(description = "instanceId")
-    private String instanceId;
+    public AgentRegistryComponent(AgentRepository agentRepository) {
+        super(agentRepository);
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        init();
+    }
 
 }

@@ -69,3 +69,17 @@ CREATE TABLE `flowjob_job_instance`
     UNIQUE KEY `uk_instance_job` (`instance_id`, `job_id`, `retry_times`),
     KEY               `idx_report_broker` (`last_report_at`, `broker_url`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+DROP TABLE IF EXISTS `flowjob_lock`;
+CREATE TABLE `flowjob_lock`
+(
+    `id`         bigint unsigned NOT NULL AUTO_INCREMENT,
+    `name`       varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `owner`      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `expire_at`  datetime(6) NOT NULL,
+    `is_deleted` bit(1)                                                 NOT NULL DEFAULT 0,
+    `created_at` datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_id` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

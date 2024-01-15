@@ -119,6 +119,7 @@ public class WorkerRepo implements WorkerRepository {
      * @param worker worker节点
      */
     @Override
+    @Transactional
     public void saveMetric(Worker worker) {
         // Metric 存储
         WorkerMetric metric = worker.getMetric();
@@ -176,6 +177,7 @@ public class WorkerRepo implements WorkerRepository {
      * @param id 需要被移除的workerId
      */
     @Override
+    @Transactional
     public void delete(String id) {
         Optional<WorkerEntity> workerEntityOptional = workerEntityRepo.findByWorkerIdAndDeleted(id, false);
         if (workerEntityOptional.isPresent()) {

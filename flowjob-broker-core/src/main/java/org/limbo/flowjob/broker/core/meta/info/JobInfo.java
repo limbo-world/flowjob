@@ -57,6 +57,11 @@ public class JobInfo implements Serializable {
     private String executorName;
 
     /**
+     * 超时参数
+     */
+    private OvertimeOption overtimeOption;
+
+    /**
      * 重试参数
      */
     private RetryOption retryOption;

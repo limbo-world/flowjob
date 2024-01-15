@@ -16,22 +16,35 @@
  *
  */
 
-package org.limbo.flowjob.api.param.console;
+package org.limbo.flowjob.broker.core.meta.info;
 
-import io.swagger.v3.oas.annotations.Parameter;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.limbo.flowjob.api.param.PageParam;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.io.Serializable;
 
 /**
+ * 超时参数 单位毫秒
+ *
  * @author KaiFengCai
- * @since 2023/1/30
+ * @since 2023/2/3
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class JobInstanceQueryParam extends PageParam {
+@Setter(AccessLevel.NONE)
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(builderClassName = "Builder", toBuilder = true)
+public class OvertimeOption implements Serializable {
 
-    @Parameter(description = "instanceId")
-    private String instanceId;
+    private static final long serialVersionUID = -8631098340285493801L;
+
+    /**
+     * 调度超时 负数或者为空表示不会超时
+     */
+    private Integer schedule;
 
 }

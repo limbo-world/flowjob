@@ -80,7 +80,7 @@ public class Task {
     /**
      * 下发失败次数
      */
-    private Integer dispatchFailTimes = 0;
+    private int dispatchFailTimes = 0;
 
     /**
      * 全局上下文

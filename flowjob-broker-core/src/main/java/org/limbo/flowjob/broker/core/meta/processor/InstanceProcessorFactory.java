@@ -24,13 +24,13 @@ import org.limbo.flowjob.api.constants.InstanceType;
  * @author Devil
  * @since 2024/1/12
  */
-public class ProcessorFactory {
+public class InstanceProcessorFactory {
 
     private final PlanInstanceProcessor planInstanceProcessor;
 
     private final DelayInstanceProcessor delayInstanceProcessor;
 
-    public ProcessorFactory(PlanInstanceProcessor planInstanceProcessor, DelayInstanceProcessor delayInstanceProcessor) {
+    public InstanceProcessorFactory(PlanInstanceProcessor planInstanceProcessor, DelayInstanceProcessor delayInstanceProcessor) {
         this.planInstanceProcessor = planInstanceProcessor;
         this.delayInstanceProcessor = delayInstanceProcessor;
     }

@@ -23,10 +23,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.InstanceType;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.constants.TriggerType;
-import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.meta.info.Plan;
 import org.limbo.flowjob.broker.core.meta.info.PlanRepository;
-import org.limbo.flowjob.broker.core.exceptions.VerifyException;
+import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
@@ -43,6 +43,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -109,19 +110,25 @@ public class PlanRepo implements PlanRepository {
     }
 
     @Override
-    public Plan getOneByBroker(URL brokerUrl) {
-        PlanEntity planEntity = planEntityRepo.findOneByBrokerUrl(brokerUrl.toString());
-        if (planEntity == null) {
-            return null;
+    public Map<String, URL> findNotInBrokers(List<URL> brokerUrls, int limit) {
+        List<String> urls = brokerUrls.stream().map(URL::toString).collect(Collectors.toList());
+        List<PlanEntity> planEntities = planEntityRepo.findNotInBrokers(urls, limit);
+        if (CollectionUtils.isEmpty(planEntities)) {
+            return Collections.emptyMap();
         }
-        PlanInfoEntity planInfoEntity = planInfoEntityRepo.findById(planEntity.getCurrentVersion()).orElse(null);
-        return assemble(planEntity, planInfoEntity);
+        Map<String, URL> map = new HashMap<>();
+        for (PlanEntity planEntity : planEntities) {
+            map.put(planEntity.getPlanId(), DomainConverter.brokerUrl(planEntity.getBrokerUrl()));
+        }
+        return map;
     }
 
     @Override
     @Transactional
-    public boolean updateBroker(Plan plan, URL newBrokerUrl) {
-        return planEntityRepo.updateBroker(plan.getId(), plan.getBrokerUrl().toString(), newBrokerUrl.toString()) > 0;
+    public boolean updateBroker(String id, URL oldBrokerUrl, URL newBrokerUrl) {
+        String oldStr = oldBrokerUrl == null ? "" : oldBrokerUrl.toString();
+        String newStr = newBrokerUrl == null ? "" : newBrokerUrl.toString();
+        return planEntityRepo.updateBroker(id, oldStr, newStr) > 0;
     }
 
     private Plan assemble(PlanEntity planEntity, PlanInfoEntity planInfoEntity) {

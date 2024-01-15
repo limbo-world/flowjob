@@ -60,6 +60,9 @@ public abstract class LoopMetaTask extends MetaTask implements Calculated {
      */
     private LocalDateTime lastFeedbackAt;
 
+    /**
+     * 调度配置
+     */
     private final ScheduleOption scheduleOption;
 
     @JsonIgnore

@@ -27,7 +27,7 @@ import org.limbo.flowjob.api.dto.broker.AvailableWorkerDTO;
 import org.limbo.flowjob.api.param.broker.JobFeedbackParam;
 import org.limbo.flowjob.broker.application.service.WorkerAppService;
 import org.limbo.flowjob.broker.core.meta.processor.InstanceProcessor;
-import org.limbo.flowjob.broker.core.meta.processor.ProcessorFactory;
+import org.limbo.flowjob.broker.core.meta.processor.InstanceProcessorFactory;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
 import org.limbo.flowjob.broker.dao.repositories.JobInstanceEntityRepo;
 import org.springframework.validation.annotation.Validated;
@@ -53,7 +53,7 @@ import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.*;
 public class JobRpcController {
 
     @Setter(onMethod_ = @Inject)
-    private ProcessorFactory processorFactory;
+    private InstanceProcessorFactory instanceProcessorFactory;
 
     @Setter(onMethod_ = @Inject)
     private JobInstanceEntityRepo jobInstanceEntityRepo;
@@ -99,7 +99,7 @@ public class JobRpcController {
     private InstanceProcessor getProcessor(String jobInstanceId) {
         JobInstanceEntity jobInstanceEntity = jobInstanceEntityRepo.findById(jobInstanceId).orElse(null);
         InstanceType instanceType = InstanceType.parse(jobInstanceEntity.getInstanceType());
-        return processorFactory.getProcessor(instanceType);
+        return instanceProcessorFactory.getProcessor(instanceType);
     }
 
     /**

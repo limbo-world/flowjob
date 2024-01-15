@@ -41,7 +41,7 @@ public interface DelayInstanceEntityRepo extends JpaRepository<DelayInstanceEnti
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update DelayInstanceEntity set status = " + ConstantsPool.INSTANCE_EXECUTING + ", startAt = :startAt " +
-            " where instanceId = :instanceId and status = " + ConstantsPool.INSTANCE_DISPATCHING)
+            " where instanceId = :instanceId and status = " + ConstantsPool.INSTANCE_SCHEDULING)
     int executing(@Param("instanceId") String instanceId, @Param("startAt") LocalDateTime startAt);
 
     @Modifying(clearAutomatically = true)

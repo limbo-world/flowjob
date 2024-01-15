@@ -29,9 +29,18 @@ import org.limbo.flowjob.api.param.PageParam;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class JobInstanceQueryParam extends PageParam {
+public class DelayInstanceQueryParam extends PageParam {
 
-    @Parameter(description = "instanceId")
-    private String instanceId;
+    @Parameter(description = "bizType")
+    private String bizType;
+
+    @Parameter(description = "bizId")
+    private String bizId;
+
+    @Parameter(description = "期望执行时间开始")
+    private String triggerAtBegin;
+
+    @Parameter(description = "期望执行时间结束")
+    private String triggerAtEnd;
 
 }

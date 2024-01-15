@@ -16,16 +16,29 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.controller.admin;
+package org.limbo.flowjob.api.dto.console;
 
-import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Devil
  * @since 2021/7/24
  */
-@Tag(name = "plan console api")
-@RestController
-public class DelayPlanController {
+@Data
+@Schema(title = "作业超时参数")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class OvertimeOptionDTO {
+
+    /**
+     * 调度超时
+     */
+    @Schema(title = "调度超时")
+    private Integer schedule;
+
 }

@@ -72,6 +72,12 @@ public class WorkflowJobDTO {
     private Map<String, Object> attributes;
 
     /**
+     * 作业超时参数
+     */
+    @Schema(title = "作业超时参数")
+    private OvertimeOptionDTO overtimeOption;
+
+    /**
      * 作业分发重试参数
      */
     @Schema(title = "作业分发重试参数")

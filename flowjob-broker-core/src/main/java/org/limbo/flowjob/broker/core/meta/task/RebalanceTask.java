@@ -18,23 +18,29 @@
 
 package org.limbo.flowjob.broker.core.meta.task;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
-import org.limbo.flowjob.broker.core.meta.info.Plan;
 import org.limbo.flowjob.broker.core.meta.info.PlanRepository;
-import org.limbo.flowjob.broker.core.meta.job.JobInstance;
 import org.limbo.flowjob.broker.core.meta.job.JobInstanceRepository;
 import org.limbo.flowjob.broker.core.meta.lock.DistributedLock;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.common.thread.CommonThreadPool;
 
+import java.net.URL;
 import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.stream.Collectors;
 
 /**
  * @author Devil
  * @since 2024/1/13
  */
-public class RebalanceTask extends FixDelayMetaTask {
+@Slf4j
+public class RebalanceTask {
 
     private final NodeManger nodeManger;
 
@@ -44,59 +50,97 @@ public class RebalanceTask extends FixDelayMetaTask {
 
     private final JobInstanceRepository jobInstanceRepository;
 
-    public RebalanceTask(MetaTaskScheduler metaTaskScheduler,
-                         NodeManger nodeManger,
+    public RebalanceTask(NodeManger nodeManger,
                          DistributedLock lock,
                          PlanRepository planRepository,
                          JobInstanceRepository jobInstanceRepository) {
-        super(Duration.ofSeconds(5), metaTaskScheduler);
         this.nodeManger = nodeManger;
         this.lock = lock;
         this.planRepository = planRepository;
         this.jobInstanceRepository = jobInstanceRepository;
     }
 
+    public void init() {
+        new Timer().schedule(new InnerTask(), 0, Duration.ofSeconds(10).toMillis());
+    }
 
-    @Override
-    protected void executeTask() {
-        // plan rebalance
-        CommonThreadPool.IO.submit(() -> {
-            Plan plan = planRepository.getOneByBroker(url);
-            while (plan != null) {
-                // 如果重新上线了需要忽略
-                if (alive(url.toString())) {
-                    break;
+    private class InnerTask extends TimerTask {
+
+        private static final String PLAN_LOCK = "PLAN_LOCK";
+
+        private static final String JOB_LOCK = "JOB_LOCK";
+
+        @Override
+        public void run() {
+
+            try {
+                if (CollectionUtils.isEmpty(nodeManger.allAlive())) {
+                    return;
                 }
 
-                planRepository.updateBroker(plan, url);
+                rebalancePlan();
 
-                plan = planRepository.getOneByBroker(url);
+                rebalanceJob();
+
+            } catch (Exception e) {
+                log.error("[RebalanceTask] run fail", e);
             }
-        });
+        }
 
-        // job rebalance
-        CommonThreadPool.IO.submit(() -> {
-            JobInstance instance = jobInstanceRepository.getOneByBroker(url);
-            while (instance != null) {
-                // 如果重新上线了需要忽略
-                if (alive(url.toString())) {
-                    break;
+        private void rebalancePlan() {
+            while (true) {
+                if (!lock.tryLock(PLAN_LOCK, 5000)) {
+                    return;
                 }
 
-                jobInstanceRepository.updateBroker(instance, url);
+                List<URL> brokerUrls = nodeManger.allAlive().stream().map(Node::getUrl).collect(Collectors.toList());
+                Map<String, URL> notInBrokers = planRepository.findNotInBrokers(brokerUrls, 100);
+                if (MapUtils.isEmpty(notInBrokers)) {
+                    lock.unlock(PLAN_LOCK);
+                    return;
+                }
 
-                instance = jobInstanceRepository.getOneByBroker(url);
+                for (Map.Entry<String, URL> entry : notInBrokers.entrySet()) {
+                    String planId = entry.getKey();
+                    URL url = entry.getValue();
+                    // 如果重新上线了需要忽略
+                    if (url != null && nodeManger.alive(url.toString())) {
+                        continue;
+                    }
+                    Node elect = nodeManger.elect(planId);
+                    planRepository.updateBroker(planId, url, elect.getUrl());
+                }
+                lock.unlock(PLAN_LOCK);
             }
-        });
+        }
+
+        private void rebalanceJob() {
+            while (true) {
+                if (!lock.tryLock(JOB_LOCK, 5000)) {
+                    return;
+                }
+
+                List<URL> brokerUrls = nodeManger.allAlive().stream().map(Node::getUrl).collect(Collectors.toList());
+                Map<String, URL> notInBrokers = jobInstanceRepository.findNotInBrokers(brokerUrls, 100);
+                if (MapUtils.isEmpty(notInBrokers)) {
+                    lock.unlock(JOB_LOCK);
+                    return;
+                }
+
+                for (Map.Entry<String, URL> entry : notInBrokers.entrySet()) {
+                    String jobInstanceId = entry.getKey();
+                    URL url = entry.getValue();
+                    // 如果重新上线了需要忽略
+                    if (url != null && nodeManger.alive(url.toString())) {
+                        continue;
+                    }
+                    Node elect = nodeManger.elect(jobInstanceId);
+                    jobInstanceRepository.updateBroker(jobInstanceId, url, elect.getUrl());
+                }
+                lock.unlock(JOB_LOCK);
+            }
+        }
+
     }
 
-    @Override
-    public String getType() {
-        return "Rebalance";
-    }
-
-    @Override
-    public String getMetaId() {
-        return this.getClass().getSimpleName();
-    }
 }

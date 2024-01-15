@@ -88,27 +88,26 @@ public class PlanInstanceProcessor extends InstanceProcessor {
     // 比如广播模式下，一小时后的节点数和当前的肯定是不同的
     public String schedule(Plan plan, TriggerType triggerType, Attributes attributes, LocalDateTime triggerAt) {
         ScheduleContext scheduleContext = new ScheduleContext();
-        String id = idGenerator.generateId(IDType.INSTANCE);
-        transactionService.transactional(() -> {
-            // 悲观锁快速释放，不阻塞后续任务
-            Plan currentPlan = planRepository.lockAndGet(plan.getId());
+        String instanceId = transactionService.transactional(() -> {
 
             String planId = plan.getId();
             String version = plan.getVersion();
 
-            PlanInstance planInstance = InstanceFactory.create(id, currentPlan, attributes, triggerAt);
+            // 悲观锁快速释放，不阻塞后续任务
+            Plan currentPlan = planRepository.lockAndGet(plan.getId());
+
+            Verifies.notNull(currentPlan, MessageFormat.format("plan:{0} is null", planId));
 
             // 判断任务配置信息是否变动：任务是由之前时间创建的 调度时候如果版本改变 可能会有调度时间的变化本次就无需执行
             // 比如 5s 执行一次 分别在 5s 10s 15s 在11s的时候内存里下次执行为 15s 此时修改为 2s 执行一次 那么重新加载plan后应该为 12s 14s 所以15s这次可以跳过
-            Verifies.verify(Objects.equals(plan.getVersion(), currentPlan.getVersion()), MessageFormat.format("plan:{0} version {1} change to {2}", planId, version, currentPlan.getVersion()));
-
-            PlanInstance existPlanInstance = planInstanceRepository.get(planInstance.getId());
-            Verifies.isNull(existPlanInstance, MessageFormat.format("plan:{0} version {1} create instance by id {2} but is already exist", planId, version, planInstance.getId()));
+            Verifies.verify(Objects.equals(version, currentPlan.getVersion()), MessageFormat.format("plan:{0} version {1} change to {2}", planId, version, currentPlan.getVersion()));
 
             ScheduleOption scheduleOption = currentPlan.getScheduleOption();
 
             // 判断是否由当前节点执行
             if (TriggerType.API != triggerType) {
+
+                Verifies.verify(currentPlan.isEnabled(), MessageFormat.format("plan:{0} is not enabled", planId));
 
                 // 校验是否重复创建
                 PlanInstance latelyPlanInstance = planInstanceRepository.getLatelyTrigger(planId, version, currentPlan.getScheduleOption().getScheduleType(), triggerType);
@@ -131,6 +130,11 @@ public class PlanInstanceProcessor extends InstanceProcessor {
                 }
             }
 
+            String id = idGenerator.generateId(IDType.INSTANCE);
+            PlanInstance planInstance = InstanceFactory.create(id, currentPlan, attributes, triggerAt);
+
+            PlanInstance existPlanInstance = planInstanceRepository.get(planInstance.getId());
+            Verifies.isNull(existPlanInstance, MessageFormat.format("plan:{0} version {1} create instance by id {2} but is already exist", planId, version, planInstance.getId()));
 
             planInstanceRepository.save(planInstance);
 
@@ -145,11 +149,11 @@ public class PlanInstanceProcessor extends InstanceProcessor {
             }
             jobInstanceRepository.saveAll(jobInstances);
             scheduleContext.setWaitScheduleJobs(jobInstances);
-            return null;
+            return id;
         });
 
         asyncSchedule(scheduleContext);
-        return id;
+        return instanceId;
     }
 
     /**

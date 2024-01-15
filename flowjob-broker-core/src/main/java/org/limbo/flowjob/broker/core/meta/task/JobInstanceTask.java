@@ -44,7 +44,8 @@ public class JobInstanceTask extends MetaTask {
 
     private final AgentRegistry agentRegistry;
 
-    public JobInstanceTask(JobInstance jobInstance, AgentRegistry agentRegistry) {
+    public JobInstanceTask(JobInstance jobInstance,
+                           AgentRegistry agentRegistry) {
         this.jobInstance = jobInstance;
         this.agentRegistry = agentRegistry;
     }

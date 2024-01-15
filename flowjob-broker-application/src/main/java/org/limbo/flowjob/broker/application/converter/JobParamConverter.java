@@ -22,10 +22,12 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.JobType;
 import org.limbo.flowjob.api.param.broker.DelayInstanceCommitParam;
 import org.limbo.flowjob.api.param.console.DispatchOptionParam;
+import org.limbo.flowjob.api.param.console.OvertimeOptionParam;
 import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.RetryOptionParam;
 import org.limbo.flowjob.api.param.console.TagFilterParam;
 import org.limbo.flowjob.broker.core.meta.info.JobInfo;
+import org.limbo.flowjob.broker.core.meta.info.OvertimeOption;
 import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.worker.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.worker.dispatch.RetryOption;
@@ -50,6 +52,7 @@ public class JobParamConverter {
         jobInfo.setType(jobParam.getType());
         jobInfo.setExecutorName(jobParam.getExecutorName());
         jobInfo.setAttributes(new Attributes(jobParam.getAttributes()));
+        jobInfo.setOvertimeOption(createOvertimeOption(jobParam.getOvertimeOption()));
         jobInfo.setRetryOption(createRetryOption(jobParam.getRetryOption()));
         jobInfo.setDispatchOption(createJobDispatchOption(jobParam.getDispatchOption()));
         return jobInfo;
@@ -60,6 +63,7 @@ public class JobParamConverter {
         jobInfo.setType(JobType.parse(jobParam.getType()));
         jobInfo.setExecutorName(jobParam.getExecutorName());
         jobInfo.setAttributes(new Attributes(jobParam.getAttributes()));
+        jobInfo.setOvertimeOption(createOvertimeOption(jobParam.getOvertimeOption()));
         jobInfo.setRetryOption(createRetryOption(jobParam.getRetryOption()));
         jobInfo.setDispatchOption(createJobDispatchOption(jobParam.getDispatchOption()));
         return jobInfo;
@@ -76,6 +80,15 @@ public class JobParamConverter {
                 .retry(param.getRetry())
                 .retryInterval(param.getRetryInterval())
                 .retryType(param.getRetryType())
+                .build();
+    }
+
+    public static OvertimeOption createOvertimeOption(OvertimeOptionParam param) {
+        if (param == null) {
+            return new OvertimeOption();
+        }
+        return OvertimeOption.builder()
+                .schedule(param.getSchedule())
                 .build();
     }
 

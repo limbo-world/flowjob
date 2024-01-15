@@ -26,7 +26,6 @@ import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.meta.info.Plan;
 import org.limbo.flowjob.broker.core.meta.info.PlanRepository;
 import org.limbo.flowjob.broker.core.meta.processor.PlanInstanceProcessor;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.common.utils.time.Formatters;
 import org.limbo.flowjob.common.utils.time.LocalDateTimeUtils;
@@ -35,13 +34,17 @@ import org.limbo.flowjob.common.utils.time.TimeUtils;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * 获取plan下发
  * 第一次会获取所有的，后续则获取近期更新的
  */
 @Slf4j
-public class PlanLoadTask extends FixDelayMetaTask {
+public class PlanLoadTask {
+
+    private final MetaTaskScheduler scheduler;
 
     private final PlanRepository planRepository;
 
@@ -54,60 +57,53 @@ public class PlanLoadTask extends FixDelayMetaTask {
 
     private final NodeManger nodeManger;
 
-    private LocalDateTime loadTimePoint = LocalDateTimeUtils.parse("2000-01-01 00:00:00", Formatters.YMD_HMS);
-
     public PlanLoadTask(MetaTaskScheduler scheduler,
                         PlanRepository planRepository,
                         PlanInstanceProcessor processor,
                         Broker broker,
                         NodeManger nodeManger) {
-        super(Duration.ofSeconds(1), scheduler);
+        this.scheduler = scheduler;
         this.planRepository = planRepository;
         this.processor = processor;
         this.broker = broker;
         this.nodeManger = nodeManger;
     }
 
-    /**
-     * 执行元任务，从 DB 加载一批待调度的 Plan，放到调度器中去。
-     */
-    @Override
-    protected void executeTask() {
-        try {
-            // 判断自己是否存在 --- 可能由于心跳异常导致不存活
-            if (!nodeManger.alive(broker.getRpcBaseURL().toString())) {
-                return;
-            }
+    public void init() {
+        new Timer().schedule(new InnerTask(), 0, Duration.ofSeconds(1).toMillis());
+    }
 
-            // 调度当前时间以及未来的任务
-            List<Plan> plans = planRepository.loadUpdatedPlans(broker.getRpcBaseURL(), loadTimePoint.plusSeconds(-1)); // 防止部分延迟导致变更丢失
-            loadTimePoint = TimeUtils.currentLocalDateTime();
-            if (CollectionUtils.isEmpty(plans)) {
-                return;
-            }
-            for (Plan plan : plans) {
-                PlanScheduleTask metaTask = new PlanScheduleTask(plan, processor, metaTaskScheduler);
-                // 移除老的
-                metaTaskScheduler.unschedule(metaTask.scheduleId());
-                // 调度新的
-                if (TriggerType.SCHEDULE == plan.getTriggerType() && plan.isEnabled()) {
-                    metaTaskScheduler.schedule(metaTask);
+    private class InnerTask extends TimerTask {
+
+        private LocalDateTime loadTimePoint = LocalDateTimeUtils.parse("2000-01-01 00:00:00", Formatters.YMD_HMS);
+
+        @Override
+        public void run() {
+            try {
+                // 判断自己是否存在 --- 可能由于心跳异常导致不存活
+                if (!nodeManger.alive(broker.getRpcBaseURL().toString())) {
+                    return;
                 }
+
+                // 调度当前时间以及未来的任务
+                List<Plan> plans = planRepository.loadUpdatedPlans(broker.getRpcBaseURL(), loadTimePoint.plusSeconds(-1)); // 防止部分延迟导致变更丢失
+                loadTimePoint = TimeUtils.currentLocalDateTime();
+                if (CollectionUtils.isEmpty(plans)) {
+                    return;
+                }
+                for (Plan plan : plans) {
+                    PlanScheduleTask metaTask = new PlanScheduleTask(plan, processor, scheduler);
+                    // 移除老的
+                    scheduler.unschedule(metaTask.scheduleId());
+                    // 调度新的
+                    if (TriggerType.SCHEDULE == plan.getTriggerType() && plan.isEnabled()) {
+                        scheduler.schedule(metaTask);
+                    }
+                }
+            } catch (Exception e) {
+                log.error("[{}] execute fail", this.getClass().getSimpleName(), e);
             }
-        } catch (Exception e) {
-            log.error("{} execute fail", scheduleId(), e);
         }
-    }
-
-
-    @Override
-    public String getType() {
-        return "Plan_Load";
-    }
-
-    @Override
-    public String getMetaId() {
-        return this.getClass().getSimpleName();
     }
 
 }

@@ -21,12 +21,14 @@ package org.limbo.flowjob.broker.application.converter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.dto.console.DispatchOptionDTO;
+import org.limbo.flowjob.api.dto.console.OvertimeOptionDTO;
 import org.limbo.flowjob.api.dto.console.PlanDTO;
 import org.limbo.flowjob.api.dto.console.PlanInfoDTO;
 import org.limbo.flowjob.api.dto.console.RetryOptionDTO;
 import org.limbo.flowjob.api.dto.console.ScheduleOptionDTO;
 import org.limbo.flowjob.api.dto.console.TagFilterDTO;
 import org.limbo.flowjob.broker.core.meta.info.JobInfo;
+import org.limbo.flowjob.broker.core.meta.info.OvertimeOption;
 import org.limbo.flowjob.broker.core.worker.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.worker.dispatch.RetryOption;
 import org.limbo.flowjob.broker.core.worker.dispatch.TagFilterOption;
@@ -95,6 +97,7 @@ public class PlanConverter {
         dto.setAttributes(jobInfo.getAttributes().toMap());
         dto.setExecutorName(jobInfo.getExecutorName());
         dto.setRetryOption(convertToRetryOption(jobInfo.getRetryOption()));
+        dto.setOvertimeOption(convertToOvertimeOption(jobInfo.getOvertimeOption()));
         dto.setDispatchOption(convertJobDispatchOption(jobInfo.getDispatchOption()));
     }
 
@@ -128,6 +131,15 @@ public class PlanConverter {
                 .retry(option.getRetry())
                 .retryInterval(option.getRetryInterval())
                 .retryType(option.getRetryInterval())
+                .build();
+    }
+
+    public OvertimeOptionDTO convertToOvertimeOption(OvertimeOption option) {
+        if (option == null) {
+            return new OvertimeOptionDTO();
+        }
+        return OvertimeOptionDTO.builder()
+                .schedule(option.getSchedule())
                 .build();
     }
 

@@ -16,29 +16,18 @@
  *
  */
 
-package org.limbo.flowjob.broker.application.component;
+package org.limbo.flowjob.broker.dao.repositories;
 
-import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.broker.core.agent.AgentRegistry;
-import org.limbo.flowjob.broker.core.agent.AgentRepository;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.stereotype.Component;
+import org.limbo.flowjob.broker.dao.entity.LockEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
  * @author Devil
- * @since 2023/9/12
+ * @since 2022/7/18
  */
-@Slf4j
-@Component
-public class BaseAgentRegistry extends AgentRegistry implements InitializingBean {
+public interface LockEntityRepo extends JpaRepository<LockEntity, String> {
 
-    public BaseAgentRegistry(AgentRepository agentRepository) {
-        super(agentRepository);
-    }
+    LockEntity findByName(String name);
 
-    @Override
-    public void afterPropertiesSet() {
-        init();
-    }
-
+    int deleteByName(String name);
 }

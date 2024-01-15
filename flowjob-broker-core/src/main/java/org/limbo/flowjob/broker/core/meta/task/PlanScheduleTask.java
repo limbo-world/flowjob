@@ -26,11 +26,11 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
+import org.limbo.flowjob.broker.core.exceptions.VerifyException;
 import org.limbo.flowjob.broker.core.meta.info.Plan;
 import org.limbo.flowjob.broker.core.meta.processor.PlanInstanceProcessor;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.LoopMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
-import org.limbo.flowjob.common.thread.CommonThreadPool;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
@@ -92,13 +92,12 @@ public class PlanScheduleTask extends LoopMetaTask {
             if (scheduleEndAt != null && scheduleEndAt.isBefore(TimeUtils.currentLocalDateTime())) {
                 return;
             }
-            if (!plan.isEnabled()) {
-                metaTaskScheduler.unschedule(scheduleId());
-                log.warn("plan:{} is not enabled", plan.getId());
-                return;
-            }
 
-            CommonThreadPool.IO.submit(() -> processor.schedule(plan, TriggerType.SCHEDULE, new Attributes(), triggerAt));
+            processor.schedule(plan, TriggerType.SCHEDULE, new Attributes(), triggerAt);
+
+        } catch (VerifyException e) {
+            log.error("{} schedule verify fail", scheduleId(), e);
+            metaTaskScheduler.unschedule(scheduleId());
         } catch (Exception e) {
             log.error("{} execute fail", scheduleId(), e);
         }

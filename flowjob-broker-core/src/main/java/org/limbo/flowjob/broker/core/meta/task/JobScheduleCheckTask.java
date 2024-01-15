@@ -25,21 +25,23 @@ import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.meta.job.JobInstance;
 import org.limbo.flowjob.broker.core.meta.job.JobInstanceRepository;
-import org.limbo.flowjob.broker.core.schedule.scheduler.meta.FixDelayMetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * 处理长时间还在调度中，未进行下发的 JobInstance
  */
 @Slf4j
-public class JobScheduleCheckTask extends FixDelayMetaTask {
+public class JobScheduleCheckTask {
+
+    private final MetaTaskScheduler scheduler;
 
     private final Broker broker;
 
@@ -56,48 +58,45 @@ public class JobScheduleCheckTask extends FixDelayMetaTask {
                                 NodeManger nodeManger,
                                 AgentRegistry agentRegistry,
                                 JobInstanceRepository jobInstanceRepository) {
-        super(Duration.ofMillis(INTERVAL), scheduler);
+        this.scheduler = scheduler;
         this.broker = broker;
         this.nodeManger = nodeManger;
         this.agentRegistry = agentRegistry;
         this.jobInstanceRepository = jobInstanceRepository;
     }
 
-    @Override
-    protected void executeTask() {
-        try {
-            // 判断自己是否存在 --- 可能由于心跳异常导致不存活
-            if (!nodeManger.alive(broker.getRpcBaseURL().toString())) {
-                return;
-            }
+    public void init() {
+        new Timer().schedule(new InnerTask(), 0, Duration.ofMillis(INTERVAL).toMillis());
+    }
 
-            // 一段时候后还是 还是 SCHEDULING 状态的，需要重新调度
-            Integer limit = 100;
-            String startId = "";
-            LocalDateTime currentTime = TimeUtils.currentLocalDateTime();
+    private class InnerTask extends TimerTask {
 
-            List<JobInstance> jobInstances = jobInstanceRepository.findInSchedule(broker.getRpcBaseURL(), currentTime.plus(-INTERVAL, ChronoUnit.MILLIS), currentTime, startId, limit);
-            while (CollectionUtils.isNotEmpty(jobInstances)) {
-                for (JobInstance jobInstance : jobInstances) {
-                    JobInstanceTask metaTask = new JobInstanceTask(jobInstance, agentRegistry);
-                    metaTaskScheduler.schedule(metaTask);
+        @Override
+        public void run() {
+            try {
+                // 判断自己是否存在 --- 可能由于心跳异常导致不存活
+                if (!nodeManger.alive(broker.getRpcBaseURL().toString())) {
+                    return;
                 }
-                startId = jobInstances.get(jobInstances.size() - 1).getId();
-                jobInstances = jobInstanceRepository.findInSchedule(broker.getRpcBaseURL(), currentTime.plus(-INTERVAL, ChronoUnit.MILLIS), currentTime, startId, limit);
+
+                // 一段时候后还是 还是 SCHEDULING 状态的，需要重新调度
+                Integer limit = 100;
+                String startId = "";
+                LocalDateTime currentTime = TimeUtils.currentLocalDateTime();
+
+                List<JobInstance> jobInstances = jobInstanceRepository.findInSchedule(broker.getRpcBaseURL(), currentTime.plus(-INTERVAL, ChronoUnit.MILLIS), currentTime, startId, limit);
+                while (CollectionUtils.isNotEmpty(jobInstances)) {
+                    for (JobInstance jobInstance : jobInstances) {
+                        JobInstanceTask metaTask = new JobInstanceTask(jobInstance, agentRegistry);
+                        scheduler.schedule(metaTask);
+                    }
+                    startId = jobInstances.get(jobInstances.size() - 1).getId();
+                    jobInstances = jobInstanceRepository.findInSchedule(broker.getRpcBaseURL(), currentTime.plus(-INTERVAL, ChronoUnit.MILLIS), currentTime, startId, limit);
+                }
+            } catch (Exception e) {
+                log.error("[{}] execute fail", this.getClass().getSimpleName(), e);
             }
-        } catch (Exception e) {
-            log.error("{} execute fail", scheduleId(), e);
         }
-    }
-
-    @Override
-    public String getType() {
-        return "Job_Schedule_Check";
-    }
-
-    @Override
-    public String getMetaId() {
-        return this.getClass().getSimpleName();
     }
 
 }

@@ -30,6 +30,7 @@ import org.limbo.flowjob.broker.core.meta.job.JobInstanceRepository;
 import org.limbo.flowjob.broker.dao.converter.DomainConverter;
 import org.limbo.flowjob.broker.dao.entity.DelayInstanceEntity;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInstanceEntity;
 import org.limbo.flowjob.common.utils.attribute.Attributes;
@@ -44,9 +45,11 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -153,14 +156,25 @@ public class JobInstanceRepo implements JobInstanceRepository {
     }
 
     @Override
-    public JobInstance getOneByBroker(URL brokerUrl) {
-        JobInstanceEntity entity = jobInstanceEntityRepo.findOneByBrokerUrl(brokerUrl.toString());
-        return assemble(entity);
+    public Map<String, URL> findNotInBrokers(List<URL> brokerUrls, int limit) {
+        List<String> urls = brokerUrls.stream().map(URL::toString).collect(Collectors.toList());
+        List<JobInstanceEntity> entities = jobInstanceEntityRepo.findNotInBrokers(urls, limit);
+        if (CollectionUtils.isEmpty(entities)) {
+            return Collections.emptyMap();
+        }
+        Map<String, URL> map = new HashMap<>();
+        for (JobInstanceEntity entity : entities) {
+            map.put(entity.getJobInstanceId(), DomainConverter.brokerUrl(entity.getBrokerUrl()));
+        }
+        return map;
     }
 
     @Override
-    public boolean updateBroker(JobInstance instance, URL newBrokerUrl) {
-        return jobInstanceEntityRepo.updateBroker(instance.getId(), instance.getBrokerUrl().toString(), newBrokerUrl.toString()) > 0;
+    @Transactional
+    public boolean updateBroker(String id, URL oldBrokerUrl, URL newBrokerUrl) {
+        String oldStr = oldBrokerUrl == null ? "" : oldBrokerUrl.toString();
+        String newStr = newBrokerUrl == null ? "" : newBrokerUrl.toString();
+        return jobInstanceEntityRepo.updateBroker(id, oldStr, newStr) > 0;
     }
 
     private List<JobInstance> assemble(List<JobInstanceEntity> entities) {
@@ -181,7 +195,7 @@ public class JobInstanceRepo implements JobInstanceRepository {
             Set<String> planInfoIds = planInstanceEntities.stream().map(PlanInstanceEntity::getPlanInfoId).collect(Collectors.toSet());
             List<PlanInfoEntity> planInfoEntities = planInfoEntityRepo.findAllById(planInfoIds);
             Map<String, PlanInfoEntity> planInfoEntityMap = planInfoEntities.stream().collect(Collectors.toMap(PlanInfoEntity::getPlanInfoId, e -> e));
-            list.addAll(entities.stream().map(e -> {
+            list.addAll(planTypeEntities.stream().map(e -> {
                 PlanInstanceEntity planInstanceEntity = planInstanceEntityMap.get(e.getInstanceId());
                 PlanInfoEntity planInfoEntity = planInfoEntityMap.get(planInstanceEntity.getPlanInfoId());
                 return assemble(e, planInstanceEntity.getAttributes(), planInfoEntity.getJobInfo());
@@ -236,6 +250,7 @@ public class JobInstanceRepo implements JobInstanceRepository {
         attributes.put(jobInfo.getAttributes());
         return JobInstance.builder()
                 .id(entity.getJobInstanceId())
+                .agentId(entity.getAgentId())
                 .jobInfo(jobInfo)
                 .retryTimes(entity.getRetryTimes())
                 .instanceId(entity.getInstanceId())

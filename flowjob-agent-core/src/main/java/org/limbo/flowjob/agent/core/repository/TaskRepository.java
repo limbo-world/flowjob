@@ -91,7 +91,7 @@ public class TaskRepository {
                     "    `trigger_at`        datetime(6) DEFAULT NULL,\n" +
                     "    `start_at`          datetime(6) DEFAULT NULL,\n" +
                     "    `end_at`            datetime(6) DEFAULT NULL,\n" +
-                    "    `dispatch_fail_times`    int(3) DEFAULT 0,\n" +
+                    "    `dispatch_fail_times`    int(3) NOT NULL DEFAULT 0,\n" +
                     "    `result`            varchar(255) DEFAULT '',\n" +
                     "    `error_msg`         varchar(255) DEFAULT '',\n" +
                     "    `last_report_at`    datetime(6) NOT NULL," +
@@ -295,11 +295,11 @@ public class TaskRepository {
         }
         List<String> values = new ArrayList<>();
         for (Task task : tasks) {
-            values.add(" (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            values.add(" (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         }
         String sql = "insert into " + TABLE_NAME + "(" +
                 "task_id, job_id, worker_id, worker_address, executor_name, context, job_attributes, task_attributes, `type`, " +
-                "status, trigger_at, start_at, end_at, `result`, error_msg, error_stack_trace, last_report_at" +
+                "status, trigger_at, start_at, end_at, `result`, error_msg, error_stack_trace, last_report_at, `dispatch_fail_times`" +
                 ") values " + StringUtils.join(values, ",");
 
         try (Connection conn = connectionFactory.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -327,6 +327,7 @@ public class TaskRepository {
                 ps.setString(++idx, task.getErrorMsg() == null ? "" : task.getErrorMsg());
                 ps.setString(++idx, task.getErrorStackTrace() == null ? "" : task.getErrorStackTrace());
                 ps.setString(++idx, LocalDateTimeUtils.formatYMDHMS(task.getLastReportAt()));
+                ps.setInt(++idx, task.getDispatchFailTimes());
             }
             return ps.executeUpdate() > 0;
         } catch (Exception e) {

@@ -584,3 +584,24 @@ VALUES ('AGENT', 100000, 1000);
 /*!40000 ALTER TABLE `flowjob_id` ENABLE KEYS */;
 UNLOCK
 TABLES;
+
+--
+-- Table structure for table `flowjob_lock`
+--
+
+DROP TABLE IF EXISTS `flowjob_lock`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `flowjob_lock`
+(
+    `id`         bigint unsigned NOT NULL AUTO_INCREMENT,
+    `name`       varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `owner`      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+    `expire_at`  datetime(6) NOT NULL,
+    `is_deleted` bit(1)                                                 NOT NULL DEFAULT 0,
+    `created_at` datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` datetime                                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_id` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;

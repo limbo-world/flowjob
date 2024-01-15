@@ -41,8 +41,8 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, String>, JpaSp
     @Query(value = "select * from flowjob_plan where plan_id in :planIds and is_enabled = true and is_deleted = false", nativeQuery = true)
     List<PlanEntity> loadPlans(@Param("planIds") List<String> planIds);
 
-    @Query(value = "select * from flowjob_plan where broker_url = :brokerUrl and is_enabled = true and is_deleted = false limit 1 ", nativeQuery = true)
-    PlanEntity findOneByBrokerUrl(@Param("brokerUrl") String brokerUrl);
+    @Query(value = "select * from flowjob_plan where broker_url not in :brokerUrls and is_enabled = true and is_deleted = false limit :limit ", nativeQuery = true)
+    List<PlanEntity> findNotInBrokers(@Param("brokerUrls") List<String> brokerUrls, @Param("limit") Integer limit);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanEntity set brokerUrl = :newBrokerUrl where planId = :planId and brokerUrl = :oldBrokerUrl ")
