@@ -34,6 +34,12 @@ public class PlanEntity extends BaseEntity {
 
     @Id
     private String planId;
+
+    /**
+     * 分配的节点 ip:host
+     */
+    private String brokerUrl;
+
     /**
      * 所属应用
      */

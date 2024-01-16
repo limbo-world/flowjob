@@ -235,12 +235,6 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
 
         if (jobRepository.save(job)) {
             try {
-                job.setTaskDispatcher(taskDispatcher);
-                job.setTaskRepository(taskRepository);
-                job.setJobRepository(jobRepository);
-                job.setBrokerRpc(brokerRpc);
-                job.setScheduledReportPool(scheduledReportPool);
-
                 this.threadPool.submit(job);
             } catch (RejectedExecutionException e) {
                 jobRepository.delete(job.getId());
@@ -283,7 +277,7 @@ public class BaseScheduleAgent implements ScheduleAgent, Heartbeat {
 
         List<Task> tasks = new ArrayList<>();
         for (SubTaskCreateParam.SubTaskInfoParam subTaskInfoParam : subTaskParams) {
-            Task newTask = TaskFactory.createTask(subTaskInfoParam.getTaskId(), job, subTaskInfoParam.getData(), TaskType.MAP, null);
+            Task newTask = TaskFactory.create(subTaskInfoParam.getTaskId(), job, subTaskInfoParam.getData(), TaskType.MAP, null);
             tasks.add(newTask);
         }
 

@@ -31,7 +31,7 @@ import org.limbo.flowjob.api.param.PageParam;
 @EqualsAndHashCode(callSuper = true)
 public class JobInstanceQueryParam extends PageParam {
 
-    @Parameter(description = "planInstanceId")
-    private String planInstanceId;
+    @Parameter(description = "instanceId")
+    private String instanceId;
 
 }

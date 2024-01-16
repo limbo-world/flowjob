@@ -161,7 +161,10 @@ public class OkHttpAgentBrokerRpc extends OKHttpRpc<BaseLBServer> implements Age
 
     @Override
     public boolean reportExecuting(String jobInstanceId) {
-        String url = BASE_URL + API_JOB_EXECUTING + "?agentId=" + agentId + "&jobInstanceId=" + jobInstanceId;
+        String url = BASE_URL +
+                API_JOB_EXECUTING +
+                "?agentId=" + agentId +
+                "&jobInstanceId=" + jobInstanceId;
         ResponseDTO<Boolean> response = executePost(url, null, new TypeReference<ResponseDTO<Boolean>>() {
         });
 
@@ -172,7 +175,9 @@ public class OkHttpAgentBrokerRpc extends OKHttpRpc<BaseLBServer> implements Age
 
     @Override
     public boolean reportJob(String jobInstanceId) {
-        String url = BASE_URL + API_JOB_REPORT + "?jobInstanceId=" + jobInstanceId;
+        String url = BASE_URL +
+                API_JOB_REPORT +
+                "?jobInstanceId=" + jobInstanceId;
         ResponseDTO<Boolean> response = executePost(url, null, new TypeReference<ResponseDTO<Boolean>>() {
         });
 

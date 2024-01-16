@@ -5,7 +5,7 @@
     <parent>
         <artifactId>flowjob</artifactId>
         <groupId>io.github.limbo-world</groupId>
-        <version>2.0.0</version>
+        <version>2.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>flowjob-broker-application</artifactId>
@@ -86,6 +86,13 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
+        </dependency>
+        <!-- SQL 打印 -->
+        <dependency>
+            <groupId>com.googlecode.log4jdbc</groupId>
+            <artifactId>log4jdbc</artifactId>
+            <version>1.2</version>
+            <scope>runtime</scope>
         </dependency>
         <!-- logger end -->
     </dependencies>

@@ -19,14 +19,12 @@
 package org.limbo.flowjob.agent.core.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.agent.core.TaskDispatcher;
 import org.limbo.flowjob.agent.core.entity.Task;
-import org.limbo.flowjob.agent.core.repository.JobRepository;
 import org.limbo.flowjob.agent.core.repository.TaskRepository;
-import org.limbo.flowjob.agent.core.rpc.AgentBrokerRpc;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.console.TaskDTO;
 import org.limbo.flowjob.api.param.console.TaskQueryParam;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -56,7 +54,7 @@ public class TaskService {
         List<Task> tasks = taskRepository.queryPage(param);
         page.setData(tasks.stream().map(task -> {
             TaskDTO dto = new TaskDTO();
-            dto.setTaskId(task.getTaskId());
+            dto.setTaskId(task.getId());
             dto.setJobInstanceId(task.getJobId());
             dto.setWorkerId(task.getWorker() == null ? "" : task.getWorker().getId());
             dto.setWorkerAddress(task.getWorker() == null ? "" : task.getWorker().address());
@@ -68,8 +66,8 @@ public class TaskService {
             dto.setResult(task.getResult());
             dto.setErrorMsg(task.getErrorMsg());
             dto.setErrorStackTrace(task.getErrorStackTrace());
-            dto.setStartAt(task.getStartAt());
-            dto.setEndAt(task.getEndAt());
+            dto.setStartAt(TimeUtils.toTimestamp(task.getStartAt()));
+            dto.setEndAt(TimeUtils.toTimestamp(task.getEndAt()));
             return dto;
         }).collect(Collectors.toList()));
         return page;

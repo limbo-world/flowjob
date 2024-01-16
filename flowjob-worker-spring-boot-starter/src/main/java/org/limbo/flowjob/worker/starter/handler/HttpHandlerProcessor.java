@@ -87,7 +87,7 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
             worker.receiveTask(task);
             return true;
         } catch (Exception e) {
-            log.error("Failed to receive task", e);
+            log.error("Failed to receive task:{}", JacksonUtils.toJSONString(param), e);
             return false;
         }
     }

@@ -59,20 +59,20 @@ public abstract class Broker {
      */
     public void start() {
         // 将自己先注册上去
-        manger.online(new Node(name, rpcBaseURL.getHost(), rpcBaseURL.getPort()));
+        manger.online(new Node(name, rpcBaseURL));
         // 节点注册 用于集群感知
-        registry.register(name, rpcBaseURL.getHost(), rpcBaseURL.getPort());
+        registry.register(name, rpcBaseURL);
         // 节点变更通知
         registry.subscribe(event -> {
             switch (event.getType()) {
                 case ONLINE:
-                    manger.online(new Node(event.getName(), event.getHost(), event.getPort()));
+                    manger.online(new Node(event.getName(), event.getUrl()));
                     if (log.isDebugEnabled()) {
                         log.debug("[BrokerNodeListener] receive online evnet {}", JacksonUtils.toJSONString(event));
                     }
                     break;
                 case OFFLINE:
-                    manger.offline(new Node(event.getName(), event.getHost(), event.getPort()));
+                    manger.offline(new Node(event.getName(), event.getUrl()));
                     if (log.isDebugEnabled()) {
                         log.debug("[BrokerNodeListener] receive offline evnet {}", JacksonUtils.toJSONString(event));
                     }

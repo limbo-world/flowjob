@@ -21,26 +21,31 @@ package org.limbo.flowjob.broker.application.config;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.limbo.flowjob.broker.application.component.AgentRegistry;
-import org.limbo.flowjob.broker.application.component.BrokerSlotManager;
 import org.limbo.flowjob.broker.application.component.BrokerStarter;
 import org.limbo.flowjob.broker.application.component.DBBrokerRegistry;
-import org.limbo.flowjob.broker.application.component.LocalNodeManger;
+import org.limbo.flowjob.broker.core.agent.AgentRegistry;
 import org.limbo.flowjob.broker.core.cluster.Broker;
 import org.limbo.flowjob.broker.core.cluster.BrokerConfig;
 import org.limbo.flowjob.broker.core.cluster.NodeManger;
 import org.limbo.flowjob.broker.core.cluster.NodeRegistry;
-import org.limbo.flowjob.broker.core.domain.IDGenerator;
+import org.limbo.flowjob.broker.core.meta.IDGenerator;
+import org.limbo.flowjob.broker.core.meta.info.PlanRepository;
+import org.limbo.flowjob.broker.core.meta.instance.DelayInstanceRepository;
+import org.limbo.flowjob.broker.core.meta.instance.PlanInstanceRepository;
+import org.limbo.flowjob.broker.core.meta.job.JobInstanceRepository;
+import org.limbo.flowjob.broker.core.meta.processor.DelayInstanceProcessor;
+import org.limbo.flowjob.broker.core.meta.processor.PlanInstanceProcessor;
+import org.limbo.flowjob.broker.core.meta.processor.InstanceProcessorFactory;
+import org.limbo.flowjob.broker.core.meta.task.PlanLoadTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTask;
 import org.limbo.flowjob.broker.core.schedule.scheduler.meta.MetaTaskScheduler;
 import org.limbo.flowjob.broker.core.schedule.selector.SingletonWorkerStatisticsRepo;
 import org.limbo.flowjob.broker.core.schedule.selector.WorkerSelectorFactory;
 import org.limbo.flowjob.broker.core.schedule.selector.WorkerStatisticsRepository;
-import org.limbo.flowjob.broker.dao.repositories.AgentEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.AgentSlotEntityRepo;
+import org.limbo.flowjob.broker.core.service.TransactionService;
+import org.limbo.flowjob.broker.core.worker.WorkerDomainService;
+import org.limbo.flowjob.broker.core.worker.WorkerRegistry;
 import org.limbo.flowjob.broker.dao.repositories.BrokerEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.PlanSlotEntityRepo;
-import org.limbo.flowjob.broker.dao.repositories.WorkerSlotEntityRepo;
 import org.limbo.flowjob.common.utils.NetUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -49,6 +54,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.util.Assert;
 
 import javax.inject.Inject;
@@ -86,13 +92,8 @@ public class BrokerAutoConfiguration {
     }
 
     @Bean
-    public NodeManger brokerManger(BrokerSlotManager slotManager) {
-        return new LocalNodeManger(slotManager);
-    }
-
-    @Bean
-    public BrokerSlotManager slotManager(URL brokerUrl, PlanSlotEntityRepo planSlotEntityRepo, WorkerSlotEntityRepo workerSlotEntityRepo, AgentSlotEntityRepo agentSlotEntityRepo) {
-        return new BrokerSlotManager(brokerUrl.getHost(), brokerUrl.getPort(), planSlotEntityRepo, workerSlotEntityRepo, agentSlotEntityRepo);
+    public NodeManger brokerManger(PlanRepository planRepository, JobInstanceRepository jobInstanceRepository) {
+        return new NodeManger(planRepository, jobInstanceRepository);
     }
 
     @Bean
@@ -138,6 +139,50 @@ public class BrokerAutoConfiguration {
         WorkerSelectorFactory factory = new WorkerSelectorFactory();
         factory.setLbServerStatisticsProvider(statisticsRepository);
         return factory;
+    }
+
+    @Bean
+    public PlanLoadTask planLoadTask(MetaTaskScheduler scheduler,
+                                     PlanRepository planRepository,
+                                     PlanInstanceProcessor processor,
+                                     @Lazy Broker broker,
+                                     NodeManger nodeManger) {
+        return new PlanLoadTask(scheduler, planRepository, processor, broker, nodeManger);
+    }
+
+    @Bean
+    public WorkerDomainService workerDomainService(WorkerRegistry workerRegistry,
+                                                   WorkerSelectorFactory workerSelectorFactory,
+                                                   WorkerStatisticsRepository workerStatisticsRepository) {
+        return new WorkerDomainService(workerRegistry, workerSelectorFactory, workerStatisticsRepository);
+    }
+
+    @Bean
+    public PlanInstanceProcessor planInstanceProcessor(MetaTaskScheduler metaTaskScheduler,
+                                                       IDGenerator idGenerator,
+                                                       NodeManger nodeManger,
+                                                       AgentRegistry agentRegistry,
+                                                       PlanRepository planRepository,
+                                                       TransactionService transactionService,
+                                                       PlanInstanceRepository planInstanceRepository,
+                                                       JobInstanceRepository jobInstanceRepository) {
+        return new PlanInstanceProcessor(metaTaskScheduler, idGenerator, nodeManger, agentRegistry, planRepository, transactionService, planInstanceRepository, jobInstanceRepository);
+    }
+
+    @Bean
+    public DelayInstanceProcessor delayInstanceProcessor(MetaTaskScheduler metaTaskScheduler,
+                                                         IDGenerator idGenerator,
+                                                         NodeManger nodeManger,
+                                                         AgentRegistry agentRegistry,
+                                                         TransactionService transactionService,
+                                                         DelayInstanceRepository delayInstanceRepository,
+                                                         JobInstanceRepository jobInstanceRepository) {
+        return new DelayInstanceProcessor(metaTaskScheduler, idGenerator, nodeManger, agentRegistry, transactionService, delayInstanceRepository, jobInstanceRepository);
+    }
+
+    @Bean
+    public InstanceProcessorFactory processorFactory(PlanInstanceProcessor planInstanceProcessor, DelayInstanceProcessor delayInstanceProcessor) {
+        return new InstanceProcessorFactory(planInstanceProcessor, delayInstanceProcessor);
     }
 
 }

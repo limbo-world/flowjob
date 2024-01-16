@@ -70,6 +70,7 @@ public class AgentEntity extends BaseEntity {
 
     /**
      * 节点状态
+     *
      * @see AgentStatus
      */
     private Integer status;

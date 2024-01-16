@@ -29,6 +29,9 @@ import org.limbo.flowjob.api.constants.Protocol;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.broker.BrokerTopologyDTO;
 import org.limbo.flowjob.api.dto.broker.WorkerRegisterDTO;
+import org.limbo.flowjob.api.param.broker.DelayInstanceCommitParam;
+import org.limbo.flowjob.api.param.broker.PlanInstanceCommitParam;
+import org.limbo.flowjob.api.param.broker.PlanInstanceJobScheduleParam;
 import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
 import org.limbo.flowjob.common.exception.RegisterFailException;
 import org.limbo.flowjob.common.exception.RpcException;
@@ -44,8 +47,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.API_WORKER_HEARTBEAT;
-import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.API_WORKER_REGISTER;
+import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.*;
 
 /**
  * @author Brozen
@@ -159,6 +161,45 @@ public class OkHttpBrokerRpc extends OKHttpRpc<BaseLBServer> implements WorkerBr
             WorkerRegisterDTO data = response.getData();
             updateBrokerTopology(data.getBrokerTopology());
         }
+    }
+
+    @Override
+    public String commitPlanInstance(PlanInstanceCommitParam param) {
+        String url = BASE_URL + API_PLAN_INSTANCE_COMMIT;
+        ResponseDTO<String> response = executePost(url, param, new TypeReference<ResponseDTO<String>>() {
+        });
+
+        if (response == null || !response.success()) {
+            String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
+            throw new RpcException(url + " failed: " + msg);
+        }
+        return response.getData();
+    }
+
+    @Override
+    public String schedulePlanInstanceJob(PlanInstanceJobScheduleParam param) {
+        String url = BASE_URL + API_PLAN_INSTANCE_JOB_SCHEDULE;
+        ResponseDTO<String> response = executePost(url, param, new TypeReference<ResponseDTO<String>>() {
+        });
+
+        if (response == null || !response.success()) {
+            String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
+            throw new RpcException(url + " failed: " + msg);
+        }
+        return response.getData();
+    }
+
+    @Override
+    public String commitDelayInstance(DelayInstanceCommitParam.StandaloneParam param) {
+        String url = BASE_URL + API_DELAY_INSTANCE_COMMIT;
+        ResponseDTO<String> response = executePost(url, param, new TypeReference<ResponseDTO<String>>() {
+        });
+
+        if (response == null || !response.success()) {
+            String msg = response == null ? MsgConstants.UNKNOWN : (response.getCode() + ":" + response.getMessage());
+            throw new RpcException(url + " failed: " + msg);
+        }
+        return response.getData();
     }
 
 }

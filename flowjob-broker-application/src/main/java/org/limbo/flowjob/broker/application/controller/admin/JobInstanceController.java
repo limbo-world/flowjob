@@ -25,7 +25,7 @@ import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.console.JobInstanceDTO;
 import org.limbo.flowjob.api.param.console.JobInstanceQueryParam;
-import org.limbo.flowjob.broker.application.service.JobInstanceService;
+import org.limbo.flowjob.broker.application.service.JobInstanceAppService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,7 +40,7 @@ import javax.inject.Inject;
 public class JobInstanceController {
 
     @Setter(onMethod_ = @Inject)
-    private JobInstanceService jobInstanceService;
+    private JobInstanceAppService jobInstanceAppService;
 
     /**
      * 计划列表
@@ -48,7 +48,7 @@ public class JobInstanceController {
     @Operation(summary = "计划列表")
     @GetMapping("/api/v1/job-instance/page")
     public ResponseDTO<PageDTO<JobInstanceDTO>> page(JobInstanceQueryParam param) {
-        return ResponseDTO.<PageDTO<JobInstanceDTO>>builder().ok(jobInstanceService.page(param)).build();
+        return ResponseDTO.<PageDTO<JobInstanceDTO>>builder().ok(jobInstanceAppService.page(param)).build();
     }
 
 }

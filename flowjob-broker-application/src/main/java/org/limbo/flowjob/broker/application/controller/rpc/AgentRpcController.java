@@ -25,7 +25,7 @@ import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.broker.AgentRegisterDTO;
 import org.limbo.flowjob.api.param.broker.AgentHeartbeatParam;
 import org.limbo.flowjob.api.param.broker.AgentRegisterParam;
-import org.limbo.flowjob.broker.application.service.AgentService;
+import org.limbo.flowjob.broker.application.service.AgentAppService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -47,7 +47,7 @@ import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.*;
 public class AgentRpcController {
 
     @Setter(onMethod_ = @Inject)
-    private AgentService agentService;
+    private AgentAppService agentAppService;
 
     /**
      * 注册
@@ -55,7 +55,7 @@ public class AgentRpcController {
     @Operation(summary = "注册")
     @PostMapping(API_AGENT_REGISTER)
     public ResponseDTO<AgentRegisterDTO> register(@Validated @RequestBody AgentRegisterParam param) {
-        return ResponseDTO.<AgentRegisterDTO>builder().ok(agentService.register(param)).build();
+        return ResponseDTO.<AgentRegisterDTO>builder().ok(agentAppService.register(param)).build();
     }
 
     /**
@@ -65,7 +65,7 @@ public class AgentRpcController {
     @PostMapping(API_AGENT_HEARTBEAT)
     public ResponseDTO<AgentRegisterDTO> heartbeat(@Validated @NotNull(message = "no id") @RequestParam("id") String id,
                                                    @Valid @RequestBody AgentHeartbeatParam heartbeatOption) {
-        return ResponseDTO.<AgentRegisterDTO>builder().ok(agentService.heartbeat(id, heartbeatOption)).build();
+        return ResponseDTO.<AgentRegisterDTO>builder().ok(agentAppService.heartbeat(id, heartbeatOption)).build();
     }
 
 }

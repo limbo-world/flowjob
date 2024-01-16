@@ -51,6 +51,10 @@ public interface Scheduled {
      */
     LocalDateTime scheduleAt();
 
-    void afterExecute(Throwable thrown);
+    /**
+     * 验证是否需要调度
+     * @return 验证结果
+     */
+    boolean verify();
 
 }

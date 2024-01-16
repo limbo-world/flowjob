@@ -21,17 +21,20 @@ package org.limbo.flowjob.broker.application.converter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.dto.console.DispatchOptionDTO;
+import org.limbo.flowjob.api.dto.console.OvertimeOptionDTO;
 import org.limbo.flowjob.api.dto.console.PlanDTO;
 import org.limbo.flowjob.api.dto.console.PlanInfoDTO;
 import org.limbo.flowjob.api.dto.console.RetryOptionDTO;
 import org.limbo.flowjob.api.dto.console.ScheduleOptionDTO;
 import org.limbo.flowjob.api.dto.console.TagFilterDTO;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
+import org.limbo.flowjob.broker.core.meta.info.JobInfo;
+import org.limbo.flowjob.broker.core.meta.info.OvertimeOption;
 import org.limbo.flowjob.broker.core.worker.dispatch.DispatchOption;
 import org.limbo.flowjob.broker.core.worker.dispatch.RetryOption;
 import org.limbo.flowjob.broker.core.worker.dispatch.TagFilterOption;
 import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -40,7 +43,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- *
  * @author Brozen
  * @since 2022-06-11
  */
@@ -77,8 +79,8 @@ public class PlanConverter {
         dto.setPlanType(planInfo.getPlanType());
         dto.setScheduleType(planInfo.getScheduleType());
         dto.setTriggerType(planInfo.getTriggerType());
-        dto.setScheduleStartAt(planInfo.getScheduleStartAt());
-        dto.setScheduleEndAt(planInfo.getScheduleEndAt());
+        dto.setScheduleStartAt(TimeUtils.toTimestamp(planInfo.getScheduleStartAt()));
+        dto.setScheduleEndAt(TimeUtils.toTimestamp(planInfo.getScheduleEndAt()));
         dto.setScheduleDelay(planInfo.getScheduleDelay());
         dto.setScheduleInterval(planInfo.getScheduleInterval());
         dto.setScheduleCron(planInfo.getScheduleCron());
@@ -95,12 +97,14 @@ public class PlanConverter {
         dto.setAttributes(jobInfo.getAttributes().toMap());
         dto.setExecutorName(jobInfo.getExecutorName());
         dto.setRetryOption(convertToRetryOption(jobInfo.getRetryOption()));
+        dto.setOvertimeOption(convertToOvertimeOption(jobInfo.getOvertimeOption()));
         dto.setDispatchOption(convertJobDispatchOption(jobInfo.getDispatchOption()));
     }
 
 
     /**
      * 转换为任务调度配置 DTO
+     *
      * @param planInfo 任务持久化对象
      */
     public ScheduleOptionDTO toScheduleOptionDTO(PlanInfoEntity planInfo) {
@@ -127,6 +131,15 @@ public class PlanConverter {
                 .retry(option.getRetry())
                 .retryInterval(option.getRetryInterval())
                 .retryType(option.getRetryInterval())
+                .build();
+    }
+
+    public OvertimeOptionDTO convertToOvertimeOption(OvertimeOption option) {
+        if (option == null) {
+            return new OvertimeOptionDTO();
+        }
+        return OvertimeOptionDTO.builder()
+                .schedule(option.getSchedule())
                 .build();
     }
 

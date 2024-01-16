@@ -42,7 +42,6 @@ public interface AgentEntityRepo extends JpaRepository<AgentEntity, String>, Jpa
 
     List<AgentEntity> findByLastHeartbeatAtBetween(LocalDateTime startTime, LocalDateTime endTime);
 
-    @Transactional
     @Modifying(clearAutomatically = true)
     @Query(value = "update AgentEntity set status = :newStatus where agentId = :agentId and status = :oldStatus ")
     int updateStatus(@Param("agentId") String agentId, @Param("oldStatus") Integer oldStatus, @Param("newStatus") Integer newStatus);

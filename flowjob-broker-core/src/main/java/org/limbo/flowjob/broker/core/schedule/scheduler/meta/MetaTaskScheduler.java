@@ -41,6 +41,9 @@ public class MetaTaskScheduler extends HashedWheelTimerScheduler<MetaTask> {
     public void schedule(MetaTask task) {
         String scheduleId = task.scheduleId();
         try {
+            if (!task.verify()) {
+                return;
+            }
             // 存在就不需要重新放入
             if (scheduling.putIfAbsent(scheduleId, task) != null) {
                 return;
@@ -57,6 +60,13 @@ public class MetaTaskScheduler extends HashedWheelTimerScheduler<MetaTask> {
         MetaTask task = scheduling.remove(id);
         if (task != null) {
             task.stop();
+        }
+    }
+
+    @Override
+    protected void afterExecute(MetaTask scheduled, Throwable thrown) {
+        if (scheduled.isStopWhenError()) {
+            unschedule(scheduled.scheduleId());
         }
     }
 

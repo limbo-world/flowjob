@@ -5,7 +5,7 @@ import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.limbo.flowjob.api.constants.ScheduleType;
-import org.limbo.flowjob.common.utils.attribute.Attributes;
+import org.limbo.flowjob.api.constants.TriggerType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -49,6 +49,7 @@ public class PlanInstanceEntity extends BaseEntity {
 
     /**
      * 触发类型
+     * @see TriggerType
      */
     private Integer triggerType;
 

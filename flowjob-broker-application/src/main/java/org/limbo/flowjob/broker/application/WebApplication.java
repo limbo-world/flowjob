@@ -39,7 +39,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 })
 @ComponentScan(basePackages = "org.limbo.flowjob.broker")
 @EntityScan(basePackages = "org.limbo.flowjob.broker.dao.entity")
-@EnableJpaRepositories(value = {"org.limbo.flowjob.broker.dao.repositories", "org.limbo.flowjob.broker.dao.domain"})
+@EnableJpaRepositories(value = {"org.limbo.flowjob.broker.dao.repositories"})
 public class WebApplication {
 
     public static void main(String[] args) {

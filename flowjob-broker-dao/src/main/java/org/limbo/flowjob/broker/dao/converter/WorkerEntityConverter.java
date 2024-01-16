@@ -21,8 +21,8 @@ import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.limbo.flowjob.api.constants.WorkerStatus;
-import org.limbo.flowjob.broker.core.domain.IDGenerator;
-import org.limbo.flowjob.broker.core.domain.IDType;
+import org.limbo.flowjob.broker.core.meta.IDGenerator;
+import org.limbo.flowjob.broker.core.meta.IDType;
 import org.limbo.flowjob.broker.core.worker.Worker;
 import org.limbo.flowjob.broker.core.worker.executor.WorkerExecutor;
 import org.limbo.flowjob.broker.core.worker.metric.WorkerAvailableResource;
@@ -82,7 +82,6 @@ public class WorkerEntityConverter {
             throw new IllegalStateException("parse worker rpc info error", e);
         }
     }
-
 
     /**
      * 将领域对象{@link Worker}转换为持久化对象{@link WorkerEntity}

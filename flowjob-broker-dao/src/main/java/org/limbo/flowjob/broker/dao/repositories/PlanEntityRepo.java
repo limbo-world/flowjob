@@ -41,21 +41,29 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, String>, JpaSp
     @Query(value = "select * from flowjob_plan where plan_id in :planIds and is_enabled = true and is_deleted = false", nativeQuery = true)
     List<PlanEntity> loadPlans(@Param("planIds") List<String> planIds);
 
+    @Query(value = "select * from flowjob_plan where broker_url not in :brokerUrls and is_enabled = true and is_deleted = false limit :limit ", nativeQuery = true)
+    List<PlanEntity> findNotInBrokers(@Param("brokerUrls") List<String> brokerUrls, @Param("limit") Integer limit);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "update PlanEntity set brokerUrl = :newBrokerUrl where planId = :planId and brokerUrl = :oldBrokerUrl ")
+    int updateBroker(@Param("planId") String planId, @Param("oldBrokerUrl") String oldBrokerUrl, @Param("newBrokerUrl") String newBrokerUrl);
+
     /**
      * 修改过的plan
      */
-    @Query(value = "select * from flowjob_plan where plan_id in :planIds and updated_at >= :updatedAt and is_enabled = true and is_deleted = false", nativeQuery = true)
-    List<PlanEntity> loadUpdatedPlans(@Param("planIds") List<String> planIds, @Param("updatedAt") LocalDateTime updatedAt);
+    @Query(value = "select * from flowjob_plan where broker_url = :brokerUrl and updated_at >= :updatedAt and is_enabled = true and is_deleted = false", nativeQuery = true)
+    List<PlanEntity> loadUpdatedPlans(@Param("brokerUrl") String brokerUrl, @Param("updatedAt") LocalDateTime updatedAt);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanEntity set currentVersion = :newCurrentVersion, recentlyVersion = :newRecentlyVersion, name = :name" +
-            " where planId = :planId and currentVersion = :currentVersion and recentlyVersion = :recentlyVersion")
+    @Query(value = "update PlanEntity set currentVersion = :newCurrentVersion, recentlyVersion = :newRecentlyVersion, name = :name, brokerUrl = :brokerUrl " +
+            " where planId = :planId and currentVersion = :currentVersion and recentlyVersion = :recentlyVersion ")
     int updateVersion(@Param("newCurrentVersion") String newCurrentVersion,
                       @Param("newRecentlyVersion") String newRecentlyVersion,
                       @Param("name") String name,
                       @Param("planId") String planId,
                       @Param("currentVersion") String currentVersion,
-                      @Param("recentlyVersion") String recentlyVersion);
+                      @Param("recentlyVersion") String recentlyVersion,
+                      @Param("brokerUrl") String brokerUrl);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update PlanEntity set currentVersion = :newCurrentVersion where planId = :planId and currentVersion = :currentVersion ")
@@ -64,8 +72,17 @@ public interface PlanEntityRepo extends JpaRepository<PlanEntity, String>, JpaSp
                       @Param("currentVersion") String currentVersion);
 
     @Modifying(clearAutomatically = true)
-    @Query(value = "update PlanEntity set enabled = :newValue where planId = :planId and enabled = :oldValue")
-    int updateEnable(@Param("planId") String planId, @Param("oldValue") boolean oldValue, @Param("newValue") boolean newValue);
+    @Query(value = "update PlanEntity set enabled = :newValue where planId = :planId and enabled = :oldValue ")
+    int updateEnable(@Param("planId") String planId,
+                     @Param("oldValue") boolean oldValue,
+                     @Param("newValue") boolean newValue);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "update PlanEntity set enabled = :newValue, brokerUrl = :brokerUrl where planId = :planId and enabled = :oldValue ")
+    int updateEnableAndBrokerUrl(@Param("planId") String planId,
+                                 @Param("oldValue") boolean oldValue,
+                                 @Param("newValue") boolean newValue,
+                                 @Param("brokerUrl") String brokerUrl);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update flowjob_plan set updated_at = :updatedAt where plan_id = :planId and is_enabled = true and is_deleted = false", nativeQuery = true)

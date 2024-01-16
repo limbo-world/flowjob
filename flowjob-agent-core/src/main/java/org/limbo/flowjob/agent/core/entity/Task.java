@@ -18,8 +18,8 @@
 
 package org.limbo.flowjob.agent.core.entity;
 
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.limbo.flowjob.agent.core.Worker;
@@ -37,11 +37,11 @@ import java.time.LocalDateTime;
  */
 @Slf4j
 @Getter
-@Setter
 @ToString
+@Builder
 public class Task {
 
-    private String taskId;
+    private String id;
 
     private String jobId;
 
@@ -80,7 +80,7 @@ public class Task {
     /**
      * 下发失败次数
      */
-    private Integer dispatchFailTimes;
+    private int dispatchFailTimes = 0;
 
     /**
      * 全局上下文
@@ -109,11 +109,22 @@ public class Task {
      */
     private LocalDateTime lastReportAt;
 
-    public void setContext(Attributes context) {
-        if (context == null) {
-            return;
-        }
+    public void setWorker(Worker worker) {
+        this.worker = worker;
+    }
+
+    public void dispatchFail() {
+        dispatchFailTimes++;
+    }
+
+    public void success(Attributes context, String result) {
         this.context = context;
+        this.result = result;
+    }
+
+    public void fail(String errorMsg, String errorStackTrace) {
+        this.errorMsg = errorMsg;
+        this.errorStackTrace = errorStackTrace;
     }
 
 }

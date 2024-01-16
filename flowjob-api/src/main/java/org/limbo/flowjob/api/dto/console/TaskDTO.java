@@ -6,7 +6,6 @@ import org.limbo.flowjob.api.constants.TaskStatus;
 import org.limbo.flowjob.api.constants.TaskType;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
  * 最小的执行单元 下发给worker
@@ -84,12 +83,12 @@ public class TaskDTO implements Serializable {
      * 开始时间
      */
     @Schema(title = "开始时间")
-    private LocalDateTime startAt;
+    private Long startAt;
 
     /**
      * 结束时间
      */
     @Schema(title = "结束时间")
-    private LocalDateTime endAt;
+    private Long endAt;
 
 }

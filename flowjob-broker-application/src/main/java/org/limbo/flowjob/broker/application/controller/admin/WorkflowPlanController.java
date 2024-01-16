@@ -28,7 +28,7 @@ import org.limbo.flowjob.api.dto.console.PlanVersionDTO;
 import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.PlanVersionParam;
 import org.limbo.flowjob.api.param.console.WorkflowPlanUpdateParam;
-import org.limbo.flowjob.broker.application.service.PlanService;
+import org.limbo.flowjob.broker.application.service.PlanAppService;
 import org.limbo.flowjob.broker.application.service.WorkflowPlanService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,7 +49,7 @@ import javax.validation.constraints.NotBlank;
 public class WorkflowPlanController {
 
     @Setter(onMethod_ = @Inject)
-    private PlanService planService;
+    private PlanAppService planAppService;
 
     @Setter(onMethod_ = @Inject)
     private WorkflowPlanService workflowPlanService;
@@ -81,9 +81,9 @@ public class WorkflowPlanController {
     @PostMapping("/api/v1/workflow-plan/version")
     public ResponseDTO<Boolean> versionUpdate(@NotBlank(message = "ID不能为空") @RequestParam("planId") String planId,
                                               @NotBlank(message = "version不能为空") @RequestParam("version") String version) {
-        return ResponseDTO.<Boolean>builder().ok(planService.versionUpdate(planId, version)).build();
+        return ResponseDTO.<Boolean>builder().ok(planAppService.versionUpdate(planId, version)).build();
     }
-    
+
 
     /**
      * 获取工作流 plan 详情
@@ -101,7 +101,7 @@ public class WorkflowPlanController {
     @Operation(summary = "获取工作流 plan 版本列表")
     @GetMapping("/api/v1/workflow-plan/version/page")
     public ResponseDTO<PageDTO<PlanVersionDTO>> versionPage(PlanVersionParam param) {
-        return ResponseDTO.ok(planService.versionPage(param));
+        return ResponseDTO.ok(planAppService.versionPage(param));
     }
 
 

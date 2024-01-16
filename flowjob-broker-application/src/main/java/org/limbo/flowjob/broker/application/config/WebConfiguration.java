@@ -62,13 +62,12 @@ public class WebConfiguration implements WebMvcConfigurer {
         module.addSerializer(LocalTime.class, new LocalTimeSerializer(DateTimeFormatter.ofPattern(Formatters.YMD_HMS)));
         module.addDeserializer(LocalTime.class, new LocalTimeDeserializer(DateTimeFormatter.ofPattern(Formatters.YMD_HMS)));
 //        module.addDeserializer(Duration.class, DurationDeserializer.INSTANCE);
-        ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.json()
+        return Jackson2ObjectMapperBuilder.json()
                 .modules(module)
+                .serializationInclusion(JsonInclude.Include.NON_NULL)
+                .dateFormat(new SimpleDateFormat(Formatters.YMD_HMS))
                 .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .build();
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        objectMapper.setDateFormat(new SimpleDateFormat(Formatters.YMD_HMS));
-        return objectMapper;
     }
 
     @Override

@@ -20,7 +20,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
-import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.InstanceType;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
 
@@ -72,7 +72,7 @@ public class PlanInfoEntity extends BaseEntity {
 
     /**
      * 计划作业类型
-     * @see PlanType
+     * @see InstanceType
      */
     private Integer planType;
 

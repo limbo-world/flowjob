@@ -16,11 +16,6 @@
 
 package org.limbo.flowjob.broker.core.schedule.scheduler.meta;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 import org.limbo.flowjob.broker.core.schedule.Scheduled;
 
 /**
@@ -34,30 +29,20 @@ public abstract class MetaTask implements Scheduled {
      */
     private volatile boolean stopped = false;
 
-    @JsonIgnore
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    @ToString.Exclude
-    protected MetaTaskScheduler metaTaskScheduler;
-
-    public MetaTask(MetaTaskScheduler metaTaskScheduler) {
-        this.metaTaskScheduler = metaTaskScheduler;
-    }
-
-    @Override
-    public void afterExecute(Throwable thrown) {
-        metaTaskScheduler.unschedule(scheduleId());
-    }
+    /**
+     * 异常是否终止
+     */
+    protected boolean stopWhenError = true;
 
     @Override
     public String scheduleId() {
-        return getType().name() + "-" + getMetaId();
+        return getType() + "-" + getMetaId();
     }
 
     /**
      * @return 任务类型
      */
-    public abstract MetaTaskType getType();
+    public abstract String getType();
 
     /**
      * @return 任务id
@@ -74,5 +59,12 @@ public abstract class MetaTask implements Scheduled {
         return stopped;
     }
 
+    public boolean isStopWhenError() {
+        return stopWhenError;
+    }
 
+    @Override
+    public boolean verify() {
+        return true;
+    }
 }

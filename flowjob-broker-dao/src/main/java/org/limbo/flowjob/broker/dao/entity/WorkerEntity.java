@@ -51,6 +51,7 @@ public class WorkerEntity extends BaseEntity {
 
     @Id
     private String workerId;
+
     /**
      * 所属应用
      */
@@ -78,6 +79,7 @@ public class WorkerEntity extends BaseEntity {
 
     /**
      * worker节点状态
+     *
      * @see WorkerStatus
      */
     private Integer status;

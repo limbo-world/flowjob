@@ -26,6 +26,7 @@ import org.limbo.flowjob.api.dto.broker.BrokerTopologyDTO;
 import org.limbo.flowjob.broker.core.cluster.Node;
 import org.limbo.flowjob.broker.core.worker.Worker;
 
+import java.net.URL;
 import java.util.Collection;
 
 /**
@@ -39,7 +40,8 @@ public class BrokerConverter {
         BrokerTopologyDTO brokerTopologyDTO = new BrokerTopologyDTO();
         if (CollectionUtils.isNotEmpty(nodes)) {
             for (Node node : nodes) {
-                brokerTopologyDTO.getBrokers().add(new BrokerDTO(node.getHost(), node.getPort()));
+                URL url = node.getUrl();
+                brokerTopologyDTO.getBrokers().add(new BrokerDTO(url.getProtocol(), url.getHost(), url.getPort()));
             }
         }
         return brokerTopologyDTO;

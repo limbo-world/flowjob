@@ -78,6 +78,12 @@ public class WorkflowJobParam  {
     private RetryOptionParam retryOption;
 
     /**
+     * 作业超时参数
+     */
+    @Schema(title = "作业超时参数")
+    private OvertimeOptionParam overtimeOption;
+
+    /**
      * 作业分发配置参数
      */
     @Valid
@@ -110,5 +116,5 @@ public class WorkflowJobParam  {
      * 执行失败是否继续 true 会继续执行后续作业
      */
     @Schema(title = "执行失败是否继续", description = "true 会继续执行后续作业")
-    private boolean continueWhenFail = false;
+    private boolean skipWhenFail = false;
 }

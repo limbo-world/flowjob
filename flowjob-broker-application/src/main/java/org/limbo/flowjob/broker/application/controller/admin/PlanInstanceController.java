@@ -21,15 +21,23 @@ package org.limbo.flowjob.broker.application.controller.admin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Setter;
+import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.api.dto.PageDTO;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.console.PlanInstanceDTO;
+import org.limbo.flowjob.api.param.broker.PlanInstanceCommitParam;
+import org.limbo.flowjob.api.param.broker.PlanInstanceJobScheduleParam;
 import org.limbo.flowjob.api.param.console.PlanInstanceQueryParam;
-import org.limbo.flowjob.broker.application.schedule.ScheduleProxy;
-import org.limbo.flowjob.broker.application.service.PlanInstanceService;
+import org.limbo.flowjob.broker.application.service.PlanInstanceAppService;
+import org.limbo.flowjob.broker.core.meta.info.Plan;
+import org.limbo.flowjob.broker.core.meta.info.PlanRepository;
+import org.limbo.flowjob.broker.core.meta.processor.PlanInstanceProcessor;
+import org.limbo.flowjob.common.utils.attribute.Attributes;
+import org.limbo.flowjob.common.utils.time.TimeUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -45,10 +53,13 @@ import javax.validation.constraints.NotNull;
 public class PlanInstanceController {
 
     @Setter(onMethod_ = @Inject)
-    private ScheduleProxy scheduleProxy;
+    private PlanInstanceProcessor processor;
 
     @Setter(onMethod_ = @Inject)
-    private PlanInstanceService planInstanceService;
+    private PlanRepository planRepository;
+
+    @Setter(onMethod_ = @Inject)
+    private PlanInstanceAppService planInstanceAppService;
 
     /**
      * 计划列表
@@ -56,7 +67,20 @@ public class PlanInstanceController {
     @Operation(summary = "计划列表")
     @GetMapping("/api/v1/plan-instance/page")
     public ResponseDTO<PageDTO<PlanInstanceDTO>> page(PlanInstanceQueryParam param) {
-        return ResponseDTO.<PageDTO<PlanInstanceDTO>>builder().ok(planInstanceService.page(param)).build();
+        return ResponseDTO.<PageDTO<PlanInstanceDTO>>builder().ok(planInstanceAppService.page(param)).build();
+    }
+
+    /**
+     * 手动触发对应 plan 创建并调度对应 instance
+     */
+    @Operation(summary = "触发对应plan调度")
+    @PostMapping("/api/v1/plan-instance/create-schedule")
+    public ResponseDTO<Void> createAndSchedulePlan(@Validated @RequestBody PlanInstanceCommitParam param) {
+        Plan plan = planRepository.get(param.getPlanId());
+        Attributes attributes = new Attributes();
+        attributes.putAll(param.getAttributes());
+        processor.schedule(plan, TriggerType.API, attributes, TimeUtils.currentLocalDateTime());
+        return ResponseDTO.<Void>builder().ok().build();
     }
 
     /**
@@ -64,9 +88,8 @@ public class PlanInstanceController {
      */
     @Operation(summary = "触发对应job调度")
     @PostMapping("/api/v1/plan-instance/job/schedule")
-    public ResponseDTO<Void> scheduleJob(@Validated @NotNull(message = "no planInstanceId") @RequestParam("planInstanceId") String planInstanceId,
-                                         @Validated @NotNull(message = "no jobId") @RequestParam("jobId") String jobId) {
-        scheduleProxy.manualScheduleJob(planInstanceId, jobId);
+    public ResponseDTO<Void> scheduleJob(@Validated @RequestBody PlanInstanceJobScheduleParam param) {
+        processor.manualScheduleJob(param.getInstanceId(), param.getJobId());
         return ResponseDTO.<Void>builder().ok().build();
     }
 

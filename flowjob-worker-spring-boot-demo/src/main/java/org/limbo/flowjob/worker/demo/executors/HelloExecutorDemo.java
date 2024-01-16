@@ -31,6 +31,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class HelloExecutorDemo implements TaskExecutor {
 
+    public static final String NAME = "hello";
+
     @Override
     public void run(Task task) {
         log.warn("Say hello to {}", task.getTaskId());
@@ -38,7 +40,7 @@ public class HelloExecutorDemo implements TaskExecutor {
 
     @Override
     public String getName() {
-        return "hello";
+        return NAME;
     }
 
     @Override

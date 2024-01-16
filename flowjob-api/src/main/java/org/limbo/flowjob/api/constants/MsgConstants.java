@@ -40,6 +40,8 @@ public interface MsgConstants {
 
     String CANT_FIND_PLAN_INSTANCE = "can't find plan instance by id:";
 
+    String CANT_FIND_DELAY_INSTANCE = "can't find delay instance by id:";
+
     String CANT_FIND_PLAN = "can't find plan by id:";
 
     String CANT_FIND_PLAN_INFO = "can't find plan info by version:";

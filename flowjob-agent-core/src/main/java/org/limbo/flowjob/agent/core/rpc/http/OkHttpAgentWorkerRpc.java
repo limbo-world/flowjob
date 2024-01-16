@@ -27,7 +27,6 @@ import org.limbo.flowjob.agent.core.rpc.AgentWorkerRpc;
 import org.limbo.flowjob.api.constants.MsgConstants;
 import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.param.worker.TaskSubmitParam;
-import org.limbo.flowjob.common.exception.RegisterFailException;
 import org.limbo.flowjob.common.exception.RpcException;
 import org.limbo.flowjob.common.http.OKHttpRpc;
 import org.limbo.flowjob.common.lb.BaseLBServer;
@@ -75,7 +74,7 @@ public class OkHttpAgentWorkerRpc extends OKHttpRpc<BaseLBServer> implements Age
     public static TaskSubmitParam toTaskSubmitParam(URL agentUrl, Task task) {
         TaskSubmitParam taskSubmitParam = new TaskSubmitParam();
         taskSubmitParam.setJobId(task.getJobId());
-        taskSubmitParam.setTaskId(task.getTaskId());
+        taskSubmitParam.setTaskId(task.getId());
         taskSubmitParam.setAgentRpcUrl(agentUrl);
         taskSubmitParam.setType(task.getType().type);
         taskSubmitParam.setExecutorName(task.getExecutorName());

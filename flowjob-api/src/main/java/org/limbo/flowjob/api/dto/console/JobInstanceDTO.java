@@ -4,8 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.limbo.flowjob.api.constants.JobStatus;
 
-import java.time.LocalDateTime;
-
 /**
  *
  * @author Devil
@@ -18,11 +16,7 @@ public class JobInstanceDTO {
     @Schema(title = "id")
     private String jobInstanceId;
 
-    private String planInstanceId;
-
-    private String planId;
-
-    private String planInfoId;
+    private String instanceId;
 
     /**
      * DAG中的jobId
@@ -59,18 +53,18 @@ public class JobInstanceDTO {
      * 计划时间
      */
     @Schema(title = "计划时间")
-    private LocalDateTime triggerAt;
+    private Long triggerAt;
 
     /**
      * 开始时间
      */
     @Schema(title = "开始时间")
-    private LocalDateTime startAt;
+    private Long startAt;
 
     /**
      * 结束时间
      */
     @Schema(title = "结束时间")
-    private LocalDateTime endAt;
+    private Long endAt;
 
 }

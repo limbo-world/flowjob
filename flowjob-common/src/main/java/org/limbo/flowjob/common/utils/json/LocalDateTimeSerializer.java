@@ -21,7 +21,7 @@ package org.limbo.flowjob.common.utils.json;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import org.limbo.flowjob.common.utils.time.DateTimeUtils;
+import org.limbo.flowjob.common.utils.time.LocalDateTimeUtils;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -45,7 +45,7 @@ public class LocalDateTimeSerializer extends JsonSerializer<LocalDateTime> {
     public void serialize(LocalDateTime localDateTime,
                           JsonGenerator jsonGenerator,
                           SerializerProvider serializerProvider) throws IOException {
-        jsonGenerator.writeString(DateTimeUtils.format(localDateTime, pattern));
+        jsonGenerator.writeString(LocalDateTimeUtils.format(localDateTime, pattern));
     }
 
 

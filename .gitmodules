@@ -1,0 +1,3 @@
+[submodule "flowjob-console"]
+	path = flowjob-console
+	url = git@github.com:limbo-world/flowjob-console.git

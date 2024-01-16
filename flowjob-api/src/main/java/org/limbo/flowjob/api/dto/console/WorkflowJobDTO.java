@@ -72,6 +72,12 @@ public class WorkflowJobDTO {
     private Map<String, Object> attributes;
 
     /**
+     * 作业超时参数
+     */
+    @Schema(title = "作业超时参数")
+    private OvertimeOptionDTO overtimeOption;
+
+    /**
      * 作业分发重试参数
      */
     @Schema(title = "作业分发重试参数")
@@ -110,5 +116,5 @@ public class WorkflowJobDTO {
      * 执行失败是否继续 true 会继续执行后续作业
      */
     @Schema(title = "执行失败是否继续", description = "true 会继续执行后续作业")
-    private boolean continueWhenFail = false;
+    private boolean skipWhenFail = false;
 }

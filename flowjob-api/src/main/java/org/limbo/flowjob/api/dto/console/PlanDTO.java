@@ -20,11 +20,9 @@ package org.limbo.flowjob.api.dto.console;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.InstanceType;
 import org.limbo.flowjob.api.constants.ScheduleType;
 import org.limbo.flowjob.api.constants.TriggerType;
-
-import java.time.LocalDateTime;
 
 /**
  * @author KaiFengCai
@@ -54,7 +52,7 @@ public class PlanDTO {
 
     /**
      * 计划作业类型
-     * @see PlanType
+     * @see InstanceType
      */
     @Schema(title = "任务类型")
     private Integer planType;
@@ -77,10 +75,10 @@ public class PlanDTO {
      * 从何时开始调度作业
      */
     @Schema(title = "调度开始时间")
-    private LocalDateTime scheduleStartAt;
+    private Long scheduleStartAt;
 
     @Schema(title = "调度结束时间")
-    private LocalDateTime scheduleEndAt;
+    private Long scheduleEndAt;
 
     /**
      * 作业调度延迟时间，单位秒

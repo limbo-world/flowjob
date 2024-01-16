@@ -18,6 +18,9 @@
 
 package org.limbo.flowjob.broker.core.agent;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 /**
  * @author Devil
  * @since 2023/8/14
@@ -26,4 +29,7 @@ public interface AgentRepository {
 
     ScheduleAgent get(String id);
 
+    List<ScheduleAgent> findByLastHeartbeatAtBetween(LocalDateTime startTime, LocalDateTime endTime);
+
+    boolean updateStatus(String agentId, Integer oldStatus, Integer newStatus);
 }

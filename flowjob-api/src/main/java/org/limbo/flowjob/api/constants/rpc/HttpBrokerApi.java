@@ -40,11 +40,13 @@ public interface HttpBrokerApi {
     String API_WORKER_PLAN_SCHEDULE = "/api/v1/rpc/worker/plan/schedule";
     // ============== worker ==================
 
-    // ============== plan ==================
-    String API_PLAN_SCHEDULE = "/api/v1/rpc/plan/schedule";
+    // ============== instance ==================
+    String API_PLAN_INSTANCE_COMMIT = "/api/v1/rpc/plan-instance/commit";
 
     String API_PLAN_INSTANCE_JOB_SCHEDULE = "/api/v1/rpc/plan-instance/job/schedule";
-    // ============== plan ==================
+
+    String API_DELAY_INSTANCE_COMMIT = "/api/v1/rpc/delay-instance/commit";
+    // ============== instance ==================
 
     // ============== job ==================
     String API_JOB_EXECUTING = "/api/v1/rpc/job/executing";

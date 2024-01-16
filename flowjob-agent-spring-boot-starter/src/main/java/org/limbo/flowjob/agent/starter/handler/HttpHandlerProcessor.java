@@ -26,6 +26,7 @@ import org.limbo.flowjob.agent.core.ScheduleAgent;
 import org.limbo.flowjob.agent.core.entity.Job;
 import org.limbo.flowjob.agent.core.repository.JobRepository;
 import org.limbo.flowjob.agent.core.service.TaskService;
+import org.limbo.flowjob.agent.starter.component.AgentConverter;
 import org.limbo.flowjob.api.constants.ExecuteResult;
 import org.limbo.flowjob.api.constants.JobType;
 import org.limbo.flowjob.api.constants.LoadBalanceType;
@@ -60,6 +61,9 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
 
     @Setter
     private TaskService taskService;
+
+    @Setter
+    private AgentConverter agentConverter;
 
     @Override
     public String process(HttpMethod httpMethod, String uri, String data) {
@@ -116,7 +120,7 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
     public boolean receive(JobSubmitParam param) {
         log.info("receive job param={}", param);
         try {
-            Job job = convert(param);
+            Job job = agentConverter.convert(param);
             agent.receiveJob(job);
             return true;
         } catch (Exception e) {
@@ -199,17 +203,6 @@ public class HttpHandlerProcessor implements IHttpHandlerProcessor {
             default:
                 throw new IllegalStateException("Unexpect execute result: " + param.getResult());
         }
-    }
-
-    public Job convert(JobSubmitParam param) {
-        Job job = new Job();
-        job.setId(param.getJobInstanceId());
-        job.setType(JobType.parse(param.getType()));
-        job.setExecutorName(param.getExecutorName());
-        job.setLoadBalanceType(LoadBalanceType.parse(param.getLoadBalanceType()));
-        job.setContext(new Attributes(param.getContext()));
-        job.setAttributes(new Attributes(param.getAttributes()));
-        return job;
     }
 
 }

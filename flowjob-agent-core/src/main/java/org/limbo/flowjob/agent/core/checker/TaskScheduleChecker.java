@@ -23,7 +23,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.limbo.flowjob.agent.core.TaskDispatcher;
 import org.limbo.flowjob.agent.core.entity.Task;
 import org.limbo.flowjob.agent.core.repository.TaskRepository;
-import org.limbo.flowjob.common.utils.time.DateTimeUtils;
+import org.limbo.flowjob.common.utils.time.LocalDateTimeUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
 import java.time.Duration;
@@ -83,14 +83,14 @@ public class TaskScheduleChecker {
                     Integer limit = 100;
                     String startId = "";
 
-                    String triggerAt = DateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime().plusSeconds(-5));
+                    String triggerAt = LocalDateTimeUtils.formatYMDHMS(TimeUtils.currentLocalDateTime().plusSeconds(-5));
 
                     List<Task> tasks = taskRepository.getUnScheduled(triggerAt, startId, limit);
                     while (CollectionUtils.isNotEmpty(tasks)) {
                         for (Task t : tasks) {
                             taskDispatcher.dispatch(t);
                         }
-                        startId = tasks.get(tasks.size() - 1).getTaskId();
+                        startId = tasks.get(tasks.size() - 1).getId();
                         tasks = taskRepository.getUnScheduled(triggerAt, startId, limit);
                     }
                 } catch (Exception e) {

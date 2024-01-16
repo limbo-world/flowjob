@@ -40,6 +40,7 @@ import org.limbo.flowjob.broker.dao.entity.WorkerMetricEntity;
 import org.limbo.flowjob.broker.dao.entity.WorkerTagEntity;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -56,6 +57,7 @@ public class WorkerConverter {
 
     /**
      * 根据注册参数，生成 worker tag 信息
+     *
      * @param options worker 注册参数
      * @return worker tags
      */
@@ -77,6 +79,7 @@ public class WorkerConverter {
 
     /**
      * 根据注册参数，生成worker指标信息
+     *
      * @param options worker注册参数
      */
     public static WorkerMetric toWorkerMetric(WorkerRegisterParam options) {
@@ -94,6 +97,7 @@ public class WorkerConverter {
 
     /**
      * 根据心跳参数，生成worker指标信息
+     *
      * @param options worker注册参数
      */
     public static WorkerMetric toWorkerMetric(WorkerHeartbeatParam options) {
@@ -152,7 +156,8 @@ public class WorkerConverter {
         BrokerTopologyDTO brokerTopologyDTO = new BrokerTopologyDTO();
         if (CollectionUtils.isNotEmpty(nodes)) {
             for (Node node : nodes) {
-                brokerTopologyDTO.getBrokers().add(new BrokerDTO(node.getHost(), node.getPort()));
+                URL url = node.getUrl();
+                brokerTopologyDTO.getBrokers().add(new BrokerDTO(url.getProtocol(), url.getHost(), url.getPort()));
             }
         }
         return brokerTopologyDTO;

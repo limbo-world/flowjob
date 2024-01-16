@@ -31,7 +31,7 @@ import java.util.Optional;
  */
 public interface BrokerEntityRepo extends JpaRepository<BrokerEntity, String> {
 
-    Optional<BrokerEntity> findByName(String name);
+    BrokerEntity findByProtocolAndHostAndPort(String protocol, String host, Integer port);
 
     List<BrokerEntity> findByLastHeartbeatBetween(LocalDateTime startTime, LocalDateTime endTime);
 

@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.limbo.flowjob.api.constants.Protocol;
 
 /**
  * broker节点描述
@@ -35,12 +36,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class BrokerDTO {
 
-//    /**
-//     * broker节点协议 如果加入多协议，需要有多个port，要改动整体结构
-//     * @see Protocol
-//     */
-//    @Schema(description = "broker节点协议")
-//    private String protocol;
+    /**
+     * broker节点协议
+     *
+     * @see Protocol
+     */
+    @Schema(description = "broker节点协议")
+    private String protocol;
 
     /**
      * broker节点主机名

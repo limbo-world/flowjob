@@ -20,22 +20,16 @@ package org.limbo.flowjob.broker.dao.converter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.limbo.flowjob.api.constants.AgentStatus;
-import org.limbo.flowjob.api.constants.PlanType;
 import org.limbo.flowjob.api.constants.ScheduleType;
-import org.limbo.flowjob.api.constants.TriggerType;
 import org.limbo.flowjob.broker.core.agent.ScheduleAgent;
-import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
-import org.limbo.flowjob.broker.core.domain.plan.NormalPlan;
-import org.limbo.flowjob.broker.core.domain.plan.Plan;
-import org.limbo.flowjob.broker.core.domain.plan.WorkflowPlan;
+import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
+import org.limbo.flowjob.broker.core.meta.job.JobInstance;
 import org.limbo.flowjob.broker.core.schedule.ScheduleOption;
 import org.limbo.flowjob.broker.dao.entity.AgentEntity;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
-import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
-import org.limbo.flowjob.broker.core.domain.job.JobInfo;
-import org.limbo.flowjob.broker.core.domain.job.JobInstance;
 import org.limbo.flowjob.common.utils.dag.DAG;
 import org.limbo.flowjob.common.utils.json.JacksonUtils;
 import org.limbo.flowjob.common.utils.time.TimeUtils;
@@ -52,31 +46,6 @@ import java.util.List;
  */
 @Slf4j
 public class DomainConverter {
-
-    public static Plan toPlan(PlanEntity entity, PlanInfoEntity planInfoEntity) {
-        Plan plan;
-        PlanType planType = PlanType.parse(planInfoEntity.getPlanType());
-        if (PlanType.STANDALONE == planType) {
-            plan = new NormalPlan(
-                    planInfoEntity.getPlanId(),
-                    planInfoEntity.getPlanInfoId(),
-                    TriggerType.parse(planInfoEntity.getTriggerType()),
-                    toScheduleOption(planInfoEntity),
-                    JacksonUtils.parseObject(planInfoEntity.getJobInfo(), JobInfo.class)
-            );
-        } else if (PlanType.WORKFLOW == planType) {
-            plan = new WorkflowPlan(
-                    planInfoEntity.getPlanId(),
-                    planInfoEntity.getPlanInfoId(),
-                    TriggerType.parse(planInfoEntity.getTriggerType()),
-                    toScheduleOption(planInfoEntity),
-                    toJobDag(planInfoEntity.getJobInfo())
-            );
-        } else {
-            throw new IllegalArgumentException("Illegal PlanType in plan:" + entity.getPlanId() + " version:" + entity.getCurrentVersion());
-        }
-        return plan;
-    }
 
     public static ScheduleOption toScheduleOption(PlanInfoEntity entity) {
         return new ScheduleOption(
@@ -101,15 +70,15 @@ public class DomainConverter {
     }
 
     public static JobInstanceEntity toJobInstanceEntity(JobInstance jobInstance) {
-        JobInfo jobInfo = jobInstance.getJobInfo();
+        WorkflowJobInfo jobInfo = jobInstance.getJobInfo();
         JobInstanceEntity entity = new JobInstanceEntity();
         entity.setJobId(jobInfo.getId());
-        entity.setJobInstanceId(jobInstance.getJobInstanceId());
+        entity.setJobInstanceId(jobInstance.getId());
         entity.setAgentId(jobInstance.getAgentId());
+        entity.setBrokerUrl(jobInstance.getBrokerUrl() == null ? "" : jobInstance.getBrokerUrl().toString());
         entity.setRetryTimes(jobInstance.getRetryTimes());
-        entity.setPlanInstanceId(jobInstance.getPlanInstanceId());
-        entity.setPlanId(jobInstance.getPlanId());
-        entity.setPlanInfoId(jobInstance.getPlanVersion());
+        entity.setInstanceId(jobInstance.getInstanceId());
+        entity.setInstanceType(jobInstance.getInstanceType().type);
         entity.setStatus(jobInstance.getStatus().status);
         entity.setTriggerAt(jobInstance.getTriggerAt());
         entity.setStartAt(jobInstance.getStartAt());
@@ -123,6 +92,9 @@ public class DomainConverter {
                 .id(entity.getAgentId())
                 .status(AgentStatus.parse(entity.getStatus()))
                 .rpcBaseUrl(url(entity))
+                .availableQueueLimit(entity.getAvailableQueueLimit())
+                .lastHeartbeatAt(entity.getLastHeartbeatAt())
+                .enabled(entity.isEnabled())
                 .build();
     }
 
@@ -131,6 +103,20 @@ public class DomainConverter {
             return new URL(entity.getProtocol(), entity.getHost(), entity.getPort(), "");
         } catch (Exception e) {
             throw new IllegalStateException("parse agent rpc info error", e);
+        }
+    }
+
+    /**
+     * 解析 broker 通信 URL
+     */
+    public static URL brokerUrl(String url) {
+        if (StringUtils.isBlank(url)) {
+            return null;
+        }
+        try {
+            return new URL(url);
+        } catch (Exception e) {
+            throw new IllegalStateException("parse broker rpc info error", e);
         }
     }
 

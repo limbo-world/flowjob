@@ -20,6 +20,7 @@ package org.limbo.flowjob.broker.dao.repositories;
 
 import org.limbo.flowjob.api.constants.ConstantsPool;
 import org.limbo.flowjob.broker.dao.entity.JobInstanceEntity;
+import org.limbo.flowjob.broker.dao.entity.PlanEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -36,27 +37,27 @@ import java.util.List;
 public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, String>, JpaSpecificationExecutor<JobInstanceEntity> {
 
     @Query(value = "select * from flowjob_job_instance" +
-            " where plan_id in :planIds and status = :status and last_report_at >= :lastReportAtStart and last_report_at <= :lastReportAtEnd and job_instance_id > :startId" +
+            " where broker_url = :brokerUrl and status = " + ConstantsPool.JOB_EXECUTING +
+            " and last_report_at >= :lastReportAtStart and last_report_at <= :lastReportAtEnd and job_instance_id > :startId" +
             " order by job_instance_id LIMIT :limit", nativeQuery = true)
-    List<JobInstanceEntity> findByExecuteCheck(@Param("planIds") List<String> planIds,
-                                               @Param("status") Integer status,
+    List<JobInstanceEntity> findByExecuteCheck(@Param("brokerUrl") String brokerUrl,
                                                @Param("lastReportAtStart") LocalDateTime lastReportAtStart,
                                                @Param("lastReportAtEnd") LocalDateTime lastReportAtEnd,
                                                @Param("startId") String startId,
                                                @Param("limit") Integer limit);
 
     @Query(value = "select * from flowjob_job_instance" +
-            " where plan_id in :planIds and  status = :status and last_report_at <= :lastReportAt and trigger_at <= :triggerAt and job_instance_id > :startId " +
+            " where broker_url = :brokerUrl and  status = " + ConstantsPool.JOB_SCHEDULING +
+            " and last_report_at <= :lastReportAt and trigger_at <= :triggerAt and job_instance_id > :startId " +
             " order by job_instance_id LIMIT :limit", nativeQuery = true)
-    List<JobInstanceEntity> findInSchedule(@Param("planIds") List<String> planIds,
+    List<JobInstanceEntity> findInSchedule(@Param("brokerUrl") String brokerUrl,
                                            @Param("lastReportAt") LocalDateTime lastReportAt,
                                            @Param("triggerAt") LocalDateTime triggerAt,
-                                           @Param("status") Integer status,
                                            @Param("startId") String startId,
                                            @Param("limit") Integer limit);
 
-    @Query(value = "select * from flowjob_job_instance where plan_instance_id = :planInstanceId and  job_id = :jobId order by trigger_at desc limit 1", nativeQuery = true)
-    JobInstanceEntity findByLatest(@Param("planInstanceId") String planInstanceId, @Param("jobId") String jobId);
+    @Query(value = "select * from flowjob_job_instance where instance_id = :instanceId and  job_id = :jobId order by trigger_at desc limit 1", nativeQuery = true)
+    JobInstanceEntity findByLatest(@Param("instanceId") String instanceId, @Param("jobId") String jobId);
 
     @Modifying(clearAutomatically = true)
     @Query(value = "update JobInstanceEntity " +
@@ -85,5 +86,12 @@ public interface JobInstanceEntityRepo extends JpaRepository<JobInstanceEntity, 
              @Param("startAt") LocalDateTime startAt,
              @Param("endAt") LocalDateTime endAt,
              @Param("errorMsg") String errorMsg);
+
+    @Query(value = "select * from flowjob_job_instance where broker_url not in :brokerUrls limit :limit ", nativeQuery = true)
+    List<JobInstanceEntity> findNotInBrokers(@Param("brokerUrls") List<String> brokerUrls, @Param("limit") Integer limit);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "update JobInstanceEntity set brokerUrl = :newBrokerUrl where jobInstanceId = :jobInstanceId and brokerUrl = :oldBrokerUrl ")
+    int updateBroker(@Param("jobInstanceId") String jobInstanceId, @Param("oldBrokerUrl") String oldBrokerUrl, @Param("newBrokerUrl") String newBrokerUrl);
 
 }

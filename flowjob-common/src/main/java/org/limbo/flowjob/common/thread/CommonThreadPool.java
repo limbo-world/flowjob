@@ -33,7 +33,7 @@ public class CommonThreadPool {
             Runtime.getRuntime().availableProcessors(),
             60,
             TimeUnit.SECONDS,
-            new LinkedBlockingDeque<>(10240),
+            new LinkedBlockingDeque<>(4096),
             new ThreadPoolExecutor.CallerRunsPolicy());
 
     public static final ThreadPoolExecutor IO = new ThreadPoolExecutor(
@@ -41,7 +41,7 @@ public class CommonThreadPool {
             Runtime.getRuntime().availableProcessors() * 4,
             60,
             TimeUnit.SECONDS,
-            new LinkedBlockingDeque<>(10240),
+            new LinkedBlockingDeque<>(1048576),
             new ThreadPoolExecutor.CallerRunsPolicy());
 
 }

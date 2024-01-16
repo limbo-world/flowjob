@@ -18,14 +18,14 @@ package org.limbo.flowjob.broker.application.service;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.limbo.flowjob.api.constants.PlanType;
+import org.limbo.flowjob.api.constants.InstanceType;
 import org.limbo.flowjob.api.dto.console.PlanInfoDTO;
 import org.limbo.flowjob.api.param.console.PlanParam;
 import org.limbo.flowjob.api.param.console.WorkflowPlanUpdateParam;
 import org.limbo.flowjob.broker.application.converter.WorkflowPlanConverter;
-import org.limbo.flowjob.broker.application.converter.factory.WorkflowPlanFactory;
-import org.limbo.flowjob.broker.core.domain.job.WorkflowJobInfo;
+import org.limbo.flowjob.broker.application.converter.WorkflowPlanParamConverter;
 import org.limbo.flowjob.broker.core.exceptions.VerifyException;
+import org.limbo.flowjob.broker.core.meta.info.WorkflowJobInfo;
 import org.limbo.flowjob.broker.core.utils.Verifies;
 import org.limbo.flowjob.broker.dao.entity.PlanInfoEntity;
 import org.limbo.flowjob.broker.dao.repositories.PlanEntityRepo;
@@ -45,16 +45,13 @@ import javax.transaction.Transactional;
 public class WorkflowPlanService {
 
     @Setter(onMethod_ = @Inject)
-    private PlanService planService;
+    private PlanAppService planAppService;
 
     @Setter(onMethod_ = @Inject)
     private PlanEntityRepo planEntityRepo;
 
     @Setter(onMethod_ = @Inject)
     private PlanInfoEntityRepo planInfoEntityRepo;
-
-    @Setter(onMethod_ = @Inject)
-    private WorkflowPlanFactory factory;
 
     @Setter(onMethod_ = @Inject)
     private WorkflowPlanConverter converter;
@@ -65,13 +62,13 @@ public class WorkflowPlanService {
      */
     @Transactional
     public String add(PlanParam.WorkflowPlanParam param) {
-        Verifies.notEmpty(param.getWorkflow(), "Workflow can't be empty with " + PlanType.WORKFLOW.name() + " Type");
-        DAG<WorkflowJobInfo> workflow = factory.createDAG(param.getWorkflow());
+        Verifies.notEmpty(param.getWorkflow(), "Workflow can't be empty with " + InstanceType.WORKFLOW.name() + " Type");
+        DAG<WorkflowJobInfo> workflow = WorkflowPlanParamConverter.createDAG(param.getWorkflow());
 
         String jobInfo = workflow.json();
         Verifies.notBlank(jobInfo, "Dag Node verify fail!");
 
-        return planService.save(null, PlanType.WORKFLOW, param, jobInfo);
+        return planAppService.save(null, InstanceType.WORKFLOW, param, jobInfo);
     }
 
 
@@ -81,12 +78,12 @@ public class WorkflowPlanService {
     @Transactional
     public String update(WorkflowPlanUpdateParam param) {
         Verifies.notEmpty(param.getWorkflow());
-        DAG<WorkflowJobInfo> workflow = factory.createDAG(param.getWorkflow());
+        DAG<WorkflowJobInfo> workflow = WorkflowPlanParamConverter.createDAG(param.getWorkflow());
 
         String jobInfo = workflow.json();
         Verifies.notBlank(jobInfo);
 
-        return planService.save(param.getPlanId(), PlanType.WORKFLOW, param, jobInfo);
+        return planAppService.save(param.getPlanId(), InstanceType.WORKFLOW, param, jobInfo);
     }
 
 

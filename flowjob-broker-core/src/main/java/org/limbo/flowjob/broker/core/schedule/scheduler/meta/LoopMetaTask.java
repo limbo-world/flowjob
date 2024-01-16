@@ -60,6 +60,9 @@ public abstract class LoopMetaTask extends MetaTask implements Calculated {
      */
     private LocalDateTime lastFeedbackAt;
 
+    /**
+     * 调度配置
+     */
     private final ScheduleOption scheduleOption;
 
     @JsonIgnore
@@ -68,12 +71,19 @@ public abstract class LoopMetaTask extends MetaTask implements Calculated {
     @ToString.Exclude
     protected ScheduleCalculator scheduleCalculator;
 
+    @JsonIgnore
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    @ToString.Exclude
+    protected MetaTaskScheduler metaTaskScheduler;
+
     protected LoopMetaTask(LocalDateTime lastTriggerAt, LocalDateTime lastFeedbackAt, ScheduleOption scheduleOption, MetaTaskScheduler metaTaskScheduler) {
-        super(metaTaskScheduler);
+        this.metaTaskScheduler = metaTaskScheduler;
         this.lastTriggerAt = lastTriggerAt;
         this.lastFeedbackAt = lastFeedbackAt;
         this.scheduleOption = scheduleOption;
         this.nextTriggerAt = calNextTriggerAt();
+        this.stopWhenError = false;
     }
 
     /**
@@ -151,11 +161,6 @@ public abstract class LoopMetaTask extends MetaTask implements Calculated {
     @Override
     public LocalDateTime lastFeedbackAt() {
         return lastFeedbackAt;
-    }
-
-    @Override
-    public void afterExecute(Throwable thrown) {
-
     }
 
     /**

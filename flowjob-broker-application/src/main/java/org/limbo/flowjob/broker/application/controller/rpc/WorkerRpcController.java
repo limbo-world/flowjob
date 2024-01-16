@@ -25,7 +25,7 @@ import org.limbo.flowjob.api.dto.ResponseDTO;
 import org.limbo.flowjob.api.dto.broker.WorkerRegisterDTO;
 import org.limbo.flowjob.api.param.broker.WorkerHeartbeatParam;
 import org.limbo.flowjob.api.param.broker.WorkerRegisterParam;
-import org.limbo.flowjob.broker.application.service.WorkerService;
+import org.limbo.flowjob.broker.application.service.WorkerAppService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -48,7 +48,7 @@ import static org.limbo.flowjob.api.constants.rpc.HttpBrokerApi.API_WORKER_REGIS
 public class WorkerRpcController {
 
     @Setter(onMethod_ = @Inject)
-    private WorkerService workerService;
+    private WorkerAppService workerAppService;
 
     /**
      * worker注册
@@ -56,7 +56,7 @@ public class WorkerRpcController {
     @Operation(summary = "worker注册")
     @PostMapping(API_WORKER_REGISTER)
     public ResponseDTO<WorkerRegisterDTO> register(@Validated @RequestBody WorkerRegisterParam param) {
-        return ResponseDTO.<WorkerRegisterDTO>builder().ok(workerService.register(param)).build();
+        return ResponseDTO.<WorkerRegisterDTO>builder().ok(workerAppService.register(param)).build();
     }
 
     /**
@@ -66,7 +66,7 @@ public class WorkerRpcController {
     @PostMapping(API_WORKER_HEARTBEAT)
     public ResponseDTO<WorkerRegisterDTO> heartbeat(@Validated @NotNull(message = "no id") @RequestParam("id") String id,
                                                     @Valid @RequestBody WorkerHeartbeatParam heartbeatOption) {
-        return ResponseDTO.<WorkerRegisterDTO>builder().ok(workerService.heartbeat(id, heartbeatOption)).build();
+        return ResponseDTO.<WorkerRegisterDTO>builder().ok(workerAppService.heartbeat(id, heartbeatOption)).build();
     }
 
 }

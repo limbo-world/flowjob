@@ -36,11 +36,14 @@ public class JobInstanceEntity extends BaseEntity {
     @Id
     private String jobInstanceId;
 
-    private String planInstanceId;
+    /**
+     * 分配的节点 ip:host
+     */
+    private String brokerUrl;
 
-    private String planId;
+    private String instanceId;
 
-    private String planInfoId;
+    private Integer instanceType;
 
     /**
      * DAG中的jobId
@@ -51,6 +54,7 @@ public class JobInstanceEntity extends BaseEntity {
 
     /**
      * 状态
+     *
      * @see JobStatus
      */
     private Integer status;
