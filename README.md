@@ -54,16 +54,19 @@
 
 ### 任务类型
 
-按大体配置分为：
-* 普通任务：只会执行一个Job。
-* 工作流任务：DAG视图，可以串联Job
+按实例类型分为：
 
+* 独立任务：执行的时候只创建一个Job实例
+* 工作流任务：DAG视图，可以串联Job，基于视图可能存在多个Job实例
+* 独立延迟任务：提交后在指定时间执行，创建一个Job实例
 
 按Job类型分为：
 * 普通：对应某个执行器，执行结束任务结束。
 * 广播：在下发的时间点，对每个可下发的节点下发任务，所以子任务执行完成当前任务才执行完成。
 * Map：分为sharding和map两个步骤。sharding的时候进行分片，map则对每个拆分任务进行执行。
 * MapReduce：相比于Map多了Reduce过程，可以对所有Map任务的执行结果进行一个汇总。
+
+各种任务的具体使用可以参考：[Demo](https://github.com/limbo-world/flowjob/tree/master/flowjob-worker-spring-boot-demo/src/main/java/org/limbo/flowjob/worker/demo/executors)
 
 # 使用帮助
 
@@ -117,7 +120,7 @@ mvn clean package -Dmaven.test.skip=true -Pdev
 <dependency>
     <groupId>io.github.limbo-world</groupId>
     <artifactId>flowjob-worker-spring-boot-starter</artifactId>
-    <version>2.0.0</version>
+    <version>2.1.0</version>
 </dependency>
 ```
 
