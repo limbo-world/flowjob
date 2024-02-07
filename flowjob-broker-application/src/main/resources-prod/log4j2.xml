@@ -3,13 +3,15 @@
     <Properties>
         <property name="LOG_HOME">./logs</property>
         <Property name="LOG_EXCEPTION_CONVERSION_WORD">%xThrowable</Property>
-        <property name="pattern_base">%d{yy-MM-dd HH:mm:ss}  %5level %pid --- </property>
-        <property name="pattern">${pattern_base} [%t] %-40.40c{1.} - %L : %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</property>
+        <Property name="LOG_LEVEL_PATTERN">%5p</Property>
+        <property name="LOG_DATEFORMAT_PATTERN">yy-MM-dd HH:mm:ss</property>
+        <property name="CONSOLE_LOG_PATTERN">%d{${sys:LOG_DATEFORMAT_PATTERN}} %clr{${sys:LOG_LEVEL_PATTERN}}{green} %clr{%pid}{magenta} - [%15.15t] %clr{%-40.40c{1.}}{cyan} - %clr{%4L}{yellow} %clr{:}{faint} %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</property>
+        <property name="FILE_LOG_PATTERN">%d{${sys:LOG_DATEFORMAT_PATTERN}} ${sys:LOG_LEVEL_PATTERN} %pid - [%15.15t] %-40.40c{1.} - 4L : %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</property>
     </Properties>
     <Appenders>
         <!-- info log-->
         <RollingFile name="InfoLogFile" fileName="${LOG_HOME}/web-info.log" filePattern="${LOG_HOME}/web-info.log.%d{yyyy-MM-dd}">
-            <PatternLayout charset="UTF-8" pattern="${pattern}"/>
+            <PatternLayout charset="UTF-8" pattern="${FILE_LOG_PATTERN}"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
             </Policies>
@@ -23,7 +25,7 @@
         </RollingFile>
         <!-- error log-->
         <RollingFile name="ErrorLogFile" fileName="${LOG_HOME}/web-error.log" filePattern="${LOG_HOME}/web-error.log.%d{yyyy-MM-dd}">
-            <PatternLayout charset="UTF-8" pattern="${pattern}"/>
+            <PatternLayout charset="UTF-8" pattern="${FILE_LOG_PATTERN}"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
             </Policies>
