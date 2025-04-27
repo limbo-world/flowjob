@@ -2,12 +2,14 @@
 <Configuration status="WARN">
     <Properties>
         <Property name="LOG_EXCEPTION_CONVERSION_WORD">%xThrowable</Property>
-        <property name="pattern_base">%d{yy-MM-dd HH:mm:ss}  %5level %pid --- </property>
-        <property name="CONSOLE_LOG_PATTERN">${pattern_base} [%t] %-40.40c{1.} - %L : %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</property>
+        <Property name="LOG_LEVEL_PATTERN">%5p</Property>
+        <property name="LOG_DATEFORMAT_PATTERN">yy-MM-dd HH:mm:ss</property>
+        <property name="CONSOLE_LOG_PATTERN">%d{${sys:LOG_DATEFORMAT_PATTERN}} %clr{${sys:LOG_LEVEL_PATTERN}}{green} %clr{%pid}{magenta} - [%15.15t] %clr{%-40.40c{1.}}{cyan} - %clr{%4L}{yellow} %clr{:}{faint} %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</property>
+        <property name="FILE_LOG_PATTERN">%d{${sys:LOG_DATEFORMAT_PATTERN}} ${sys:LOG_LEVEL_PATTERN} %pid - [%15.15t] %-40.40c{1.} - 4L : %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</property>
     </Properties>
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="${sys:CONSOLE_LOG_PATTERN}"/>
+            <PatternLayout pattern="${CONSOLE_LOG_PATTERN}"/>
         </Console>
     </Appenders>
     <Loggers>
